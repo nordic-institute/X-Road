@@ -81,25 +81,6 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss">
-.v-tabs-slider.xrd-main-tabs-slider {
-  width: 70px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.v-tab {
-  text-transform: none;
-  font-weight: 600;
-}
-
-.v-tabs-slider.xrd-sub-tabs-slider {
-  width: 40px;
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>
-
 <style lang="scss" scoped>
 .main-content {
   background-color: #ffffff;

@@ -141,3 +141,23 @@
   border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
   height: 16px;
 }
+
+// Override Vuetify tab slider style. Uses xrd-main-tabs-slider class as target.
+.v-tabs-slider.xrd-main-tabs-slider {
+  width: 70px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// Override Vuetify tab font style
+.v-tab {
+  text-transform: none !important;
+  font-weight: 600 !important;
+}
+
+// Override Vuetify tab for sub tabs. Uses xrd-sub-tabs-slider class as target.
+.v-tabs-slider.xrd-sub-tabs-slider {
+  width: 40px;
+  margin-left: auto;
+  margin-right: auto;
+}

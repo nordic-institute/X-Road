@@ -7,7 +7,7 @@ module.exports = {
     'plugin:vue/recommended',
     'eslint:recommended',
     '@vue/typescript/recommended',
-    '@vue/prettier',
+    'plugin:prettier/recommended',
     'plugin:vue-scoped-css/recommended', // Linter for vue scoped styles (eslint-plugin-vue-scoped-css)
   ],
   ignorePatterns: ['node_modules/'],

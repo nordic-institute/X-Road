@@ -121,7 +121,7 @@ export default Vue.extend({
 $text-color: $XRoad-Black100;
 
 .footer {
-  background: $XRoad-WarmGrey30;
+  background-color: $XRoad-WarmGrey30 !important;
   width: 100%;
   display: flex;
   flex-direction: column;
