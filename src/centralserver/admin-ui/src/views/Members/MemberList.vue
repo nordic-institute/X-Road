@@ -47,7 +47,7 @@
       :search="search"
       :must-sort="true"
       :items-per-page="10"
-      :options.sync="options"
+      :options.sync="pagingSortingOptions"
       :server-items-length="totalMembers"
       class="elevation-0 data-table"
       item-key="id"
@@ -89,14 +89,13 @@ import Vue from 'vue';
 import { RouteName } from '@/global';
 import { DataTableHeader } from 'vuetify';
 import { userStore } from '@/store/modules/user';
+import { clientStore } from '@/store/modules/clients';
 import { mapState } from 'pinia';
 import { Permissions } from '@/global';
-import { mapActions } from 'pinia';
+import { mapActions, mapStores } from 'pinia';
 import { DataOptions } from 'vuetify';
-import { debounce, isEmpty } from '@/util/helpers';
-import { Client, MemberClass, PagedClients } from '@/openapi-types';
-import * as api from '@/util/api';
-import { AxiosRequestConfig } from 'axios';
+import { debounce } from '@/util/helpers';
+import { Client } from '@/openapi-types';
 import { notificationsStore } from '@/store/modules/notifications';
 
 // To provide the Vue instance to debounce
@@ -112,7 +111,7 @@ export default Vue.extend({
       loading: false,
       showOnlyPending: false,
       totalMembers: 0,
-      options: {} as DataOptions,
+      pagingSortingOptions: {} as DataOptions,
       members: [] as Client[] | undefined,
     };
   },
@@ -122,6 +121,7 @@ export default Vue.extend({
     },
   },
   computed: {
+    ...mapStores(clientStore),
     ...mapState(userStore, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
@@ -156,7 +156,7 @@ export default Vue.extend({
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     debouncedFetchClients: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
-      that.fetchClients();
+      that.fetchClients(that.pagingSortingOptions);
     }, 600),
     toDetails(): void {
       this.$router.push({
@@ -165,28 +165,20 @@ export default Vue.extend({
       });
     },
     changeOptions: async function () {
-      this.fetchClients();
+      await this.fetchClients(this.pagingSortingOptions);
     },
-    fetchClients(): void {
+    fetchClients: async function (options: DataOptions) {
       this.loading = true;
-      const offset = this.options?.page == null ? 0 : this.options.page - 1;
-      const params: unknown = {
-        limit: this.options.itemsPerPage,
-        offset: offset,
-        sort: this.options.sortBy[0],
-        desc: this.options.sortDesc[0],
-        q: this.search,
-      };
-      const axiosParams: AxiosRequestConfig = { params };
 
-      api
-        .get<PagedClients>(`/clients`, axiosParams)
-        .then((res) => {
-          this.members = res.data.clients;
-          this.totalMembers = res.data.paging_metadata.total_items;
-        })
-        .catch((error) => this.showError(error))
-        .finally(() => (this.loading = false));
+      try {
+        await this.clientStore.find(options, this.search);
+        this.members = this.clientStore.clients;
+        this.totalMembers = this.clientStore.pagingOptions.total_items;
+      } catch (error: unknown) {
+        this.showError(error);
+      } finally {
+        this.loading = false;
+      }
     },
   },
 });
