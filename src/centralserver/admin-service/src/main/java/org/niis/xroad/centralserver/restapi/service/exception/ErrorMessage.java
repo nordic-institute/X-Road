@@ -42,8 +42,13 @@ public enum ErrorMessage {
     INVALID_AUTH_CERTIFICATE("Invalid authentication certificate"),
     MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL("Management request can not be approved"),
     MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND("Security server owner not found"),
-    MANAGEMENT_REQUEST_IN_WRONG_STATE("Requested operation can not be applied in this state"),
-    MANAGEMENT_REQUEST_NOT_SUPPORTED(("Unknown management request type"));
+    MANAGEMENT_REQUEST_INVALID_STATE("Requested operation can not be applied in this state"),
+    MANAGEMENT_REQUEST_NOT_SUPPORTED(("Unknown management request type")),
+    MANAGEMENT_REQUEST_SERVER_NOT_FOUND("Security server not found"),
+    MANAGEMENT_REQUEST_CANNOT_REGISTER_OWNER("Cannot register owner as a client"),
+    MANAGEMENT_REQUEST_MEMBER_NOT_FOUND("Member does not exist"),
+    MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND("Client registration does not exist"),
+    MANAGEMENT_REQUEST_ALREADY_REGISTERED("Client already registered to a server");
 
     @Getter
     final String description;

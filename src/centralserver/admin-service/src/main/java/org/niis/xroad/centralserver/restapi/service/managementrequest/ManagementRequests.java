@@ -28,10 +28,14 @@ package org.niis.xroad.centralserver.restapi.service.managementrequest;
 
 import org.niis.xroad.centralserver.restapi.dto.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.centralserver.restapi.dto.AuthenticationCertificateRegistrationRequestDto;
+import org.niis.xroad.centralserver.restapi.dto.ClientDeletionRequestDto;
+import org.niis.xroad.centralserver.restapi.dto.ClientRegistrationRequestDto;
 import org.niis.xroad.centralserver.restapi.dto.ManagementRequestDto;
 import org.niis.xroad.centralserver.restapi.dto.ManagementRequestInfoDto;
 import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateRegistrationRequest;
+import org.niis.xroad.centralserver.restapi.entity.ClientDeletionRequest;
+import org.niis.xroad.centralserver.restapi.entity.ClientRegistrationRequest;
 import org.niis.xroad.centralserver.restapi.entity.Request;
 
 final class ManagementRequests {
@@ -61,6 +65,27 @@ final class ManagementRequests {
                     req.getProcessingStatus(),
                     req.getAuthCert());
         }
+
+        if (request instanceof ClientRegistrationRequest) {
+            var req = (ClientRegistrationRequest) request;
+            return new ClientRegistrationRequestDto(
+                    req.getId(),
+                    req.getOrigin(),
+                    req.getSecurityServerId(),
+                    req.getProcessingStatus(),
+                    req.getClientId());
+        }
+
+        if (request instanceof ClientDeletionRequest) {
+            var req = (ClientDeletionRequest) request;
+            return new ClientDeletionRequestDto(
+                    req.getId(),
+                    req.getOrigin(),
+                    req.getSecurityServerId(),
+                    req.getProcessingStatus(),
+                    req.getClientId());
+        }
+
         throw new IllegalArgumentException("Unknown request type");
     }
 

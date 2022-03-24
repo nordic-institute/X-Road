@@ -112,6 +112,13 @@ public class ConfigurationLocation {
         return null;
     }
 
+    /**
+     * @return Instance identifier of this configuration location
+     */
+    public String getInstanceIdentifier() {
+        return source.getInstanceIdentifier();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof ConfigurationLocation)) {

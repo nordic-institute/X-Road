@@ -24,30 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.entity;
+package org.niis.xroad.centralserver.restapi.dto;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import lombok.Getter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
+import org.niis.xroad.centralserver.restapi.domain.Origin;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+@Getter
+public class ClientRegistrationRequestDto extends ManagementRequestDto {
+    private final ClientId clientId;
 
-@Converter(autoApply = true)
-public class StatusConverter implements AttributeConverter<ManagementRequestStatus, String> {
-
-    @Override
-    public String convertToDatabaseColumn(ManagementRequestStatus attribute) {
-        return attribute == null ? null : attribute.toString();
+    public ClientRegistrationRequestDto(Integer id, Origin origin,
+            SecurityServerId serverId, ManagementRequestStatus status, ClientId clientId) {
+        super(id, ManagementRequestType.CLIENT_REGISTRATION_REQUEST, origin, serverId, status);
+        this.clientId = clientId;
     }
 
-    @Override
-    public ManagementRequestStatus convertToEntityAttribute(String dbData) {
-        if (dbData == null) return null;
-
-        for (var s : ManagementRequestStatus.values()) {
-            if (s.toString().equals(dbData)) {
-                return s;
-            }
-        }
-        throw new IllegalArgumentException("Unable to convert " + dbData);
+    public ClientRegistrationRequestDto(Origin origin, SecurityServerId serverId, ClientId clientId) {
+        super(null, ManagementRequestType.CLIENT_REGISTRATION_REQUEST, origin, serverId, null);
+        this.clientId = clientId;
     }
 }

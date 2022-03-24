@@ -26,13 +26,19 @@
  */
 package org.niis.xroad.centralserver.restapi.repository;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
+
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient_;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer_;
+import org.niis.xroad.centralserver.restapi.entity.ServerClient_;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember_;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -44,10 +50,54 @@ import java.util.Optional;
 
 @Repository
 public interface SecurityServerRepository extends
-        PagingAndSortingRepository<SecurityServer, Integer>,
-        JpaSpecificationExecutor<SecurityServer> {
+        JpaRepository<SecurityServer, Integer>, JpaSpecificationExecutor<SecurityServer> {
+
+    String MEMBER_CLASS = "memberClass";
+    String MEMBER_CODE = "memberCode";
+    String X_ROAD_INSTANCE = "xRoadInstance";
 
     Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
+
+    default Optional<SecurityServer> findBy(SecurityServerId serverId, ClientId clientId) {
+        return findOne(serverIdSpec(serverId).and(clientIdSpec(clientId)));
+    }
+
+    static Specification<SecurityServer> clientIdSpec(ClientId clientId) {
+
+        return (root, query, builder) -> {
+            var cid = root
+                    .join(SecurityServer_.serverClients)
+                    .join(ServerClient_.securityServerClient)
+                    .join(SecurityServerClient_.identifier);
+
+            var pred = builder.and(
+                    builder.equal(cid.get("type"), clientId.getObjectType()),
+                    builder.equal(cid.get(X_ROAD_INSTANCE), clientId.getXRoadInstance()),
+                    builder.equal(cid.get(MEMBER_CLASS), clientId.getMemberClass()),
+                    builder.equal(cid.get(MEMBER_CODE), clientId.getMemberCode()));
+
+            if (clientId.getSubsystemCode() != null) {
+                pred = builder.and(pred, builder.equal(cid.get("subsystemCode"), clientId.getSubsystemCode()));
+            }
+
+            return pred;
+        };
+    }
+
+    static Specification<SecurityServer> serverIdSpec(SecurityServerId serverId) {
+
+        return (root, query, builder) -> {
+            var pred = builder.and(builder.equal(root.get(SecurityServer_.serverCode), serverId.getServerCode()));
+
+            var oid = root.join(SecurityServer_.owner).join(SecurityServerClient_.identifier);
+
+            pred = builder.and(pred, builder.equal(oid.get("type"), XRoadObjectType.MEMBER),
+                    builder.equal(oid.get(X_ROAD_INSTANCE), serverId.getXRoadInstance()),
+                    builder.equal(oid.get(MEMBER_CLASS), serverId.getMemberClass()),
+                    builder.equal(oid.get(MEMBER_CODE), serverId.getMemberCode()));
+            return pred;
+        };
+    }
 
     static Specification<SecurityServer> multifieldSearch(String q) {
         if (q == null || q.isEmpty()) {
@@ -58,7 +108,7 @@ public interface SecurityServerRepository extends
 
     private static Predicate multifieldSearchPredicate(Root<SecurityServer> root, CriteriaBuilder builder, String q) {
         final var owner = root.join(SecurityServer_.owner);
-        final var identifier = owner.join(XRoadMember_.identifier);
+        final var identifier = owner.join(SecurityServerClient_.identifier);
         final var pattern = builder.literal(
                 "%" + q.toLowerCase(Locale.ROOT)
                         .replace("\\", "\\\\")
@@ -68,8 +118,8 @@ public interface SecurityServerRepository extends
         return builder.or(
                 builder.like(builder.lower(root.get(SecurityServer_.serverCode)), pattern, '\\'),
                 builder.like(builder.lower(owner.get(XRoadMember_.name)), pattern, '\\'),
-                builder.like(builder.lower(identifier.get("memberClass")), pattern, '\\'),
-                builder.like(builder.lower(identifier.get("memberCode")), pattern, '\\')
+                builder.like(builder.lower(identifier.get(MEMBER_CLASS)), pattern, '\\'),
+                builder.like(builder.lower(identifier.get(MEMBER_CODE)), pattern, '\\')
         );
     }
 

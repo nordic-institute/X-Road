@@ -55,8 +55,9 @@ public class ClientDeletionRequest extends Request {
         return ManagementRequestType.CLIENT_DELETION_REQUEST;
     }
 
-    public ClientDeletionRequest(Origin origin, SecurityServerId serverId) {
+    public ClientDeletionRequest(Origin origin, SecurityServerId serverId, ClientId clientId) {
         super(origin, serverId);
+        this.clientId = clientId;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)

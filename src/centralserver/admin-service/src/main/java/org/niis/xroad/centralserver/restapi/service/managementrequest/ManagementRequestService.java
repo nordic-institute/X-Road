@@ -110,7 +110,7 @@ public class ManagementRequestService {
         var request = findRequest(requestId);
         if (!EnumSet.of(ManagementRequestStatus.WAITING, ManagementRequestStatus.SUBMITTED_FOR_APPROVAL)
                 .contains(request.getProcessingStatus())) {
-            throw new ValidationFailureException(ErrorMessage.MANAGEMENT_REQUEST_IN_WRONG_STATE);
+            throw new ValidationFailureException(ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE);
         }
 
         if (request instanceof RequestWithProcessing) {

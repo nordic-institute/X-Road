@@ -29,6 +29,9 @@ package org.niis.xroad.centralserver.restapi.converter;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequest;
+import org.niis.xroad.centralserver.openapi.model.ClientDeletionRequest;
+import org.niis.xroad.centralserver.openapi.model.ClientId;
+import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequest;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequest;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestInfo;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestOrigin;
@@ -38,6 +41,8 @@ import org.niis.xroad.centralserver.openapi.model.SecurityServerId;
 import org.niis.xroad.centralserver.openapi.model.XRoadId;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.centralserver.restapi.dto.AuthenticationCertificateRegistrationRequestDto;
+import org.niis.xroad.centralserver.restapi.dto.ClientDeletionRequestDto;
+import org.niis.xroad.centralserver.restapi.dto.ClientRegistrationRequestDto;
 import org.niis.xroad.centralserver.restapi.dto.ManagementRequestDto;
 import org.niis.xroad.centralserver.restapi.dto.ManagementRequestInfoDto;
 
@@ -57,7 +62,35 @@ public class ManagementRequestConverter {
                     r.getAuthenticationCertificate(),
                     r.getServerAddress());
         }
+
+        if (request instanceof ClientRegistrationRequest) {
+            var r = (ClientRegistrationRequest) request;
+            return new ClientRegistrationRequestDto(
+                    Origin.valueOf(r.getOrigin().name()),
+                    convert(r.getSecurityserverId()),
+                    convert(r.getClientId()));
+
+        }
+
+        if (request instanceof ClientDeletionRequest) {
+            var r = (ClientDeletionRequest) request;
+            return new ClientDeletionRequestDto(
+                    Origin.valueOf(r.getOrigin().name()),
+                    convert(r.getSecurityserverId()),
+                    convert(r.getClientId()));
+
+        }
+
         throw new IllegalArgumentException("Unknown request type");
+    }
+
+    private ee.ria.xroad.common.identifier.ClientId convert(ClientId id) {
+        return ee.ria.xroad.common.identifier.ClientId.create(
+                id.getInstanceId(),
+                id.getMemberClass(),
+                id.getMemberCode(),
+                id.getSubsystemCode()
+        );
     }
 
     public ManagementRequestInfo convert(ManagementRequestInfoDto dto) {
@@ -83,6 +116,9 @@ public class ManagementRequestConverter {
             response = new AuthenticationCertificateRegistrationRequest()
                     .authenticationCertificate(((AuthenticationCertificateRegistrationRequestDto) dto).getAuthCert())
                     .serverAddress(((AuthenticationCertificateRegistrationRequestDto) dto).getAddress());
+        } else if (dto instanceof ClientRegistrationRequestDto) {
+            response = new ClientRegistrationRequest()
+                    .clientId(convert(((ClientRegistrationRequestDto) dto).getClientId()));
         } else {
             throw new IllegalArgumentException("Unknown management request type");
         }
@@ -93,6 +129,16 @@ public class ManagementRequestConverter {
                 .origin(ManagementRequestOrigin.valueOf(dto.getOrigin().name()))
                 .status(ManagementRequestStatus.valueOf(dto.getStatus().name()))
                 .securityserverId(convert(dto.getServerId()));
+    }
+
+    private ClientId convert(ee.ria.xroad.common.identifier.ClientId id) {
+        var clientId = new ClientId();
+        clientId.subsystemCode(id.getSubsystemCode())
+                .memberCode(id.getMemberCode())
+                .memberClass(id.getMemberClass())
+                .instanceId(id.getXRoadInstance())
+                .type(XRoadId.TypeEnum.valueOf(id.getObjectType().name()));
+        return clientId;
     }
 
     private SecurityServerId convert(ee.ria.xroad.common.identifier.SecurityServerId id) {

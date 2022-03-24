@@ -66,4 +66,12 @@ public class Configuration {
     public boolean isExpired() {
         return expirationDate != null && Instant.now().isAfter(expirationDate.toInstant());
     }
+
+
+    /**
+     * @return Instance identifier of this configuration
+     */
+    public String getInstanceIdentifier() {
+        return location.getInstanceIdentifier();
+    }
 }

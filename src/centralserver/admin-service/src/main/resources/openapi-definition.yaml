@@ -4192,6 +4192,8 @@ components:
         propertyName: type
         mapping:
           AUTH_CERT_REGISTRATION_REQUEST: "AuthenticationCertificateRegistrationRequest"
+          CLIENT_REGISTRATION_REQUEST: "ClientRegistrationRequest"
+          CLIENT_DELETION_REQUEST: "ClientDeletionRequest"
       properties:
         id:
           type: integer
@@ -4294,6 +4296,24 @@ components:
       required:
         - serverAddress
         - authencationCertificate
+    ClientRegistrationRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        clientId:
+          $ref: '#/components/schemas/ClientId'
+      required:
+        - clientId
+    ClientDeletionRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        clientId:
+          $ref: '#/components/schemas/ClientId'
+      required:
+        - clientId
   securitySchemes:
     ApiKeyAuth:
       description: X-Road-ApiKey token=<api key>

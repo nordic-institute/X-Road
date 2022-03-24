@@ -45,14 +45,19 @@ import javax.persistence.Table;
 @Entity
 @Table(name = ServerClient.TABLE_NAME)
 public class ServerClient {
-    static final String TABLE_NAME = "security_clients";
+    static final String TABLE_NAME = "server_clients";
 
     private int id;
     private SecurityServerClient securityServerClient;
     private SecurityServer securityServer;
 
-    public ServerClient() {
+    protected ServerClient() {
         //JPA
+    }
+
+    ServerClient(SecurityServer server, SecurityServerClient client) {
+        securityServer = server;
+        securityServerClient = client;
     }
 
     @Id

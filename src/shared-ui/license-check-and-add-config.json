@@ -1,5 +1,6 @@
 {
   "ignore": [
+    "build.gradle",
     ".gradle",
     "**/*.md",
     "**/*.svg",

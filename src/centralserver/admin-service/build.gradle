@@ -132,7 +132,7 @@ task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
 }
 
 bootJar {
-    if (!project.hasProperty('skipFront')) {
+    if (!project.hasProperty('skip-frontend-build')) {
         dependsOn copyUi
         classpath += file('build/admin-ui')
     } else {

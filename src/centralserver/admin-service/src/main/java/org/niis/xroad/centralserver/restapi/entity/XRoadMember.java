@@ -53,7 +53,6 @@ public class XRoadMember extends SecurityServerClient {
 
     private MemberClass memberClass;
     private String memberCode;
-    private String subsystemCode;
     private String name;
     private String administrativeContact;
     private Set<SecurityServer> ownedServers = new HashSet<>(0);
@@ -68,31 +67,21 @@ public class XRoadMember extends SecurityServerClient {
         if (!Objects.equals(identifier.getMemberClass(), memberClass.getCode())) {
             throw new IllegalArgumentException("ClientId and memberClass are not consistent");
         }
-        this.subsystemCode = identifier.getSubsystemCode();
         this.memberCode = identifier.getMemberCode();
         this.memberClass = memberClass;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_class_id")
+    @Access(AccessType.FIELD)
     public MemberClass getMemberClass() {
         return this.memberClass;
-    }
-
-    public void setMemberClass(MemberClass memberClass) {
-        this.memberClass = memberClass;
     }
 
     @Column(name = "member_code")
     @Access(AccessType.FIELD)
     public String getMemberCode() {
         return this.memberCode;
-    }
-
-    @Column(name = "subsystem_code")
-    @Access(AccessType.FIELD)
-    public String getSubsystemCode() {
-        return this.subsystemCode;
     }
 
     @Column(name = "name")
@@ -125,5 +114,3 @@ public class XRoadMember extends SecurityServerClient {
         return this.subsystems;
     }
 }
-
-
