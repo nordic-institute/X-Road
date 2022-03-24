@@ -1817,7 +1817,6 @@ paths:
           schema:
             example: foobar
             format: text
-            minLength: 3
             maxLength: 25
             type: string
         - description: optional paging and sorting parameters
@@ -2179,7 +2178,6 @@ paths:
           schema:
             example: foobar
             format: text
-            minLength: 3
             maxLength: 25
             type: string
         - description: optional paging and sorting parameters
