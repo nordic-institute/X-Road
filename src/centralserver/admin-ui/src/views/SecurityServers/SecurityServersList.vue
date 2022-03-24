@@ -42,6 +42,7 @@
       :headers="headers"
       :items="securityServers"
       :must-sort="true"
+      :options="pagingSortingOptions"
       disable-filtering
       class="elevation-0 data-table"
       hide-default-footer
@@ -75,7 +76,8 @@ import { DataOptions, DataTableHeader } from 'vuetify';
 import { RouteName } from '@/global';
 import { SecurityServer } from '@/openapi-types';
 import { useSecurityServerStore } from '@/store/modules/security-servers';
-import { mapStores } from 'pinia';
+import { mapActions, mapStores } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
 
 interface SecurityServerListViewItem {
   id: string;
@@ -92,7 +94,16 @@ export default Vue.extend({
       loading: false,
       showOnlyPending: false,
       securityServers: [] as SecurityServerListViewItem[],
-      pagingSortingOptions: {} as DataOptions,
+      pagingSortingOptions: {
+        page: 0,
+        itemsPerPage: 5,
+        sortBy: ['serverCode'],
+        sortDesc: [false],
+        groupBy: [],
+        groupDesc: [],
+        multiSort: false,
+        mustSort: true,
+      } as DataOptions,
     };
   },
   computed: {
@@ -134,6 +145,7 @@ export default Vue.extend({
   },
 
   methods: {
+    ...mapActions(notificationsStore, ['showError']),
     toDetails(securityServer: SecurityServer): void {
       this.$router.push({
         name: RouteName.SecurityServerDetails,
@@ -143,7 +155,12 @@ export default Vue.extend({
     findServers: async function (options: DataOptions) {
       this.loading = true;
       this.pagingSortingOptions = Object.assign({}, options);
-      await this.securityServerStore.find(options, this.search);
+      await this.securityServerStore
+        .find(options, this.search)
+        .catch((error) => this.showError(error))
+        .finally(() => {
+          this.loading = false;
+        });
       this.securityServers = await this.securityServerStore.securityServers.map(
         (server: SecurityServer): SecurityServerListViewItem => {
           return {
