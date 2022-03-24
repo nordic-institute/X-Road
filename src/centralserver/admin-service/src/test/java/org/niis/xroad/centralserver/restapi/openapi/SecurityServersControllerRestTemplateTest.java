@@ -79,7 +79,7 @@ public class SecurityServersControllerRestTemplateTest extends AbstractApiRestTe
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getClients(), "Should return clients");
         int itemCount = response.getBody().getClients().size();
-        assertTrue(0 < itemCount, "Should return more than one client");
+        assertEquals(1, itemCount, "Should return one client");
         assertTrue(itemCount < response.getBody().getPagingMetadata().getTotalItems(),
                 "Total items be more than returned in one page");
 
