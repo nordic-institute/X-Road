@@ -46,9 +46,9 @@
       disable-filtering
       class="elevation-0 data-table"
       hide-default-footer
+      :no-data-text="emptyListReasoning"
       item-key="id"
       :loader-height="2"
-      :no-data-text="$t('noData.noMatches')"
       @update:options="findServers"
     >
       <template #[`item.serverCode`]="{ item }">
@@ -78,6 +78,8 @@ import { SecurityServer } from '@/openapi-types';
 import { useSecurityServerStore } from '@/store/modules/security-servers';
 import { mapActions, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
+import VueI18n from 'vue-i18n';
+import TranslateResult = VueI18n.TranslateResult;
 
 interface SecurityServerListViewItem {
   id: string;
@@ -135,6 +137,11 @@ export default Vue.extend({
           class: 'xrd-table-header ss-table-header-owner-class',
         },
       ];
+    },
+    emptyListReasoning(): TranslateResult {
+      return this.search
+        ? this.$t('noData.noMatches')
+        : this.$t('noData.noSecurityServers');
     },
   },
 
