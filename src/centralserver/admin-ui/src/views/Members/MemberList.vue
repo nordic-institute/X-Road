@@ -91,11 +91,13 @@ import { DataTableHeader } from 'vuetify';
 import { userStore } from '@/store/modules/user';
 import { mapState } from 'pinia';
 import { Permissions } from '@/global';
+import { mapActions } from 'pinia';
 import { DataOptions } from 'vuetify';
 import { debounce, isEmpty } from '@/util/helpers';
 import { Client, MemberClass, PagedClients } from '@/openapi-types';
 import * as api from '@/util/api';
 import { AxiosRequestConfig } from 'axios';
+import { notificationsStore } from '@/store/modules/notifications';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -151,6 +153,7 @@ export default Vue.extend({
     that = this;
   },
   methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     debouncedFetchClients: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.fetchClients();
@@ -181,12 +184,8 @@ export default Vue.extend({
         .then((res) => {
           this.members = res.data.clients;
           this.totalMembers = res.data.paging_metadata.total_items;
-          // console.log('total members: ' + this.totalMembers);
         })
-        .catch((error) => {
-          // importoi piniasta show error action, kato mallia muualta
-          throw 'error, handling missing';
-        })
+        .catch((error) => this.showError(error))
         .finally(() => (this.loading = false));
     },
   },
