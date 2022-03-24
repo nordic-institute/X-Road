@@ -78,7 +78,7 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
-    @PreAuthorize("permitAll")
+    @PreAuthorize("hasAuthority('SEARCH_MEMBERS') or hasAuthority('VIEW_MEMBERS')")
     public ResponseEntity<PagedClients> findClients(String q,
             PagingSortingParameters pagingSorting, String name,
             String instance, String memberClass,
