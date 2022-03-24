@@ -43,12 +43,12 @@
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="members"
+      :items="clientStore.clients"
       :search="search"
       :must-sort="true"
       :items-per-page="10"
       :options.sync="pagingSortingOptions"
-      :server-items-length="totalMembers"
+      :server-items-length="clientStore.pagingOptions.total_items"
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
@@ -95,7 +95,6 @@ import { Permissions } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { DataOptions } from 'vuetify';
 import { debounce } from '@/util/helpers';
-import { Client } from '@/openapi-types';
 import { notificationsStore } from '@/store/modules/notifications';
 
 // To provide the Vue instance to debounce
@@ -110,9 +109,7 @@ export default Vue.extend({
       search: '',
       loading: false,
       showOnlyPending: false,
-      totalMembers: 0,
       pagingSortingOptions: {} as DataOptions,
-      members: [] as Client[] | undefined,
     };
   },
   watch: {
@@ -172,8 +169,6 @@ export default Vue.extend({
 
       try {
         await this.clientStore.find(options, this.search);
-        this.members = this.clientStore.clients;
-        this.totalMembers = this.clientStore.pagingOptions.total_items;
       } catch (error: unknown) {
         this.showError(error);
       } finally {
