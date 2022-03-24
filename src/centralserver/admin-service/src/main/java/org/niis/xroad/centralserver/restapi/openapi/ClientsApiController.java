@@ -42,8 +42,6 @@ import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.service.ClientSearchService;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
-import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
-import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;

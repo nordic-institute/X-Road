@@ -31,6 +31,9 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
+import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient_;
+import org.niis.xroad.centralserver.restapi.entity.FlattenedServerClient_;
+import org.niis.xroad.centralserver.restapi.entity.MemberClass_;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -172,46 +175,48 @@ public interface FlattenedSecurityServerClientRepository extends
     }
 
     private static Predicate memberPredicate(Root root, CriteriaBuilder builder) {
-        return builder.equal(root.get("type"), "XRoadMember");
+        return builder.equal(root.get(FlattenedSecurityServerClient_.TYPE), "XRoadMember");
     }
     private static Predicate subsystemPredicate(Root root, CriteriaBuilder builder) {
-        return builder.equal(root.get("type"), "Subsystem");
+        return builder.equal(root.get(FlattenedSecurityServerClient_.TYPE), "Subsystem");
     }
     private static Predicate memberNamePredicate(Root root, CriteriaBuilder builder, String s) {
         return builder.like(
-                builder.lower(root.get("memberName")),
+                builder.lower(root.get(FlattenedSecurityServerClient_.MEMBER_NAME)),
                 builder.lower(builder.literal("%" + s + "%"))
         );
     }
     private static Predicate subsystemCodePredicate(Root root, CriteriaBuilder builder, String s) {
         return builder.like(
-                builder.lower(root.get("subsystemCode")),
+                builder.lower(root.get(FlattenedSecurityServerClient_.SUBSYSTEM_CODE)),
                 builder.lower(builder.literal("%" + s + "%"))
         );
     }
     private static Predicate memberCodePredicate(Root root, CriteriaBuilder builder, String s) {
         return builder.like(
-                builder.lower(root.get("memberCode")),
+                builder.lower(root.get(FlattenedSecurityServerClient_.MEMBER_CODE)),
                 builder.lower(builder.literal("%" + s + "%"))
         );
     }
     private static Predicate memberClassPredicate(Root root, CriteriaBuilder builder, String s) {
         return builder.like(
-                builder.lower(root.get("memberClass").get("code")),
+                builder.lower(root.get(FlattenedSecurityServerClient_.MEMBER_CLASS)
+                                  .get(MemberClass_.CODE)),
                 builder.lower(builder.literal("%" + s + "%"))
         );
     }
     private static Predicate instancePredicate(Root root, CriteriaBuilder builder, String s) {
         return builder.like(
-                builder.lower(root.get("xroadInstance")),
+                builder.lower(root.get(FlattenedSecurityServerClient_.XROAD_INSTANCE)),
                 builder.lower(builder.literal("%" + s + "%"))
         );
     }
 
     static Predicate clientOfSecurityServerPredicate(Root root, CriteriaBuilder builder, int id) {
         Join<FlattenedSecurityServerClient, SecurityServer> securityServer
-                = root.join("flattenedServerClients").join("securityServer");
-        return builder.equal(securityServer.get("id"), id);
+                = root.join(FlattenedSecurityServerClient_.FLATTENED_SERVER_CLIENTS)
+                      .join(FlattenedServerClient_.SECURITY_SERVER);
+        return builder.equal(securityServer.get(FlattenedSecurityServerClient_.ID), id);
     }
     static Predicate multifieldTextSearchPredicate(Root root, CriteriaBuilder builder, String q) {
         return builder.or(
