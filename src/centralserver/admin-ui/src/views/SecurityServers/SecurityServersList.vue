@@ -42,13 +42,13 @@
       :headers="headers"
       :items="securityServers"
       :must-sort="true"
-      :options="pagingSortingOptions"
+      :options.sync="pagingSortingOptions"
       disable-filtering
       class="elevation-0 data-table"
-      hide-default-footer
       :no-data-text="emptyListReasoning"
       item-key="id"
       :loader-height="2"
+      :server-items-length.sync="totalItems"
       @update:options="findServers"
     >
       <template #[`item.serverCode`]="{ item }">
@@ -106,6 +106,7 @@ export default Vue.extend({
         multiSort: false,
         mustSort: true,
       } as DataOptions,
+      totalItems: 0,
     };
   },
   computed: {
@@ -183,6 +184,8 @@ export default Vue.extend({
         this.securityServerStore.securityServerPagingOptions.offset + 1;
       this.pagingSortingOptions.itemsPerPage =
         this.securityServerStore.securityServerPagingOptions.limit;
+      this.totalItems =
+        this.securityServerStore.securityServerPagingOptions.total_items;
       this.loading = false;
     },
   },
