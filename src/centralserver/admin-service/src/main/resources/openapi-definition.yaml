@@ -3672,7 +3672,6 @@ components:
         - id
         - member_name
         - xroad_id
-        - client_type
       properties:
         id:
           description: the encoded string representation of the x-road member or subsystem id
@@ -3684,8 +3683,6 @@ components:
           readOnly: true
         xroad_id:
           $ref: '#/components/schemas/ClientId'
-        client_type:
-          $ref: '#/components/schemas/ClientType'
       type: object
     MemberClass:
       allOf:

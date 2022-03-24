@@ -31,19 +31,22 @@ import org.niis.xroad.centralserver.openapi.model.ClientId;
 import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneOffset;
+
 @Component
 @RequiredArgsConstructor
 public class ClientConverter {
 
     public Client convert(FlattenedSecurityServerClientDto flattened) {
         Client client = new Client();
-        // TO DO: should not have type twice
-        client.setClientType(ClientTypeMapping.map(flattened.getType())
-                .orElseThrow(() -> new RuntimeException("Cannot convert client type " + flattened.getType())));
         client.setId(String.valueOf(flattened.getId()));
         client.setMemberName(flattened.getMemberName());
-        client.setCreatedAt(null); // TO DO
-        client.setUpdatedAt(null); // TO DO
+        if (flattened.getCreatedAt() != null) {
+            client.setCreatedAt(flattened.getCreatedAt().atOffset(ZoneOffset.UTC));
+        }
+        if (flattened.getUpdatedAt() != null) {
+            client.setUpdatedAt(flattened.getUpdatedAt().atOffset(ZoneOffset.UTC));
+        }
         ClientId clientId = new ClientId();
         clientId.setInstanceId(flattened.getXroadInstance());
         clientId.setMemberClass(flattened.getMemberClassCode());

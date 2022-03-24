@@ -31,6 +31,8 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import lombok.Value;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
 
+import java.time.Instant;
+
 @Value
 public class FlattenedSecurityServerClientDto {
 
@@ -41,6 +43,8 @@ public class FlattenedSecurityServerClientDto {
     String subsystemCode;
     String memberName;
     XRoadObjectType type;
+    Instant createdAt;
+    Instant updatedAt;
 
     public static FlattenedSecurityServerClientDto from(FlattenedSecurityServerClient client) {
         XRoadObjectType objectType = null;
@@ -60,7 +64,9 @@ public class FlattenedSecurityServerClientDto {
                 client.getMemberCode(),
                 client.getSubsystemCode(),
                 client.getMemberName(),
-                objectType);
+                objectType,
+                client.getCreatedAt(),
+                client.getUpdatedAt());
         return dto;
     }
 }

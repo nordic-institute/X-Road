@@ -66,10 +66,6 @@ public interface FlattenedSecurityServerClientRepository extends
 
     List<FlattenedSecurityServerClient> findAll(Sort sort);
 
-
-    /**
-     * TO DO: document params well
-     */
     static Specification<FlattenedSecurityServerClient> multiParameterSearch(SearchParameters params) {
         return (root, query, builder) -> {
             var predicates = new ArrayList<Predicate>();
@@ -234,6 +230,11 @@ public interface FlattenedSecurityServerClientRepository extends
         return builder.isNotNull(root.get("id"));
     }
 
+    /**
+     * Parameters that defined which clients are returned.
+     * All given parameters must match (e.g. memberClass = GOV, memberCode = 123 will not return a client
+     * with memberClass = GOV, memberCode = 456). Null / undefined parameters are ignored.
+     */
     @Getter
     class SearchParameters {
         private String multifieldSearch;
@@ -245,41 +246,67 @@ public interface FlattenedSecurityServerClientRepository extends
         private XRoadObjectType clientType;
         private Integer securityServerId;
 
+        /**
+         * Return clients that contain given parameter in member name. Case insensitive.
+         */
         public SearchParameters setMemberNameSearch(String memberNameSearchParam) {
             this.memberNameSearch = memberNameSearchParam;
             return this;
         }
 
+        /**
+         * Return clients that contain given parameter in member name, member class, member code or
+         * subsystem code. Case insensitive.
+         */
         public SearchParameters setMultifieldSearch(String multifieldSearchParam) {
             this.multifieldSearch = multifieldSearchParam;
             return this;
         }
 
+        /**
+         * Return clients that contain given parameter in instance identifier. Case insensitive.
+         */
         public SearchParameters setInstanceSearch(String instanceSearchParam) {
             this.instanceSearch = instanceSearchParam;
             return this;
         }
 
+        /**
+         * Return clients that contain given parameter in member class. Case insensitive.
+         */
         public SearchParameters setMemberClassSearch(String memberClassSearchParam) {
             this.memberClassSearch = memberClassSearchParam;
             return this;
         }
 
+        /**
+         * Return clients that contain given parameter in member code. Case insensitive.
+         */
         public SearchParameters setMemberCodeSearch(String memberCodeSearchParam) {
             this.memberCodeSearch = memberCodeSearchParam;
             return this;
         }
 
+        /**
+         * Return clients that contain given parameter in subsystem code. Case insensitive.
+         */
         public SearchParameters setSubsystemCodeSearch(String subsystemCodeSearchParam) {
             this.subsystemCodeSearch = subsystemCodeSearchParam;
             return this;
         }
 
+        /**
+         * Return clients of given XRoadObjectType (either MEMBER or SUBSYSTEM).
+         */
         public SearchParameters setClientType(XRoadObjectType clientTypeParam) {
             this.clientType = clientTypeParam;
             return this;
         }
 
+        /**
+         * Return clients that are clients of given security server
+         * @param securityServerIdParam security server ID
+         */
         public SearchParameters setSecurityServerId(Integer securityServerIdParam) {
             this.securityServerId = securityServerIdParam;
             return this;

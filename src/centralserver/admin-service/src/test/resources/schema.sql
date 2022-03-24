@@ -6,6 +6,8 @@ CREATE VIEW flattened_security_server_client AS
         c.type,
         c.member_class_id,
         c.subsystem_code,
+        c.created_at,
+        c.updated_at,
         i.xroad_instance
  FROM security_server_clients c
           LEFT JOIN identifiers i
@@ -19,6 +21,8 @@ union
         c.type,
         m.member_class_id,
         c.subsystem_code,
+        c.created_at,
+        c.updated_at,
         i.xroad_instance
  FROM security_server_clients c
           LEFT JOIN security_server_clients m
