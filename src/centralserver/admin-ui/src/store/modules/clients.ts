@@ -57,6 +57,7 @@ export const clientStore = defineStore('client', {
                 offset: offset,
                 sort: dataOptions.sortBy[0],
                 desc: dataOptions.sortDesc[0],
+                client_type: "MEMBER",
                 q,
             };
             const axiosParams: AxiosRequestConfig = { params };
