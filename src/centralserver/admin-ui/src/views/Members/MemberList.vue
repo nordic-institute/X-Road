@@ -59,7 +59,7 @@
         <div
           v-if="hasPermissionToMemberDetails"
           class="members-table-cell-name-action"
-          @click="toDetails('netum')"
+          @click="toDetails()"
         >
           <xrd-icon-base class="xrd-clickable mr-4"
             ><xrd-icon-folder-outline
@@ -161,11 +161,11 @@ export default Vue.extend({
     toDetails(): void {
       this.$router.push({
         name: RouteName.MemberDetails,
-        params: { memberid: 'netum' },
+        params: { memberid: 'unknown-member-id' },
       });
     },
     changeOptions: async function () {
-      await this.fetchClients(this.pagingSortingOptions);
+      this.fetchClients(this.pagingSortingOptions);
     },
     fetchClients: async function (options: DataOptions) {
       this.loading = true;
