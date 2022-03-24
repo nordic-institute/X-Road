@@ -42,6 +42,8 @@ import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.service.ClientSearchService;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
+import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -96,7 +98,9 @@ public class ClientsApiController implements ClientsApi {
         if (!StringUtils.isEmpty(encodedSecurityServerId)) {
             SecurityServerId id = securityServerIdConverter.convertId(encodedSecurityServerId);
             var securityServer = securityServerService.find(id);
-            // TO DO: NotFoundException if not found
+            if (securityServer.isEmpty()) {
+                throw new BadRequestException("Security server does not exist");
+            }
             params.setSecurityServerId(securityServer.get().getId());
         }
         Page<FlattenedSecurityServerClientDto> page = clientSearchService.find(params, pageRequest);
