@@ -6316,13 +6316,9 @@ components:
           maxLength: 255
           readOnly: true
         status_class:
-          readOnly: true
-          allOf:
-            - $ref: '#/components/schemas/DiagnosticStatusClass'
+          $ref: '#/components/schemas/DiagnosticStatusClass'
         status_code:
-          readOnly: true
-          allOf:
-            - $ref: '#/components/schemas/OcspStatus'
+          $ref: '#/components/schemas/OcspStatus'
         prev_update_at:
           type: string
           format: date-time
@@ -6809,13 +6805,9 @@ components:
           maxLength: 255
           readOnly: true
         status_class:
-          readOnly: true
-          allOf:
-            - $ref: '#/components/schemas/DiagnosticStatusClass'
+          $ref: '#/components/schemas/DiagnosticStatusClass'
         status_code:
-          readOnly: true
-          allOf:
-            - $ref: '#/components/schemas/TimestampingStatus'
+          $ref: '#/components/schemas/TimestampingStatus'
         prev_update_at:
           type: string
           format: date-time
