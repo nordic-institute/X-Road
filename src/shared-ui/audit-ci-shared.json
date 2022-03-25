@@ -6,7 +6,7 @@
     "*|@vue/cli-*",
     "*|@storybook/*",
     "*|@babel/core*",
-    "1067259|eslint>*"
+    "*|eslint>*"
   ],
   "registry": "https://registry.npmjs.org"
 }
