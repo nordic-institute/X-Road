@@ -52,9 +52,7 @@ dependencies {
     testImplementation('org.hsqldb:hsqldb')
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-    implementation('org.openapitools:jackson-databind-nullable:0.2.2')
     implementation('javax.validation:validation-api')
-    implementation 'io.springfox:springfox-core:3.0.0'
 }
 
 bootRun {
@@ -265,7 +263,10 @@ openApiGenerate {
     ]
     configOptions = [
         interfaceOnly: "true",
-        useTags      : "true"
+        useTags      : "true",
+        documentationProvider: "none",
+        skipDefaultInterface : "true",
+        openApiNullable: "false"
     ]
 }
 
