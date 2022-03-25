@@ -58,7 +58,9 @@ openApiGenerate {
     configOptions = [
         interfaceOnly       : "true",
         useTags             : "true",
-        skipDefaultInterface: "true"
+        documentationProvider  : "none",
+        skipDefaultInterface   : "true",
+        openApiNullable: "false"
     ]
 }
 
@@ -113,8 +115,7 @@ dependencies {
     implementation('wsdl4j:wsdl4j:1.6.3')
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
-    implementation('io.swagger:swagger-annotations:1.6.2')
-    implementation('io.springfox:springfox-core:3.0.0')
+    implementation('io.swagger:swagger-annotations:1.6.5')
 
 
     testImplementation project(':common-test')
@@ -123,7 +124,6 @@ dependencies {
     testImplementation('org.hsqldb:hsqldb')
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-    implementation('org.openapitools:jackson-databind-nullable:0.2.1')
     implementation('javax.validation:validation-api')
 }
 
