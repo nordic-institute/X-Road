@@ -59,15 +59,18 @@ openApiGenerate {
     apiPackage = "org.niis.xroad.restapi.openapi"
     modelPackage = "org.niis.xroad.restapi.openapi.model"
     globalProperties = [
-            modelDocs: "false",
-            apis     : "false",
-            models   : "", // must use empty strings instead of "true":
-            // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-            generateSupportingFiles : "false"
+        modelDocs              : "false",
+        apis                   : "false",
+        models                 : "", // must use empty strings instead of "true":
+        // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
+        generateSupportingFiles: "false"
     ]
     configOptions = [
-            interfaceOnly: "true",
-            useTags      : "true"
+        interfaceOnly: "true",
+        useTags      : "true",
+        documentationProvider  : "none",
+        skipDefaultInterface   : "true",
+        openApiNullable: "false"
     ]
 }
 
@@ -96,7 +99,7 @@ licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
 
 apiValidationParameters.apiDefinitionPaths = [
-        "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()
+    "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()
 ]
 
 validateApiDefinitions {
