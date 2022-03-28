@@ -1,10 +1,7 @@
 openapi: 3.0.0
 servers:
-# Added by API Auto Mocking Plugin
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/Gofore/X-Road-Auth/1.0.0
-  - description: X-Road API Design
-    url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
+  - url: /api/v1
+    description: basepath for API v1
 info:
   description: X-Road UI Authentication
   version: "1.0.2"
@@ -23,7 +20,7 @@ tags:
     description: Central Server operations and API calls
 paths:
   /login:
-    post: # ok
+    post:
       tags:
         - security server
       operationId: login
@@ -69,7 +66,7 @@ paths:
         '500':
           description: internal server error
   /logout:
-    delete: # ok
+    delete:
       tags:
         - security server
       summary: logout from the UI
@@ -103,7 +100,7 @@ components:
       in: cookie
       name: JSESSIONID
   schemas:
-    LoginRequest: # ok
+    LoginRequest:
       type: object
       required:
         - username
