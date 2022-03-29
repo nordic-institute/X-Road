@@ -56,7 +56,7 @@ pinia.use(piniaPluginPersistedstate);
 
 Vue.config.productionTip = false;
 Vue.use(Router);
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 axios.defaults.headers.get.Accepts = 'application/json';
 
 new Vue({
