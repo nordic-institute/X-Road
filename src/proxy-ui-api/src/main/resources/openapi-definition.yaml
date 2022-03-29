@@ -14,8 +14,6 @@ info:
 servers:
   - url: /api/v1
     description: basepath for API v1
-  - url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.32/api/v1
-    description: SwaggerHub API TEST URL for example requests
 tags:
   - name: backups
     description: backup endpoints
