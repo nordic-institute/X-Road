@@ -111,7 +111,7 @@ public class ClientsApiController implements ClientsApi {
         {
             conversions.put("id", "id");
             conversions.put("member_name", "memberName");
-            conversions.put("xroad_id.instance_id", "memberName");
+            conversions.put("xroad_id.instance_id", "xroadInstance");
             conversions.put("xroad_id.member_class", "memberClass");
             conversions.put("xroad_id.member_code", "memberCode");
             conversions.put("client_type", "type");

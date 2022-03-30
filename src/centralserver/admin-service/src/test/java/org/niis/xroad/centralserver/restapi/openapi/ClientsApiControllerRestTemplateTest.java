@@ -69,4 +69,21 @@ public class ClientsApiControllerRestTemplateTest extends AbstractApiRestTemplat
         assertEquals(FlattenedSecurityServerClientRepositoryIntegrationTest.CLIENTS_TOTAL_COUNT,
                 response.getBody().getClients().size());
     }
+
+    @Test
+    public void sortByInstanceId() {
+        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+        var uriVariables = new HashMap<String, String>();
+        uriVariables.put("sort", "xroad_id.instance_id");
+        uriVariables.put("desc", "false");
+        ResponseEntity<PagedClients> response = restTemplate.getForEntity(
+                "/api/v1/clients?sort={sort}&desc={desc}", PagedClients.class, uriVariables);
+        assertEquals("Instance2", response.getBody().getClients().get(0).getXroadId().getInstanceId());
+
+        uriVariables.put("desc", "true");
+        response = restTemplate.getForEntity(
+                "/api/v1/clients?sort={sort}&desc={desc}", PagedClients.class, uriVariables);
+        assertEquals("TEST", response.getBody().getClients().get(0).getXroadId().getInstanceId());
+    }
+
 }
