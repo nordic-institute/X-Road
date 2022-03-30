@@ -122,27 +122,21 @@ export const notificationsStore = defineStore('notificationsStore', {
   },
 
   actions: {
+    deleteNotification(id: number): void {
+      this.errorNotifications = this.errorNotifications.filter(
+        (item: Notification) => item.timeAdded !== id,
+      );
+    },
+
+    deleteSuccessNotification(id: number): void {
+      this.successNotifications = this.successNotifications.filter(
+        (item: Notification) => item.timeAdded !== id,
+      );
+    },
+
     resetNotifications() {
       // Clear the store state
       this.$reset();
-    },
-
-    showSuccess(messageText: string | TranslateResult): void {
-      // Show success snackbar with text string
-      const notification = createEmptyNotification(3000);
-      notification.successMessage = messageText as string;
-      this.successNotifications.push(notification);
-    },
-
-    showErrorMessage(messageText: string | TranslateResult): void {
-      // Show error snackbar with text string
-      //commit(StoreTypes.mutations.SET_ERROR_MESSAGE, messageText);
-      const notification = createEmptyNotification(-1);
-      notification.errorMessage = messageText as string;
-      this.errorNotifications = addErrorNotification(
-        this.errorNotifications,
-        notification,
-      );
     },
 
     // Show error notification with axios error object
@@ -165,15 +159,22 @@ export const notificationsStore = defineStore('notificationsStore', {
       }
     },
 
-    deleteSuccessNotification(id: number): void {
-      this.successNotifications = this.successNotifications.filter(
-        (item: Notification) => item.timeAdded !== id,
+    showErrorMessage(messageText: string | TranslateResult): void {
+      // Show error snackbar with text string
+      //commit(StoreTypes.mutations.SET_ERROR_MESSAGE, messageText);
+      const notification = createEmptyNotification(-1);
+      notification.errorMessage = messageText as string;
+      this.errorNotifications = addErrorNotification(
+        this.errorNotifications,
+        notification,
       );
     },
-    deleteNotification(id: number): void {
-      this.errorNotifications = this.errorNotifications.filter(
-        (item: Notification) => item.timeAdded !== id,
-      );
+
+    showSuccess(messageText: string | TranslateResult): void {
+      // Show success snackbar with text string
+      const notification = createEmptyNotification(3000);
+      notification.successMessage = messageText as string;
+      this.successNotifications.push(notification);
     },
 
     // Add error with an action
@@ -189,10 +190,6 @@ export const notificationsStore = defineStore('notificationsStore', {
 
     setContinueInit(val: boolean): void {
       this.continueInitialisation = val;
-    },
-
-    clearCounter() {
-      this.$reset();
     },
   },
 });
