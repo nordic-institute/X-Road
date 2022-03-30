@@ -59,7 +59,9 @@ import { notificationsStore } from '@/store/modules/notifications';
 export default Vue.extend({
   name: 'InitNotification',
   computed: {
-    ...mapState(notificationsStore, { showNotification: 'getContinueInit' }),
+    ...mapState(notificationsStore, {
+      showNotification: 'continueInitialisation',
+    }),
   },
   methods: {
     ...mapActions(notificationsStore, ['setContinueInit']),

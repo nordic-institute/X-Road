@@ -41,31 +41,19 @@ function containsNotification(
     return -1;
   }
   return errorNotifications.findIndex((e: Notification) => {
-    if (
-      notification?.errorObject?.response?.config?.data !==
-      e?.errorObject?.response?.config?.data
-    ) {
+    if (notification?.responseData !== e?.responseData) {
       return false;
     }
 
-    if (
-      notification?.errorObject?.response?.config?.url !==
-      e?.errorObject?.response?.config?.url
-    ) {
+    if (notification?.url !== e?.url) {
       return false;
     }
 
-    if (
-      notification?.errorObject?.response?.data?.status !==
-      e?.errorObject?.response?.data?.status
-    ) {
+    if (notification?.status !== e?.status) {
       return false;
     }
 
-    if (
-      notification?.errorObject?.response?.data?.error?.code !==
-      e?.errorObject?.response?.data?.error?.code
-    ) {
+    if (notification?.errorCode !== e?.errorCode) {
       return false;
     }
 
@@ -109,17 +97,6 @@ export const notificationsStore = defineStore('notificationsStore', {
       continueInitialisation: false,
     };
   },
-  getters: {
-    getSuccessNotifications(state) {
-      return state.successNotifications;
-    },
-    getErrorNotifications(state) {
-      return state.errorNotifications;
-    },
-    getContinueInit(state) {
-      return state.continueInitialisation;
-    },
-  },
 
   actions: {
     deleteNotification(id: number): void {
@@ -146,7 +123,21 @@ export const notificationsStore = defineStore('notificationsStore', {
       if (axios.isAxiosError(errorObject)) {
         if (errorObject?.response?.status !== 401) {
           const notification = createEmptyNotification(-1);
-          notification.errorObject = errorObject;
+
+          // Store error object as a string that can be shown to the user
+          notification.errorObjectAsString = errorObject.toString();
+
+          // Data shown in nofitication component
+          notification.errorCode = errorObject?.response?.data?.error?.code;
+          notification.metaData = errorObject?.response?.data?.error?.metadata;
+          notification.responseData = errorObject?.response?.config?.data;
+          notification.errorId =
+            errorObject?.response?.headers['x-road-ui-correlation-id'];
+
+          // Data needed to compare with other notificatios for handling duplicates
+          notification.url = errorObject?.response?.config?.url;
+          notification.status = errorObject?.response?.data?.status;
+
           this.errorNotifications = addErrorNotification(
             this.errorNotifications,
             notification,
@@ -161,7 +152,6 @@ export const notificationsStore = defineStore('notificationsStore', {
 
     showErrorMessage(messageText: string | TranslateResult): void {
       // Show error snackbar with text string
-      //commit(StoreTypes.mutations.SET_ERROR_MESSAGE, messageText);
       const notification = createEmptyNotification(-1);
       notification.errorMessage = messageText as string;
       this.errorNotifications = addErrorNotification(

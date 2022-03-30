@@ -87,9 +87,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(notificationsStore, {
-      successNotifications: 'getSuccessNotifications',
-    }),
+    ...mapState(notificationsStore, ['successNotifications']),
     // Check global window value to see if e2e testing mode should be enabled
     transitionName: () => (window.e2eTestingMode === true ? null : 'fade'),
   },
