@@ -56,7 +56,6 @@ export interface NotificationAction {
 export interface Notification {
   timeAdded: number;
   timeout: number;
-  errorObject?: AxiosError; // Axios error object
   errorMessage?: string; // Localised error message
   successMessage?: string; // Localised success message
   show: boolean;
