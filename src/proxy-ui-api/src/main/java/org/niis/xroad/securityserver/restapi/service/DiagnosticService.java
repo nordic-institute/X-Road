@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
@@ -72,11 +73,13 @@ public class DiagnosticService {
     private final String diagnosticsGlobalconfUrl;
     private final String diagnosticsTimestampingServicesUrl;
     private final String diagnosticsOcspRespondersUrl;
+    private final String diagnosticsAddonStatusUrl;
 
     @Autowired
     public DiagnosticService(@Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
-            @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl) {
+            @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
+            @Value("${url.diagnostics-addon-status}") String diagnosticsAddonStatusUrl) {
 
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());
@@ -84,6 +87,7 @@ public class DiagnosticService {
                 PortNumbers.ADMIN_PORT);
         this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
                 SystemProperties.getSignerAdminPort());
+        this.diagnosticsAddonStatusUrl = String.format(diagnosticsAddonStatusUrl, PortNumbers.ADMIN_PORT);
     }
 
     /**
@@ -128,6 +132,20 @@ public class DiagnosticService {
             JsonObject certificationServiceStatusMap = json.getAsJsonObject("certificationServiceStatusMap");
             return certificationServiceStatusMap.entrySet().stream().filter(e -> e.getValue() instanceof JsonObject)
                     .map(this::parseOcspResponderDiagnosticsStatus).collect(Collectors.toList());
+        } catch (DiagnosticRequestException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Query proxy addons status from admin port over HTTP.
+     *
+     * @return
+     */
+    public AddOnStatusDiagnostics queryAddonStatus() {
+        try {
+            JsonObject json = sendGetRequest(diagnosticsAddonStatusUrl);
+            return JsonUtils.getSerializer().fromJson(json, AddOnStatusDiagnostics.class);
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }

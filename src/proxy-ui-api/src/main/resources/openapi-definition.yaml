@@ -2095,6 +2095,32 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /diagnostics/addon-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view addon services diagnostics information
+      operationId: getAddonDiagnostics
+      description: <h3>Administrator views the proxy addon status diagnostics information.</h3>
+      responses:
+        '200':
+          description: addon services diagnostics information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddonStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /initialization:
     post:
       tags:
@@ -5219,6 +5245,14 @@ components:
           description: array of AccessRights
           items:
             $ref: '#/components/schemas/AccessRight'
+    AddonStatus:
+      type: object
+      description: addon module statuses
+      required:
+        - messagelog_enabled
+      properties:
+        messagelog_enabled:
+          type: boolean
     Anchor:
       type: object
       description: security server anchor
