@@ -944,7 +944,7 @@
       "parameters": "Service Parameters"
     },
     "settings": {
-      "backupAndRestore": "Backup And Restore",
+      "backupAndRestore": "Backing up and restoring",
       "systemParameters": "System Parameters"
     }
   },
