@@ -101,24 +101,29 @@
         </v-row>
       </v-card-text>
     </v-card>
-    <v-card flat class="xrd-card">
-      <v-card-text class="card-text">
+    <v-card flat class="xrd-card" :class="{ disabled: !messageLogEnabled }">
+      <v-card-text class="card-text ">
         <v-row
           v-if="hasPermission(permissions.VIEW_TSPS)"
           no-gutters
           class="px-4"
         >
           <v-col
-            ><h3>
+            ><h3 :class="{ disabled: !messageLogEnabled }">
               {{ $t('systemParameters.timestampingServices.title') }}
             </h3></v-col
           >
-          <v-col class="text-right">
+          <v-col
+            v-if="hasPermission(permissions.ADD_TSP) && messageLogEnabled"
+            class="text-right"
+          >
             <add-timestamping-service-dialog
-              v-if="hasPermission(permissions.ADD_TSP)"
               :configured-timestamping-services="configuredTimestampingServices"
               @added="fetchConfiguredTimestampingServiced"
             />
+          </v-col>
+          <v-col v-if="!messageLogEnabled" class="text-right disabled">
+            {{ $t('systemParameters.timestampingServices.messageLogDisabled') }}
           </v-col>
         </v-row>
 
@@ -262,6 +267,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import {
+  AddonStatus,
   Anchor,
   CertificateAuthority,
   TimestampingService,
@@ -292,6 +298,8 @@ export default Vue.extend({
       loadingTimestampingservices: false,
       loadingAnchor: false,
       loadingCAs: false,
+      loadingMessageLogEnabled: false,
+      messageLogEnabled: false,
     };
   },
   computed: {
@@ -310,6 +318,7 @@ export default Vue.extend({
     }
 
     if (this.hasPermission(Permissions.VIEW_TSPS)) {
+      this.fetchMessageLogEnabled();
       this.fetchConfiguredTimestampingServiced();
     }
 
@@ -327,6 +336,14 @@ export default Vue.extend({
         .then((resp) => (this.configuratonAnchor = resp.data))
         .catch((error) => this.showError(error))
         .finally(() => (this.loadingAnchor = false));
+    },
+    async fetchMessageLogEnabled() {
+      this.loadingMessageLogEnabled = true;
+      return api
+        .get<AddonStatus>('/diagnostics/addon-status')
+        .then((resp) => (this.messageLogEnabled = resp.data.messagelog_enabled))
+        .catch((error) => this.showError(error))
+        .finally(() => (this.loadingMessageLogEnabled = false));
     },
     async fetchConfiguredTimestampingServiced() {
       this.loadingTimestampingservices = true;
@@ -365,7 +382,7 @@ export default Vue.extend({
 @import '~styles/tables';
 
 h3 {
-  color: #211e1e;
+  color: $XRoad-Black100;
   font-size: 18px;
   font-weight: bold;
   letter-spacing: 0;
@@ -375,6 +392,12 @@ h3 {
 .card-text {
   padding-left: 0;
   padding-right: 0;
+}
+
+.disabled {
+  cursor: not-allowed;
+  background: $XRoad-Black10;
+  color: $XRoad-WarmGrey100;
 }
 
 tr td {
