@@ -917,7 +917,7 @@
         }
       },
       "title": "Timestamping Services",
-      "messageLogDisabled": "Timestamping disabled by company owner."
+      "messageLogDisabled": "Disabled by configuration"
     },
     "title": "System parameters"
   },
