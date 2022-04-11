@@ -60,6 +60,34 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
     private FlattenedSecurityServerClientRepository repository;
 
     @Test
+    public void findUsingSpecialCharacters() {
+        // free text search using % and _ which have special handling in LIKE queries
+        // Member6\a
+        // Member7_a
+        // Member8%a
+        // Member9__%%em%
+        var clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("%"));
+        assertEquals(2, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("_"));
+        assertEquals(2, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("\\"));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("%%"));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("%em%"));
+        assertEquals(1, clients.size());
+    }
+
+    @Test
     public void multifieldTextSearch() {
         // member name, member_class, member_code, subsystem_code
 

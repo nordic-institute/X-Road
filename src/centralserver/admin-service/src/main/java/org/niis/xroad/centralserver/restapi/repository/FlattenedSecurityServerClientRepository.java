@@ -51,6 +51,8 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.niis.xroad.centralserver.restapi.repository.CriteriaBuilderUtil.caseInsensitiveLike;
+
 @Repository
 public interface FlattenedSecurityServerClientRepository extends
         PagingAndSortingRepository<FlattenedSecurityServerClient, Long>,
@@ -115,7 +117,7 @@ public interface FlattenedSecurityServerClientRepository extends
             return builder.and(predicates.toArray(new Predicate[predicates.size()]));
         };
     }
-    
+
     static Specification<FlattenedSecurityServerClient> instance(String s) {
         return (root, query, builder) -> {
             return instancePredicate(root, builder, s);
@@ -177,35 +179,20 @@ public interface FlattenedSecurityServerClientRepository extends
         return builder.equal(root.get(FlattenedSecurityServerClient_.TYPE), "Subsystem");
     }
     private static Predicate memberNamePredicate(Root root, CriteriaBuilder builder, String s) {
-        return builder.like(
-                builder.lower(root.get(FlattenedSecurityServerClient_.MEMBER_NAME)),
-                builder.lower(builder.literal("%" + s + "%"))
-        );
+        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClient_.MEMBER_NAME));
     }
     private static Predicate subsystemCodePredicate(Root root, CriteriaBuilder builder, String s) {
-        return builder.like(
-                builder.lower(root.get(FlattenedSecurityServerClient_.SUBSYSTEM_CODE)),
-                builder.lower(builder.literal("%" + s + "%"))
-        );
+        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClient_.SUBSYSTEM_CODE));
     }
     private static Predicate memberCodePredicate(Root root, CriteriaBuilder builder, String s) {
-        return builder.like(
-                builder.lower(root.get(FlattenedSecurityServerClient_.MEMBER_CODE)),
-                builder.lower(builder.literal("%" + s + "%"))
-        );
+        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClient_.MEMBER_CODE));
     }
     private static Predicate memberClassPredicate(Root root, CriteriaBuilder builder, String s) {
-        return builder.like(
-                builder.lower(root.get(FlattenedSecurityServerClient_.MEMBER_CLASS)
-                                  .get(MemberClass_.CODE)),
-                builder.lower(builder.literal("%" + s + "%"))
-        );
+        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClient_.MEMBER_CLASS)
+                .get(MemberClass_.CODE));
     }
     private static Predicate instancePredicate(Root root, CriteriaBuilder builder, String s) {
-        return builder.like(
-                builder.lower(root.get(FlattenedSecurityServerClient_.XROAD_INSTANCE)),
-                builder.lower(builder.literal("%" + s + "%"))
-        );
+        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClient_.XROAD_INSTANCE));
     }
 
     static Predicate clientOfSecurityServerPredicate(Root root, CriteriaBuilder builder, int id) {
