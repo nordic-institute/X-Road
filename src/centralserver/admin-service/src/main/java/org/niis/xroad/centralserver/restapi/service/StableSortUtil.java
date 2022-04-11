@@ -26,40 +26,37 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
-import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
 
-import javax.transaction.Transactional;
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Service for searching {@link org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient}s
+ * Helper that can add secondary id sort to Pageables
  */
-@Service
-@Transactional
-@RequiredArgsConstructor
-public class ClientSearchService {
-    @Autowired
-    private FlattenedSecurityServerClientRepository flattenedClientRepository;
+public final class StableSortUtil {
 
-    public Page<FlattenedSecurityServerClientDto> find(
-            FlattenedSecurityServerClientRepository.SearchParameters params,
-            Pageable pageable) {
-        var clients = flattenedClientRepository.findAll(
-                FlattenedSecurityServerClientRepository.multiParameterSearch(params),
-                StableSortUtil.addSecondaryIdSort(pageable));
-        var dtos = clients.get()
-                          .map(FlattenedSecurityServerClientDto::from)
-                          .collect(Collectors.toList());
-        return new PageImpl<>(dtos, clients.getPageable(), clients.getTotalElements());
+    private StableSortUtil() {
     }
 
+    /**
+     * Add secondary id-sort to Pageable, to guarantee stable results especially for paging
+     * {@link SecurityServerService} does the same, should use a shared utility
+     */
+    public static Pageable addSecondaryIdSort(Pageable original) {
+        List<Sort.Order> orders = new ArrayList<>();
+        orders.addAll(original.getSort().stream().collect(Collectors.toList()));
+
+        // always add id-sort as last one. We could already have an id sort, that does not matter
+        orders.add(Sort.Order.asc("id"));
+
+        Sort refinedSorting = Sort.by(orders);
+
+        Pageable refinedPageable = PageRequest.of(original.getPageNumber(), original.getPageSize(), refinedSorting);
+        return refinedPageable;
+    }
 
 }
