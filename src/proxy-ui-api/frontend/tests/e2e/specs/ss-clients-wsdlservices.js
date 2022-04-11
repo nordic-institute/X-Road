@@ -28,7 +28,7 @@ let frontPage, mainPage, clientsTab, clientInfo, clientServices, operationDetail
 let addSubjectsPopup, removeAccessRightPopup, removeAllAccessRightsPopup, serviceChangePopup, serviceDetails,servicesPopup ;
 
 module.exports = {
-  tags: ['ss', 'clients', 'wsdlservices', 'WIP'],
+  tags: ['ss', 'clients', 'wsdlservices'],
   before: function (browser) {
     frontPage = browser.page.ssLoginPage();
     mainPage = browser.page.ssMainPage();
