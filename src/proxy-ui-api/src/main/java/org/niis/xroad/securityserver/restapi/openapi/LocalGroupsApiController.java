@@ -67,9 +67,10 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_LOCAL
 @RequiredArgsConstructor
 public class LocalGroupsApiController implements LocalGroupsApi {
 
-    private final ClientIdConverter clientIdConverter;
     private final LocalGroupConverter localGroupConverter;
     private final LocalGroupService localGroupService;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")

@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
@@ -64,8 +63,7 @@ public class ClientConverterTest {
         SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "CS");
 
         clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId),
-                new CurrentSecurityServerSignCertificates(new ArrayList<>()), clientSortingComparator,
-                new ClientIdConverter());
+                new CurrentSecurityServerSignCertificates(new ArrayList<>()), clientSortingComparator);
     }
 
     @Test

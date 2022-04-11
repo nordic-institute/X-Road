@@ -27,11 +27,9 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
@@ -40,8 +38,6 @@ import java.util.stream.Collectors;
 /**
  * Converter for encoded client ids
  */
-@Component
-@RequiredArgsConstructor
 public class ClientIdConverter {
 
     public static final int INSTANCE_INDEX = 0;

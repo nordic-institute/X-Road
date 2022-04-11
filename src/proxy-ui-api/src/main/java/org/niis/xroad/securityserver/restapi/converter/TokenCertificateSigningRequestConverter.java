@@ -46,9 +46,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TokenCertificateSigningRequestConverter {
 
-    private final ClientIdConverter clientIdConverter;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final PossibleActionConverter possibleActionConverter;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Convert {@link CertRequestInfo} to {@link TokenCertificateSigningRequest}

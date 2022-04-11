@@ -60,8 +60,9 @@ public class SecurityServersApiController implements SecurityServersApi {
     private final GlobalConfService globalConfService;
     private final GlobalConfFacade globalConfFacade;
     private final SecurityServerConverter securityServerConverter;
-    private final SecurityServerIdConverter securityServerIdConverter;
     private final ServerConfService serverConfService;
+
+    private SecurityServerIdConverter securityServerIdConverter = new SecurityServerIdConverter();
 
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")

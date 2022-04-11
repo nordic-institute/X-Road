@@ -60,7 +60,8 @@ public class ClientConverter {
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
     private final ClientSortingComparator clientSortingComparator;
-    private final ClientIdConverter clientIdConverter;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      *

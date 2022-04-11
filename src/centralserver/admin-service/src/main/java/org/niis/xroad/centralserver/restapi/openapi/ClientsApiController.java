@@ -62,10 +62,11 @@ import java.util.Map;
 public class ClientsApiController implements ClientsApi {
 
     private final ClientSearchService clientSearchService;
-    private final PagedClientsConverter pagedClientsConverter;
-    private final PageRequestConverter pageRequestConverter;
-    private final SecurityServerIdConverter securityServerIdConverter;
     private final SecurityServerService securityServerService;
+
+    private PagedClientsConverter pagedClientsConverter = new PagedClientsConverter();
+    private PageRequestConverter pageRequestConverter = new PageRequestConverter();
+    private SecurityServerIdConverter securityServerIdConverter = new SecurityServerIdConverter();
 
     @Override
     public ResponseEntity<Client> addClient(Client client) {

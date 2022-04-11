@@ -25,16 +25,12 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.model.Client;
 import org.niis.xroad.centralserver.openapi.model.ClientId;
 import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
-import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;
 
-@Component
-@RequiredArgsConstructor
 public class ClientConverter {
 
     public Client convert(FlattenedSecurityServerClientDto flattened) {

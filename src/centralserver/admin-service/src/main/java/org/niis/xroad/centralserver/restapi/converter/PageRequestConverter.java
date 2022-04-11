@@ -25,16 +25,12 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
 public class PageRequestConverter {
 
     public PageRequest convert(PagingSortingParameters pagingSorting, SortParameterConverter sortParameterConverter) {

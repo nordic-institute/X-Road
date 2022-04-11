@@ -45,8 +45,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SecurityServerConverter {
 
-    private final SecurityServerIdConverter securityServerIdConverter;
     private final GlobalConfFacade globalConfFacade;
+
+    private SecurityServerIdConverter securityServerIdConverter = new SecurityServerIdConverter();
 
     /**
      * Convert SecurityServerId into SecurityServer

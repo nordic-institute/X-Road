@@ -51,8 +51,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LocalGroupConverter {
 
-    private final ClientIdConverter clientIdConverter;
     private final GlobalConfFacade globalConfFacade;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Converts LocalGroupType to Group

@@ -141,7 +141,6 @@ import static org.niis.xroad.restapi.openapi.ControllerUtil.createCreatedRespons
 @RequiredArgsConstructor
 public class ClientsApiController implements ClientsApi {
     private final ClientConverter clientConverter;
-    private final ClientIdConverter clientIdConverter;
     private final ClientService clientService;
     private final LocalGroupConverter localGroupConverter;
     private final LocalGroupService localGroupService;
@@ -157,6 +156,8 @@ public class ClientsApiController implements ClientsApi {
     private final ServiceClientService serviceClientService;
     private final ServiceClientHelper serviceClientHelper;
     private final AuditDataHelper auditDataHelper;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Finds clients matching search terms

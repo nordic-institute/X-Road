@@ -83,11 +83,12 @@ public class KeysApiController implements KeysApi {
 
     private final KeyService keyService;
     private final KeyConverter keyConverter;
-    private final ClientIdConverter clientIdConverter;
     private final TokenCertificateService tokenCertificateService;
     private final ServerConfService serverConfService;
     private final CsrFilenameCreator csrFilenameCreator;
     private final PossibleActionConverter possibleActionConverter;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_KEYS')")

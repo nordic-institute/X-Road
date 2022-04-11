@@ -56,9 +56,10 @@ import java.util.stream.Collectors;
 public class ServiceClientConverter {
 
     private final GlobalConfFacade globalConfFacade;
-    private final ClientIdConverter clientIdConverter;
     private final GlobalGroupConverter globalGroupConverter;
     private final ServiceClientSortingComparator serviceClientSortingComparator;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Convert ServiceClientDto to ServiceClient.

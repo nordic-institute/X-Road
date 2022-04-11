@@ -85,8 +85,9 @@ public class TokensApiController implements TokensApi {
     private final KeyService keyService;
     private final TokenService tokenService;
     private final TokenConverter tokenConverter;
-    private final ClientIdConverter clientIdConverter;
     private final KeyAndCertificateRequestService keyAndCertificateRequestService;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     @Override

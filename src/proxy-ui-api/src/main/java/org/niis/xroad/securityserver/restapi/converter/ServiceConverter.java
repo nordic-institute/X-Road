@@ -60,9 +60,10 @@ public class ServiceConverter {
      */
     public static final int FULL_SERVICE_CODE_INDEX = 4;
 
-    private final ClientIdConverter clientIdConverter;
     private final EndpointConverter endpointConverter;
     private final EndpointHelper endpointHelper;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Converts a group of ServiceTypes to a list of Services and sorts the list alphabetically by fullServiceCode.

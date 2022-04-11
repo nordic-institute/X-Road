@@ -25,28 +25,21 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.model.Client;
 import org.niis.xroad.centralserver.openapi.model.PagedClients;
 import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
 import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
-@RequiredArgsConstructor
 public class PagedClientsConverter {
 
-    @Autowired
-    private PagingMetadataConverter pagingMetadataConverter;
+    private PagingMetadataConverter pagingMetadataConverter = new PagingMetadataConverter();
 
-    @Autowired
-    private ClientConverter clientConverter;
+    private ClientConverter clientConverter = new ClientConverter();
 
     public PagedClients convert(Page<FlattenedSecurityServerClientDto> page,
             PagingSortingParameters pagingSorting) {

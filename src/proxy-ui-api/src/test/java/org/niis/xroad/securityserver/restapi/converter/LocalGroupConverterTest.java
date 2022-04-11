@@ -28,13 +28,10 @@ package org.niis.xroad.securityserver.restapi.converter;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
-import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
 
@@ -50,9 +47,7 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
 
     private LocalGroupConverter localGroupConverter;
-    private ClientIdConverter clientIdConverter;
-    private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
-    private ClientSortingComparator clientSortingComparator;
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     @Before
     public void setup() {
@@ -62,11 +57,7 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
             }
         };
-        ClientId ownerId = ClientId.create("XRD2", "GOV", "M4");
-        SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "CS");
-        clientIdConverter = new ClientIdConverter();
-
-        localGroupConverter = new LocalGroupConverter(clientIdConverter, globalConfFacade);
+        localGroupConverter = new LocalGroupConverter(globalConfFacade);
     }
 
     @Test

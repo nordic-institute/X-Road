@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientIdentifierDto;
 
 import static org.junit.Assert.assertEquals;
@@ -44,7 +43,6 @@ public class ServiceClientIdentifierConverterTest {
     @Before
     public void setup() {
         converter = new ServiceClientIdentifierConverter(
-                new ClientIdConverter(),
                 new GlobalGroupConverter());
     }
 

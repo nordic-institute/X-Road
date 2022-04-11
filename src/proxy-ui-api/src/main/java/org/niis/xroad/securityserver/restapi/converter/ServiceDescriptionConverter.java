@@ -44,8 +44,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ServiceDescriptionConverter {
 
-    private final ClientIdConverter clientIdConverter;
     private final ServiceConverter serviceConverter;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Converts a group of ServiceDescriptionTypes to a list of ServiceDescriptions

@@ -51,9 +51,10 @@ import java.util.stream.Collectors;
 public class TokenCertificateConverter {
 
     private final CertificateDetailsConverter certificateDetailsConverter;
-    private final ClientIdConverter clientIdConverter;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final PossibleActionConverter possibleActionConverter;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Convert {@link CertificateInfo} to {@link TokenCertificate}

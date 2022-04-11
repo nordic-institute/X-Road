@@ -25,16 +25,12 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
 import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
 
 import static java.lang.Math.toIntExact;
 
-@Component
-@RequiredArgsConstructor
 public class PagingMetadataConverter {
     public PagingMetadata convert(Page page,
             PagingSortingParameters pagingSorting) {

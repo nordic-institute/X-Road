@@ -74,8 +74,9 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
     private final CertificateAuthorityService certificateAuthorityService;
     private final CertificateAuthorityConverter certificateAuthorityConverter;
     private final KeyService keyService;
-    private final ClientIdConverter clientIdConverter;
     private final CsrSubjectFieldDescriptionConverter subjectConverter;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Currently returns partial CertificateAuthority objects that have only

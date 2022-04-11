@@ -46,8 +46,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ServiceClientIdentifierConverter {
 
-    private final ClientIdConverter clientIdConverter;
     private final GlobalGroupConverter globalGroupConverter;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Convert encoded service client id into ServiceClientIdentifierDto (based on serviceClientType,

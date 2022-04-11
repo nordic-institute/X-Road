@@ -28,21 +28,17 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.stereotype.Component;
 
 /**
  * Converter for encoded client ids
  */
-@Component
-@RequiredArgsConstructor
 public class SecurityServerIdConverter {
 
     public static final int SECURITY_SERVER_CODE_INDEX = 3;
 
-    private final ClientIdConverter clientIdConverter;
+    private final ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * encoded security server id =
