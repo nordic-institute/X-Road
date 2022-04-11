@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
@@ -66,10 +67,12 @@ public class UserApiControllerRestTemplateTest extends AbstractApiControllerTest
         ResponseEntity<User> response = restTemplate.getForEntity("/api/v1/user", User.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("api-key-1", response.getBody().getUsername());
-        assertEquals(Role.values().length, response.getBody().getRoles().size());
+
+        assertFalse(response.getBody().getRoles().isEmpty());
         List<String> allRoleNames = Arrays.stream(Role.values())
                 .map(Role::getGrantedAuthorityName).collect(Collectors.toList());
-        assertTrue(response.getBody().getRoles().containsAll(allRoleNames));
+
+        assertTrue(allRoleNames.containsAll(response.getBody().getRoles()));
         assertTrue(response.getBody().getPermissions().contains("VIEW_CLIENTS"));
     }
 }

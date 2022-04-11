@@ -14,8 +14,6 @@ info:
 servers:
   - url: /api/v1
     description: basepath for API v1
-  - url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.32/api/v1
-    description: SwaggerHub API TEST URL for example requests
 tags:
   - name: backups
     description: backup endpoints
@@ -6231,13 +6229,9 @@ components:
           maxLength: 255
           readOnly: true
         status_class:
-          readOnly: true
-          allOf:
-            - $ref: '#/components/schemas/DiagnosticStatusClass'
+          $ref: '#/components/schemas/DiagnosticStatusClass'
         status_code:
-          readOnly: true
-          allOf:
-            - $ref: '#/components/schemas/OcspStatus'
+          $ref: '#/components/schemas/OcspStatus'
         prev_update_at:
           type: string
           format: date-time
@@ -6724,13 +6718,9 @@ components:
           maxLength: 255
           readOnly: true
         status_class:
-          readOnly: true
-          allOf:
-            - $ref: '#/components/schemas/DiagnosticStatusClass'
+          $ref: '#/components/schemas/DiagnosticStatusClass'
         status_code:
-          readOnly: true
-          allOf:
-            - $ref: '#/components/schemas/TimestampingStatus'
+          $ref: '#/components/schemas/TimestampingStatus'
         prev_update_at:
           type: string
           format: date-time

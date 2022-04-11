@@ -46,6 +46,10 @@
     "upload": "Upload",
     "yes": "Yes"
   },
+  "alert": {
+    "count": "Amount of same errors:",
+    "id": "ID"
+  },
   "apiKey": {
     "createApiKey": {
       "button": "CREATE API KEY",

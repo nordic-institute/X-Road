@@ -1,5 +1,6 @@
-/*
+/**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,49 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Vue from 'vue';
-import Vuex, { StoreOptions } from 'vuex';
-import { RootState } from './types';
-import { generalModule } from './modules/general';
-import { clientsModule } from './modules/clients';
-import { clientModule } from './modules/client';
-import { tokensModule } from './modules/tokens';
-import { servicesModule } from './modules/services';
-import { addClientModule } from './modules/addClient';
-import { csrModule } from './modules/certificateSignRequest';
-import { module as notificationsModule } from './modules/notifications';
-import { user } from './modules/user';
-import { system } from './modules/system';
-import { module as initServer } from './modules/initializeServer';
-import { alertsModule } from '@/store/modules/alerts';
-import VuexPersistence from 'vuex-persist';
+package org.niis.xroad.centralserver.restapi.dto;
 
-Vue.use(Vuex);
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
-const vuexLocal = new VuexPersistence({
-  storage: window.localStorage,
-  modules: ['user', 'system'],
-});
+import lombok.Getter;
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
+import org.niis.xroad.centralserver.restapi.domain.Origin;
 
-const store: StoreOptions<RootState> = {
-  state: {
-    version: '1.0.0', // a simple property
-  },
-  modules: {
-    user,
-    generalModule,
-    clientsModule,
-    clientModule,
-    tokensModule,
-    servicesModule,
-    csrModule,
-    addClientModule,
-    notificationsModule,
-    initServer,
-    alertsModule,
-    system,
-  },
-  plugins: [vuexLocal.plugin],
-};
+@Getter
+public class ClientRegistrationRequestDto extends ManagementRequestDto {
+    private final ClientId clientId;
 
-export default new Vuex.Store<RootState>(store);
+    public ClientRegistrationRequestDto(Integer id, Origin origin,
+            SecurityServerId serverId, ManagementRequestStatus status, ClientId clientId) {
+        super(id, ManagementRequestType.CLIENT_REGISTRATION_REQUEST, origin, serverId, status);
+        this.clientId = clientId;
+    }
+
+    public ClientRegistrationRequestDto(Origin origin, SecurityServerId serverId, ClientId clientId) {
+        super(null, ManagementRequestType.CLIENT_REGISTRATION_REQUEST, origin, serverId, null);
+        this.clientId = clientId;
+    }
+}

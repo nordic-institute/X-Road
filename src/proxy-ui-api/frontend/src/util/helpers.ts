@@ -106,7 +106,7 @@ export function containsClient(
   clients: Client[],
   memberClass: string,
   memberCode: string,
-  subsystemCode: string,
+  subsystemCode: string | undefined,
 ): boolean {
   if (!memberClass || !memberCode || !subsystemCode) {
     return false;

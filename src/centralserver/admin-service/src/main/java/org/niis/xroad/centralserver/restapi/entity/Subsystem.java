@@ -29,6 +29,8 @@ package org.niis.xroad.centralserver.restapi.entity;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -50,33 +52,26 @@ public class Subsystem extends SecurityServerClient {
         //for JPA
     }
 
-    public Subsystem(XRoadMember member, String subsystemCode) {
+    public Subsystem(XRoadMember member, ClientId identifier) {
+        if (!identifier.subsystemContainsMember(member.getIdentifier())) {
+            throw new IllegalArgumentException("Subsystem identifier does not match member");
+        }
         this.xroadMember = member;
-        this.subsystemCode = subsystemCode;
-
-        final ClientId memberId = member.getIdentifier();
-        this.identifier = ClientId
-                .create(memberId.getXRoadInstance(), memberId.getMemberClass(), memberId.getMemberCode(),
-                        subsystemCode);
+        this.subsystemCode = identifier.getSubsystemCode();
+        this.identifier = identifier;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "xroad_member_id")
+    @Access(AccessType.FIELD)
     public XRoadMember getXroadMember() {
         return this.xroadMember;
     }
 
-    public void setXroadMember(XRoadMember xroadMember) {
-        this.xroadMember = xroadMember;
-    }
-
     @Column(name = "subsystem_code")
+    @Access(AccessType.FIELD)
     public String getSubsystemCode() {
         return this.subsystemCode;
-    }
-
-    public void setSubsystemCode(String subsystemCode) {
-        this.subsystemCode = subsystemCode;
     }
 
 }

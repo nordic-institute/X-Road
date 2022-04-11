@@ -28,6 +28,8 @@ package org.niis.xroad.centralserver.restapi.entity;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -68,36 +70,31 @@ public abstract class SecurityServerClient extends AuditableEntity {
         //JPA
     }
 
+    public SecurityServerClient(ClientId identifier) {
+        this.identifier = identifier;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
+    @Access(AccessType.FIELD)
     public int getId() {
         return this.id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "server_client_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "server_client_id", nullable = false, updatable = false)
+    @Access(AccessType.FIELD)
     public ClientId getIdentifier() {
         return this.identifier;
     }
 
-    public void setIdentifier(ClientId identifier) {
-        this.identifier = identifier;
-    }
-
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServerClient", cascade = CascadeType.ALL,
             orphanRemoval = true)
+    @Access(AccessType.FIELD)
     public Set<ServerClient> getServerClients() {
         return this.serverClients;
-    }
-
-    public void setServerClients(Set<ServerClient> serverClients) {
-        this.serverClients = serverClients;
     }
 
 }

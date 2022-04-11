@@ -50,16 +50,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
 import { RouteName } from '@/global';
 
 export default Vue.extend({
   computed: {
-    ...mapGetters(['username']),
+    ...mapState(useUser, ['username']),
   },
   methods: {
+    ...mapActions(useUser, ['logoutUser']),
     logout(): void {
-      this.$store.dispatch('logout');
+      this.logoutUser();
       this.$router.replace({ name: RouteName.Login });
     },
   },

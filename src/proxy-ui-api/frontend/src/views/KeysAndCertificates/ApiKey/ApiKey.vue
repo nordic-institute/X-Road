@@ -164,6 +164,9 @@ import { ApiKey } from '@/global-types';
 import HelpButton from '../HelpButton.vue';
 import { RouteName, Roles, Permissions } from '@/global';
 import * as api from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
@@ -185,14 +188,15 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     canCreateApiKey(): boolean {
-      return this.$store.getters.hasPermission(Permissions.CREATE_API_KEY);
+      return this.hasPermission(Permissions.CREATE_API_KEY);
     },
     canEdit(): boolean {
-      return this.$store.getters.hasPermission(Permissions.UPDATE_API_KEY);
+      return this.hasPermission(Permissions.UPDATE_API_KEY);
     },
     canRevoke(): boolean {
-      return this.$store.getters.hasPermission(Permissions.REVOKE_API_KEY);
+      return this.hasPermission(Permissions.REVOKE_API_KEY);
     },
     headers(): DataTableHeader[] {
       return [
@@ -223,13 +227,14 @@ export default Vue.extend({
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     loadKeys(): void {
-      if (this.$store.getters.hasPermission(Permissions.VIEW_API_KEYS)) {
+      if (this.hasPermission(Permissions.VIEW_API_KEYS)) {
         this.loading = true;
         api
           .get<ApiKey[]>('/api-keys')
           .then((resp) => (this.apiKeys = resp.data))
-          .catch((error) => this.$store.dispatch('showError', error))
+          .catch((error) => this.showError(error))
           .finally(() => (this.loading = false));
       }
     },
@@ -262,14 +267,13 @@ export default Vue.extend({
         )
         .then((response) => {
           const key = response.data;
-          this.$store.dispatch(
-            'showSuccess',
+          this.showSuccess(
             this.$t('apiKey.table.action.revoke.success', {
               id: key.id,
             }),
           );
         })
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => {
           this.confirmRevoke = false;
           this.removingApiKey = false;
@@ -286,14 +290,13 @@ export default Vue.extend({
         )
         .then((response) => {
           const key = response.data as ApiKey;
-          this.$store.dispatch(
-            'showSuccess',
+          this.showSuccess(
             this.$t('apiKey.table.action.edit.success', {
               id: key.id,
             }),
           );
         })
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => {
           this.savingChanges = false;
           this.showEditDialog = false;
