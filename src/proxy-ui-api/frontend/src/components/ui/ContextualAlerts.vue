@@ -59,8 +59,8 @@
               </div>
 
               <!-- If error doesn't have a text or localisation key then just print the error object -->
-              <div v-else-if="notification.errorObject">
-                {{ notification.errorObject }}
+              <div v-else-if="notification.errorObjectAsString">
+                {{ notification.errorObjectAsString }}
               </div>
 
               <!-- Special case for pin code validation -->
