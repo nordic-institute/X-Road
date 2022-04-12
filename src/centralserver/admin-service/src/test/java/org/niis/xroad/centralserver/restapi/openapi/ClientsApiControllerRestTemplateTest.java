@@ -28,7 +28,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.Client;
 import org.niis.xroad.centralserver.openapi.model.PagedClients;
-import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepositoryIntegrationTest;
+import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepositoryTest;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -69,7 +69,7 @@ public class ClientsApiControllerRestTemplateTest extends AbstractApiRestTemplat
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
-        assertEquals(FlattenedSecurityServerClientRepositoryIntegrationTest.CLIENTS_TOTAL_COUNT,
+        assertEquals(FlattenedSecurityServerClientRepositoryTest.CLIENTS_TOTAL_COUNT,
                 response.getBody().getClients().size());
     }
 

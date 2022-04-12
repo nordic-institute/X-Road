@@ -51,7 +51,7 @@ import static org.junit.Assert.fail;
 @AutoConfigureTestDatabase
 @Transactional
 @WithMockUser
-public class FlattenedSecurityServerClientRepositoryIntegrationTest {
+public class FlattenedSecurityServerClientRepositoryTest {
 
     public static final int CLIENTS_TOTAL_COUNT = 12;
     public static final int SUBSYSTEMS_TOTAL_COUNT = 1;
