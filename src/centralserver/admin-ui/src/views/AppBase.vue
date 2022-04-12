@@ -32,7 +32,9 @@
       <transition name="fade" mode="out-in">
         <div class="base-full-width">
           <router-view name="subTabs" />
-          <router-view name="alerts" />
+          <div class="sticky">
+            <router-view name="alerts" />
+          </div>
           <v-layout
             align-center
             justify-center
@@ -112,6 +114,13 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '@/assets/shared';
+
+.sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 4px;
+  z-index: 7; // Vuetify drop menu has z-index 8 so this goes just under those. Modals/dialogs have z-index 202
+}
 
 .base-full-width {
   width: 100%;

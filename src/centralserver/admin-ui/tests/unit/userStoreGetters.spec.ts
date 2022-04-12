@@ -90,15 +90,13 @@ describe('user store user.ts  -- setters & getters', () => {
     setActivePinia(createPinia());
   });
 
-  it('SET_PERMISSIONS fills permissions & bannedRoutes', () => {
+  it('SET_PERMISSIONS fills permissions', () => {
     const store = userStore();
     store.setPermissions(testPermissions);
 
     expect(store.permissions).toHaveLength(testPermissions.length);
     expect(store.permissions).toEqual(testPermissions);
-    expect(store.bannedRoutes?.length).toBeLessThan(store.permissions.length);
     // member-details  needs "VIEW_MEMBER_DETAILS" - permission which is not contained in testPermissions
-    expect(store.bannedRoutes).toContainEqual('member-details');
     expect(store.permissions).not.toContainEqual('VIEW_MEMBER_DETAILS');
   });
 

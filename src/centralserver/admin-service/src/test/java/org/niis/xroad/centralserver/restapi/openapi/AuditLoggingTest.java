@@ -51,7 +51,7 @@ import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAutho
 
 @ActiveProfiles({"test", "audit-test"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class AuditLoggingRestTemplateTest extends AbstractApiRestTemplateTestContext {
+public class AuditLoggingTest extends AbstractApiRestTemplateTestContext {
     @Autowired
     TestRestTemplate restTemplate;
 

@@ -32,16 +32,13 @@ import { Tab } from '@/ui-types';
 import { User } from '@/openapi-types';
 import { mainTabs } from '@/global';
 import { get } from '@/util/api';
-import { RouteConfig } from 'vue-router';
-import routes from '@/router/routes';
 
 export const userStore = defineStore('userStore', {
   state: () => {
     return {
       authenticated: false,
-      bannedRoutes: [] as string[],
       isSessionAlive: false,
-      username: 'dsf' as string,
+      username: '' as string,
       permissions: [] as string[],
       count: 0,
     };
@@ -100,9 +97,6 @@ export const userStore = defineStore('userStore', {
       }).then(() => {
         this.authenticated = true;
         this.isSessionAlive = true;
-
-        // IS this needed??
-        //dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
       });
     },
 
@@ -130,41 +124,6 @@ export const userStore = defineStore('userStore', {
 
     setPermissions(permissions: string[]) {
       this.permissions = permissions;
-
-      const tempBannedRoutes: string[] = [];
-
-      // Recursive function for checking routes recursively
-      function getAllowed(route: RouteConfig, permissions: string[]): void {
-        if (!tempBannedRoutes) return;
-
-        // Check that the route has name and permissions
-        if (route.name && route?.meta?.permissions) {
-          // Find out routes that the user doesn't have permissions to access
-          if (
-            !route.meta.permissions.some((permission: string) =>
-              permissions.includes(permission),
-            )
-          ) {
-            // Add a banned route to the array
-            tempBannedRoutes.push(route.name);
-          }
-        }
-
-        // Check the child routes recursively
-        if (route.children) {
-          route.children.forEach((child: RouteConfig) => {
-            getAllowed(child, permissions);
-          });
-        }
-      }
-
-      // Init banned routes array
-      this.bannedRoutes = [];
-      // Go through the route permissions
-      routes.forEach((route) => {
-        getAllowed(route, this.permissions);
-      });
-      this.bannedRoutes = tempBannedRoutes;
     },
 
     logout(reload = true) {

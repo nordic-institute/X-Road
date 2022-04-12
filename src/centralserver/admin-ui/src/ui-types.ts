@@ -56,13 +56,25 @@ export interface NotificationAction {
 export interface Notification {
   timeAdded: number;
   timeout: number;
-  errorObject?: AxiosError;
-  errorMessage?: string;
-  successMessage?: string;
+  errorMessage?: string; // Localised error message
+  successMessage?: string; // Localised success message
   show: boolean;
   count: number;
+  validationErrors?: ValidationError[];
+  errorCode?: string; // x-road error code
+  metaData?: string[];
+  errorId?: string;
+  errorObjectAsString?: string;
+  responseData?: string;
+  url?: string;
+  status?: string; // http status code
   action?: NotificationAction;
 }
+
+export type ValidationError = {
+  field: string;
+  errorCodes: string[];
+};
 
 // Notification with an action is called with this
 export interface ActionError {

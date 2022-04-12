@@ -154,7 +154,7 @@ public class ManagementRequestService {
     }
 
     private <T extends Request, D extends ManagementRequestDto>
-    Optional<T> doAdd(RequestHandler<D, T> handler, ManagementRequestDto request) {
+            Optional<T> doAdd(RequestHandler<D, T> handler, ManagementRequestDto request) {
         return handler.narrow(request).map(r -> {
             var response = handler.add(r);
             if (handler.canAutoApprove(response)) {

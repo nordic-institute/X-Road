@@ -155,11 +155,7 @@ export const mainTabs: Tab[] = [
     to: { name: RouteName.Members },
     key: 'members',
     name: 'tab.main.members',
-    permissions: [
-      Permissions.VIEW_MEMBERS,
-      Permissions.VIEW_MEMBER_DETAILS,
-      Permissions.SEARCH_MEMBERS,
-    ],
+    permissions: [Permissions.VIEW_MEMBERS, Permissions.VIEW_MEMBER_DETAILS],
   },
   {
     to: { name: RouteName.SecurityServers },
@@ -189,20 +185,29 @@ export const mainTabs: Tab[] = [
     ],
   },
   {
-    to: { name: RouteName.InternalConfiguration },
+    // Global configuration tab
+    to: { name: RouteName.InternalConfiguration }, // name of the first child tab
     key: 'globalConfiguration',
     name: 'tab.main.globalConfiguration',
     permissions: [
       Permissions.VIEW_CONFIGURATION_MANAGEMENT,
       Permissions.VIEW_EXTERNAL_CONFIGURATION_SOURCE,
       Permissions.VIEW_INTERNAL_CONFIGURATION_SOURCE,
+      Permissions.VIEW_TRUSTED_ANCHORS,
     ],
   },
   {
-    to: { name: RouteName.GlobalResources }, // name of the firsts child of settings
+    // Settings tab
+    to: { name: RouteName.GlobalResources }, // name of the first child tab
     key: 'settings',
     name: 'tab.main.settings',
-    permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+    permissions: [
+      Permissions.VIEW_SYSTEM_SETTINGS,
+      Permissions.VIEW_GLOBAL_GROUPS,
+      Permissions.VIEW_SECURITY_SERVERS,
+      Permissions.BACKUP_CONFIGURATION,
+      Permissions.VIEW_API_KEYS,
+    ],
   },
 ];
 

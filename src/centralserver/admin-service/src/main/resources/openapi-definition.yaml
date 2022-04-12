@@ -81,8 +81,8 @@ paths:
       description:
         <h3>Generates a new central server backup.</h3>
         <p>
-        This endpoint can also return metadata in the error response.
-        The metadata array contains the output of a failed backup generation script.
+          This endpoint can also return metadata in the error response.
+          The metadata array contains the output of a failed backup generation script.
         </p>
       operationId: addBackup
       responses:
@@ -121,19 +121,19 @@ paths:
       description:
         <h3>Uploads new central server backup to the system.</h3>
         <p>
-        Note that it is possible to overwrite an existing backup file with the same name.
-        <ul>
-        <li>Attempt to upload a new backup file having the same name with an existing backup and with query
-        parameter <code>ignore_warnings</code> = false causes the operation to fail with a warning in
-        response's ErrorInfo object.
-        </li>
-        <li>Attempt to upload a new backup file having the same name with an existing backup and with query
-        parameter <code>ignore_warnings</code> = true will overwrite the existing backup.
-        </li>
-        </ul>
+          Note that it is possible to overwrite an existing backup file with the same name.
+          <ul>
+            <li>Attempt to upload a new backup file having the same name with an existing backup and with query
+                parameter <code>ignore_warnings</code> = false causes the operation to fail with a warning in
+                response's ErrorInfo object.
+            </li>
+            <li>Attempt to upload a new backup file having the same name with an existing backup and with query
+                parameter <code>ignore_warnings</code> = true will overwrite the existing backup.
+            </li>
+          </ul>
         </p>
         <p>The warning response has a warning code <code>warning_file_already_exists</code> and the metadata field
-        contains the name of the existing backup
+          contains the name of the existing backup
         </p>
       operationId: uploadBackup
       parameters:
@@ -684,7 +684,7 @@ paths:
       description:
         <h3>CS administrator deletes a global group.</h3>
         <p>The access rights that were granted for the group will not be available for the X-Road members and
-        subsystems that were the members of this group.
+          subsystems that were the members of this group.
         </p>
       operationId: deleteGlobalGroup
       parameters:
@@ -1429,29 +1429,29 @@ paths:
       description:
         <h3>Administrator initializes a new Central Server with the provided initial configuration.</h3>
         <p> This endpoint can also return metadata in the error response. The metadata array can contain error
-        messages about why the init did not succeed. If the pin code is too weak, the error code <code>weak_pin</code>
-        is used and the entries in the metadata array are always ordered in following way
-        <ul>
-        <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
-        <li>x = the minimum length of the pin code</li>
-        <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
-        </ul>
-        Other possible error code are
-        <ul>
-        <li><code>invalid_init_params</code> for "business" logic problems which can have any one or more of the
-        following strings in the metadata field. There "_exists" -entries are returned if parameter has been
-        given already in partially succeeded initialization. The "_not_provided"-entries are returned if these
-        parameters is needed still for the initialization,  but it is not given in the request.
-        </li>
-        <li>pin_code_exists</li>
-        <li>pin_code_not_provided</li>
-        <li>server_address_exists</li>
-        <li>server_address_not_provided</li>
-        <li>instance_identifier_exists</li>
-        <li>instance_identifier_not_provided</li>
-        <li><code>validation_failure</code> for parameter format errors
-        </ul>
-        <strong>See the '400' response examples</strong>
+          messages about why the init did not succeed. If the pin code is too weak, the error code <code>weak_pin</code>
+          is used and the entries in the metadata array are always ordered in following way
+          <ul>
+            <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
+            <li>x = the minimum length of the pin code</li>
+            <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
+          </ul>
+          Other possible error code are
+          <ul>
+            <li><code>invalid_init_params</code> for "business" logic problems which can have any one or more of the
+              following strings in the metadata field. There "_exists" -entries are returned if parameter has been
+              given already in partially succeeded initialization. The "_not_provided"-entries are returned if these
+              parameters is needed still for the initialization,  but it is not given in the request.
+            </li>
+            <li>pin_code_exists</li>
+            <li>pin_code_not_provided</li>
+            <li>server_address_exists</li>
+            <li>server_address_not_provided</li>
+            <li>instance_identifier_exists</li>
+            <li>instance_identifier_not_provided</li>
+            <li><code>validation_failure</code> for parameter format errors
+          </ul>
+          <strong>See the '400' response examples</strong>
         </p>
       operationId: initCentralServer
       requestBody:
@@ -1808,16 +1808,15 @@ paths:
       operationId: findClients
       parameters:
         - description: >
-            An optional generic filtering query parameter selects only items that contain parameter
-            value in properties (name, instance, member_class, member_code, subsystem_code, security_server) . Needs to be properly encoded for the
-            special characters, too. Empty value means the parameter is ignored.
+                An optional generic filtering query parameter selects only items that contain parameter
+                value in properties (member name, member_class, member_code, subsystem_code) . Needs to be properly encoded for the
+                special characters, too. Empty value means the parameter is ignored.
           in: query
           name: q
           required: false
           schema:
             example: foobar
             format: text
-            minLength: 3
             maxLength: 25
             type: string
         - description: optional paging and sorting parameters
@@ -2216,7 +2215,7 @@ paths:
     delete:
       description:
         <h3>CS administrator deletes a security server. System generates deletion requests for the clients
-        and authentication certificates registered for the deleted server.
+          and authentication certificates registered for the deleted server.
         </h3>
       operationId: deleteSecurityServer
       parameters:
@@ -3662,7 +3661,6 @@ components:
         - id
         - member_name
         - xroad_id
-        - client_type
       properties:
         id:
           description: the encoded string representation of the x-road member or subsystem id
@@ -3674,8 +3672,6 @@ components:
           readOnly: true
         xroad_id:
           $ref: '#/components/schemas/ClientId'
-        client_type:
-          $ref: '#/components/schemas/ClientType'
       type: object
     MemberClass:
       allOf:
@@ -3870,14 +3866,14 @@ components:
           format: int32
         limit:
           description: >
-            Indicates the maximum number of items for the returned page.
+              Indicates the maximum number of items for the returned page.
           default: 25
           type: integer
           format: int32
         offset:
           description: >
-            Offset in pages from the beginning of the query result after filtering and sorting
-            parameters are taken into account.
+              Offset in pages from the beginning of the query result after filtering and sorting
+              parameters are taken into account.
           default: 0
           type: integer
           format: int32
@@ -3894,27 +3890,29 @@ components:
           description: Indicates item property that is to be used as sorting key.
           example: title
           minLength: 2
-          pattern: '[a-z_]+'
+          pattern: '[a-zA-Z_.]+'
           maxLength: 25
           type: string
+        # exploded query parameters from objects dont seem to like underscores
+        # https://stackoverflow.com/questions/35628974/when-post-spring-is-ignoring-jsonproperty#comment58939524_35628974
         desc:
           description: >
-            Used sorting direction. Value 'true'  indicates descending and 'false' or omitted
-            parameter indicates ascending direction.
+              Used sorting direction. Value 'true'  indicates descending and 'false' or omitted
+              parameter indicates ascending direction.
           default: false
           type: boolean
         limit:
           description: >
-            Indicates the maximum number of items for the returned page.   If parameter is
-            omitted, then the default amount of 25   is returned.
+              Indicates the maximum number of items for the returned page.   If parameter is
+              omitted, then the default amount of 25   is returned.
           default: 25
           type: integer
           format: int32
         offset:
           description: >
-            Offset in pages from the beginning of the query result after filtering and sorting
-            parameters are taken into account.  If the parameter omitted or the value 0 (zero)
-            is given, the first page is returned.
+              Offset in pages from the beginning of the query result after filtering and sorting
+              parameters are taken into account.  If the parameter omitted or the value 0 (zero)
+              is given, the first page is returned.
           default: 0
           type: integer
           format: int32
@@ -4138,8 +4136,14 @@ components:
           SERVER: "SecurityServerId"
           SUBSYSTEM: "ClientId"
       properties:
-        instanceId:
+        instance_id:
+          description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: FI
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
+          readOnly: true
         type:
           type: string
           format: enum
@@ -4153,7 +4157,7 @@ components:
             - CENTRALSERVICE
             - LOCALGROUP
       required:
-        - instanceId
+        - instance_id
         - type
     ClientId:
       type: object
@@ -4161,30 +4165,55 @@ components:
       allOf:
         - $ref: '#/components/schemas/XRoadId'
       properties:
-        memberClass:
+        member_class:
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: GOV
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
-        memberCode:
+        member_code:
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: 123
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
-        subsystemCode:
+        subsystem_code:
           type: string
       required:
-        - memberClass
-        - memberCode
+        - member_class
+        - member_code
     SecurityServerId:
       allOf:
         - $ref: '#/components/schemas/XRoadId'
       type: object
       properties:
-        memberClass:
+        member_class:
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: GOV
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
-        memberCode:
+        member_code:
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: 123
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
-        serverCode:
+        server_code:
+          description: security server code
+          example: server123
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
       required:
-        - memberClass
-        - memberCode
-        - serverCode
+        - member_class
+        - member_code
+        - server_code
     ManagementRequest:
       type: object
       description: Management request

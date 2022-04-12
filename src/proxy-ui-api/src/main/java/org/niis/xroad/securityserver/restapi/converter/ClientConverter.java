@@ -31,10 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.restapi.converter.Converters;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
@@ -45,7 +42,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -65,10 +61,7 @@ public class ClientConverter {
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
     private final ClientSortingComparator clientSortingComparator;
 
-    public static final int INSTANCE_INDEX = 0;
-    public static final int MEMBER_CLASS_INDEX = 1;
-    public static final int MEMBER_CODE_INDEX = 2;
-    public static final int SUBSYSTEM_CODE_INDEX = 3;
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      *
@@ -77,7 +70,7 @@ public class ClientConverter {
      */
     public Client convert(ClientType clientType) {
         Client client = new Client();
-        client.setId(convertId(clientType.getIdentifier()));
+        client.setId(clientIdConverter.convertId(clientType.getIdentifier()));
         client.setInstanceId(clientType.getIdentifier().getXRoadInstance());
         client.setMemberClass(clientType.getIdentifier().getMemberClass());
         client.setMemberCode(clientType.getIdentifier().getMemberCode());
@@ -106,71 +99,7 @@ public class ClientConverter {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    /**
-     * Convert ClientId into encoded member id
-     * @return
-     */
-    public String convertId(ClientId clientId) {
-        return convertId(clientId, false);
-    }
 
-    /**
-     * Convert ClientId into encoded member id
-     * @param clientId
-     * @return
-     */
-    public String convertId(ClientId clientId, boolean includeType) {
-        StringBuilder builder = new StringBuilder();
-        if (includeType) {
-            builder.append(clientId.getObjectType())
-                    .append(Converters.ENCODED_ID_SEPARATOR);
-        }
-        builder.append(clientId.getXRoadInstance())
-                .append(Converters.ENCODED_ID_SEPARATOR)
-                .append(clientId.getMemberClass())
-                .append(Converters.ENCODED_ID_SEPARATOR)
-                .append(clientId.getMemberCode());
-        if (StringUtils.isNotEmpty(clientId.getSubsystemCode())) {
-            builder.append(Converters.ENCODED_ID_SEPARATOR)
-                    .append(clientId.getSubsystemCode());
-        }
-        return builder.toString().trim();
-    }
-
-    /**
-     * Convert encoded member id into ClientId
-     * @param encodedId
-     * @return ClientId
-     * @throws BadRequestException if encoded id could not be decoded
-     */
-    public ClientId convertId(String encodedId) throws BadRequestException {
-        if (!isEncodedClientId(encodedId)) {
-            throw new BadRequestException("Invalid client id " + encodedId);
-        }
-        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(Converters.ENCODED_ID_SEPARATOR)));
-        String instance = parts.get(INSTANCE_INDEX);
-        String memberClass = parts.get(MEMBER_CLASS_INDEX);
-        String memberCode = parts.get(MEMBER_CODE_INDEX);
-        String subsystemCode = null;
-        if (parts.size() != (MEMBER_CODE_INDEX + 1)
-                && parts.size() != (SUBSYSTEM_CODE_INDEX + 1)) {
-            throw new BadRequestException("Invalid client id " + encodedId);
-        }
-        if (parts.size() == (SUBSYSTEM_CODE_INDEX + 1)) {
-            subsystemCode = parts.get(SUBSYSTEM_CODE_INDEX);
-        }
-        return ClientId.create(instance, memberClass, memberCode, subsystemCode);
-    }
-
-    /**
-     * Convert a list of encoded member ids to ClientIds
-     * @param encodedIds
-     * @return List of ClientIds
-     * @throws BadRequestException if encoded id could not be decoded
-     */
-    public List<ClientId> convertIds(List<String> encodedIds) throws BadRequestException {
-        return encodedIds.stream().map(this::convertId).collect(Collectors.toList());
-    }
 
     /**
      * Convert MemberInfo into Client
@@ -180,7 +109,7 @@ public class ClientConverter {
     public Client convertMemberInfoToClient(MemberInfo memberInfo) {
         ClientId clientId = memberInfo.getId();
         Client client = new Client();
-        client.setId(convertId(clientId));
+        client.setId(clientIdConverter.convertId(clientId));
         client.setMemberClass(clientId.getMemberClass());
         client.setMemberCode(clientId.getMemberCode());
         client.setSubsystemCode(clientId.getSubsystemCode());
@@ -197,17 +126,4 @@ public class ClientConverter {
         return memberInfos.stream().map(this::convertMemberInfoToClient).collect(Collectors.toList());
     }
 
-    public boolean isEncodedSubsystemId(String encodedId) {
-        int separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
-        return separators == SUBSYSTEM_CODE_INDEX;
-    }
-
-    public boolean isEncodedMemberId(String encodedId) {
-        int separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
-        return separators == MEMBER_CODE_INDEX;
-    }
-
-    public boolean isEncodedClientId(String encodedId) {
-        return isEncodedMemberId(encodedId) || isEncodedSubsystemId(encodedId);
-    }
 }

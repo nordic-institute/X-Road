@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificateSigningRequest;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
 import org.springframework.stereotype.Component;
@@ -45,9 +46,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TokenCertificateSigningRequestConverter {
 
-    private final ClientConverter clientConverter;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final PossibleActionConverter possibleActionConverter;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Convert {@link CertRequestInfo} to {@link TokenCertificateSigningRequest}
@@ -73,7 +75,7 @@ public class TokenCertificateSigningRequestConverter {
         TokenCertificateSigningRequest request = new TokenCertificateSigningRequest();
         request.setId(csrInfo.getId());
         if (csrInfo.getMemberId() != null) {
-            request.setOwnerId(clientConverter.convertId(csrInfo.getMemberId()));
+            request.setOwnerId(clientIdConverter.convertId(csrInfo.getMemberId()));
         }
         return request;
     }

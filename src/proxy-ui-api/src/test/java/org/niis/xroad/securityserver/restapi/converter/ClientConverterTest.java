@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
@@ -42,9 +41,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
 import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * test ClientConverter
@@ -53,7 +49,7 @@ public class ClientConverterTest {
 
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
     private ClientConverter clientConverter;
-    private ClientSortingComparator clientSortingComparator;
+    private ClientSortingComparator clientSortingComparator = new ClientSortingComparator();
 
     @Before
     public void setup() {
@@ -86,72 +82,6 @@ public class ClientConverterTest {
         assertEquals(org.niis.xroad.securityserver.restapi.openapi.model.ConnectionType.HTTPS_NO_AUTH,
                 converted.getConnectionType());
         assertEquals(MEMBER_NAME_PREFIX + "M4", converted.getMemberName());
-    }
-
-    @Test
-    public void convertStringId() throws Exception {
-        ClientId clientId = clientConverter.convertId("XRD2:GOV:M4:SS1");
-        assertEquals("XRD2", clientId.getXRoadInstance());
-        assertEquals("GOV", clientId.getMemberClass());
-        assertEquals("M4", clientId.getMemberCode());
-        assertEquals("SS1", clientId.getSubsystemCode());
-
-        clientId = clientConverter.convertId("XRD2:GOV:M4");
-        assertNull(clientId.getSubsystemCode());
-    }
-    @Test
-
-    public void convertDifficultStringId() throws Exception {
-        String difficultSubsystemId = "FOO SS-;/?@=&-X<!-- o -->BAR";
-        ClientId clientId = clientConverter.convertId("XRD2:GOV:M4:" + difficultSubsystemId);
-        assertEquals("XRD2", clientId.getXRoadInstance());
-        assertEquals("GOV", clientId.getMemberClass());
-        assertEquals("M4", clientId.getMemberCode());
-        assertEquals(difficultSubsystemId, clientId.getSubsystemCode());
-    }
-
-    @Test(expected = BadRequestException.class)
-    public void convertBadStringId() throws Exception {
-        clientConverter.convertId("XRD2:GOV:M4:SS1:aa");
-    }
-
-    @Test(expected = BadRequestException.class)
-    public void convertBadStringId2() throws Exception {
-        clientConverter.convertId("XRD2");
-    }
-
-    @Test(expected = BadRequestException.class)
-    public void convertBadStringId3() throws Exception {
-        clientConverter.convertId("XRD2:GOV:M4:SS1::::::");
-    }
-
-    @Test
-    public void isEncodedMemberId() throws Exception {
-        assertTrue(clientConverter.isEncodedMemberId("XRD2:GOV:M4"));
-        assertFalse(clientConverter.isEncodedMemberId("XRD2:GOV:M4:SS1"));
-    }
-
-    @Test
-    public void isEncodedSubsystemId() throws Exception {
-        assertFalse(clientConverter.isEncodedSubsystemId("XRD2:GOV:M4"));
-        assertTrue(clientConverter.isEncodedSubsystemId("XRD2:GOV:M4:SS1"));
-    }
-
-    @Test
-    public void isEncodedClientId() throws Exception {
-        assertTrue(clientConverter.isEncodedClientId("XRD2:GOV:M4"));
-        assertTrue(clientConverter.isEncodedClientId("XRD2:GOV:M4:SS1"));
-    }
-
-    @Test
-    public void convertClientId() throws Exception {
-        ClientId clientId = ClientId.create("XRD2", "GOV", "M4", "SS1");
-        String encoded = clientConverter.convertId(clientId);
-        assertEquals("XRD2:GOV:M4:SS1", encoded);
-
-        clientId = ClientId.create("XRD2", "GOV", "M4");
-        encoded = clientConverter.convertId(clientId);
-        assertEquals("XRD2:GOV:M4", encoded);
     }
 
 }
