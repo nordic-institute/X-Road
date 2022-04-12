@@ -1,6 +1,5 @@
 /**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,41 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.service;
+package org.niis.xroad.centralserver.restapi.converter;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.niis.xroad.centralserver.openapi.model.Client;
+import org.niis.xroad.centralserver.openapi.model.ClientId;
+import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
 
-import javax.transaction.Transactional;
+import java.time.ZoneOffset;
 
-import java.util.List;
+public class ClientConverter {
 
-import static org.junit.Assert.assertEquals;
-
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class MemberClassServiceTest {
-
-    @Autowired
-    private MemberClassService service;
-
-    private static final int MEMBER_CLASSES_IN_IMPORT_SQL = 2;
-
-    @Test
-    @Transactional
-    public void testService() {
-        service.add(new MemberClassDto("TEST", "Description"));
-        service.add(new MemberClassDto("TEST2", "Description"));
-        final List<MemberClassDto> all = service.findAll();
-        assertEquals((MEMBER_CLASSES_IN_IMPORT_SQL + 2), all.size());
-        service.delete("TEST");
-        service.update(new MemberClassDto("TEST2", "Description2"));
-        final MemberClassDto test2 = service.find("TEST2").get();
-        assertEquals("Description2", test2.getDescription());
+    public Client convert(FlattenedSecurityServerClientDto flattened) {
+        Client client = new Client();
+        client.setId(String.valueOf(flattened.getId()));
+        client.setMemberName(flattened.getMemberName());
+        if (flattened.getCreatedAt() != null) {
+            client.setCreatedAt(flattened.getCreatedAt().atOffset(ZoneOffset.UTC));
+        }
+        if (flattened.getUpdatedAt() != null) {
+            client.setUpdatedAt(flattened.getUpdatedAt().atOffset(ZoneOffset.UTC));
+        }
+        ClientId clientId = new ClientId();
+        clientId.setInstanceId(flattened.getXroadInstance());
+        clientId.setMemberClass(flattened.getMemberClassCode());
+        clientId.setMemberCode(flattened.getMemberCode());
+        clientId.setSubsystemCode(flattened.getSubsystemCode());
+        clientId.setType(XRoadIdTypeEnumMapping.map(flattened.getType())
+                  .orElseThrow(() -> new RuntimeException("Cannot convert client type " + flattened.getType())));
+        client.setXroadId(clientId);
+        return client;
     }
-
 }

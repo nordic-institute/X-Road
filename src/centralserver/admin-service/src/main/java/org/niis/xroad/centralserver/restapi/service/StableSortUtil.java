@@ -26,39 +26,37 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
-import javax.transaction.Transactional;
-
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+/**
+ * Helper that can add secondary id sort to Pageables
+ */
+public final class StableSortUtil {
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class MemberClassServiceTest {
+    private StableSortUtil() {
+    }
 
-    @Autowired
-    private MemberClassService service;
+    /**
+     * Add secondary id-sort to Pageable, to guarantee stable results especially for paging
+     * {@link SecurityServerService} does the same, should use a shared utility
+     */
+    public static Pageable addSecondaryIdSort(Pageable original) {
+        List<Sort.Order> orders = new ArrayList<>();
+        orders.addAll(original.getSort().stream().collect(Collectors.toList()));
 
-    private static final int MEMBER_CLASSES_IN_IMPORT_SQL = 2;
+        // always add id-sort as last one. We could already have an id sort, that does not matter
+        orders.add(Sort.Order.asc("id"));
 
-    @Test
-    @Transactional
-    public void testService() {
-        service.add(new MemberClassDto("TEST", "Description"));
-        service.add(new MemberClassDto("TEST2", "Description"));
-        final List<MemberClassDto> all = service.findAll();
-        assertEquals((MEMBER_CLASSES_IN_IMPORT_SQL + 2), all.size());
-        service.delete("TEST");
-        service.update(new MemberClassDto("TEST2", "Description2"));
-        final MemberClassDto test2 = service.find("TEST2").get();
-        assertEquals("Description2", test2.getDescription());
+        Sort refinedSorting = Sort.by(orders);
+
+        Pageable refinedPageable = PageRequest.of(original.getPageNumber(), original.getPageSize(), refinedSorting);
+        return refinedPageable;
     }
 
 }

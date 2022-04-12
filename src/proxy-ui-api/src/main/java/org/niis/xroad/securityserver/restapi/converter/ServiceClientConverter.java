@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
@@ -55,9 +56,10 @@ import java.util.stream.Collectors;
 public class ServiceClientConverter {
 
     private final GlobalConfFacade globalConfFacade;
-    private final ClientConverter clientConverter;
     private final GlobalGroupConverter globalGroupConverter;
     private final ServiceClientSortingComparator serviceClientSortingComparator;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Convert ServiceClientDto to ServiceClient.
@@ -74,7 +76,7 @@ public class ServiceClientConverter {
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
                 serviceClient.setName(globalConfFacade.getMemberName(serviceClientId));
-                serviceClient.setId(clientConverter.convertId(serviceClientId));
+                serviceClient.setId(clientIdConverter.convertId(serviceClientId));
                 serviceClient.setServiceClientType(ServiceClientType.SUBSYSTEM);
                 break;
             case GLOBALGROUP:
@@ -119,10 +121,10 @@ public class ServiceClientConverter {
         XRoadId xRoadId;
         switch (serviceClientType) {
             case SUBSYSTEM:
-                if (!clientConverter.isEncodedSubsystemId(encodedId)) {
+                if (!clientIdConverter.isEncodedSubsystemId(encodedId)) {
                     throw new BadRequestException("Invalid subsystem id " + encodedId);
                 }
-                xRoadId = clientConverter.convertId(encodedId);
+                xRoadId = clientIdConverter.convertId(encodedId);
                 break;
             case GLOBALGROUP:
                 xRoadId = globalGroupConverter.convertId(encodedId);

@@ -26,39 +26,26 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.restapi.dto.SecurityServerDto;
+import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
+import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import java.util.List;
+import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class SecurityServerService {
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class MemberClassServiceTest {
+    private final SecurityServerRepository securityServerRepository;
 
-    @Autowired
-    private MemberClassService service;
-
-    private static final int MEMBER_CLASSES_IN_IMPORT_SQL = 2;
-
-    @Test
-    @Transactional
-    public void testService() {
-        service.add(new MemberClassDto("TEST", "Description"));
-        service.add(new MemberClassDto("TEST2", "Description"));
-        final List<MemberClassDto> all = service.findAll();
-        assertEquals((MEMBER_CLASSES_IN_IMPORT_SQL + 2), all.size());
-        service.delete("TEST");
-        service.update(new MemberClassDto("TEST2", "Description2"));
-        final MemberClassDto test2 = service.find("TEST2").get();
-        assertEquals("Description2", test2.getDescription());
+    public Optional<SecurityServerDto> find(SecurityServerId id) {
+        return securityServerRepository.findBy(id).map(
+                m -> new SecurityServerDto(m.getId(), m.getServerCode(), m.getAddress()));
     }
-
 }

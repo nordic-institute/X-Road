@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateOcspStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificate;
@@ -50,9 +51,10 @@ import java.util.stream.Collectors;
 public class TokenCertificateConverter {
 
     private final CertificateDetailsConverter certificateDetailsConverter;
-    private final ClientConverter clientConverter;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final PossibleActionConverter possibleActionConverter;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Convert {@link CertificateInfo} to {@link TokenCertificate}
@@ -79,7 +81,7 @@ public class TokenCertificateConverter {
         tokenCertificate.setActive(certificateInfo.isActive());
         tokenCertificate.setCertificateDetails(certificateDetailsConverter.convert(certificateInfo));
         if (certificateInfo.getMemberId() != null) {
-            tokenCertificate.setOwnerId(clientConverter.convertId(certificateInfo.getMemberId()));
+            tokenCertificate.setOwnerId(clientIdConverter.convertId(certificateInfo.getMemberId()));
         }
         tokenCertificate.setOcspStatus(getOcspStatus(certificateInfo,
                 tokenCertificate.getCertificateDetails()));

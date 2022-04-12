@@ -1,6 +1,5 @@
 /**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,41 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.service;
+package org.niis.xroad.centralserver.restapi.converter;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import javax.transaction.Transactional;
+import org.niis.xroad.centralserver.openapi.model.Client;
+import org.niis.xroad.centralserver.openapi.model.PagedClients;
+import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
+import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+public class PagedClientsConverter {
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class MemberClassServiceTest {
+    private PagingMetadataConverter pagingMetadataConverter = new PagingMetadataConverter();
 
-    @Autowired
-    private MemberClassService service;
+    private ClientConverter clientConverter = new ClientConverter();
 
-    private static final int MEMBER_CLASSES_IN_IMPORT_SQL = 2;
-
-    @Test
-    @Transactional
-    public void testService() {
-        service.add(new MemberClassDto("TEST", "Description"));
-        service.add(new MemberClassDto("TEST2", "Description"));
-        final List<MemberClassDto> all = service.findAll();
-        assertEquals((MEMBER_CLASSES_IN_IMPORT_SQL + 2), all.size());
-        service.delete("TEST");
-        service.update(new MemberClassDto("TEST2", "Description2"));
-        final MemberClassDto test2 = service.find("TEST2").get();
-        assertEquals("Description2", test2.getDescription());
+    public PagedClients convert(Page<FlattenedSecurityServerClientDto> page,
+            PagingSortingParameters pagingSorting) {
+        PagingMetadata meta = pagingMetadataConverter.convert(page, pagingSorting);
+        List<Client> clients = page.get().map(clientConverter::convert).collect(Collectors.toList());
+        PagedClients result = new PagedClients();
+        result.setClients(clients);
+        result.setPagingMetadata(meta);
+        return result;
     }
-
 }

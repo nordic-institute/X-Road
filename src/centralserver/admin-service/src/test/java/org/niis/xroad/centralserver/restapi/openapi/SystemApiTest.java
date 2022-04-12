@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
-public class SystemApiControllerRestTemplateTest extends AbstractApiRestTemplateTestContext {
+public class SystemApiTest extends AbstractApiRestTemplateTestContext {
 
     @Autowired
     TestRestTemplate restTemplate;

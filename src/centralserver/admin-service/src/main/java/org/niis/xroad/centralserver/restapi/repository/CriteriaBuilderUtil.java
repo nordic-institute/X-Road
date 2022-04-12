@@ -24,41 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.service;
+package org.niis.xroad.centralserver.restapi.repository;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
-import javax.transaction.Transactional;
+/**
+ * Utility for working with CriteriaBuilder
+ */
+public final class CriteriaBuilderUtil {
 
-import java.util.List;
+    public static final char LIKE_EXPRESSION_ESCAPE_CHAR = '\\';
+    public static final String LIKE_EXPRESSION_ESCAPE_STRING = String.valueOf(LIKE_EXPRESSION_ESCAPE_CHAR);
 
-import static org.junit.Assert.assertEquals;
-
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class MemberClassServiceTest {
-
-    @Autowired
-    private MemberClassService service;
-
-    private static final int MEMBER_CLASSES_IN_IMPORT_SQL = 2;
-
-    @Test
-    @Transactional
-    public void testService() {
-        service.add(new MemberClassDto("TEST", "Description"));
-        service.add(new MemberClassDto("TEST2", "Description"));
-        final List<MemberClassDto> all = service.findAll();
-        assertEquals((MEMBER_CLASSES_IN_IMPORT_SQL + 2), all.size());
-        service.delete("TEST");
-        service.update(new MemberClassDto("TEST2", "Description2"));
-        final MemberClassDto test2 = service.find("TEST2").get();
-        assertEquals("Description2", test2.getDescription());
+    private CriteriaBuilderUtil() {
     }
+
+    /**
+     * Create a case-insensite LIKE expression Predicate. Also escape special characters \, % and _
+     */
+    public static Predicate caseInsensitiveLike(Root root, CriteriaBuilder builder, String s, Path path) {
+        var predicate = builder.like(
+                builder.lower(path),
+                builder.lower(builder.literal("%" + escapeSpecialChars(s) + "%")),
+                LIKE_EXPRESSION_ESCAPE_CHAR
+        );
+        return predicate;
+    }
+
+    private static String escapeSpecialChars(String s) {
+        return s.replace(LIKE_EXPRESSION_ESCAPE_STRING, LIKE_EXPRESSION_ESCAPE_STRING + LIKE_EXPRESSION_ESCAPE_STRING)
+                .replace("%", LIKE_EXPRESSION_ESCAPE_STRING + "%")
+                .replace("_", LIKE_EXPRESSION_ESCAPE_STRING + "_");
+    }
+
 
 }

@@ -117,6 +117,7 @@ dependencies {
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
     implementation('io.swagger:swagger-annotations:1.6.5')
 
+
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')

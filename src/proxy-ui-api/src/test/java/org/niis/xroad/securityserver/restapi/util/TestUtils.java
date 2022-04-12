@@ -35,8 +35,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import com.google.common.collect.Ordering;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
@@ -192,7 +192,7 @@ public final class TestUtils {
      * @return
      */
     public static ClientId getClientId(String encodedId) {
-        return new ClientConverter(null, null, null, null).convertId(encodedId);
+        return new ClientIdConverter().convertId(encodedId);
     }
 
     /**

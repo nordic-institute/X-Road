@@ -51,6 +51,10 @@ public interface SecurityServerRepository extends
         return findOne(serverIdSpec(serverId).and(clientIdSpec(clientId)));
     }
 
+    default Optional<SecurityServer> findBy(SecurityServerId serverId) {
+        return findOne(serverIdSpec(serverId));
+    }
+
     static Specification<SecurityServer> clientIdSpec(ClientId clientId) {
 
         return (root, query, builder) -> {
