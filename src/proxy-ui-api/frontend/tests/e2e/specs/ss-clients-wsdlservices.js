@@ -51,10 +51,6 @@ module.exports = {
     browser.LoginCommand();
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
     },
 
   afterEach: function (browser) {
@@ -64,7 +60,14 @@ module.exports = {
     browser.end();
   },
 
-  'Invalid URLs give proper error message': () => {
+
+
+  'Invalid URLs give proper error message': (browser) => {
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+
     clientServices.openAddWSDL();
     clientServices.initServiceUrl('a');
     clientServices.errorMessageIsShown('URL is not valid');
@@ -76,6 +79,10 @@ module.exports = {
     },
 
   'Security server client add wsdl service': (browser) => {
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
     // Verify that URL field is empty after reopening
     clientServices.openAddWSDL();
     browser.assert.value(clientServices.elements.newServiceUrl, '');
@@ -254,6 +261,10 @@ module.exports = {
     },
   'Security server client add wsdl operation access rights': (browser) => {
     // Navigate
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
 
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
