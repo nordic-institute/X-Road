@@ -2,7 +2,7 @@ import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
 
 buildscript {
     ext {
-        openapiGeneratorVersion = '5.2.1'
+        openapiGeneratorVersion = '5.3.1'
         nodePluginVersion = '3.1.1'
         nodeVersion = '12.22.6'
         swaggerParserVersion = '2.0.28'
@@ -20,7 +20,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "2020.0.4")
+    set('springCloudVersion', "2020.0.5")
 }
 
 sourceSets {
@@ -287,7 +287,10 @@ openApiGenerate {
     ]
     configOptions = [
         interfaceOnly: "true",
-        useTags      : "true"
+        useTags      : "true",
+        documentationProvider: "none",
+        skipDefaultInterface : "true",
+        openApiNullable: "false"
     ]
 }
 
@@ -357,7 +360,7 @@ dependencies {
     implementation('wsdl4j:wsdl4j:1.6.3')
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:6.3.0')
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
-    implementation('io.swagger:swagger-annotations:1.6.2')
+    implementation('io.swagger:swagger-annotations:1.6.3')
 
     testImplementation project(':common-util')
     testImplementation project(':common-test')
@@ -366,10 +369,7 @@ dependencies {
     testImplementation('org.hsqldb:hsqldb')
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-    implementation('org.openapitools:jackson-databind-nullable:0.2.1')
     implementation('javax.validation:validation-api')
-    implementation 'io.springfox:springfox-core:3.0.0'
-    // /openapi-generator related
 }
 
 task copyDeps(type: Copy) {

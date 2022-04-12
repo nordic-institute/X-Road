@@ -11,12 +11,12 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '3.3'
-    id 'org.owasp.dependencycheck' version '6.5.1'
+    id 'org.owasp.dependencycheck' version '7.0.4.1'
     id 'jacoco'
     id 'java'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
-    id 'org.springframework.boot' version '2.5.8' apply false
+    id 'org.springframework.boot' version '2.5.12' apply false
 }
 
 repositories {
