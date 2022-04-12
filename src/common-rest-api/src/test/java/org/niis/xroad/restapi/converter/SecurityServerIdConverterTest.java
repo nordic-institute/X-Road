@@ -37,7 +37,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class SecurityServerIdConverterTest {
 
-    SecurityServerIdConverter securityServerIdConverter = new SecurityServerIdConverter(new ClientIdConverter());
+    SecurityServerIdConverter securityServerIdConverter = new SecurityServerIdConverter();
 
     @Test
     public void convertEncodedId() {
