@@ -28,7 +28,7 @@ let frontPage, mainPage, clientsTab, clientInfo, clientServices, operationDetail
 let addSubjectsPopup, removeAccessRightPopup, removeAllAccessRightsPopup, serviceChangePopup, serviceDetails,servicesPopup ;
 
 module.exports = {
-  tags: ['ss', 'clients', 'wsdlservices'],
+  tags: ['ss', 'clients', 'wsdlservices', 'WIP'],
   before: function (browser) {
     frontPage = browser.page.ssLoginPage();
     mainPage = browser.page.ssMainPage();
@@ -51,24 +51,11 @@ module.exports = {
     browser.LoginCommand();
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-  },
-
-  afterEach: function (browser) {
-    mainPage.logout();
-  },
-  after: function (browser) {
-    browser.end();
-  },
-
-
-  'Security server client add wsdl service': (browser) => {
-    // Navigate
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
-
-  },
+    },
 
   afterEach: function (browser) {
     mainPage.logout();
@@ -76,7 +63,6 @@ module.exports = {
   after: function (browser) {
     browser.end();
   },
-
 
   'Invalid URLs give proper error message': () => {
     clientServices.openAddWSDL();
