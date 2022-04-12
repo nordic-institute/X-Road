@@ -173,9 +173,9 @@ export default Vue.extend({
         (server: SecurityServer): SecurityServerListViewItem => {
           return {
             id: server.id || '',
-            serverCode: server.xroad_id.serverCode,
-            serverOwnerClass: server.xroad_id.memberClass,
-            serverOwnerCode: server.xroad_id.memberCode,
+            serverCode: server.xroad_id.server_code,
+            serverOwnerClass: server.xroad_id.member_class,
+            serverOwnerCode: server.xroad_id.member_code,
             serverOwnerName: server.owner_name || '',
           };
         },

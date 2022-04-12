@@ -35,6 +35,7 @@ import java.time.Instant;
 @Value
 @Builder
 public class SecurityServerDto {
+    private int id;
     SecurityServerId serverId;
     String serverAddress;
     String ownerName;

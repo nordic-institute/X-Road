@@ -64,6 +64,7 @@ public class SecurityServerService {
 
     private static SecurityServerDto toDto(SecurityServer server) {
         return SecurityServerDto.builder()
+                .id(server.getId())
                 .serverId(server.getServerId())
                 .ownerName(server.getOwner().getName())
                 .serverAddress(server.getAddress())
@@ -73,7 +74,6 @@ public class SecurityServerService {
     }
 
     public Optional<SecurityServerDto> find(SecurityServerId id) {
-        return securityServerRepository.findBy(id).map(
-                m -> this::toDto(m);
+        return securityServerRepository.findBy(id).map(SecurityServerService::toDto);
     }
 }
