@@ -64,11 +64,22 @@ export type FileUploadResult = {
 export interface Notification {
   timeAdded: number;
   timeout: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errorObject?: AxiosError; // Axios error object
   errorMessage?: string; // Localised error message
   successMessage?: string; // Localised success message
   show: boolean;
   count: number;
   isWarning: boolean;
+  validationErrors?: ValidationError[];
+  errorCode?: string; // x-road error code
+  metaData?: string[];
+  errorId?: string;
+  errorObjectAsString?: string;
+  responseData?: string;
+  url?: string;
+  status?: string;
 }
+
+export type ValidationError = {
+  field: string;
+  errorCodes: string[];
+};
