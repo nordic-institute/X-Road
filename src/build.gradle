@@ -11,7 +11,7 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '3.3'
-    id 'org.owasp.dependencycheck' version '6.5.1'
+    id 'org.owasp.dependencycheck' version '7.0.4.1'
     id 'jacoco'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
@@ -135,7 +135,7 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "8.29"
+        toolVersion = "8.44"
         configDirectory = file("${project.rootDir}/config/checkstyle")
         configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
         ignoreFailures = false

@@ -1,5 +1,7 @@
 # Change Log
 
+## 6.26.2 - UNRELEASED
+
 ## 6.26.1 - 2022-01-10
 - XRDDEV-1888: Update dependencies with known vulnerabilities
 - XRDDEV-1855: (backport) Restrict XXE globally
