@@ -35,9 +35,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class MemberClassControllerTest extends AbstractApiControllerTestContext {
+public class MemberClassesApiControllerTest extends AbstractApiControllerTestContext {
     @Autowired
-    private MemberClassController memberClassController;
+    private MemberClassesApiController memberClassesApiController;
 
     @Test
     @WithMockUser(authorities = {"ADD_MEMBER_CLASS"})
@@ -45,7 +45,7 @@ public class MemberClassControllerTest extends AbstractApiControllerTestContext 
         final MemberClass mc = new MemberClass();
         mc.setCode("FOO");
         mc.setDescription("Description");
-        ResponseEntity<MemberClass> response = memberClassController.addMemberClass(mc);
+        ResponseEntity<MemberClass> response = memberClassesApiController.addMemberClass(mc);
         assertTrue(response.getStatusCode().is2xxSuccessful());
         assertEquals(mc.getCode(), response.getBody().getCode());
     }

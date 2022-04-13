@@ -59,10 +59,10 @@ import java.util.Set;
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
-public class SecurityServersController implements SecurityServersApi {
+public class SecurityServersApiController implements SecurityServersApi {
 
     private static final Logger LOG =
-            LoggerFactory.getLogger(SecurityServersController.class);
+            LoggerFactory.getLogger(SecurityServersApiController.class);
 
     private final AuditDataHelper auditData;
     private final SecurityServerService securityServerService;
@@ -88,7 +88,7 @@ public class SecurityServersController implements SecurityServersApi {
     public ResponseEntity<PagedSecurityServers> findSecurityServers(String q, PagingSortingParameters pagingSorting) {
 
         PageRequest pageRequest = pageRequestConverter.convert(
-                pagingSorting, new SecurityServersController.SecurityServerSortParameterConverter());
+                pagingSorting, new SecurityServersApiController.SecurityServerSortParameterConverter());
 
         var servers = securityServerService.findSecurityServers(q, pageRequest);
 

@@ -50,7 +50,7 @@ import static org.junit.Assert.assertTrue;
 public class SecurityServerControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    private SecurityServersController securityServersController;
+    private SecurityServersApiController securityServersApiController;
 
     @Test
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
@@ -58,7 +58,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         final PagingSortingParameters sortingParameters =
                 new PagingSortingParameters().sort("xroad_id.server_code").desc(true);
         ResponseEntity<PagedSecurityServers> response =
-                securityServersController.findSecurityServers(null, sortingParameters);
+                securityServersApiController.findSecurityServers(null, sortingParameters);
         assertNotNull(response);
         assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
         assertNotNull(response.getBody());
@@ -78,7 +78,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         final PagingSortingParameters sortingByOwnerCode =
                 new PagingSortingParameters().sort("xroad_id.member_code").desc(false);
         ResponseEntity<PagedSecurityServers> response2 =
-                securityServersController.findSecurityServers(null, sortingByOwnerCode);
+                securityServersApiController.findSecurityServers(null, sortingByOwnerCode);
         assertNotNull(response2);
         assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
@@ -100,7 +100,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         final PagingSortingParameters sortingByOwnerName =
                 new PagingSortingParameters().sort("owner_name").desc(true);
         ResponseEntity<PagedSecurityServers> response2 =
-                securityServersController.findSecurityServers(null, sortingByOwnerName);
+                securityServersApiController.findSecurityServers(null, sortingByOwnerName);
         assertNotNull(response2);
         assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
@@ -120,7 +120,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         final PagingSortingParameters sortingByOwnerClass =
                 new PagingSortingParameters().sort("xroad_id.member_class").desc(true);
         ResponseEntity<PagedSecurityServers> response2 =
-                securityServersController.findSecurityServers(null, sortingByOwnerClass);
+                securityServersApiController.findSecurityServers(null, sortingByOwnerClass);
         assertNotNull(response2);
         assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
@@ -142,7 +142,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         PagingSortingParameters sortingParameters = new PagingSortingParameters().sort("Really invalid&&%&¤&#&&");
 
         assertThrows(ConstraintViolationException.class,
-                () -> securityServersController.findSecurityServers("not_relevant", sortingParameters));
+                () -> securityServersApiController.findSecurityServers("not_relevant", sortingParameters));
 
     }
 
@@ -153,7 +153,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         PagingSortingParameters sortingParameters = new PagingSortingParameters().sort("unknown_field");
 
         assertThrows(BadRequestException.class,
-                () -> securityServersController.findSecurityServers("not_relevant", sortingParameters));
+                () -> securityServersApiController.findSecurityServers("not_relevant", sortingParameters));
 
     }
 
@@ -164,7 +164,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         PagingSortingParameters sortingParameters = new PagingSortingParameters();
 
         assertThrows(AccessDeniedException.class,
-                () -> securityServersController.findSecurityServers("not_relevant", sortingParameters));
+                () -> securityServersApiController.findSecurityServers("not_relevant", sortingParameters));
 
     }
 
