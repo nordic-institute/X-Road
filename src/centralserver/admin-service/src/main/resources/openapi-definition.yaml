@@ -1819,7 +1819,16 @@ paths:
             format: text
             maxLength: 25
             type: string
-        - description: optional paging and sorting parameters
+        - description: >
+            optional paging and sorting parameters. Sorting possible according to one of the following values:
+            <ul>
+                <li><b>id</b> for id</li>
+                <li><b>member_name</b> for client's member name,</li>
+                <li><b>xroad_id.instance_id</b> for client's instance id</li>
+                <li><b>xroad_id.member_class</b> for client's member class or</li>
+                <li><b>xroad_id.member_code</b> for client's member code or</li>
+                <li><b>client_type</b> for client type.</li>
+            </ul>
           in: query
           name: paging_sorting
           required: false
@@ -2169,9 +2178,9 @@ paths:
       operationId: findSecurityServers
       parameters:
         - description: >
-                An optional generic filtering query parameter selects only items that contain parameter
-                value in properties (owner_member id, contains_member id). Needs to be properly encoded for the
-                special characters, too. Empty value means the parameter is ignored.
+            An optional generic filtering query parameter selects only items that contain parameter
+            value in visible properties server code, server owner name, server owner class and owner code. Needs to be properly encoded for the
+            special characters, too. Empty value means the parameter is ignored.
           in: query
           name: q
           required: false
@@ -2180,32 +2189,19 @@ paths:
             format: text
             maxLength: 25
             type: string
-        - description: optional paging and sorting parameters
+        - description: >
+            optional paging and sorting parameters. Sorting possible according to one of the following values:
+            <ul>
+                <li><b>xroad_id.server_code</b> for server code ,</li>
+                <li><b>owner_name</b> for server owner name,</li>
+                <li><b>xroad_id.member_class</b> for server owner class or</li>
+                <li><b>xroad_id.member_code</b> for owner code.</li>
+            </ul>
           in: query
           name: paging_sorting
           required: false
           schema:
             $ref: '#/components/schemas/PagingSortingParameters'
-        - description: an optional owner member id parameter – return only security servers that are owned by this member. Empty value means the parameter is ignored.
-          in: query
-          name: owner_member
-          required: false
-          schema:
-            example: 'CS:ORG:123'
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
-        - description: an optional client member id parameter – return only security servers that have this member as a client. Empty value means the parameter is ignored.
-          in: query
-          name: contains_member
-          required: false
-          schema:
-            example: 'CS:ORG:123'
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
       responses:
         '200':
           content:
@@ -2213,6 +2209,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/PagedSecurityServers'
           description: paged security servers results
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -3739,7 +3737,7 @@ components:
       properties:
         items:
           description: array of members to be added
-          example: ["FI:GOV:123", "FI:GOV:123:SS1", "FI:GOV:123:SS2"]
+          example: [ "FI:GOV:123", "FI:GOV:123:SS1", "FI:GOV:123:SS2" ]
           items:
             format: text
             maxLength: 1023
@@ -3830,20 +3828,10 @@ components:
           readOnly: true
         xroad_id:
           $ref: '#/components/schemas/SecurityServerId'
-        owner:
-          description: <instance_id>:<member_class>:<member_code>
-          example: FI:GOV:123
-          format: text
+        owner_name:
           type: string
-        registered_at:
-          description: the date-time when the server was registered
-          example: '2022-01-17T00:00:00.001Z'
-          format: date-time
-          maxLength: 24
-          minLength: 24
-          type: string
+          readOnly: true
       required:
-        - id
         - xroad_id
       type: object
     PagedClients:
@@ -3915,7 +3903,7 @@ components:
           maxLength: 25
           type: string
         # exploded query parameters from objects dont seem to like underscores
-        # https://stackoverflow.com/questions/35628974/when-post-spring-is-ignoring-jsonproperty#comment58939524_35628974 
+        # https://stackoverflow.com/questions/35628974/when-post-spring-is-ignoring-jsonproperty#comment58939524_35628974
         desc:
           description: >
               Used sorting direction. Value 'true'  indicates descending and 'false' or omitted

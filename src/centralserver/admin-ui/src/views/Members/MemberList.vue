@@ -77,9 +77,6 @@
         </div>
       </template>
 
-      <template #footer>
-        <div class="cs-table-custom-footer"></div>
-      </template>
     </v-data-table>
   </div>
 </template>

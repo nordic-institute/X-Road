@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @RequiredArgsConstructor
-public class ManagementRequestController implements ManagementRequestsApi {
+public class ManagementRequestsApiController implements ManagementRequestsApi {
 
     public static final int MAX_PAGE_SIZE = 10;
     private final ManagementRequestService service;

@@ -93,13 +93,21 @@ public abstract class XRoadId implements Serializable {
         return type + ":" + toShortString();
     }
 
-    /**
-     * Returns short string representation of the identifier that is
-     * more suitable for user interface usage than output
-     * of the toString() method.
-     * @return String
-     */
+    public String toString(char delimiter) {
+        return type.toString() + delimiter + toShortString(delimiter);
+    }
+
     public String toShortString() {
+        return toShortString('/');
+    }
+
+        /**
+         * Returns short string representation of the identifier that is
+         * more suitable for user interface usage than output
+         * of the toString() method.
+         * @return String
+         */
+    public String toShortString(char delimiter) {
         StringBuilder sb = new StringBuilder();
         if (xRoadInstance != null) {
             sb.append(xRoadInstance);
@@ -108,7 +116,7 @@ public abstract class XRoadId implements Serializable {
         for (String part : getFieldsForStringFormat()) {
             if (part != null) {
                 if (sb.length() > 0) {
-                    sb.append('/');
+                    sb.append(delimiter);
                 }
 
                 sb.append(part);

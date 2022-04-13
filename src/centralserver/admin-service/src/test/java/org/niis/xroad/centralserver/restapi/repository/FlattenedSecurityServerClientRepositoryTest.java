@@ -53,8 +53,8 @@ import static org.junit.Assert.fail;
 @WithMockUser
 public class FlattenedSecurityServerClientRepositoryTest {
 
-    public static final int CLIENTS_TOTAL_COUNT = 12;
-    public static final int SUBSYSTEMS_TOTAL_COUNT = 1;
+    public static final int CLIENTS_TOTAL_COUNT = 18;
+    public static final int SUBSYSTEMS_TOTAL_COUNT = 3;
     public static final int MEMBERS_TOTAL_COUNT = CLIENTS_TOTAL_COUNT - SUBSYSTEMS_TOTAL_COUNT;
     @Autowired
     private FlattenedSecurityServerClientRepository repository;
@@ -106,7 +106,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("member"));
-        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
+        assertEquals(12, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("ÅÖÄ"));
@@ -131,7 +131,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("gOv"));
-        assertEquals(CLIENTS_TOTAL_COUNT - 1, clients.size());
+        assertEquals(CLIENTS_TOTAL_COUNT - 5, clients.size());
 
         // member code
         clients = repository.findAll(
@@ -167,7 +167,8 @@ public class FlattenedSecurityServerClientRepositoryTest {
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.memberClass("gOV"));
-        assertEquals(CLIENTS_TOTAL_COUNT - 1, clients.size());
+        // other clients: 4 ORG, 1 MemberclassFoo
+        assertEquals(CLIENTS_TOTAL_COUNT - 5, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.memberClass("gOVi"));
@@ -186,7 +187,8 @@ public class FlattenedSecurityServerClientRepositoryTest {
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.memberCode("m"));
-        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
+        // M1 - M11 + subsystem
+        assertEquals(12, clients.size());
     }
 
     @Test
@@ -225,7 +227,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
         var memberPage = repository.findAll(
                 FlattenedSecurityServerClientRepository.member(),
                 page);
-        assertEquals(3, memberPage.getTotalPages());
+        assertEquals(4, memberPage.getTotalPages());
         assertEquals(MEMBERS_TOTAL_COUNT, memberPage.getTotalElements());
         assertEquals(4, memberPage.getNumberOfElements());
         assertEquals(0, memberPage.getNumber());
@@ -237,12 +239,12 @@ public class FlattenedSecurityServerClientRepositoryTest {
         assertEquals(4, memberPage.getNumberOfElements());
         assertEquals(1, memberPage.getNumber());
 
-        page = page.next();
+        page = page.next().next();
         memberPage = repository.findAll(
                 FlattenedSecurityServerClientRepository.member(),
                 page);
         assertEquals(3, memberPage.getNumberOfElements());
-        assertEquals(2, memberPage.getNumber());
+        assertEquals(3, memberPage.getNumber());
     }
 
     @Test
@@ -489,7 +491,8 @@ public class FlattenedSecurityServerClientRepositoryTest {
                         new FlattenedSecurityServerClientRepository.SearchParameters()
                                 .setMemberNameSearch("2")
                 ));
-        assertEquals(1, clients.size());
+        // Member2, TEST2
+        assertEquals(2, clients.size());
 
         // combo all parameters
         clients = repository.findAll(
@@ -510,13 +513,17 @@ public class FlattenedSecurityServerClientRepositoryTest {
     public void caseInsensitiveSort() {
         var order = Sort.Order.by("memberName").ignoreCase();
         var clients = repository.findAll(Sort.by(order));
-        // #3 - Member2
-        // #4 - member3
-        // #5 - mEmber4
-        assertEquals("Member2", clients.get(4).getMemberName());
-        assertEquals("member3", clients.get(5).getMemberName());
-        assertEquals("mEmber4", clients.get(6).getMemberName());
-
+        int index = 0;
+        assertEquals("ADMORG", clients.get(index++).getMemberName());
+        assertEquals("ADMORG", clients.get(index++).getMemberName()); // subsystem
+        assertEquals("ADMORG", clients.get(index++).getMemberName()); // subsystem
+        assertEquals("Member1", clients.get(index++).getMemberName());
+        assertEquals("Member1", clients.get(index++).getMemberName()); // subsystem
+        assertEquals("Member10", clients.get(index++).getMemberName());
+        assertEquals("Member11", clients.get(index++).getMemberName());
+        assertEquals("Member2", clients.get(index++).getMemberName());
+        assertEquals("member3", clients.get(index++).getMemberName());
+        assertEquals("mEmber4", clients.get(index++).getMemberName());
     }
 
     @Test

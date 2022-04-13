@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,22 +24,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
+import axios from 'axios';
+import {
+  PagedSecurityServers,
+  PagingMetadata,
+  SecurityServer,
+} from '@/openapi-types';
+import { defineStore } from 'pinia';
+import { DataOptions } from 'vuetify';
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-
-import lombok.Builder;
-import lombok.Value;
-
-import java.time.Instant;
-
-@Value
-@Builder
-public class SecurityServerDto {
-    private int id;
-    SecurityServerId serverId;
-    String serverAddress;
-    String ownerName;
-    Instant createdAt;
-    Instant updatedAt;
+export interface State {
+  securityServers: SecurityServer[];
+  securityServerPagingOptions: PagingMetadata;
 }
+
+export const useSecurityServerStore = defineStore('securityServer', {
+  state: (): State => ({
+    securityServers: [],
+    securityServerPagingOptions: {
+      total_items: 0,
+      items: 0,
+      limit: 25,
+      offset: 0,
+    },
+  }),
+  persist: true,
+  actions: {
+    async find(dataOptions: DataOptions, q: string) {
+      const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
+      const searchUrlParams = {
+        offset: offset,
+        limit: dataOptions.itemsPerPage,
+        sort: dataOptions.sortBy[0],
+        desc: dataOptions.sortDesc[0],
+        q,
+      };
+
+      return axios
+        .get<PagedSecurityServers>('/security-servers/', {
+          params: searchUrlParams,
+        })
+        .then((resp) => {
+          this.securityServers = resp.data.clients || [];
+          this.securityServerPagingOptions = resp.data.paging_metadata;
+        });
+    },
+  },
+});

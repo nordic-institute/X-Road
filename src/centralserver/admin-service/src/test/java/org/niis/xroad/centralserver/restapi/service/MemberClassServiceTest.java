@@ -46,7 +46,7 @@ public class MemberClassServiceTest {
     @Autowired
     private MemberClassService service;
 
-    private static final int MEMBER_CLASSES_IN_IMPORT_SQL = 2;
+    private static final int MEMBER_CLASSES_IN_IMPORT_SQL = 3;
 
     @Test
     @Transactional
