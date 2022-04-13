@@ -35,10 +35,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
-import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.securityserver.restapi.converter.KeyConverter;
 import org.niis.xroad.securityserver.restapi.converter.KeyUsageTypeMapping;
@@ -85,8 +85,9 @@ public class TokensApiController implements TokensApi {
     private final KeyService keyService;
     private final TokenService tokenService;
     private final TokenConverter tokenConverter;
-    private final ClientConverter clientConverter;
     private final KeyAndCertificateRequestService keyAndCertificateRequestService;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     @Override
@@ -195,7 +196,7 @@ public class TokensApiController implements TokensApi {
         ClientId memberId = null;
         if (KeyUsageInfo.SIGNING == keyUsageInfo) {
             // memberId not used for authentication csrs
-            memberId = clientConverter.convertId(csrGenerate.getMemberId());
+            memberId = clientIdConverter.convertId(csrGenerate.getMemberId());
         }
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is

@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientIdentifierDto;
 import org.springframework.stereotype.Component;
 
@@ -45,8 +46,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ServiceClientIdentifierConverter {
 
-    private final ClientConverter clientConverter;
     private final GlobalGroupConverter globalGroupConverter;
+
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Convert encoded service client id into ServiceClientIdentifierDto (based on serviceClientType,
@@ -60,9 +62,9 @@ public class ServiceClientIdentifierConverter {
     public ServiceClientIdentifierDto convertId(String encodedServiceClientIdentifier)
             throws BadServiceClientIdentifierException {
         ServiceClientIdentifierDto dto = new ServiceClientIdentifierDto();
-        if (clientConverter.isEncodedSubsystemId(encodedServiceClientIdentifier)) {
+        if (clientIdConverter.isEncodedSubsystemId(encodedServiceClientIdentifier)) {
             // subsystem
-            ClientId clientId = clientConverter.convertId(encodedServiceClientIdentifier);
+            ClientId clientId = clientIdConverter.convertId(encodedServiceClientIdentifier);
             dto.setXRoadId(clientId);
         } else if (globalGroupConverter.isEncodedGlobalGroupId(encodedServiceClientIdentifier)) {
             GlobalGroupId globalGroupId = globalGroupConverter.convertId(encodedServiceClientIdentifier);

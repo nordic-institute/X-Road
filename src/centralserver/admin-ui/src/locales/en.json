@@ -327,7 +327,8 @@
     "noMatches": "No items matching criteria",
     "noMemberClasses": "No member classes",
     "noServices": "No services",
-    "noTokens": "No tokens"
+    "noTokens": "No tokens",
+    "noSecurityServers": "No security servers"
   },
   "securityServers": {
     "address": "Address",

@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Transactional
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class InitializationApiControllerRestTemplateTest extends AbstractApiRestTemplateTestContext {
+public class InitializationApiTest extends AbstractApiRestTemplateTestContext {
 
     private final ObjectMapper testObjectMapper = new ObjectMapper();
     @Autowired

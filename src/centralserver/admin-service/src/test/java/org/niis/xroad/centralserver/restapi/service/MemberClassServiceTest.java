@@ -46,13 +46,15 @@ public class MemberClassServiceTest {
     @Autowired
     private MemberClassService service;
 
+    private static final int MEMBER_CLASSES_IN_IMPORT_SQL = 3;
+
     @Test
     @Transactional
     public void testService() {
         service.add(new MemberClassDto("TEST", "Description"));
         service.add(new MemberClassDto("TEST2", "Description"));
         final List<MemberClassDto> all = service.findAll();
-        assertEquals(2, all.size());
+        assertEquals((MEMBER_CLASSES_IN_IMPORT_SQL + 2), all.size());
         service.delete("TEST");
         service.update(new MemberClassDto("TEST2", "Description2"));
         final MemberClassDto test2 = service.find("TEST2").get();

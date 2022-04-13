@@ -49,7 +49,7 @@ import java.util.Set;
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
 @RequiredArgsConstructor
-public class MemberClassController implements MemberClassesApi {
+public class MemberClassesApiController implements MemberClassesApi {
 
     private final MemberClassService service;
     private final AuditDataHelper auditData;

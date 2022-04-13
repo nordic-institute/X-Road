@@ -35,7 +35,6 @@
         <xrd-icon-base class="xrd-large-button-icon"
           ><xrd-icon-add
         /></xrd-icon-base>
-
         {{ $t('members.addMember') }}</xrd-button
       >
     </div>
@@ -44,18 +43,33 @@
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="members"
+      :items="clientStore.clients"
       :search="search"
       :must-sort="true"
-      :items-per-page="-1"
+      :items-per-page="10"
+      :options.sync="pagingSortingOptions"
+      :server-items-length="clientStore.pagingOptions.total_items"
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
-      hide-default-footer
+      :footer-props="{ itemsPerPageOptions: [10, 25] }"
+      @update:options="changeOptions"
     >
       <template #[`item.name`]="{ item }">
-        <div class="members-table-cell-name" @click="toDetails('netum')">
+        <div
+          v-if="hasPermissionToMemberDetails"
+          class="members-table-cell-name-action"
+          @click="toDetails()"
+        >
           <xrd-icon-base class="xrd-clickable mr-4"
+            ><xrd-icon-folder-outline
+          /></xrd-icon-base>
+
+          {{ item.name }}
+        </div>
+
+        <div v-else class="members-table-cell-name">
+          <xrd-icon-base class="mr-4"
             ><xrd-icon-folder-outline
           /></xrd-icon-base>
 
@@ -63,9 +77,6 @@
         </div>
       </template>
 
-      <template #footer>
-        <div class="cs-table-custom-footer"></div>
-      </template>
     </v-data-table>
   </div>
 </template>
@@ -74,6 +85,19 @@
 import Vue from 'vue';
 import { RouteName } from '@/global';
 import { DataTableHeader } from 'vuetify';
+import { userStore } from '@/store/modules/user';
+import { clientStore } from '@/store/modules/clients';
+import { mapState } from 'pinia';
+import { Permissions } from '@/global';
+import { mapActions, mapStores } from 'pinia';
+import { DataOptions } from 'vuetify';
+import { debounce } from '@/util/helpers';
+import { notificationsStore } from '@/store/modules/notifications';
+
+// To provide the Vue instance to debounce
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let that: any;
+
 
 export default Vue.extend({
   name: 'MemberList',
@@ -82,50 +106,71 @@ export default Vue.extend({
       search: '',
       loading: false,
       showOnlyPending: false,
-      members: [
-        {
-          name: 'Nordic Institue for Interoperability Solutions',
-          class: 'ORG',
-          code: '555',
-        },
-        {
-          name: 'Netum Oy',
-          class: 'COM',
-          code: 'IMAMEMBERCODE',
-        },
-      ],
+      pagingSortingOptions: {} as DataOptions,
     };
   },
+  watch: {
+    search: function (newSearch, oldSearch) {
+      this.debouncedFetchClients();
+    },
+  },
   computed: {
+    ...mapStores(clientStore),
+    ...mapState(userStore, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
         {
           text: (this.$t('global.memberName') as string) + ' (8)',
           align: 'start',
-          value: 'name',
+          value: 'member_name',
           class: 'xrd-table-header members-table-header-name',
         },
         {
           text: this.$t('global.memberClass') as string,
           align: 'start',
-          value: 'class',
+          value: 'xroad_id.member_class',
           class: 'xrd-table-header members-table-header-class',
         },
         {
           text: this.$t('global.memberCode') as string,
           align: 'start',
-          value: 'code',
+          value: 'xroad_id.member_code',
           class: 'xrd-table-header members-table-header-code',
         },
       ];
     },
+    hasPermissionToMemberDetails(): boolean {
+      return this.hasPermission(Permissions.VIEW_MEMBER_DETAILS);
+    },
+  },
+  created() {
+    that = this;
   },
   methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    debouncedFetchClients: debounce(() => {
+      // Debounce is used to reduce unnecessary api calls
+      that.fetchClients(that.pagingSortingOptions);
+    }, 600),
     toDetails(): void {
       this.$router.push({
         name: RouteName.MemberDetails,
-        params: { memberid: 'netum' },
+        params: { memberid: 'unknown-member-id' },
       });
+    },
+    changeOptions: async function () {
+      this.fetchClients(this.pagingSortingOptions);
+    },
+    fetchClients: async function (options: DataOptions) {
+      this.loading = true;
+
+      try {
+        await this.clientStore.find(options, this.search);
+      } catch (error: unknown) {
+        this.showError(error);
+      } finally {
+        this.loading = false;
+      }
     },
   },
 });
@@ -135,23 +180,15 @@ export default Vue.extend({
 @import '~styles/colors';
 @import '~styles/tables';
 
-.icon-column {
-  width: 40px;
-}
-
-.members-table-cell-name {
+.members-table-cell-name-action {
   color: $XRoad-Purple100;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
 }
 
-.members-table-header-icon {
-  width: 20px;
-}
-
-.members-table-cell-id {
-  border: solid 3px red;
-  width: 10px;
+.members-table-cell-name {
+  font-weight: 600;
+  font-size: 14px;
 }
 </style>

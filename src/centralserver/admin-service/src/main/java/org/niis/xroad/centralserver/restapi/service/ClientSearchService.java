@@ -24,30 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.openapi;
+package org.niis.xroad.centralserver.restapi.service;
 
-import org.junit.Test;
-import org.niis.xroad.centralserver.openapi.model.MemberClass;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
+import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import javax.transaction.Transactional;
 
-public class MemberClassControllerTest extends AbstractApiControllerTestContext {
+import java.util.stream.Collectors;
+
+/**
+ * Service for searching {@link org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient}s
+ */
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class ClientSearchService {
     @Autowired
-    private MemberClassController memberClassController;
+    private FlattenedSecurityServerClientRepository flattenedClientRepository;
 
-    @Test
-    @WithMockUser(authorities = {"ADD_MEMBER_CLASS"})
-    public void testAddMemberClass() {
-        final MemberClass mc = new MemberClass();
-        mc.setCode("FOO");
-        mc.setDescription("Description");
-        ResponseEntity<MemberClass> response = memberClassController.addMemberClass(mc);
-        assertTrue(response.getStatusCode().is2xxSuccessful());
-        assertEquals(mc.getCode(), response.getBody().getCode());
+    public Page<FlattenedSecurityServerClientDto> find(
+            FlattenedSecurityServerClientRepository.SearchParameters params,
+            Pageable pageable) {
+        var clients = flattenedClientRepository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(params),
+                StableSortUtil.addSecondaryIdSort(pageable));
+        var dtos = clients.get()
+                          .map(FlattenedSecurityServerClientDto::from)
+                          .collect(Collectors.toList());
+        return new PageImpl<>(dtos, clients.getPageable(), clients.getTotalElements());
     }
+
 
 }
