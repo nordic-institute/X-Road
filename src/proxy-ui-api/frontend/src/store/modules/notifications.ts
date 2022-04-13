@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-import { Notification } from '@/ui-types';
+import { Notification, ValidationError } from '@/ui-types';
 import { defineStore } from 'pinia';
 import { TranslateResult } from 'vue-i18n';
 import { AxiosError } from 'axios';
@@ -40,31 +40,19 @@ function containsNotification(
     return -1;
   }
   return errorNotifications.findIndex((e: Notification) => {
-    if (
-      notification?.errorObject?.response?.config?.data !==
-      e?.errorObject?.response?.config?.data
-    ) {
+    if (notification?.responseData !== e?.responseData) {
       return false;
     }
 
-    if (
-      notification?.errorObject?.response?.config?.url !==
-      e?.errorObject?.response?.config?.url
-    ) {
+    if (notification?.url !== e?.url) {
       return false;
     }
 
-    if (
-      notification?.errorObject?.response?.data?.status !==
-      e?.errorObject?.response?.data?.status
-    ) {
+    if (notification?.status !== e?.status) {
       return false;
     }
 
-    if (
-      notification?.errorObject?.response?.data?.error?.code !==
-      e?.errorObject?.response?.data?.error?.code
-    ) {
+    if (notification?.errorCode !== e?.errorCode) {
       return false;
     }
 
@@ -137,7 +125,36 @@ export const useNotifications = defineStore('notifications', {
       // Don't show errors when the errorcode is 401 which is usually because of session expiring
       if (errorObject?.response?.status !== 401) {
         const notification = createEmptyNotification(-1);
-        notification.errorObject = errorObject;
+
+        // Add validation errors
+
+        const validationErrors =
+          errorObject?.response?.data?.error?.validation_errors;
+
+        if (validationErrors) {
+          notification.validationErrors = Object.keys(validationErrors).map(
+            (field) =>
+              ({
+                field,
+                errorCodes: validationErrors[field],
+              } as ValidationError),
+          );
+        }
+
+        // Store error object as a string that can be shown to the user
+        notification.errorObjectAsString = errorObject.toString();
+
+        // Data shown in nofitication component
+        notification.errorCode = errorObject?.response?.data?.error?.code;
+        notification.metaData = errorObject?.response?.data?.error?.metadata;
+        notification.responseData = errorObject?.response?.config?.data;
+        notification.errorId =
+          errorObject?.response?.headers['x-road-ui-correlation-id'];
+
+        // Data needed to compare with other notificatios for handling duplicates
+        notification.url = errorObject?.response?.config?.url;
+        notification.status = errorObject?.response?.data?.status;
+
         this.errorNotifications = addErrorNotification(
           this.errorNotifications,
           notification,
