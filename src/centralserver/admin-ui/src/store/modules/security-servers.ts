@@ -33,27 +33,6 @@ import {
 import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';
 
-function sortField2SortParam(field: string): string {
-  let searchParam;
-  switch (field) {
-    case 'serverCode':
-      searchParam = 'server_code';
-      break;
-    case 'serverOwnerName':
-      searchParam = 'owner_name';
-      break;
-    case 'serverOwnerCode':
-      searchParam = 'owner_name';
-      break;
-    case 'serverOwnerClass':
-      searchParam = 'owner_name';
-      break;
-    default:
-      searchParam = '';
-  }
-  return searchParam;
-}
-
 export interface State {
   securityServers: SecurityServer[];
   securityServerPagingOptions: PagingMetadata;
@@ -72,10 +51,11 @@ export const useSecurityServerStore = defineStore('securityServer', {
   persist: true,
   actions: {
     async find(dataOptions: DataOptions, q: string) {
+      const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
       const searchUrlParams = {
-        offset: dataOptions.page - 1,
+        offset: offset,
         limit: dataOptions.itemsPerPage,
-        sort: sortField2SortParam(dataOptions.sortBy[0]),
+        sort: dataOptions.sortBy[0],
         desc: dataOptions.sortDesc[0],
         q,
       };

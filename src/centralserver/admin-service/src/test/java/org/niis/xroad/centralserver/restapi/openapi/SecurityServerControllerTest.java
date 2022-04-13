@@ -56,7 +56,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
     public void testOKSortParameterReturn200OK() {
         final PagingSortingParameters sortingParameters =
-                new PagingSortingParameters().sort("server_code").desc(true);
+                new PagingSortingParameters().sort("xroad_id.server_code").desc(true);
         ResponseEntity<PagedSecurityServers> response =
                 securityServersController.findSecurityServers(null, sortingParameters);
         assertNotNull(response);
@@ -76,7 +76,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
     public void givenAscendingByOwnerCodeGetRightSorted() {
 
         final PagingSortingParameters sortingByOwnerCode =
-                new PagingSortingParameters().sort("owner_code").desc(false);
+                new PagingSortingParameters().sort("xroad_id.member_code").desc(false);
         ResponseEntity<PagedSecurityServers> response2 =
                 securityServersController.findSecurityServers(null, sortingByOwnerCode);
         assertNotNull(response2);
@@ -118,7 +118,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
     public void givenDescendingByOwnerClassGetRightSorted() {
 
         final PagingSortingParameters sortingByOwnerClass =
-                new PagingSortingParameters().sort("owner_class").desc(true);
+                new PagingSortingParameters().sort("xroad_id.member_class").desc(true);
         ResponseEntity<PagedSecurityServers> response2 =
                 securityServersController.findSecurityServers(null, sortingByOwnerClass);
         assertNotNull(response2);

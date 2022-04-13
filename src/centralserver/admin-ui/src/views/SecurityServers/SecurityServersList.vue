@@ -40,15 +40,18 @@
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="securityServers"
+      :items="securityServerStore.securityServers"
+      :search="search"
       :must-sort="true"
+      :items-per-page="10"
       :options.sync="pagingSortingOptions"
+      :server-items-length="securityServerStore.securityServerPagingOptions.total_items"
       disable-filtering
       class="elevation-0 data-table"
       :no-data-text="emptyListReasoning"
       item-key="id"
       :loader-height="2"
-      :server-items-length.sync="totalItems"
+      :footer-props="{ itemsPerPageOptions: [10, 25] }"
       @update:options="findServers"
     >
       <template #[`item.serverCode`]="{ item }">
@@ -80,14 +83,11 @@ import { mapActions, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import VueI18n from 'vue-i18n';
 import TranslateResult = VueI18n.TranslateResult;
+import {debounce} from "@/util/helpers";
 
-interface SecurityServerListViewItem {
-  id: string;
-  serverCode: string;
-  serverOwnerName: string;
-  serverOwnerCode: string;
-  serverOwnerClass: string;
-}
+// To provide the Vue instance to debounce
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let that: any;
 
 export default Vue.extend({
   data() {
@@ -95,18 +95,7 @@ export default Vue.extend({
       search: '',
       loading: false,
       showOnlyPending: false,
-      securityServers: [] as SecurityServerListViewItem[],
-      pagingSortingOptions: {
-        page: 0,
-        itemsPerPage: 5,
-        sortBy: ['serverCode'],
-        sortDesc: [false],
-        groupBy: [],
-        groupDesc: [],
-        multiSort: false,
-        mustSort: true,
-      } as DataOptions,
-      totalItems: 0,
+      pagingSortingOptions: {} as DataOptions,
     };
   },
   computed: {
@@ -116,25 +105,25 @@ export default Vue.extend({
         {
           text: this.$t('securityServers.serverCode') as string,
           align: 'start',
-          value: 'serverCode',
+          value: 'xroad_id.server_code',
           class: 'xrd-table-header ss-table-header-sercer-code',
         },
         {
           text: this.$t('securityServers.ownerName') as string,
           align: 'start',
-          value: 'serverOwnerName',
+          value: 'owner_name',
           class: 'xrd-table-header ss-table-header-owner-name',
         },
         {
           text: this.$t('securityServers.ownerCode') as string,
           align: 'start',
-          value: 'serverOwnerCode',
+          value: 'xroad_id.member_code',
           class: 'xrd-table-header ss-table-header-owner-code',
         },
         {
           text: this.$t('securityServers.ownerClass') as string,
           align: 'start',
-          value: 'serverOwnerClass',
+          value: 'xroad_id.member_class',
           class: 'xrd-table-header ss-table-header-owner-class',
         },
       ];
@@ -148,45 +137,37 @@ export default Vue.extend({
 
   watch: {
     search: function () {
-      this.findServers(this.pagingSortingOptions);
+      this.debouncedFindServers();
     },
   },
-
+  created() {
+    that = this;
+  },
   methods: {
     ...mapActions(notificationsStore, ['showError']),
+    debouncedFindServers: debounce(() => {
+      // Debounce is used to reduce unnecessary api calls
+      that.findServers(that.pagingSortingOptions);
+    }, 600),
     toDetails(securityServer: SecurityServer): void {
       this.$router.push({
         name: RouteName.SecurityServerDetails,
         params: { id: securityServer.id || '' },
       });
     },
+    changeOptions: async function () {
+      this.findServers(this.pagingSortingOptions);
+    },
     findServers: async function (options: DataOptions) {
       this.loading = true;
-      this.pagingSortingOptions = Object.assign({}, options);
-      await this.securityServerStore
-        .find(options, this.search)
-        .catch((error) => this.showError(error))
-        .finally(() => {
-          this.loading = false;
-        });
-      this.securityServers = await this.securityServerStore.securityServers.map(
-        (server: SecurityServer): SecurityServerListViewItem => {
-          return {
-            id: server.id || '',
-            serverCode: server.xroad_id.server_code,
-            serverOwnerClass: server.xroad_id.member_class,
-            serverOwnerCode: server.xroad_id.member_code,
-            serverOwnerName: server.owner_name || '',
-          };
-        },
-      );
-      this.pagingSortingOptions.page =
-        this.securityServerStore.securityServerPagingOptions.offset + 1;
-      this.pagingSortingOptions.itemsPerPage =
-        this.securityServerStore.securityServerPagingOptions.limit;
-      this.totalItems =
-        this.securityServerStore.securityServerPagingOptions.total_items;
-      this.loading = false;
+
+      try {
+        await this.securityServerStore.find(options, this.search);
+      } catch (error: unknown) {
+        this.showError(error);
+      } finally {
+        this.loading = false;
+      }
     },
   },
 });

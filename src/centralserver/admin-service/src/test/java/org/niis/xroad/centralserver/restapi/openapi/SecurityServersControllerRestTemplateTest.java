@@ -122,7 +122,7 @@ public class SecurityServersControllerRestTemplateTest extends AbstractApiRestTe
     public void givenDescSortReturnsCorrectlySorted() {
         addApiKeyAuthorizationHeader(restTemplate);
         ResponseEntity<PagedSecurityServers> response =
-                restTemplate.getForEntity("/api/v1/security-servers/?desc=true&sort=owner_code",
+                restTemplate.getForEntity("/api/v1/security-servers/?desc=true&sort=xroad_id.member_code",
                         PagedSecurityServers.class);
         assertNotNull(response, "Security server list response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(),

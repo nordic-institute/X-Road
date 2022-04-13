@@ -34,6 +34,7 @@ import org.niis.xroad.centralserver.openapi.model.PagedSecurityServers;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
 import org.niis.xroad.centralserver.openapi.model.SecurityServer;
 import org.niis.xroad.centralserver.openapi.model.SecurityServerAddress;
+import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.SecurityServerConverter;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -44,19 +45,15 @@ import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Locale;
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
-
-import static org.niis.xroad.centralserver.restapi.entity.SecurityServer_.SERVER_CODE;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -71,6 +68,7 @@ public class SecurityServersController implements SecurityServersApi {
     private final SecurityServerService securityServerService;
 
     SecurityServerConverter serverConverter = new SecurityServerConverter();
+    private PageRequestConverter pageRequestConverter = new PageRequestConverter();
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_SECURITY_SERVER')")
@@ -89,42 +87,28 @@ public class SecurityServersController implements SecurityServersApi {
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
     public ResponseEntity<PagedSecurityServers> findSecurityServers(String q, PagingSortingParameters pagingSorting) {
 
-        pagingSorting = getPagingSortingParametersOrDefault(pagingSorting);
-        Sort sorting = getSortOrDefault(pagingSorting);
+        PageRequest pageRequest = pageRequestConverter.convert(
+                pagingSorting, new SecurityServersController.SecurityServerSortParameterConverter());
 
-        Pageable pageable = PageRequest.of(
-                pagingSorting.getOffset(),
-                pagingSorting.getLimit(),
-                sorting);
+        var servers = securityServerService.findSecurityServers(q, pageRequest);
 
-        var servers = securityServerService.findSecurityServers(q, pageable);
         return ResponseEntity.ok(serverConverter.convert(servers));
     }
 
-    private Sort getSortOrDefault(PagingSortingParameters pagingSorting) {
-        Sort sorting = Sort.by(
-                (pagingSorting.getSort() == null || pagingSorting.getSort().isEmpty())
-                        ? SERVER_CODE
-                        : SortField.fromString(pagingSorting.getSort())
-                                .orElseThrow(() -> {
-                                    throw new BadRequestException(
-                                            "Not supported sorting key:" + pagingSorting.getSort());
-                                })
-                                .toString()
-        );
-        sorting = Boolean.TRUE.equals(pagingSorting.getDesc()) ? sorting.descending() : sorting.ascending();
-        return sorting;
-    }
-
-    private PagingSortingParameters getPagingSortingParametersOrDefault(PagingSortingParameters pagingSorting) {
-        final Integer defaultPageLength = 25;
-        final PagingSortingParameters defaultPagingSorting =
-                new PagingSortingParameters().limit(defaultPageLength).offset(0).sort(SortField.SERVER_CODE.fieldName)
-                        .desc(false);
-        if (pagingSorting == null) {
-            pagingSorting = defaultPagingSorting;
+    private class SecurityServerSortParameterConverter implements PageRequestConverter.SortParameterConverter {
+        Map<String, String> conversions = new HashMap<>();
+        {
+            conversions.put("owner_name", "owner.name");
+            conversions.put("xroad_id.member_class", "owner.memberClass.code");
+            conversions.put("xroad_id.member_code", "owner.memberCode");
+            conversions.put("xroad_id.server_code", "serverCode");
         }
-        return pagingSorting;
+        @Override
+        public String convertToSortProperty(String sortParameter) throws BadRequestException {
+            String sortProperty = conversions.get(sortParameter);
+            if (sortProperty == null) throw new BadRequestException("Unknown sort parameter " + sortParameter);
+            return sortProperty;
+        }
     }
 
     @Override
@@ -148,31 +132,5 @@ public class SecurityServersController implements SecurityServersApi {
     public ResponseEntity<SecurityServer> updateSecurityServerAddress(String id,
             SecurityServerAddress securityServerAddress) {
         throw new NotImplementedException("updateSecurityServerAddress not implemented yet");
-    }
-
-    // server code, server owner name, server owner class and owner code
-    public enum SortField {
-        SERVER_CODE("serverCode"),
-        OWNER_NAME("owner.name"),
-        OWNER_CLASS("owner.memberClass.code"),
-        OWNER_CODE("owner.memberCode");
-        private final String fieldName;
-
-        SortField(String fieldName) {
-            this.fieldName = fieldName;
-        }
-
-        @Override
-        public String toString() {
-            return fieldName;
-        }
-
-        public static Optional<SortField> fromString(String fieldParam) {
-            try {
-                return Optional.of(SortField.valueOf(fieldParam.toUpperCase(Locale.ROOT)));
-            } catch (IllegalArgumentException | NullPointerException e) {
-                return Optional.empty();
-            }
-        }
     }
 }

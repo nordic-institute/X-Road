@@ -1819,7 +1819,16 @@ paths:
             format: text
             maxLength: 25
             type: string
-        - description: optional paging and sorting parameters
+        - description: >
+            optional paging and sorting parameters. Sorting possible according to one of the following values:
+            <ul>
+                <li><b>id</b> for id</li>
+                <li><b>member_name</b> for client's member name,</li>
+                <li><b>xroad_id.instance_id</b> for client's instance id</li>
+                <li><b>xroad_id.member_class</b> for client's member class or</li>
+                <li><b>xroad_id.member_code</b> for client's member code or</li>
+                <li><b>client_type</b> for client type.</li>
+            </ul>
           in: query
           name: paging_sorting
           required: false
@@ -2183,10 +2192,10 @@ paths:
         - description: >
             optional paging and sorting parameters. Sorting possible according to one of the following values:
             <ul>
-                <li><b>server_code</b>   for server code ,</li>
-                <li><b>owner_code</b>  for server owner name,</li>
-                <li><b>owner_class</b> for server owner class or</li>
-                <li><b>owner_code</b>  for owner code.</li>
+                <li><b>xroad_id.server_code</b> for server code ,</li>
+                <li><b>owner_name</b> for server owner name,</li>
+                <li><b>xroad_id.member_class</b> for server owner class or</li>
+                <li><b>xroad_id.member_code</b> for owner code.</li>
             </ul>
           in: query
           name: paging_sorting

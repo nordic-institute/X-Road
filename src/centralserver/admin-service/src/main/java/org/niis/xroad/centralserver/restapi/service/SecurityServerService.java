@@ -33,9 +33,7 @@ import org.niis.xroad.centralserver.restapi.dto.SecurityServerDto;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -50,15 +48,8 @@ public class SecurityServerService {
     private final SecurityServerRepository securityServerRepository;
 
     public Page<SecurityServerDto> findSecurityServers(String q, Pageable pageable) {
-        // add first sorting by id to guarantee the predictable operation.
-        Sort.Order idSortingOrder = Sort.Order.asc("id");
-        Sort.Order parameterSortingOrder = pageable.getSort().stream().findFirst()
-                .orElseThrow(() -> new RuntimeException("Sort Parameter handling problem"));
-
-        Sort refinedSorting = Sort.by(parameterSortingOrder, idSortingOrder);
-        Pageable refinedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), refinedSorting);
         return securityServerRepository
-                .findAll(SecurityServerRepository.multifieldSearch(q), refinedPageable)
+                .findAll(SecurityServerRepository.multifieldSearch(q), StableSortUtil.addSecondaryIdSort(pageable))
                 .map(SecurityServerService::toDto);
     }
 
