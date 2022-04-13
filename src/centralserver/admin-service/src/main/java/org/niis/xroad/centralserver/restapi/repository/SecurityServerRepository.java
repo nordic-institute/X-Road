@@ -45,16 +45,16 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import java.util.Locale;
 import java.util.Optional;
+
+import static org.niis.xroad.centralserver.restapi.repository.CriteriaBuilderUtil.caseInsensitiveLike;
 
 @Repository
 public interface SecurityServerRepository extends
         JpaRepository<SecurityServer, Integer>, JpaSpecificationExecutor<SecurityServer> {
 
-    String MEMBER_CLASS = "memberClass";
-    String MEMBER_CODE = "memberCode";
     String X_ROAD_INSTANCE = "xRoadInstance";
+    String TYPE = "type";
 
     Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
 
@@ -75,10 +75,10 @@ public interface SecurityServerRepository extends
                     .join(SecurityServerClient_.identifier);
 
             var pred = builder.and(
-                    builder.equal(cid.get("type"), clientId.getObjectType()),
+                    builder.equal(cid.get(TYPE), clientId.getObjectType()),
                     builder.equal(cid.get(X_ROAD_INSTANCE), clientId.getXRoadInstance()),
-                    builder.equal(cid.get(MEMBER_CLASS), clientId.getMemberClass()),
-                    builder.equal(cid.get(MEMBER_CODE), clientId.getMemberCode()));
+                    builder.equal(cid.get(XRoadMember_.MEMBER_CLASS), clientId.getMemberClass()),
+                    builder.equal(cid.get(XRoadMember_.MEMBER_CODE), clientId.getMemberCode()));
 
             if (clientId.getSubsystemCode() != null) {
                 pred = builder.and(pred, builder.equal(cid.get("subsystemCode"), clientId.getSubsystemCode()));
@@ -95,10 +95,10 @@ public interface SecurityServerRepository extends
 
             var oid = root.join(SecurityServer_.owner).join(SecurityServerClient_.identifier);
 
-            pred = builder.and(pred, builder.equal(oid.get("type"), XRoadObjectType.MEMBER),
+            pred = builder.and(pred, builder.equal(oid.get(TYPE), XRoadObjectType.MEMBER),
                     builder.equal(oid.get(X_ROAD_INSTANCE), serverId.getXRoadInstance()),
-                    builder.equal(oid.get(MEMBER_CLASS), serverId.getMemberClass()),
-                    builder.equal(oid.get(MEMBER_CODE), serverId.getMemberCode()));
+                    builder.equal(oid.get(XRoadMember_.MEMBER_CLASS), serverId.getMemberClass()),
+                    builder.equal(oid.get(XRoadMember_.MEMBER_CODE), serverId.getMemberCode()));
             return pred;
         };
     }
@@ -113,17 +113,12 @@ public interface SecurityServerRepository extends
     private static Predicate multifieldSearchPredicate(Root<SecurityServer> root, CriteriaBuilder builder, String q) {
         final var owner = root.join(SecurityServer_.owner);
         final var identifier = owner.join(SecurityServerClient_.identifier);
-        final var pattern = builder.literal(
-                "%" + q.toLowerCase(Locale.ROOT)
-                        .replace("\\", "\\\\")
-                        .replace("%", "\\%")
-                        .replace("_", "\\_") + "%");
 
         return builder.or(
-                builder.like(builder.lower(root.get(SecurityServer_.serverCode)), pattern, '\\'),
-                builder.like(builder.lower(owner.get(XRoadMember_.name)), pattern, '\\'),
-                builder.like(builder.lower(identifier.get(MEMBER_CLASS)), pattern, '\\'),
-                builder.like(builder.lower(identifier.get(MEMBER_CODE)), pattern, '\\')
+                caseInsensitiveLike(root, builder, q, root.get(SecurityServer_.serverCode)),
+                caseInsensitiveLike(root, builder, q, owner.get(XRoadMember_.name)),
+                caseInsensitiveLike(root, builder, q, identifier.get(XRoadMember_.MEMBER_CLASS)),
+                caseInsensitiveLike(root, builder, q, identifier.get(XRoadMember_.MEMBER_CODE))
         );
     }
 

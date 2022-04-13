@@ -64,6 +64,36 @@ public class SecurityServerRepositoryIntegrationTest {
     }
 
     @Test
+    public void testFindMultifield() {
+        // find targets fields:
+        // SecurityServer_.serverCode,
+        // owner.get(XRoadMember_.name)),
+        // identifier.get(XRoadMember_.MEMBER_CLASS)),
+        // identifier.get(XRoadMember_.MEMBER_CODE))
+
+        var servers = repository.findAll(
+                SecurityServerRepository.multifieldSearch("e"));
+        // 701 (member 701) - no match
+        // * 702 (member 705) - server code SERVICESS2_CODE
+        // * 703 (member 704) - server code SERVICESS1_CODE
+        // * 704 (member 706) - server code SERVICESS3_CODE
+        // * 1000001 (member 1000001) - server code server1
+        // * 1000002 (member 1000002) - server code server2
+        assertEquals(5, servers.size());
+
+        servers = repository.findAll(
+                SecurityServerRepository.multifieldSearch("1"));
+        // * 701 (member 701) member code 111
+        // 702 (member 705)
+        // * 703 (member 704) server code SERVICESS1_CODE
+        // * 704 (member 706) member code 321
+        // * 1000001 (member 1000001) server code server1
+        // 1000002 (member 1000002)
+        assertEquals(4, servers.size());
+    }
+
+
+    @Test
     public void testFindAllNonExisting() {
         var servers =
                 repository.findAll(SecurityServerRepository.multifieldSearch("NOTexisting"), Pageable.unpaged());
