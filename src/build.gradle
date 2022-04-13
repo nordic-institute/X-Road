@@ -11,7 +11,7 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '3.3'
-    id 'org.owasp.dependencycheck' version '6.5.1'
+    id 'org.owasp.dependencycheck' version '7.0.4.1'
     id 'jacoco'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
@@ -109,11 +109,11 @@ subprojects {
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
         testImplementation 'junit:junit:4.13.2'
 
-        compileOnly 'org.projectlombok:lombok:1.18.12'
-        annotationProcessor 'org.projectlombok:lombok:1.18.12'
+        compileOnly 'org.projectlombok:lombok:1.18.18'
+        annotationProcessor 'org.projectlombok:lombok:1.18.18'
 
-        testCompileOnly 'org.projectlombok:lombok:1.18.12'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+        testCompileOnly 'org.projectlombok:lombok:1.18.18'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
     }
 
     task testJar(type: Jar) {
@@ -144,7 +144,7 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "8.29"
+        toolVersion = "8.44"
         configDirectory = file("${project.rootDir}/config/checkstyle")
         configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
         ignoreFailures = false

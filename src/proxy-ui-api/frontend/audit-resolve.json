@@ -1039,6 +1039,1174 @@
     "1006854|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
       "decision": "ignore",
       "madeAt": 1641813097632
+    },
+    "1067300|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>wide-align>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858117346
+    },
+    "1067301|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs>cliui>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858117346
+    },
+    "1067301|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>cliui>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858117346
+    },
+    "1067301|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858117346
+    },
+    "1067301|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858117346
+    },
+    "1067301|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858117346
+    },
+    "1067301|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858117346
+    },
+    "1067300|@vue/cli-plugin-unit-jest>jest-watch-typeahead>jest-watcher>string-length>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119337
+    },
+    "1067300|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>string-length>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119337
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>yargs>cliui>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>yargs>cliui>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>yargs>cliui>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-runtime>yargs>cliui>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-runtime>yargs>cliui>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-runtime>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-runtime>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>yargs>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>yargs>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>yargs>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-runtime>yargs>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-runtime>yargs>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>@types/jest>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-jasmine2>jest-matcher-utils>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-jasmine2>jest-matcher-utils>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-jasmine2>expect>jest-matcher-utils>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>expect>jest-matcher-utils>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>expect>jest-matcher-utils>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>expect>jest-matcher-utils>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>expect>jest-matcher-utils>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>expect>jest-matcher-utils>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-snapshot>expect>jest-matcher-utils>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-jasmine2>jest-each>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-each>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-each>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-each>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-each>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-each>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-snapshot>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-snapshot>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-jasmine2>jest-snapshot>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-snapshot>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119338
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-snapshot>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-snapshot>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-snapshot>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-snapshot>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-jasmine2>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-leak-detector>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>@jest/test-sequencer>jest-runner>jest-leak-detector>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>@jest/test-sequencer>jest-runner>jest-leak-detector>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-leak-detector>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-leak-detector>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-validate>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-validate>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>jest-validate>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>jest-validate>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>jest-validate>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-validate>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest-watch-typeahead>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-unit-jest>jest-watch-typeahead>string-length>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067635|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067635|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067635|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067635|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067635|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1068287|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>node-notifier": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1068310|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
+      "decision": "ignore",
+      "madeAt": 1649858119339
+    },
+    "1067301|@vue/cli-plugin-babel>@vue/cli-shared-utils>ora>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858123641
+    },
+    "1067329|@vue/cli-plugin-babel>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1649858123641
+    },
+    "1068080|@vue/cli-plugin-babel>webpack>terser-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1649858123641
+    },
+    "1067301|@vue/cli-service>@vue/cli-plugin-router>@vue/cli-shared-utils>ora>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067301|@vue/cli-service>webpack-dev-server>yargs>cliui>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067301|@vue/cli-service>webpack-dev-server>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067301|@vue/cli-service>webpack-dev-server>yargs>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067323|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067329|@vue/cli-service>copy-webpack-plugin>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067329|@vue/cli-service>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067329|@vue/cli-service>webpack-dev-server>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067363|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067364|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067452|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067471|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067473|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067654|@vue/cli-service>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067654|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067853|@vue/cli-service>webpack-bundle-analyzer>ws": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067853|@vue/cli-service>webpack-dev-server>ws": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1068080|@vue/cli-service>copy-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1649858125569
+    },
+    "1067301|eslint>table>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858129897
+    },
+    "1067329|@vue/cli-plugin-eslint>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1649858132321
+    },
+    "1067329|@vue/cli-plugin-typescript>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1649858133921
+    },
+    "1067417|node-sass": {
+      "decision": "ignore",
+      "madeAt": 1649858135569
+    },
+    "1067731|node-sass>node-gyp>tar": {
+      "decision": "ignore",
+      "madeAt": 1649858135569
+    },
+    "1067734|node-sass>node-gyp>tar": {
+      "decision": "ignore",
+      "madeAt": 1649858135569
+    },
+    "1067737|node-sass>node-gyp>tar": {
+      "decision": "ignore",
+      "madeAt": 1649858135569
+    },
+    "1067767|node-sass>node-gyp>tar": {
+      "decision": "ignore",
+      "madeAt": 1649858135569
+    },
+    "1067771|node-sass>node-gyp>tar": {
+      "decision": "ignore",
+      "madeAt": 1649858135569
+    },
+    "1067858|node-sass>meow>trim-newlines": {
+      "decision": "ignore",
+      "madeAt": 1649858135569
+    },
+    "1067912|openapi-typescript-codegen>handlebars": {
+      "decision": "ignore",
+      "madeAt": 1649858140561
+    },
+    "1068082|openapi-typescript-codegen>handlebars": {
+      "decision": "ignore",
+      "madeAt": 1649858140561
+    },
+    "1067300|@vue/cli-service>@soda/friendly-errors-webpack-plugin>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858143784
+    },
+    "1067300|node-sass>node-gyp>npmlog>gauge>wide-align>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858145289
+    },
+    "1067302|@types/jest>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858147049
+    },
+    "1067302|@types/jest>jest-diff>pretty-format>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858147049
+    },
+    "1067302|@vue/cli-service>@vue/cli-plugin-router>@vue/cli-shared-utils>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858147049
+    },
+    "1067302|@vue/cli-service>cli-highlight>yargs>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858147049
+    },
+    "1067302|@vue/cli-service>cli-highlight>yargs>cliui>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858147049
+    },
+    "1067302|@vue/cli-service>cli-highlight>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858147049
+    },
+    "1067315|@vue/cli-service>webpack-dev-server>sockjs-client>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1067315|@vue/cli-service>webpack-dev-server>sockjs-client>eventsource>original>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1067316|@vue/cli-service>webpack-dev-server>sockjs-client>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1067316|@vue/cli-service>webpack-dev-server>sockjs-client>eventsource>original>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1067402|@vue/cli-service>webpack-dev-server>sockjs-client>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1067402|@vue/cli-service>webpack-dev-server>sockjs-client>eventsource>original>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1067405|@vue/cli-service>webpack-dev-server>sockjs-client>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1067405|@vue/cli-service>webpack-dev-server>sockjs-client>eventsource>original>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1067774|@vue/cli-service>webpack-dev-server>sockjs-client>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1067774|@vue/cli-service>webpack-dev-server>sockjs-client>eventsource>original>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1068178|@vue/cli-service>webpack-dev-server>sockjs-client>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1068178|@vue/cli-service>webpack-dev-server>sockjs-client>eventsource>original>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858148977
+    },
+    "1067329|eslint>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1649858151025
+    },
+    "1067329|sass>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1649858151025
+    },
+    "1067329|license-check-and-add>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1649858151025
+    },
+    "1067329|@typescript-eslint/parser>@typescript-eslint/typescript-estree>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1649858151025
+    },
+    "1067329|@typescript-eslint/eslint-plugin>@typescript-eslint/experimental-utils>@typescript-eslint/typescript-estree>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1649858151025
+    },
+    "1067342|@vue/cli-service>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|node-sass>mkdirp>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-babel>@babel/core>json5>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-babel>@vue/babel-preset-app>@babel/core>json5>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-unit-jest>babel-jest>@jest/transform>@babel/core>json5>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-unit-jest>jest-environment-jsdom-fifteen>@jest/environment>@jest/transform>@babel/core>json5>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/transform>@babel/core>json5>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>babel-jest>@jest/transform>@babel/core>json5>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>babel-jest>@jest/transform>@babel/core>json5>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>json5>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>json5>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>json5>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>@babel/core>json5>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067342|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>jest-haste-map>jest-util>mkdirp>minimist": {
+      "decision": "ignore",
+      "madeAt": 1649858153265
+    },
+    "1067382|@vue/cli-service>webpack-dev-server>ansi-html": {
+      "decision": "ignore",
+      "madeAt": 1649858154921
+    },
+    "1067398|@vue/cli-service>cssnano>postcss": {
+      "decision": "ignore",
+      "madeAt": 1649858156360
+    },
+    "1067398|@vue/cli-service>cssnano>cssnano-preset-default>postcss": {
+      "decision": "ignore",
+      "madeAt": 1649858156360
+    },
+    "1067398|@vue/cli-service>cssnano>cssnano-preset-default>css-declaration-sorter>postcss": {
+      "decision": "ignore",
+      "madeAt": 1649858156360
+    },
+    "1067398|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>css-declaration-sorter>postcss": {
+      "decision": "ignore",
+      "madeAt": 1649858156360
+    },
+    "1067398|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-merge-longhand>stylehacks>postcss": {
+      "decision": "ignore",
+      "madeAt": 1649858156360
+    },
+    "1067832|@vue/cli-service>cssnano>postcss": {
+      "decision": "ignore",
+      "madeAt": 1649858156360
+    },
+    "1067832|@vue/cli-service>cssnano>cssnano-preset-default>postcss": {
+      "decision": "ignore",
+      "madeAt": 1649858156360
+    },
+    "1067832|@vue/cli-service>cssnano>cssnano-preset-default>css-declaration-sorter>postcss": {
+      "decision": "ignore",
+      "madeAt": 1649858156360
+    },
+    "1067832|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>css-declaration-sorter>postcss": {
+      "decision": "ignore",
+      "madeAt": 1649858156360
+    },
+    "1067832|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-merge-longhand>stylehacks>postcss": {
+      "decision": "ignore",
+      "madeAt": 1649858156361
+    },
+    "1067407|@vue/cli-service>webpack-dev-server>http-proxy-middleware>http-proxy>follow-redirects": {
+      "decision": "ignore",
+      "madeAt": 1649858157979
+    },
+    "1067459|@vue/cli-service>webpack-dev-server>http-proxy-middleware>http-proxy>follow-redirects": {
+      "decision": "ignore",
+      "madeAt": 1649858157979
+    },
+    "1067444|vue-cli-plugin-vuetify>shelljs": {
+      "decision": "ignore",
+      "madeAt": 1649858159345
+    },
+    "1067451|vue-cli-plugin-vuetify>shelljs": {
+      "decision": "ignore",
+      "madeAt": 1649858159345
+    },
+    "1067493|@vue/cli-service>cssnano>cssnano-preset-default>postcss-svgo>is-svg": {
+      "decision": "ignore",
+      "madeAt": 1649858161329
+    },
+    "1067493|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-svgo>is-svg": {
+      "decision": "ignore",
+      "madeAt": 1649858161329
+    },
+    "1068202|@vue/cli-service>cssnano>cssnano-preset-default>postcss-svgo>is-svg": {
+      "decision": "ignore",
+      "madeAt": 1649858161329
+    },
+    "1068202|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-svgo>is-svg": {
+      "decision": "ignore",
+      "madeAt": 1649858161329
+    },
+    "1067524|node-sass>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1649858163049
+    },
+    "1067524|@vue/cli-plugin-babel>@vue/cli-shared-utils>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1649858163049
+    },
+    "1067524|@vue/cli-service>@vue/cli-plugin-router>@vue/cli-shared-utils>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1649858163049
+    },
+    "1067524|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1649858163049
+    },
+    "1067524|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1649858163049
+    },
+    "1067524|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1649858163049
+    },
+    "1067524|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1649858163049
+    },
+    "1067524|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1649858163049
+    },
+    "1067654|@vue/cli-service>html-webpack-plugin>pretty-error>renderkid>css-select>nth-check": {
+      "decision": "ignore",
+      "madeAt": 1649858165016
+    },
+    "1067697|@vue/cli-plugin-unit-jest>babel-jest>@jest/transform>jest-haste-map>walker>makeerror>tmpl": {
+      "decision": "ignore",
+      "madeAt": 1649858166737
+    },
+    "1067697|@vue/cli-plugin-unit-jest>babel-jest>@jest/transform>jest-haste-map>sane>walker>makeerror>tmpl": {
+      "decision": "ignore",
+      "madeAt": 1649858166737
+    },
+    "1067697|@vue/cli-plugin-unit-jest>jest-environment-jsdom-fifteen>@jest/environment>@jest/transform>jest-haste-map>sane>walker>makeerror>tmpl": {
+      "decision": "ignore",
+      "madeAt": 1649858166737
+    },
+    "1067697|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/transform>jest-haste-map>sane>walker>makeerror>tmpl": {
+      "decision": "ignore",
+      "madeAt": 1649858166737
+    },
+    "1067697|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>babel-jest>@jest/transform>jest-haste-map>sane>walker>makeerror>tmpl": {
+      "decision": "ignore",
+      "madeAt": 1649858166737
+    },
+    "1067697|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>babel-jest>@jest/transform>jest-haste-map>sane>walker>makeerror>tmpl": {
+      "decision": "ignore",
+      "madeAt": 1649858166737
+    },
+    "1067697|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>babel-jest>@jest/transform>jest-haste-map>sane>walker>makeerror>tmpl": {
+      "decision": "ignore",
+      "madeAt": 1649858166737
+    },
+    "1067697|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>babel-jest>@jest/transform>jest-haste-map>sane>walker>makeerror>tmpl": {
+      "decision": "ignore",
+      "madeAt": 1649858166737
+    },
+    "1067697|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>babel-jest>@jest/transform>jest-haste-map>sane>walker>makeerror>tmpl": {
+      "decision": "ignore",
+      "madeAt": 1649858166737
+    },
+    "1067697|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>jest-haste-map>sane>walker>makeerror>tmpl": {
+      "decision": "ignore",
+      "madeAt": 1649858166737
+    },
+    "1067751|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>pac-proxy-agent>pac-resolver": {
+      "decision": "ignore",
+      "madeAt": 1649858167944
+    },
+    "1068088|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>pac-proxy-agent>pac-resolver>netmask": {
+      "decision": "ignore",
+      "madeAt": 1649858167945
+    },
+    "1068163|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>pac-proxy-agent>pac-resolver>netmask": {
+      "decision": "ignore",
+      "madeAt": 1649858167945
+    },
+    "1067761|@vue/cli-plugin-babel>@babel/core>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-babel>@vue/babel-preset-app>@babel/core>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>babel-jest>@jest/transform>@babel/core>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest-environment-jsdom-fifteen>@jest/environment>@jest/transform>@babel/core>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/transform>@babel/core>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>babel-jest>@jest/transform>@babel/core>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>babel-jest>@jest/transform>@babel/core>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>@babel/core>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067761|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>resolve>path-parse": {
+      "decision": "ignore",
+      "madeAt": 1649858170489
+    },
+    "1067818|@vue/cli-service>cssnano>cssnano-preset-default>postcss-colormin>color>color-string": {
+      "decision": "ignore",
+      "madeAt": 1649858172512
+    },
+    "1067818|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-colormin>color>color-string": {
+      "decision": "ignore",
+      "madeAt": 1649858172512
+    },
+    "1067868|@vue/cli-plugin-unit-jest>jest-environment-jsdom-fifteen>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1649858174417
+    },
+    "1067881|@vue/cli-service>webpack-dev-server>bonjour>multicast-dns>dns-packet": {
+      "decision": "ignore",
+      "madeAt": 1649858177152
+    },
+    "1067902|@vue/cli-service>browserslist": {
+      "decision": "ignore",
+      "madeAt": 1649858178928
+    },
+    "1067902|@vue/cli-service>autoprefixer>browserslist": {
+      "decision": "ignore",
+      "madeAt": 1649858178928
+    },
+    "1067902|@vue/cli-plugin-babel>@vue/babel-preset-app>@babel/helper-compilation-targets>browserslist": {
+      "decision": "ignore",
+      "madeAt": 1649858178928
+    },
+    "1067902|@vue/cli-plugin-babel>@vue/babel-preset-app>@babel/helper-compilation-targets>@babel/compat-data>browserslist": {
+      "decision": "ignore",
+      "madeAt": 1649858178928
+    },
+    "1067902|@vue/cli-plugin-babel>@vue/babel-preset-app>@babel/preset-env>@babel/helper-compilation-targets>@babel/compat-data>browserslist": {
+      "decision": "ignore",
+      "madeAt": 1649858178929
+    },
+    "1067902|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-merge-longhand>stylehacks>browserslist": {
+      "decision": "ignore",
+      "madeAt": 1649858178929
+    },
+    "1067921|@vue/cli-service>ssri": {
+      "decision": "ignore",
+      "madeAt": 1649858180497
+    },
+    "1067921|@vue/cli-service>terser-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1649858180497
+    },
+    "1067956|node-sass>meow>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182097
+    },
+    "1067956|@vue/cli-plugin-babel>@vue/cli-shared-utils>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182097
+    },
+    "1067956|@vue/cli-service>@vue/cli-plugin-router>@vue/cli-shared-utils>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182097
+    },
+    "1067956|@vue/cli-plugin-unit-jest>babel-jest>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182097
+    },
+    "1067956|@vue/cli-plugin-unit-jest>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182097
+    },
+    "1067956|@vue/cli-plugin-unit-jest>jest-environment-jsdom-fifteen>@jest/environment>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182097
+    },
+    "1067956|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182097
+    },
+    "1067956|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182097
+    },
+    "1067956|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182097
+    },
+    "1067956|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182097
+    },
+    "1067956|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182097
+    },
+    "1067956|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182098
+    },
+    "1067956|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>babel-plugin-istanbul>test-exclude>read-pkg-up>read-pkg>normalize-package-data>hosted-git-info": {
+      "decision": "ignore",
+      "madeAt": 1649858182098
+    },
+    "1068116|npm-audit-resolver>djv": {
+      "decision": "ignore",
+      "madeAt": 1649858183633
+    },
+    "1068116|npm-audit-resolver>audit-resolve-core>djv": {
+      "decision": "ignore",
+      "madeAt": 1649858183633
+    },
+    "1068132|@vue/test-utils>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@typescript-eslint/parser>@typescript-eslint/typescript-estree>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@typescript-eslint/eslint-plugin>@typescript-eslint/experimental-utils>@typescript-eslint/typescript-estree>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-babel>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-babel>@vue/babel-preset-app>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest-environment-jsdom-fifteen>@jest/environment>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>@babel/helper-module-transforms>@babel/helper-replace-supers>@babel/traverse>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>@babel/helper-module-transforms>@babel/helper-replace-supers>@babel/traverse>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>@babel/core>@babel/helper-module-transforms>@babel/helper-replace-supers>@babel/traverse>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068132|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>@babel/core>@babel/helper-module-transforms>@babel/helper-replace-supers>@babel/traverse>@babel/helper-function-name>@babel/helper-get-function-arity>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/test-utils>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@typescript-eslint/parser>@typescript-eslint/typescript-estree>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@typescript-eslint/eslint-plugin>@typescript-eslint/experimental-utils>@typescript-eslint/typescript-estree>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-babel>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-babel>@vue/babel-preset-app>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest-environment-jsdom-fifteen>@jest/environment>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>@babel/core>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>@babel/helper-module-transforms>@babel/helper-replace-supers>@babel/traverse>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>babel-jest>@jest/transform>@babel/core>@babel/helper-module-transforms>@babel/helper-replace-supers>@babel/traverse>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184905
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>@babel/core>@babel/helper-module-transforms>@babel/helper-replace-supers>@babel/traverse>@babel/generator>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184906
+    },
+    "1068184|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>@jest/environment>@jest/transform>@babel/core>@babel/helper-module-transforms>@babel/helper-replace-supers>@babel/traverse>@babel/helper-function-name>@babel/helper-get-function-arity>@babel/types>lodash": {
+      "decision": "ignore",
+      "madeAt": 1649858184906
+    },
+    "1068206|license-check-and-add>yargs>y18n": {
+      "decision": "ignore",
+      "madeAt": 1649858186473
+    },
+    "1068206|@vue/cli-service>copy-webpack-plugin>cacache>y18n": {
+      "decision": "ignore",
+      "madeAt": 1649858186473
+    },
+    "1068206|@vue/cli-plugin-babel>webpack>terser-webpack-plugin>cacache>y18n": {
+      "decision": "ignore",
+      "madeAt": 1649858186473
+    },
+    "1068206|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>y18n": {
+      "decision": "ignore",
+      "madeAt": 1649858186473
+    },
+    "1068206|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>yargs>y18n": {
+      "decision": "ignore",
+      "madeAt": 1649858186473
+    },
+    "1068206|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>yargs>y18n": {
+      "decision": "ignore",
+      "madeAt": 1649858186473
+    },
+    "1068206|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>yargs>y18n": {
+      "decision": "ignore",
+      "madeAt": 1649858186473
+    },
+    "1068206|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-runtime>yargs>y18n": {
+      "decision": "ignore",
+      "madeAt": 1649858186473
+    },
+    "1068206|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-runtime>yargs>y18n": {
+      "decision": "ignore",
+      "madeAt": 1649858186473
+    },
+    "1068218|@vue/cli-plugin-babel>webpack>node-libs-browser>crypto-browserify>browserify-sign>elliptic": {
+      "decision": "ignore",
+      "madeAt": 1649858187761
+    },
+    "1068298|@vue/test-utils>pretty>js-beautify>config-chain>ini": {
+      "decision": "ignore",
+      "madeAt": 1649858189129
+    },
+    "1068298|@vue/cli-plugin-unit-jest>jest-serializer-vue>pretty>js-beautify>config-chain>ini": {
+      "decision": "ignore",
+      "madeAt": 1649858189129
+    },
+    "1068304|@vue/cli-service>cli-highlight>highlight.js": {
+      "decision": "ignore",
+      "madeAt": 1649858190553
+    },
+    "1067301|license-check-and-add>yargs>cliui>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858191961
+    },
+    "1067301|license-check-and-add>yargs>cliui>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858191961
+    },
+    "1067301|license-check-and-add>yargs>cliui>wrap-ansi>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858191961
+    },
+    "1067301|license-check-and-add>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858191961
+    },
+    "1067301|license-check-and-add>yargs>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858191961
+    },
+    "1067301|npm-audit-resolver>yargs-unparser>yargs>string-width>strip-ansi>ansi-regex": {
+      "decision": "ignore",
+      "madeAt": 1649858191961
+    },
+    "1069976|@vue/cli-service>portfinder>async": {
+      "decision": "ignore",
+      "madeAt": 1649858193497
+    },
+    "1069976|@vue/cli-service>webpack-dev-server>portfinder>async": {
+      "decision": "ignore",
+      "madeAt": 1649858193497
     }
   },
   "rules": {},

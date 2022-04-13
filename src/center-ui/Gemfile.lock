@@ -3,7 +3,6 @@ PATH
   specs:
     center-common (0.0.1)
       foreigner (~> 1.7.0)
-      rack-cache (~> 1.6.1)
       rails (~> 3.2.10)
       transaction_isolation (~> 1.0.3)
 
@@ -13,7 +12,7 @@ PATH
     common-ui (0.0.1)
       addressable (~> 2.4.0)
       psych (~> 3.0.3)
-      rack-cache (~> 1.6.1)
+      rack-cache (~> 1.6.0)
       rails (~> 3.2.0)
 
 GEM

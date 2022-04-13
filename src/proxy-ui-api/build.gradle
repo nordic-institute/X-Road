@@ -219,6 +219,8 @@ dependencies {
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
     implementation('io.swagger:swagger-annotations:1.6.2')
+    //overrides spring bom version
+    implementation('org.glassfish:jakarta.el:3.0.4')
 
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
