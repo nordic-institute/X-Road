@@ -43,7 +43,7 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @AutoConfigureTestDatabase
 @Transactional
-public class SecurityServerRepositoryIntegrationTest {
+public class SecurityServerRepositoryTest {
 
     @Autowired
     private SecurityServerRepository repository;

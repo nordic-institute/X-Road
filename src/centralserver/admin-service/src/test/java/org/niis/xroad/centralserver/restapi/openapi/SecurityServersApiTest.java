@@ -45,7 +45,7 @@ import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAutho
 
 @Transactional
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class SecurityServersControllerRestTemplateTest extends AbstractApiRestTemplateTestContext {
+public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
 
     @Autowired
     TestRestTemplate restTemplate;
