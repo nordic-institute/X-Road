@@ -63,9 +63,6 @@
         </div>
       </template>
 
-      <template #footer>
-        <div class="custom-footer"></div>
-      </template>
     </v-data-table>
   </div>
 </template>
