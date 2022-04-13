@@ -31,11 +31,15 @@
         <div v-bind="attrs" v-on="on">
           <xrd-icon-base v-bind="attrs" class="mr-3" v-on="on">
             <!-- Decide what icon to show -->
-            <XrdIconChangeOwner v-if="status === 'change_owner'" />
-            <XrdIconAddUser v-if="status === 'register_client'" />
-            <XrdIconRemoveUser v-if="status === 'delete_client'" />
-            <XrdIconRemoveCertificate v-if="status === 'delete_certificate'" />
-            <XrdIconAddCertificate v-if="status === 'register_certificate'" />
+            <XrdIconChangeOwner v-if="status === 'OWNER_CHANGE_REQUEST'" />
+            <XrdIconAddUser v-if="status === 'CLIENT_REGISTRATION_REQUEST'" />
+            <XrdIconRemoveUser v-if="status === 'CLIENT_DELETION_REQUEST'" />
+            <XrdIconRemoveCertificate
+              v-if="status === 'AUTH_CERT_DELETION_REQUEST'"
+            />
+            <XrdIconAddCertificate
+              v-if="status === 'AUTH_CERT_REGISTRATION_REQUEST'"
+            />
           </xrd-icon-base>
         </div>
       </template>
@@ -55,21 +59,22 @@ export default Vue.extend({
       default: undefined,
     },
   },
+
   methods: {
     getStatusText() {
       if (!this.status) {
         return '';
       }
       switch (this.status) {
-        case 'change_owner':
+        case 'OWNER_CHANGE_REQUEST':
           return this.$t('managementRequests.changeOwner') as string;
-        case 'delete_certificate':
+        case 'AUTH_CERT_DELETION_REQUEST':
           return this.$t('managementRequests.removeCertificate') as string;
-        case 'delete_client':
+        case 'CLIENT_DELETION_REQUEST':
           return this.$t('managementRequests.removeClient') as string;
-        case 'register_certificate':
+        case 'AUTH_CERT_REGISTRATION_REQUEST':
           return this.$t('managementRequests.addCertificate') as string;
-        case 'register_client':
+        case 'CLIENT_REGISTRATION_REQUEST':
           return this.$t('managementRequests.addClient') as string;
         default:
           return '';
