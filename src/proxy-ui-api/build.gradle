@@ -284,7 +284,7 @@ task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
 }
 
 task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
+    source = fileTree('src/test/java')
     check = true
 }
 

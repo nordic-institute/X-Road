@@ -24,33 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.config;
+package org.niis.xroad.centralserver.registrationservice.config;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import org.eclipse.jetty.server.CustomRequestLog;
+import org.eclipse.jetty.server.Slf4jRequestLogWriter;
+import org.eclipse.jetty.server.handler.ErrorHandler;
+import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.stereotype.Component;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+@Component
+class JettyCustomizer implements WebServerFactoryCustomizer<JettyServletWebServerFactory> {
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+    @Override
+    public void customize(JettyServletWebServerFactory factory) {
+        factory.addServerCustomizers(server -> {
+            var errorHandler = new ErrorHandler();
+            errorHandler.setShowStacks(false);
+            errorHandler.setShowServlet(false);
 
-/**
- * Helper wrapper which makes sure correct system properties are initialized (only once)
- */
-public final class CentralServerSystemPropertiesInitializer {
-    private CentralServerSystemPropertiesInitializer() {
-    }
-    private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
+            server.setErrorHandler(errorHandler);
 
-    /**
-     * initialize, if not yet initialized
-     */
-    public static synchronized void initialize() {
-        if (!XROAD_PROPERTIES_INITIALIZED.get()) {
-            SystemPropertiesLoader.create().withCommonAndLocal()
-                    .with(CONF_FILE_CENTER)
-                    .with(CONF_FILE_SIGNER)
-                    .load();
-            XROAD_PROPERTIES_INITIALIZED.set(true);
-        }
+            server.setRequestLog(
+                    new CustomRequestLog(new Slf4jRequestLogWriter(), CustomRequestLog.EXTENDED_NCSA_FORMAT));
+        });
     }
 }

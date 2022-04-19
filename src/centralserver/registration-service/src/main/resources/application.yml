@@ -1,0 +1,16 @@
+spring:
+  servlet:
+    multipart.enabled: false
+server:
+  error:
+    whitelabel:
+      enabled: false
+    path: /error
+    include-exception: false
+  jetty:
+    connection-idle-timeout: 15s
+  servlet:
+    jsp:
+      registered: false
+    session:
+      tracking-modes:

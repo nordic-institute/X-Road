@@ -1,30 +1,78 @@
 plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
+    id 'org.openapi.generator' version "$openApiGeneratorVersion"
 }
 
 bootJar {
     manifest {
         attributes(
-            'Implementation-Title'   : 'xroad-centralserver',
-            'Implementation-Version' : xroadVersion
+            'Implementation-Title': 'xroad-centralserver',
+            'Implementation-Version': xroadVersion
         )
     }
 }
 
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java',
+            'build/generated-sources/openapi/src/main/java',
+        ]
+    }
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$projectDir/../admin-service/src/main/resources/openapi-definition.yaml"
+    outputDir = "$buildDir/generated-sources/openapi"
+    modelPackage = "org.niis.xroad.centralserver.openapi.model"
+    globalProperties = [
+        apiDocs                : "false",
+        apiTests               : "false",
+        modelDocs              : "false",
+        modelTests             : "false",
+        models                 : "",
+        apis                   : "false",
+        generateSupportingFiles: "false"
+    ]
+    configOptions = [
+        openApiNullable: "false",
+        "swaggerAnnotations": "false"
+    ]
+}
+
+// Fix up to date check
+tasks.openApiGenerate {
+    inputs.files(openApiGenerate.inputSpec)
+    outputs.dir(openApiGenerate.outputDir)
+}
+
+compileJava.dependsOn tasks.openApiGenerate
+
 dependencies {
-    implementation('org.springframework.boot:spring-boot-starter-web') {
-        exclude module: 'spring-webmvc'
-        exclude module: 'spring-boot-starter-json'
+    annotationProcessor "org.springframework:spring-context-indexer"
+
+    implementation(project(':common-util')) {
+        exclude group: 'com.typesafe.akka'
+        exclude group: 'org.eclipse.jetty'
+        exclude group: 'org.quartz-scheduler'
     }
 
-    implementation 'com.sun.activation:javax.activation:1.2.0'
-    implementation "com.sun.xml.ws:jaxws-rt:$jaxbVersion"
+    implementation(project(':common-verifier')) {
+        transitive=false
+    }
 
-    implementation "org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion"
-    implementation "org.apache.cxf:cxf-rt-transports-http:$cxfVersion"
-    implementation "org.apache.cxf:cxf-core:$cxfVersion"
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    }
+    implementation('org.springframework.boot:spring-boot-starter-jetty')
+
+    implementation('io.swagger.core.v3:swagger-annotations:2.2.0')
+    implementation('javax.validation:validation-api')
 
     testImplementation "junit:junit:$junitVersion"
+    testImplementation project(':common-test')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
 }
 

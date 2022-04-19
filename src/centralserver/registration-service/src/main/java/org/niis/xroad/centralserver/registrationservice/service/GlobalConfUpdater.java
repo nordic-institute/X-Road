@@ -24,33 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.config;
+package org.niis.xroad.centralserver.registrationservice.service;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import java.util.concurrent.TimeUnit;
 
-/**
- * Helper wrapper which makes sure correct system properties are initialized (only once)
- */
-public final class CentralServerSystemPropertiesInitializer {
-    private CentralServerSystemPropertiesInitializer() {
-    }
-    private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
+@Service
+@ConditionalOnProperty(value = "test", havingValue = "false", matchIfMissing = true)
+class GlobalConfUpdater {
 
-    /**
-     * initialize, if not yet initialized
-     */
-    public static synchronized void initialize() {
-        if (!XROAD_PROPERTIES_INITIALIZED.get()) {
-            SystemPropertiesLoader.create().withCommonAndLocal()
-                    .with(CONF_FILE_CENTER)
-                    .with(CONF_FILE_SIGNER)
-                    .load();
-            XROAD_PROPERTIES_INITIALIZED.set(true);
-        }
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
+    public void update() {
+        GlobalConf.reload();
     }
 }

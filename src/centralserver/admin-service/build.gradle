@@ -1,5 +1,3 @@
-import nl.javadude.gradle.plugins.license.License
-
 plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
@@ -72,22 +70,6 @@ tasks.openApiGenerate {
 
 compileJava.dependsOn tasks.openApiGenerate
 
-// set license format to ignore generated java sources
-task licenseFormatJava(type: License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type: License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
-
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
@@ -115,7 +97,7 @@ dependencies {
     implementation('wsdl4j:wsdl4j:1.6.3')
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
-    implementation('io.swagger:swagger-annotations:1.6.5')
+    implementation('io.swagger.core.v3:swagger-annotations:2.1.13')
 
 
     testImplementation project(':common-test')

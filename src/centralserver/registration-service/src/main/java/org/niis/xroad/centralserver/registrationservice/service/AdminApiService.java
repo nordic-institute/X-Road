@@ -24,33 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.config;
+package org.niis.xroad.centralserver.registrationservice.service;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 /**
- * Helper wrapper which makes sure correct system properties are initialized (only once)
+ * Interface to the Central server admin API
  */
-public final class CentralServerSystemPropertiesInitializer {
-    private CentralServerSystemPropertiesInitializer() {
-    }
-    private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
-
+public interface AdminApiService {
     /**
-     * initialize, if not yet initialized
+     * Makes an authentication certificate registration request to the central server API.
+     * @param serverId sender server identifier
+     * @param address server address
+     * @param certificate X.509 authentication certificate in encoded form
+     * @return registration request id
+     * @throws ee.ria.xroad.common.CodedException in case the request fails
      */
-    public static synchronized void initialize() {
-        if (!XROAD_PROPERTIES_INITIALIZED.get()) {
-            SystemPropertiesLoader.create().withCommonAndLocal()
-                    .with(CONF_FILE_CENTER)
-                    .with(CONF_FILE_SIGNER)
-                    .load();
-            XROAD_PROPERTIES_INITIALIZED.set(true);
-        }
-    }
+    int addRegistrationRequest(SecurityServerId serverId, String address, byte[] certificate);
 }

@@ -204,7 +204,7 @@ public class SoapMessageDecoder {
 
         @Override
         public void field(Field field) throws MimeException {
-            if (field.getName().toLowerCase().equals(HEADER_CONTENT_TYPE)) {
+            if (HEADER_CONTENT_TYPE.equalsIgnoreCase(field.getName())) {
                 partContentType = field.getBody();
             } else {
                 headers.put(field.getName(), field.getBody());

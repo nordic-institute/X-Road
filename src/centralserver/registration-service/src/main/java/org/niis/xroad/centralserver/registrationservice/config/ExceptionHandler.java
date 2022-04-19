@@ -24,33 +24,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.config;
+package org.niis.xroad.centralserver.registrationservice.config;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.message.SoapFault;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import java.util.UUID;
 
-/**
- * Helper wrapper which makes sure correct system properties are initialized (only once)
- */
-public final class CentralServerSystemPropertiesInitializer {
-    private CentralServerSystemPropertiesInitializer() {
-    }
-    private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
+@Slf4j
+@ControllerAdvice
+public class ExceptionHandler extends ResponseEntityExceptionHandler {
+    @Override
+    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
+            HttpStatus status, WebRequest request) {
 
-    /**
-     * initialize, if not yet initialized
-     */
-    public static synchronized void initialize() {
-        if (!XROAD_PROPERTIES_INITIALIZED.get()) {
-            SystemPropertiesLoader.create().withCommonAndLocal()
-                    .with(CONF_FILE_CENTER)
-                    .with(CONF_FILE_SIGNER)
-                    .load();
-            XROAD_PROPERTIES_INITIALIZED.set(true);
-        }
+        var id = UUID.randomUUID();
+        log.error("Request failed [{}]", id, ex);
+        return ResponseEntity
+                .internalServerError()
+                .contentType(MediaType.TEXT_XML)
+                .header("Pragma", "no-cache")
+                .header("Expires", "0")
+                .cacheControl(CacheControl.noStore())
+                .header(HttpHeaders.CONNECTION, "close")
+                .body(SoapFault.createFaultXml("SOAP-ENV:Server", "Internal error", null, id.toString()));
     }
 }
