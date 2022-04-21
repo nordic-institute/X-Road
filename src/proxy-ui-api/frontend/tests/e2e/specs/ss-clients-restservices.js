@@ -62,15 +62,6 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
-  },
-
-  afterEach: function (browser) {
-    mainPage.logout()
-  },
-  after: function (browser) {
-    browser.end();
-  },
-  'Security server client add rest service': (browser) => {
     // Verify empty and malformed URL and service code error messages and Add button initial state
     clientServices.openAddREST();
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
