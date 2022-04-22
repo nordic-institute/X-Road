@@ -297,7 +297,7 @@ import * as api from '@/util/api';
 import {
   TimestampingServiceDiagnostics,
   OcspResponderDiagnostics,
-  GlobalConfDiagnostics, AddonStatus,
+  GlobalConfDiagnostics, AddOnStatus,
 } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
@@ -330,7 +330,7 @@ export default Vue.extend({
       this.addonStatusLoading = true;
 
       api
-        .get<AddonStatus>('/diagnostics/addon-status')
+        .get<AddOnStatus>('/diagnostics/addon-status')
         .then((res) => {
           this.messageLogEnabled = res.data.messagelog_enabled;
         })

@@ -73,13 +73,13 @@ public class DiagnosticService {
     private final String diagnosticsGlobalconfUrl;
     private final String diagnosticsTimestampingServicesUrl;
     private final String diagnosticsOcspRespondersUrl;
-    private final String diagnosticsAddonStatusUrl;
+    private final String diagnosticsAddOnStatusUrl;
 
     @Autowired
     public DiagnosticService(@Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
             @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
-            @Value("${url.diagnostics-addon-status}") String diagnosticsAddonStatusUrl) {
+            @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl) {
 
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());
@@ -87,7 +87,7 @@ public class DiagnosticService {
                 PortNumbers.ADMIN_PORT);
         this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
                 SystemProperties.getSignerAdminPort());
-        this.diagnosticsAddonStatusUrl = String.format(diagnosticsAddonStatusUrl, PortNumbers.ADMIN_PORT);
+        this.diagnosticsAddOnStatusUrl = String.format(diagnosticsAddOnStatusUrl, PortNumbers.ADMIN_PORT);
     }
 
     /**
@@ -142,9 +142,9 @@ public class DiagnosticService {
      *
      * @return
      */
-    public AddOnStatusDiagnostics queryAddonStatus() {
+    public AddOnStatusDiagnostics queryAddOnStatus() {
         try {
-            JsonObject json = sendGetRequest(diagnosticsAddonStatusUrl);
+            JsonObject json = sendGetRequest(diagnosticsAddOnStatusUrl);
             return JsonUtils.getSerializer().fromJson(json, AddOnStatusDiagnostics.class);
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());

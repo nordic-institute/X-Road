@@ -267,7 +267,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import {
-  AddonStatus,
+  AddOnStatus,
   Anchor,
   CertificateAuthority,
   TimestampingService,
@@ -340,7 +340,7 @@ export default Vue.extend({
     async fetchMessageLogEnabled() {
       this.loadingMessageLogEnabled = true;
       return api
-        .get<AddonStatus>('/diagnostics/addon-status')
+        .get<AddOnStatus>('/diagnostics/addon-status')
         .then((resp) => (this.messageLogEnabled = resp.data.messagelog_enabled))
         .catch((error) => this.showError(error))
         .finally(() => (this.loadingMessageLogEnabled = false));

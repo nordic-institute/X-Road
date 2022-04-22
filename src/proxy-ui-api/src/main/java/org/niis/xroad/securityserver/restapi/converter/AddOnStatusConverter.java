@@ -27,13 +27,13 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 
-import org.niis.xroad.securityserver.restapi.openapi.model.AddonStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatus;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AddonStatusConverter {
-    public AddonStatus convert(AddOnStatusDiagnostics addOnStatus) {
-        return new AddonStatus()
+public class AddOnStatusConverter {
+    public AddOnStatus convert(AddOnStatusDiagnostics addOnStatus) {
+        return new AddOnStatus()
                 .messagelogEnabled(addOnStatus.isMessageLogEnabled());
     }
 }
