@@ -31,12 +31,12 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.securityserver.restapi.converter.AddonStatusConverter;
+import org.niis.xroad.securityserver.restapi.converter.AddOnStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.GlobalConfDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.AddonStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
@@ -64,7 +64,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private final GlobalConfDiagnosticConverter globalConfDiagnosticConverter;
     private final TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
     private final OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
-    private final AddonStatusConverter addonStatusConverter;
+    private final AddOnStatusConverter addOnStatusConverter;
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
@@ -89,8 +89,8 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<AddonStatus> getAddonDiagnostics() {
-        AddOnStatusDiagnostics addOnStatus = diagnosticService.queryAddonStatus();
-        return new ResponseEntity<>(addonStatusConverter.convert(addOnStatus), HttpStatus.OK);
+    public ResponseEntity<AddOnStatus> getAddOnDiagnostics() {
+        AddOnStatusDiagnostics addOnStatus = diagnosticService.queryAddOnStatus();
+        return new ResponseEntity<>(addOnStatusConverter.convert(addOnStatus), HttpStatus.OK);
     }
 }

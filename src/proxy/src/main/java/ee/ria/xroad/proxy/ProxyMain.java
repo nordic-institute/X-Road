@@ -238,7 +238,7 @@ public final class ProxyMain {
 
         addClearCacheHandler(adminPort);
 
-        addAddonStatusHandler(adminPort);
+        addAddOnStatusHandler(adminPort);
 
         return adminPort;
     }
@@ -248,11 +248,12 @@ public final class ProxyMain {
                 + " be malformed", e);
     }
 
-    private static void addAddonStatusHandler(AdminPort adminPort) {
+    private static void addAddOnStatusHandler(AdminPort adminPort) {
         adminPort.addHandler("/addonstatus", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
+                    response.setCharacterEncoding("UTF8");
                     JsonUtils.getSerializer().toJson(addOnStatus, response.getWriter());
                 } catch (IOException e) {
                     logResponseIOError(e);
