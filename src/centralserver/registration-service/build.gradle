@@ -28,7 +28,7 @@ openApiGenerate {
     generatorName = "spring"
     inputSpec = "$projectDir/../admin-service/src/main/resources/openapi-definition.yaml"
     outputDir = "$buildDir/generated-sources/openapi"
-    modelPackage = "org.niis.xroad.centralserver.openapi.model"
+    modelPackage = "org.niis.xroad.centralserver.registrationservice.openapi.model"
     globalProperties = [
         apiDocs                : "false",
         apiTests               : "false",

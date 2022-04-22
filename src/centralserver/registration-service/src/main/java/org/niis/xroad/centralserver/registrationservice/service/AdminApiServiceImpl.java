@@ -36,13 +36,13 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
-import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequest;
-import org.niis.xroad.centralserver.openapi.model.ErrorInfo;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestInfo;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestOrigin;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestType;
-import org.niis.xroad.centralserver.openapi.model.XRoadId;
 import org.niis.xroad.centralserver.registrationservice.config.RegistrationServiceProperties;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.AuthenticationCertificateRegistrationRequest;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ErrorInfo;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestInfo;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestOrigin;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestType;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.XRoadId;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -111,7 +111,7 @@ class AdminApiServiceImpl implements AdminApiService {
         request.setServerAddress(address);
         request.setAuthenticationCertificate(certificate);
 
-        var sid = new org.niis.xroad.centralserver.openapi.model.SecurityServerId();
+        var sid = new org.niis.xroad.centralserver.registrationservice.openapi.model.SecurityServerId();
         sid.setType(XRoadId.TypeEnum.SERVER);
         sid.setInstanceId(serverId.getXRoadInstance());
         sid.setMemberClass(serverId.getMemberClass());
