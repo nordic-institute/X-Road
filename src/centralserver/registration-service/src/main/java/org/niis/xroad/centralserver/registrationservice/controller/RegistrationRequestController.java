@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.centralserver.registrationservice.controller;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.message.SoapFault;
 
@@ -37,7 +38,6 @@ import org.niis.xroad.centralserver.registrationservice.request.ManagementReques
 import org.niis.xroad.centralserver.registrationservice.request.ManagementRequestUtil;
 import org.niis.xroad.centralserver.registrationservice.service.AdminApiService;
 import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -82,17 +82,20 @@ public class RegistrationRequestController {
                     .ok()
                     .header("Pragma", "no-cache").header("Expires", "0")
                     .cacheControl(CacheControl.noStore())
-                    .header(HttpHeaders.CONNECTION, "close")
                     .body(ManagementRequestUtil.toResponse(message, requestId).getXml());
         } catch (Exception e) {
             var ex = ErrorCodes.translateException(e);
-            log.error("Registration failed [{}]", ex.getFaultDetail(), ex);
+            if (log.isDebugEnabled() || !(e instanceof CodedException)) {
+                log.error("Registration failed [{}]", ex.getFaultDetail(), ex);
+            } else {
+                var cause = (ex.getCause() == null) ? "" : ex.getCause().toString();
+                log.error("Registration failed [{}]: {}: {}", ex.getFaultDetail(), ex.getMessage(), cause);
+            }
             return ResponseEntity
                     .internalServerError()
                     .header("Pragma", "no-cache")
                     .header("Expires", "0")
                     .cacheControl(CacheControl.noStore())
-                    .header(HttpHeaders.CONNECTION, "close")
                     .body(SoapFault.createFaultXml(ex));
         }
     }

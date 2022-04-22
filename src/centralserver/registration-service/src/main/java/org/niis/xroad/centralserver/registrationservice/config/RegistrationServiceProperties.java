@@ -26,36 +26,39 @@
  */
 package org.niis.xroad.centralserver.registrationservice.config;
 
-import ee.ria.xroad.common.message.SoapFault;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import java.net.URI;
+import java.nio.file.Path;
 
-import java.util.UUID;
+@Configuration(proxyBeanMethods = false)
+@ConfigurationProperties(prefix = "xroad.registration-service")
+@Getter
+@Setter
+@SuppressWarnings("checkstyle:MagicNumber")
+public class RegistrationServiceProperties {
 
-@Slf4j
-@ControllerAdvice
-public class ExceptionHandler extends ResponseEntityExceptionHandler {
-    @Override
-    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
-            HttpStatus status, WebRequest request) {
+    private boolean rateLimitEnabled = true;
 
-        var id = UUID.randomUUID();
-        log.error("Request failed [{}]", id, ex);
-        return ResponseEntity
-                .internalServerError()
-                .contentType(MediaType.TEXT_XML)
-                .header("Pragma", "no-cache")
-                .header("Expires", "0")
-                .cacheControl(CacheControl.noStore())
-                .header(HttpHeaders.CONNECTION, "close")
-                .body(SoapFault.createFaultXml("SOAP-ENV:Server", "Internal error", null, id.toString()));
-    }
+    private int rateLimitRequestsPerMinute = 10;
+
+    private int rateLimitCacheSize = 10_000;
+
+    /**
+     * Path to a trust store containing certificates for the central server admin API
+     */
+    @Value("${xroad.conf.path:/etc/xroad}/ssl/internal.p12")
+    private Path apiTrustStore;
+
+    private String apiTrustStorePassword = "internal";
+
+    private URI apiBaseUrl = URI.create("https://127.0.0.1:4000/api/v1");
+
+    private String apiToken;
+
 }
+

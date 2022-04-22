@@ -43,7 +43,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -61,12 +60,12 @@ public class RegistrationRequestControllerTest {
 
     public static final String CONTENT_TYPE
             = "multipart/related; type=\"application/octet-stream\"; charset=UTF-8; boundary=jetty977554054l1bu2no0";
+    public static final String ENDPOINT = "/managementservice";
 
     @TestConfiguration
     static class TestConfig {
         @Bean
-        AdminApiService adminApiServiceImpl(Environment env) {
-
+        AdminApiService adminApiServiceImpl() {
             return (serverId, address, certificate) -> 0;
         }
     }
@@ -105,7 +104,7 @@ public class RegistrationRequestControllerTest {
 
     @Test
     public void shouldRegisterAuthCert() throws Exception {
-        mvc.perform(post("/managementrequest")
+        mvc.perform(post(ENDPOINT)
                         .contentType(CONTENT_TYPE)
                         .content(Files.readAllBytes(Paths.get("build/resources/test/testauthregrequest.msg"))))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
@@ -113,7 +112,7 @@ public class RegistrationRequestControllerTest {
 
     @Test
     public void shouldFailInvalidRequest() throws Exception {
-        mvc.perform(post("/managementrequest")
+        mvc.perform(post(ENDPOINT)
                         .contentType(CONTENT_TYPE)
                         .content(Files.readAllBytes(Paths.get("build/resources/test/invalidauthregrequest.msg"))))
                 .andExpect(MockMvcResultMatchers.status().is5xxServerError());

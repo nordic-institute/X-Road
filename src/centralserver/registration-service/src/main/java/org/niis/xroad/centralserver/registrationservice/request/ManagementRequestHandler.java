@@ -40,6 +40,8 @@ import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ManagementRequests;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import com.google.common.net.InetAddresses;
+import com.google.common.net.InternetDomainName;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -112,6 +114,11 @@ public final class ManagementRequestHandler {
                     "Subject identifier (%s) in certificate does not match"
                             + " security server owner identifier (%s) in request",
                     idFromCert, idFromReq);
+        }
+
+        var address = req.getAddress();
+        if (address == null || !(InetAddresses.isInetAddress(address) || InternetDomainName.isValid(address))) {
+            throw new CodedException(X_INVALID_REQUEST, "Invalid server address", address);
         }
     }
 

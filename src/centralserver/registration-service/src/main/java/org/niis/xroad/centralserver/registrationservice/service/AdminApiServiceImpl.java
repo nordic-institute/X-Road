@@ -42,8 +42,8 @@ import org.niis.xroad.centralserver.openapi.model.ManagementRequestInfo;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestOrigin;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestType;
 import org.niis.xroad.centralserver.openapi.model.XRoadId;
+import org.niis.xroad.centralserver.registrationservice.config.RegistrationServiceProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.core.env.Environment;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -53,7 +53,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -62,17 +61,12 @@ import java.security.cert.CertificateException;
 @Service
 class AdminApiServiceImpl implements AdminApiService {
 
-    public static final String PREFIX = "xroad.registration-service.";
-    public static final String TRUSTSTORE = PREFIX + "truststore";
-    public static final String TRUSTSTORE_PASSWORD = PREFIX + "truststore-password";
-    public static final String API_BASEURL = PREFIX + "api-baseurl";
-    public static final String API_TOKEN = PREFIX + "api-token";
     public static final String REQUEST_FAILED = "Registration request failed";
     private final RestTemplate restTemplate;
     private final ObjectMapper mapper;
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    AdminApiServiceImpl(Environment env, RestTemplateBuilder builder, ObjectMapper mapper) {
+    AdminApiServiceImpl(RegistrationServiceProperties properties, RestTemplateBuilder builder, ObjectMapper mapper) {
 
         CloseableHttpClient client;
         try {
@@ -81,8 +75,8 @@ class AdminApiServiceImpl implements AdminApiService {
                     .setSSLContext(SSLContexts.custom()
                             .setProtocol("TLSv1.3")
                             .loadTrustMaterial(
-                                    Paths.get(env.getRequiredProperty(TRUSTSTORE)).toFile(),
-                                    env.getRequiredProperty(TRUSTSTORE_PASSWORD).toCharArray())
+                                    properties.getApiTrustStore().toFile(),
+                                    properties.getApiTrustStorePassword().toCharArray())
                             .build())
                     .setDefaultRequestConfig(RequestConfig.custom()
                             .setConnectTimeout(1000)
@@ -103,8 +97,8 @@ class AdminApiServiceImpl implements AdminApiService {
         this.mapper = mapper;
         this.restTemplate = builder
                 .requestFactory(() -> new HttpComponentsClientHttpRequestFactory(client))
-                .rootUri(env.getProperty(API_BASEURL, "https://127.0.0.1:4000/api/v1"))
-                .defaultHeader("Authorization", "X-ROAD-APIKEY TOKEN=" + env.getRequiredProperty(API_TOKEN))
+                .rootUri(properties.getApiBaseUrl().toString())
+                .defaultHeader("Authorization", "X-ROAD-APIKEY TOKEN=" + properties.getApiToken())
                 .build();
     }
 

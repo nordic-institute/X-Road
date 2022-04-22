@@ -29,12 +29,16 @@ package org.niis.xroad.centralserver.registrationservice.config;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.server.handler.ErrorHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 
-@Component
-class JettyCustomizer implements WebServerFactoryCustomizer<JettyServletWebServerFactory> {
+@Configuration
+class WebServerCustomizer implements WebServerFactoryCustomizer<JettyServletWebServerFactory> {
 
     @Override
     public void customize(JettyServletWebServerFactory factory) {
@@ -48,5 +52,16 @@ class JettyCustomizer implements WebServerFactoryCustomizer<JettyServletWebServe
             server.setRequestLog(
                     new CustomRequestLog(new Slf4jRequestLogWriter(), CustomRequestLog.EXTENDED_NCSA_FORMAT));
         });
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "xroad.registration-service.rate-limit-enabled",
+            havingValue = "true", matchIfMissing = true)
+    public FilterRegistrationBean<IpThrottlingFilter> ipThrottlingFilter(RegistrationServiceProperties properties) {
+        var filter = new IpThrottlingFilter(properties);
+        var bean = new FilterRegistrationBean<>(filter);
+        bean.setOrder(Ordered.HIGHEST_PRECEDENCE + 1);
+        bean.addUrlPatterns("/managementservice", "/managementservice/");
+        return bean;
     }
 }
