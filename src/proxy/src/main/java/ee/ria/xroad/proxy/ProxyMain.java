@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy;
 
+import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
@@ -113,6 +114,8 @@ public final class ProxyMain {
 
     private static final int STATS_LOG_REPEAT_INTERVAL = 60;
 
+    private static AddOnStatusDiagnostics addOnStatus;
+
     private ProxyMain() {
     }
 
@@ -186,7 +189,7 @@ public final class ProxyMain {
         MonitorAgent.init(actorSystem);
         SignerClient.init(actorSystem);
         BatchSigner.init(actorSystem);
-        MessageLog.init(actorSystem, jobManager);
+        boolean messageLogEnabled = MessageLog.init(actorSystem, jobManager);
         OpMonitoring.init(actorSystem);
 
         for (AddOn addOn : addOns) {
@@ -208,6 +211,8 @@ public final class ProxyMain {
         jobManager.registerRepeatingJob(ServerConfStatsLogger.class, STATS_LOG_REPEAT_INTERVAL);
         jobManager.registerRepeatingJob(GlobalConfUpdater.class,
                 SystemProperties.getConfigurationClientUpdateIntervalSeconds());
+
+        addOnStatus = new AddOnStatusDiagnostics(messageLogEnabled);
     }
 
     private static void loadConfigurations() {
@@ -233,7 +238,28 @@ public final class ProxyMain {
 
         addClearCacheHandler(adminPort);
 
+        addAddOnStatusHandler(adminPort);
+
         return adminPort;
+    }
+
+    private static void logResponseIOError(IOException e) {
+        log.error("Unable to write to provided response, delegated request handling failed, response may"
+                + " be malformed", e);
+    }
+
+    private static void addAddOnStatusHandler(AdminPort adminPort) {
+        adminPort.addHandler("/addonstatus", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
+                try {
+                    response.setCharacterEncoding("UTF8");
+                    JsonUtils.getSerializer().toJson(addOnStatus, response.getWriter());
+                } catch (IOException e) {
+                    logResponseIOError(e);
+                }
+            }
+        });
     }
 
     private static void addClearCacheHandler(AdminPort adminPort) {
@@ -245,8 +271,7 @@ public final class ProxyMain {
                     response.setCharacterEncoding("UTF8");
                     response.getWriter().println("Configuration cache cleared");
                 } catch (IOException e) {
-                    log.error("Unable to write to provided response, delegated request handling failed, response may"
-                            + " be malformed", e);
+                    logResponseIOError(e);
                 }
             }
         });
@@ -267,8 +292,7 @@ public final class ProxyMain {
                     response.setCharacterEncoding("UTF8");
                     response.getWriter().println(result);
                 } catch (IOException e) {
-                    log.error("Unable to write to provided response, delegated request handling failed, response may"
-                            + " be malformed", e);
+                    logResponseIOError(e);
                 }
             }
         });
@@ -321,8 +345,7 @@ public final class ProxyMain {
                     response.setCharacterEncoding("UTF8");
                     JsonUtils.getSerializer().toJson(result, response.getWriter());
                 } catch (IOException e) {
-                    log.error("Unable to write to provided response, delegated request handling failed, response may"
-                            + " be malformed", e);
+                    logResponseIOError(e);
                 }
             }
         });

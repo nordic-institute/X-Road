@@ -25,11 +25,13 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics;
@@ -71,6 +73,21 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     private static final String CA_NAME_2 = "CN=Xroad Test, C=EE";
     private static final String OCSP_URL_1 = "https://ocsp1.example.com";
     private static final String OCSP_URL_2 = "https://ocsp2.example.com";
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getAddOnDiagnostics() {
+        when(diagnosticService.queryAddOnStatus()).thenReturn(new AddOnStatusDiagnostics(true));
+
+        ResponseEntity<AddOnStatus> response = diagnosticsApiController.getAddOnDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(true, response.getBody().getMessagelogEnabled());
+
+        when(diagnosticService.queryAddOnStatus()).thenReturn(new AddOnStatusDiagnostics(false));
+        response = diagnosticsApiController.getAddOnDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(false, response.getBody().getMessagelogEnabled());
+    }
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})

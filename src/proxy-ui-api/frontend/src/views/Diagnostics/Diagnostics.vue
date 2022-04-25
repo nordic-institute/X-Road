@@ -146,19 +146,27 @@
           </v-card-text>
         </v-card>
 
-        <v-card flat class="xrd-card diagnostic-card">
-          <v-card-title>
-            <span class="headline" data-test="diagnostics-timestamping">{{
-              $t('diagnostics.timestamping.title')
-            }}</span>
-          </v-card-title>
-
+        <v-card flat class="xrd-card diagnostic-card" :class="{ disabled: !messageLogEnabled }">
           <v-card-text class="xrd-card-text">
+            <v-row
+              no-gutters
+              class="px-4"
+            >
+              <v-col>
+                <h3 :class="{ disabled: !messageLogEnabled }">
+                  {{ $t('diagnostics.timestamping.title') }}
+                </h3>
+              </v-col>
+              <v-col v-if="!messageLogEnabled" class="text-right disabled">
+                {{ $t('systemParameters.timestampingServices.messageLogDisabled') }}
+              </v-col>
+            </v-row>
+
             <table class="xrd-table">
               <thead>
                 <tr>
                   <th class="status-column">{{ $t('diagnostics.status') }}</th>
-                  <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
+                  <th class="url-column" >{{ $t('diagnostics.serviceUrl') }}</th>
                   <th>{{ $t('diagnostics.message') }}</th>
                   <th class="time-column">
                     {{ $t('diagnostics.previousUpdate') }}
@@ -173,27 +181,27 @@
                 >
                   <td>
                     <xrd-status-icon
-                      :status="statusIconType(timestampingService.status_class)"
+                      :status="statusIconTypeTSP(timestampingService.status_class)"
                     />
                   </td>
-                  <td class="url-column" data-test="service-url">
+                  <td class="url-column" :class="{ disabled: !messageLogEnabled }" data-test="service-url">
                     {{ timestampingService.url }}
                   </td>
-                  <td>
+                  <td :class="{ disabled: !messageLogEnabled }">
                     {{
                       $t(
                         `diagnostics.timestamping.timestampingStatus.${timestampingService.status_code}`,
                       )
                     }}
                   </td>
-                  <td class="time-column">
+                  <td class="time-column" :class="{ disabled: !messageLogEnabled }">
                     {{ timestampingService.prev_update_at | formatHoursMins }}
                   </td>
                   <td></td>
                 </tr>
                 <XrdEmptyPlaceholderRow
                   :colspan="5"
-                  :loading="timestampingLoading"
+                  :loading="timestampingLoading || addonStatusLoading"
                   :data="timestampingServices"
                   :no-items-text="$t('noData.noTimestampingServices')"
                 />
@@ -289,7 +297,7 @@ import * as api from '@/util/api';
 import {
   TimestampingServiceDiagnostics,
   OcspResponderDiagnostics,
-  GlobalConfDiagnostics,
+  GlobalConfDiagnostics, AddOnStatus,
 } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
@@ -297,12 +305,14 @@ import { useSystemStore } from '@/store/modules/system';
 
 export default Vue.extend({
   data: () => ({
+    messageLogEnabled: false,
     timestampingServices: [] as TimestampingServiceDiagnostics[],
     globalConf: undefined as GlobalConfDiagnostics | undefined,
     ocspResponderDiagnostics: [] as OcspResponderDiagnostics[],
     globalConfLoading: false,
     timestampingLoading: false,
     ocspLoading: false,
+    addonStatusLoading: false,
   }),
   computed: {
     ...mapState(useSystemStore, ['securityServerVersion']),
@@ -317,6 +327,19 @@ export default Vue.extend({
       this.globalConfLoading = true;
       this.timestampingLoading = true;
       this.ocspLoading = true;
+      this.addonStatusLoading = true;
+
+      api
+        .get<AddOnStatus>('/diagnostics/addon-status')
+        .then((res) => {
+          this.messageLogEnabled = res.data.messagelog_enabled;
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.addonStatusLoading = false;
+        });
 
       api
         .get<TimestampingServiceDiagnostics[]>(
@@ -357,6 +380,17 @@ export default Vue.extend({
         });
     },
 
+    statusIconTypeTSP(status: string): string {
+      if (!status) {
+        return '';
+      }
+      if (this.messageLogEnabled) {
+        return this.statusIconType(status);
+      } else {
+        return this.statusIconType(status) + '-disabled';
+      }
+    },
+
     statusIconType(status: string): string {
       if (!status) {
         return '';
@@ -379,6 +413,20 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/colors';
 @import '~styles/tables';
+
+h3 {
+  color: $XRoad-Black100;
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 2rem;
+}
+
+.disabled {
+  cursor: not-allowed;
+  background: $XRoad-Black10;
+  color: $XRoad-WarmGrey100;
+}
 
 .xrd-card-text {
   padding-left: 0;
