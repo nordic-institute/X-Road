@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.CertificationServiceStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
@@ -76,18 +77,23 @@ public class DiagnosticService {
     private final String diagnosticsGlobalconfUrl;
     private final String diagnosticsTimestampingServicesUrl;
     private final String diagnosticsOcspRespondersUrl;
+    private final String diagnosticsAddOnStatusUrl;
 
     @Autowired
     public DiagnosticService(@Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
             @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
+            @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
             RestTemplateBuilder restTemplateBuilder) {
+
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());
         this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
                 PortNumbers.ADMIN_PORT);
         this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
                 SystemProperties.getSignerAdminPort());
+        this.diagnosticsAddOnStatusUrl = String.format(diagnosticsAddOnStatusUrl, PortNumbers.ADMIN_PORT);
+
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(
                 JsonUtils.getObjectMapperCopy());
         List<MediaType> mediaTypes = new ArrayList<>(converter.getSupportedMediaTypes());
@@ -156,6 +162,19 @@ public class DiagnosticService {
                     .stream()
                     .map(this::parseOcspResponderDiagnosticsStatus)
                     .collect(Collectors.toList());
+        } catch (DiagnosticRequestException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Query proxy addons status from admin port over HTTP.
+     *
+     * @return
+     */
+    public AddOnStatusDiagnostics queryAddOnStatus() {
+        try {
+            return sendGetRequest(diagnosticsAddOnStatusUrl, AddOnStatusDiagnostics.class).getBody();
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }

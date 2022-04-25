@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.68 
+Version: 2.69 
 Doc. ID: UG-SS
 
 ---
@@ -101,6 +101,7 @@ Doc. ID: UG-SS
  30.11.2021 | 2.66    | Added chapter about configuring account lockouts | Caro Hautamäki
  09.12.2021 | 2.67    | Added instructions for ensuring user account security | Ilkka Seppälä
  09.12.2021 | 2.68    | Updated chapter [22](#22-additional-security-hardening) and added information about password policies  | Caro Hautamäki
+ 13.04.2022 | 2.69    | Updated max loggable body size parameter name to correct one | Raido Kaju
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -1653,9 +1654,9 @@ For example, to configure the parameters `archive-path` and `archive-max-filesiz
   
 5.  `disabled-body-logging-remote-producer-subsystems` - when message-body-logging is set to true, this field contains the overrides for the remote producer subsystems.
 
-6.  `max-loggable-body-size` - the maximum REST message body size that will be written to the messagelog.
+6.  `max-loggable-message-body-size` - the maximum REST message body size that will be written to the messagelog.
 
-7.  `truncated-body-allowed` - if the REST message body size exceeds the max-loggable-body-size, truncate the body (true) or reject the message (false)
+7.  `truncated-body-allowed` - if the REST message body size exceeds the max-loggable-message-body-size truncate the body (true) or reject the message (false)
 
 8.  `messagelog-encryption-enabled` - if set to true, the message bodies are written to the database in an encrypted format
 

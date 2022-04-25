@@ -2,7 +2,7 @@
 openapi: 3.0.0
 info:
   description: X-Road Security Server Admin API. Note that the error metadata responses described in some endpoints are subjects to change and may be updated in upcoming versions.
-  version: "2.0.0"
+  version: "2.1.0"
   title: X-Road Security Server Admin API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -2081,6 +2081,32 @@ paths:
                 uniqueItems: true
                 items:
                   $ref: '#/components/schemas/TimestampingServiceDiagnostics'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /diagnostics/addon-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view addon services diagnostics information
+      operationId: getAddOnDiagnostics
+      description: <h3>Administrator views the proxy addon status diagnostics information.</h3>
+      responses:
+        '200':
+          description: addon services diagnostics information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddOnStatus'
         '400':
           description: request was invalid
         '401':
@@ -5181,6 +5207,15 @@ components:
           description: array of AccessRights
           items:
             $ref: '#/components/schemas/AccessRight'
+    AddOnStatus:
+      type: object
+      description: addon module statuses
+      required:
+        - messagelog_enabled
+      properties:
+        messagelog_enabled:
+          type: boolean
+          readOnly: true
     Anchor:
       type: object
       description: security server anchor
