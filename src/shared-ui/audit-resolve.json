@@ -1927,6 +1927,14 @@
     "1068044|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/csf-tools>@mdx-js/mdx>remark-mdx>remark-parse>trim": {
       "decision": "ignore",
       "madeAt": 1649665849090
+    },
+    "1070206|@vue/cli-service>portfinder>async": {
+      "decision": "ignore",
+      "madeAt": 1650867333753
+    },
+    "1070206|@vue/cli-service>webpack-dev-server>portfinder>async": {
+      "decision": "ignore",
+      "madeAt": 1650867333753
     }
   },
   "rules": {},
