@@ -36,5 +36,11 @@
       file name: org.eclipse.core.contenttype-3.8.0.jar
       ]]></notes>
       <cve>CVE-2021-41033</cve>
-   </suppress>
+    </suppress>
+    <suppress>
+      <notes><![CDATA[
+      file name: spring-tx-5.2.21.RELEASE.jar
+      ]]></notes>
+      <cve>CVE-2016-1000027</cve>
+    </suppress>
 </suppressions>
