@@ -1,6 +1,7 @@
 # Change Log
 
-## 6.25.2 - UNRELEASED
+## 6.25.2 - 2022-04-25
+- XRDDEV-1971: Update dependencies with known vulnerabilities
 
 ## 6.25.1 - 2022-01-10
 - XRDDEV-1887: Update dependencies with known vulnerabilities
