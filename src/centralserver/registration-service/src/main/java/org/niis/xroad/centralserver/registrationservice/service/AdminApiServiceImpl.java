@@ -31,6 +31,7 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -59,6 +60,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 @Service
+@Slf4j
 class AdminApiServiceImpl implements AdminApiService {
 
     public static final String REQUEST_FAILED = "Registration request failed";
@@ -120,6 +122,8 @@ class AdminApiServiceImpl implements AdminApiService {
         request.setSecurityserverId(sid);
 
         try {
+            log.debug("Making registration request...");
+
             var result = restTemplate.exchange(
                     RequestEntity.post("/management-requests").body(request),
                     ManagementRequestInfo.class);

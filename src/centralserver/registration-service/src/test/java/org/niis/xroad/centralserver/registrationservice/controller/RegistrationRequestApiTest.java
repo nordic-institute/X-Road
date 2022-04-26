@@ -33,47 +33,60 @@ import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.centralserver.registrationservice.service.AdminApiService;
+import org.niis.xroad.centralserver.registrationservice.config.RegistrationServiceProperties;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.CodeWithDetails;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ErrorInfo;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestInfo;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthCertRegRequest;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthRegRequestBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.io.ByteArrayInputStream;
+import java.net.URI;
 import java.security.KeyPairGenerator;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 
-import static org.junit.Assert.assertTrue;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-public class RegistrationRequestControllerTest {
-    public static final String CONTENT_TYPE
-            = "multipart/related; boundary=jetty977554054l1bu2no0";
+@SpringBootTest
+@AutoConfigureMockMvc(print = MockMvcPrint.NONE)
+public class RegistrationRequestApiTest {
+
+    public static final String ENDPOINT = "/managementservice";
+
+    @ClassRule
+    public static WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
+            .keystorePath("./build/resources/test/testconf/ssl/internal.p12")
+            .keystoreType("PKCS12")
+            .keystorePassword("internal")
+            .keyManagerPassword("internal")
+            .dynamicHttpsPort());
 
     @Autowired
-    RegistrationRequestController controller;
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        AdminApiService adminApiServiceImpl() {
-            return (serverId, address, certificate) -> 0;
-        }
-    }
+    private RegistrationServiceProperties properties;
 
     @BeforeClass
     public static void setup() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "build/resources/test/testconf");
+        System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/testconf");
         GlobalConf.reload(new EmptyGlobalConf() {
 
             @Override
@@ -99,8 +112,55 @@ public class RegistrationRequestControllerTest {
         });
     }
 
+    @Autowired
+    private MockMvc mvc;
+
     @Test
-    public void shouldFailIfAuthSignatureIsInvalid() throws Exception {
+    public void shouldRegisterAuthCert() throws Exception {
+
+        properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.httpsPort())));
+        var response = new ManagementRequestInfo();
+        response.setId(42);
+
+        wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
+                .willReturn(WireMock.jsonResponse(response, 202)));
+
+        var req = generateRequest();
+        var content = IOUtils.toByteArray(req.getRequestContent());
+        mvc.perform(post(ENDPOINT)
+                        .contentType(req.getRequestContentType())
+                        .content(content))
+                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
+                .andExpect(MockMvcResultMatchers
+                        .xpath("//xroad:requestId",
+                                Collections.singletonMap("xroad", "http://x-road.eu/xsd/xroad.xsd"))
+                        .string("42"));
+    }
+
+    @Test
+    public void shouldReturnSoapFaultOnError() throws Exception {
+
+        properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.httpsPort())));
+        var response = new ErrorInfo();
+        response.setStatus(409);
+        response.setError(new CodeWithDetails().code("error"));
+
+        wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
+                .willReturn(WireMock.jsonResponse(response, 409)));
+
+        var req = generateRequest();
+        var content = IOUtils.toByteArray(req.getRequestContent());
+        mvc.perform(post(ENDPOINT)
+                        .contentType(req.getRequestContentType())
+                        .content(content))
+                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers
+                        .xpath("//soap:Fault",
+                                Collections.singletonMap("soap", "http://schemas.xmlsoap.org/soap/envelope/"))
+                        .exists());
+    }
+
+    private TestAuthCertRegRequest generateRequest() throws Exception {
         var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(1024);
 
@@ -108,6 +168,7 @@ public class RegistrationRequestControllerTest {
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
 
         var serverId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SS1");
+        var receiver = ClientId.create("TEST", "CLASS", "MEMBER", "MANAGEMENT");
         var ownerKeyPair = keyPairGenerator.generateKeyPair();
         var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
 
@@ -117,28 +178,17 @@ public class RegistrationRequestControllerTest {
                 TestCertUtil.getOcspSigner().key,
                 CertificateStatus.GOOD);
 
-        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), serverId.getOwner());
-        var req = builder.buildAuthCertRegRequest(serverId, "ss1.example.org", authCert);
+        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), receiver);
+        var req = builder.buildAuthCertRegRequest(
+                serverId,
+                "ss1.example.org",
+                authCert);
 
-        var envelope = new TestAuthCertRegRequest(authCert,
+        return new TestAuthCertRegRequest(authCert,
                 ownerCert.getEncoded(),
                 ownerOcsp.getEncoded(),
                 req,
-                //wrong private key causes invalid signature
-                ownerKeyPair.getPrivate(),
-                authKeyPair.getPrivate());
-
-        var is = envelope.getRequestContent();
-        var result = controller.register(envelope.getRequestContentType(), is);
-        is.close();
-
-        assertTrue(result.getStatusCode().is5xxServerError());
+                authKeyPair.getPrivate(),
+                ownerKeyPair.getPrivate());
     }
-
-    @Test
-    public void shouldFailIfEmptyRequest() {
-        var result = controller.register(CONTENT_TYPE, new ByteArrayInputStream(new byte[0]));
-        assertTrue(result.getStatusCode().is5xxServerError());
-    }
-
 }

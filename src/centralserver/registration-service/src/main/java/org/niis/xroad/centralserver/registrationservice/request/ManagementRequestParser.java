@@ -59,11 +59,11 @@ public final class ManagementRequestParser {
      */
     public static AuthCertRegRequestType parseAuthCertRegRequest(SoapMessageImpl message) throws SOAPException {
 
-        if (log.isDebugEnabled()) {
+        if (log.isTraceEnabled()) {
             try {
-                log.debug("parse(expectedNodeName: {}, message: {})", AUTH_CERT_REG, message.getXml());
+                log.trace("parse(expectedNodeName: {}, message: {})", AUTH_CERT_REG, message.getXml());
             } catch (UnsupportedEncodingException e) {
-                log.error("Unexpected error", e);
+                log.trace("Unexpected error", e);
             }
         }
 
@@ -84,7 +84,7 @@ public final class ManagementRequestParser {
             return um.unmarshal(node, AuthCertRegRequestType.class).getValue();
         } catch (JAXBException e) {
             String msg = String.format("Failed to parse '%s'", AUTH_CERT_REG);
-            log.error(msg, e);
+            log.error(msg);
             throw new SOAPException(msg, e);
         }
     }

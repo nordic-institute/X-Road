@@ -38,6 +38,7 @@ import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ManagementRequests;
+import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import com.google.common.net.InetAddresses;
@@ -48,14 +49,17 @@ import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.io.InputStream;
+import java.net.IDN;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
@@ -78,6 +82,10 @@ public final class ManagementRequestHandler {
      */
     public static SoapMessageImpl readRequest(String contentType, InputStream inputStream) throws Exception {
 
+        if (!GlobalConf.isValid()) {
+            throw new CodedException(X_OUTDATED_GLOBALCONF, "Global configuration is not valid");
+        }
+
         DecoderCallback cb = new DecoderCallback();
 
         SoapMessageDecoder decoder = new SoapMessageDecoder(contentType, cb);
@@ -87,25 +95,37 @@ public final class ManagementRequestHandler {
     }
 
     private static void verifyAuthCertRegRequest(DecoderCallback cb) throws Exception {
+
+        X509Certificate authCert = readCertificate(cb.getAuthCert());
+
+        if (!verifyAuthCert(authCert)) {
+            throw new CodedException(X_CERT_VALIDATION, "Authentication certificate is not valid");
+        }
+
         SoapMessageImpl soap = cb.getSoapMessage();
         byte[] dataToVerify = soap.getBytes();
-        X509Certificate authCert = readCertificate(cb.getAuthCert());
         if (!verifySignature(authCert, cb.getAuthSignature(), cb.getAuthSignatureAlgoId(), dataToVerify)) {
             throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Auth signature verification failed");
         }
+
         X509Certificate ownerCert = readCertificate(cb.getOwnerCert());
+        OCSPResp ownerCertOcsp = new OCSPResp(cb.getOwnerCertOcsp());
+        verifyCertificate(ownerCert, ownerCertOcsp);
 
         if (!verifySignature(ownerCert, cb.getOwnerSignature(), cb.getOwnerSignatureAlgoId(), dataToVerify)) {
             throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Owner signature verification failed");
         }
 
-        OCSPResp ownerCertOcsp = new OCSPResp(cb.getOwnerCertOcsp());
-        verifyCertificate(ownerCert, ownerCertOcsp);
+        AuthCertRegRequestType req = ManagementRequestParser.parseAuthCertRegRequest(soap);
+
+        // Verify that the attached authentication certificate matches the one in
+        // the request. Note: reason for the redundancy is unclear.
+        if (!Arrays.equals(cb.authCert, req.getAuthCert())) {
+            throw new CodedException(X_INVALID_REQUEST, "Authentication certificates do not match");
+        }
 
         // verify that the subject id from the certificate matches the one
         // in the request (server id)
-        AuthCertRegRequestType req = ManagementRequestParser.parseAuthCertRegRequest(soap);
-
         ClientId idFromReq = req.getServer().getOwner();
         ClientId idFromCert = getClientIdFromCert(ownerCert, idFromReq);
 
@@ -116,10 +136,22 @@ public final class ManagementRequestHandler {
                     idFromCert, idFromReq);
         }
 
+        // verify that the server address (IP or FQDN) is valid
         var address = req.getAddress();
-        if (address == null || !(InetAddresses.isInetAddress(address) || InternetDomainName.isValid(address))) {
-            throw new CodedException(X_INVALID_REQUEST, "Invalid server address", address);
+        if (address == null
+                || !(InetAddresses.isInetAddress(address) || InternetDomainName.isValid(IDN.toASCII(address)))) {
+            throw new CodedException(X_INVALID_REQUEST, "Invalid server address");
         }
+    }
+
+    private static boolean verifyAuthCert(X509Certificate authCert) throws Exception {
+
+        var instanceId = GlobalConf.getInstanceIdentifier();
+        var caCert = GlobalConf.getCaCert(instanceId, authCert);
+        authCert.verify(caCert.getPublicKey());
+        authCert.checkValidity();
+
+        return CertUtils.isAuthCert(authCert);
     }
 
     private static ClientId getClientIdFromCert(X509Certificate cert, ClientId clientId) throws Exception {
@@ -137,6 +169,14 @@ public final class ManagementRequestHandler {
     }
 
     private static void verifyCertificate(X509Certificate memberCert, OCSPResp memberCertOcsp) throws Exception {
+
+        X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), memberCert);
+        memberCert.verify(issuer.getPublicKey());
+
+        if (!CertUtils.isSigningCert(memberCert)) {
+            throw new CodedException(X_CERT_VALIDATION, "Member (owner/client) sign certificate is invalid");
+        }
+
         try {
             memberCert.checkValidity();
         } catch (Exception e) {
@@ -144,7 +184,6 @@ public final class ManagementRequestHandler {
                     e.getMessage());
         }
 
-        X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), memberCert);
         new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
                 new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()))
                 .verifyValidityAndStatus(memberCertOcsp, memberCert, issuer);
@@ -160,8 +199,6 @@ public final class ManagementRequestHandler {
 
             return signature.verify(signatureData);
         } catch (Exception e) {
-            log.error("Failed to verify signature", e);
-
             throw translateException(e);
         }
     }

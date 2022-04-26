@@ -78,5 +78,7 @@ dependencies {
     testImplementation "junit:junit:$junitVersion"
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation ('com.github.tomakehurst:wiremock-jre8:2.33.1')
+
 }
 

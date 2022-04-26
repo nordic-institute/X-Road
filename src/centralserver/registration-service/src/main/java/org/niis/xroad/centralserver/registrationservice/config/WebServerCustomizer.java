@@ -49,8 +49,9 @@ class WebServerCustomizer implements WebServerFactoryCustomizer<JettyServletWebS
 
             server.setErrorHandler(errorHandler);
 
-            server.setRequestLog(
-                    new CustomRequestLog(new Slf4jRequestLogWriter(), CustomRequestLog.EXTENDED_NCSA_FORMAT));
+            var requestLogWriter = new Slf4jRequestLogWriter();
+            requestLogWriter.setLoggerName("org.niis.xroad.centralserver.registrationservice.RequestLog");
+            server.setRequestLog(new CustomRequestLog(requestLogWriter, CustomRequestLog.EXTENDED_NCSA_FORMAT));
         });
     }
 
