@@ -2,6 +2,9 @@
 
 ## 7.1.0 - UNRELEASED
 
+## 7.0.3 - 2022-04-25
+- XRDDEV-1973: Update dependencies with known vulnerabilities
+
 ## 7.0.2 - 2022-02-11
 - XRDDEV-1920: Restoring a backup fails for Security Servers that have not been freshly installed since 6.24.0
 - XRDDEV-1921: Upgrading X-Road on RHEL does not create symlink for messagelog.conf
