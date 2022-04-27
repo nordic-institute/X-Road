@@ -35,6 +35,15 @@ import org.springframework.context.annotation.Configuration;
 import java.net.URI;
 import java.nio.file.Path;
 
+/**
+ * Registration service configuration properties.
+ *
+ * Can be defined in local.ini, e.g.:
+ * <pre>
+ * [registration-service]
+ * rate-limit-enabled = true
+ * </pre>
+ */
 @Configuration(proxyBeanMethods = false)
 @ConfigurationProperties(prefix = "xroad.registration-service")
 @Getter
@@ -42,10 +51,28 @@ import java.nio.file.Path;
 @SuppressWarnings("checkstyle:MagicNumber")
 public class RegistrationServiceProperties {
 
+    /**
+     * Controls whether the built-in rate limiting is enabled.
+     *
+     * Note. If the service is behind a reverse proxy (default), the proxy needs to forward the real IP address for the
+     * rate-limiting to work correctly. Therefore, by default, using forward headers is enabled.
+     *
+     * If the service is exposed directly, it must not use forwarded headers (can be spoofed by clients), and the
+     * corresponding configuration (server.forward-headers-strategy) needs to be disabled.
+     */
     private boolean rateLimitEnabled = true;
 
+    /**
+     * Controls how many requests from an IP address are allowed per minute.
+     * Normally security servers should have a unique address and send just
+     * one registration request, so this value can be low.
+     */
     private int rateLimitRequestsPerMinute = 10;
 
+    /**
+     * Controls how many IP addresses can be remembered in the rate-limit cache
+     * Tradeoff between memory usage and protection from a large attack.
+     */
     private int rateLimitCacheSize = 10_000;
 
     /**
@@ -54,11 +81,20 @@ public class RegistrationServiceProperties {
     @Value("${xroad.conf.path:/etc/xroad}/ssl/internal.p12")
     private Path apiTrustStore;
 
+    /**
+     * Password for the trust store
+     */
     private String apiTrustStorePassword = "internal";
 
-    private URI apiBaseUrl = URI.create("https://127.0.0.1:4000/api/v1");
-
+    /**
+     * Central server admin api base URL
+     */
+    @Value("https://127.0.0.1:4000/api/v1")
+    private URI apiBaseUrl;
+    /**
+     * API token for the central server API (required)
+     * The token needs to have the MANAGEMENT_SERVICE role (and for security, no other roles).
+     */
     private String apiToken;
 
 }
-

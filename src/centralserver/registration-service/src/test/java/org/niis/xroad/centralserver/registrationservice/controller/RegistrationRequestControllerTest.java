@@ -57,8 +57,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class RegistrationRequestControllerTest {
-    public static final String CONTENT_TYPE
-            = "multipart/related; boundary=jetty977554054l1bu2no0";
+    public static final String CONTENT_TYPE = "multipart/related; boundary=partboundary";
 
     @Autowired
     RegistrationRequestController controller;
@@ -130,7 +129,6 @@ public class RegistrationRequestControllerTest {
 
         var is = envelope.getRequestContent();
         var result = controller.register(envelope.getRequestContentType(), is);
-        is.close();
 
         assertTrue(result.getStatusCode().is5xxServerError());
     }

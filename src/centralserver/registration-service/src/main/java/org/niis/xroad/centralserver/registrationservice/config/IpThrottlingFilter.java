@@ -43,9 +43,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Rate-limit POST requests
+ * Rate-limits requests
  */
 @Slf4j
 public class IpThrottlingFilter implements Filter {
@@ -58,6 +59,7 @@ public class IpThrottlingFilter implements Filter {
         limit = Bandwidth.simple(properties.getRateLimitRequestsPerMinute(), Duration.ofMinutes(1));
         bucketCache = CacheBuilder.newBuilder()
                 .maximumSize(properties.getRateLimitCacheSize())
+                .expireAfterAccess(2, TimeUnit.MINUTES)
                 .build(CacheLoader.from(this::createStandardBucket));
     }
 
@@ -85,7 +87,7 @@ public class IpThrottlingFilter implements Filter {
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             // limit is exceeded, respond with 429 TOO_MANY_REQUESTS
-            log.warn("Request rate limit {} exceeded for ip {}", limit, ip);
+            log.warn("Request rate limit {} per minute exceeded for IP {}", limit.getCapacity(), ip);
             if (servletResponse instanceof HttpServletResponse) {
                 HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
                 httpResponse.setContentType("text/plain");

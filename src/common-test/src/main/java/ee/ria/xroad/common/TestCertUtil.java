@@ -349,7 +349,7 @@ public final class TestCertUtil {
         return "test".toCharArray();
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
+    @SuppressWarnings({"checkstyle:MagicNumber", "java:S4426"})
     public static byte[] generateAuthCert() throws NoSuchAlgorithmException, OperatorCreationException, IOException {
         var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(1024);
