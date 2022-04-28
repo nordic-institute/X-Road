@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.65  
+Version: 2.6š  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -75,6 +75,7 @@ Doc. ID: UG-SYSPAR
 | 31.08.2021 | 2.63     | Update messagelog and proxy parameters | Ilkka Seppälä |
 | 05.10.2021 | 2.64     | Added a new chapter about custom command line arguments [6](#6-adding-command-line-arguments) | Caro Hautamäki
 | 13.04.2022 | 2.65     | Corrected message logging max body size parameter name | Raido Kaju
+| 28.04.2022 | 2.66     | Updated *max-loggable-message-body-size* property EE-package value. | Ričardas Bučiūnas
 
 ## Table of Contents
 
@@ -355,7 +356,7 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 | timestamper-client-read-timeout                  | 60000                                      |   |   | The timestamper client read timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamp-retry-delay                            | 60                                         |   |   | Time-stamp retry delay in seconds when batch time-stamping fails. After failing to batch time-stamp, the timestamper waits for the time period defined by "timestamp-retry-delay" before trying again. This is repeated until fetching a time-stamp succeeds. After successfully fetching a time-stamp, the timestamper returns to normal time-stamping schedule. If the value of "timestamp-retry-delay" is higher than the value of the central server system parameter "timeStampingIntervalSeconds", the value of "timeStampingIntervalSeconds" is used. If the value of "timestamp-retry-delay" is zero, the value of "timeStampingIntervalSeconds" is used. |
 | archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size). |
-| max-loggable-message-body-size                   | 10485760 (10 MiB)                          |   |   | Maximum loggable REST message body size |
+| max-loggable-message-body-size                   | 10485760 (10 MiB)                          |   | 20971520 (20MiB)      | Maximum loggable REST message body size |
 | truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false). |
 | clean-transaction-batch                          | 10000                                      |   |   | Maximun number of log records to remove in one transaction. |
 | archive-grouping                                 | none                                       |   |   | Archive file grouping, one of 'none', 'member' (group by member), 'subsystem' (group by subsystem).
