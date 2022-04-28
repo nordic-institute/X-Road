@@ -33,9 +33,8 @@ import ee.ria.xroad.common.message.SoapFault;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
-import org.niis.xroad.centralserver.registrationservice.request.ManagementRequestHandler;
-import org.niis.xroad.centralserver.registrationservice.request.ManagementRequestParser;
 import org.niis.xroad.centralserver.registrationservice.request.ManagementRequestUtil;
+import org.niis.xroad.centralserver.registrationservice.request.ManagementRequestVerifier;
 import org.niis.xroad.centralserver.registrationservice.service.AdminApiService;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
@@ -68,11 +67,10 @@ public class RegistrationRequestController {
             consumes = {MediaType.MULTIPART_RELATED_VALUE})
     public ResponseEntity<String> register(@RequestHeader("Content-Type") String contentType, InputStream body) {
 
-        try {
-            var bos = new BoundedInputStream(body, MAX_REQUEST_SIZE);
-            var message = ManagementRequestHandler.readRequest(contentType, bos);
-            var authRequest = ManagementRequestParser.parseAuthCertRegRequest(message);
+        try (var bos = new BoundedInputStream(body, MAX_REQUEST_SIZE)) {
+            var result = ManagementRequestVerifier.readRequest(contentType, bos);
 
+            var authRequest = result.getAuthCertRegRequest();
             var requestId = adminApiService.addRegistrationRequest(
                     authRequest.getServer(),
                     authRequest.getAddress(),
@@ -82,7 +80,7 @@ public class RegistrationRequestController {
                     .ok()
                     .header("Pragma", "no-cache").header("Expires", "0")
                     .cacheControl(CacheControl.noStore())
-                    .body(ManagementRequestUtil.toResponse(message, requestId).getXml());
+                    .body(ManagementRequestUtil.toResponse(result.getSoapMessage(), requestId).getXml());
         } catch (Exception e) {
             var ex = ErrorCodes.translateException(e);
             if (log.isDebugEnabled() || !(e instanceof CodedException)) {

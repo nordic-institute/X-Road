@@ -91,7 +91,7 @@ public class RegistrationRequestApiTest {
 
             @Override
             public String getInstanceIdentifier() {
-                return "REST";
+                return "TEST";
             }
 
             @Override

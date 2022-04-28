@@ -91,6 +91,7 @@ public class RegistrationServiceProperties {
      */
     @Value("https://127.0.0.1:4000/api/v1")
     private URI apiBaseUrl;
+
     /**
      * API token for the central server API (required)
      * The token needs to have the MANAGEMENT_SERVICE role (and for security, no other roles).

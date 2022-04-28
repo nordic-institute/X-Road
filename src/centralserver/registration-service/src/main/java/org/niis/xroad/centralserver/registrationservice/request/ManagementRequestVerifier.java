@@ -30,6 +30,7 @@ import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoPar
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
@@ -41,22 +42,27 @@ import ee.ria.xroad.common.request.ManagementRequests;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.io.InputStream;
 import java.net.IDN;
+import java.security.GeneralSecurityException;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
@@ -64,23 +70,29 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
- * Reads management requests from input stream.
- * Verifies authentication certificate and client registration requests.
+ * Reads and verifies management requests.
  */
 @Slf4j
-public final class ManagementRequestHandler {
+public final class ManagementRequestVerifier {
 
-    private ManagementRequestHandler() {
+    @RequiredArgsConstructor
+    @Getter
+    public static class Result {
+        private final SoapMessageImpl soapMessage;
+        private final AuthCertRegRequestType authCertRegRequest;
+    }
+
+    private ManagementRequestVerifier() {
     }
 
     /**
      * Reads management requests from input stream.
      * @param contentType expected content type of the stream
      * @param inputStream the input stream
-     * @return management request SOAP message
+     * @return management request message
      * @throws Exception in case of any errors
      */
-    public static SoapMessageImpl readRequest(String contentType, InputStream inputStream) throws Exception {
+    public static Result readRequest(String contentType, InputStream inputStream) throws Exception {
 
         if (!GlobalConf.isValid()) {
             throw new CodedException(X_OUTDATED_GLOBALCONF, "Global configuration is not valid");
@@ -91,10 +103,10 @@ public final class ManagementRequestHandler {
         SoapMessageDecoder decoder = new SoapMessageDecoder(contentType, cb);
         decoder.parse(inputStream);
 
-        return cb.getSoapMessage();
+        return new Result(cb.getSoapMessage(), verifyAuthCertRegRequest(cb));
     }
 
-    private static void verifyAuthCertRegRequest(DecoderCallback cb) throws Exception {
+    private static AuthCertRegRequestType verifyAuthCertRegRequest(DecoderCallback cb) throws Exception {
 
         X509Certificate authCert = readCertificate(cb.getAuthCert());
 
@@ -113,20 +125,34 @@ public final class ManagementRequestHandler {
         verifyCertificate(ownerCert, ownerCertOcsp);
 
         if (!verifySignature(ownerCert, cb.getOwnerSignature(), cb.getOwnerSignatureAlgoId(), dataToVerify)) {
-            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Owner signature verification failed");
+            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Owner signature verification failed.");
         }
 
-        AuthCertRegRequestType req = ManagementRequestParser.parseAuthCertRegRequest(soap);
+        var instanceId = GlobalConf.getInstanceIdentifier();
+        if (!instanceId.equals(soap.getService().getXRoadInstance())
+                || !instanceId.equals(soap.getClient().getXRoadInstance())) {
+            throw new CodedException(X_INVALID_REQUEST,
+                    "Invalid management service address. Contact central server administrator.");
+        }
+
+        AuthCertRegRequestType requestType = ManagementRequestParser.parseAuthCertRegRequest(soap);
+
+        final SecurityServerId serverId = requestType.getServer();
+        validateServerId(serverId);
+
+        if (!Objects.equals(soap.getClient(), serverId.getOwner())) {
+            throw new CodedException(X_INVALID_REQUEST, "Sender does not match server owner.");
+        }
 
         // Verify that the attached authentication certificate matches the one in
         // the request. Note: reason for the redundancy is unclear.
-        if (!Arrays.equals(cb.authCert, req.getAuthCert())) {
-            throw new CodedException(X_INVALID_REQUEST, "Authentication certificates do not match");
+        if (!Arrays.equals(cb.authCert, requestType.getAuthCert())) {
+            throw new CodedException(X_CERT_VALIDATION, "Authentication certificates do not match.");
         }
 
         // verify that the subject id from the certificate matches the one
         // in the request (server id)
-        ClientId idFromReq = req.getServer().getOwner();
+        ClientId idFromReq = serverId.getOwner();
         ClientId idFromCert = getClientIdFromCert(ownerCert, idFromReq);
 
         if (!idFromReq.equals(idFromCert)) {
@@ -137,11 +163,13 @@ public final class ManagementRequestHandler {
         }
 
         // verify that the server address (IP or FQDN) is valid
-        var address = req.getAddress();
+        var address = requestType.getAddress();
         if (address == null
                 || !(InetAddresses.isInetAddress(address) || InternetDomainName.isValid(IDN.toASCII(address)))) {
             throw new CodedException(X_INVALID_REQUEST, "Invalid server address");
         }
+
+        return requestType;
     }
 
     private static boolean verifyAuthCert(X509Certificate authCert) throws Exception {
@@ -171,17 +199,17 @@ public final class ManagementRequestHandler {
     private static void verifyCertificate(X509Certificate memberCert, OCSPResp memberCertOcsp) throws Exception {
 
         X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), memberCert);
-        memberCert.verify(issuer.getPublicKey());
+
+        try {
+            memberCert.verify(issuer.getPublicKey());
+            memberCert.checkValidity();
+        } catch (GeneralSecurityException e) {
+            throw new CodedException(X_CERT_VALIDATION,
+                    "Member (owner/client) sign certificate is invalid: %s", e.getMessage());
+        }
 
         if (!CertUtils.isSigningCert(memberCert)) {
             throw new CodedException(X_CERT_VALIDATION, "Member (owner/client) sign certificate is invalid");
-        }
-
-        try {
-            memberCert.checkValidity();
-        } catch (Exception e) {
-            throw new CodedException(X_CERT_VALIDATION, "Member (owner/client) sign certificate is invalid: %s",
-                    e.getMessage());
         }
 
         new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
@@ -201,6 +229,27 @@ public final class ManagementRequestHandler {
         } catch (Exception e) {
             throw translateException(e);
         }
+    }
+
+    private static void validateServerId(SecurityServerId serverId) {
+        if (isValidPart(serverId.getXRoadInstance())
+                && isValidPart(serverId.getMemberClass())
+                && isValidPart(serverId.getMemberCode())
+                && isValidPart(serverId.getServerCode())) {
+            return;
+        }
+        throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The management request contains an invalid identifier.");
+    }
+
+    private static final CharMatcher MATCHER = CharMatcher.javaIsoControl()
+            .or(CharMatcher.anyOf(":;%/\\\ufeff\u200b"));
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private static boolean isValidPart(String part) {
+        return part != null
+                && !part.isEmpty()
+                && part.length() <= 255
+                && !MATCHER.matchesAnyOf(part);
     }
 
     @Getter
@@ -265,11 +314,6 @@ public final class ManagementRequestHandler {
             verifyMessagePart(ownerCert, "Owner certificate is missing");
             verifyMessagePart(ownerCertOcsp, "Owner certificate OCSP is missing");
 
-            try {
-                verifyAuthCertRegRequest(this);
-            } catch (Exception e) {
-                throw translateException(e);
-            }
         }
 
         @Override

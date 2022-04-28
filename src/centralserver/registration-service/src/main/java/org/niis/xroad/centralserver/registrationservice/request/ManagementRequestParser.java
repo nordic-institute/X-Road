@@ -45,7 +45,7 @@ import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_REG;
  * Parser for management requests.
  */
 @Slf4j
-public final class ManagementRequestParser {
+final class ManagementRequestParser {
     private static final JAXBContext JAXB_CTX;
 
     private ManagementRequestParser() {

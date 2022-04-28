@@ -31,6 +31,7 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -94,6 +95,10 @@ class AdminApiServiceImpl implements AdminApiService {
             throw new IllegalStateException("Unable to create HTTP clients", e);
         } catch (IOException e) {
             throw new UncheckedIOException("Unable to load trust material", e);
+        }
+
+        if (Strings.isNullOrEmpty(properties.getApiToken())) {
+            log.warn("API token not provided");
         }
 
         this.mapper = mapper;

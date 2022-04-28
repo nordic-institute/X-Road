@@ -28,13 +28,14 @@ package ee.ria.xroad.common;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+
+import javax.security.auth.x500.X500Principal;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -361,8 +362,8 @@ public final class TestCertUtil {
     public static byte[] generateAuthCert(PublicKey subjectKey) throws OperatorCreationException, IOException {
 
         var signer = new JcaContentSignerBuilder("SHA256withRSA").build(getCa().key);
-        var issuer = new X500Name(ca.certChain[0].getSubjectDN().getName());
-        var subject = new X500Name("CN=Subject");
+        var issuer = ca.certChain[0].getSubjectX500Principal();
+        var subject = new X500Principal("CN=Subject");
 
         return new JcaX509v3CertificateBuilder(
                 issuer,
@@ -385,8 +386,8 @@ public final class TestCertUtil {
             throws OperatorCreationException, IOException, CertificateException {
 
         var signer = new JcaContentSignerBuilder("SHA256withRSA").build(getCa().key);
-        var issuer = new X500Name(ca.certChain[0].getSubjectDN().getName());
-        var subject = new X500Name(
+        var issuer = ca.certChain[0].getSubjectX500Principal();
+        var subject = new X500Principal(
                 //EJBCA Profile format
                 String.format("C=%s,O=%s,CN=%s",
                         id.getXRoadInstance(),
