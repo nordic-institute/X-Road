@@ -26,7 +26,9 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
+import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JsonUtils;
@@ -74,12 +76,16 @@ public class DiagnosticService {
     private final String diagnosticsTimestampingServicesUrl;
     private final String diagnosticsOcspRespondersUrl;
     private final String diagnosticsAddOnStatusUrl;
+    private final String backupEncryptionStatus;
+    private final String messageLogEncryptionStatus;
 
     @Autowired
     public DiagnosticService(@Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
             @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
-            @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl) {
+            @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
+            @Value("${url.diagnostics-backup-encryption-status}") String backupEncryptionStatus,
+            @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatus) {
 
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());
@@ -88,6 +94,10 @@ public class DiagnosticService {
         this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
                 SystemProperties.getSignerAdminPort());
         this.diagnosticsAddOnStatusUrl = String.format(diagnosticsAddOnStatusUrl, PortNumbers.ADMIN_PORT);
+        this.backupEncryptionStatus = String.format(backupEncryptionStatus,
+                PortNumbers.ADMIN_PORT);
+        this.messageLogEncryptionStatus = String.format(messageLogEncryptionStatus,
+                PortNumbers.ADMIN_PORT);
     }
 
     /**
@@ -146,6 +156,34 @@ public class DiagnosticService {
         try {
             JsonObject json = sendGetRequest(diagnosticsAddOnStatusUrl);
             return JsonUtils.getSerializer().fromJson(json, AddOnStatusDiagnostics.class);
+        } catch (DiagnosticRequestException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Query proxy backup encryption status from admin port over HTTP.
+     *
+     * @return
+     */
+    public BackupEncryptionStatusDiagnostics queryBackupEncryptionStatus() {
+        try {
+            JsonObject json = sendGetRequest(backupEncryptionStatus);
+            return JsonUtils.getSerializer().fromJson(json, BackupEncryptionStatusDiagnostics.class);
+        } catch (DiagnosticRequestException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Query proxy message log encryption status from admin port over HTTP.
+     *
+     * @return
+     */
+    public MessageLogEncryptionStatusDiagnostics queryMessageLogEncryptionStatus() {
+        try {
+            JsonObject json = sendGetRequest(messageLogEncryptionStatus);
+            return JsonUtils.getSerializer().fromJson(json, MessageLogEncryptionStatusDiagnostics.class);
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }

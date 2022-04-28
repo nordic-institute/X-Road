@@ -26,10 +26,12 @@
 package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
+import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
+import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
@@ -37,6 +39,10 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
+import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.common.util.AdminPort;
@@ -76,6 +82,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.LogManager;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
@@ -115,6 +122,12 @@ public final class ProxyMain {
     private static final int STATS_LOG_REPEAT_INTERVAL = 60;
 
     private static AddOnStatusDiagnostics addOnStatus;
+
+    private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
+
+    private static BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
+
+    private static MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
     private ProxyMain() {
     }
@@ -213,6 +226,22 @@ public final class ProxyMain {
                 SystemProperties.getConfigurationClientUpdateIntervalSeconds());
 
         addOnStatus = new AddOnStatusDiagnostics(messageLogEnabled);
+        
+
+//        backupEncryptionStatusDiagnostics = new BackupEncryptionStatusDiagnostics(
+//                EncryptionConfigProvider.getInstance(ARCHIVE_GROUPING).isEncryptionEnabled(),
+//                null);
+
+//        messageLogArchiveEncryptionStatus = new MessageLogArchiveEncryptionStatus(
+//                MessageLogProperties.isMessageLogEncryptionEnabled(),
+//                ARCHIVE_GROUPING.name());
+//
+//
+//        messageLogEncryptionStatusDiagnostics = new MessageLogEncryptionStatusDiagnostics(
+//                MessageLogProperties.isMessageLogEncryptionEnabled(),
+//                LogManager.getLogManager(),
+//                ARCHIVE_GROUPING.name(),
+//                );
     }
 
     private static void loadConfigurations() {
@@ -240,6 +269,10 @@ public final class ProxyMain {
 
         addAddOnStatusHandler(adminPort);
 
+        addBackupEncryptionStatus(adminPort);
+
+        addMessageLogEncryptionStatus(adminPort);
+
         return adminPort;
     }
 
@@ -255,6 +288,35 @@ public final class ProxyMain {
                 try {
                     response.setCharacterEncoding("UTF8");
                     JsonUtils.getSerializer().toJson(addOnStatus, response.getWriter());
+                } catch (IOException e) {
+                    logResponseIOError(e);
+                }
+            }
+        });
+    }
+
+    private static void addBackupEncryptionStatus(AdminPort adminPort) {
+        adminPort.addHandler("/backupencryptionstatus", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
+                try {
+                    response.setCharacterEncoding("UTF8");
+                    JsonUtils.getSerializer().toJson(backupEncryptionStatusDiagnostics, response.getWriter());
+                } catch (IOException e) {
+                    logResponseIOError(e);
+                }
+            }
+        });
+    }
+
+    private static void addMessageLogEncryptionStatus(AdminPort adminPort) {
+        adminPort.addHandler("/messagelogencryptionstatus", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
+                try {
+                    response.setCharacterEncoding("UTF8");
+                    JsonUtils.getSerializer().toJson(messageLogEncryptionStatusDiagnostics,
+                            response.getWriter());
                 } catch (IOException e) {
                     logResponseIOError(e);
                 }
