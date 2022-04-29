@@ -26,23 +26,22 @@
  */
 package org.niis.xroad.centralserver.registrationservice.controller;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.centralserver.registrationservice.service.AdminApiService;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthCertRegRequest;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthRegRequestBuilder;
+import org.niis.xroad.centralserver.registrationservice.testutil.TestGlobalConf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -58,9 +57,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Random;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -72,6 +72,8 @@ public class RegistrationRequestControllerTest {
     private static KeyPair authKeyPair;
 
     private static MessageFactory factory;
+    private final SecurityServerId serverId =
+            SecurityServerId.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEMBER", "SS1");
 
     @Autowired
     RegistrationRequestController controller;
@@ -93,42 +95,12 @@ public class RegistrationRequestControllerTest {
         factory = MessageFactory.newInstance();
 
         System.setProperty(SystemProperties.CONFIGURATION_PATH, "build/resources/test/testconf");
-        GlobalConf.reload(new EmptyGlobalConf() {
-
-            @Override
-            public String getInstanceIdentifier() {
-                return "TEST";
-            }
-
-            @Override
-            public int getOcspFreshnessSeconds(boolean smallestValue) {
-                return Integer.MAX_VALUE / 2;
-            }
-
-            @Override
-            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate orgCert) {
-                if (getInstanceIdentifier().equals(instanceIdentifier)) {
-                    var ca = TestCertUtil.getCaCert();
-                    if (ca.getSubjectX500Principal().equals(orgCert.getIssuerX500Principal())) {
-                        return ca;
-                    }
-                }
-                throw new CodedException(X_INTERNAL_ERROR, "Certificate is not issued by approved "
-                        + "certification service provider.");
-            }
-
-            @Override
-            public SignCertificateProfileInfo getSignCertificateProfileInfo(
-                    SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) {
-                return new EjbcaSignCertificateProfileInfo(parameters);
-            }
-        });
+        GlobalConf.reload(new TestGlobalConf());
     }
 
     @Test
     public void shouldFailIfAuthSignatureIsInvalid() throws Exception {
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
-        var serverId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SS1");
         var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
 
         var ownerOcsp = OcspTestUtils.createOCSPResponse(ownerCert,
@@ -144,8 +116,35 @@ public class RegistrationRequestControllerTest {
                 ownerCert.getEncoded(),
                 ownerOcsp.getEncoded(),
                 req,
-                //wrong private key causes invalid signature
                 ownerKeyPair.getPrivate(),
+                ownerKeyPair.getPrivate());
+
+        var is = envelope.getRequestContent();
+        var result = controller.register(envelope.getRequestContentType(), is);
+
+        assertTrue(result.getStatusCode().is5xxServerError());
+        assertFault(result.getBody(), "InvalidSignatureValue");
+    }
+
+    @Test
+    public void shouldFailIfOwnerSignatureIsInvalid() throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
+
+        var ownerOcsp = OcspTestUtils.createOCSPResponse(ownerCert,
+                TestCertUtil.getCaCert(),
+                TestCertUtil.getOcspSigner().certChain[0],
+                TestCertUtil.getOcspSigner().key,
+                CertificateStatus.GOOD);
+
+        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), serverId.getOwner());
+        var req = builder.buildAuthCertRegRequest(serverId, "ss1.example.org", authCert);
+
+        var envelope = new TestAuthCertRegRequest(authCert,
+                ownerCert.getEncoded(),
+                ownerOcsp.getEncoded(),
+                req,
+                authKeyPair.getPrivate(),
                 authKeyPair.getPrivate());
 
         var is = envelope.getRequestContent();
@@ -156,9 +155,36 @@ public class RegistrationRequestControllerTest {
     }
 
     @Test
+    public void shouldFailIfOwnerCertIsRevoked() throws Exception {
+        var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
+        var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
+
+        var ownerOcsp = OcspTestUtils.createOCSPResponse(ownerCert,
+                TestCertUtil.getCaCert(),
+                TestCertUtil.getOcspSigner().certChain[0],
+                TestCertUtil.getOcspSigner().key,
+                new RevokedStatus(Date.from(Instant.now().minusSeconds(3600)), CRLReason.unspecified));
+
+        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), serverId.getOwner());
+        var req = builder.buildAuthCertRegRequest(serverId, "ss1.example.org", authCert);
+
+        var envelope = new TestAuthCertRegRequest(authCert,
+                ownerCert.getEncoded(),
+                ownerOcsp.getEncoded(),
+                req,
+                authKeyPair.getPrivate(),
+                authKeyPair.getPrivate());
+
+        var is = envelope.getRequestContent();
+        var result = controller.register(envelope.getRequestContentType(), is);
+
+        assertTrue(result.getStatusCode().is5xxServerError());
+        assertFault(result.getBody(), "CertValidation");
+    }
+
+    @Test
     public void shouldFailIfAuthCertIsInvalid() throws Exception {
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
-        var serverId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SS1");
         var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
 
         var ownerOcsp = OcspTestUtils.createOCSPResponse(ownerCert,
@@ -167,7 +193,7 @@ public class RegistrationRequestControllerTest {
                 TestCertUtil.getOcspSigner().key,
                 CertificateStatus.GOOD);
 
-        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), serverId.getOwner());
+        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), GlobalConf.getManagementRequestService());
         var req = builder.buildAuthCertRegRequest(serverId, "ss1.example.org", new byte[authCert.length]);
 
         var envelope = new TestAuthCertRegRequest(authCert,
@@ -193,35 +219,69 @@ public class RegistrationRequestControllerTest {
 
     @Test
     public void shouldFailIfWrongInstanceId() throws Exception {
-        var serverId = SecurityServerId.create("TEST2", "CLASS", "MEMBER", "S:;S1");
-        var result = register(serverId);
+        var sid = SecurityServerId.create(GlobalConf.getInstanceIdentifier() + "-X", "CLASS", "MEMBER", "SS1");
+        var result = register(sid, "ss1.example.org");
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "InvalidRequest");
     }
 
     @Test
     public void shouldFailIfInvalidServerId() throws Exception {
-        var serverId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "S:;S1");
-        var result = register(serverId);
+        var sid = SecurityServerId.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEM BER", "S:;S1");
+        var result = register(sid, "ss1.example.org");
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "InvalidClientIdentifier");
     }
 
-    private ResponseEntity<String> register(SecurityServerId serverId) throws Exception {
+    @Test
+    public void shouldFailIfInvalidServerAddress() throws Exception {
+        var result = register(serverId, String.format("%s.invalid", "a".repeat(64)));
+        assertTrue(result.getStatusCode().is5xxServerError());
+        assertFault(result.getBody(), "InvalidRequest");
+    }
+
+    @Test
+    public void shouldFailIfInvalidCertificate() throws Exception {
+        var result = registerWithInvalidCerts(serverId);
+        assertTrue(result.getStatusCode().is5xxServerError());
+        assertFault(result.getBody(), "IncorrectCertificate");
+    }
+
+    private ResponseEntity<String> register(SecurityServerId sid, String address) throws Exception {
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
-        var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
+        var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), sid.getOwner());
         var ownerOcsp = OcspTestUtils.createOCSPResponse(ownerCert,
                 TestCertUtil.getCaCert(),
                 TestCertUtil.getOcspSigner().certChain[0],
                 TestCertUtil.getOcspSigner().key,
                 CertificateStatus.GOOD);
 
-        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), serverId.getOwner());
-        var req = builder.buildAuthCertRegRequest(serverId, "ss2.example.org", authCert);
+        var builder = new TestAuthRegRequestBuilder(sid.getOwner(), GlobalConf.getManagementRequestService());
+        var req = builder.buildAuthCertRegRequest(sid, address, authCert);
 
         var envelope = new TestAuthCertRegRequest(authCert,
                 ownerCert.getEncoded(),
                 ownerOcsp.getEncoded(),
+                req,
+                authKeyPair.getPrivate(),
+                ownerKeyPair.getPrivate());
+
+        var is = envelope.getRequestContent();
+        return controller.register(envelope.getRequestContentType(), is);
+    }
+
+    private ResponseEntity<String> registerWithInvalidCerts(SecurityServerId sid)
+            throws Exception {
+
+        var mockData = new byte[1024];
+        new Random().nextBytes(mockData);
+
+        var builder = new TestAuthRegRequestBuilder(sid.getOwner(), GlobalConf.getManagementRequestService());
+        var req = builder.buildAuthCertRegRequest(sid, "ss1.example.org", mockData);
+
+        var envelope = new TestAuthCertRegRequest(mockData,
+                mockData,
+                mockData,
                 req,
                 authKeyPair.getPrivate(),
                 ownerKeyPair.getPrivate());

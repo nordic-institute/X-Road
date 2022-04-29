@@ -24,25 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.registrationservice;
+package org.niis.xroad.centralserver.registrationservice.config;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import org.slf4j.MDC;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-@SpringBootApplication
-@EnableScheduling
-@Slf4j
-public class Main {
+import java.io.IOException;
+import java.util.concurrent.ThreadLocalRandom;
 
-    public static void main(String[] args) {
-        var app = new SpringApplication(Main.class);
-        app.addInitializers(ctx -> SystemPropertiesLoader.create().withCommonAndLocal().load());
-        app.run(args);
+/**
+ * Creates a reguest trace id
+ */
+@Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class TraceIdFilter implements Filter {
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        MDC.put("traceId", Long.toHexString(ThreadLocalRandom.current().nextLong()));
+        chain.doFilter(request, response);
     }
 }
-

@@ -36,6 +36,7 @@ import org.apache.commons.io.input.BoundedInputStream;
 import org.niis.xroad.centralserver.registrationservice.request.ManagementRequestUtil;
 import org.niis.xroad.centralserver.registrationservice.request.ManagementRequestVerifier;
 import org.niis.xroad.centralserver.registrationservice.service.AdminApiService;
+import org.slf4j.MDC;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -71,23 +72,32 @@ public class RegistrationRequestController {
             var result = ManagementRequestVerifier.readRequest(contentType, bos);
 
             var authRequest = result.getAuthCertRegRequest();
+
+            log.debug("Making a registration request for {}", authRequest.getServer());
+
             var requestId = adminApiService.addRegistrationRequest(
                     authRequest.getServer(),
                     authRequest.getAddress(),
                     authRequest.getAuthCert());
+
+            log.info("Processed registration request {} for {}", requestId, authRequest.getServer());
 
             return ResponseEntity
                     .ok()
                     .header("Pragma", "no-cache").header("Expires", "0")
                     .cacheControl(CacheControl.noStore())
                     .body(ManagementRequestUtil.toResponse(result.getSoapMessage(), requestId).getXml());
+
         } catch (Exception e) {
             var ex = ErrorCodes.translateException(e);
+            // override the detail code with traceId
+            ex.setFaultDetail(MDC.get("traceId"));
+
             if (log.isDebugEnabled() || !(e instanceof CodedException)) {
-                log.error("Registration failed [{}]", ex.getFaultDetail(), ex);
+                log.error("Registration failed", ex);
             } else {
-                var cause = (ex.getCause() == null) ? "" : ex.getCause().toString();
-                log.error("Registration failed [{}]: {}: {}", ex.getFaultDetail(), ex.getMessage(), cause);
+                var cause = (ex.getCause() == null) ? "" : ", nested exception is" + ex.getCause().toString();
+                log.error("Registration failed: {}{}", ex.getMessage(), cause);
             }
             return ResponseEntity
                     .internalServerError()
@@ -97,5 +107,4 @@ public class RegistrationRequestController {
                     .body(SoapFault.createFaultXml(ex));
         }
     }
-
 }

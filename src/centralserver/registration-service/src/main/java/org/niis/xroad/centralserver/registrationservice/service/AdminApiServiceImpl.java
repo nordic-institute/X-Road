@@ -127,8 +127,6 @@ class AdminApiServiceImpl implements AdminApiService {
         request.setSecurityserverId(sid);
 
         try {
-            log.debug("Making registration request...");
-
             var result = restTemplate.exchange(
                     RequestEntity.post("/management-requests").body(request),
                     ManagementRequestInfo.class);

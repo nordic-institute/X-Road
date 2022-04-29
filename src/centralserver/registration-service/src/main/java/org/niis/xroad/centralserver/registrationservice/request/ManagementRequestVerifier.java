@@ -128,9 +128,8 @@ public final class ManagementRequestVerifier {
             throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Owner signature verification failed.");
         }
 
-        var instanceId = GlobalConf.getInstanceIdentifier();
-        if (!instanceId.equals(soap.getService().getXRoadInstance())
-                || !instanceId.equals(soap.getClient().getXRoadInstance())) {
+        if (!GlobalConf.getManagementRequestService().equals(soap.getService().getClientId())
+                || !GlobalConf.getInstanceIdentifier().equals(soap.getClient().getXRoadInstance())) {
             throw new CodedException(X_INVALID_REQUEST,
                     "Invalid management service address. Contact central server administrator.");
         }
@@ -163,13 +162,20 @@ public final class ManagementRequestVerifier {
         }
 
         // verify that the server address (IP or FQDN) is valid
-        var address = requestType.getAddress();
-        if (address == null
-                || !(InetAddresses.isInetAddress(address) || InternetDomainName.isValid(IDN.toASCII(address)))) {
-            throw new CodedException(X_INVALID_REQUEST, "Invalid server address");
-        }
+        validateAddress(requestType.getAddress());
 
         return requestType;
+    }
+
+    private static void validateAddress(String address) {
+        boolean valid;
+        try {
+            valid = (address != null
+                    && (InetAddresses.isInetAddress(address) || InternetDomainName.isValid(IDN.toASCII(address))));
+        } catch (IllegalArgumentException e) {
+            valid = false;
+        }
+        if (!valid) throw new CodedException(X_INVALID_REQUEST, "Invalid server address");
     }
 
     private static boolean verifyAuthCert(X509Certificate authCert) throws Exception {
@@ -269,11 +275,12 @@ public final class ManagementRequestVerifier {
         private byte[] ownerCertOcsp;
 
         @Override
-        public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws Exception {
+        public void soap(SoapMessage message, Map<String, String> additionalHeaders) {
             this.soapMessage = (SoapMessageImpl) message;
             this.serviceCode = soapMessage.getService().getServiceCode();
+
             if (!ManagementRequests.AUTH_CERT_REG.equalsIgnoreCase(serviceCode)) {
-                throw new CodedException(X_INVALID_REQUEST, "Invalid request " + serviceCode);
+                throw new CodedException(X_INVALID_REQUEST, "Unknown service code '%.20s'", serviceCode);
             }
         }
 

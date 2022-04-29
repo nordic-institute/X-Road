@@ -29,11 +29,7 @@ package org.niis.xroad.centralserver.registrationservice.controller;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -50,6 +46,7 @@ import org.niis.xroad.centralserver.registrationservice.openapi.model.ErrorInfo;
 import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestInfo;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthCertRegRequest;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthRegRequestBuilder;
+import org.niis.xroad.centralserver.registrationservice.testutil.TestGlobalConf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
@@ -60,7 +57,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.net.URI;
 import java.security.KeyPairGenerator;
-import java.security.cert.X509Certificate;
 import java.util.Collections;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -87,29 +83,7 @@ public class RegistrationRequestApiTest {
     @BeforeClass
     public static void setup() {
         System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/testconf");
-        GlobalConf.reload(new EmptyGlobalConf() {
-
-            @Override
-            public String getInstanceIdentifier() {
-                return "TEST";
-            }
-
-            @Override
-            public int getOcspFreshnessSeconds(boolean smallestValue) {
-                return Integer.MAX_VALUE / 2;
-            }
-
-            @Override
-            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate orgCert) {
-                return TestCertUtil.getCaCert();
-            }
-
-            @Override
-            public SignCertificateProfileInfo getSignCertificateProfileInfo(
-                    SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) {
-                return new EjbcaSignCertificateProfileInfo(parameters);
-            }
-        });
+        GlobalConf.reload(new TestGlobalConf());
     }
 
     @Autowired
@@ -138,7 +112,7 @@ public class RegistrationRequestApiTest {
     }
 
     @Test
-    public void shouldReturnSoapFaultOnError() throws Exception {
+    public void shouldReturnSoapFaultOnApiError() throws Exception {
 
         properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.httpsPort())));
         var response = new ErrorInfo();
@@ -167,8 +141,8 @@ public class RegistrationRequestApiTest {
         var authKeyPair = keyPairGenerator.generateKeyPair();
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
 
-        var serverId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SS1");
-        var receiver = ClientId.create("TEST", "CLASS", "MEMBER", "MANAGEMENT");
+        var serverId = SecurityServerId.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEMBER", "SS1");
+        var receiver = GlobalConf.getManagementRequestService();
         var ownerKeyPair = keyPairGenerator.generateKeyPair();
         var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
 
