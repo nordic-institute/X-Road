@@ -70,7 +70,8 @@ public final class ConfProxyTest {
             OutputBuilder output = new OutputBuilder(confDir, conf,
                     SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
             output.buildSignedDirectory();
-            output.moveAndCleanup();
+            output.move();
+            output.cleanup();
         } catch (Exception ex) {
             log.error("Error when executing configuration-proxy", ex);
         } finally {

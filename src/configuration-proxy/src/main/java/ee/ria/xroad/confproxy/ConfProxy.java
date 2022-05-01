@@ -68,11 +68,14 @@ public class ConfProxy {
             ConfigurationDirectory confDir = download(version);
             log.debug("Create output builder");
             OutputBuilder output = new OutputBuilder(confDir, conf, version);
-            log.debug("Build signed directory");
-            output.buildSignedDirectory();
-            log.debug("Move and cleanup");
-            output.moveAndCleanup();
-            log.debug("Finished execute");
+            try {
+                log.debug("Build signed directory");
+                output.buildSignedDirectory();
+                output.move();
+            } finally {
+                output.cleanup();
+                log.debug("Finished execute");
+            }
         }
     }
 
