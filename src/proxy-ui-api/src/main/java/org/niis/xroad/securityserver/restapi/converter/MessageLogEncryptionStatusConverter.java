@@ -40,11 +40,12 @@ public class MessageLogEncryptionStatusConverter {
         return new MessageLogEncryptionStatus()
                 .messageLogEncryptionStatus(messageLogEncryptionStatusDiagnosticsStatus.isMessageLogEncryptionStatus())
                 .messageLogDatabaseStatus(messageLogEncryptionStatusDiagnosticsStatus.isMessageLogDatabaseStatus())
-                .messageLogEncryptionStatus(messageLogEncryptionStatusDiagnosticsStatus.isMessageLogEncryptionStatus())
+                .messageLogGroupingRule(messageLogEncryptionStatusDiagnosticsStatus.getMessageLogGroupingRule())
                 .members(messageLogEncryptionStatusDiagnosticsStatus.getMembers().stream()
                         .map(member -> new MessageLogEncryptionMember()
                                 .memberId(member.getMemberId())
-                                .key(member.getKey()))
+                                .keys(member.getKeys())
+                                .defaultKeyUsed(member.isDefaultKeyUsed()))
                         .collect(Collectors.toList()));
     }
 

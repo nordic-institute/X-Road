@@ -23,19 +23,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package ee.ria.xroad.common.messagelog.archive;
 
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.util.List;
+import java.util.Set;
 
 /**
- * DTO for message log encryption statuses
+ * DTO for message log encryption member info
  */
-@Value
-public class MessageLogEncryptionStatusDiagnostics {
-    boolean messageLogEncryptionStatus;
-    boolean messageLogDatabaseStatus;
-    String messageLogGroupingRule;
-    List<MessageLogEncryptionMember> members;
+@Getter
+@AllArgsConstructor
+public class EncryptionMember {
+    private String memberId;
+    private Set<String> keys;
+    private boolean defaultKeyUsed;
 }

@@ -5317,6 +5317,7 @@ components:
           readOnly: true
         encryption_keys:
           type: array
+          uniqueItems: true
           items:
             type: string
             format: text
@@ -5350,8 +5351,15 @@ components:
         member_id:
           type: string
           readOnly: true
-        key:
-          type: string
+        keys:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: text
+          readOnly: true
+        default_key_used:
+          type: boolean
           readOnly: true
     Anchor:
       type: object

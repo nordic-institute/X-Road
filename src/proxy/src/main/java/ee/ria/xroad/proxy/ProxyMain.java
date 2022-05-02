@@ -31,6 +31,7 @@ import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
+import ee.ria.xroad.common.MessageLogEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
@@ -40,7 +41,6 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -66,6 +66,7 @@ import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -77,12 +78,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.LogManager;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
@@ -226,22 +229,16 @@ public final class ProxyMain {
                 SystemProperties.getConfigurationClientUpdateIntervalSeconds());
 
         addOnStatus = new AddOnStatusDiagnostics(messageLogEnabled);
-        
 
-//        backupEncryptionStatusDiagnostics = new BackupEncryptionStatusDiagnostics(
-//                EncryptionConfigProvider.getInstance(ARCHIVE_GROUPING).isEncryptionEnabled(),
-//                null);
+        backupEncryptionStatusDiagnostics = new BackupEncryptionStatusDiagnostics(
+                SystemProperties.isBackupEncryptionEnabled(),
+                getBackupEncryptionKeyIds());
 
-//        messageLogArchiveEncryptionStatus = new MessageLogArchiveEncryptionStatus(
-//                MessageLogProperties.isMessageLogEncryptionEnabled(),
-//                ARCHIVE_GROUPING.name());
-//
-//
-//        messageLogEncryptionStatusDiagnostics = new MessageLogEncryptionStatusDiagnostics(
-//                MessageLogProperties.isMessageLogEncryptionEnabled(),
-//                LogManager.getLogManager(),
-//                ARCHIVE_GROUPING.name(),
-//                );
+        messageLogEncryptionStatusDiagnostics = new MessageLogEncryptionStatusDiagnostics(
+                MessageLogProperties.isArchiveEncryptionEnabled(),
+                MessageLogProperties.isMessageLogEncryptionEnabled(),
+                ARCHIVE_GROUPING.name(),
+                getBackupEncryptionMembers());
     }
 
     private static void loadConfigurations() {
@@ -522,6 +519,25 @@ public final class ProxyMain {
         }
         return statuses;
 
+    }
+
+    private static List<MessageLogEncryptionMember> getBackupEncryptionMembers() throws IOException {
+        EncryptionConfigProvider configProvider = EncryptionConfigProvider.getInstance(ARCHIVE_GROUPING);
+        if (!configProvider.isEncryptionEnabled()) {
+            return Collections.emptyList();
+        }
+        return configProvider.forDiagnostics().getEncryptionMembers()
+                .stream()
+                .map(member -> new MessageLogEncryptionMember(member.getMemberId(),
+                        member.getKeys(), member.isDefaultKeyUsed()))
+                .collect(Collectors.toList());
+    }
+
+    private static List<String> getBackupEncryptionKeyIds() {
+        return Arrays.stream(StringUtils.split(
+                SystemProperties.getBackupEncryptionKeyIds(), ','))
+                .map(String::trim)
+                .collect(Collectors.toList());
     }
 
     /**

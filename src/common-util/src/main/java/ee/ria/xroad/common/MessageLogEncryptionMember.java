@@ -25,16 +25,15 @@
  */
 package ee.ria.xroad.common;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-/**
- * DTO for message log encryption member info
- */
-@Data
+import java.util.Set;
+
+@Getter
+@AllArgsConstructor
 public class MessageLogEncryptionMember {
-
     private String memberId;
-
-    private String key;
-
+    private Set<String> keys;
+    private boolean defaultKeyUsed;
 }
