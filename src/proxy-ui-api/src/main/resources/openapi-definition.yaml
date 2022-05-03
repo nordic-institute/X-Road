@@ -5317,7 +5317,6 @@ components:
           readOnly: true
         encryption_keys:
           type: array
-          uniqueItems: true
           items:
             type: string
             format: text
