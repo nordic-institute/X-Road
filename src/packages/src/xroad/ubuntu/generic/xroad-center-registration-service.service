@@ -2,7 +2,6 @@
 Description=X-Road Central Server Registration Service
 After=network.target xroad-base.service
 Requires=xroad-base.service
-# configure longer StartLimitIntervalSec to prevent eternal restart loop with bad logback config
 StartLimitBurst=5
 StartLimitIntervalSec=40
 

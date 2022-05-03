@@ -11,5 +11,5 @@
     <include file="centerui/003-apikeys.xml"/>
     <include file="centerui/004-identifiers-fix.xml"/>
     <include file="centerui/005-client-search-view.xml"/>
-
+    <include file="centerui/006-management-service-role.xml"/>
 </databaseChangeLog>
