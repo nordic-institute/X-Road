@@ -55,6 +55,10 @@
         <div class="request-id">{{ item.id }}</div>
       </template>
 
+      <template #[`item.created_at`]="{ item }">
+        <div>{{ item.created_at | formatDateTime }}</div>
+      </template>
+
       <template #[`item.type`]="{ item }">
         <type-cell :status="item.type" />
       </template>
@@ -124,7 +128,7 @@ export default Vue.extend({
         {
           text: this.$t('global.created') as string,
           align: 'start',
-          value: 'created',
+          value: 'created_at',
           class: 'xrd-table-header mr-table-header-created',
         },
         {

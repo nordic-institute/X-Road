@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 import { extend, configure } from 'vee-validate';
-import { required, min, between } from 'vee-validate/dist/rules';
+import { required, min, between, is } from 'vee-validate/dist/rules';
 import i18n from '../i18n';
 
 configure({
@@ -47,3 +47,6 @@ extend('min', min);
 
 // Install between rule and message.
 extend('between', between);
+
+// Install is rule and message.
+extend('is', is);

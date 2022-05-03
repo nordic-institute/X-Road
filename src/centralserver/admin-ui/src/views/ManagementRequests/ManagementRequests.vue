@@ -48,7 +48,7 @@
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="managementRequests"
+      :items="getManagementRequests"
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
@@ -59,6 +59,10 @@
     >
       <template #[`item.id`]="{ item }">
         <div class="request-id">{{ item.id }}</div>
+      </template>
+
+      <template #[`item.created_at`]="{ item }">
+        <div>{{ item.created_at | formatDateTime }}</div>
       </template>
 
       <template #[`item.type`]="{ item }">
@@ -97,6 +101,8 @@ import StatusCell from '../../components/managementRequests/StatusCell.vue';
 import TypeCell from '../../components/managementRequests/TypeCell.vue';
 import XrdFilter from '../../components/ui/XrdFilter.vue';
 import { DataTableHeader } from 'vuetify';
+import { mapState } from 'pinia';
+import { useManagementRequests } from '@/store/modules/managementRequests';
 
 export default Vue.extend({
   components: {
@@ -109,56 +115,87 @@ export default Vue.extend({
       search: '' as string,
       loading: false,
       showOnlyPending: false,
-      managementRequests: [
+      managementRequestsMockData: [
         {
-          id: '938726',
-          created: '2021-02-01',
-          type: 'change_owner',
-          serverOwnerName: 'Tartu Kesklinna Perearstikeskus OÜ',
-          serverOnwerId: 'DEV-333',
-          serverCode: 'sidecar',
+          id: 13,
+          type: 'AUTH_CERT_REGISTRATION_REQUEST',
+          origin: 'CENTER',
+          server_owner_name: 'Tartu Kesklinna Perearstikeskus OÜ',
+          security_server_id: {
+            instance_id: 'DEV7X',
+            type: 'SERVER',
+            member_class: 'TST',
+            member_code: 'MEMBER1',
+            server_code: 'RH1',
+          },
           status: 'APPROVED',
+          created_at: '2021-07-07T10:09:42.10186Z',
         },
         {
-          id: '736287',
-          created: '2021-05-05',
-          type: 'delete_certificate',
-          serverOwnerName: 'Eesti Põllumajandusloomade Jõudluskontrolli ASi',
-          serverOnwerId: 'COM-777',
-          serverCode: 'SS1',
+          id: 736287,
+          type: 'CLIENT_REGISTRATION_REQUEST',
+          origin: 'CENTER',
+          server_owner_name: 'Eesti Põllumajandusloomade Jõudluskontrolli ASi',
+          security_server_id: {
+            instance_id: 'DEV9X',
+            type: 'SERVER',
+            member_class: 'TST',
+            member_code: 'MEMBER22',
+            server_code: 'RH3',
+          },
           status: 'REJECTED',
+          created_at: '2021-02-08T10:09:40.10186Z',
         },
         {
-          id: '234234',
-          created: '2021-03-12',
-          type: 'delete_client',
-          serverOwnerName: 'Helsingin kristillisen koulun kannatusyhdistys',
-          serverOnwerId: 'COM-666',
-          serverCode: 'SS2',
+          id: 64,
+          type: 'OWNER_CHANGE_REQUEST',
+          origin: 'CENTER',
+          server_owner_name: 'Helsingin kristillisen koulun kannatusyhdistys',
+          security_server_id: {
+            instance_id: 'OPP',
+            type: 'SERVER',
+            member_class: 'RAA',
+            member_code: 'MEMBER7',
+            server_code: 'X1',
+          },
           status: 'PENDING',
+          created_at: '2021-03-11T10:09:40.10186Z',
         },
         {
-          id: '987283',
-          created: '2021-04-22',
-          type: 'register_certificate',
-          serverOwnerName: 'Siseministeerium',
-          serverOnwerId: 'DEV-444',
-          serverCode: 'SS2',
+          id: 112283,
+          type: 'CLIENT_DELETION_REQUEST',
+          origin: 'CENTER',
+          server_owner_name: 'Siseministeerium',
+          security_server_id: {
+            instance_id: 'WAP',
+            type: 'SERVER',
+            member_class: 'MOP',
+            member_code: 'MEM227',
+            server_code: 'K8',
+          },
           status: 'APPROVED',
+          created_at: '2020-12-13T10:09:40.10186Z',
         },
         {
-          id: '123235',
-          created: '2021-01-21',
-          type: 'register_client',
-          serverOwnerName: 'Turvallisuus- ja kemikaalivirasto',
-          serverOnwerId: 'COM-555',
-          serverCode: 'dev-toolkit-confidential.i.x-road',
+          id: 947283,
+          type: 'AUTH_CERT_DELETION_REQUEST',
+          origin: 'CENTER',
+          server_owner_name: 'Turvallisuus- ja kemikaalivirasto',
+          security_server_id: {
+            instance_id: 'NEO',
+            type: 'SERVER',
+            member_class: 'AUS',
+            member_code: 'MEMBER9',
+            server_code: 'SR2',
+          },
           status: 'PENDING',
+          created_at: '2020-12-13T10:09:40.10186Z',
         },
       ],
     };
   },
   computed: {
+    ...mapState(useManagementRequests, ['getManagementRequests']),
     headers(): DataTableHeader[] {
       return [
         {
@@ -170,7 +207,7 @@ export default Vue.extend({
         {
           text: this.$t('global.created') as string,
           align: 'start',
-          value: 'created',
+          value: 'created_at',
           class: 'xrd-table-header mr-table-header-created',
         },
         {
@@ -183,20 +220,14 @@ export default Vue.extend({
         {
           text: this.$t('managementRequests.serverOwnerName') as string,
           align: 'start',
-          value: 'serverOwnerName',
+          value: 'server_owner_name',
           class: 'xrd-table-header mr-table-header-owner-name',
         },
         {
-          text: this.$t('managementRequests.serverOnwerId') as string,
+          text: this.$t('managementRequests.serverIdentifier') as string,
           align: 'start',
-          value: 'serverOnwerId',
+          value: 'displayedServerId',
           class: 'xrd-table-header mr-table-header-owner-id',
-        },
-        {
-          text: this.$t('managementRequests.serverCode') as string,
-          align: 'start',
-          value: 'serverCode',
-          class: 'xrd-table-header mr-table-header-server-code',
         },
 
         {
