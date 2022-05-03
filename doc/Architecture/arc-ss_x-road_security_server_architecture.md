@@ -6,8 +6,8 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.12 
-10.09.2020
+Version: 1.13 
+03.05.2022
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
@@ -36,6 +36,7 @@ Doc. ID: ARC-SS
  10.09.2020 | 1.10    | Updates for API based UI                                    | Janne Mattila
  07.09.2021 | 1.11    | Update for encryption features                              | Ilkka Seppälä
  24.11.2021 | 1.12    | Fixed broken links and duplicate heading                    | Raido Kaju
+ 03.05.2022 | 1.13    | Update `xroad-addon-messagelog` process section             | Petteri Kivimäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -470,6 +471,8 @@ Xroad-confclient downloads and persists global configuration on disk.
 
 Xroad-proxy is the most significant process on the Security Server. It is responsible for transmitting messages.
 
+Also, xroad-proxy process handles message logging and timestamping. Instead, message log archiving and cleaning of the message logs is handled by the xroad-addon-messagelog process.
+
 #### 3.4.2 Encapsulated data
 
 Xroad-proxy configuration is stored in postgresql database.
@@ -568,7 +571,7 @@ Xroad-opmonitor persists data to postgresql database.
 
 #### 3.7.1 Role and responsibilities
 
-Xroad-addon-messagelog handles message logging, timestamping of the messages, and archiving and cleaning of the message logs.
+Xroad-addon-messagelog handles message log archiving and cleaning of the message logs from the messagelog database. Instead, message logging and timestamping is handled by the xroad-proxy process.
 
 #### 3.7.2 Encapsulated data
 
@@ -576,7 +579,7 @@ Xroad-addon-messagelog operates on the shared data in the postgresql messagelog 
 
 #### 3.7.3 Persistent data
 
-Xroad-addon-messagelog persists data to postgresql messagelog database.
+Xroad-addon-messagelog persists data on the disk and to postgresql messagelog database.
 
 
 ## 4 Interfaces
