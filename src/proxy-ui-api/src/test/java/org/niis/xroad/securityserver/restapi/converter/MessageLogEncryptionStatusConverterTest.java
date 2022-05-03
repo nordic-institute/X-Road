@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.MessageLogEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatus;

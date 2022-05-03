@@ -29,9 +29,9 @@ import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
-
 import ee.ria.xroad.common.MessageLogEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
+
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatus;
@@ -112,7 +112,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                         Collections.emptyList()));
         response = diagnosticsApiController.getBackupEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(false,response.getBody().getEncryptionStatus());
+        assertEquals(false, response.getBody().getEncryptionStatus());
         assertEquals(true, response.getBody().getEncryptionKeys().isEmpty());
     }
 
@@ -126,7 +126,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                         Collections.singletonList(new MessageLogEncryptionMember("memberId",
                                 Collections.singleton("key"), false))));
 
-        ResponseEntity<MessageLogEncryptionStatus> response = diagnosticsApiController.getMessageLogEncryptionDiagnostics();
+        ResponseEntity<MessageLogEncryptionStatus> response = diagnosticsApiController
+                .getMessageLogEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(true, response.getBody().getMessageLogEncryptionStatus());
         assertEquals(true, response.getBody().getMessageLogDatabaseStatus());

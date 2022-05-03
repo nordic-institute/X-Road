@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatus;
