@@ -1605,7 +1605,8 @@ public final class SystemProperties {
     }
 
     /**
-     * @return Whether encryption to security server backup files using server's OpenPGP key is enabled, 'false' by default..
+     * @return Whether encryption to security server backup files using server's OpenPGP key is enabled,
+     * 'false' by default..
      */
     public static boolean isBackupEncryptionEnabled() {
         return "true".equalsIgnoreCase(System.getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,
