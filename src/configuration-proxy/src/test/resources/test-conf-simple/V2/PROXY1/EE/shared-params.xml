@@ -10,10 +10,9 @@
                 <url>http://iks2-ubuntu.cyber.ee:8080/ejbca/publicweb/status/ocsp</url>
             </ocsp>
         </topCA>
-        <identifierDecoder>
-            <memberClass></memberClass>
-            <methodName>ee.ria.xroad.common.util.CertUtils.getSubjectClientId</methodName>
-        </identifierDecoder>
+        <certificateProfileInfo>
+            ee.ria.xroad.common.certificateprofile.impl.EjbcaCertificateProfileInfoProvider
+        </certificateProfileInfo>
     </approvedCA>
     <approvedCA>
         <name>/C=EE/O=AS Sertifitseerimiskeskus/CN=TEST of ESTEID-SK 2011/Email=pki@sk.ee</name>
@@ -29,10 +28,9 @@
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIwOTA2MTEzODMwWhcNMTQwOTA2MTEzODMwWjAWMRQwEgYDVQQDDAtPY3NwIFNpZ25lcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANZTdnxNq1QMncmiInNUSpm02V72GNrMrvq2Q4Zz3Zr8zDKMdAiwdrjx9X+Zi5oTjiSUXRuHY5ZN9oeLO1cv9NV6OGk3MlrAzxquBfQUgnZMNLkPZW5SuLqlZpWf0vF7EvAVX20hxgMq7M26Fxt/B9W81/G/REnuHKJ+nxCAZi5Kd1hdGVTEIwkicqROiEfQUcycs0T5aZI7F5qFiZyo3AeRbWYyhEfe326cPaRaswo2WwcBjFYWibTCnNQuLgDL6qroL1T8soI6LzBaNao6Lm4YY1OwTPz/UEiJ3KIXoAjfxMlOUnznmeWYNPcJb5Z8fdtWpaZqjV3WIMAZocNThb8CAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9zdGF0dXMvb2NzcDAdBgNVHQ4EFgQUI1mSgzcFjcBFmmjYwlc9Qm7yF/kwDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8BAf8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBACRO2KTCVKQxYMlsMDkjT5QjzqW0wHNCsxieYv0qfDM1Z5ceW0c0KjJcKXESj7GXT7oNejwI4gZNgxIzemJ3xABHdftk2WxLQBYJMKQ30EuisFKueqpxaLVkPAbt+XLxSrxaYePB9LTJ+rw3FtbiIbag3AH22TFUUUnaTGVF+OiHtthE1u7bnwsTqWXX4PI9I3KnSaIEE55mveNq2jHVWu4rMyy2flOZMonYh3dw1gmSp2yWo1YDpN3olM0Li6Lnfvg1TZd71xZ6ZkKf+MoAs+pW2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
             </ocsp>
         </topCA>
-        <identifierDecoder>
-            <memberClass>PERSON</memberClass>
-            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectSerialNumber</methodName>
-        </identifierDecoder>
+        <certificateProfileInfo>
+            ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider
+        </certificateProfileInfo>
     </approvedCA>
     <approvedCA>
         <name>/CN=RootCA/O=EJBCA Sample/C=SE</name>
@@ -58,10 +56,9 @@
                 <url>http://iks2-ubuntu.cyber.ee:8080/ejbca/publicweb/status/ocsp</url>
             </ocsp>
         </intermediateCA>
-        <identifierDecoder>
-            <memberClass></memberClass>
-            <methodName>ee.ria.xroad.common.util.CertUtils.getSubjectClientId</methodName>
-        </identifierDecoder>
+        <certificateProfileInfo>
+            ee.ria.xroad.common.certificateprofile.impl.EjbcaCertificateProfileInfoProvider
+        </certificateProfileInfo>
     </approvedCA>
     <approvedCA>
         <name>/CN=Root2CA/O=EJBCA Sample/C=SE</name>
@@ -84,10 +81,9 @@
                 <url>http://iks2-ubuntu.cyber.ee:8080/ejbca/publicweb/status/ocsp</url>
             </ocsp>
         </intermediateCA>
-        <identifierDecoder>
-            <memberClass></memberClass>
-            <methodName>ee.ria.xroad.common.util.CertUtils.getSubjectClientId</methodName>
-        </identifierDecoder>
+        <certificateProfileInfo>
+            ee.ria.xroad.common.certificateprofile.impl.EjbcaCertificateProfileInfoProvider
+        </certificateProfileInfo>
     </approvedCA>
     <approvedCA>
         <name>/CN=Root3CA/O=EJBCA Sample/C=SE</name>
@@ -111,10 +107,9 @@
                 <url>http://iks2-ubuntu.cyber.ee:8080/ejbca/publicweb/status/ocsp</url>
             </ocsp>
         </intermediateCA>
-        <identifierDecoder>
-            <memberClass></memberClass>
-            <methodName>ee.ria.xroad.common.util.CertUtils.getSubjectClientId</methodName>
-        </identifierDecoder>
+        <certificateProfileInfo>
+            ee.ria.xroad.common.certificateprofile.impl.EjbcaCertificateProfileInfoProvider
+        </certificateProfileInfo>
     </approvedCA>
     <approvedCA>
         <name>/C=EE/O=AS Sertifitseerimiskeskus/OU=Sertifitseerimisteenused/CN=TEST of KLASS3-SK 2010</name>
@@ -126,10 +121,9 @@
                 <cert>MIIEijCCA3KgAwIBAgIQaI8x6BnacYdNdNwlYnn/mzANBgkqhkiG9w0BAQUFADB9MQswCQYDVQQGEwJFRTEiMCAGA1UECgwZQVMgU2VydGlmaXRzZWVyaW1pc2tlc2t1czEwMC4GA1UEAwwnVEVTVCBvZiBFRSBDZXJ0aWZpY2F0aW9uIENlbnRyZSBSb290IENBMRgwFgYJKoZIhvcNAQkBFglwa2lAc2suZWUwHhcNMTEwMzA3MTMyMjQ1WhcNMjQwOTA3MTIyMjQ1WjCBgzELMAkGA1UEBhMCRUUxIjAgBgNVBAoMGUFTIFNlcnRpZml0c2VlcmltaXNrZXNrdXMxDTALBgNVBAsMBE9DU1AxJzAlBgNVBAMMHlRFU1Qgb2YgU0sgT0NTUCBSRVNQT05ERVIgMjAxMTEYMBYGCSqGSIb3DQEJARYJcGtpQHNrLmVlMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0cw6Cja17BbYbHi6frwccDI4BIQLk/fiCE8L45os0xhPgEGR+EHE8LPCIqofPgf4gwN1vDE6cQNUlK0Od+Ush39i9Z45esnfpGq+2HsDJaFmFr5+uC1MEz5Kn1TazEvKbRjkGnSQ9BertlGer2BlU/kqOk5qA5RtJfhT0psc1ixKdPipv59wnf+nHx1+T+fPWndXVZLoDg4t3w8lIvIE/KhOSMlErvBIHIAKV7yH1hOxyeGLghqzMiAn3UeTEOgoOS9URv0C/T5C3mH+Y/uakMSxjNuz41PneimCzbEJZJRiEaMIj8qPAubcbL8GtY03MWmfNtX6/wh6u6TMfW8S2wIDAQABo4H+MIH7MBYGA1UdJQEB/wQMMAoGCCsGAQUFBwMJMB0GA1UdDgQWBBR9/5CuRokEgGiqSzYuZGYAogl8TzCBoAYDVR0gBIGYMIGVMIGSBgorBgEEAc4fAwEBMIGDMFgGCCsGAQUFBwICMEweSgBBAGkAbgB1AGwAdAAgAHQAZQBzAHQAaQBtAGkAcwBlAGsAcwAuACAATwBuAGwAeQAgAGYAbwByACAAdABlAHMAdABpAG4AZwAuMCcGCCsGAQUFBwIBFhtodHRwOi8vd3d3LnNrLmVlL2FqYXRlbXBlbC8wHwYDVR0jBBgwFoAUtTQKnaUvEMXnIQ6+xLFlRxsDdv4wDQYJKoZIhvcNAQEFBQADggEBAAbaj7kTruTAPHqToye9ZtBdaJ3FZjiKug9/5RjsMwDpOeqFDqCorLd+DBI4tgdu0g4lhaI3aVnKdRBkGV18kqp84uU97JRFWQEf6H8hpJ9k/LzAACkP3tD+0ym+md532mV+nRz1Jj+RPLAUk9xYMV7KPczZN1xnl2wZDJwBbQpcSVH1DjlZv3tFLHBLIYTS6qOK4SxStcgRq7KdRczfW6mfXzTCRWM3G9nmDei5Q3+XTED41j8szRWglzYf6zOv4djkja64WYraQ5zb4x8Xh7qTCk6UupZ7je+0oRfuz0h/3zyRdjcRPkjloSpQp/NG8Rmrcnr874p8d9fdwCrRI7U=</cert>
             </ocsp>
         </topCA>
-        <identifierDecoder>
-            <memberClass></memberClass>
-            <methodName>ee.ria.xroad.common.util.TEST_KLASS3_SK_2010.getSubjectIdentifier</methodName>
-        </identifierDecoder>
+        <certificateProfileInfo>
+            ee.ria.xroad.common.certificateprofile.impl.SkKlass3CertificateProfileInfoProvider
+        </certificateProfileInfo>
     </approvedCA>
     <approvedCA>
         <name>/dnQualifier=meh</name>
@@ -137,6 +131,9 @@
         <topCA>
             <cert>MIIDlzCCAn+gAwIBAgIISqtlUHevSkowDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTQwOTI2MTQ1NzUyWhcNMTYwOTI1MTQ1NzUyWjAOMQwwCgYDVQQuEwNtZWgwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCFGG+jjSjepUC7pp9VVs9A3qdLZu1YTPoadyU0xfC40vV73Zc3cfQzM+XG6xth2tl2t8keM/QwkZ0Dr0dKQrReP1dpOHi7QklRYkEgibp9LAszkSydzem5jxVXrhKmiPQn/nmrXBidLQ9/J65i5NNLdRuG0v+ShReDdnlFpm+kQDt4oiqRagXJv04PKz/6Cl88bXvCwe5Wek24z9vN/n4CPesAxgLqWOsjxurBRcwZz7td7ElK2nUW0PjQaKPRQ/Rq8e+yGR+1p4yuXqE5AGid3fNr8V/y918Uc/Wn7o1RNDH4YF1XK8YFbL0axFprh9XCpG9MlIOCz60KHFMxd6j9AgMBAAGjgc8wgcwwTQYIKwYBBQUHAQEEQTA/MD0GCCsGAQUFBzABhjFodHRwOi8vbG9jYWxob3N0OjgwODAvZWpiY2EvcHVibGljd2ViL3N0YXR1cy9vY3NwMB0GA1UdDgQWBBTGIcTaYlwNrsDiqIwJjUlt0kDoyTAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFHctiS4Dtv340mU5MTUi0EYa6NIJMA4GA1UdDwEB/wQEAwIDuDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDQYJKoZIhvcNAQEFBQADggEBAFQpBACfVtzPYVoWZxWQEbvZSOqsvmpJ4N9x1WIqKCHyLJ+3inSqdSv07IL7wB0hFfLSnUAjMCT1sos1KTZZzMvjCPElDGfAoxiDkWYCrO8Bb3rXdxW1EnXM6wz5aTQwzjG1QMswVI4wVrDbuO+po/yY0KTV1uOogZ4P0odN8ckSsO425YILqGpyZklAwu7jODIEwfPc1jccNmeyTNknAQD4o2BgJGu7dV9ixkxIqMlgU4LFFBjE66iHEPgIyYEmswnquEx3avJULU4NFdQi7xq2Qhn8fTLXBm1O0khUylbbhOU5Vy2rEKrM9jOFQqRLCNLy/3EKC2E/rSINlXIlSZM=</cert>
         </topCA>
+        <certificateProfileInfo>
+            ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider
+        </certificateProfileInfo>
     </approvedCA>
     <approvedTSA>
         <name>/CN=TSA2/O=GuardTime AS</name>

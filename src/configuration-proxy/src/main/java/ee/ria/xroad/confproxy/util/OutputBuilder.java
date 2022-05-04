@@ -78,7 +78,7 @@ import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
  * global configuration and moving it to the target location.
  */
 @Slf4j
-public class OutputBuilder {
+public class OutputBuilder implements AutoCloseable {
 
     public static final String SIGNED_DIRECTORY_NAME = "conf";
     private static final DateTimeFormatter DATETIME_FORMAT =
@@ -157,7 +157,8 @@ public class OutputBuilder {
      * Cleans up any remaining temporary files.
      * @throws IOException in case of unsuccessful file operations
      */
-    public final void cleanup() throws IOException {
+    @Override
+    public final void close() throws IOException {
         log.debug("Cleaning up '{}'", tempDirPath);
         FileUtils.deleteDirectory(tempDirPath.toFile());
     }
