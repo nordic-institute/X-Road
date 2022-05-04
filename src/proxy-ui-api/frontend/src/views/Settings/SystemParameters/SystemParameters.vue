@@ -156,6 +156,7 @@
                   v-for="timestampingService in configuredTimestampingServices"
                   :key="timestampingService.url"
                   :timestamping-service="timestampingService"
+                  :message-log-enabled="messageLogEnabled"
                   @deleted="fetchConfiguredTimestampingServiced"
                 />
 
