@@ -57,30 +57,26 @@
               </div>
 
               <!-- If error doesn't have a text or localisation key then just print the error object -->
-              <div v-else-if="notification.errorObject">
-                {{ notification.errorObject }}
+              <div v-else-if="notification.errorObjectAsString">
+                {{ notification.errorObjectAsString }}
               </div>
 
               <!-- Special case for pin code validation -->
               <div v-if="notification.errorCode === 'weak_pin'">
                 <div>
                   {{
-                    $t(`error_code.${notification.errorMetadata[0]}`) +
-                    `: ${notification.errorMetadata[1]}`
+                    $t(`error_code.${notification.metaData[0]}`) +
+                    `: ${notification.metaData[1]}`
                   }}
                 </div>
                 <div>
                   {{
-                    $t(`error_code.${notification.errorMetadata[2]}`) +
-                    `: ${notification.errorMetadata[3]}`
+                    $t(`error_code.${notification.metaData[2]}`) +
+                    `: ${notification.metaData[3]}`
                   }}
                 </div>
               </div>
-              <div
-                v-for="meta in notification.errorMetadata"
-                v-else
-                :key="meta"
-              >
+              <div v-for="meta in notification.metaData" v-else :key="meta">
                 {{ meta }}
               </div>
 
