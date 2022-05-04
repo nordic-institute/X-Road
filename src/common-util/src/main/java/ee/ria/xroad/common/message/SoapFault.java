@@ -173,15 +173,15 @@ public class SoapFault implements Soap {
                 + "<SOAP-ENV:Fault>"
                 + "<faultcode>" + faultCode + "</faultcode>"
                 + "<faultstring>"
-                + StringEscapeUtils.escapeXml(faultString)
+                + StringEscapeUtils.escapeXml10(faultString)
                 + "</faultstring>"
                 + (faultActor != null
                 ? "<faultactor>"
-                + StringEscapeUtils.escapeXml(faultActor)
+                + StringEscapeUtils.escapeXml10(faultActor)
                 + "</faultactor>" : "")
                 + (detail != null
                 ? "<detail><faultDetail xmlns=\"\">"
-                + StringEscapeUtils.escapeXml(detail)
+                + StringEscapeUtils.escapeXml10(detail)
                 + "</faultDetail>" + "</detail>" : "")
                 + "</SOAP-ENV:Fault>"
                 + "</SOAP-ENV:Body>"

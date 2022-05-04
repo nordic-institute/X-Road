@@ -151,17 +151,20 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
     }
 
     tasks.withType(JavaExec) {
+        systemProperty 'file.encoding', 'UTF-8'
         javaLauncher = javaToolchains.launcherFor(java.toolchain)
         if (project.hasProperty("args")) {
             args = project.getProperty("args").tokenize()
         }
     }
 
-    task buildall(dependsOn: [build]) {
+    tasks.withType(Test) {
+        systemProperty 'file.encoding', 'UTF-8'
     }
 
     tasks.withType(Exec) {
         environment "JAVA_HOME", javaHome
+        environment "JAVA_TOOL_OPTIONS", '-Dfile.encoding=UTF-8'
     }
 
     testJar.enabled = false
@@ -198,10 +201,17 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
         skipExistingHeaders = true
     }
 
+    licenseMain.source = fileTree('src/main')
+    licenseTest.source = fileTree('src/test')
+    licenseFormatMain.source = fileTree('src/main')
+    licenseFormatTest.source = fileTree('src/test')
+
     jar {
         from rootProject.file('LICENSE.txt')
     }
 
+    task buildall(dependsOn: [build]) {
+    }
 }
 
 clean.delete << "${rootDir}/packages/build"
