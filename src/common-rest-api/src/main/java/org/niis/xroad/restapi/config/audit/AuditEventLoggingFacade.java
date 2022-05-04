@@ -43,7 +43,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Facade for {@link AuditLogger}, implements all proxy-ui-api audit logging calls.
+ * Facade for {@link AuditLogger}, implements all spring-boot based APIs audit logging calls.
  * Tracks logged events and stores them in {@link RequestScopedAuditDataHolder}
  * Knows which events have been audit logged so far (can be queried with e.g. hasAlreadyLoggedForThisRequestAny).
  * Also adjusts to non-request aware context.
