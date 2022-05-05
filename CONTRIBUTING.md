@@ -177,15 +177,16 @@ Before opening a pull request, it's recommended to review the following checklis
 ### Branching Pattern
 
 Branching pattern follows the [Gitflow model](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow). 
-Two perpetual branches – `master` and `develop` – together with three additional branches – `feature`, `release` and `hotfix` – are used. In addition `support` branches are used for maintaining old releases.
+Two long-running, perpetual branches – `master` and `develop` – together with additional branches – `feature`, `beta`, `released minor version` and `bugfix` – are used.
 
-- `master` branch is used to release X-Road software into production
-- `develop` branch is used to accumulate features for the next big release
-- `feature` branches are used to work on features (or closely related sets of features) to enhance X-Road core software
-  - `feature` branches are named using the id of the feature's backlog item, e.g., `XRDDEV-123`
-- new production release is prepared on `release` branch
-- patches are prepared on `hotfix` branches.
-- `support` branch is created when an old release needs to be patched
+- `master` branch is used to release X-Road software into production.
+- `develop` branch is used to accumulate features for the next big release.
+- `feature` branches are used to work on features (or closely related sets of features) to enhance X-Road core software.
+  - `feature` branches are named using the id of the feature's backlog item, e.g., `XRDDEV-123`.
+- `beta` branches are used to prepare new production releases.
+- `released minor version` branches are used to track all patch versions released related to a specific minor version.
+  - for example, `release-7.0` branch contains version `7.0.0` and all its bugfix releases (e.g., `7.0.1`, `7.0.2`, ..., `7.0.5`, etc.).
+- `bugfix` branches are used to prepare patch releases.
 
 The latest development version is always available in the `develop` branch and the latest stable version in the `master` branch.
 
@@ -193,24 +194,37 @@ The latest development version is always available in the `develop` branch and t
 
 Pull requests made against the `X-Road/develop` branch MUST follow these conventions:
 
-- Pull request name format is `<ISSUE_ID>: <SHORT_DESCRIPTION>`, for example: `XRDDEV-1669: Allow overriding startup parameters`
+- Pull request name format is `<ISSUE_ID> <SHORT_DESCRIPTION>`, for example: `XRDDEV-1669 Allow overriding startup parameters`
   - `ISSUE_ID` = id of the feature's / bug's backlog item. If the pull request is not related to any backlog item, `ISSUE_ID` can be omitted.
   - `SHORT_DESCRIPTION` = short description of the changes included in the pull request.
 - The pull request's description field must contain more detailed information about the changes. Any relevant additional information should also be provided here.
 
 ### Commit Messages
 
-Commit messages SHOULD follow the format `<ISSUE_ID>: <COMMIT_MESSAGE>`, for example:
+Git commit messages SHOULD follow the guidelines described below:
 
-`XRDDEV-123: Fix typo in user guide`
+- Separate subject from body with a blank line.
+- Do not end the subject line with a period.
+- Capitalize the subject line and each paragraph.
+- Use the imperative mood in the subject line.
+- Wrap lines at 72 characters.
+- Use the body to explain what and why you have done something. In most cases, you can leave out details about how a change has been implemented.
 
-If the commit is not related to any backlog item, `ISSUE_ID` can be omitted.
+If a commit refers to an issue, add the issue ID before the subject. For example:
+
+```
+$ git commit -m "XRDDEV-123 Subject line
+ 
+More detailed description."
+```
+
+If the commit is not related to any backlog item, the issue ID can be omitted.
 
 ### Tagging
 
 The versions merged to `X-Road/master` branch are tagged with annotated tags. E.g.
 
-`git tag -a 6.26.0 -m "X-Road 6.26.0"`
+`git tag -a 7.0.0 -m "X-Road 7.0.0"`
 
 The versions merged to `X-Road/develop` branch are not tagged.
 
