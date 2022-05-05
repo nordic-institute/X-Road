@@ -61,7 +61,7 @@ public class BackupEncryptionStatusConverterTest {
         BackupEncryptionStatus result = backupEncryptionStatusConverter.convert(backupEncryptionStatusDiagnostics);
 
         assertTrue(result.getEncryptionStatus());
-        assertEquals(result.getEncryptionKeys().size(), 2);
+        assertEquals(2, result.getEncryptionKeys().size());
         assertTrue(result.getEncryptionKeys().contains(BACKUP_KEY_1));
         assertTrue(result.getEncryptionKeys().contains(BACKUP_KEY_2));
     }

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import lombok.extern.slf4j.Slf4j;
 
+import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -167,8 +169,9 @@ final class MemberEncryptionConfigProvider implements EncryptionConfigProvider {
     @Override
     public EncryptionConfig forDiagnostics() {
         List<EncryptionMember> encryptionMembers = new ArrayList<>();
-        for (String memberId: keyMappings.keySet()) {
-            Set<String> keys = keyMappings.get(memberId);
+        for (Map.Entry<String, Set<String>> entry: keyMappings.entrySet()) {
+            String memberId = entry.getKey();
+            Set<String> keys = entry.getValue();
 
             if (keys == null || keys.isEmpty()) {
                 log.info("Encryption mapping does not exist, using default key for member {}", memberId);
@@ -178,7 +181,7 @@ final class MemberEncryptionConfigProvider implements EncryptionConfigProvider {
                 encryptionMembers.add(new EncryptionMember(memberId, keys, false));
             }
         }
-        return new EncryptionConfig(true, gpgHome, null, encryptionMembers);
+        return new EncryptionConfig(true, gpgHome, Collections.emptySet(), encryptionMembers);
     }
 
     /*

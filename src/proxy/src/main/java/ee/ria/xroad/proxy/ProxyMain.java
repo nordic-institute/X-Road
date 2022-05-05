@@ -293,7 +293,7 @@ public final class ProxyMain {
     }
 
     private static void addBackupEncryptionStatus(AdminPort adminPort) {
-        adminPort.addHandler("/backupencryptionstatus", new AdminPort.SynchronousCallback() {
+        adminPort.addHandler("/backup-encryption-status", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
@@ -307,7 +307,7 @@ public final class ProxyMain {
     }
 
     private static void addMessageLogEncryptionStatus(AdminPort adminPort) {
-        adminPort.addHandler("/messagelogencryptionstatus", new AdminPort.SynchronousCallback() {
+        adminPort.addHandler("/message-log-encryption-status", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {

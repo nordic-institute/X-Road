@@ -308,7 +308,7 @@
                 {{ $t(`diagnostics.encryption.status.${backupEncryptionDiagnostics.encryption_status}`,) }}
               </div>
 
-              <table class="xrd-table">
+              <table class="xrd-table" v-if="backupEncryptionDiagnostics.encryption_status">
                 <thead>
                   <tr>
                     <th>
@@ -359,7 +359,7 @@
                 {{ $t(`${messageLogEncryptionDiagnostics.message_log_grouping_rule}`) }}
               </div>
 
-              <table class="xrd-table">
+              <table class="xrd-table" v-if="messageLogEncryptionDiagnostics.message_log_encryption_status">
                 <thead>
                   <tr>
                     <th>

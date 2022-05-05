@@ -164,7 +164,7 @@ public class DiagnosticService {
     /**
      * Query proxy backup encryption status from admin port over HTTP.
      *
-     * @return
+     * @return BackupEncryptionStatusDiagnostics
      */
     public BackupEncryptionStatusDiagnostics queryBackupEncryptionStatus() {
         try {
@@ -178,7 +178,7 @@ public class DiagnosticService {
     /**
      * Query proxy message log encryption status from admin port over HTTP.
      *
-     * @return
+     * @return MessageLogEncryptionStatusDiagnostics
      */
     public MessageLogEncryptionStatusDiagnostics queryMessageLogEncryptionStatus() {
         try {

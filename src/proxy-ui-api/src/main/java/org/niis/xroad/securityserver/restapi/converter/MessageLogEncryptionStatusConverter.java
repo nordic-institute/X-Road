@@ -36,12 +36,12 @@ import java.util.stream.Collectors;
 @Component
 public class MessageLogEncryptionStatusConverter {
     public MessageLogEncryptionStatus convert(
-            MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnosticsStatus) {
+            MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics) {
         return new MessageLogEncryptionStatus()
-                .messageLogEncryptionStatus(messageLogEncryptionStatusDiagnosticsStatus.isMessageLogEncryptionStatus())
-                .messageLogDatabaseStatus(messageLogEncryptionStatusDiagnosticsStatus.isMessageLogDatabaseStatus())
-                .messageLogGroupingRule(messageLogEncryptionStatusDiagnosticsStatus.getMessageLogGroupingRule())
-                .members(messageLogEncryptionStatusDiagnosticsStatus.getMembers().stream()
+                .messageLogEncryptionStatus(messageLogEncryptionStatusDiagnostics.isMessageLogEncryptionStatus())
+                .messageLogDatabaseStatus(messageLogEncryptionStatusDiagnostics.isMessageLogDatabaseStatus())
+                .messageLogGroupingRule(messageLogEncryptionStatusDiagnostics.getMessageLogGroupingRule())
+                .members(messageLogEncryptionStatusDiagnostics.getMembers().stream()
                         .map(member -> new MessageLogEncryptionMember()
                                 .memberId(member.getMemberId())
                                 .keys(member.getKeys())

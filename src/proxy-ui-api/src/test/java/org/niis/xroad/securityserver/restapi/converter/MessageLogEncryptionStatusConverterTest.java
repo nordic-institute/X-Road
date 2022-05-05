@@ -74,14 +74,14 @@ public class MessageLogEncryptionStatusConverterTest {
 
         assertTrue(result.getMessageLogEncryptionStatus());
         assertTrue(result.getMessageLogDatabaseStatus());
-        assertEquals(result.getMessageLogGroupingRule(), GROUPING_RULE);
-        assertEquals(result.getMembers().size(), 1);
+        assertEquals(GROUPING_RULE, result.getMessageLogGroupingRule());
+        assertEquals(1, result.getMembers().size());
         org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionMember convertedMember
                 = result.getMembers().get(0);
-        assertEquals(convertedMember.getMemberId(), MEMBER_ID);
+        assertEquals(MEMBER_ID, convertedMember.getMemberId());
         assertTrue(convertedMember.getKeys().contains(KEY_1));
         assertTrue(convertedMember.getKeys().contains(KEY_2));
-        assertEquals(convertedMember.getDefaultKeyUsed(), false);
+        assertEquals(false, convertedMember.getDefaultKeyUsed());
     }
 
     private List<MessageLogEncryptionMember> createMessageLogEncryptionMember() {
