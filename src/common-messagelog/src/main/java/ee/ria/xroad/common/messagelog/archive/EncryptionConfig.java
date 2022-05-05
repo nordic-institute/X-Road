@@ -31,10 +31,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Getter
@@ -46,5 +44,6 @@ public class EncryptionConfig {
     private final Set<String> encryptionKeys;
     private final List<EncryptionMember> encryptionMembers;
 
-    static final EncryptionConfig DISABLED = new EncryptionConfig(false, null, Collections.emptySet(), Collections.emptyList());
+    static final EncryptionConfig DISABLED = new EncryptionConfig(false, null,
+            Collections.emptySet(), Collections.emptyList());
 }
