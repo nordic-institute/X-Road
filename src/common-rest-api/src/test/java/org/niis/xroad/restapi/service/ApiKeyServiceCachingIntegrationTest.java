@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,17 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.restapi.service;
 
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
-import org.niis.xroad.restapi.service.ApiKeyService;
+import org.niis.xroad.restapi.test.AbstractSpringIntTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -51,10 +51,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test api key service and api key authentication helper
+ * Test {@link  ApiKeyService} and api key authentication helper
  * caching while mocking DB. Will acquire a new application context because mocks EntityManager, Session and Query
  */
-public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrationTestContext {
+class ApiKeyServiceCachingIntegrationTest extends AbstractSpringIntTest {
 
     @Autowired
     ApiKeyService apiKeyService;
@@ -72,7 +72,7 @@ public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrat
     private Query query;
 
     @Test
-    public void testList() throws Exception {
+    void testList() throws Exception {
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         when(query.list()).thenReturn(new ArrayList());
@@ -91,9 +91,8 @@ public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrat
         return new PersistentApiKeyType(plainKey.getEncodedKey(), plainKey.getRoles());
     }
 
-
     @Test
-    public void testCacheEviction() throws Exception {
+    void testCacheEviction() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
@@ -131,7 +130,7 @@ public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrat
     }
 
     @Test
-    public void testGet() throws Exception {
+    void testGet() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);

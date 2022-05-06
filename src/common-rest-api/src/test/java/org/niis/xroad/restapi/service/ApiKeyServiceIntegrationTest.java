@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,38 +23,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.restapi.service;
 
-import junit.framework.TestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.restapi.service.ApiKeyService;
+import org.niis.xroad.restapi.test.AbstractSpringIntTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
-import static junit.framework.TestCase.fail;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 
 /**
- * Test api key service
+ * Test cases for {@link  ApiKeyService}.
  */
-public class ApiKeyServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
+class ApiKeyServiceIntegrationTest extends AbstractSpringIntTest {
     private static final int KEYS_CREATED_ELSEWHERE = 1; // one key in data.sql
 
     @Autowired
-    ApiKeyService apiKeyService;
+    private ApiKeyService apiKeyService;
 
     @Test
-    public void testDelete() throws Exception {
-        String plainKey = apiKeyService.create(
-                Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
+    void testDelete() throws Exception {
+        String plainKey = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getPlaintextKey();
         assertEquals(KEYS_CREATED_ELSEWHERE + 1, apiKeyService.listAll().size());
         PersistentApiKeyType apiKey = apiKeyService.getForPlaintextKey(plainKey);
@@ -76,62 +77,58 @@ public class ApiKeyServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void testSaveAndLoadAndUpdate() throws Exception {
+    void testSaveAndLoadAndUpdate() throws Exception {
         // Save
-        String plainKey = apiKeyService.create(
-                Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
+        String plainKey = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getPlaintextKey();
         // Load
         PersistentApiKeyType loaded = apiKeyService.getForPlaintextKey(plainKey);
         assertNotNull(loaded);
         String encodedKey = loaded.getEncodedKey();
 
-        assertEquals(new Long(KEYS_CREATED_ELSEWHERE + 1), loaded.getId());
-        assertTrue(!plainKey.equals(encodedKey));
+        assertEquals(KEYS_CREATED_ELSEWHERE + 1L, loaded.getId());
+        assertNotEquals(plainKey, encodedKey);
         assertEquals(encodedKey, loaded.getEncodedKey());
         assertEquals(2, loaded.getRoles().size());
         assertTrue(loaded.getRoles().contains(Role.XROAD_SECURITY_OFFICER));
 
         // Load by encoded key
-        TestCase.assertNotNull(apiKeyService.getForEncodedKey(encodedKey));
+        assertNotNull(apiKeyService.getForEncodedKey(encodedKey));
 
         // Update
-        PersistentApiKeyType updated = apiKeyService.update(loaded.getId(),
-                Arrays.asList("XROAD_SECURITYSERVER_OBSERVER"));
-        assertEquals(new Long(KEYS_CREATED_ELSEWHERE + 1), updated.getId());
+        PersistentApiKeyType updated = apiKeyService.update(loaded.getId(), List.of("XROAD_SECURITYSERVER_OBSERVER"));
+        assertEquals(KEYS_CREATED_ELSEWHERE + 1L, updated.getId());
         assertEquals(1, updated.getRoles().size());
         assertTrue(updated.getRoles().contains(Role.XROAD_SECURITYSERVER_OBSERVER));
         assertFalse(updated.getRoles().contains(Role.XROAD_SECURITY_OFFICER));
     }
 
     @Test
-    public void testDifferentRoles() throws Exception {
+    void testDifferentRoles() throws Exception {
         try {
-            String key = apiKeyService.create(new ArrayList<>()).getPlaintextKey();
+            apiKeyService.create(new ArrayList<>());
             fail("should fail due to missing roles");
         } catch (InvalidRoleNameException expected) {
         }
 
         try {
-            String key = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER",
-                    "FOOBAR")).getPlaintextKey();
+            apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER", "FOOBAR"));
             fail("should fail due to bad role");
         } catch (InvalidRoleNameException expected) {
         }
 
         try {
-            PersistentApiKeyType key = apiKeyService.update(1, new ArrayList<>());
+            apiKeyService.update(1, new ArrayList<>());
             fail("should fail due to missing roles");
         } catch (InvalidRoleNameException expected) {
         }
 
         try {
-            PersistentApiKeyType key = apiKeyService.update(1, Arrays.asList("XROAD_SECURITY_OFFICER", "FOOBAR"));
+            apiKeyService.update(1, Arrays.asList("XROAD_SECURITY_OFFICER", "FOOBAR"));
             fail("should fail due to bad role");
         } catch (InvalidRoleNameException expected) {
         }
 
-        String key = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER",
-                "XROAD_REGISTRATION_OFFICER")).getPlaintextKey();
+        apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"));
     }
 }
