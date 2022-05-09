@@ -36,8 +36,8 @@
         }}</v-col>
       </v-row>
       <v-row>
-        <v-col cols="3" class="mt-6">
-          <xrd-help-iconcon
+        <v-col cols="3" class="mt-6 icon-wrapper">
+          <xrd-help-icon
             :text="$t('ssTlsCertificate.generateInternalCsr.step1.tooltip')"
           />
           {{ $t('ssTlsCertificate.generateInternalCsr.step1.label') }}
@@ -149,6 +149,12 @@ $spacing: 12rem;
   border-radius: 4px;
   padding: 0px;
   margin-top: 20px;
+}
+
+.icon-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
 }
 
 .first-action {

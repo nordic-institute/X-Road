@@ -2121,6 +2121,58 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /diagnostics/backup-encryption-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view backup encryption services diagnostics information
+      operationId: getBackupEncryptionDiagnostics
+      description: <h3>Administrator views the proxy backup encryption status diagnostics information.</h3>
+      responses:
+        '200':
+          description: backup encryption services diagnostics information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackupEncryptionStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /diagnostics/message-log-encryption-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view message log encryption and grouping services diagnostics information
+      operationId: getMessageLogEncryptionDiagnostics
+      description: <h3>Administrator views the proxy message log encryption and grouping diagnostics information.</h3>
+      responses:
+        '200':
+          description: message log encryption and grouping diagnostics information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageLogEncryptionStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /initialization:
     post:
       tags:
@@ -5252,6 +5304,60 @@ components:
         - messagelog_enabled
       properties:
         messagelog_enabled:
+          type: boolean
+          readOnly: true
+    BackupEncryptionStatus:
+      type: object
+      description: backup encryption statuses
+      required:
+        - encryption_status
+      properties:
+        encryption_status:
+          type: boolean
+          readOnly: true
+        encryption_keys:
+          type: array
+          items:
+            type: string
+            format: text
+    MessageLogEncryptionStatus:
+      type: object
+      description: message log encryption statuses
+      required:
+        - message_log_encryption_status
+        - message_log_database_status
+        - message_log_grouping_rule
+      properties:
+        message_log_encryption_status:
+          type: boolean
+          readOnly: true
+        message_log_database_status:
+          type: boolean
+          readOnly: true
+        message_log_grouping_rule:
+          type: string
+          readOnly: true
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageLogEncryptionMember'
+    MessageLogEncryptionMember:
+      type: object
+      description: message log encryption member
+      required:
+        - member_id
+      properties:
+        member_id:
+          type: string
+          readOnly: true
+        keys:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: text
+          readOnly: true
+        default_key_used:
           type: boolean
           readOnly: true
     Anchor:

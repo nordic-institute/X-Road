@@ -26,15 +26,20 @@
 package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
+import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.MessageLogEncryptionMember;
+import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics;
+import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
@@ -73,6 +78,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     private static final String CA_NAME_2 = "CN=Xroad Test, C=EE";
     private static final String OCSP_URL_1 = "https://ocsp1.example.com";
     private static final String OCSP_URL_2 = "https://ocsp2.example.com";
+    private static final String GROUPING_RULE = "none";
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
@@ -87,6 +93,58 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         response = diagnosticsApiController.getAddOnDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(false, response.getBody().getMessagelogEnabled());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getBackupEncryptionDiagnostics() {
+        when(diagnosticService.queryBackupEncryptionStatus()).thenReturn(
+                new BackupEncryptionStatusDiagnostics(true,
+                        Collections.singletonList("keyId")));
+
+        ResponseEntity<BackupEncryptionStatus> response = diagnosticsApiController.getBackupEncryptionDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(true, response.getBody().getEncryptionStatus());
+        assertEquals(1, response.getBody().getEncryptionKeys().size());
+
+        when(diagnosticService.queryBackupEncryptionStatus()).thenReturn(
+                new BackupEncryptionStatusDiagnostics(false,
+                        Collections.emptyList()));
+        response = diagnosticsApiController.getBackupEncryptionDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(false, response.getBody().getEncryptionStatus());
+        assertEquals(true, response.getBody().getEncryptionKeys().isEmpty());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getMessageLogEncryptionDiagnostics() {
+        when(diagnosticService.queryMessageLogEncryptionStatus()).thenReturn(
+                new MessageLogEncryptionStatusDiagnostics(true,
+                        true,
+                        GROUPING_RULE,
+                        Collections.singletonList(new MessageLogEncryptionMember("memberId",
+                                Collections.singleton("key"), false))));
+
+        ResponseEntity<MessageLogEncryptionStatus> response = diagnosticsApiController
+                .getMessageLogEncryptionDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(true, response.getBody().getMessageLogEncryptionStatus());
+        assertEquals(true, response.getBody().getMessageLogDatabaseStatus());
+        assertEquals(GROUPING_RULE, response.getBody().getMessageLogGroupingRule());
+        assertEquals(1, response.getBody().getMembers().size());
+
+        when(diagnosticService.queryMessageLogEncryptionStatus()).thenReturn(
+                new MessageLogEncryptionStatusDiagnostics(false,
+                        false,
+                        GROUPING_RULE,
+                        Collections.emptyList()));
+        response = diagnosticsApiController.getMessageLogEncryptionDiagnostics();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(false, response.getBody().getMessageLogEncryptionStatus());
+        assertEquals(false, response.getBody().getMessageLogDatabaseStatus());
+        assertEquals(GROUPING_RULE, response.getBody().getMessageLogGroupingRule());
+        assertEquals(true, response.getBody().getMembers().isEmpty());
     }
 
     @Test
