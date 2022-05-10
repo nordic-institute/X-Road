@@ -1,18 +1,3 @@
-.idea
-build/
-out/
-*.iml
-*.deb
-.gradle
-.generators
-vendor/
-.rakeTasks
-legacy/lib/
-.deps/
-*.o
-*.swp
-*~
-/lib/
 legacy/passwordstore/libpasswordstore.so
 packages/xroad-jetty9/jetty9/
 passwordstore/libpasswordstore.so
@@ -27,8 +12,6 @@ RPMS/
 SRPMS/
 **/redhat/BUILD/
 packages/DEBIAN/
-*.rpm
-.vagrant/
 packages/xroad/debian/xroad-monitor.xroad-monitor.upstart
 packages/xroad/debian/xroad-opmonitor.xroad-opmonitor.upstart
 systemtest/op-monitoring/load/SimulationSetup.scala
@@ -39,8 +22,5 @@ tmp/
 ubuntu-xenial-16.04-cloudimg-console.log
 packages/jetty
 classes/
-.project 
-.classpath
-.settings
 signer/src/test/resources/.softtoken.p12
 node_modules/
