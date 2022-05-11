@@ -41,7 +41,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class BackupEncryptionStatusConverterTest {
 
-    private static final boolean ENCRYPTION_STATUS = true;
+    private static final boolean BACKUP_ENCRYPTION_STATUS = true;
     private static final String BACKUP_KEY_1 = "BackupKey1";
     private static final String BACKUP_KEY_2 = "BackupKey2";
     private BackupEncryptionStatusConverter backupEncryptionStatusConverter;
@@ -55,14 +55,14 @@ public class BackupEncryptionStatusConverterTest {
     @Test
     public void shouldConvertToBackupEncryptionStatus() {
         BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics =
-                new BackupEncryptionStatusDiagnostics(ENCRYPTION_STATUS,
+                new BackupEncryptionStatusDiagnostics(BACKUP_ENCRYPTION_STATUS,
                         Arrays.asList(BACKUP_KEY_1, BACKUP_KEY_2));
 
         BackupEncryptionStatus result = backupEncryptionStatusConverter.convert(backupEncryptionStatusDiagnostics);
 
-        assertTrue(result.getEncryptionStatus());
-        assertEquals(2, result.getEncryptionKeys().size());
-        assertTrue(result.getEncryptionKeys().contains(BACKUP_KEY_1));
-        assertTrue(result.getEncryptionKeys().contains(BACKUP_KEY_2));
+        assertTrue(result.getBackupEncryptionStatus());
+        assertEquals(2, result.getBackupEncryptionKeys().size());
+        assertTrue(result.getBackupEncryptionKeys().contains(BACKUP_KEY_1));
+        assertTrue(result.getBackupEncryptionKeys().contains(BACKUP_KEY_2));
     }
 }
