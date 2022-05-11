@@ -12,7 +12,6 @@ legacy/lib/
 *.o
 *.swp
 *~
-/lib/
 .project
 .classpath
 .settings
