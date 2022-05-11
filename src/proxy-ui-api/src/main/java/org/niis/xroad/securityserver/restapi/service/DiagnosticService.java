@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -80,17 +80,17 @@ public class DiagnosticService {
     private final String diagnosticsTimestampingServicesUrl;
     private final String diagnosticsOcspRespondersUrl;
     private final String diagnosticsAddOnStatusUrl;
-    private final String backupEncryptionStatus;
-    private final String messageLogEncryptionStatus;
+    private final String backupEncryptionStatusUrl;
+    private final String messageLogEncryptionStatusUrl;
 
     @Autowired
-    public DiagnosticService(@Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
+    public DiagnosticService(
+            @Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
             @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
             @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
-            @Value("${url.diagnostics-backup-encryption-status}") String backupEncryptionStatus,
-            @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatus) {
-            @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
+            @Value("${url.diagnostics-backup-encryption-status}") String backupEncryptionStatusUrl,
+            @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatusUrl,
             RestTemplateBuilder restTemplateBuilder) {
 
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
@@ -100,9 +100,9 @@ public class DiagnosticService {
         this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
                 SystemProperties.getSignerAdminPort());
         this.diagnosticsAddOnStatusUrl = String.format(diagnosticsAddOnStatusUrl, PortNumbers.ADMIN_PORT);
-        this.backupEncryptionStatus = String.format(backupEncryptionStatus,
+        this.backupEncryptionStatusUrl = String.format(backupEncryptionStatusUrl,
                 PortNumbers.ADMIN_PORT);
-        this.messageLogEncryptionStatus = String.format(messageLogEncryptionStatus,
+        this.messageLogEncryptionStatusUrl = String.format(messageLogEncryptionStatusUrl,
                 PortNumbers.ADMIN_PORT);
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(
@@ -198,8 +198,7 @@ public class DiagnosticService {
      */
     public BackupEncryptionStatusDiagnostics queryBackupEncryptionStatus() {
         try {
-            JsonObject json = sendGetRequest(backupEncryptionStatus);
-            return JsonUtils.getSerializer().fromJson(json, BackupEncryptionStatusDiagnostics.class);
+            return sendGetRequest(backupEncryptionStatusUrl, BackupEncryptionStatusDiagnostics.class).getBody();
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
@@ -212,8 +211,7 @@ public class DiagnosticService {
      */
     public MessageLogEncryptionStatusDiagnostics queryMessageLogEncryptionStatus() {
         try {
-            JsonObject json = sendGetRequest(messageLogEncryptionStatus);
-            return JsonUtils.getSerializer().fromJson(json, MessageLogEncryptionStatusDiagnostics.class);
+            return sendGetRequest(messageLogEncryptionStatusUrl, MessageLogEncryptionStatusDiagnostics.class).getBody();
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }

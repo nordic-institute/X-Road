@@ -298,7 +298,7 @@ public final class ProxyMain {
             public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(backupEncryptionStatusDiagnostics, response.getWriter());
+                    JsonUtils.getObjectWriter().writeValue(response.getWriter(), backupEncryptionStatusDiagnostics);
                 } catch (IOException e) {
                     logResponseIOError(e);
                 }
@@ -312,8 +312,7 @@ public final class ProxyMain {
             public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(messageLogEncryptionStatusDiagnostics,
-                            response.getWriter());
+                    JsonUtils.getObjectWriter().writeValue(response.getWriter(), messageLogEncryptionStatusDiagnostics);
                 } catch (IOException e) {
                     logResponseIOError(e);
                 }
