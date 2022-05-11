@@ -26,18 +26,24 @@
 package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
+import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.AddOnStatusConverter;
+import org.niis.xroad.securityserver.restapi.converter.BackupEncryptionStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.GlobalConfDiagnosticConverter;
+import org.niis.xroad.securityserver.restapi.converter.MessageLogEncryptionStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics;
+import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
@@ -66,6 +72,10 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private final OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
     private final AddOnStatusConverter addOnStatusConverter;
 
+    private final BackupEncryptionStatusConverter backupEncryptionStatusConverter;
+
+    private final MessageLogEncryptionStatusConverter messageLogEncryptionStatusConverter;
+
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<GlobalConfDiagnostics> getGlobalConfDiagnostics() {
@@ -92,5 +102,23 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     public ResponseEntity<AddOnStatus> getAddOnDiagnostics() {
         AddOnStatusDiagnostics addOnStatus = diagnosticService.queryAddOnStatus();
         return new ResponseEntity<>(addOnStatusConverter.convert(addOnStatus), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<BackupEncryptionStatus> getBackupEncryptionDiagnostics() {
+        BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics =
+                diagnosticService.queryBackupEncryptionStatus();
+        return new ResponseEntity<>(backupEncryptionStatusConverter
+                .convert(backupEncryptionStatusDiagnostics), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<MessageLogEncryptionStatus> getMessageLogEncryptionDiagnostics() {
+        MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics =
+                diagnosticService.queryMessageLogEncryptionStatus();
+        return new ResponseEntity<>(messageLogEncryptionStatusConverter
+                .convert(messageLogEncryptionStatusDiagnostics), HttpStatus.OK);
     }
 }

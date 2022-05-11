@@ -26,10 +26,13 @@
 package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
+import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
+import ee.ria.xroad.common.MessageLogEncryptionMember;
+import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
@@ -37,6 +40,9 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
+import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.common.util.AdminPort;
@@ -60,6 +66,7 @@ import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -71,11 +78,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
@@ -115,6 +125,12 @@ public final class ProxyMain {
     private static final int STATS_LOG_REPEAT_INTERVAL = 60;
 
     private static AddOnStatusDiagnostics addOnStatus;
+
+    private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
+
+    private static BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
+
+    private static MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
     private ProxyMain() {
     }
@@ -213,6 +229,16 @@ public final class ProxyMain {
                 SystemProperties.getConfigurationClientUpdateIntervalSeconds());
 
         addOnStatus = new AddOnStatusDiagnostics(messageLogEnabled);
+
+        backupEncryptionStatusDiagnostics = new BackupEncryptionStatusDiagnostics(
+                SystemProperties.isBackupEncryptionEnabled(),
+                getBackupEncryptionKeyIds());
+
+        messageLogEncryptionStatusDiagnostics = new MessageLogEncryptionStatusDiagnostics(
+                MessageLogProperties.isArchiveEncryptionEnabled(),
+                MessageLogProperties.isMessageLogEncryptionEnabled(),
+                ARCHIVE_GROUPING.name(),
+                getBackupEncryptionMembers());
     }
 
     private static void loadConfigurations() {
@@ -240,6 +266,10 @@ public final class ProxyMain {
 
         addAddOnStatusHandler(adminPort);
 
+        addBackupEncryptionStatus(adminPort);
+
+        addMessageLogEncryptionStatus(adminPort);
+
         return adminPort;
     }
 
@@ -255,6 +285,35 @@ public final class ProxyMain {
                 try {
                     response.setCharacterEncoding("UTF8");
                     JsonUtils.getObjectWriter().writeValue(response.getWriter(), addOnStatus);
+                } catch (IOException e) {
+                    logResponseIOError(e);
+                }
+            }
+        });
+    }
+
+    private static void addBackupEncryptionStatus(AdminPort adminPort) {
+        adminPort.addHandler("/backup-encryption-status", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
+                try {
+                    response.setCharacterEncoding("UTF8");
+                    JsonUtils.getSerializer().toJson(backupEncryptionStatusDiagnostics, response.getWriter());
+                } catch (IOException e) {
+                    logResponseIOError(e);
+                }
+            }
+        });
+    }
+
+    private static void addMessageLogEncryptionStatus(AdminPort adminPort) {
+        adminPort.addHandler("/message-log-encryption-status", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
+                try {
+                    response.setCharacterEncoding("UTF8");
+                    JsonUtils.getSerializer().toJson(messageLogEncryptionStatusDiagnostics,
+                            response.getWriter());
                 } catch (IOException e) {
                     logResponseIOError(e);
                 }
@@ -460,6 +519,25 @@ public final class ProxyMain {
         }
         return statuses;
 
+    }
+
+    private static List<MessageLogEncryptionMember> getBackupEncryptionMembers() throws IOException {
+        EncryptionConfigProvider configProvider = EncryptionConfigProvider.getInstance(ARCHIVE_GROUPING);
+        if (!configProvider.isEncryptionEnabled()) {
+            return Collections.emptyList();
+        }
+        return configProvider.forDiagnostics().getEncryptionMembers()
+                .stream()
+                .map(member -> new MessageLogEncryptionMember(member.getMemberId(),
+                        member.getKeys(), member.isDefaultKeyUsed()))
+                .collect(Collectors.toList());
+    }
+
+    private static List<String> getBackupEncryptionKeyIds() {
+        return Arrays.stream(StringUtils.split(
+                SystemProperties.getBackupEncryptionKeyIds(), ','))
+                .map(String::trim)
+                .collect(Collectors.toList());
     }
 
     /**

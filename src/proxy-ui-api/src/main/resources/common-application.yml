@@ -89,6 +89,8 @@ url:
   diagnostics-ocsp-responders: http://localhost:%s/status
   clear-configuration-cache: http://localhost:%s/clearconfcache
   diagnostics-addon-status: http://localhost:%s/addonstatus
+  diagnostics-backup-encryption-status: http://localhost:%s/backup-encryption-status
+  diagnostics-message-log-encryption-status: http://localhost:%s/message-log-encryption-status
 
 cache:
   simple:

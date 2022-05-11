@@ -96,7 +96,7 @@
             <span
               class="headline"
               data-test="diagnostics-global-configuration"
-              >{{ $t('diagnostics.globalCongiguration.title') }}</span
+              >{{ $t('diagnostics.globalConfiguration.title') }}</span
             >
           </v-card-title>
           <v-card-text class="xrd-card-text">
@@ -124,7 +124,7 @@
                   <td>
                     {{
                       $t(
-                        `diagnostics.globalCongiguration.configurationStatus.${globalConf.status_code}`,
+                        `diagnostics.globalConfiguration.configurationStatus.${globalConf.status_code}`,
                       )
                     }}
                   </td>
@@ -227,7 +227,7 @@
               v-for="ocspDiags in ocspResponderDiagnostics"
               :key="ocspDiags.distinguished_name"
             >
-              <div class="cert-service-name">
+              <div class="sub-title">
                 <span>{{
                   $t('diagnostics.ocspResponders.certificationService')
                 }}</span>
@@ -286,6 +286,144 @@
             </div>
           </v-card-text>
         </v-card>
+
+        <v-card flat class="xrd-card diagnostic-card">
+          <v-card-title>
+            <span class="headline" data-test="diagnostics-backup-encryption">{{
+              $t('diagnostics.encryption.backup.title')
+            }}</span>
+          </v-card-title>
+
+          <v-card-text class="xrd-card-text">
+            <div v-if="backupEncryptionDiagnostics">
+              <div class="sub-title status-wrapper">
+                <span>
+                  {{ $t('diagnostics.encryption.statusTitle') }}
+                </span>
+                <xrd-status-icon
+                  :status="
+                    encryptionStatusIconType(backupEncryptionDiagnostics.encryption_status)
+                  "
+                />
+                {{ $t(`diagnostics.encryption.status.${backupEncryptionDiagnostics.encryption_status}`,) }}
+              </div>
+
+              <table class="xrd-table" v-if="backupEncryptionDiagnostics.encryption_status">
+                <thead>
+                  <tr>
+                    <th>
+                      {{ $t('diagnostics.encryption.backup.configuredKeyId') }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="confKeys in backupEncryptionDiagnostics.encryption_keys"
+                    :key="confKeys"
+                  >
+                    <td>
+                      {{ confKeys }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <XrdEmptyPlaceholder
+              :loading="backupEncryptionLoading"
+              :data="backupEncryptionDiagnostics"
+              :no-items-text="$t('noData.noData')"
+            />
+          </v-card-text>
+        </v-card>
+
+        <v-card flat class="xrd-card diagnostic-card">
+          <v-card-title>
+            <span class="headline" data-test="diagnostics-ml-archive-encryption">
+              {{ $t('diagnostics.encryption.messageLog.archive.title') }}
+            </span>
+          </v-card-title>
+
+          <v-card-text class="xrd-card-text">
+            <div v-if="messageLogEncryptionDiagnostics">
+              <div class="sub-title status-wrapper">
+                <span>
+                  {{ $t('diagnostics.encryption.statusTitle') }}
+                </span>
+                <xrd-status-icon
+                  :status="encryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_encryption_status)"
+                />
+                {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_encryption_status}`) }}
+                <span class="group-name">
+                  {{ $t('diagnostics.encryption.messageLog.archive.groupingTitle') }}
+                </span>
+                {{ $t(`${messageLogEncryptionDiagnostics.message_log_grouping_rule}`) }}
+              </div>
+
+              <table class="xrd-table" v-if="messageLogEncryptionDiagnostics.message_log_encryption_status">
+                <thead>
+                  <tr>
+                    <th>
+                      {{ $t('diagnostics.encryption.messageLog.archive.memberIdentifier') }}
+                    </th>
+                    <th>
+                      {{ $t('diagnostics.encryption.messageLog.archive.keyId') }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="member in messageLogEncryptionDiagnostics.members" :key="member.member_id">
+                    <td>{{ member.member_id }}</td>
+                    <td class="status-wrapper">
+                      {{ member.keys | commaSeparate }}
+                      <v-tooltip
+                        v-if="member.default_key_used"
+                        max-width="267px"
+                        right
+                      >
+                        <template #activator="{ on }">
+                          <v-icon small class="warning-icon" v-on="on">icon-Error</v-icon>
+                        </template>
+                        <span>{{ $t('diagnostics.encryption.messageLog.archive.defaultKeyNote') }}</span>
+                      </v-tooltip>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <XrdEmptyPlaceholder
+              :loading="messageLogEncryptionLoading"
+              :data="messageLogEncryptionDiagnostics"
+              :no-items-text="$t('noData.noData')"
+            />
+          </v-card-text>
+        </v-card>
+
+        <v-card flat class="xrd-card diagnostic-card">
+          <v-card-title>
+            <span class="headline" data-test="diagnostics-ml-database-encryption">{{
+                $t('diagnostics.encryption.messageLog.database.title')
+              }}</span>
+          </v-card-title>
+
+          <v-card-text class="xrd-card-text">
+            <div v-if="messageLogEncryptionDiagnostics" class="sub-title status-wrapper">
+              <span>
+                {{ $t('diagnostics.encryption.statusTitle') }}
+              </span>
+              <xrd-status-icon
+                :status="
+                  encryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_database_status)
+                "
+              />
+              {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_database_status}`,) }}
+            </div>
+            <XrdEmptyPlaceholder
+              :loading="messageLogEncryptionLoading"
+              :data="messageLogEncryptionDiagnostics"
+              :no-items-text="$t('noData.noData')"
+            />
+          </v-card-text>
+        </v-card>
       </v-layout>
     </div>
   </v-container>
@@ -295,9 +433,12 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import {
-  TimestampingServiceDiagnostics,
+  BackupEncryptionStatus,
+  MessageLogEncryptionStatus,
   OcspResponderDiagnostics,
-  GlobalConfDiagnostics, AddOnStatus,
+  GlobalConfDiagnostics,
+  AddOnStatus,
+  TimestampingServiceDiagnostics,
 } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
@@ -309,10 +450,14 @@ export default Vue.extend({
     timestampingServices: [] as TimestampingServiceDiagnostics[],
     globalConf: undefined as GlobalConfDiagnostics | undefined,
     ocspResponderDiagnostics: [] as OcspResponderDiagnostics[],
+    backupEncryptionDiagnostics: undefined as BackupEncryptionStatus | undefined,
+    messageLogEncryptionDiagnostics: undefined as MessageLogEncryptionStatus | undefined,
     globalConfLoading: false,
     timestampingLoading: false,
     ocspLoading: false,
     addonStatusLoading: false,
+    backupEncryptionLoading: false,
+    messageLogEncryptionLoading: false,
   }),
   computed: {
     ...mapState(useSystemStore, ['securityServerVersion']),
@@ -328,6 +473,8 @@ export default Vue.extend({
       this.timestampingLoading = true;
       this.ocspLoading = true;
       this.addonStatusLoading = true;
+      this.backupEncryptionLoading = true;
+      this.messageLogEncryptionLoading = true;
 
       api
         .get<AddOnStatus>('/diagnostics/addon-status')
@@ -378,6 +525,30 @@ export default Vue.extend({
         .finally(() => {
           this.ocspLoading = false;
         });
+
+      api
+        .get<BackupEncryptionStatus>('/diagnostics/backup-encryption-status')
+        .then((res) => {
+          this.backupEncryptionDiagnostics = res.data;
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.backupEncryptionLoading = false;
+        });
+
+      api
+        .get<MessageLogEncryptionStatus>('/diagnostics/message-log-encryption-status')
+        .then((res) => {
+          this.messageLogEncryptionDiagnostics = res.data;
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.messageLogEncryptionLoading = false;
+        });
     },
 
     statusIconTypeTSP(status: string): string {
@@ -402,6 +573,17 @@ export default Vue.extend({
           return 'progress-register';
         case 'FAIL':
           return 'error';
+        default:
+          return 'error';
+      }
+    },
+
+    encryptionStatusIconType(enabled: boolean): string {
+      switch (enabled) {
+        case true:
+          return 'ok';
+        case false:
+          return 'pending';
         default:
           return 'error';
       }
@@ -456,6 +638,12 @@ h3 {
   width: 80px;
 }
 
+.status-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
 .level-column {
   @media only screen and (min-width: 1200px) {
     width: 20%;
@@ -470,7 +658,7 @@ h3 {
   width: 160px;
 }
 
-.cert-service-name {
+.sub-title {
   margin-top: 30px;
   margin-left: 16px;
 
@@ -485,6 +673,16 @@ h3 {
     font-weight: normal;
     font-size: $XRoad-DefaultFontSize;
     line-height: 20px;
+    padding-right: 16px;
   }
+}
+
+.warning-icon {
+  margin-right: 12px;
+  color: $XRoad-Warning;
+}
+
+.group-name {
+  padding-left: 32px;
 }
 </style>
