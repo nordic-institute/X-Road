@@ -24,3 +24,4 @@ packages/jetty
 classes/
 signer/src/test/resources/.softtoken.p12
 node_modules/
+/lib/
