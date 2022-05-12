@@ -302,13 +302,13 @@
                 </span>
                 <xrd-status-icon
                   :status="
-                    encryptionStatusIconType(backupEncryptionDiagnostics.encryption_status)
+                    encryptionStatusIconType(backupEncryptionDiagnostics.backup_encryption_status)
                   "
                 />
-                {{ $t(`diagnostics.encryption.status.${backupEncryptionDiagnostics.encryption_status}`,) }}
+                {{ $t(`diagnostics.encryption.status.${backupEncryptionDiagnostics.backup_encryption_status}`,) }}
               </div>
 
-              <table class="xrd-table" v-if="backupEncryptionDiagnostics.encryption_status">
+              <table class="xrd-table" v-if="backupEncryptionDiagnostics.backup_encryption_status">
                 <thead>
                   <tr>
                     <th>
@@ -318,7 +318,7 @@
                 </thead>
                 <tbody>
                   <tr
-                    v-for="confKeys in backupEncryptionDiagnostics.encryption_keys"
+                    v-for="confKeys in backupEncryptionDiagnostics.backup_encryption_keys"
                     :key="confKeys"
                   >
                     <td>
@@ -350,16 +350,16 @@
                   {{ $t('diagnostics.encryption.statusTitle') }}
                 </span>
                 <xrd-status-icon
-                  :status="encryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_encryption_status)"
+                  :status="encryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_archive_encryption_status)"
                 />
-                {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_encryption_status}`) }}
+                {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_archive_encryption_status}`) }}
                 <span class="group-name">
                   {{ $t('diagnostics.encryption.messageLog.archive.groupingTitle') }}
                 </span>
                 {{ $t(`${messageLogEncryptionDiagnostics.message_log_grouping_rule}`) }}
               </div>
 
-              <table class="xrd-table" v-if="messageLogEncryptionDiagnostics.message_log_encryption_status">
+              <table class="xrd-table" v-if="messageLogEncryptionDiagnostics.message_log_archive_encryption_status">
                 <thead>
                   <tr>
                     <th>
@@ -412,10 +412,10 @@
               </span>
               <xrd-status-icon
                 :status="
-                  encryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_database_status)
+                  encryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_database_encryption_status)
                 "
               />
-              {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_database_status}`,) }}
+              {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_database_encryption_status}`,) }}
             </div>
             <XrdEmptyPlaceholder
               :loading="messageLogEncryptionLoading"

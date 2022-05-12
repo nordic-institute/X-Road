@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
-import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionMember;
+import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogArchiveEncryptionMember;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatus;
 import org.springframework.stereotype.Component;
 
@@ -38,11 +38,13 @@ public class MessageLogEncryptionStatusConverter {
     public MessageLogEncryptionStatus convert(
             MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics) {
         return new MessageLogEncryptionStatus()
-                .messageLogEncryptionStatus(messageLogEncryptionStatusDiagnostics.isMessageLogEncryptionStatus())
-                .messageLogDatabaseStatus(messageLogEncryptionStatusDiagnostics.isMessageLogDatabaseStatus())
+                .messageLogArchiveEncryptionStatus(messageLogEncryptionStatusDiagnostics
+                        .isMessageLogArchiveEncryptionStatus())
+                .messageLogDatabaseEncryptionStatus(messageLogEncryptionStatusDiagnostics
+                        .isMessageLogDatabaseEncryptionStatus())
                 .messageLogGroupingRule(messageLogEncryptionStatusDiagnostics.getMessageLogGroupingRule())
                 .members(messageLogEncryptionStatusDiagnostics.getMembers().stream()
-                        .map(member -> new MessageLogEncryptionMember()
+                        .map(member -> new MessageLogArchiveEncryptionMember()
                                 .memberId(member.getMemberId())
                                 .keys(member.getKeys())
                                 .defaultKeyUsed(member.isDefaultKeyUsed()))

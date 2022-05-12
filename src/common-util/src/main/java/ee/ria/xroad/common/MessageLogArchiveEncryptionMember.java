@@ -32,7 +32,7 @@ import java.util.Set;
 
 @Getter
 @AllArgsConstructor
-public class MessageLogEncryptionMember {
+public class MessageLogArchiveEncryptionMember {
     private String memberId;
     private Set<String> keys;
     private boolean defaultKeyUsed;

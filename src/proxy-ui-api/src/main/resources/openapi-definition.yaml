@@ -5310,12 +5310,12 @@ components:
       type: object
       description: backup encryption statuses
       required:
-        - encryption_status
+        - backup_encryption_status
       properties:
-        encryption_status:
+        backup_encryption_status:
           type: boolean
           readOnly: true
-        encryption_keys:
+        backup_encryption_keys:
           type: array
           items:
             type: string
@@ -5324,14 +5324,14 @@ components:
       type: object
       description: message log encryption statuses
       required:
-        - message_log_encryption_status
-        - message_log_database_status
+        - message_log_archive_encryption_status
+        - message_log_database_encryption_status
         - message_log_grouping_rule
       properties:
-        message_log_encryption_status:
+        message_log_archive_encryption_status:
           type: boolean
           readOnly: true
-        message_log_database_status:
+        message_log_database_encryption_status:
           type: boolean
           readOnly: true
         message_log_grouping_rule:
@@ -5340,10 +5340,10 @@ components:
         members:
           type: array
           items:
-            $ref: '#/components/schemas/MessageLogEncryptionMember'
-    MessageLogEncryptionMember:
+            $ref: '#/components/schemas/MessageLogArchiveEncryptionMember'
+    MessageLogArchiveEncryptionMember:
       type: object
-      description: message log encryption member
+      description: message log archive encryption member
       required:
         - member_id
       properties:
