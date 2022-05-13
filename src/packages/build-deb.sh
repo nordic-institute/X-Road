@@ -35,7 +35,7 @@ EOF
 
     echo "using packageVersion $packageVersion"
     if [[ $packageVersion != "-release" ]]; then
-        version=$version."$(date --utc --date @"$packageVersion" +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
+        version=$version."$packageVersion"
     else
         export DEB_BUILD_OPTIONS=release
     fi
@@ -64,7 +64,7 @@ cp -a src/xroad-jetty9/ubuntu build/xroad-jetty9/
 
     # version was not given, use empty
     if [ -z "$2" ]; then
-	readonly PACKAGE_VERSION=`git show -s --format=%ct`
+	readonly PACKAGE_VERSION="$(date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
     else
 	readonly PACKAGE_VERSION="$2"
     fi
