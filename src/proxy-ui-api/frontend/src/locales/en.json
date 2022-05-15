@@ -273,6 +273,9 @@
     "invalidXrdIdentifier": "Identifier value contains illegal characters"
   },
   "diagnostics": {
+    "addOnStatus": {
+      "messageLogDisabled": "Disabled by configuration"
+    },
     "globalConfiguration": {
       "configurationStatus": {
         "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
@@ -939,8 +942,7 @@
           "timestampingService": "Timestamping Service"
         }
       },
-      "title": "Timestamping Services",
-      "messageLogDisabled": "Disabled by configuration"
+      "title": "Timestamping Services"
     },
     "title": "System parameters"
   },
