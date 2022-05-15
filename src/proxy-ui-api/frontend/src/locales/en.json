@@ -742,6 +742,7 @@
   },
   "noData": {
     "loading": "Loading... Please wait",
+    "noBackUpEncryptionKeys": "No configured backup encryption keys",
     "noBackups": "No backups yet",
     "noCertificate": "No certificate",
     "noCertificates": "No certificates",
@@ -752,7 +753,7 @@
     "noMatches": "No items matching criteria",
     "noServices": "No services",
     "noServiceClients": "No service clients",
-    "noTimestampingServices": "No Timestaping services",
+    "noTimestampingServices": "No timestaping services",
     "noTokens": "No tokens"
   },
   "serviceClientType": {

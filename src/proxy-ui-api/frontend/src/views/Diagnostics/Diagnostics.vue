@@ -325,14 +325,14 @@
                       {{ confKeys }}
                     </td>
                   </tr>
+                  <XrdEmptyPlaceholderRow
+                    :loading="backupEncryptionLoading"
+                    :data="backupEncryptionDiagnostics.backup_encryption_keys"
+                    :no-items-text="$t('noData.noBackUpEncryptionKeys')"
+                  />
                 </tbody>
               </table>
             </div>
-            <XrdEmptyPlaceholder
-              :loading="backupEncryptionLoading"
-              :data="backupEncryptionDiagnostics"
-              :no-items-text="$t('noData.noData')"
-            />
           </v-card-text>
         </v-card>
 
@@ -396,14 +396,15 @@
                       </v-tooltip>
                     </td>
                   </tr>
+                  <XrdEmptyPlaceholderRow
+                    :colspan="2"
+                    :loading="messageLogEncryptionLoading || addonStatusLoading"
+                    :data="messageLogEncryptionDiagnostics.members"
+                    :no-items-text="$t('noData.noData')"
+                  />
                 </tbody>
               </table>
             </div>
-            <XrdEmptyPlaceholder
-              :loading="messageLogEncryptionLoading || addonStatusLoading"
-              :data="messageLogEncryptionDiagnostics"
-              :no-items-text="$t('noData.noData')"
-            />
           </v-card-text>
         </v-card>
 
