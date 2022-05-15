@@ -310,7 +310,7 @@
         "SUCCESS": "Everything ok",
         "UNKNOWN": "Unknown"
       },
-      "title": "OCSP Responders"
+      "title": "OCSP responders"
     },
     "previousUpdate": "Previous Update",
     "serviceUrl": "Service URL",
