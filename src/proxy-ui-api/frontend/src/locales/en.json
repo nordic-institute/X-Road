@@ -273,7 +273,7 @@
     "invalidXrdIdentifier": "Identifier value contains illegal characters"
   },
   "diagnostics": {
-    "globalCongiguration": {
+    "globalConfiguration": {
       "configurationStatus": {
         "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
         "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
@@ -322,6 +322,29 @@
         "UNKNOWN": "Unknown"
       },
       "title": "Timestamping"
+    },
+    "encryption": {
+      "status": {
+        "false": "Disabled",
+        "true": "Enabled"
+      },
+      "statusTitle": "Encryption status:",
+      "backup": {
+        "title": "Backup encryption",
+        "configuredKeyId": "Configured Key Id"
+      },
+      "messageLog": {
+        "archive": {
+          "title": "Message log archive encryption",
+          "groupingTitle": "Grouping rule:",
+          "memberIdentifier": "Member identifier",
+          "keyId": "Key id",
+          "defaultKeyNote": "This member is configured to use the servers default encryption key. For additional security, consider defining a specific key to be used."
+        },
+        "database": {
+          "title": "Message log database encryption"
+        }
+      }
     }
   },
   "endpoints": {
@@ -916,7 +939,8 @@
           "timestampingService": "Timestamping Service"
         }
       },
-      "title": "Timestamping Services"
+      "title": "Timestamping Services",
+      "messageLogDisabled": "Disabled by configuration"
     },
     "title": "System parameters"
   },

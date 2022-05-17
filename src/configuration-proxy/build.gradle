@@ -32,15 +32,6 @@ jar.enabled = false
 build.dependsOn shadowJar
 buildall.dependsOn shadowJar
 
-task runConfigurationProxyTest(type: JavaExec) {
-    jvmArgs '-Dxroad.conf.path=src/test/resources/',
-            '-Dxroad.common.configuration-path=src/test/resources/test-conf-simple',
-            '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
-
-    mainClass = 'ee.ria.xroad.confproxy.ConfProxyTest'
-    classpath = sourceSets.test.runtimeClasspath
-}
-
 task runConfigurationProxyMain(type: JavaExec) {
     jvmArgs '-Dxroad.conf.path=src/test/resources/',
             '-Dxroad.common.configuration-path=build/',

@@ -25,8 +25,8 @@
  -->
 <template>
   <tr data-test="system.parameters-timestamping-service-row">
-    <td>{{ timestampingService.name }}</td>
-    <td>{{ timestampingService.url }}</td>
+    <td :class="{ disabled: !messageLogEnabled }">{{ timestampingService.name }}</td>
+    <td :class="{ disabled: !messageLogEnabled }">{{ timestampingService.url }}</td>
     <td class="pr-4">
       <xrd-button
         v-if="showDeleteTsp"
@@ -69,6 +69,7 @@ export default Vue.extend({
       type: Object as Prop<TimestampingService>,
       required: true,
     },
+    messageLogEnabled: Boolean,
   },
   data() {
     return {
@@ -80,7 +81,7 @@ export default Vue.extend({
   computed: {
     ...mapState(useUser, ['hasPermission']),
     showDeleteTsp(): boolean {
-      return this.hasPermission(Permissions.DELETE_TSP);
+      return this.hasPermission(Permissions.DELETE_TSP) && this.messageLogEnabled;
     },
   },
   methods: {
@@ -109,6 +110,10 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/colors';
 @import '~styles/tables';
+
+.disabled {
+  color: $XRoad-WarmGrey100;
+}
 
 tr td {
   color: $XRoad-Black100;

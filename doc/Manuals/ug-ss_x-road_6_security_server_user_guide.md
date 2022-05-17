@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.68 
+Version: 2.70 
 Doc. ID: UG-SS
 
 ---
@@ -101,6 +101,8 @@ Doc. ID: UG-SS
  30.11.2021 | 2.66    | Added chapter about configuring account lockouts | Caro Hautamäki
  09.12.2021 | 2.67    | Added instructions for ensuring user account security | Ilkka Seppälä
  09.12.2021 | 2.68    | Updated chapter [22](#22-additional-security-hardening) and added information about password policies  | Caro Hautamäki
+ 13.04.2022 | 2.69    | Updated max loggable body size parameter name to correct one | Raido Kaju
+ 03.05.2022 | 2.70    | Minor updates to system services | Petteri Kivimäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -1653,9 +1655,9 @@ For example, to configure the parameters `archive-path` and `archive-max-filesiz
   
 5.  `disabled-body-logging-remote-producer-subsystems` - when message-body-logging is set to true, this field contains the overrides for the remote producer subsystems.
 
-6.  `max-loggable-body-size` - the maximum REST message body size that will be written to the messagelog.
+6.  `max-loggable-message-body-size` - the maximum REST message body size that will be written to the messagelog.
 
-7.  `truncated-body-allowed` - if the REST message body size exceeds the max-loggable-body-size, truncate the body (true) or reject the message (false)
+7.  `truncated-body-allowed` - if the REST message body size exceeds the max-loggable-message-body-size truncate the body (true) or reject the message (false)
 
 8.  `messagelog-encryption-enabled` - if set to true, the message bodies are written to the database in an encrypted format
 
@@ -2316,13 +2318,16 @@ It is possibility to limit what allowed non-owners can request via environmental
 
 The most important system services of a security server are as follows.
 
- **Service**           | **Purpose**                                             | **Log**
--------------------    | ------------------------------------------------------  | -----------------------------------------
- `xroad-confclient`    | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
- `xroad-proxy`         | Message exchanger                                       | `/var/log/xroad/proxy.log`
- `xroad-signer`        | Manager process for key settings                        | `/var/log/xroad/signer.log`
- `xroad-proxy-ui-api`  | Management UI and REST API                              | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
-
+ **Service**              | **Purpose**                                             | **Log**
+------------------------- | ------------------------------------------------------  | -----------------------------------------
+ `xroad-addon-messagelog` | Message log archiving and cleaning of the message logs  | `/var/log/xroad/messagelog-archiver.log`
+ `xroad-confclient`       | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
+ `xroad-proxy`            | Message exchanger                                       | `/var/log/xroad/proxy.log`
+ `xroad-signer`           | Manager process for key settings                        | `/var/log/xroad/signer.log`
+ `xroad-proxy-ui-api`     | Management UI and REST API                              | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
+ `xroad-monitor`          | Environmental monitoring                                | `/var/log/xroad/monitor.log`
+ `xroad-opmonitor`        | Operational monitoring                                  | `/var/log/xroad/op-monitor.log`
+ 
 System services are managed through the *systemd* facility.
 
 **To start a service**, issue the following command as a `root` user:

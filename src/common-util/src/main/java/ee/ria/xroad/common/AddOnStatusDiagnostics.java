@@ -1,6 +1,5 @@
-/*
+/**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,48 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import StatusIcon from './StatusIcon.vue';
+package ee.ria.xroad.common;
 
-export default {
-  title: 'X-Road/Status icon',
-  component: StatusIcon,
-  argTypes: {
-    status: {
-      control: {
-        type: 'select',
-        options: [
-          'ok',
-          'ok-disabled',
-          'saved',
-          'progress-register',
-          'progress-register-disabled',
-          'progress-delete',
-          'error',
-        ],
-      },
-    },
-  },
-};
-
-const Template = (args, { argTypes }) => ({
-  props: Object.keys(argTypes),
-  components: { StatusIcon },
-  template: `
-    <div>
-    <status-icon v-bind="$props" /><br>
-    <status-icon status="ok" /> ok<br>
-    <status-icon status="ok-disabled" /> ok-disabled<br>
-    <status-icon status="saved" /> saved<br>
-    <status-icon status="progress-register" /> progress-register<br>
-    <status-icon status="progress-register-disabled" /> progress-register-disabled<br>
-    <status-icon status="progress-delete" /> progress-delete<br>
-    <status-icon status="error" /> error<br>
-    <status-icon status="error-disabled" /> error-disabled<br>
-    <status-icon status="pending" /> pending<br>
-    </div>`,
-});
-
-export const Primary = Template.bind({});
-Primary.args = {
-  status: 'error',
-};
+import lombok.Value;
+/**
+ * Information about status (enabled/disabled) of addons
+ */
+@Value
+public class AddOnStatusDiagnostics {
+    boolean messageLogEnabled;
+}
