@@ -2110,6 +2110,7 @@ To decrypt the encrypted backups, use the following syntax:
 
 ```bash
 gpg --homedir /etc/xroad/gpghome --decrypt <backup name> --output <output file name> 
+```
 
 ### 13.5 Verifying Backup Archive Consistency
 
