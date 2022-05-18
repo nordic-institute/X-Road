@@ -1788,7 +1788,7 @@ gpg --homedir <archive-gpg-home-directory> --import INSTANCE-memberClass-memberC
 
 Edit the key and add ultimate trust.
 ```bash
-gpg --edit-key <key id>
+gpg --homedir <archive-gpg-home-directory> --edit-key <key id>
 ```
 
 At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` to confirm, then `quit`.
@@ -2094,12 +2094,12 @@ gpg --homedir /etc/xroad/gpghome --import backupadmin@example.org.pgp
 
 Edit the key and add ultimate trust.
 ```bash
-gpg --edit-key <key id>
+gpg --homedir /etc/xroad/gpghome/ --edit-key <key id>
 ```
 
 At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` to confirm, then `quit`.
 
-Add the key ID to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
+Add the key id to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
 ```bash
 [proxy]
 backup-encryption-enabled = true
