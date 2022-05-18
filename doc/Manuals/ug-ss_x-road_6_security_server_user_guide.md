@@ -186,7 +186,7 @@ Doc. ID: UG-SS
   * [11.1 Changing the Configuration of the Message Log](#111-changing-the-configuration-of-the-message-log)
     * [11.1.1 Common Parameters](#1111-common-parameters)
     * [11.1.2 Logging Parameters](#1112-logging-parameters)
-    * [11.1.3 Messagelog Encryption](#1113-messagelog-encryption)
+    * [11.1.3 Message Log Encryption](#1113-message-log-encryption)
     * [11.1.4 Timestamping Parameters](#1114-timestamping-parameters)
     * [11.1.5 Archiving Parameters](#1115-archiving-parameters)
     * [11.1.6 Archive Files](#1116-archive-files)
@@ -1671,7 +1671,7 @@ For example, to configure the parameters `archive-path` and `archive-max-filesiz
 11.  `messagelog-key-id` - messagelog keystore key id
 
 
-#### 11.1.3 Messagelog Encryption
+#### 11.1.3 Message Log Encryption
 
 The message bodies can be encrypted (`messagelog-encryption-enabled = true`) when stored to the database. By default, the encryption is disabled. Also, the encryption is fully transparent to all the external interfaces, e.g., the signed document download service. The encryption is symmetric, the used cipher is AES-CTR, and the encryption is performed using Java code.
 
@@ -1806,10 +1806,10 @@ INSTANCE/memberClass/memberCode = 96F20FF6578A5EF90DFBA18D8C003019508B5637
 
 Add the mapping file location (`archive-encryption-keys-config`) and grouping level (`archive-grouping`) to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
 ```bash
-[proxy]
+[message-log]
 archive-encryption-enabled = true
 archive-grouping = member
-archive-encryption-keys-config = /etc/xroad/gpghome/archive-encryption-mapping.ini
+archive-encryption-keys-config = /etc/xroad/messagelog/archive-encryption-mapping.ini
 ```
 
 To decrypt the encrypted archives, use the following syntax:
