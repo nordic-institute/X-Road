@@ -53,6 +53,9 @@
     <v-icon v-else-if="status === 'pending'" small color="#F5A623"
       >icon-Error</v-icon
     >
+    <v-icon v-else-if="status === 'pending-disabled'" small color="#575169"
+      >icon-Error</v-icon
+    >
   </div>
 </template>
 
@@ -79,6 +82,7 @@ export default Vue.extend({
           'error',
           'error-disabled',
           'pending',
+          'pending-disabled',
         ].includes(val),
     },
   },
