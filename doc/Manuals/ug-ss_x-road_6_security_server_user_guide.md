@@ -1673,9 +1673,11 @@ For example, to configure the parameters `archive-path` and `archive-max-filesiz
 
 #### 11.1.3 Messagelog Encryption
 
-The message bodies can be encrypted (`messagelog-encryption-enabled = true`) when stored to the database. The encryption is symmetric, the used cipher is AES-CTR, and the encryption is performed using Java code.
+The message bodies can be encrypted (`messagelog-encryption-enabled = true`) when stored to the database. By default, the encryption is disabled. Also, the encryption is fully transparent to all the external interfaces, e.g., the signed document download service. The encryption is symmetric, the used cipher is AES-CTR, and the encryption is performed using Java code.
 
-When encryption is switched on, the implementation expects to find the keystore in the location pointed by `messagelog-keystore`. The keystore should contain an encryption key with the identifier specified in `messagelog-key-id`. The keystore password is specified in `messagelog-keystore-password`.
+In the message log database, there are two separate columns for plaintext (`message`) and encrypted (`ciphermessage`) message body. The message body is always stored in one of the two columns depending on the configuration. Instead, the other column that is not used is left empty. When message log database encryption is enabled/disabled, the change doesn't affect already existing records in the database. For example, when message log database encryption is enabled, all the records created after the configuration change will be encrypted and stored in the `ciphermessage` column. Instead, all the records stored before the change will remain in plaintext in the `message` column.
+
+When encryption is switched on, the implementation expects to find the keystore in the location pointed by `messagelog-keystore`. The keystore should contain an encryption key with the identifier/alias specified in `messagelog-key-id`. The keystore password is specified in `messagelog-keystore-password`.
 
 For example, add the following to `/etc/xroad/conf.d/local.ini`:
 
@@ -1750,9 +1752,11 @@ Archive files can be encrypted (when `archive-encryption-enabled = true`) using 
 
 By default, the produced archive files contain messages from all the security server's members, but it's possible to group the archives by member or by subsystem if needed. The grouping is controlled by the setting `archive-grouping`. The grouping is enabled/disabled on a security server level - it is either enabled or disabled for all the members and subsystems.
 
-When encryption is enabled, the archiving process expects to find a GnuPG keyring containing the server signing keypair in `archive-gpg-home-directory` (by default this is the same as the backup signing and encryption keypair). This keypair is used to sign the generated archive files, and as a fallback encryption key if no other keys are configured.
+Message log archive encryption and grouping can be configured separately. For example, the archives can be encrypted but not grouped (or vice versa). By default, both features are disabled.
 
-The `archive-default-encryption-key` can use used to override the default encryption key id, which is used when `archive-grouping` is `none` or no member gpg key is defined. Changing this parameter requires restarting the xroad-addon-messagelog service.
+When encryption is enabled, the archiving process expects to find a GnuPG keyring containing the server signing keypair in `archive-gpg-home-directory` (by default `/etc/xroad/gpghome`). When the default value is used the server signing keypair is the same as the backup signing and encryption keypair. This keypair is used to sign the generated archive files, and as a fallback encryption key if no other keys are configured.
+
+The `archive-default-encryption-key` can be used to override the default encryption key id, which is used when `archive-grouping` is `none` or no member gpg key is defined. Changing this parameter requires restarting the xroad-addon-messagelog service.
 
 In case `archive-grouping` is `member` or `subsystem`, gpg keys defined in file `archive-encryption-keys-config` are used (if no key is defined for the member, the default encryption key is used). This file maps member identifiers to gpg key identifiers and has the following format:
 ```
@@ -1775,7 +1779,9 @@ In case `archive-grouping` is `member` or `subsystem`, gpg keys defined in file 
 
 Warning. The archiving process fails if a required key is not present in the gpg keyring. Therefore, it is important to verify that the mappings are correct.
 
-For example, generate a keypair for encryption with defaults and no expiration and export the public key:
+**Configuration example**
+
+Generate a keypair for encryption with defaults and no expiration and export the public key:
 ```bash
 gpg [--homedir <member gpghome>] --quick-generate-key INSTANCE/memberClass/memberCode default default never
 gpg [--homedir <member gpghome>] --export INSTANCE/memberClass/memberCode >INSTANCE-memberClass-memberCode.pgp
@@ -1796,6 +1802,14 @@ At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` t
 Add the mapping to `archive-encryption-keys-config` file (mappings can be edited without restarting X-Road services), e.g.:
 ```bash
 INSTANCE/memberClass/memberCode = 96F20FF6578A5EF90DFBA18D8C003019508B5637
+```
+
+Add the mapping file location (`archive-encryption-keys-config`) and grouping level (`archive-grouping`) to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
+```bash
+[proxy]
+archive-encryption-enabled = true
+archive-grouping = member
+archive-encryption-keys-config = /etc/xroad/gpghome/archive-encryption-mapping.ini
 ```
 
 To decrypt the encrypted archives, use the following syntax:
@@ -2081,10 +2095,12 @@ Resulting file `backupadmin.publickey` should be moved to security server and im
 Private keys corresponding to additional backup encryption public keys must be handled safely and kept in secret. Any of
 them can be used to decrypt backups and thus mount attacks on the security servers.
 
-For example, generate a keypair for encryption with defaults and no expiration and export the public key:
+**Configuration example**
+
+Generate a keypair for encryption with defaults and no expiration and export the public key:
 ```bash
-gpg [--homedir <member gpghome>] --quick-generate-key backupadmin@example.org default default never
-gpg [--homedir <member gpghome>] --export backupadmin@example.org >backupadmin@example.org.pgp
+gpg [--homedir <admin gpghome>] --quick-generate-key backupadmin@example.org default default never
+gpg [--homedir <admin gpghome>] --export backupadmin@example.org >backupadmin@example.org.pgp
 ```
 
 Import the public key to the gpg keyring in `/etc/xroad/gpghome` directory and take note of the key id.
@@ -2182,7 +2198,7 @@ Security server Java version information provides the following details:
 ---------------------------|------------
 Status                     | Green/red
 Message                    | Status message
-Vendor name                | Java vendor name that the security server is using
+Vendor name                | Vendor name of Java that the security server is using
 Java version               | Java version number that the security server is using
 Earliest supported version | Earliest supported Java version number
 Latest supported version   | Latest supported Java version number
@@ -2205,8 +2221,6 @@ The status colors indicate the following:
 - **Green indicator** – backup encryption is enabled
 
 **Message log archive encryption status**
-
-The status shows is the message log archive encryption `enabled` or `disabled`.
 
 The status shows is the message log archive encryption `enabled` or `disabled`. The Grouping rule shows the grouping level (`NONE`, `MEMBER`, `SUBSYSTEM`) of the message log archives.
 
