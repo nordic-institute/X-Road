@@ -3,7 +3,7 @@ import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
 buildscript {
     ext {
         // currently duplicate with proxy-ui-api build.gradle, probably should fix
-        openapiGeneratorVersion = '5.2.1'
+        openapiGeneratorVersion = '5.3.1'
         swaggerParserVersion = '2.0.28'
     }
     repositories {
@@ -18,7 +18,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "2020.0.4")
+    set('springCloudVersion', "2020.0.5")
 }
 
 sourceSets {
@@ -57,7 +57,6 @@ dependencies {
     testImplementation('org.hsqldb:hsqldb')
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-    implementation('org.openapitools:jackson-databind-nullable:0.2.1')
     implementation('javax.validation:validation-api')
 }
 
@@ -84,7 +83,10 @@ openApiGenerate {
     ]
     configOptions = [
             interfaceOnly: "true",
-            useTags      : "true"
+            useTags      : "true",
+            documentationProvider: "none",
+            skipDefaultInterface : "true",
+            openApiNullable: "false"
     ]
 }
 

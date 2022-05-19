@@ -34,8 +34,9 @@ dependencies {
     api "com.typesafe.akka:akka-remote_$akkaVersion"
     api "com.typesafe.akka:akka-slf4j_$akkaVersion"
 
-    api "com.fasterxml.jackson.core:jackson-databind:${project.property('jackson.version')}"
-    api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${project.property('jackson.version')}"
+    api platform("com.fasterxml.jackson:jackson-bom:${jacksonBomVersion}")
+    api "com.fasterxml.jackson.core:jackson-databind"
+    api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
     api 'com.google.code.gson:gson:2.8.7'
     api "com.google.guava:guava:$guavaVersion"

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION=7.0.2
+VERSION=7.0.3
 LAST_SUPPORTED_VERSION=6.26.0
 
 if [[ $1 == "-release" ]] ; then

@@ -34,9 +34,8 @@ parrt@antlr.org
 
 (c) 2001-2002 <http://bcel.sourceforge.net> <http://jakarta.apache.org/bcel>
 Copyright (c) 1999-2007, 2016-2017 The Apache Software Foundation
-Copyright (c) 2002 Kevin Atkinson (kevina@gnu.org)
 Copyright 1999-2021 Apache Software Foundation
-Copyright 1999-2021 The Apache Software Foundation
+Copyright 1999-2022 The Apache Software Foundation
 Copyright 2004 Jason Paul Kitchen
 Copyright 2005-2006 Tim Fennell
 copyright (c) 1999 IBM Corporation., http://www.ibm.com
@@ -155,19 +154,19 @@ SUCH DAMAGE.
 (c) Gerd Neugebauer
 (c) List, Tuple2, Int
 (c) M '. group Trees
-(c) Override public Session
 (c) Robert Wenner
 (c) Steffen Klupsch
 (c) Torsten Neuer
 (c) null Project
 (c) value.ch
 Copyright (c) $year Lightbend Inc. <https://www.lightbend.com>
-Copyright (c) 1993-2008 OASIS(R)
-Copyright (c) 1995-2012 Sabre Holdings
-Copyright (c) 1995-2021 Mort Bay Consulting Pty Ltd and others
+Copyright (c) 1995-2022 Mort Bay Consulting Pty Ltd and others
+Copyright (c) 1997, 2011, 2018 by ProSyst Software GmbH and others. http://www.prosyst.com
+Copyright (c) 1997-2009, 2012, 2015, 2018 by ProSyst Software GmbH http://www.prosyst.com
 Copyright (c) 1997-2021 Oracle and/or its affiliates
 Copyright (c) 1998-1999 World Wide Web Consortium, (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University)
 Copyright (c) 1998-2003 Xerox Corporation, Palo Alto Research Center, Incorporated (PARC)
+Copyright (c) 1998-2022 IBM Corporation and others
 Copyright (c) 1999 Shigeru Chiba
 Copyright (c) 1999 http://www.w3.org
 Copyright (c) 1999-2001 Xerox Corporation
@@ -178,14 +177,12 @@ Copyright (c) 1999-2002 Someone
 Copyright (c) 1999-2002 Xerox Corporation, Palo Alto Research Center, Incorporated
 Copyright (c) 1999-2009 OW2 Consortium <https://www.ow2.org/>
 Copyright (c) 1999-2018 Xerox Corporation, Palo Alto Research Center, Incorporated (PARC), Contributors
-Copyright (c) 1999-2021 Apache Software Foundation
-Copyright (c) 1999-2021 The Apache Software Foundation
+Copyright (c) 1999-2022 Apache Software Foundation
+Copyright (c) 1999-2022 The Apache Software Foundation
 Copyright (c) 2000 a http://www.acmee.com Acmee Inc /a , br
+Copyright (c) 2000-2001, 2003-2005, 2007-2011, 2013, 2015-2021 IBM Corporation
 Copyright (c) 2000-2002, 2004-2021 OSGi Alliance ()
-Copyright (c) 2000-2004 Jason Hunter & Brett McLaughlin
-Copyright (c) 2000-2021 IBM Corporation and others
 Copyright (c) 2001 The Internet Society ()
-Copyright (c) 2001, 2004 World Wide Web Consortium, (Massachusetts Institute of Technology, European Research Consortium for Informatics and Mathematics, Keio University)
 Copyright (c) 2001-2011 http://www.apache.org/' The Apache Software Foundation
 Copyright (c) 2002 $ copyright Pivotal, Inc.
 Copyright (c) 2002 Kevin Atkinson (kevina@gnu.org)
@@ -202,14 +199,12 @@ Copyright (c) 2002-2019 Palo Alto Research Center, Incorporated (PARC)
 Copyright (c) 2002-2021 A href https://www.epfl.ch
 Copyright (c) 2002-2021 Contributors
 Copyright (c) 2002-2021 EPFL
-Copyright (c) 2002-2021 Pivotal, Inc.
+Copyright (c) 2002-2022 Pivotal, Inc.
 Copyright (c) 2004 Bill Burke
 Copyright (c) 2004, 2013 IBM, VMware
 Copyright (c) 2004, 2019 IBM Corporation, contributors
-Copyright (c) 2004-2005, 2007, 2013, 2015-2021 IBM Corporation
 Copyright (c) 2004-2006, 2008 Tatu Saloranta, tatu.saloranta@iki.fi
 Copyright (c) 2004-2006, 2017 IBM
-Copyright (c) 2004-2013 QOS.ch
 Copyright (c) 2004-2016 IBM, VMware, Contributors
 Copyright (c) 2005 Brian Goetz and Tim Peierls
 Copyright (c) 2005 IBM Corporation Ltd
@@ -217,38 +212,41 @@ Copyright (c) 2005 IBM, Contributors
 Copyright (c) 2005, 2007-2010, 2013, 2016 BEA Systems, Inc.
 Copyright (c) 2005, 2017 BEA Systems, Inc, IBM Corporation and others
 Copyright (c) 2005-2006, 2013, 2016 QNX Software Systems and others
-Copyright (c) 2005-2007 Kunle Odutola
+Copyright (c) 2005-2006, 2018-2019 Cognos Incorporated, IBM Corporation
 Copyright (c) 2005-2007, 2018 BEA Systems, Inc and others
-Copyright (c) 2005-2009 Kunle Odutola, Johannes Luber
+Copyright (c) 2005-2012, 2014-2022 Cognos Incorporated, IBM Corporation and others
 Copyright (c) 2005-2021 The Guava Authors
-Copyright (c) 2006, 2008-2012, 2014-2017 Google Inc.
 Copyright (c) 2006, 2011 Ben Konrath <ben@bagu.org>
-Copyright (c) 2006, 2011-2012, 2016-2017, 2020-2021 Cognos Incorporated, IBM Corporation and others
 Copyright (c) 2006, 2016 Eclipse Foundation and others
+Copyright (c) 2006, 2018 Cognos Incorporated
 Copyright (c) 2006, 2018 IBM Corp. and others
 Copyright (c) 2006, 2081 IBM and contributors
 Copyright (c) 2006-2008, 2012, 2016-2017, 2020 Wind River Systems, Inc. and others
 Copyright (c) 2006-2015 Bob Aman
 Copyright (c) 2007 20013 Timothy Wall
 Copyright (c) 2007 Olivier Chafik
-Copyright (c) 2007 Toshiba
 Copyright (c) 2007 Wayne Meissner
 Copyright (c) 2007, 2013 Timothy Wall, Markus Karg
 Copyright (c) 2007, 2016 Symbian Software Systems and others
 Copyright (c) 2007-2015 Timothy Wall
 Copyright (c) 2008 Alexander Beider & Stephen P. Morse
+Copyright (c) 2008 Jay Rosenthal
 Copyright (c) 2008 Stefan Endrullis
 Copyright (c) 2008 http://www.snakeyaml.org
 Copyright (c) 2008 http://www.w3.org/' title World Wide Web Consortium' W3C
+Copyright (c) 2008 user and others
+Copyright (c) 2008, 2010-2013, 2015-2016, 2020 VMware, Inc.
+Copyright (c) 2008, 2011 Gunnar Wagenknecht, IBM Corporation and others
 Copyright (c) 2008, 2014 Technical
+Copyright (c) 2008, 2015 Wind River Systems and others
+Copyright (c) 2008, 2017-2018 Jay Rosenthal and others
+Copyright (c) 2008-2009, 2013 Heiko Seeberger and others
+Copyright (c) 2008-2009, 2013-2014, 2017 Martin Lippert and others
 Copyright (c) 2008-2010, 2014-2016 Freescale Semiconductor and others
-Copyright (c) 2008-2017 Hazelcast, Inc.
-Copyright (c) 2008-2019 Pivotal Software, Inc.
+Copyright (c) 2008-2011, 2013, 2021 EclipseSource and others
+Copyright (c) 2008-2012, 2014-2017, 2020-2021 Google Inc.
 Copyright (c) 2009 Collaborative Development Group, C.S. Dept., University of Bari
-Copyright (c) 2009 by Oracle Corporation
-Copyright (c) 2009-2010 International Business Machines Corporation and others
 Copyright (c) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
-Copyright (c) 2009-2019 The Libphonenumber Authors
 Copyright (c) 2009-2020 Lightbend Inc. < https://www.lightbend.com (https://www.lightbend.com)>
 Copyright (c) 2009-2021 Lightbend Inc. <https //www.lightbend.com>
 Copyright (c) 2009-2021 Lightbend Inc. <https://www.lightbend.com>
@@ -256,16 +254,25 @@ Copyright (c) 2010 EugineLev
 Copyright (c) 2010 SpringSource, Contributors
 Copyright (c) 2010 The Android Open Source Project
 Copyright (c) 2010, 2012 Lucierna
-Copyright (c) 2010, 2012 SAP AG and others
+Copyright (c) 2010, 2013 Composent, Inc. and others
 Copyright (c) 2010, 2013 Daniel Doubrovkine, Markus Karg
-Copyright (c) 2010, 2014-2018, 2020 Google, Inc and others
+Copyright (c) 2010, 2013-2018, 2020 Google, Inc and others
+Copyright (c) 2010, 2015 Oracle Corporation and others
+Copyright (c) 2010, 2017 IBM Corporation, SAP AG and others
+Copyright (c) 2010, 2017 IBM Corporation, SAP AG.
 Copyright (c) 2010-2011 Daniel Doubrovkine
+Copyright (c) 2010-2011 IBM, Composent, Inc. and others
 Copyright (c) 2010-2011, 2015 Broadcom Corporation and others
+Copyright (c) 2010-2011, 2018 EclipseSource Inc. and others
+Copyright (c) 2010-2012, 2017-2018 SAP AG
 Copyright (c) 2010-2013 Coda Hale
+Copyright (c) 2010-2013, 2017-2018, 2020-2021 SAP AG and others
 Copyright (c) 2011 Denis Tulskiy
 Copyright (c) 2011, 2013, 2015, 2017-2020 GK Software AG, and others
-Copyright (c) 2011-2012 VMware, Inc.
+Copyright (c) 2011, 2013, 2015-2016, 2021 VMware Inc. and others
+Copyright (c) 2011, 2014, 2017-2018 BestSolution.at and others
 Copyright (c) 2011-2012, 2015 Typesafe Inc. <http //typesafe.com>
+Copyright (c) 2011-2012, 2017-2018 Gunnar Wagenknecht and others
 Copyright (c) 2011-2015 Typesafe Inc. <http://typesafe.com>
 Copyright (c) 2011-2021 Lightbend, Inc.
 Copyright (c) 2012 Square, Inc.
@@ -274,21 +281,30 @@ Copyright (c) 2012-2013 Tobias Wolf
 Copyright (c) 2012-2014 Lightbend Inc. <http://www.lightbend.com>
 Copyright (c) 2012-2014 The JRuby Team (https://github.com/jruby)
 Copyright (c) 2012-2016 University of Washington
+Copyright (c) 2012-2016, 2018, 2020 Dirk Fauth and others
 Copyright (c) 2013 Jesper S Moller and others
 Copyright (c) 2013 Jesper Steen Moeller and others
 Copyright (c) 2013 Ralf Hamberger, Markus Karg
 Copyright (c) 2013 VMware
 Copyright (c) 2013, 2016 GoPivotal, Inc.
+Copyright (c) 2013-2014 Tom Schindl <tom.schindl@bestsolution.at> and others
+Copyright (c) 2013-2015, 2017 Markus Alexander Kuppe and others
 Copyright (c) 2013-2017, 2019 Brett Wooldridge
 Copyright (c) 2013-2020 GK Software AG.
 Copyright (c) 2014 Contributor
+Copyright (c) 2014 Dec 5, Liferay, Inc.
 Copyright (c) 2014 Dr David H. Akehurst (itemis)
 Copyright (c) 2014 Reinhard Pointner
 Copyright (c) 2014 Trymph Inc.
+Copyright (c) 2014, 2018-2020 Liferay, Inc.
 Copyright (c) 2014-2015, 2018-2021 Mateusz Matela and others
-Copyright (c) 2014-2019 Red Hat Inc. and others
+Copyright (c) 2014-2016, 2018, 2021 vogella GmbH and others
+Copyright (c) 2014-2016, 2019 Raymond Auge
+Copyright (c) 2014-2019, 2021 Red Hat Inc. and others
+Copyright (c) 2014-2021 Raymond Auge and others
 Copyright (c) 2015 $currentYear Lightbend Inc. <https://www.lightbend.com>
 Copyright (c) 2015 Andreas PAX L u00FCck
+Copyright (c) 2015 Feb 23, Raymond Auge and others
 Copyright (c) 2015 Goldstein Lyor
 Copyright (c) 2015 Michael Freeman
 Copyright (c) 2015, 2017 Daniel Widdis
@@ -296,54 +312,63 @@ Copyright (c) 2015-2016 Adam Marcionek
 Copyright (c) 2015-2020 Vladimir Bukhtoyarov
 Copyright (c) 2015-2021 the original authors
 Copyright (c) 2016 Minoru Sakamoto
-Copyright (c) 2016 Mockito
-Copyright (c) 2016 Red Hat Inc.
-Copyright (c) 2016, 2020 Alex Blewitt and others
+Copyright (c) 2016, 2020-2021 Alex Blewitt and others
+Copyright (c) 2016, 2020-2021 Red Hat Inc.
 Copyright (c) 2016-2017 Matthias Blasing
 Copyright (c) 2016-2018 Gson
 Copyright (c) 2016-2018 The Gson authors
 Copyright (c) 2016-2018 Till Brychcy and others
+Copyright (c) 2017 Ecliptical Software Inc. and others
 Copyright (c) 2017 Nicolas Cazottes
 Copyright (c) 2017 public
+Copyright (c) 2017 salesforce.com
 Copyright (c) 2017, 2019 GK Software SE, and others
 Copyright (c) 2017-2019 Simeon Andreev and others
 Copyright (c) 2018 Connexta, LLC and others
+Copyright (c) 2018 Inno-Tec Innovative Technologies GmbH. and others
+Copyright (c) 2018 InterSystems Corporation and others
+Copyright (c) 2018 Jan 20, Liferay, Inc.
+Copyright (c) 2018, 2020 Julian Honnen
 Copyright (c) 2019 Eclipse Foundation
+Copyright (c) 2019 Feb. 1, Liferay, Inc.
+Copyright (c) 2019 Feb. 2, Liferay, Inc.
+Copyright (c) 2019 Jan. 26, Liferay, Inc.
+Copyright (c) 2019 Jan. 27, Liferay, Inc.
+Copyright (c) 2019 Jan. 28, Liferay, Inc.
+Copyright (c) 2019 Jan. 29, Liferay, Inc.
 Copyright (c) 2019 Lablicate GmbH and others
+Copyright (c) 2019 Mar. 28, Liferay, Inc.
 Copyright (c) 2019 Paul Pazderski, Thomas Wolf, and others
 Copyright (c) 2019 Sebastian Zarnekow and others
+Copyright (c) 2019 Sept. 16, Liferay, Inc.
+Copyright (c) 2019 Xored Software Inc and others
+Copyright (c) 2019-2020 ArSysOp and others
 Copyright (c) 2019-2020 SAP SE and others
 Copyright (c) 2020 20107, IBM Corporation and others
 Copyright (c) 2020 Andrey Loskutov and others
-Copyright (c) 2020 ArSysOp and others
 Copyright (c) 2020 Christoph Laeubrich and others
 Copyright (c) 2020 Gayan Perera and others
-Copyright (c) 2020 Julian Honnen
 Copyright (c) 2020 Marcus Hoepfner and others
-Copyright (c) 2021 Hannes Wellmann and others
+Copyright (c) 2020 Thomas Wolf <thomas.wolf@paranor.ch> and others
+Copyright (c) 2021 Christoph Laubrich and others
 Copyright (c) 2021 Indel AG and others
+Copyright (c) 2021 Joerg Kubitz
 Copyright (c) 2021 Joerg Kubitz and others
-Copyright (c) 2021 vogella GmbH and others
-Copyright (c) Kartik Visweswaran
-Copyright (c) copyright-range Mort Bay Consulting Pty Ltd and others
-Copyright (c) inceptionYear currentYear organizationName
+Copyright (c) 2021-2022 Hannes Wellmann and others
+Copyright (c) 2022 Andrey Loskutov <loskutov@gmx.de> and others
 Copyright (c) year IBM Corporation and others
 Copyright (c) year YOUR EMPLOYER and others
 Copyright 1985-2000 MERANT.
-Copyright 1998-2002 Lucent Technologies
 Copyright 1999-2021 Apache Software Foundation
-Copyright 1999-2021 The Apache Software Foundation
-Copyright 2000-2015 Willy Tarreau <willy@haproxy.org>
+Copyright 1999-2022 The Apache Software Foundation
 Copyright 2001 xa9 Institute
 Copyright 2001-2002 Juila Smith
 Copyright 2001-2002 me br
 Copyright 2001-2006 International Business Machines Corporation and Microsoft Corporation
 Copyright 2001-2013 Artima, Inc.
-Copyright 2001-2017 Stephen Colebourne
 Copyright 2002 $ year the original author or authors
 Copyright 2002-2012 Ramnivas Laddad, Juergen Hoeller, Chris Beams
-Copyright 2002-2021 the original author or authors
-Copyright 2003 Wily Technology, Inc.
+Copyright 2002-2022 the original author or authors
 Copyright 2003-2004 BEA Systems Inc. and IBM Corporation and Microsoft Corporation
 Copyright 2003-2009 Sun Microsystems, Inc.
 Copyright 2003-2010 Christian d'Heureuse, Inventec Informatik AG, Zurich, Switzerland
@@ -351,32 +376,24 @@ Copyright 2004 Jason Paul Kitchen
 Copyright 2004-2006, 2009 Acegi Technology Pty Limited
 Copyright 2004-2010 IBM Corp.
 Copyright 2005-2006 Tim Fennell
-Copyright 2005-2007 Kunle Odutola
 Copyright 2005-2018 LAMP/EPFL Adapted from Lex Spoon's
 Copyright 2006 International Business Machines Corp.
-Copyright 2006 MbUnit
-Copyright 2006 today.year the original author or authors
 Copyright 2006-2019 Joe Walnes, Henri Tremblay, Leonardo Mesquita
 Copyright 2007 copy -$ year Timothy Wall
 Copyright 2007 present the original author or authors
 Copyright 2007-2017 Timothy Wall
 Copyright 2008-2012, 2015, 2017 Google Inc.
 Copyright 2009 IIZUKA Software Technologies Ltd
-Copyright 2009-2013, 2017, 2019-2020 Red Hat, Inc.
 Copyright 2009-2018 Lightbend Inc. <https://www.lightbend.com>
 Copyright 2010 Digital Rapids Corp.
-Copyright 2010-2011, 2013-2014, 2017, 2020 Red Hat, Inc., and individual contributors
+Copyright 2010-2011, 2013, 2017, 2019-2020 Red Hat, Inc.
+Copyright 2010-2011, 2013-2014, 2020 Red Hat, Inc., and individual contributors
 Copyright 2010-2020 Coda Hale and Yammer, Inc., Dropwizard Team
 Copyright 2011 LMAX Ltd.
-Copyright 2011 The Libphonenumber Authors
-Copyright 2011, 2014 The Libphonenumber Authors , Daniel Pocock http://danielpocock.com
 Copyright 2011-2021 The Error Prone
 Copyright 2012 Twitter, Inc
 Copyright 2012 Twitter, Inc. http://www.apache.org/licenses/LICENSE-2.0.txt
-Copyright 2012-2013, 2017 The Netty Project
-Copyright 2012-2017 Connect2id Ltd.
 Copyright 2013 FasterXML.com
-Copyright 2013 LinkedIn Corp.
 Copyright 2013-2020 The OpenZipkin Authors
 Copyright 2014 Attila Szegedi, Daniel Dekany, Jonathan Revusky
 Copyright 2014 Martin Steiger
@@ -387,14 +404,9 @@ Copyright 2016 Ben Manes
 Copyright 2016 Jeroen van Erp <jeroen@hierynomus.com>
 Copyright 2016-2017 SmartBear Software
 Copyright 2017 Remko Popma
-Copyright 2017, 2020 Pivotal Software, Inc.
-Copyright 2017-2021 VMware, Inc.
-Copyright 2019 The Guava Authors
-Copyright 2019-2020 Jeremie Bresson
 Copyright E2012-20
 Copyright Terracotta, Inc.
 Copyright today.year The Error Prone
-Copyright value http://www.antlr.org
 Portions copyright 2005 Sun Microsystems, Inc.
 copyright (c) 1999 IBM Corporation., http://www.ibm.com
 copyright (c) 1999 Sun Microsystems., http://www.sun.com
@@ -1068,7 +1080,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Copyright (c) 1996 site.time
 Copyright (c) 1996-2021 The PostgreSQL Global Development Group
 Copyright (c) 1997 $lastEditYear PostgreSQL Global Development Group
-Copyright (c) 1997, 2001, 2003-2021 PostgreSQL Global Development Group
+Copyright (c) 1997, 2001, 2003-2022 PostgreSQL Global Development Group
 Copyright (c) 1999 The Apache Software Foundation
 Copyright (c) 2001 Shugo Maeda <shugo@modruby.net>
 Copyright (c) 2003 Dave Thomas
@@ -1078,9 +1090,6 @@ Copyright (c) 2006-2008 Ola Bini <ola.bini@gmail.com>
 Copyright (c) 2006-2012 Nick Sieger <nick@nicksieger.com>
 Copyright (c) 2007 Andrew R Jackson
 Copyright (c) 2012-2014 Karol Bucek <self@kares.org>
-Copyright (c) 2012-2016 Gil Tene
-Copyright (c) 2014 Matt Warren
-Copyright (c) 2014 Michael Barker
 Copyright 2017, 2019 OnGres
 copyright PostgreSQL Global Development Group
 copyright content The PostgreSQL Global Development Group
@@ -1137,167 +1146,59 @@ either expressed or implied, of the FreeBSD Project.
 
 ----
 
-(c) 1996, 2004 Carsten Heinz
-(c) 1997 Detlev Droege
-(c) 1997 Dominique de Waleffe
-(c) 1997 Dominique de Waleffe Extended
-(c) 1997 Kai Wollenweber
-(c) 1998 Christian Haul
-(c) 1998 Detlef Reimers
-(c) 1998 Juergen Heim
-(c) 1998 Kai Below
-(c) 1998 Michael Weber
-(c) 1998-1999 Peter Bartke
-(c) 1999 Aidan Philip Heerdegen
-(c) 1999 Berthold
-(c) 1999 Jens T. Berger Thielemann
-(c) 1999 Jos e Romildo Malaquias
-(c) 1999 Michael Wiese
-(c) 1999 Patrick Cousot
-(c) 1999 Torben Hoffmann
-(c) 2000 Rolf Niepraschk
-(c) 2000 Sonja Weidmann
-(c) 2000 by Andreas Matthias
-(c) 2001 Oliver Baum
-(c) 2001 Ralph Becket
-(c) 2001-2002 Ulrich G. Wortmann
-(c) 2002 Andrew Zabolotny
-(c) 2002 Geraint Paul Bevan
-(c) 2002 Mark van Eijk
-(c) 2002 Martin Brodbeck
-(c) 2002 Neil Conway
-(c) 2002 Robert Frank
-(c) 2002-2003 Jean-Philippe Grivet
-(c) 2003 Adam Grabowski
-(c) 2003 Cameron H. G. Wright <c.h.g.wright@ieee.org>
-(c) 2003 Daniel Gazard
-(c) 2003 Dirk Jesko
-(c) 2003 Jonathan Sauer
-(c) 2003 Riccardo Murri <riccardo.murri@gmx.it>
-(c) 2004 Brian Christensen
-(c) 2004 Martine Gautier
-(c) 2004 William Thimbleby
-(c) 2004, 2006 Brooks Moses
 (c) 2004-2011 Blaine Simpson and the HSQL Development Group
-(c) 2005 Christophe Jorssen
-(c) 2006 Christoph Kiefer
-(c) 2006 Herbert Voss
-(c) 2006 Michael Franke
-(c) 2006 Santiago Urue
-(c) 2011 Alan Condit
-(c) 2013 Heiko Oberdiek
-(c) 2013 Ignacio D
-(c) 2013 Jobst Hoffmann
-(c) 2013 Stefan Pinnow
-(c) 2013 Stephan Hennig
-(c) Andres Becerra Sandoval
-(c) Christoph Giess
-(c) Gerd Neugebauer
-(c) Robert Wenner
-(c) Steffen Klupsch
-(c) Torsten Neuer
 (c) zbar', base about:blank', href http://example.com/foo
+Copyright (c) 1995, 1997-2022 Oracle and/or its affiliates
 Copyright (c) 1995-2000 The Hypersonic SQL Group
 Copyright (c) 1995-2000 by the Hypersonic SQL Group
-Copyright (c) 1995-2021 Oracle and/or its affiliates
 Copyright (c) 1996 O'Reilly & Associates
 Copyright (c) 1997-2011 PostgreSQL Global Development Group
 Copyright (c) 1999-2009 OW2 Consortium <https://www.ow2.org/>
 Copyright (c) 2000-2005 JPackage Project
-Copyright (c) 2000-2007 jMock.org
 Copyright (c) 2000-2011 INRIA, France Telecom
 Copyright (c) 2001, 2005, 2010 Thai Open Source Software Center Ltd
 Copyright (c) 2001-2003 Thai Open Source Software Center Ltd /
 Copyright (c) 2001-2021 The HSQL Development Group
 Copyright (c) 2001-2021 The HSQL Development Group. + http://hsqldb.org
-Copyright (c) 2002 The Apache Software Foundation
 Copyright (c) 2002-2006 Marc Prud'hommeaux <mwp1@cornell.edu>
 Copyright (c) 2002-2018 the original author or authors
-Copyright (c) 2003-2013 Terence Parr
-Copyright (c) 2004 Terence Parr and Loring Craymer
 Copyright (c) 2004-2006 Intel Corporation
 Copyright (c) 2004-2006 Intel Corportation
 Copyright (c) 2005 the Lawrence Journal-World
-Copyright (c) 2005-2007 Kunle Odutola
 Copyright (c) 2005-2008 The Scalax Project
-Copyright (c) 2005-2009 Gokulakannan Somasundaram
-Copyright (c) 2005-2009 Gokulakannan Somasundaram, ElectronDB
-Copyright (c) 2005-2009 Jim Idle, Temporal Wave LLC http://www.temporal-wave.com http://www.linkedin.com/in/jimidle
-Copyright (c) 2005-2009 Kunle Odutola, Johannes Luber
-Copyright (c) 2005-2010 Terence Parr Maven
 Copyright (c) 2006 Ivan Sagalaev
-Copyright (c) 2006 Kay Roepke (Objective-C runtime)
-Copyright (c) 2006-2007 Kay Roepke
-Copyright (c) 2006-2007 Kay Roepke 20110 Alan Condit
-Copyright (c) 2006-2007, 2010 Kay Roepke Alan Condit
-Copyright (c) 2006-2008, 2010-2012 The Chromium Authors
-Copyright (c) 2007 Eclipse Foundation, Inc.
-Copyright (c) 2007 Kenny MacDermid
-Copyright (c) 2007 Toshiba
-Copyright (c) 2007, 2009 Jim Idle
-Copyright (c) 2007, 2010 Kay Ropke Alan Condit
-Copyright (c) 2007-2008 Johannes Luber
-Copyright (c) 2007-2008 Leon, Jen-Yuan Su
 Copyright (c) 2007-2008 Michael Granger
-Copyright (c) 2007-2008 Ronald Blaschke
-Copyright (c) 2008 Erik van Bilsen
-Copyright (c) 2008 Yahoo! Inc.
 Copyright (c) 2008, 2010 Oracle
 Copyright (c) 2008-2009 Sun Microsystems
-Copyright (c) 2008-2011 Sam Harwell, Pixel Mine, Inc.
 Copyright (c) 2008-2017 Oracle Corporation
-Copyright (c) 2008-2021 Mort Bay Consulting Pty Ltd and others
-Copyright (c) 2009 Shaoting Cai
-Copyright (c) 2009 by Oracle Corporation
-Copyright (c) 2009-2010 International Business Machines Corporation and others
-Copyright (c) 2009-2010 Kyle Yetter
-Copyright (c) 2009-2012 Sam Harwell
-Copyright (c) 2009-2017 Jason Mehrens
-Copyright (c) 2010 Alan Condit
-Copyright (c) 2010 Ian Michell Alan Condit
-Copyright (c) 2010 Matthew Lloyd http://linkedin.com/in/matthewl
-Copyright (c) 2010-2011 Terence Parr and Alan Condit
-Copyright (c) 2011 Sam Harwell, Tunnel Vision Laboratories, LLC
 Copyright (c) 2012, 2015 Jeff Ichnowski
-Copyright (c) 2012-2013, 2015-2016, 2018 Eclipse Foundation and others
-Copyright (c) 2012-2013, 2016-2017, 2019-2020 Eclipse Foundation
+Copyright (c) 2012-2013, 2015-2019 Eclipse Foundation and others
 Copyright (c) 2012-2015 The JRuby Team (https://github.com/jruby)
-Copyright (c) 2012-2016 University of Washington
+Copyright (c) 2012-2015, 2017-2022 Eclipse Foundation
 Copyright (c) 2014 Red Hat Inc. and others
 Copyright (c) 2014-2015 IBM Corporation and others
 Copyright (c) 2015 OWASP. ~
 Copyright (c) 2015 Red Hat Inc.
+Copyright (c) 2015, 2018 Raymond Auge and others
+Copyright (c) 2018 Julian Honnen
 Copyright (c) 2018-2021 Lightbend Inc. <https://www.lightbend.com>
 Copyright (c) YYYY Oracle and/or its affiliates
-Copyright (c) inceptionYear currentYear Oracle and/or its affiliates
-Copyright 1997-1998, 2006 Sun Microsystems, Inc.
 Copyright 2000-2004 Jason Hunter & Brett McLaughlin
 Copyright 2000-2011 (classType) INRIA, France Telecom
-Copyright 2000-2015 Willy Tarreau <willy@haproxy.org>
-Copyright 2003 Wily Technology, Inc.
 Copyright 2003-2006 The Werken Company
 Copyright 2003-2010 Christian d'Heureuse, Inventec Informatik AG, Zurich, Switzerland
 Copyright 2005 Calmetrics Project
 Copyright 2005-2007 Elliotte Rusty Harold
-Copyright 2005-2007 Kunle Odutola
-Copyright 2006 MbUnit
-Copyright 2006-2012, 2014 The Chromium Authors
+Copyright 2006 Sun Microsystems, Inc.
 Copyright 2007 Ryan Gustafson
 Copyright 2007-2011 by the Sphinx
 Copyright 2008 Andrew Sales
 Copyright 2008 Google Inc.
 Copyright 2008-2012 Allan Jardine
-Copyright 2010 Ian Michell
-Copyright 2010-2011 the V8 project authors
 Copyright 2011 The Dojo Foundation
-Copyright 2011, 2014 The Libphonenumber Authors , Daniel Pocock http://danielpocock.com
 Copyright 2012 Jovan Popovic
-Copyright value http://www.antlr.org
 Portions Copyright (c) 2006-2007 World Wide Web Consortium
 Portions Copyright 2006 International Business Machines Corp.
-copyright 1996, 2004 Carsten Heinz
-copyright 1997-2004, 2006-2007, 2013 ///////// /
-copyright 2006-2007 Brooks Moses
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -1323,43 +1224,6 @@ GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
 HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-----
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-- Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-- Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer listed
-  in this license in the documentation and/or other materials
-  provided with the distribution.
-
-- Neither the name of the copyright holders nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-The copyright holders provide no reassurances that the source code
-provided does not infringe any patent, copyright, or any other
-intellectual property rights of third parties.  The copyright holders
-disclaim any liability to any recipient for claims brought against
-recipient by any third party for infringement of that parties
-intellectual property rights.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----
 
@@ -2511,573 +2375,7 @@ Creative Commons Notice
 
 ----
 
-Attribution-ShareAlike 4.0 International
-
-=======================================================================
-
-Creative Commons Corporation ("Creative Commons") is not a law firm and
-does not provide legal services or legal advice. Distribution of
-Creative Commons public licenses does not create a lawyer-client or
-other relationship. Creative Commons makes its licenses and related
-information available on an "as-is" basis. Creative Commons gives no
-warranties regarding its licenses, any material licensed under their
-terms and conditions, or any related information. Creative Commons
-disclaims all liability for damages resulting from their use to the
-fullest extent possible.
-
-Using Creative Commons Public Licenses
-
-Creative Commons public licenses provide a standard set of terms and
-conditions that creators and other rights holders may use to share
-original works of authorship and other material subject to copyright
-and certain other rights specified in the public license below. The
-following considerations are for informational purposes only, are not
-exhaustive, and do not form part of our licenses.
-
-     Considerations for licensors: Our public licenses are
-     intended for use by those authorized to give the public
-     permission to use material in ways otherwise restricted by
-     copyright and certain other rights. Our licenses are
-     irrevocable. Licensors should read and understand the terms
-     and conditions of the license they choose before applying it.
-     Licensors should also secure all rights necessary before
-     applying our licenses so that the public can reuse the
-     material as expected. Licensors should clearly mark any
-     material not subject to the license. This includes other CC-
-     licensed material, or material used under an exception or
-     limitation to copyright. More considerations for licensors:
-	wiki.creativecommons.org/Considerations_for_licensors
-
-     Considerations for the public: By using one of our public
-     licenses, a licensor grants the public permission to use the
-     licensed material under specified terms and conditions. If
-     the licensor's permission is not necessary for any reason--for
-     example, because of any applicable exception or limitation to
-     copyright--then that use is not regulated by the license. Our
-     licenses grant only permissions under copyright and certain
-     other rights that a licensor has authority to grant. Use of
-     the licensed material may still be restricted for other
-     reasons, including because others have copyright or other
-     rights in the material. A licensor may make special requests,
-     such as asking that all changes be marked or described.
-     Although not required by our licenses, you are encouraged to
-     respect those requests where reasonable. More considerations
-     for the public:
-	wiki.creativecommons.org/Considerations_for_licensees
-
-=======================================================================
-
-Creative Commons Attribution-ShareAlike 4.0 International Public
-License
-
-By exercising the Licensed Rights (defined below), You accept and agree
-to be bound by the terms and conditions of this Creative Commons
-Attribution-ShareAlike 4.0 International Public License ("Public
-License"). To the extent this Public License may be interpreted as a
-contract, You are granted the Licensed Rights in consideration of Your
-acceptance of these terms and conditions, and the Licensor grants You
-such rights in consideration of benefits the Licensor receives from
-making the Licensed Material available under these terms and
-conditions.
-
-
-Section 1 -- Definitions.
-
-  a. Adapted Material means material subject to Copyright and Similar
-     Rights that is derived from or based upon the Licensed Material
-     and in which the Licensed Material is translated, altered,
-     arranged, transformed, or otherwise modified in a manner requiring
-     permission under the Copyright and Similar Rights held by the
-     Licensor. For purposes of this Public License, where the Licensed
-     Material is a musical work, performance, or sound recording,
-     Adapted Material is always produced where the Licensed Material is
-     synched in timed relation with a moving image.
-
-  b. Adapter's License means the license You apply to Your Copyright
-     and Similar Rights in Your contributions to Adapted Material in
-     accordance with the terms and conditions of this Public License.
-
-  c. BY-SA Compatible License means a license listed at
-     creativecommons.org/compatiblelicenses, approved by Creative
-     Commons as essentially the equivalent of this Public License.
-
-  d. Copyright and Similar Rights means copyright and/or similar rights
-     closely related to copyright including, without limitation,
-     performance, broadcast, sound recording, and Sui Generis Database
-     Rights, without regard to how the rights are labeled or
-     categorized. For purposes of this Public License, the rights
-     specified in Section 2(b)(1)-(2) are not Copyright and Similar
-     Rights.
-
-  e. Effective Technological Measures means those measures that, in the
-     absence of proper authority, may not be circumvented under laws
-     fulfilling obligations under Article 11 of the WIPO Copyright
-     Treaty adopted on December 20, 1996, and/or similar international
-     agreements.
-
-  f. Exceptions and Limitations means fair use, fair dealing, and/or
-     any other exception or limitation to Copyright and Similar Rights
-     that applies to Your use of the Licensed Material.
-
-  g. License Elements means the license attributes listed in the name
-     of a Creative Commons Public License. The License Elements of this
-     Public License are Attribution and ShareAlike.
-
-  h. Licensed Material means the artistic or literary work, database,
-     or other material to which the Licensor applied this Public
-     License.
-
-  i. Licensed Rights means the rights granted to You subject to the
-     terms and conditions of this Public License, which are limited to
-     all Copyright and Similar Rights that apply to Your use of the
-     Licensed Material and that the Licensor has authority to license.
-
-  j. Licensor means the individual(s) or entity(ies) granting rights
-     under this Public License.
-
-  k. Share means to provide material to the public by any means or
-     process that requires permission under the Licensed Rights, such
-     as reproduction, public display, public performance, distribution,
-     dissemination, communication, or importation, and to make material
-     available to the public including in ways that members of the
-     public may access the material from a place and at a time
-     individually chosen by them.
-
-  l. Sui Generis Database Rights means rights other than copyright
-     resulting from Directive 96/9/EC of the European Parliament and of
-     the Council of 11 March 1996 on the legal protection of databases,
-     as amended and/or succeeded, as well as other essentially
-     equivalent rights anywhere in the world.
-
-  m. You means the individual or entity exercising the Licensed Rights
-     under this Public License. Your has a corresponding meaning.
-
-
-Section 2 -- Scope.
-
-  a. License grant.
-
-       1. Subject to the terms and conditions of this Public License,
-          the Licensor hereby grants You a worldwide, royalty-free,
-          non-sublicensable, non-exclusive, irrevocable license to
-          exercise the Licensed Rights in the Licensed Material to:
-
-            a. reproduce and Share the Licensed Material, in whole or
-               in part; and
-
-            b. produce, reproduce, and Share Adapted Material.
-
-       2. Exceptions and Limitations. For the avoidance of doubt, where
-          Exceptions and Limitations apply to Your use, this Public
-          License does not apply, and You do not need to comply with
-          its terms and conditions.
-
-       3. Term. The term of this Public License is specified in Section
-          6(a).
-
-       4. Media and formats; technical modifications allowed. The
-          Licensor authorizes You to exercise the Licensed Rights in
-          all media and formats whether now known or hereafter created,
-          and to make technical modifications necessary to do so. The
-          Licensor waives and/or agrees not to assert any right or
-          authority to forbid You from making technical modifications
-          necessary to exercise the Licensed Rights, including
-          technical modifications necessary to circumvent Effective
-          Technological Measures. For purposes of this Public License,
-          simply making modifications authorized by this Section 2(a)
-          (4) never produces Adapted Material.
-
-       5. Downstream recipients.
-
-            a. Offer from the Licensor -- Licensed Material. Every
-               recipient of the Licensed Material automatically
-               receives an offer from the Licensor to exercise the
-               Licensed Rights under the terms and conditions of this
-               Public License.
-
-            b. Additional offer from the Licensor -- Adapted Material.
-               Every recipient of Adapted Material from You
-               automatically receives an offer from the Licensor to
-               exercise the Licensed Rights in the Adapted Material
-               under the conditions of the Adapter's License You apply.
-
-            c. No downstream restrictions. You may not offer or impose
-               any additional or different terms or conditions on, or
-               apply any Effective Technological Measures to, the
-               Licensed Material if doing so restricts exercise of the
-               Licensed Rights by any recipient of the Licensed
-               Material.
-
-       6. No endorsement. Nothing in this Public License constitutes or
-          may be construed as permission to assert or imply that You
-          are, or that Your use of the Licensed Material is, connected
-          with, or sponsored, endorsed, or granted official status by,
-          the Licensor or others designated to receive attribution as
-          provided in Section 3(a)(1)(A)(i).
-
-  b. Other rights.
-
-       1. Moral rights, such as the right of integrity, are not
-          licensed under this Public License, nor are publicity,
-          privacy, and/or other similar personality rights; however, to
-          the extent possible, the Licensor waives and/or agrees not to
-          assert any such rights held by the Licensor to the limited
-          extent necessary to allow You to exercise the Licensed
-          Rights, but not otherwise.
-
-       2. Patent and trademark rights are not licensed under this
-          Public License.
-
-       3. To the extent possible, the Licensor waives any right to
-          collect royalties from You for the exercise of the Licensed
-          Rights, whether directly or through a collecting society
-          under any voluntary or waivable statutory or compulsory
-          licensing scheme. In all other cases the Licensor expressly
-          reserves any right to collect such royalties.
-
-
-Section 3 -- License Conditions.
-
-Your exercise of the Licensed Rights is expressly made subject to the
-following conditions.
-
-  a. Attribution.
-
-       1. If You Share the Licensed Material (including in modified
-          form), You must:
-
-            a. retain the following if it is supplied by the Licensor
-               with the Licensed Material:
-
-                 i. identification of the creator(s) of the Licensed
-                    Material and any others designated to receive
-                    attribution, in any reasonable manner requested by
-                    the Licensor (including by pseudonym if
-                    designated);
-
-                ii. a copyright notice;
-
-               iii. a notice that refers to this Public License;
-
-                iv. a notice that refers to the disclaimer of
-                    warranties;
-
-                 v. a URI or hyperlink to the Licensed Material to the
-                    extent reasonably practicable;
-
-            b. indicate if You modified the Licensed Material and
-               retain an indication of any previous modifications; and
-
-            c. indicate the Licensed Material is licensed under this
-               Public License, and include the text of, or the URI or
-               hyperlink to, this Public License.
-
-       2. You may satisfy the conditions in Section 3(a)(1) in any
-          reasonable manner based on the medium, means, and context in
-          which You Share the Licensed Material. For example, it may be
-          reasonable to satisfy the conditions by providing a URI or
-          hyperlink to a resource that includes the required
-          information.
-
-       3. If requested by the Licensor, You must remove any of the
-          information required by Section 3(a)(1)(A) to the extent
-          reasonably practicable.
-
-  b. ShareAlike.
-
-     In addition to the conditions in Section 3(a), if You Share
-     Adapted Material You produce, the following conditions also apply.
-
-       1. The Adapter's License You apply must be a Creative Commons
-          license with the same License Elements, this version or
-          later, or a BY-SA Compatible License.
-
-       2. You must include the text of, or the URI or hyperlink to, the
-          Adapter's License You apply. You may satisfy this condition
-          in any reasonable manner based on the medium, means, and
-          context in which You Share Adapted Material.
-
-       3. You may not offer or impose any additional or different terms
-          or conditions on, or apply any Effective Technological
-          Measures to, Adapted Material that restrict exercise of the
-          rights granted under the Adapter's License You apply.
-
-
-Section 4 -- Sui Generis Database Rights.
-
-Where the Licensed Rights include Sui Generis Database Rights that
-apply to Your use of the Licensed Material:
-
-  a. for the avoidance of doubt, Section 2(a)(1) grants You the right
-     to extract, reuse, reproduce, and Share all or a substantial
-     portion of the contents of the database;
-
-  b. if You include all or a substantial portion of the database
-     contents in a database in which You have Sui Generis Database
-     Rights, then the database in which You have Sui Generis Database
-     Rights (but not its individual contents) is Adapted Material,
-
-     including for purposes of Section 3(b); and
-  c. You must comply with the conditions in Section 3(a) if You Share
-     all or a substantial portion of the contents of the database.
-
-For the avoidance of doubt, this Section 4 supplements and does not
-replace Your obligations under this Public License where the Licensed
-Rights include other Copyright and Similar Rights.
-
-
-Section 5 -- Disclaimer of Warranties and Limitation of Liability.
-
-  a. UNLESS OTHERWISE SEPARATELY UNDERTAKEN BY THE LICENSOR, TO THE
-     EXTENT POSSIBLE, THE LICENSOR OFFERS THE LICENSED MATERIAL AS-IS
-     AND AS-AVAILABLE, AND MAKES NO REPRESENTATIONS OR WARRANTIES OF
-     ANY KIND CONCERNING THE LICENSED MATERIAL, WHETHER EXPRESS,
-     IMPLIED, STATUTORY, OR OTHER. THIS INCLUDES, WITHOUT LIMITATION,
-     WARRANTIES OF TITLE, MERCHANTABILITY, FITNESS FOR A PARTICULAR
-     PURPOSE, NON-INFRINGEMENT, ABSENCE OF LATENT OR OTHER DEFECTS,
-     ACCURACY, OR THE PRESENCE OR ABSENCE OF ERRORS, WHETHER OR NOT
-     KNOWN OR DISCOVERABLE. WHERE DISCLAIMERS OF WARRANTIES ARE NOT
-     ALLOWED IN FULL OR IN PART, THIS DISCLAIMER MAY NOT APPLY TO YOU.
-
-  b. TO THE EXTENT POSSIBLE, IN NO EVENT WILL THE LICENSOR BE LIABLE
-     TO YOU ON ANY LEGAL THEORY (INCLUDING, WITHOUT LIMITATION,
-     NEGLIGENCE) OR OTHERWISE FOR ANY DIRECT, SPECIAL, INDIRECT,
-     INCIDENTAL, CONSEQUENTIAL, PUNITIVE, EXEMPLARY, OR OTHER LOSSES,
-     COSTS, EXPENSES, OR DAMAGES ARISING OUT OF THIS PUBLIC LICENSE OR
-     USE OF THE LICENSED MATERIAL, EVEN IF THE LICENSOR HAS BEEN
-     ADVISED OF THE POSSIBILITY OF SUCH LOSSES, COSTS, EXPENSES, OR
-     DAMAGES. WHERE A LIMITATION OF LIABILITY IS NOT ALLOWED IN FULL OR
-     IN PART, THIS LIMITATION MAY NOT APPLY TO YOU.
-
-  c. The disclaimer of warranties and limitation of liability provided
-     above shall be interpreted in a manner that, to the extent
-     possible, most closely approximates an absolute disclaimer and
-     waiver of all liability.
-
-
-Section 6 -- Term and Termination.
-
-  a. This Public License applies for the term of the Copyright and
-     Similar Rights licensed here. However, if You fail to comply with
-     this Public License, then Your rights under this Public License
-     terminate automatically.
-
-  b. Where Your right to use the Licensed Material has terminated under
-     Section 6(a), it reinstates:
-
-       1. automatically as of the date the violation is cured, provided
-          it is cured within 30 days of Your discovery of the
-          violation; or
-
-       2. upon express reinstatement by the Licensor.
-
-     For the avoidance of doubt, this Section 6(b) does not affect any
-     right the Licensor may have to seek remedies for Your violations
-     of this Public License.
-
-  c. For the avoidance of doubt, the Licensor may also offer the
-     Licensed Material under separate terms or conditions or stop
-     distributing the Licensed Material at any time; however, doing so
-     will not terminate this Public License.
-
-  d. Sections 1, 5, 6, 7, and 8 survive termination of this Public
-     License.
-
-
-Section 7 -- Other Terms and Conditions.
-
-  a. The Licensor shall not be bound by any additional or different
-     terms or conditions communicated by You unless expressly agreed.
-
-  b. Any arrangements, understandings, or agreements regarding the
-     Licensed Material not stated herein are separate from and
-     independent of the terms and conditions of this Public License.
-
-
-Section 8 -- Interpretation.
-
-  a. For the avoidance of doubt, this Public License does not, and
-     shall not be interpreted to, reduce, limit, restrict, or impose
-     conditions on any use of the Licensed Material that could lawfully
-     be made without permission under this Public License.
-
-  b. To the extent possible, if any provision of this Public License is
-     deemed unenforceable, it shall be automatically reformed to the
-     minimum extent necessary to make it enforceable. If the provision
-     cannot be reformed, it shall be severed from this Public License
-     without affecting the enforceability of the remaining terms and
-     conditions.
-
-  c. No term or condition of this Public License will be waived and no
-     failure to comply consented to unless expressly agreed to by the
-     Licensor.
-
-  d. Nothing in this Public License constitutes or may be interpreted
-     as a limitation upon, or waiver of, any privileges and immunities
-     that apply to the Licensor or You, including from the legal
-     processes of any jurisdiction or authority.
-
-
-=======================================================================
-
-Creative Commons is not a party to its public
-licenses. Notwithstanding, Creative Commons may elect to apply one of
-its public licenses to material it publishes and in those instances
-will be considered the “Licensor.” The text of the Creative Commons
-public licenses is dedicated to the public domain under the CC0 Public
-Domain Dedication. Except for the limited purpose of indicating that
-material is shared under a Creative Commons public license or as
-otherwise permitted by the Creative Commons policies published at
-creativecommons.org/policies, Creative Commons does not authorize the
-use of the trademark "Creative Commons" or any other trademark or logo
-of Creative Commons without its prior written consent including,
-without limitation, in connection with any unauthorized modifications
-to any of its public licenses or any other arrangements,
-understandings, or agreements concerning use of licensed material. For
-the avoidance of doubt, this paragraph does not form part of the
-public licenses.
-
-Creative Commons may be contacted at creativecommons.org.
-
-----
-
-The person or persons who have associated work with this document (the "Dedicator" or "Certifier") hereby either (a) certifies that, to the best of his knowledge, the work of authorship identified is in the public domain of the country from which the work is published, or (b) hereby dedicates whatever copyright the dedicators holds in the work of authorship identified below (the "Work") to the public domain. A certifier, moreover, dedicates any copyright interest he may have in the associated work, and for these purposes, is described as a "dedicator" below.
-
-A certifier has taken reasonable steps to verify the copyright status of this work. Certifier recognizes that his good faith efforts may not shield him from liability if in fact the work certified is not in the public domain.
-
-Dedicator makes this dedication for the benefit of the public at large and to the detriment of the Dedicator's heirs and successors. Dedicator intends this dedication to be an overt act of relinquishment in perpetuity of all present and future rights under copyright law, whether vested or contingent, in the Work. Dedicator understands that such relinquishment of all rights includes the relinquishment of all rights to enforce (by lawsuit or otherwise) those copyrights in the Work.
-
-Dedicator recognizes that, once placed in the public domain, the Work may be freely reproduced, distributed, transmitted, used, modified, built upon, or otherwise exploited by anyone for any purpose, commercial or non-commercial, and in any way, including by methods that have not yet been invented or conceived.
-
-----
-
-Creative Commons Legal Code
-
-CC0 1.0 Universal
-
-    CREATIVE COMMONS CORPORATION IS NOT A LAW FIRM AND DOES NOT PROVIDE
-    LEGAL SERVICES. DISTRIBUTION OF THIS DOCUMENT DOES NOT CREATE AN
-    ATTORNEY-CLIENT RELATIONSHIP. CREATIVE COMMONS PROVIDES THIS
-    INFORMATION ON AN "AS-IS" BASIS. CREATIVE COMMONS MAKES NO WARRANTIES
-    REGARDING THE USE OF THIS DOCUMENT OR THE INFORMATION OR WORKS
-    PROVIDED HEREUNDER, AND DISCLAIMS LIABILITY FOR DAMAGES RESULTING FROM
-    THE USE OF THIS DOCUMENT OR THE INFORMATION OR WORKS PROVIDED
-    HEREUNDER.
-
-Statement of Purpose
-
-The laws of most jurisdictions throughout the world automatically confer
-exclusive Copyright and Related Rights (defined below) upon the creator
-and subsequent owner(s) (each and all, an "owner") of an original work of
-authorship and/or a database (each, a "Work").
-
-Certain owners wish to permanently relinquish those rights to a Work for
-the purpose of contributing to a commons of creative, cultural and
-scientific works ("Commons") that the public can reliably and without fear
-of later claims of infringement build upon, modify, incorporate in other
-works, reuse and redistribute as freely as possible in any form whatsoever
-and for any purposes, including without limitation commercial purposes.
-These owners may contribute to the Commons to promote the ideal of a free
-culture and the further production of creative, cultural and scientific
-works, or to gain reputation or greater distribution for their Work in
-part through the use and efforts of others.
-
-For these and/or other purposes and motivations, and without any
-expectation of additional consideration or compensation, the person
-associating CC0 with a Work (the "Affirmer"), to the extent that he or she
-is an owner of Copyright and Related Rights in the Work, voluntarily
-elects to apply CC0 to the Work and publicly distribute the Work under its
-terms, with knowledge of his or her Copyright and Related Rights in the
-Work and the meaning and intended legal effect of CC0 on those rights.
-
-1. Copyright and Related Rights. A Work made available under CC0 may be
-protected by copyright and related or neighboring rights ("Copyright and
-Related Rights"). Copyright and Related Rights include, but are not
-limited to, the following:
-
-  i. the right to reproduce, adapt, distribute, perform, display,
-     communicate, and translate a Work;
- ii. moral rights retained by the original author(s) and/or performer(s);
-iii. publicity and privacy rights pertaining to a person's image or
-     likeness depicted in a Work;
- iv. rights protecting against unfair competition in regards to a Work,
-     subject to the limitations in paragraph 4(a), below;
-  v. rights protecting the extraction, dissemination, use and reuse of data
-     in a Work;
- vi. database rights (such as those arising under Directive 96/9/EC of the
-     European Parliament and of the Council of 11 March 1996 on the legal
-     protection of databases, and under any national implementation
-     thereof, including any amended or successor version of such
-     directive); and
-vii. other similar, equivalent or corresponding rights throughout the
-     world based on applicable law or treaty, and any national
-     implementations thereof.
-
-2. Waiver. To the greatest extent permitted by, but not in contravention
-of, applicable law, Affirmer hereby overtly, fully, permanently,
-irrevocably and unconditionally waives, abandons, and surrenders all of
-Affirmer's Copyright and Related Rights and associated claims and causes
-of action, whether now known or unknown (including existing as well as
-future claims and causes of action), in the Work (i) in all territories
-worldwide, (ii) for the maximum duration provided by applicable law or
-treaty (including future time extensions), (iii) in any current or future
-medium and for any number of copies, and (iv) for any purpose whatsoever,
-including without limitation commercial, advertising or promotional
-purposes (the "Waiver"). Affirmer makes the Waiver for the benefit of each
-member of the public at large and to the detriment of Affirmer's heirs and
-successors, fully intending that such Waiver shall not be subject to
-revocation, rescission, cancellation, termination, or any other legal or
-equitable action to disrupt the quiet enjoyment of the Work by the public
-as contemplated by Affirmer's express Statement of Purpose.
-
-3. Public License Fallback. Should any part of the Waiver for any reason
-be judged legally invalid or ineffective under applicable law, then the
-Waiver shall be preserved to the maximum extent permitted taking into
-account Affirmer's express Statement of Purpose. In addition, to the
-extent the Waiver is so judged Affirmer hereby grants to each affected
-person a royalty-free, non transferable, non sublicensable, non exclusive,
-irrevocable and unconditional license to exercise Affirmer's Copyright and
-Related Rights in the Work (i) in all territories worldwide, (ii) for the
-maximum duration provided by applicable law or treaty (including future
-time extensions), (iii) in any current or future medium and for any number
-of copies, and (iv) for any purpose whatsoever, including without
-limitation commercial, advertising or promotional purposes (the
-"License"). The License shall be deemed effective as of the date CC0 was
-applied by Affirmer to the Work. Should any part of the License for any
-reason be judged legally invalid or ineffective under applicable law, such
-partial invalidity or ineffectiveness shall not invalidate the remainder
-of the License, and in such case Affirmer hereby affirms that he or she
-will not (i) exercise any of his or her remaining Copyright and Related
-Rights in the Work or (ii) assert any associated claims and causes of
-action with respect to the Work, in either case contrary to Affirmer's
-express Statement of Purpose.
-
-4. Limitations and Disclaimers.
-
- a. No trademark or patent rights held by Affirmer are waived, abandoned,
-    surrendered, licensed or otherwise affected by this document.
- b. Affirmer offers the Work as-is and makes no representations or
-    warranties of any kind concerning the Work, express, implied,
-    statutory or otherwise, including without limitation warranties of
-    title, merchantability, fitness for a particular purpose, non
-    infringement, or the absence of latent or other defects, accuracy, or
-    the present or absence of errors, whether or not discoverable, all to
-    the greatest extent permissible under applicable law.
- c. Affirmer disclaims responsibility for clearing rights of other persons
-    that may apply to the Work or any use thereof, including without
-    limitation any person's Copyright and Related Rights in the Work.
-    Further, Affirmer disclaims responsibility for obtaining any necessary
-    consents, permissions or other rights required for any use of the
-    Work.
- d. Affirmer understands and acknowledges that Creative Commons is not a
-    party to this document and has no duty or obligation with respect to
-    this CC0 or use of the Work.
-
-----
-
-Copyright (c) 1989, 1991 Free Software Foundation, Inc.
 Copyright 2003-2009 Sun Microsystems, Inc.
-copyrighted by the Free Software Foundation
 
 COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 
@@ -3176,10 +2474,10 @@ NOTICE PURSUANT TO SECTION 9 OF THE COMMON DEVELOPMENT AND DISTRIBUTION LICENSE 
 ----
 
 Copyright (c) 1989, 1991 Free Software Foundation, Inc.
-Copyright (c) 1996-2018 http://www.oracle.com' Oracle and/or its affiliates
+Copyright (c) 1996-2017 http://www.oracle.com' Oracle and/or its affiliates
 Copyright (c) 1997-2018 Oracle and/or its affiliates
 Copyright (c) 2004-2017 Oracle
-Copyright (c) 2009-2017 Jason Mehrens
+Copyright (c) YYYY Oracle and/or its affiliates
 Copyright 2004 The Apache Software Foundation
 Portions Copyright (c) 1999-2002 The Apache Software Foundation
 copyrighted by the Free Software Foundation
@@ -3272,71 +2570,7 @@ The code released under the CDDL shall be governed by the laws of the State of C
 
 ----
 
-(c) 1996, 2004 Carsten Heinz
-(c) 1997 Detlev Droege
-(c) 1997 Dominique de Waleffe
-(c) 1997 Dominique de Waleffe Extended
-(c) 1997 Kai Wollenweber
-(c) 1998 Christian Haul
-(c) 1998 Detlef Reimers
-(c) 1998 Juergen Heim
-(c) 1998 Kai Below
-(c) 1998 Michael Weber
-(c) 1998-1999 Peter Bartke
-(c) 1999 Aidan Philip Heerdegen
-(c) 1999 Berthold
-(c) 1999 Jens T. Berger Thielemann
-(c) 1999 Jos e Romildo Malaquias
-(c) 1999 Michael Wiese
-(c) 1999 Patrick Cousot
-(c) 1999 Torben Hoffmann
-(c) 2000 Rolf Niepraschk
-(c) 2000 Sonja Weidmann
-(c) 2000 by Andreas Matthias
-(c) 2001 Oliver Baum
-(c) 2001 Ralph Becket
-(c) 2001-2002 Ulrich G. Wortmann
-(c) 2002 Andrew Zabolotny
-(c) 2002 Geraint Paul Bevan
-(c) 2002 Mark van Eijk
-(c) 2002 Martin Brodbeck
-(c) 2002 Neil Conway
-(c) 2002 Robert Frank
-(c) 2002-2003 Jean-Philippe Grivet
-(c) 2003 Adam Grabowski
-(c) 2003 Cameron H. G. Wright <c.h.g.wright@ieee.org>
-(c) 2003 Daniel Gazard
-(c) 2003 Dirk Jesko
-(c) 2003 Jonathan Sauer
-(c) 2003 Riccardo Murri <riccardo.murri@gmx.it>
-(c) 2004 Brian Christensen
-(c) 2004 Martine Gautier
-(c) 2004 William Thimbleby
-(c) 2004, 2006 Brooks Moses
-(c) 2005 Christophe Jorssen
-(c) 2006 Christoph Kiefer
-(c) 2006 Herbert Voss
-(c) 2006 Michael Franke
-(c) 2006 Santiago Urue
-(c) 2013 Heiko Oberdiek
-(c) 2013 Ignacio D
-(c) 2013 Jobst Hoffmann
-(c) 2013 Stefan Pinnow
-(c) 2013 Stephan Hennig
-(c) Andres Becerra Sandoval
-(c) Christoph Giess
-(c) Gerd Neugebauer
-(c) Robert Wenner
-(c) Steffen Klupsch
-(c) Torsten Neuer
-Copyright (c) 2009 by Oracle Corporation
-Copyright (c) 2009-2010 International Business Machines Corporation and others
-Copyright (c) 2012-2016 University of Washington
 Copyright 2003 Contributors
-Copyright 2003 Wily Technology, Inc.
-copyright 1996, 2004 Carsten Heinz
-copyright 1997-2004, 2006-2007, 2013 ///////// /
-copyright 2006-2007 Brooks Moses
 
 Common Public License - v 1.0
 
@@ -3485,26 +2719,20 @@ This Agreement is governed by the laws of the State of New York and the intellec
 (c) 2013 Stephan Hennig
 (c) Andres Becerra Sandoval
 (c) Christoph Giess
-(c) Copyright 1996 IBM Corp.
-(c) Copyright 1996 Taligent, Inc.
 (c) Gerd Neugebauer
 (c) Robert Wenner
 (c) Steffen Klupsch
 (c) Torsten Neuer
 Copyright (c) 1989, 1991 Free Software Foundation, Inc.
-Copyright (c) 1994-2019 Oracle and/or its affiliates
-Copyright (c) 1996-2018 http://www.oracle.com' Oracle and/or its affiliates
-Copyright (c) 2004 World Wide Web Consortium
+Copyright (c) 1996-2017 http://www.oracle.com' Oracle and/or its affiliates
+Copyright (c) 1997-2019 Oracle and/or its affiliates
 Copyright (c) 2004-2017 Oracle
 Copyright (c) 2006, 2018 IBM Corp. and others
-Copyright (c) 2009 by Oracle Corporation
-Copyright (c) 2009-2010 International Business Machines Corporation and others
-Copyright (c) 2009-2017 Jason Mehrens
 Copyright (c) 2012-2016 University of Washington
 Copyright (c) 2016 Red Hat Inc.
 Copyright (c) 2019 Eclipse Foundation
-Copyright 1994-2009 Sun Microsystems, Inc.
-Copyright 2003 Wily Technology, Inc.
+Copyright (c) YYYY Oracle and/or its affiliates
+Copyright 2003-2009 Sun Microsystems, Inc.
 Copyright 2004 present by the Checker Framework
 Portions Copyright (c) 1999-2002 The Apache Software Foundation
 copyright 1996, 2004 Carsten Heinz
@@ -3529,12 +2757,10 @@ from your version.
 
 ----
 
-Copyright (c) 1995-2012 Sabre Holdings
-Copyright (c) 1995-2021 Mort Bay Consulting Pty Ltd and others
+Copyright (c) 1995-2022 Mort Bay Consulting Pty Ltd and others
 Copyright (c) 1998-2002 W3C (MIT, INRIA, Keio)
-Copyright (c) 1999-2021 QOS.ch
-Copyright (c) 2000-2010, 2013-2014, 2018-2019 IBM Corporation and others
-Copyright (c) 2002 The Apache Software Foundation
+Copyright (c) 1999-2022 QOS.ch
+Copyright (c) 2000-2011, 2013-2014, 2018-2019 IBM Corporation and others
 Copyright (c) 2004, 2014 Red Hat Incorporated and others
 Copyright (c) 2006-2007 BEA Systems, Inc and others
 Copyright (c) 2008, 2010 Oracle
@@ -3543,15 +2769,17 @@ Copyright (c) 2008-2009 Freescale Semiconductor and others
 Copyright (c) 2008-2009 Sun Microsystems
 Copyright (c) 2008-2017 Oracle Corporation
 Copyright (c) 2010 Charles O Nutter <headius@headius.com>
+Copyright (c) 2011 SAP AG
 Copyright (c) 2013 The JRuby Team (https://github.com/jruby)
 Copyright (c) 2014 Google Inc. and others
 Copyright (c) 2018 Simeon Andreev and others
-Copyright (c) copyright-range Mort Bay Consulting Pty Ltd and others
+Copyright (c) 2019 Jan. 26, Liferay, Inc.
 Copyright (c) year IBM Corporation and others
 Copyright (c) year YOUR EMPLOYER and others
-Copyright 2000-2015 Willy Tarreau <willy@haproxy.org>
+Copyright 2000, 2010, 2013, 2016, 2019 Copyright (c) Eclipse
 Copyright 2003-2010 Christian d'Heureuse, Inventec Informatik AG, Zurich, Switzerland
-Copyright 2016 Copyright (c) Eclipse
+Copyright 2009-2010 Copyright (c) EclipseSource and others
+Copyright 2010 Copyright (c) IBM, Composent, Inc. and others
 
 Eclipse Public License - v 1.0
 
@@ -3643,18 +2871,20 @@ This Agreement is governed by the laws of the State of New York and the intellec
 ----
 
 (c) Copyright 1999-2002 Xerox Corporation, Palo Alto Research Center, Incorporated
-(c) Copyright 2000, 2006 IBM Corp. and others
+(c) Copyright 2000, 2006, 2013 IBM Corp. and others
 (c) Copyright 2000-2001 IBM Corp.
 (c) Copyright 2001 MyCorporation
 Copyright (c) 1997, 2005-2006, 2008-2013, 2017-2020 Oracle and/or its affiliates
+Copyright (c) 1997, 2011, 2018 by ProSyst Software GmbH and others. http://www.prosyst.com
+Copyright (c) 1997-2009, 2012, 2015, 2018 by ProSyst Software GmbH http://www.prosyst.com
 Copyright (c) 1998-2003 Xerox Corporation, Palo Alto Research Center, Incorporated (PARC)
 Copyright (c) 1998-2003 Xerox Corporation, Palo Alto Research Center, Incorporated, -$ build.year Contributors
 Copyright (c) 1998-2008 Xerox Corporation, Palo Alto Research Center, Incorporated, Contributors
+Copyright (c) 1998-2022 IBM Corporation and others
 Copyright (c) 1999-2001 Xerox Corporation
 Copyright (c) 1999-2002 Xerox Corporation, Palo Alto Research Center, Incorporated
-Copyright (c) 1999-2013 QOS.ch
 Copyright (c) 1999-2018 Xerox Corporation, Palo Alto Research Center, Incorporated (PARC), Contributors
-Copyright (c) 2000-2021 IBM Corporation and others
+Copyright (c) 2000-2001, 2003-2005, 2007-2011, 2013, 2015-2021 IBM Corporation
 Copyright (c) 2001 sys
 Copyright (c) 2001-2002 /
 Copyright (c) 2001-2003 Palo Alto Research Center, Incorporated
@@ -3670,7 +2900,6 @@ Copyright (c) 2002-2021 Contributors
 Copyright (c) 2004 Sun Microsystems, Inc.
 Copyright (c) 2004, 2013 IBM, VMware
 Copyright (c) 2004, 2019 IBM Corporation, contributors
-Copyright (c) 2004-2005, 2007, 2013, 2015-2021 IBM Corporation
 Copyright (c) 2004-2006, 2017 IBM
 Copyright (c) 2004-2016 IBM, VMware, Contributors
 Copyright (c) 2005 IBM Corporation Ltd
@@ -3678,58 +2907,104 @@ Copyright (c) 2005 IBM, Contributors
 Copyright (c) 2005, 2007-2010, 2013, 2016 BEA Systems, Inc.
 Copyright (c) 2005, 2017 BEA Systems, Inc, IBM Corporation and others
 Copyright (c) 2005-2006, 2013, 2016 QNX Software Systems and others
+Copyright (c) 2005-2006, 2018-2019 Cognos Incorporated, IBM Corporation
 Copyright (c) 2005-2007, 2018 BEA Systems, Inc and others
+Copyright (c) 2005-2012, 2014-2022 Cognos Incorporated, IBM Corporation and others
 Copyright (c) 2006, 2011 Ben Konrath <ben@bagu.org>
-Copyright (c) 2006, 2011-2012, 2016-2017, 2020-2021 Cognos Incorporated, IBM Corporation and others
 Copyright (c) 2006, 2016 Eclipse Foundation and others
+Copyright (c) 2006, 2018 Cognos Incorporated
 Copyright (c) 2006, 2018 IBM Corp. and others
 Copyright (c) 2006, 2081 IBM and contributors
 Copyright (c) 2006-2008, 2012, 2016-2017, 2020 Wind River Systems, Inc. and others
 Copyright (c) 2007, 2016 Symbian Software Systems and others
+Copyright (c) 2008 Jay Rosenthal
+Copyright (c) 2008 user and others
+Copyright (c) 2008, 2010-2013, 2015-2016, 2020 VMware, Inc.
+Copyright (c) 2008, 2011 Gunnar Wagenknecht, IBM Corporation and others
 Copyright (c) 2008, 2014 Technical
+Copyright (c) 2008, 2015 Wind River Systems and others
+Copyright (c) 2008, 2017-2018 Jay Rosenthal and others
+Copyright (c) 2008-2009, 2013 Heiko Seeberger and others
+Copyright (c) 2008-2009, 2013-2014, 2017 Martin Lippert and others
 Copyright (c) 2008-2010, 2014-2016 Freescale Semiconductor and others
+Copyright (c) 2008-2011, 2013, 2021 EclipseSource and others
 Copyright (c) 2009 Collaborative Development Group, C.S. Dept., University of Bari
 Copyright (c) 2010 SpringSource, Contributors
 Copyright (c) 2010, 2012 Lucierna
-Copyright (c) 2010, 2012 SAP AG and others
-Copyright (c) 2010, 2014-2018, 2020 Google, Inc and others
+Copyright (c) 2010, 2013 Composent, Inc. and others
+Copyright (c) 2010, 2013-2018, 2020 Google, Inc and others
+Copyright (c) 2010, 2015 Oracle Corporation and others
+Copyright (c) 2010, 2017 IBM Corporation, SAP AG and others
+Copyright (c) 2010, 2017 IBM Corporation, SAP AG.
+Copyright (c) 2010-2011 IBM, Composent, Inc. and others
 Copyright (c) 2010-2011, 2015 Broadcom Corporation and others
+Copyright (c) 2010-2011, 2018 EclipseSource Inc. and others
+Copyright (c) 2010-2012, 2017-2018 SAP AG
+Copyright (c) 2010-2013, 2017-2018, 2020-2021 SAP AG and others
 Copyright (c) 2011, 2013, 2015, 2017-2020 GK Software AG, and others
-Copyright (c) 2012 VMware, Inc.
+Copyright (c) 2011, 2013, 2015-2016, 2021 VMware Inc. and others
+Copyright (c) 2011, 2014, 2017-2018 BestSolution.at and others
+Copyright (c) 2011-2012, 2017-2018 Gunnar Wagenknecht and others
 Copyright (c) 2012, 2020 GK Software SE, IBM Corporation and others
+Copyright (c) 2012-2016, 2018, 2020 Dirk Fauth and others
 Copyright (c) 2013 Jesper S Moller and others
 Copyright (c) 2013 Jesper Steen Moeller and others
 Copyright (c) 2013 VMware
 Copyright (c) 2013, 2016 GoPivotal, Inc.
+Copyright (c) 2013-2014 Tom Schindl <tom.schindl@bestsolution.at> and others
+Copyright (c) 2013-2015, 2017 Markus Alexander Kuppe and others
 Copyright (c) 2013-2020 GK Software AG.
+Copyright (c) 2014 Dec 5, Liferay, Inc.
+Copyright (c) 2014, 2018-2020 Liferay, Inc.
 Copyright (c) 2014-2015, 2018-2021 Mateusz Matela and others
-Copyright (c) 2014-2019 Red Hat Inc. and others
-Copyright (c) 2016 Red Hat Inc.
-Copyright (c) 2016, 2020 Alex Blewitt and others
+Copyright (c) 2014-2016, 2018, 2021 vogella GmbH and others
+Copyright (c) 2014-2016, 2019 Raymond Auge
+Copyright (c) 2014-2019, 2021 Red Hat Inc. and others
+Copyright (c) 2014-2021 Raymond Auge and others
+Copyright (c) 2015 Feb 23, Raymond Auge and others
+Copyright (c) 2016, 2020-2021 Alex Blewitt and others
+Copyright (c) 2016, 2020-2021 Red Hat Inc.
 Copyright (c) 2016-2018 Till Brychcy and others
+Copyright (c) 2017 Ecliptical Software Inc. and others
+Copyright (c) 2017 salesforce.com
 Copyright (c) 2017, 2019 GK Software SE, and others
 Copyright (c) 2017-2019 Simeon Andreev and others
 Copyright (c) 2018 Connexta, LLC and others
+Copyright (c) 2018 Inno-Tec Innovative Technologies GmbH. and others
+Copyright (c) 2018 InterSystems Corporation and others
+Copyright (c) 2018 Jan 20, Liferay, Inc.
+Copyright (c) 2018, 2020 Julian Honnen
 Copyright (c) 2019 Eclipse Foundation
+Copyright (c) 2019 Feb. 1, Liferay, Inc.
+Copyright (c) 2019 Feb. 2, Liferay, Inc.
+Copyright (c) 2019 Jan. 26, Liferay, Inc.
+Copyright (c) 2019 Jan. 27, Liferay, Inc.
+Copyright (c) 2019 Jan. 28, Liferay, Inc.
+Copyright (c) 2019 Jan. 29, Liferay, Inc.
 Copyright (c) 2019 Lablicate GmbH and others
+Copyright (c) 2019 Mar. 28, Liferay, Inc.
 Copyright (c) 2019 Paul Pazderski, Thomas Wolf, and others
 Copyright (c) 2019 Sebastian Zarnekow and others
+Copyright (c) 2019 Sept. 16, Liferay, Inc.
+Copyright (c) 2019 Xored Software Inc and others
+Copyright (c) 2019-2020 ArSysOp and others
 Copyright (c) 2019-2020 SAP SE and others
 Copyright (c) 2020 20107, IBM Corporation and others
 Copyright (c) 2020 Andrey Loskutov and others
-Copyright (c) 2020 ArSysOp and others
 Copyright (c) 2020 Christoph Laeubrich and others
 Copyright (c) 2020 Gayan Perera and others
-Copyright (c) 2020 Julian Honnen
 Copyright (c) 2020 Marcus Hoepfner and others
-Copyright (c) 2021 Hannes Wellmann and others
+Copyright (c) 2020 Thomas Wolf <thomas.wolf@paranor.ch> and others
+Copyright (c) 2021 Christoph Laubrich and others
 Copyright (c) 2021 Indel AG and others
+Copyright (c) 2021 Joerg Kubitz
 Copyright (c) 2021 Joerg Kubitz and others
-Copyright (c) 2021 vogella GmbH and others
+Copyright (c) 2021-2022 Hannes Wellmann and others
+Copyright (c) 2022 Andrey Loskutov <loskutov@gmx.de> and others
 Copyright (c) year IBM Corporation and others
 Copyright (c) year YOUR EMPLOYER and others
 Copyright 2000, 2002 IBM Corp.
-Copyright 2002, 2021 IBM Corp. and others
+Copyright 2002, 2022 IBM Corp. and others
 Copyright 2003, 2005 Contributors
 copyright Bundle-Vendor eclipse.org Bundle-Version
 
@@ -4010,22 +3285,6 @@ and exceptions or additional permissions here}."
   look for such a notice.
 
   You may add additional accurate notices of copyright ownership.
-
-----
-
-Copyright (c) 1994-1996, 1999-2002, 2004-2009 Free Software Foundation, Inc.
-
-Copying and distribution of this file, with or without modification, are
-permitted in any medium without royalty provided the copyright notice
-and this notice are preserved. This file is offered as-is, without any
-warranty.
-
-----
-
-Copyright (c) 2003 Free Software Foundation, Inc.
-
-This configure script is free software; the Free Software Foundation gives
-unlimited permission to copy, distribute and modify it.
 
 ----
 
@@ -4353,13 +3612,9 @@ That's all there is to it!
 (c) Steffen Klupsch
 (c) Torsten Neuer
 Copyright (c) 2004-2010 Alex Gorbatchev
-Copyright (c) 2009 by Oracle Corporation
-Copyright (c) 2009-2010 International Business Machines Corporation and others
 Copyright (c) 2012 JAPrn Zaefferer
 Copyright (c) 2012-2016 University of Washington
 Copyright (c) 2013-2014 The JRuby Team (https://github.com/jruby)
-Copyright (c) 2014 Francis Galiegue (fgaliegue@gmail.com)
-Copyright 2003 Wily Technology, Inc.
 Copyright 2003-2013 Austin Ziegler. Adapted
 Copyright 2011 The Dojo Foundation
 copyright 1996, 2004 Carsten Heinz
@@ -4691,28 +3946,21 @@ That's all there is to it!
 (c) 2013 Stephan Hennig
 (c) Andres Becerra Sandoval
 (c) Christoph Giess
-(c) Copyright 1996 IBM Corp.
-(c) Copyright 1996 Taligent, Inc.
 (c) Gerd Neugebauer
 (c) Robert Wenner
 (c) Steffen Klupsch
 (c) Torsten Neuer
 Copyright (c) 1989, 1991 Free Software Foundation, Inc.
-Copyright (c) 1994-2019 Oracle and/or its affiliates
-Copyright (c) 1996-2018 http://www.oracle.com' Oracle and/or its affiliates
+Copyright (c) 1997-2019 Oracle and/or its affiliates
 Copyright (c) 2003-2009 Masao Mutoh
-Copyright (c) 2004 World Wide Web Consortium
 Copyright (c) 2004-2017 Oracle
 Copyright (c) 2006, 2018 IBM Corp. and others
-Copyright (c) 2009 by Oracle Corporation
-Copyright (c) 2009-2010 International Business Machines Corporation and others
-Copyright (c) 2009-2017 Jason Mehrens
 Copyright (c) 2012-2014 The JRuby Team (https://github.com/jruby)
 Copyright (c) 2012-2016 University of Washington
 Copyright (c) 2016 Red Hat Inc.
 Copyright (c) 2019 Eclipse Foundation
-Copyright 1994-2009 Sun Microsystems, Inc.
-Copyright 2003 Wily Technology, Inc.
+Copyright (c) YYYY Oracle and/or its affiliates
+Copyright 2003-2009 Sun Microsystems, Inc.
 Copyright 2004 present by the Checker Framework
 Copyright 2011 John Resig
 Copyright 2011 The Dojo Foundation
@@ -5063,10 +4311,6 @@ library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.
 
 ----
-
-Copyright (c) 1994-2000, 2003-2005, 2008-2009, 2011-2013, 2015-2016 Oracle and/or its affiliates
-Copyright 2003 Wily Technology, Inc.
-Copyright 2009 Google Inc.
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
@@ -5783,10 +5027,6 @@ library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.
 
 ----
-
-Copyright (c) 2002 The Apache Software Foundation
-Copyright (c) 2008-2021 Mort Bay Consulting Pty Ltd and others
-Copyright 2000-2015 Willy Tarreau <willy@haproxy.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -7158,11 +6398,8 @@ That's all there is to it!
 (c) Steffen Klupsch
 (c) Torsten Neuer
 Copyright (c) 2005 John D. Heintz
-Copyright (c) 2009 by Oracle Corporation
-Copyright (c) 2009-2010 International Business Machines Corporation and others
 Copyright (c) 2012-2014 The JRuby Team (https://github.com/jruby)
 Copyright (c) 2012-2016 University of Washington
-Copyright 2003 Wily Technology, Inc.
 Copyright 2020 Red Hat, Inc.
 copyright 1996, 2004 Carsten Heinz
 copyright 1997-2004, 2006-2007, 2013 ///////// /
@@ -7668,7 +6905,7 @@ That's all there is to it!
 Copyright (c) 1991, 1999 Free Software Foundation, Inc.
 Copyright (c) 1998-2002 W3C (MIT, INRIA, Keio)
 Copyright (c) 1999-2005 QOS.ch, LOGBack.com
-Copyright (c) 1999-2021 QOS.ch
+Copyright (c) 1999-2022 QOS.ch
 Copyright (c) 2000-2004 Minero Aoki
 Copyright (c) 2007, 2010-2011 Timothy Wall
 Copyright (c) 2015 Machinery
@@ -8212,7 +7449,6 @@ Copyright (c) 2012-2013 Tobias Wolf
 Copyright (c) 2013 Markus Karg
 Copyright (c) 2013 Ralf Hamberger, Markus Karg
 Copyright (c) 2014 Dr David H. Akehurst (itemis)
-Copyright (c) 2014 Francis Galiegue (fgaliegue@gmail.com)
 Copyright (c) 2014 Reinhard Pointner
 Copyright (c) 2015 Andreas PAX L u00FCck
 Copyright (c) 2015 Goldstein Lyor
@@ -8761,9 +7997,7 @@ That's all there is to it!
 
 ----
 
-Copyright (c) 2007 Free Software Foundation, Inc. <http://fsf.org/>
 Copyright (c) 2012-2014 The JRuby Team (https://github.com/jruby)
-Copyright (c) 2014 Francis Galiegue (fgaliegue@gmail.com)
 
                    GNU LESSER GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -9113,88 +8347,6 @@ whether future versions of the GNU Lesser General Public License shall
 apply, that proxy's public statement of acceptance of any version is
 permanent authorization for you to choose that version for the
 Library.
-
-----
-
-Lucent Public License Version 1.02
-
-THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS PUBLIC LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
-
-1. DEFINITIONS
-
-"Contribution" means:
-
-   1. in the case of ORGANIZATION ("OWNER"), the Original Program, and
-   2. in the case of each Contributor,
-         1. changes to the Program, and
-         2. additions to the Program;
-      where such changes and/or additions to the Program were added to the Program by such Contributor itself or anyone acting on such Contributor's behalf, and the Contributor explicitly consents, in accordance with Section 3C, to characterization of the changes and/or additions as Contributions.
-
-"Contributor" means OWNER and any other entity that has Contributed a Contribution to the Program.
-
-"Distributor" means a Recipient that distributes the Program, modifications to the Program, or any part thereof.
-
-"Licensed Patents" mean patent claims licensable by a Contributor which are necessarily infringed by the use or sale of its Contribution alone or when combined with the Program.
-
-"Original Program" means the original version of the software accompanying this Agreement as released by OWNER, including source code, object code and documentation, if any.
-
-"Program" means the Original Program and Contributions or any part thereof
-
-"Recipient" means anyone who receives the Program under this Agreement, including all Contributors.
-
-2. GRANT OF RIGHTS
-
-   a. Subject to the terms of this Agreement, each Contributor hereby grants Recipient a non-exclusive, worldwide, royalty-free copyright license to reproduce, prepare derivative works of, publicly display, publicly perform, distribute and sublicense the Contribution of such Contributor, if any, and such derivative works, in source code and object code form.
-  b. Subject to the terms of this Agreement, each Contributor hereby grants Recipient a non-exclusive, worldwide, royalty-free patent license under Licensed Patents to make, use, sell, offer to sell, import and otherwise transfer the Contribution of such Contributor, if any, in source code and object code form. The patent license granted by a Contributor shall also apply to the combination of the Contribution of that Contributor and the Program if, at the time the Contribution is added by the Contributor, such addition of the Contribution causes such combination to be covered by the Licensed Patents. The patent license granted by a Contributor shall not apply to (i) any other combinations which include the Contribution, nor to (ii) Contributions of other Contributors. No hardware per se is licensed hereunder.
-   c. Recipient understands that although each Contributor grants the licenses to its Contributions set forth herein, no assurances are provided by any Contributor that the Program does not infringe the patent or other intellectual property rights of any other entity. Each Contributor disclaims any liability to Recipient for claims brought by any other entity based on infringement of intellectual property rights or otherwise. As a condition to exercising the rights and licenses granted hereunder, each Recipient hereby assumes sole responsibility to secure any other intellectual property rights needed, if any. For example, if a third party patent license is required to allow Recipient to distribute the Program, it is Recipient's responsibility to acquire that license before distributing the Program.
-   d. Each Contributor represents that to its knowledge it has sufficient copyright rights in its Contribution, if any, to grant the copyright license set forth in this Agreement.
-
-3. REQUIREMENTS
-
-A. Distributor may choose to distribute the Program in any form under this Agreement or under its own license agreement, provided that:
-
-   1. it complies with the terms and conditions of this Agreement;
-   2. if the Program is distributed in source code or other tangible form, a copy of this Agreement or Distributor's own license agreement is included with each copy of the Program; and
-   3. if distributed under Distributor's own license agreement, such license agreement:
-         1. effectively disclaims on behalf of all Contributors all warranties and conditions, express and implied, including warranties or conditions of title and non-infringement, and implied warranties or conditions of merchantability and fitness for a particular purpose;
-         2. effectively excludes on behalf of all Contributors all liability for damages, including direct, indirect, special, incidental and consequential damages, such as lost profits; and
-         3. states that any provisions which differ from this Agreement are offered by that Contributor alone and not by any other party.
-
-B. Each Distributor must include the following in a conspicuous location in the Program:
-
-    Copyright (C) YEAR, ORGANIZATION and others. All Rights Reserved.
-
-C. In addition, each Contributor must identify itself as the originator of its Contribution in a manner that reasonably allows subsequent Recipients to identify the originator of the Contribution. Also, each Contributor must agree that the additions and/or changes are intended to be a Contribution. Once a Contribution is contributed, it may not thereafter be revoked.
-
-4. COMMERCIAL DISTRIBUTION
-
-Commercial distributors of software may accept certain responsibilities with respect to end users, business partners and the like. While this license is intended to facilitate the commercial use of the Program, the Distributor who includes the Program in a commercial product offering should do so in a manner which does not create potential liability for Contributors. Therefore, if a Distributor includes the Program in a commercial product offering, such Distributor ("Commercial Distributor") hereby agrees to defend and indemnify every Contributor ("Indemnified Contributor") against any losses, damages and costs (collectively "Losses") arising from claims, lawsuits and other legal actions brought by a third party against the Indemnified Contributor to the extent caused by the acts or omissions of such Commercial Distributor in connection with its distribution of the Program in a commercial product offering. The obligations in this section do not apply to any claims or Losses relating to any actual or alleged intellectual property infringement. In order to qualify, an Indemnified Contributor must: a) promptly notify the Commercial Distributor in writing of such claim, and b) allow the Commercial Distributor to control, and cooperate with the Commercial Distributor in, the defense and any related settlement negotiations. The Indemnified Contributor may participate in any such claim at its own expense.
-
-For example, a Distributor might include the Program in a commercial product offering, Product X. That Distributor is then a Commercial Distributor. If that Commercial Distributor then makes performance claims, or offers warranties related to Product X, those performance claims and warranties are such Commercial Distributor's responsibility alone. Under this section, the Commercial Distributor would have to defend claims against the Contributors related to those performance claims and warranties, and if a court requires any Contributor to pay any damages as a result, the Commercial Distributor must pay those damages.
-
-5. NO WARRANTY
-
-EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, THE PROGRAM IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Each Recipient is solely responsible for determining the appropriateness of using and distributing the Program and assumes all risks associated with its exercise of rights under this Agreement, including but not limited to the risks and costs of program errors, compliance with applicable laws, damage to or loss of data, programs or equipment, and unavailability or interruption of operations.
-
-6. DISCLAIMER OF LIABILITY
-
-EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, NEITHER RECIPIENT NOR ANY CONTRIBUTORS SHALL HAVE ANY LIABILITY FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING WITHOUT LIMITATION LOST PROFITS), HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OR DISTRIBUTION OF THE PROGRAM OR THE EXERCISE OF ANY RIGHTS GRANTED HEREUNDER, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
-
-7. EXPORT CONTROL
-
-Recipient agrees that Recipient alone is responsible for compliance with the United States export administration regulations (and the export control laws and regulation of any other countries).
-
-8. GENERAL
-
-If any provision of this Agreement is invalid or unenforceable under applicable law, it shall not affect the validity or enforceability of the remainder of the terms of this Agreement, and without further action by the parties hereto, such provision shall be reformed to the minimum extent necessary to make such provision valid and enforceable.
-
-If Recipient institutes patent litigation against a Contributor with respect to a patent applicable to software (including a cross-claim or counterclaim in a lawsuit), then any patent licenses granted by that Contributor to such Recipient under this Agreement shall terminate as of the date such litigation is filed. In addition, if Recipient institutes patent litigation against any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the Program itself (excluding combinations of the Program with other software or hardware) infringes such Recipient's patent(s), then such Recipient's rights granted under Section 2(b) shall terminate as of the date such litigation is filed.
-
-All Recipient's rights under this Agreement shall terminate if it fails to comply with any of the material terms or conditions of this Agreement and does not cure such failure in a reasonable period of time after becoming aware of such noncompliance. If all Recipient's rights under this Agreement terminate, Recipient agrees to cease use and distribution of the Program as soon as reasonably practicable. However, Recipient's obligations under this Agreement and any licenses granted by Recipient relating to the Program shall continue and survive.
-
-LUCENT may publish new versions (including revisions) of this Agreement from time to time. Each new version of the Agreement will be given a distinguishing version number. The Program (including Contributions) may always be distributed subject to the version of the Agreement under which it was received. In addition, after a new version of the Agreement is published, Contributor may elect to distribute the Program (including its Contributions) under the new version. No one other than LUCENT has the right to modify this Agreement. Except as expressly stated in Sections 2(a) and 2(b) above, Recipient receives no rights or licenses to the intellectual property of any Contributor under this Agreement, whether expressly, by implication, estoppel or otherwise. All rights in the Program not expressly granted under this Agreement are reserved.
-
-This Agreement is governed by the laws of the State of New York and the intellectual property laws of the United States of America. No party to this Agreement will bring a legal action under this Agreement more than one year after the cause of action arose. Each party waives its rights to a jury trial in any resulting litigation.
 
 ----
 
@@ -9626,224 +8778,6 @@ program.
 
 ----
 
-Copyright (c) 2005-2007 Kunle Odutola
-Copyright (c) 2005-2009 Kunle Odutola, Johannes Luber
-Copyright (c) 2007 Toshiba
-Copyright (c) 2007-2008 Johannes Luber
-Copyright (c) 2008 Erik van Bilsen
-Copyright 2005-2007 Kunle Odutola
-Copyright 2006 MbUnit
-Copyright value http://www.antlr.org
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
-3. The name of the author may not be used to endorse or promote products
-   derived from this software without specific prior written permission.
-
-Changes to this license can be made only by the copyright author with
-explicit written consent.
-
-THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-----
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer,
-   without modification.
-
-2. Neither the name of the copyright holders nor the names of its
-   contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND ITS CONTRIBUTORS
-``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDERS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
-
-----
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-
-Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following
-disclaimer in the documentation and/or other materials provided
-with the distribution.
-
-Neither the name of the copyright owner nor the names of its
-contributors may be used to endorse or promote products derived
-from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
-ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
-BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-----
-
-Copyright (c) 2004, 2006 The Linux Foundation and its contributors
-
-Developer Certificate of Origin
-Version 1.1
-
-Copyright (C) 2004, 2006 The Linux Foundation and its contributors.
-1 Letterman Drive
-Suite D4700
-San Francisco, CA, 94129
-
-Everyone is permitted to copy and distribute verbatim copies of this
-license document, but changing it is not allowed.
-
-
-Developer's Certificate of Origin 1.1
-
-By making a contribution to this project, I certify that:
-
-(a) The contribution was created in whole or in part by me and I
-    have the right to submit it under the open source license
-    indicated in the file; or
-
-(b) The contribution is based upon previous work that, to the best
-    of my knowledge, is covered under an appropriate open source
-    license and I have the right under that license to submit that
-    work with modifications, whether created in whole or in part
-    by me, under the same open source license (unless I am
-    permitted to submit under a different license), as indicated
-    in the file; or
-
-(c) The contribution was provided directly to me by some other
-    person who certified (a), (b) or (c) and I have not modified
-    it.
-
-(d) I understand and agree that this project and the contribution
-    are public and that a record of the contribution (including all
-    personal information I submit with it, including my sign-off) is
-    maintained indefinitely and may be redistributed consistent with
-    this project or the open source license(s) involved.
-
-----
-
-Copyright (c) 2009 OASIS(r)
-
-This document and possible translations of it may be copied and furnished to
-others, and derivative works that comment on or otherwise explain it or assist
-in its implementation may be prepared, copied, published, and distributed, in
-whole or in part, without restriction of any kind, provided that the above
-copyright notice and this section are included on all such copies and derivative
-works. However, this document itself may not be modified in any way, including
-by removing the copyright notice or references to Ecma International, except as
-needed for the purpose of developing any document or deliverable produced by
-Ecma International (in which case the rules applied to copyrights must be
-followed) or as required to translate it into languages other than English. The
-limited permissions granted above are perpetual and will not be revoked by Ecma
-International or its successors or assigns. This document and the information
-contained herein is provided on an "AS IS" basis and ECMA INTERNATIONAL
-DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY
-WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY OWNERSHIP
-RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR
-PURPOSE.
-
-----
-
-COPYRIGHT HOLDERS AND THE ECLIPSE FOUNDATION
-Copyright (c) 2018-2019 Eclipse Foundation
-Copyright (c) Eclipse Foundation, Inc.
-Copyright (c) inceptionYear, currentYear Eclipse Foundation
-
-Eclipse Foundation Specification License - v1.0
-
-By using and/or copying this document, or the Eclipse Foundation document from
-which this statement is linked, you (the licensee) agree that you have read,
-understood, and will comply with the following terms and conditions:
-
-Permission to copy, and distribute the contents of this document, or the Eclipse
-Foundation document from which this statement is linked, in any medium for any
-purpose and without fee or royalty is hereby granted, provided that you include
-the following on ALL copies of the document, or portions thereof, that you use:
-
-- link or URL to the original Eclipse Foundation document.
-- All existing copyright notices, or if one does not exist, a notice (hypertext
-  is preferred, but a textual representation is permitted) of the form:
-"Copyright © [$date-of-document] Eclipse Foundation, Inc. <<url to this license>>"
-
-Inclusion of the full text of this NOTICE must be provided. We request that
-authorship attribution be provided in any software, documents, or other items or
-products that you create pursuant to the implementation of the contents of this
-document, or any portion thereof.
-
-No right to create modifications or derivatives of Eclipse Foundation documents
-is granted pursuant to this license, except anyone may prepare and distribute
-derivative works and portions of this document in software that implements the
-specification, in supporting materials accompanying such software, and in
-documentation of such software, PROVIDED that all such works include the notice
-below. HOWEVER, the publication of derivative works of this document for use as
-a technical specification is expressly prohibited.
-
-The notice is:
-
-"Copyright © [$date-of-document] Eclipse Foundation. This software or document
-includes material copied from or derived from [title and URI of the Eclipse
-Foundation specification document]."
-
-Disclaimers
-
-THIS DOCUMENT IS PROVIDED "AS IS," AND THE COPYRIGHT HOLDERS AND THE ECLIPSE
-FOUNDATION MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING,
-BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THE DOCUMENT ARE
-SUITABLE FOR ANY PURPOSE; NOR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT
-INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
-
-THE COPYRIGHT HOLDERS AND THE ECLIPSE FOUNDATION WILL NOT BE LIABLE FOR ANY
-DIRECT, INDIRECT, SPECIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE
-DOCUMENT OR THE PERFORMANCE OR IMPLEMENTATION OF THE CONTENTS THEREOF.
-
-The name and trademarks of the copyright holders or the Eclipse Foundation may
-NOT be used in advertising or publicity pertaining to this document or its
-contents without specific, written prior permission. Title to copyright in this
-document will at all times remain with copyright holders.
-
-----
-
 H2 License - Version 1.0
 
 
@@ -10241,7 +9175,6 @@ described in Exhibit A.
 ----
 
 Copyright (c) 1997-1998, 2001, 2003 The Internet Society ()
-Copyright (c) 2004 OASIS Open ()
 
 This document and translations of it may be copied and furnished to
 others, and derivative works that comment on or otherwise explain it
@@ -10578,264 +9511,6 @@ ISO 8879, provided this notice is included in all copies.
 
 ----
 
-Copyright (c) 2000-2004 Jason Hunter & Brett McLaughlin
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions, and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions, and the disclaimer that follows
-   these conditions in the documentation and/or other materials
-   provided with the distribution.
-
-3. The name "JDOM" must not be used to endorse or promote products
-   derived from this software without prior written permission.  For
-   written permission, please contact <request_AT_jdom_DOT_org>.
-
-4. Products derived from this software may not be called "JDOM", nor
-   may "JDOM" appear in their name, without prior written permission
-   from the JDOM Project Management <request_AT_jdom_DOT_org>.
-
-In addition, we request (but do not require) that you include in the
-end-user documentation provided with the redistribution and/or in the
-software itself an acknowledgement equivalent to the following:
-    "This product includes software developed by the
-     JDOM Project (http://www.jdom.org/)."
-Alternatively, the acknowledgment may be graphical using the logos
-available at http://www.jdom.org/images/logos.
-
-THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED.  IN NO EVENT SHALL THE JDOM AUTHORS OR THE PROJECT
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
-OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-SUCH DAMAGE.
-
-This software consists of voluntary contributions made by many
-individuals on behalf of the JDOM Project and was originally
-created by Jason Hunter <jhunter_AT_jdom_DOT_org> and
-Brett McLaughlin <brett_AT_jdom_DOT_org>.  For more information
-on the JDOM Project, please see <http://www.jdom.org/>.
-
-----
-
-Jetty Project
-Corporate Contributor License Agreement V1.1
-based on http://www.apache.org/licenses/
-
-Thank you for your interest in the Jetty project by Mort Bay Consulting
-Pty. Ltd. Australia ("MortBay").  In order to clarify the intellectual
-property license granted with Contributions from any person or entity,
-MortBay must have a Contributor License Agreement ("CLA") that has been
-signed by each Contributor, indicating agreement to the license terms
-below. This license is for your protection as a Contributor as well as
-the protection of MortBay and its users; it does not change your rights
-to use your own Contributions for any other purpose.
-
-This version of the Agreement allows an entity (the "Corporation") to
-submit Contributions to Mort Bay, to authorize Contributions submitted by
-its designated employees to Mort Bay, and to grant copyright and patent
-licenses thereto.
-
-If you have not already done so, please complete this agreement and
-commit it to the Jetty repository at
-svn+ssh://svn.jetty.codehaus.org/home/projects/jetty/scm/jetty at
-LICENSES/ccla-CORPORATE-NAME.txt. If you do not have commit privilege to the
-repository, please email the file to eclipse@eclipse.com. If possible,
-digitally sign the committed file, otherwise send a signed Agreement
-to MortBay.
-
-Each developer covered by this agreement should have their name appended
-the Schedule A and the copy commited to LICENSES/ccla-CORPORATE-NAME.txt
-using their authenticated codehaus ssh login.  If possible, digitally sign
-the committed file, otherwise send a signed Agreement to MortBay.
-
-Please read this document carefully before signing and keep a copy for
-your records.
-
-  Corporation name:
-  Mailing Address:
-
-  Point of Contact:
-  Full name:
-  E-Mail:
-  Fax:
-
-You accept and agree to the following terms and conditions for Your
-present and future Contributions submitted to MortBay. In return,
-MortBay shall not use Your Contributions in a way that is contrary
-to the software license in effect at the time of the Contribution.
-Except for the license granted herein to MortBay and recipients of
-software distributed by MortBay, You reserve all right, title, and
-interest in and to Your Contributions.
-
-1. Definitions.
-
-   "You" (or "Your") shall mean the copyright owner or legal entity
-   authorized by the copyright owner that is making this Agreement with
-   MortBay. For legal entities, the entity making a Contribution and all
-   other entities that control, are controlled by, or are under common
-   control with that entity are considered to be a single Contributor. For
-   the purposes of this definition, "control" means (i) the power, direct
-   or indirect, to cause the direction or management of such entity,
-   whether by contract or otherwise, or (ii) ownership of fifty percent
-   (50%) or more of the outstanding shares, or (iii) beneficial ownership
-   of such entity.
-
-   "Contribution" shall mean any original work of authorship,
-   including any modifications or additions to an existing work, that
-   is intentionally submitted by You to MortBay for inclusion in, or
-   documentation of, any of the products owned or managed by MortBay (the
-   "Work"). For the purposes of this definition, "submitted" means any
-   form of electronic, verbal, or written communication sent to MortBay
-   or its representatives, including but not limited to communication
-   on electronic mailing lists, source code control systems, and issue
-   tracking systems that are managed by, or on behalf of, MortBay for
-   the purpose of discussing and improving the Work, but excluding
-   communication that is conspicuously marked or otherwise designated
-   in writing by You as "Not a Contribution."
-
-2. Grant of Copyright License. Subject to the terms and conditions
-   of this Agreement, You hereby grant to MortBay and to recipients of
-   software distributed by MortBay a perpetual, worldwide, non-exclusive,
-   no-charge, royalty-free, irrevocable copyright license to reproduce,
-   prepare derivative works of, publicly display, publicly perform,
-   sublicense, and distribute Your Contributions and such derivative
-   works.
-
-3. Grant of Patent License. Subject to the terms and conditions of
-   this Agreement, You hereby grant to MortBay and to recipients of
-   software distributed by MortBay a perpetual, worldwide, non-exclusive,
-   no-charge, royalty-free, irrevocable (except as stated in this section)
-   patent license to make, have made, use, offer to sell, sell, import,
-   and otherwise transfer the Work, where such license applies only to
-   those patent claims licensable by You that are necessarily infringed by
-   Your Contribution(s) alone or by combination of Your Contribution(s)
-   with the Work to which such Contribution(s) were submitted. If any
-   entity institutes patent litigation against You or any other entity
-   (including a cross-claim or counterclaim in a lawsuit) alleging
-   that your Contribution, or the Work to which you have contributed,
-   constitutes direct or contributory patent infringement, then any
-   patent licenses granted to that entity under this Agreement for that
-   Contribution or Work shall terminate as of the date such litigation
-   is filed.
-
-4. You represent that You are legally entitled to grant the above
-   license. You represent further that each employee of the Corporation
-   designated on Schedule A below (or in a subsequent written modification
-   to that Schedule) is authorized to submit Contributions on behalf of
-   the Corporation.
-
-5. You represent that each of Your Contributions is Your original creation
-   (see section 7 for submissions on behalf of others).  You represent
-   that Your Contribution submissions include complete details of any
-   third-party license or other restriction (including, but not limited
-   to, related patents and trademarks) of which you are personally aware
-   and which are associated with any part of Your Contributions.
-
-6. You are not expected to provide support for Your Contributions, except
-   to the extent You desire to provide support. You may provide support
-   for free, for a fee, or not at all. Unless required by applicable
-   law or agreed to in writing, You provide Your Contributions on an
-   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-   express or implied, including, without limitation, any warranties or
-   conditions of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS
-   FOR A PARTICULAR PURPOSE.
-
-7. Should You wish to submit work that is not Your original creation,
-   You may submit it to MortBay separately from any Contribution,
-   identifying the complete details of its source and of any license or
-   other restriction (including, but not limited to, related patents,
-   trademarks, and license agreements) of which you are personally
-   aware, and conspicuously marking the work as "Submitted on behalf of
-   a third-party: [named here]".
-
-8. It is your responsibility to notify MortBay when any change is required
-   to the list of designated employees authorized to submit Contributions
-   on behalf of the Corporation, or to the Corporation's Point of Contact
-   with MortBay.
-
-Date:
-
-Signature:
-
-Name:
-
-Positions:
-
-
-
-Schedule A
-
-    Name                                     Date added
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-    ______________________________________   ________________
-
-----
-
-Copyright (c) 1998-2002 Xerox Corporation
-Copyright (c) 1998-2002, 2004 Xerox Corporation, Contributors
-
-Use and copying of this software and preparation of derivative works based
-upon this software are permitted.  Any distribution of this software or
-derivative works must comply with all applicable United States export control
-laws.
-
-This software is made available AS IS, and Xerox Corporation makes no warranty
-about the software, its performance or its conformity to any specification.
-
-----
-
-Copyright (c) 2002-2004 by The Web Services-Interoperability Organization
-
-Microsoft WS Routing Specifications License WS/WS-Routing.xsd
-
-Copyright 2001 Microsoft Corporation. All rights reserved.
-
-The presentation, distribution or other dissemination of the information contained herein by Microsoft is not a license, either expressly or impliedly, to any intellectual property owned or controlled by Microsoft.
-
-This document and the information contained herein is provided on an "AS IS" basis and to the maximum extent permitted by applicable law, Microsoft provides the document AS IS AND WITH ALL FAULTS, and hereby disclaims all other warranties and conditions, either express, implied or statutory, including, but not limited to, any (if any) implied warranties, duties or conditions of merchantability, of fitness for a particular purpose, of accuracy or completeness of responses, of results, of workmanlike effort, of lack of viruses, and of lack of negligence, all with regard to the document. ALSO, THERE IS NO WARRANTY OR CONDITION OF TITLE, QUIET ENJOYMENT, QUIET POSSESSION, CORRESPONDENCE TO DESCRIPTION OR NON-INFRINGEMENT WITH REGARD TO THE DOCUMENT.
-
-IN NO EVENT WILL MICROSOFT BE LIABLE TO ANY OTHER PARTY FOR THE COST OF PROCURING SUBSTITUTE GOODS OR SERVICES, LOST PROFITS, LOSS OF USE, LOSS OF DATA, OR ANY INCIDENTAL, CONSEQUENTIAL, DIRECT, INDIRECT, OR SPECIAL DAMAGES WHETHER UNDER CONTRACT, TORT, WARRANTY, OR OTHERWISE, ARISING IN ANY WAY OUT OF THIS OR ANY OTHER AGREEMENT RELATING TO THIS DOCUMENT, WHETHER OR NOT SUCH PARTY HAD ADVANCE NOTICE OF THE POSSIBILITY OF SUCH DAMAGES.
-
-----
-
-Copyright (c) 2002-2008 OASIS Open ()
-
 Oasis WS Security Specification License
 
 OASIS takes no position regarding the validity or scope of any intellectual
@@ -10877,156 +9552,10 @@ MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
 ----
 
-(c) 1996, 2004 Carsten Heinz
-(c) 1997 Detlev Droege
-(c) 1997 Dominique de Waleffe
-(c) 1997 Dominique de Waleffe Extended
-(c) 1997 Kai Wollenweber
-(c) 1998 Christian Haul
-(c) 1998 Detlef Reimers
-(c) 1998 Juergen Heim
-(c) 1998 Kai Below
-(c) 1998 Michael Weber
-(c) 1998-1999 Peter Bartke
-(c) 1999 Aidan Philip Heerdegen
-(c) 1999 Berthold
-(c) 1999 Jens T. Berger Thielemann
-(c) 1999 Jos e Romildo Malaquias
-(c) 1999 Michael Wiese
-(c) 1999 Patrick Cousot
-(c) 1999 Torben Hoffmann
-(c) 2000 Rolf Niepraschk
-(c) 2000 Sonja Weidmann
-(c) 2000 by Andreas Matthias
-(c) 2001 Oliver Baum
-(c) 2001 Ralph Becket
-(c) 2001-2002 Ulrich G. Wortmann
-(c) 2002 Andrew Zabolotny
-(c) 2002 Geraint Paul Bevan
-(c) 2002 Mark van Eijk
-(c) 2002 Martin Brodbeck
-(c) 2002 Neil Conway
-(c) 2002 Robert Frank
-(c) 2002-2003 Jean-Philippe Grivet
-(c) 2003 Adam Grabowski
-(c) 2003 Cameron H. G. Wright <c.h.g.wright@ieee.org>
-(c) 2003 Daniel Gazard
-(c) 2003 Dirk Jesko
-(c) 2003 Jonathan Sauer
-(c) 2003 Riccardo Murri <riccardo.murri@gmx.it>
-(c) 2004 Brian Christensen
-(c) 2004 Martine Gautier
-(c) 2004 William Thimbleby
-(c) 2004, 2006 Brooks Moses
-(c) 2005 Christophe Jorssen
-(c) 2006 Christoph Kiefer
-(c) 2006 Herbert Voss
-(c) 2006 Michael Franke
-(c) 2006 Santiago Urue
-(c) 2013 Heiko Oberdiek
-(c) 2013 Ignacio D
-(c) 2013 Jobst Hoffmann
-(c) 2013 Stefan Pinnow
-(c) 2013 Stephan Hennig
-(c) Andres Becerra Sandoval
-(c) Christoph Giess
-(c) Gerd Neugebauer
-(c) Robert Wenner
-(c) Steffen Klupsch
-(c) Torsten Neuer
-Copyright (c) 2009 by Oracle Corporation
-Copyright (c) 2009-2010 International Business Machines Corporation and others
-Copyright (c) 2012-2016 University of Washington
-Copyright 2003 Wily Technology, Inc.
-copyright 1996, 2004 Carsten Heinz
-copyright 1997-2004, 2006-2007, 2013 ///////// /
-copyright 2006-2007 Brooks Moses
-
 This component contains multiple third-party subcomponents licensed
 under permissive licenses in the style of GPL, LGPL, and/or MPL. The
 license obligations of these subcomponents may apply when a subcomponent
 is actually used and/or redistributed.
-
-----
-
-(c) 1996, 2004 Carsten Heinz
-(c) 1997 Detlev Droege
-(c) 1997 Dominique de Waleffe
-(c) 1997 Dominique de Waleffe Extended
-(c) 1997 Kai Wollenweber
-(c) 1998 Christian Haul
-(c) 1998 Detlef Reimers
-(c) 1998 Juergen Heim
-(c) 1998 Kai Below
-(c) 1998 Michael Weber
-(c) 1998-1999 Peter Bartke
-(c) 1999 Aidan Philip Heerdegen
-(c) 1999 Berthold
-(c) 1999 Jens T. Berger Thielemann
-(c) 1999 Jos e Romildo Malaquias
-(c) 1999 Michael Wiese
-(c) 1999 Patrick Cousot
-(c) 1999 Torben Hoffmann
-(c) 2000 Rolf Niepraschk
-(c) 2000 Sonja Weidmann
-(c) 2000 by Andreas Matthias
-(c) 2001 Oliver Baum
-(c) 2001 Ralph Becket
-(c) 2001-2002 Ulrich G. Wortmann
-(c) 2002 Andrew Zabolotny
-(c) 2002 Geraint Paul Bevan
-(c) 2002 Mark van Eijk
-(c) 2002 Martin Brodbeck
-(c) 2002 Neil Conway
-(c) 2002 Robert Frank
-(c) 2002-2003 Jean-Philippe Grivet
-(c) 2003 Adam Grabowski
-(c) 2003 Cameron H. G. Wright <c.h.g.wright@ieee.org>
-(c) 2003 Daniel Gazard
-(c) 2003 Dirk Jesko
-(c) 2003 Jonathan Sauer
-(c) 2003 Riccardo Murri <riccardo.murri@gmx.it>
-(c) 2004 Brian Christensen
-(c) 2004 Martine Gautier
-(c) 2004 William Thimbleby
-(c) 2004, 2006 Brooks Moses
-(c) 2005 Christophe Jorssen
-(c) 2006 Christoph Kiefer
-(c) 2006 Herbert Voss
-(c) 2006 Michael Franke
-(c) 2006 Santiago Urue
-(c) 2013 Heiko Oberdiek
-(c) 2013 Ignacio D
-(c) 2013 Jobst Hoffmann
-(c) 2013 Stefan Pinnow
-(c) 2013 Stephan Hennig
-(c) Andres Becerra Sandoval
-(c) Christoph Giess
-(c) Gerd Neugebauer
-(c) Robert Wenner
-(c) Steffen Klupsch
-(c) Torsten Neuer
-Copyright (c) 1986-2002 Adobe Systems, Incoporated
-Copyright (c) 1996 Aki Yoshida
-Copyright (c) 2002-2006 Marc Prud'hommeaux <mwp1@cornell.edu>
-Copyright (c) 2009 by Oracle Corporation
-Copyright (c) 2009-2010 International Business Machines Corporation and others
-Copyright (c) 2012-2016 University of Washington
-Copyright 1996 Aki Yoshida
-Copyright 2003 Contributors
-Copyright 2003 Wily Technology, Inc.
-Copyright 2004-2006 by Jim Weirich (jim@weirichhouse.org)
-Copyright 2005 by Scott Barron (scott@elitists.net)
-Copyright 2006 Sun Microsystems, Inc.
-Portions copyright 2004 by Jim Weirich (jim@weirichhouse.org)
-Portions copyright 2005 by Sam Ruby (rubys@intertwingly.net)
-Portions copyright 2011 by Bart ten Brinke (info@retrosync.com)
-copyright 1996, 2004 Carsten Heinz
-copyright 1997-2004, 2006-2007, 2013 ///////// /
-copyright 2006-2007 Brooks Moses
-
-This component contains multiple third-party subcomponents licensed
-under permissive licenses in the style of MIT, BSD, X11, and/or Apache.
 
 ----
 
@@ -11065,22 +9594,6 @@ Code generated by the Protocol Buffer compiler is owned by the owner
 of the input file used when generating it.  This code is not
 standalone and requires a support library to be linked with it.  This
 support library is itself covered by the above license.
-
-----
-
-This code is hereby placed in the public domain.
-
-THIS SOFTWARE IS PROVIDED BY THE AUTHORS ''AS IS'' AND ANY EXPRESS
-OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----
 
@@ -11144,205 +9657,49 @@ No other rights are granted by implication, estoppel or otherwise.
 
 ----
 
-Copyright (c) 2016-2017 Oracle America, Inc.
-Copyright 2006 SUN MICROSYSTEMS, INC.
-Copyright 2006, 2013, 2017 Oracle America, Inc.
-Copyright 2006, 4150 SUN MICROSYSTEMS, INC. : Network Circle, Santa Clara, California 95054, U.S.A
-Copyright 2011-2013 Oracle America, Inc. ("Oracle") 500 Oracle Parkway, Redwood Shores, California 94065, U.S.A
+Java(TM) Development Kit (JDK(TM)) ("Specification")
+Version: 1.1.8
+Status: FCS
 
-Copyright 2006 SUN MICROSYSTEMS, INC.
+Copyright 2002 Sun Microsystems, Inc.
 4150 Network Circle, Santa Clara, California 95054, U.S.A
 All rights reserved.
 
-LIMITED LICENSE GRANTS
+NOTICE; LIMITED LICENSE GRANTS
 
-1. License for Evaluation Purposes. Sun hereby grants you a fully-paid,
-non-exclusive, non-transferable, worldwide, limited license (without the
-right to sublicense), under Sun's applicable intellectual property
-rights to view, download, use and reproduce the Specification only for
-the purpose of internal evaluation. This includes (i) developing
-applications intended to run on an implementation of the Specification,
-provided that such applications do not themselves implement any
-portion(s) of the Specification, and (ii) discussing the Specification
-with any third party; and (iii) excerpting brief portions of the
-Specification in oral or written communications which discuss the
-Specification provided that such excerpts do not in the aggregate
-constitute a significant portion of the Specification.
+Sun Microsystems, Inc. ("Sun") hereby grants you a fully-paid, non-exclusive, non-transferable, worldwide, limited license (without the right to sublicense), under the Sun's applicable intellectual property rights to view, download, use and reproduce the Specification only for the purpose of internal evaluation, which shall be understood to include developing applications intended to run on an implementation of the Specification provided that such applications do not themselves implement any portion(s) of the Specification.
 
-2. License for the Distribution of Compliant Implementations. Sun also
-grants you a perpetual, non-exclusive, non-transferable, worldwide,
-fully paid-up, royalty free, limited license (without the right to
-sublicense) under any applicable copyrights or, subject to the
-provisions of subsection 4 below, patent rights it may have covering the
-Specification to create and/or distribute an Independent Implementation
-of the Specification that: (a) fully implements the Specification
-including all its required interfaces and functionality; (b) does not
-modify, subset, superset or otherwise extend the Licensor Name Space, or
-include any public or protected packages, classes, Java interfaces,
-fields or methods within the Licensor Name Space other than those
-required/authorized by the Specification or Specifications being
-implemented; and (c) passes the Technology Compatibility Kit (including
-satisfying the requirements of the applicable TCK Users Guide) for such
-Specification ("Compliant Implementation"). In addition, the foregoing
-license is expressly conditioned on your not acting outside its scope.
-No license is granted hereunder for any other purpose (including, for
-example, modifying the Specification, other than to the extent of your
-fair use rights, or distributing the Specification to third parties).
-Also, no right, title, or interest in or to any trademarks, service
-marks, or trade names of Sun or Sun's licensors is granted hereunder.
+Sun also grants you a perpetual, non-exclusive, worldwide, fully paid-up, royalty free, limited license (without the right to sublicense) under any applicable copyrights or patent rights it may have in the Specification to create and/or distribute an Independent Implementation of the Specification that: (i) fully implements the Spec(s) including all its required interfaces and functionality; (ii) does not modify, subset, superset or otherwise extend the Licensor Name Space, or include any public or protected packages, classes, Java interfaces, fields or methods within the Licensor Name Space other than those required/authorized by the Specification or Specifications being implemented; and (iii) passes the TCK (including satisfying the requirements of the applicable TCK Users Guide) for such Specification. The foregoing license is expressly conditioned on your not acting outside its scope. No license is granted hereunder for any other purpose.
 
-Java, and Java-related logos, marks and names are trademarks or
-registered trademarks of Sun Microsystems, Inc. in the U.S. and other
-countries.
+You need not include limitations (i)-(iii) from the previous paragraph or any other particular "pass through" requirements in any license You grant concerning the use of your Independent Implementation or products derived from it. However, except with respect to implementations of the Specification (and products derived from them) that satisfy limitations (i)-(iii) from the previous paragraph, You may neither: (a) grant or otherwise pass through to your licensees any licenses under Sun's applicable intellectual property rights; nor (b) authorize your licensees to make any claims concerning their implementation's compliance with the Spec in question.
 
-3. Pass-through Conditions. You need not include limitations (a)-(c)
-from the previous paragraph or any other particular "pass through"
-requirements in any license You grant concerning the use of your
-Independent Implementation or products derived from it. However, except
-with respect to Independent Implementations (and products derived from
-them) that satisfy limitations (a)-(c) from the previous paragraph, You
-may neither: (a) grant or otherwise pass through to your licensees any
-licenses under Sun's applicable intellectual property rights; nor (b)
-authorize your licensees to make any claims concerning their
-implementation's compliance with the Specification in question.
+For the purposes of this Agreement: "Independent Implementation" shall mean an implementation of the Specification that neither derives from any of Sun's source code or binary code materials nor, except with an appropriate and separate license from Sun, includes any of Sun's source code or binary code materials; and "Licensor Name Space" shall mean the public class or interface declarations whose names begin with "java", "javax", "com.sun" or their equivalents in any subsequent naming convention adopted by Sun through the Java Community Process, or any recognized successors or replacements thereof.
 
-4. Reciprocity Concerning Patent Licenses.
+This Agreement will terminate immediately without notice from Sun if you fail to comply with any material provision of or act outside the scope of the licenses granted above.
 
-a. With respect to any patent claims covered by the license granted
-under subparagraph 2 above that would be infringed by all technically
-feasible implementations of the Specification, such license is
-conditioned upon your offering on fair, reasonable and non-
-discriminatory terms, to any party seeking it from You, a perpetual,
-non-exclusive, non-transferable, worldwide license under Your patent
-rights which are or would be infringed by all technically feasible
-implementations of the Specification to develop, distribute and use a
-Compliant Implementation.
+TRADEMARKS
 
-b With respect to any patent claims owned by Sun and covered by the
-license granted under subparagraph 2, whether or not their infringement
-can be avoided in a technically feasible manner when implementing the
-Specification, such license shall terminate with respect to such claims
-if You initiate a claim against Sun that it has, in the course of
-performing its responsibilities as the Specification Lead, induced any
-other entity to infringe Your patent rights.
-
-c Also with respect to any patent claims owned by Sun and covered by the
-license granted under subparagraph 2 above, where the infringement of
-such claims can be avoided in a technically feasible manner when
-implementing the Specification such license, with respect to such
-claims, shall terminate if You initiate a claim against Sun that its
-making, having made, using, offering to sell, selling or importing a
-Compliant Implementation infringes Your patent rights.
-
-5. Definitions. For the purposes of this Agreement: "Independent
-Implementation" shall mean an implementation of the Specification that
-neither derives from any of Sun's source code or binary code materials
-nor, except with an appropriate and separate license from Sun, includes
-any of Sun's source code or binary code materials; "Licensor Name Space"
-shall mean the public class or interface declarations whose names begin
-with "java", "javax", "com.sun" or their equivalents in any subsequent
-naming convention adopted by Sun through the Java Community Process, or
-any recognized successors or replacements thereof; and
-"Technology Compatibility Kit" or "TCK" shall mean the test suite and
-accompanying TCK User's Guide provided by Sun which corresponds to the
-Specification and that was available either (i) from Sun 120 days before
-the first release of Your Independent Implementation that allows its use
-for commercial purposes, or (ii) more recently than 120 days from such
-release but against which You elect to test Your implementation of the
-Specification.
-
-This Agreement will terminate immediately without notice from Sun if you
-breach the Agreement or act outside the scope of the licenses granted
-above.
+No right, title, or interest in or to any trademarks, service marks, or trade names of Sun or Sun's licensors is granted hereunder. Sun, Sun Microsystems, the Sun logo, Java, J2SE, JDK, and the Java Coffee Cup logo are trademarks or registered trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 DISCLAIMER OF WARRANTIES
 
-THE SPECIFICATION IS PROVIDED "AS IS". SUN MAKES NO REPRESENTATIONS OR
-WARRANTIES, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO,
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-
-INFRINGEMENT (INCLUDING AS A CONSEQUENCE OF ANY PRACTICE OR
-IMPLEMENTATION OF THE SPECIFICATION), OR THAT THE CONTENTS OF THE
-SPECIFICATION ARE SUITABLE FOR ANY PURPOSE. This document does not
-represent any commitment to release or implement any portion of the
-Specification in any product. In addition, the Specification could
-include technical inaccuracies or typographical errors.
+THE SPECIFICATION IS PROVIDED "AS IS". SUN MAKES NO REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT, THAT THE CONTENTS OF THE SPECIFICATION ARE SUITABLE FOR ANY PURPOSE OR THAT ANY PRACTICE OR IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADE SECRETS OR OTHER RIGHTS. This document does not represent any commitment to release or implement any portion of the Specification in any product.
+
+THE SPECIFICATION COULD INCLUDE TECHNICAL INACCURACIES OR TYPOGRAPHICAL ERRORS. CHANGES ARE PERIODICALLY ADDED TO THE INFORMATION THEREIN; THESE CHANGES WILL BE INCORPORATED INTO NEW VERSIONS OF THE SPECIFICATION, IF ANY. SUN MAY MAKE IMPROVEMENTS AND/OR CHANGES TO THE PRODUCT(S) AND/OR THE PROGRAM(S) DESCRIBED IN THE SPECIFICATION AT ANY TIME. Any use of such changes in the Specification will be governed by the then-current license for the applicable version of the Specification.
 
 LIMITATION OF LIABILITY
 
-TO THE EXTENT NOT PROHIBITED BY LAW, IN NO EVENT WILL SUN OR ITS
-LICENSORS BE LIABLE FOR ANY DAMAGES, INCLUDING WITHOUT LIMITATION, LOST
-REVENUE, PROFITS OR DATA, OR FOR SPECIAL, INDIRECT, CONSEQUENTIAL,
-INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE
-THEORY OF LIABILITY, ARISING OUT OF OR RELATED IN ANY WAY TO YOUR
-HAVING, IMPLEMENTING OR OTHERWISE USING THE SPECIFICATION, EVEN IF SUN
-AND/OR ITS LICENSORS HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGES.
+TO THE EXTENT NOT PROHIBITED BY LAW, IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY DAMAGES, INCLUDING WITHOUT LIMITATION, LOST REVENUE, PROFITS OR DATA, OR FOR SPECIAL, INDIRECT, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY, ARISING OUT OF OR RELATED TO ANY FURNISHING, PRACTICING, MODIFYING OR ANY USE OF THE SPECIFICATION, EVEN IF SUN AND/OR ITS LICENSORS HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
-You will indemnify, hold harmless, and defend Sun and its licensors from
-any claims arising or resulting from: (i) your use of the Specification;
-(ii) the use or distribution of your Java application, applet and/or
-implementation; and/or (iii) any claims that later versions or releases
-of any Specification furnished to you are incompatible with the
-Specification provided to you under this license.
+You will indemnify, hold harmless, and defend Sun and its licensors from any claims arising or resulting from: (i) your use of the Specification; (ii) the use or distribution of your Java application, applet and/or clean room implementation; and/or (iii) any claims that later versions or releases of any Specification furnished to you are incompatible with the Specification provided to you under this license.
 
 RESTRICTED RIGHTS LEGEND
 
-U.S. Government: If this Specification is being acquired by or on behalf
-of the U.S. Government or by a U.S. Government prime contractor or
-subcontractor (at any tier), then the Government's rights in the
-Software and accompanying documentation shall be only as set forth in
-this license; this is in accordance with 48 C.F.R. 227.7201 through
-227.7202-4 (for Department of Defense (DoD) acquisitions) and with 48
-C.F.R. 2.101 and 12.212 (for non-DoD acquisitions).
+U.S. Government: If this Specification is being acquired by or on behalf of the U.S. Government or by a U.S. Government prime contractor or subcontractor (at any tier), then the Government's rights in the Software and accompanying documentation shall be only as set forth in this license; this is in accordance with 48 C.F.R. 227.7201 through 227.7202-4 (for Department of Defense (DoD) acquisitions) and with 48 C.F.R. 2.101 and 12.212 (for non-DoD acquisitions).
 
 REPORT
 
-If you provide Sun with any comments or suggestions concerning the
-Specification ("Feedback"), you hereby: (i) agree that such Feedback is
-provided on a non-proprietary and non-confidential basis, and (ii) grant
-Sun a perpetual, non-exclusive, worldwide, fully paid-up, irrevocable
-license, with the right to sublicense through multiple levels of
-sublicensees, to incorporate, disclose, and use without limitation the
-Feedback for any purpose.
-
-GENERAL TERMS
-
-Any action related to this Agreement will be governed by California law
-and controlling U.S. federal law. The U.N. Convention for the
-International Sale of Goods and the choice of law rules of any
-jurisdiction will not apply.
-
-The Specification is subject to U.S. export control laws and may be
-subject to export or import regulations in other countries. Licensee
-agrees to comply strictly with all such laws and regulations and
-acknowledges that it has the responsibility to obtain such licenses to
-export, re-export or import as may be required after delivery to
-Licensee.
-
-This Agreement is the parties' entire agreement relating to its subject
-matter. It supersedes all prior or contemporaneous oral or written
-communications, proposals, conditions, representations and warranties
-and prevails over any conflicting or additional terms of any quote,
-order, acknowledgment, or other communication between the parties
-relating to its subject matter during the term of this Agreement. No
-modification to this Agreement will be binding, unless in writing and
-signed by an authorized representative of each party.
-
-Rev. April, 2006 Sun/Final/Full
-
-----
-
-(c) Copyright 1996-1998 Taligent, Inc.
-(c) Copyright 1996-1999 IBM Corp.
-
-The original version of this source code and documentation
-is copyrighted and owned by Taligent, Inc., a wholly-owned
-subsidiary of IBM. These materials are provided under terms
-of a License Agreement between Taligent and Sun. This technology
-is protected by multiple US and International patents.
-
-This notice and attribution to Taligent may not be removed.
-Taligent is a registered trademark of Taligent, Inc.
+You may wish to report any ambiguities, inconsistencies or inaccuracies you may find in connection with your use of the Specification ("Feedback"). To the extent that you provide Sun with any Feedback, you hereby: (i) agree that such Feedback is provided on a non-proprietary and non-confidential basis, and (ii) grant Sun a perpetual, non-exclusive, worldwide, fully paid-up, irrevocable license, with the right to sublicense through multiple levels of sublicensees, to incorporate, disclose, and use without limitation the Feedback for any purpose related to the Specification and future versions, implementations, and test suites thereof.
 
 ----
 
@@ -11506,96 +9863,6 @@ trademarks mentioned herein are the property of their respective owners.
 
 ----
 
-Copyright 2001-2004 Unicode, Inc.
-
-This file is provided as-is by Unicode, Inc. (The Unicode Consortium).
-No claims are made as to fitness for any particular purpose.  No
-warranties of any kind are expressed or implied.  The recipient
-agrees to determine applicability of information provided.  If this
-file has been provided on optical media by Unicode, Inc., the sole
-remedy for any claim will be exchange of defective media within 90
-days of receipt.
-
-Unicode, Inc. hereby grants the right to freely use the information
-supplied in this file in the creation of products supporting the
-Unicode Standard, and to make copies of this file in any form for
-internal or external distribution as long as this notice remains
-attached.
-
-----
-
-(c) 1999 COPYRIGHT World Wide Web Consortium (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University)
-Copyright (c) 1998-1999 World Wide Web Consortium, (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University)
-Copyright (c) World Wide Web Consortium, (Massachusetts Institute of Technology, European Research Consortium for Informatics and Mathematics, Keio University)
-
-W3C DOCUMENT LICENSE
-
-Public documents on the W3C site are provided by the copyright holders under the
-following license.
-
-License
-By using and/or copying this document, or the W3C document from which this
-statement is linked, you (the licensee) agree that you have read, understood,
-and will comply with the following terms and conditions:
-
-Permission to copy, and distribute the contents of this document, or the W3C
-document from which this statement is linked, in any medium for any purpose and
-without fee or royalty is hereby granted, provided that you include the
-following on ALL copies of the document, or portions thereof, that you use:
-
-* A link or URL to the original W3C document.
-* The pre-existing copyright notice of the original author, or if it doesn't
-exist, a notice (hypertext is preferred, but a textual representation is
-permitted) of the form: "Copyright © [$date-of-document] World Wide Web
-Consortium, (Massachusetts Institute of Technology, European Research Consortium
-for Informatics and Mathematics, Keio University, Beihang). All Rights Reserved.
-http://www.w3.org/Consortium/Legal/2002/copyright-documents-20021231"
-
-* If it exists, the STATUS of the W3C document.
-
-When space permits, inclusion of the full text of this NOTICE should be
-provided. We request that authorship attribution be provided in any software,
-documents, or other items or products that you create pursuant to the
-implementation of the contents of this document, or any portion thereof.
-
-No right to create modifications or derivatives of W3C documents is granted
-pursuant to this license. However, if additional requirements (documented in the
-Copyright FAQ) are satisfied, the right to create modifications or derivatives
-is sometimes granted by the W3C to individuals complying with those
-requirements.
-
-Disclaimers
-THIS DOCUMENT IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE NO REPRESENTATIONS
-OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE;
-THAT THE CONTENTS OF THE DOCUMENT ARE SUITABLE FOR ANY PURPOSE; NOR THAT THE
-IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY THIRD PARTY PATENTS,
-COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
-
-COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR
-CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE DOCUMENT OR THE PERFORMANCE
-OR IMPLEMENTATION OF THE CONTENTS THEREOF.
-
-The name and trademarks of copyright holders may NOT be used in advertising or
-publicity pertaining to this document or its contents without specific, written
-prior permission. Title to copyright in this document will at all times remain
-with copyright holders.
-
-Notes
-This version: http://www.w3.org/Consortium/Legal/2002/copyright-documents-20021231
-
-This formulation of W3C's notice and license became active on December 31 2002.
-This version removes the copyright ownership notice such that this license can
-be used with materials other than those owned by the W3C, moves information on
-style sheets, DTDs, and schemas to the Copyright FAQ, reflects that ERCIM is now
-a host of the W3C, includes references to this specific dated version of the
-license, and removes the ambiguous grant of "use". See the older formulation for
-the policy prior to this date. Please see our Copyright FAQ for common questions
-about using materials from our site, such as the translating or annotating
-specifications.
-
-----
-
 Copyright (c) 2002-2004 BEA Systems Inc., International Business Machines Corporation, Microsoft Corporation, Inc, SAP AG, and Sun Microsystems, Inc
 
 WS Addressing Specification License
@@ -11643,29 +9910,7 @@ No other rights are granted by implication, estoppel or otherwise.
 
 ----
 
-(c) 2001-2006 BEA Systems Inc., International Business Machines Corporation, Microsoft Corporation, Inc., SAP AG, Sonic Software, and VeriSign, Inc.
-
-WS-Policy Specification
-
-Permission to copy and display the WS-Policy Specification (the "Specification", which includes WSDL and schema documents), in any medium without fee or royalty is hereby granted, provided that you include the following on ALL copies of the WS-Policy Specification, that you make:
-
-1.	A link or URL to the WS-Policy Specification at one of the Authors' websites
-2.	The copyright notice as shown in the WS-Policy Specification.
-
-BEA Systems, IBM, Microsoft, SAP, Sonic Software, and VeriSign (collectively, the "Authors") each agree to grant you a license, under royalty-free and otherwise reasonable, non-discriminatory terms and conditions, to their respective essential patent claims that they deem necessary to implement the WS-Policy Specification.
-
-THE WS-POLICY SPECIFICATION IS PROVIDED "AS IS," AND THE AUTHORS MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS OF THE WS-POLICY SPECIFICATION ARE SUITABLE FOR ANY PURPOSE; NOR THAT THE IMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
-
-THE AUTHORS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR RELATING TO ANY USE OR DISTRIBUTION OF THE WS-POLICY SPECIFICATION.
-
-The name and trademarks of the Authors may NOT be used in any manner, including advertising or publicity pertaining to the WS-Policy Specification or its contents without specific, written prior permission. Title to copyright in the WS-Policy Specification will at all times remain with the Authors.
-
-No other rights are granted by implication, estoppel or otherwise.
-
-----
-
 (c) 2002-2005 BEA Systems, IBM, Microsoft Corporation, Inc, and TIBCO Software Inc
-(c) 2004-2006 BEA Systems Inc., Computer Associates International, Inc., International Business Machines Corporation, Microsoft Corporation, Inc., SAP AG, Sun Microsystems, and webMethods
 
 WS-Trust Specification
 
@@ -11704,38 +9949,6 @@ No other rights are granted by implication, estoppel or otherwise.
 
 ----
 
-Copyright (c) 1991, 2000-2001 by Lucent Technologies
-
-Permission to use, copy, modify, and distribute this software for any
-purpose, subject to the provisions described below, without fee is
-hereby granted, provided that this entire notice is included in all
-copies of any software that is or includes a copy or modification of
-this software and in all copies of the supporting documentation for
-such software.
-
-THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
-WARRANTY. IN PARTICULAR, THE AUTHOR DOES MAKE ANY REPRESENTATION OR
-WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY OF THIS SOFTWARE OR
-ITS FITNESS FOR ANY PARTICULAR PURPOSE.
-
-----
-
-Copyright (c) 1998-2002 by Lucent Technologies
-Portions Copyright (c) 2009 The Go Authors
-
-Permission to use, copy, modify, and distribute this software for any
-purpose without fee is hereby granted, provided that this entire notice
-is included in all copies of any software which is or includes a copy
-or modification of this software and in all copies of the supporting
-documentation for such software.
-
-THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
-WARRANTY.  IN PARTICULAR, NEITHER THE AUTHOR NOR LUCENT MAKES ANY
-REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
-OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
-
-----
-
 Copyright 1987, 1994, 1998 The Open Group
 
 Permission to use, copy, modify, distribute, and sell this software and its
@@ -11758,34 +9971,6 @@ Except as contained in this notice, the name of copyright
 holders shall not be used in advertising or otherwise to promote the
 sale, use or other dealings in this Software without prior written
 authorization from the copyright holders.
-
-----
-
-Copyright (c) 2018 Eclipse Foundation, Inc.
-
-Zipeg License
-
-Redistribution and use in any forms, without modification, is permitted provided
-that the following conditions are met:
-
-Redistributions must reproduce the above copyright notice, this list of
-conditions and the following disclaimer in the documentation and/or other
-materials provided with the distribution.
-
-Neither the name of the www.zipeg.com nor the names of its contributors may be
-used to endorse or promote products derived from this software without specific
-prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----
 
@@ -11868,7 +10053,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 (c) C Fk
 (c) CKx1/2yWT (c) U
 (c) Christoph Giess
-(c) Copyright 2004-2015 Paul R. Holser, Jr
 (c) ECFieldElement A1
 (c) EJYssIn1mwAO/5. o1/2z bv
 (c) EX'u4Vl (c) FS
@@ -11914,25 +10098,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 (c) oa1/2aT4 (c) WD
 (c) o~ (c) K
 (c) uaP (c) U
-Copyright (c) $YEAR Mockito contributors
 Copyright (c) 1996 Netscape Communications Corporation
 Copyright (c) 2000 The Hoefler Type Foundry, Inc., dba Hoefler & Frere-Jones
 Copyright (c) 2000-2007 Minero Aoki
 Copyright (c) 2000-2021 The Legion Of The Bouncy Castle Inc. (https://www.bouncycastle.org)
 Copyright (c) 2001-2002 SourceForge ISO-RELAX Project (ASAMI Tomoharu, Daisuke Okajima, Kohsuke Kawaguchi, and MURATA Makoto)
-Copyright (c) 2001-2008 OFFIS, Tammo Freese
 Copyright (c) 2002 Graz University of Technology
-Copyright (c) 2002 The Apache Software Foundation
 Copyright (c) 2002-2015 Copyright (c) Stiftung SIC.
 Copyright (c) 2003-2004, 2009 Jim Weirich, Eric Hodel
 Copyright (c) 2003-2007 Jim Weirich
 Copyright (c) 2003-2012 Jim Weirich (jim.weirich@gmail.com)
-Copyright (c) 2003-2013 Objenesis Team and all contributors
 Copyright (c) 2004 Kohsuke Kawaguchi
 Copyright (c) 2004-2010 Alex Gorbatchev
 Copyright (c) 2004-2013 David Heinemeier Hansson
-Copyright (c) 2004-2015 Paul R. Holser, Jr
-Copyright (c) 2004-2017 QOS.ch
+Copyright (c) 2004-2013 QOS.ch
 Copyright (c) 2005-2008 Ryan Tomayko <r@tomayko.com>
 Copyright (c) 2005-2021 Philip Ross
 Copyright (c) 2006 Cameron Cooke
@@ -11944,8 +10123,6 @@ Copyright (c) 2006-2011 kuwata-lab.com
 Copyright (c) 2006-2015 IBM Corporation
 Copyright (c) 2007 Clifford Heath
 Copyright (c) 2007 Nathan Sobo
-Copyright (c) 2007 Novell, Inc (http://www.novell.com)
-Copyright (c) 2007, 2015-2021 Mockito
 Copyright (c) 2007-2010 Christian Neukirchen <http://purl.org/net/chneukirchen>
 Copyright (c) 2007-2010 Nick Kallen, Bryan Helmkamp, Emilio Tagua, Aaron Patterson
 Copyright (c) 2007-2012 Christian Neukirchen
@@ -11957,14 +10134,11 @@ Copyright (c) 2008-2009 Bjoern Hoehrmann <bjoern@hoehrmann.de>
 Copyright (c) 2008-2009 Bryan Helmkamp, Engine Yard Inc.
 Copyright (c) 2008-2009 Thomas E Enebo <enebo@acm.org>
 Copyright (c) 2008-2011 Graham Jenkins, Michael Schoen, Raimonds Simanovskis
-Copyright (c) 2008-2021 Mort Bay Consulting Pty Ltd and others
 Copyright (c) 2009 Anton Grigoryev
 Copyright (c) 2009 Michael Fellinger m.fellinger@gmail.com
 Copyright (c) 2009 Sun Microsystems, Inc.
 Copyright (c) 2009 Vladimir Kolesnikov
-Copyright (c) 2009 by Oracle Corporation
 Copyright (c) 2009 name
-Copyright (c) 2009-2010 International Business Machines Corporation and others
 Copyright (c) 2009-2013 Mikel Lindsaar
 Copyright (c) 2010-2011 Joshua Peek
 Copyright (c) 2010-2013 Michael Bleigh, Josh Kalderimis, Erik Michaels-Ober, Pavel Pravosud
@@ -11997,19 +10171,14 @@ Copyright (c) 2019 present Abdelrahman Awad
 Copyright (c) Abdelrahman Awad <logaretm1@gmail.com>
 Copyright (c) Jerry D Antonio
 Copyright (c) Jerry D'Antonio
-Copyright (c) year Mockito contributors
 Copyright 1996-2000, 2011 Sun Microsystems, Inc.
-Copyright 1998-2002 Lucent Technologies
-Copyright 2000-2015 Willy Tarreau <willy@haproxy.org>
 Copyright 2001-2004 IAIK, Graz University
-Copyright 2003 Wily Technology, Inc.
 Copyright 2003-2005 by Jim Weirich (jim@weirichhouse.org)
 Copyright 2003-2010 by Jim Weirich (jim.weirich@gmail.com)
 Copyright 2003-2013 Austin Ziegler. Adapted
 Copyright 2004 present by the Checker Framework
 Copyright 2005, 2012 jQuery Foundation, Inc. and other contributors
 Copyright 2006 Shin, YoungJin
-Copyright 2006-2012 The Chromium Authors
 Copyright 2009 Aaron Patterson
 Copyright 2011 John Resig
 Copyright 2011 The Dojo Foundation
@@ -12732,76 +10901,6 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 ----
 
-Copyright (c) 2005-2007 Kunle Odutola
-Copyright (c) 2005-2009 Kunle Odutola, Johannes Luber
-Copyright (c) 2007 Toshiba
-Copyright 2005-2007 Kunle Odutola
-Copyright 2006 MbUnit
-Copyright value http://www.antlr.org
-
-Microsoft Public License (Ms-PL)
-
-This license governs use of the accompanying software. If you use the software,
-you accept this license. If you do not accept the license, do not use the
-software.
-
-1. Definitions
-
-The terms "reproduce," "reproduction," "derivative works," and "distribution"
-have the same meaning here as under U.S. copyright law.
-
-A "contribution" is the original software, or any additions or changes to the
-software.
-
-A "contributor" is any person that distributes its contribution under this
-license.
-
-"Licensed patents" are a contributor's patent claims that read directly on its
-contribution.
-
-2. Grant of Rights
-
-(A) Copyright Grant- Subject to the terms of this license, including the license
-conditions and limitations in section 3, each contributor grants you a non-
-exclusive, worldwide, royalty-free copyright license to reproduce its
-contribution, prepare derivative works of its contribution, and distribute its
-contribution or any derivative works that you create.
-
-(B) Patent Grant- Subject to the terms of this license, including the license
-conditions and limitations in section 3, each contributor grants you a non-
-exclusive, worldwide, royalty-free license under its licensed patents to make,
-have made, use, sell, offer for sale, import, and/or otherwise dispose of its
-contribution in the software or derivative works of the contribution in the
-software.
-
-3. Conditions and Limitations
-
-(A) No Trademark License- This license does not grant you rights to use any
-contributors' name, logo, or trademarks.
-
-(B) If you bring a patent claim against any contributor over patents that you
-claim are infringed by the software, your patent license from such contributor
-to the software ends automatically.
-
-(C) If you distribute any portion of the software, you must retain all
-copyright, patent, trademark, and attribution notices that are present in the
-software.
-
-(D) If you distribute any portion of the software in source code form, you may
-do so only under this license by including a complete copy of this license with
-your distribution. If you distribute any portion of the software in compiled or
-object code form, you may only do so under a license that complies with this
-license.
-
-(E) The software is licensed "as-is." You bear the risk of using it. The
-contributors give no express warranties, guarantees, or conditions. You may have
-additional consumer rights under your local laws which this license cannot
-change. To the extent permitted under your local laws, the contributors exclude
-the implied warranties of merchantability, fitness for a particular purpose and
-non-infringement.
-
-----
-
 Copyright 1991 by the Massachusetts Institute of Technology
 
 Permission to use, copy, modify, and distribute this software and its
@@ -13120,7 +11219,6 @@ UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 ----
 
 Copyright (c) 2003 Dave Thomas
-Copyright (c) 2009-2010 Kyle Yetter
 
   1. You may make and give away verbatim copies of the source form of the
      software without restriction, provided that you duplicate all of the
@@ -13174,67 +11272,6 @@ Copyright (c) 2009-2010 Kyle Yetter
      IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
      WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
      PURPOSE.
-
-----
-
-(c) 1999 COPYRIGHT World Wide Web Consortium (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University)
-Copyright (c) 1998-1999 World Wide Web Consortium, (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University)
-
-Copyright Status for SAX
-
-SAX is free!
-
-In fact, it's not possible to own a license to SAX, since it's been placed in
-the public domain.
-
-No Warranty
-
-Because SAX is released to the public domain, there is no warranty for the
-design or for the software implementation, to the extent permitted by applicable
-law. Except when otherwise stated in writing the copyright holders and/or other
-parties provide SAX "as is" without warranty of any kind, either expressed or
-implied, including, but not limited to, the implied warranties of
-merchantability and fitness for a particular purpose. The entire risk as to the
-quality and performance of SAX is with you. Should SAX prove defective, you
-assume the cost of all necessary servicing, repair or correction.
-
-In no event unless required by applicable law or agreed to in writing will any
-copyright holder, or any other party who may modify and/or redistribute SAX, be
-liable to you for damages, including any general, special, incidental or
-consequential damages arising out of the use or inability to use SAX (including
-but not limited to loss of data or data being rendered inaccurate or losses
-sustained by you or third parties or a failure of the SAX to operate with any
-other programs), even if such holder or other party has been advised of the
-possibility of such damages.
-
-Copyright Disclaimers
-
-This page includes statements to that effect by David Megginson, who would have
-been able to claim copyright for the original work.
-
-SAX 1.0
-
-Version 1.0 of the Simple API for XML (SAX), created collectively by the
-membership of the XML-DEV mailing list, is hereby released into the public
-domain.
-
-No one owns SAX: you may use it freely in both commercial and non-commercial
-applications, bundle it with your software distribution, include it on a CD-ROM,
-list the source code in a book, mirror the documentation at your own web site,
-or use it in any other way you see fit.
-
-David Megginson, Megginson Technologies Ltd.
-1998-05-11
-
-SAX 2.0
-
-I hereby abandon any property rights to SAX 2.0 (the Simple API for XML), and
-release all of the SAX 2.0 source code, compiled code, and documentation
-contained in this distribution into the Public Domain. SAX comes with NO
-WARRANTY or guarantee of fitness for any purpose.
-
-David Megginson, Megginson Technologies Ltd.
-2000-05-05
 
 ----
 
