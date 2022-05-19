@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.util;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -44,7 +45,7 @@ public class PasswordStoreTest {
      */
     @Test
     public void runTest() throws Exception {
-        Assume.assumeTrue("linux".equalsIgnoreCase(System.getProperty("os.name")));
+        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
 
         getPassword("foo"); // Just check if get on empty DB works.
 
