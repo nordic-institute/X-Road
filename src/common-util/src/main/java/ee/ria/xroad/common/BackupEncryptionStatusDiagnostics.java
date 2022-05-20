@@ -39,6 +39,6 @@ import java.util.List;
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @AllArgsConstructor
 public class BackupEncryptionStatusDiagnostics {
-    boolean encryptionStatus;
-    List<String> configuredKeyIds;
+    boolean backupEncryptionStatus;
+    List<String> backupEncryptionKeys;
 }

@@ -41,6 +41,9 @@ export default {
           'progress-register-disabled',
           'progress-delete',
           'error',
+          'error-disabled',
+          'pending',
+          'pending-disabled',
         ],
       },
     },
@@ -62,6 +65,7 @@ const Template = (args, { argTypes }) => ({
     <status-icon status="error" /> error<br>
     <status-icon status="error-disabled" /> error-disabled<br>
     <status-icon status="pending" /> pending<br>
+    <status-icon status="pending-disabled" /> pending-disabled<br>
     </div>`,
 });
 

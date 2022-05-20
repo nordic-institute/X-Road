@@ -6,7 +6,7 @@ function builddeb {
     local root="$1"
     local dist="$2"
     local suffix="$3"
-    local release="$4"
+    local packageVersion="$4"
 
     pushd "$(pwd)"
     cd "$root/$dist"
@@ -33,8 +33,9 @@ EOF
     done
     sed -i "s/#LAST_SUPPORTED_VERSION#/${LAST_SUPPORTED_VERSION}/" debian/*.preinst
 
-    if [[ $release != "-release" ]]; then
-        version=$version."$(date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
+    echo "using packageVersion $packageVersion"
+    if [[ $packageVersion != "-release" ]]; then
+        version=$version."$packageVersion"
     else
         export DEB_BUILD_OPTIONS=release
     fi
@@ -58,14 +59,28 @@ cd "$DIR"
 mkdir -p build/xroad
 cp -a src/xroad/ubuntu build/xroad/
 
+# version was not given, use empty
+if [ -z "$2" ]; then
+  readonly PACKAGE_VERSION="$(date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
+else
+  readonly PACKAGE_VERSION="$2"
+fi
+
+# version was not given, use empty
+if [ -z "$2" ]; then
+  readonly PACKAGE_VERSION="$(date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
+else
+  readonly PACKAGE_VERSION="$2"
+fi
+
 case "$1" in
     bionic)
         prepare ubuntu18.04
-        builddeb build/xroad/ubuntu bionic ubuntu18.04 "$2"
+        builddeb build/xroad/ubuntu bionic ubuntu18.04 "$PACKAGE_VERSION"
         ;;
     focal)
         prepare ubuntu20.04
-        builddeb build/xroad/ubuntu focal ubuntu20.04 "$2"
+        builddeb build/xroad/ubuntu focal ubuntu20.04 "$PACKAGE_VERSION"
         ;;
     *)
         echo "Unsupported distribution $dist"

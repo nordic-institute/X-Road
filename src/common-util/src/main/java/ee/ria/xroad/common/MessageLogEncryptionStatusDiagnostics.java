@@ -39,8 +39,8 @@ import java.util.List;
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @AllArgsConstructor
 public class MessageLogEncryptionStatusDiagnostics {
-    boolean messageLogEncryptionStatus;
-    boolean messageLogDatabaseStatus;
+    boolean messageLogArchiveEncryptionStatus;
+    boolean messageLogDatabaseEncryptionStatus;
     String messageLogGroupingRule;
-    List<MessageLogEncryptionMember> members;
+    List<MessageLogArchiveEncryptionMember> members;
 }

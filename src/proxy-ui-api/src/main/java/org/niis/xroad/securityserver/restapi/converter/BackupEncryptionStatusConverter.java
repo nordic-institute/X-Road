@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 public class BackupEncryptionStatusConverter {
     public BackupEncryptionStatus convert(BackupEncryptionStatusDiagnostics backupEncryptionStatus) {
         return new BackupEncryptionStatus()
-                .encryptionStatus(backupEncryptionStatus.isEncryptionStatus())
-                .encryptionKeys(backupEncryptionStatus.getConfiguredKeyIds());
+                .backupEncryptionStatus(backupEncryptionStatus.isBackupEncryptionStatus())
+                .backupEncryptionKeys(backupEncryptionStatus.getBackupEncryptionKeys());
     }
 }

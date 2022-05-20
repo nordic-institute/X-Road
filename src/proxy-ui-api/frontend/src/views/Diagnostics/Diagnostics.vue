@@ -158,7 +158,7 @@
                 </h3>
               </v-col>
               <v-col v-if="!messageLogEnabled" class="text-right disabled">
-                {{ $t('systemParameters.timestampingServices.messageLogDisabled') }}
+                {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
               </v-col>
             </v-row>
 
@@ -302,13 +302,13 @@
                 </span>
                 <xrd-status-icon
                   :status="
-                    encryptionStatusIconType(backupEncryptionDiagnostics.encryption_status)
+                    encryptionStatusIconType(backupEncryptionDiagnostics.backup_encryption_status)
                   "
                 />
-                {{ $t(`diagnostics.encryption.status.${backupEncryptionDiagnostics.encryption_status}`,) }}
+                {{ $t(`diagnostics.encryption.status.${backupEncryptionDiagnostics.backup_encryption_status}`,) }}
               </div>
 
-              <table class="xrd-table" v-if="backupEncryptionDiagnostics.encryption_status">
+              <table class="xrd-table" v-if="backupEncryptionDiagnostics.backup_encryption_status">
                 <thead>
                   <tr>
                     <th>
@@ -318,48 +318,57 @@
                 </thead>
                 <tbody>
                   <tr
-                    v-for="confKeys in backupEncryptionDiagnostics.encryption_keys"
+                    v-for="confKeys in backupEncryptionDiagnostics.backup_encryption_keys"
                     :key="confKeys"
                   >
                     <td>
                       {{ confKeys }}
                     </td>
                   </tr>
+                  <XrdEmptyPlaceholderRow
+                    :loading="backupEncryptionLoading"
+                    :data="backupEncryptionDiagnostics.backup_encryption_keys"
+                    :no-items-text="$t('noData.noBackUpEncryptionKeys')"
+                  />
                 </tbody>
               </table>
             </div>
-            <XrdEmptyPlaceholder
-              :loading="backupEncryptionLoading"
-              :data="backupEncryptionDiagnostics"
-              :no-items-text="$t('noData.noData')"
-            />
           </v-card-text>
         </v-card>
 
-        <v-card flat class="xrd-card diagnostic-card">
-          <v-card-title>
-            <span class="headline" data-test="diagnostics-ml-archive-encryption">
-              {{ $t('diagnostics.encryption.messageLog.archive.title') }}
-            </span>
-          </v-card-title>
-
+        <v-card flat class="xrd-card diagnostic-card" :class="{ disabled: !messageLogEnabled }">
           <v-card-text class="xrd-card-text">
+
+            <v-row
+              no-gutters
+              class="px-4"
+            >
+              <v-col>
+                <h3 :class="{ disabled: !messageLogEnabled }">
+                  {{ $t('diagnostics.encryption.messageLog.archive.title') }}
+                </h3>
+              </v-col>
+              <v-col v-if="!messageLogEnabled" class="text-right disabled">
+                {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
+              </v-col>
+            </v-row>
+
             <div v-if="messageLogEncryptionDiagnostics">
               <div class="sub-title status-wrapper">
                 <span>
                   {{ $t('diagnostics.encryption.statusTitle') }}
                 </span>
                 <xrd-status-icon
-                  :status="encryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_encryption_status)"
+                  :status="messageLogEncryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_archive_encryption_status)"
                 />
-                {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_encryption_status}`) }}
+                {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_archive_encryption_status}`) }}
                 <span class="group-name">
                   {{ $t('diagnostics.encryption.messageLog.archive.groupingTitle') }}
                 </span>
                 {{ $t(`${messageLogEncryptionDiagnostics.message_log_grouping_rule}`) }}
               </div>
 
-              <table class="xrd-table" v-if="messageLogEncryptionDiagnostics.message_log_encryption_status">
+              <table class="xrd-table" v-if="messageLogEncryptionDiagnostics.message_log_archive_encryption_status">
                 <thead>
                   <tr>
                     <th>
@@ -372,8 +381,8 @@
                 </thead>
                 <tbody>
                   <tr v-for="member in messageLogEncryptionDiagnostics.members" :key="member.member_id">
-                    <td>{{ member.member_id }}</td>
-                    <td class="status-wrapper">
+                    <td :class="{ disabled: !messageLogEnabled }">{{ member.member_id }}</td>
+                    <td class="status-wrapper" :class="{ disabled: !messageLogEnabled }">
                       {{ member.keys | commaSeparate }}
                       <v-tooltip
                         v-if="member.default_key_used"
@@ -387,35 +396,45 @@
                       </v-tooltip>
                     </td>
                   </tr>
+                  <XrdEmptyPlaceholderRow
+                    :colspan="2"
+                    :loading="messageLogEncryptionLoading || addonStatusLoading"
+                    :data="messageLogEncryptionDiagnostics.members"
+                    :no-items-text="$t('noData.noData')"
+                  />
                 </tbody>
               </table>
             </div>
-            <XrdEmptyPlaceholder
-              :loading="messageLogEncryptionLoading"
-              :data="messageLogEncryptionDiagnostics"
-              :no-items-text="$t('noData.noData')"
-            />
           </v-card-text>
         </v-card>
 
-        <v-card flat class="xrd-card diagnostic-card">
-          <v-card-title>
-            <span class="headline" data-test="diagnostics-ml-database-encryption">{{
-                $t('diagnostics.encryption.messageLog.database.title')
-              }}</span>
-          </v-card-title>
-
+        <v-card flat class="xrd-card diagnostic-card" :class="{ disabled: !messageLogEnabled }">
           <v-card-text class="xrd-card-text">
+
+            <v-row
+              no-gutters
+              class="px-4"
+            >
+              <v-col>
+                <h3 :class="{ disabled: !messageLogEnabled }">
+                  {{ $t('diagnostics.encryption.messageLog.database.title') }}
+                </h3>
+              </v-col>
+              <v-col v-if="!messageLogEnabled" class="text-right disabled">
+                {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
+              </v-col>
+            </v-row>
+
             <div v-if="messageLogEncryptionDiagnostics" class="sub-title status-wrapper">
               <span>
                 {{ $t('diagnostics.encryption.statusTitle') }}
               </span>
               <xrd-status-icon
                 :status="
-                  encryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_database_status)
+                  messageLogEncryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_database_encryption_status)
                 "
               />
-              {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_database_status}`,) }}
+              {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_database_encryption_status}`,) }}
             </div>
             <XrdEmptyPlaceholder
               :loading="messageLogEncryptionLoading"
@@ -575,6 +594,14 @@ export default Vue.extend({
           return 'error';
         default:
           return 'error';
+      }
+    },
+
+    messageLogEncryptionStatusIconType(enabled: boolean): string {
+      if (this.messageLogEnabled) {
+        return this.encryptionStatusIconType(enabled);
+      } else {
+        return this.encryptionStatusIconType(enabled) + '-disabled';
       }
     },
 

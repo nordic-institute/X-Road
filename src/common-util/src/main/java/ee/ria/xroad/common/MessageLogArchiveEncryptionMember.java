@@ -35,7 +35,7 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class MessageLogEncryptionMember {
+public class MessageLogArchiveEncryptionMember {
     private String memberId;
     private Set<String> keys;
     private boolean defaultKeyUsed;

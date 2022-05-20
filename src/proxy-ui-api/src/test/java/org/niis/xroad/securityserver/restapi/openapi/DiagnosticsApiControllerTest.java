@@ -108,14 +108,14 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 "{\"encryptionStatus\":true,\"configuredKeyIds\":[\"keyid\"]}");
         ResponseEntity<BackupEncryptionStatus> response = diagnosticsApiController.getBackupEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(true, response.getBody().getEncryptionStatus());
-        assertEquals(1, response.getBody().getEncryptionKeys().size());
+        assertEquals(true, response.getBody().getBackupEncryptionStatus());
+        assertEquals(1, response.getBody().getBackupEncryptionKeys().size());
 
         stubForDiagnosticsRequest("/backup-encryption-status", "{\"encryptionStatus\":false,\"configuredKeyIds\":[]}");
         response = diagnosticsApiController.getBackupEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(false, response.getBody().getEncryptionStatus());
-        assertTrue(response.getBody().getEncryptionKeys().isEmpty());
+        assertEquals(false, response.getBody().getBackupEncryptionStatus());
+        assertTrue(response.getBody().getBackupEncryptionKeys().isEmpty());
     }
 
     @Test
@@ -127,8 +127,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         ResponseEntity<MessageLogEncryptionStatus> response = diagnosticsApiController
                 .getMessageLogEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(true, response.getBody().getMessageLogEncryptionStatus());
-        assertEquals(true, response.getBody().getMessageLogDatabaseStatus());
+        assertEquals(true, response.getBody().getMessageLogArchiveEncryptionStatus());
+        assertEquals(true, response.getBody().getMessageLogDatabaseEncryptionStatus());
         assertEquals(GROUPING_RULE, response.getBody().getMessageLogGroupingRule());
         assertEquals(1, response.getBody().getMembers().size());
 
@@ -137,8 +137,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 + "\"messageLogGroupingRule\":\"none\",\"members\":[]}");
         response = diagnosticsApiController.getMessageLogEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(false, response.getBody().getMessageLogEncryptionStatus());
-        assertEquals(false, response.getBody().getMessageLogDatabaseStatus());
+        assertEquals(false, response.getBody().getMessageLogArchiveEncryptionStatus());
+        assertEquals(false, response.getBody().getMessageLogDatabaseEncryptionStatus());
         assertEquals(GROUPING_RULE, response.getBody().getMessageLogGroupingRule());
         assertTrue(response.getBody().getMembers().isEmpty());
     }
