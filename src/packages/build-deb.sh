@@ -59,12 +59,12 @@ cd "$DIR"
 mkdir -p build/xroad
 cp -a src/xroad/ubuntu build/xroad/
 
-    # version was not given, use empty
-    if [ -z "$2" ]; then
-	readonly PACKAGE_VERSION="$(date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
-    else
-	readonly PACKAGE_VERSION="$2"
-    fi
+# version was not given, use empty
+if [ -z "$2" ]; then
+  readonly PACKAGE_VERSION="$(date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
+else
+  readonly PACKAGE_VERSION="$2"
+fi
 
 case "$1" in
     bionic)
