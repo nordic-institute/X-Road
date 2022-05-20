@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.MessageLogEncryptionMember;
+import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
 import org.junit.Before;
@@ -46,7 +46,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class MessageLogEncryptionStatusConverterTest {
 
-    private static final boolean MESSAGELOG_ENCRYPTION_STATUS = true;
+    private static final boolean MESSAGELOG_ARCHIVE_ENCRYPTION_STATUS = true;
     private static final boolean MESSAGELOG_DATABASE_ENCRYPTION_STATUS = true;
     private static final String MEMBER_ID = "MemberId";
     private static final String GROUPING_RULE = "GroupingRule";
@@ -64,19 +64,19 @@ public class MessageLogEncryptionStatusConverterTest {
     @Test
     public void shouldConvertToMessageLogEncryptionStatus() {
         MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics =
-                new MessageLogEncryptionStatusDiagnostics(MESSAGELOG_ENCRYPTION_STATUS,
+                new MessageLogEncryptionStatusDiagnostics(MESSAGELOG_ARCHIVE_ENCRYPTION_STATUS,
                         MESSAGELOG_DATABASE_ENCRYPTION_STATUS,
                         GROUPING_RULE,
-                        createMessageLogEncryptionMember());
+                        createMessageLogArchiveEncryptionMember());
 
         MessageLogEncryptionStatus result = messageLogEncryptionStatusConverter
                 .convert(messageLogEncryptionStatusDiagnostics);
 
-        assertTrue(result.getMessageLogEncryptionStatus());
-        assertTrue(result.getMessageLogDatabaseStatus());
+        assertTrue(result.getMessageLogArchiveEncryptionStatus());
+        assertTrue(result.getMessageLogDatabaseEncryptionStatus());
         assertEquals(GROUPING_RULE, result.getMessageLogGroupingRule());
         assertEquals(1, result.getMembers().size());
-        org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionMember convertedMember
+        org.niis.xroad.securityserver.restapi.openapi.model.MessageLogArchiveEncryptionMember convertedMember
                 = result.getMembers().get(0);
         assertEquals(MEMBER_ID, convertedMember.getMemberId());
         assertTrue(convertedMember.getKeys().contains(KEY_1));
@@ -84,8 +84,8 @@ public class MessageLogEncryptionStatusConverterTest {
         assertEquals(false, convertedMember.getDefaultKeyUsed());
     }
 
-    private List<MessageLogEncryptionMember> createMessageLogEncryptionMember() {
-        return Collections.singletonList(new MessageLogEncryptionMember(
+    private List<MessageLogArchiveEncryptionMember> createMessageLogArchiveEncryptionMember() {
+        return Collections.singletonList(new MessageLogArchiveEncryptionMember(
                 MEMBER_ID, setOf(KEY_1, KEY_2), false));
     }
 

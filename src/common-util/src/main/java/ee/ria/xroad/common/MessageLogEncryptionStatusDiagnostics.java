@@ -34,8 +34,8 @@ import java.util.List;
  */
 @Value
 public class MessageLogEncryptionStatusDiagnostics {
-    boolean messageLogEncryptionStatus;
-    boolean messageLogDatabaseStatus;
+    boolean messageLogArchiveEncryptionStatus;
+    boolean messageLogDatabaseEncryptionStatus;
     String messageLogGroupingRule;
-    List<MessageLogEncryptionMember> members;
+    List<MessageLogArchiveEncryptionMember> members;
 }

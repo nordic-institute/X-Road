@@ -273,6 +273,9 @@
     "invalidXrdIdentifier": "Identifier value contains illegal characters"
   },
   "diagnostics": {
+    "addOnStatus": {
+      "messageLogDisabled": "Disabled by configuration"
+    },
     "globalConfiguration": {
       "configurationStatus": {
         "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
@@ -307,7 +310,7 @@
         "SUCCESS": "Everything ok",
         "UNKNOWN": "Unknown"
       },
-      "title": "OCSP Responders"
+      "title": "OCSP responders"
     },
     "previousUpdate": "Previous Update",
     "serviceUrl": "Service URL",
@@ -739,6 +742,7 @@
   },
   "noData": {
     "loading": "Loading... Please wait",
+    "noBackUpEncryptionKeys": "No configured backup encryption keys",
     "noBackups": "No backups yet",
     "noCertificate": "No certificate",
     "noCertificates": "No certificates",
@@ -749,7 +753,7 @@
     "noMatches": "No items matching criteria",
     "noServices": "No services",
     "noServiceClients": "No service clients",
-    "noTimestampingServices": "No Timestaping services",
+    "noTimestampingServices": "No timestaping services",
     "noTokens": "No tokens"
   },
   "serviceClientType": {
@@ -939,8 +943,7 @@
           "timestampingService": "Timestamping Service"
         }
       },
-      "title": "Timestamping Services",
-      "messageLogDisabled": "Disabled by configuration"
+      "title": "Timestamping Services"
     },
     "title": "System parameters"
   },

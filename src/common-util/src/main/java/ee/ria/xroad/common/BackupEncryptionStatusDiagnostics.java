@@ -34,6 +34,6 @@ import java.util.List;
  */
 @Value
 public class BackupEncryptionStatusDiagnostics {
-    boolean encryptionStatus;
-    List<String> configuredKeyIds;
+    boolean backupEncryptionStatus;
+    List<String> backupEncryptionKeys;
 }

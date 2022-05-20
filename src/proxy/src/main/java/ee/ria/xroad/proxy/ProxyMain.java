@@ -31,7 +31,7 @@ import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
-import ee.ria.xroad.common.MessageLogEncryptionMember;
+import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
@@ -238,7 +238,7 @@ public final class ProxyMain {
                 MessageLogProperties.isArchiveEncryptionEnabled(),
                 MessageLogProperties.isMessageLogEncryptionEnabled(),
                 ARCHIVE_GROUPING.name(),
-                getBackupEncryptionMembers());
+                getMessageLogArchiveEncryptionMembers());
     }
 
     private static void loadConfigurations() {
@@ -520,14 +520,14 @@ public final class ProxyMain {
 
     }
 
-    private static List<MessageLogEncryptionMember> getBackupEncryptionMembers() throws IOException {
+    private static List<MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers() throws IOException {
         EncryptionConfigProvider configProvider = EncryptionConfigProvider.getInstance(ARCHIVE_GROUPING);
         if (!configProvider.isEncryptionEnabled()) {
             return Collections.emptyList();
         }
         return configProvider.forDiagnostics().getEncryptionMembers()
                 .stream()
-                .map(member -> new MessageLogEncryptionMember(member.getMemberId(),
+                .map(member -> new MessageLogArchiveEncryptionMember(member.getMemberId(),
                         member.getKeys(), member.isDefaultKeyUsed()))
                 .collect(Collectors.toList());
     }
