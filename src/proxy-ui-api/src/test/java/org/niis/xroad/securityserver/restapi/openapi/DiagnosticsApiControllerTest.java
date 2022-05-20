@@ -105,13 +105,14 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     public void getBackupEncryptionDiagnostics() {
         stubForDiagnosticsRequest("/backup-encryption-status",
-                "{\"encryptionStatus\":true,\"configuredKeyIds\":[\"keyid\"]}");
+                "{\"backupEncryptionStatus\":true,\"backupEncryptionKeys\":[\"keyid\"]}");
         ResponseEntity<BackupEncryptionStatus> response = diagnosticsApiController.getBackupEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(true, response.getBody().getBackupEncryptionStatus());
         assertEquals(1, response.getBody().getBackupEncryptionKeys().size());
 
-        stubForDiagnosticsRequest("/backup-encryption-status", "{\"encryptionStatus\":false,\"configuredKeyIds\":[]}");
+        stubForDiagnosticsRequest("/backup-encryption-status",
+                "{\"backupEncryptionStatus\":false,\"backupEncryptionKeys\":[]}");
         response = diagnosticsApiController.getBackupEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(false, response.getBody().getBackupEncryptionStatus());
@@ -121,7 +122,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     @Test
     public void getMessageLogEncryptionDiagnostics() {
         stubForDiagnosticsRequest("/message-log-encryption-status",
-                "{\"messageLogEncryptionStatus\":true,\"messageLogDatabaseStatus\":true,"
+                "{\"messageLogArchiveEncryptionStatus\":true,\"messageLogDatabaseEncryptionStatus\":true,"
                 + "\"messageLogGroupingRule\":\"none\",\"members\":[{\"memberId\":\"memberId\","
                 + "\"keys\":[\"key\"], \"defaultKeyUsed\":false}]}");
         ResponseEntity<MessageLogEncryptionStatus> response = diagnosticsApiController
@@ -133,7 +134,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(1, response.getBody().getMembers().size());
 
         stubForDiagnosticsRequest("/message-log-encryption-status",
-                "{\"messageLogEncryptionStatus\":false,\"messageLogDatabaseStatus\":false, "
+                "{\"messageLogArchiveEncryptionStatus\":false,\"messageLogDatabaseEncryptionStatus\":false, "
                 + "\"messageLogGroupingRule\":\"none\",\"members\":[]}");
         response = diagnosticsApiController.getMessageLogEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
