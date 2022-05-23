@@ -646,7 +646,7 @@ public final class CryptoUtils {
      */
     public static String calculateCertHexHash(X509Certificate cert)
             throws Exception {
-        return hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, cert.getEncoded());
+        return calculateCertHexHash(cert.getEncoded());
     }
 
     /**

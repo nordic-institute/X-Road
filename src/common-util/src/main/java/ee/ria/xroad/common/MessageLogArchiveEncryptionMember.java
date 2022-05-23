@@ -25,12 +25,15 @@
  */
 package ee.ria.xroad.common;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.Set;
 
 @Getter
+@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @AllArgsConstructor
 public class MessageLogArchiveEncryptionMember {
     private String memberId;

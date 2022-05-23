@@ -236,7 +236,7 @@ public class DiagnosticService {
 
             return response;
         } catch (RestClientException e) {
-            log.error("unable to connect to admin port (" + address + ")");
+            log.error("unable to connect to admin port (" + address + ")", e);
             throw new DiagnosticRequestException();
         }
     }
