@@ -86,9 +86,10 @@ Description: X-Road configuration proxy
 
 Package: xroad-addon-hwtokens
 Architecture: all
-# This `xroad-signer` "Depends"->"Pre-Depends" change was required to fix an issue caused by a dependency diversion from xroad-signer to xroad-addon-hwtokens in 7.1.0
-Pre-Depends: xroad-signer (=${binary:Version})
-Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version})
+# These following 2 package relationship changes were required to fix an issue caused by a file dependency diversion from xroad-signer to xroad-addon-hwtokens in 7.1.0
+Replaces: xroad-signer (<< 7.1.0)
+Breaks: xroad-signer (<< 7.1.0)
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version})
 Description: X-Road AddOn: hwtokens
  AddOn for hardware tokens
 
