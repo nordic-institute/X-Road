@@ -5,6 +5,7 @@
 
 ## Architecture
 - [\[ARC-G\] X-Road Architecture](Architecture/arc-g_x-road_arhitecture.md)
+- [\[ARC-SEC\] X-Road Security Architecture](Architecture/arc-sec_x_road_security_architecture.md)
 - [\[ARC-SS\] Security Server Architecture](Architecture/arc-ss_x-road_security_server_architecture.md)
 - [\[ARC-CP\] Configuration Proxy Architecture](Architecture/arc-cp_x-road_configuration_proxy_architecture.md)
 - [\[ARC-CS\] Central Server Architecture](Architecture/arc-cs_x-road_central_server_architecture.md)
