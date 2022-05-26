@@ -1,6 +1,25 @@
 # Change Log
 
-## 7.1.0 - UNRELEASED
+## 7.1.0 - 2022-05-26
+- XRDDEV-1788: Show a warning if the deprecated "/etc/xroad/services/local.conf" configuration file exists when generating a backup on the Security Server. The warning is shown in the Security Server UI and on the command line.
+- XRDDEV-1800: Add primary and secondary node information to the Security Server UI for clustered HA setups. Display global alert for read-only state on the secondary node UI.
+- XRDDEV-1824: Clean up Security Server UI styles and remove unused ones.
+- XRDDEV-1825: Clean up Security Server UI localisation files and improve localisation string resolution methods for better consistency.
+- XRDDEV-1827: Set the Security Server UI into read-only mode on secondary node instances in a clustered HA setup.
+- XRDDEV-1840: Update Security Server UI components to handle empty states in a more consistent and clear manner.
+- XRDDEV-1852: Update Security Server UI table components to handle loading states in a more consistent and clear manner.
+- XRDDEV-1853: Update Security Server UI views to handle loading states in a more consistent and clear manner.
+- XRDDEV-1875: Update Spring Boot to a later version to fix a false positive vulnerability warning in the Security Server API UI component.
+- XRDDEV-1876: Fix Security Server message log archiving to resolve edge case where messages might be timestamped repeatedly, causing the message log to grow.
+- XRDDEV-1890: Fix Security Server UI local storage handling to resolve issues when the user does not close the browser between multiple initialisation attempts for the same server.
+- XRDDEV-1893: Migrate Security Server UI from Vuex to Pinia for better type checking as well as future compatibility when upgrading to Vue 3.
+- XRDDEV-1907: Improve Security Server configuration client to handle expired federated configurations and local instance configuration separately. Improve caching behaviour to consider configuration expiration. 
+- XRDDEV-1961: Make the Security Server UI more modular and disable sections that are not needed. After the change, timestamping and message log related sections in the UI are disabled when the message log add-on is not installed or enabled.
+- XRDDEV-1964: Add new endpoints to the Security Server's management REST API that provide information about backup encryption, message log archive encryption, message log archive grouping and message log database encryption.
+- XRDDEV-1966: Add sections to the Security Server UI diagnostics page to display information about backup encryption, message log archive encryption, message log archive grouping and message log database encryption.
+- XRDDEV-1986: Increase the default maximum body size for REST messages from 10mb to 20mb for the Security Server in the Estonian metapackage.
+- XRDDEV-1994: Fix issue with the configuration proxy where temporary files were not getting removed if the global configuration generation failed during the process. The issue caused temporary files to accumulate in the "/var/tmp/xroad/{INSTANCE_IDENTIFIER}" directory and eat up disk space.
+
 
 ## 7.0.3 - 2022-04-25
 - XRDDEV-1973: Update dependencies with known vulnerabilities
