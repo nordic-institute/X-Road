@@ -46,13 +46,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class GPGOutputStreamTest {
-    private static final Path GPG_HOME = Paths.get("build/gpg");
+    private static final Path GPG_HOME = Paths.get(".build/gpg");
     private static final Set<String> KEYS = Collections.singleton("AAAA");
 
     @Before
     public void before() {
         Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, ".build/tmp");
     }
 
     @Test(expected = GPGOutputStream.GPGException.class)

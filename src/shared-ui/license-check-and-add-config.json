@@ -1,6 +1,6 @@
 {
   "ignore": [
-    "build/",
+    ".build/",
     "build.gradle",
     ".gradle",
     "**/*.md",
@@ -20,7 +20,7 @@
     "scripts/dtsgen-wrapper.js",
     "tests/unit/__snapshots__",
     "build.gradle",
-    "build/**",
+    ".build/**",
     ".gradle/**"
   ],
   "license": "LICENSE.txt",

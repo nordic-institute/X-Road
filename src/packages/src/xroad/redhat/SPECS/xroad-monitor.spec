@@ -33,7 +33,7 @@ mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
-cp -p %{srcdir}/../../../monitor/build/libs/monitor-1.0.jar %{buildroot}%{jlib}
+cp -p %{srcdir}/../../../monitor/.build/libs/monitor-1.0.jar %{buildroot}%{jlib}
 cp -a %{srcdir}/common/monitor/etc/* %{buildroot}%{_sysconfdir}
 cp -p %{srcdir}/common/monitor/systemd/%{name}.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/common/monitor/usr/share/xroad/bin/xroad-monitor %{buildroot}/usr/share/xroad/bin

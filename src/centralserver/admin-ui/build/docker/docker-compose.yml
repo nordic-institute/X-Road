@@ -1,0 +1,15 @@
+services:
+  xrd-cs-ui:
+    image: xrd-central-server-ui
+    container_name: xrd-central-server-ui
+    build:
+      context: ../../../..
+      dockerfile: centralserver/admin-ui/build/docker/Dockerfile
+    entrypoint: 'npm run serve -- --host=:: --port=8080 --loglevel=debug'
+    ports:
+      - 8000:8080
+    environment:
+      - VUE_APP_BASE_URL=https://localhost:8000/api/v1
+      - VUE_APP_AUTH_URL=https://localhost:8000
+      - PROXY_ADDRESS=https://xrd-cs:4000
+      - DEBUG=http-proxy-middleware*

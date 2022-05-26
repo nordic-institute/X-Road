@@ -221,8 +221,8 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         System.setProperty(MessageLogProperties.ARCHIVE_PATH, archivesPath.toString());
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.SUBSYSTEM.name());
 
-        System.setProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY, "build/gpg");
-        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/gpg/keys.ini");
+        System.setProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY, ".build/gpg");
+        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, ".build/gpg/keys.ini");
         System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED, String.valueOf(encrypted));
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.MEMBER.name());
 

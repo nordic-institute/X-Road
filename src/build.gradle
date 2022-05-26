@@ -30,9 +30,9 @@ sonarqube {
         property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "Data Exchange Layer"
         property "sonar.projectVersion", xroadVersion
-        property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
-        property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
-        property "sonar.exclusions", "**/build/generated-sources/**"
+        property "sonar.dependencyCheck.reportPath", "${buildDirName}/reports/owasp-dependency-check/dependency-check-report.xml"
+        property "sonar.dependencyCheck.htmlReportPath", "${buildDirName}/reports/owasp-dependency-check/dependency-check-report.html"
+        property "sonar.exclusions", "**/${buildDirName}/generated-sources/**"
         property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
     }
 }
@@ -69,6 +69,10 @@ dependencyCheck {
 }
 
 allprojects {
+    // Use ".build" instead of "build" as Gradle build path for all projects
+    ext.buildDirName = '.build'
+    buildDir = "${projectDir}/${buildDirName}"
+
     group = 'org.niis.xroad'
     version = '1.0'
 
@@ -204,7 +208,7 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
 
 }
 
-clean.delete << "${rootDir}/packages/build"
+clean.delete << "${rootDir}/packages/${buildDirName}"
 
 jacocoTestReport {
     def javaProjects = subprojects.findAll{it.plugins.hasPlugin(JavaPlugin)}
@@ -214,5 +218,5 @@ jacocoTestReport {
     }
     classDirectories.setFrom files(javaProjects.sourceSets.main.java.classesDirectory)
     sourceDirectories.setFrom files(javaProjects.sourceSets.main.java.srcDirs)
-    executionData.setFrom fileTree(dir: '.', include: '**/build/jacoco/*.exec')
+    executionData.setFrom fileTree(dir: '.', include: "**/${buildDirName}/jacoco/*.exec")
 }

@@ -8,7 +8,7 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', 'build/generated-sources']
+        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
         resources.srcDirs = ['src/main/resources']
     }
 }
@@ -38,7 +38,7 @@ task schemaExport () {
     doLast {
         ant.taskdef(name: 'schemaExport', classname: 'org.hibernate.tool.ant.HibernateToolTask', classpath: configurations.schema.asPath)
 
-        ant.schemaExport(destdir: 'build') {
+        ant.schemaExport(destdir: "${buildDirName}") {
             configuration(
                 configurationfile: 'src/main/resources/serverconf.hibernate.cfg.xml',
                 propertyFile: 'src/test/resources/hibernate-schema.properties'
@@ -52,7 +52,7 @@ task schemaExport () {
                 pathelement(path: configurations.schema.asPath)
                 pathelement(path: 'src/main/resources')
                 pathelement(path: 'src/test/resources')
-                pathelement(path: 'build/classes/java/main')
+                pathelement(path: "${buildDir}/classes/java/main")
             }
         }
     }

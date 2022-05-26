@@ -54,7 +54,7 @@ public class MemberEncryptionConfigProviderTest {
     @Test
     public void shouldParseMappings() throws IOException {
         final Map<String, Set<String>> mappings = MemberEncryptionConfigProvider.readKeyMappings(
-                Paths.get("build/gpg/keys.ini"));
+                Paths.get(".build/gpg/keys.ini"));
         assertEquals(expected, mappings);
     }
 

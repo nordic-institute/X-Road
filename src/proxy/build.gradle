@@ -59,8 +59,8 @@ licenseTest.dependsOn licenseTestJava
 task runProxyMain(type: JavaExec) {
     jvmArgs '-Dxroad.proxy.sslEnabled=false',
         '-Dxroad.proxy.globalConfDistributor.enabled=false',
-        '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
-        '-Dxroad.tempFiles.path=build/attach-tmp',
+        "-Dxroad.proxy.ocspCachePath=${buildDirName}/ocsp-cache",
+        "-Dxroad.tempFiles.path=${buildDirName}/attach-tmp",
         '-Dxroad.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml',
         '-Dxroad.proxy.configurationFile=../systemtest/conf/local_test/serverconf_consumer.xml',
         '-Dxroad.key.configurationFile=../systemtest/conf/local_test/keyconf.xml',
@@ -81,7 +81,7 @@ test {
         excludeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
     }
     jacoco {
-        destinationFile = file("$buildDir/jacoco/unitTest.exec")
+        destinationFile = file("$buildDirName/jacoco/unitTest.exec")
     }
 }
 
@@ -90,7 +90,7 @@ task integrationTest(type: Test) {
     group = 'verification'
     shouldRunAfter test
     jacoco {
-        destinationFile = file("$buildDir/jacoco/integrationTest.exec")
+        destinationFile = file("$buildDirName/jacoco/integrationTest.exec")
     }
     useJUnit {
         includeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
@@ -101,8 +101,8 @@ task runProxyTest(type: JavaExec) {
     group = "verification"
     shouldRunAfter integrationTest
     jvmArgs '-Xmx2g',
-        '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
-        '-Dxroad.tempFiles.path=build/attach-tmp',
+        "-Dxroad.proxy.ocspCachePath=${buildDirName}/ocsp-cache",
+        "-Dxroad.tempFiles.path=${buildDirName}/attach-tmp",
         '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml',
         '-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/ocsp-responder.xml',
         '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml',

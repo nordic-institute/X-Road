@@ -1,6 +1,6 @@
 ../../../../src/xroad/common/proxy/etc/* etc/
 ../../../../src/xroad/common/proxy/usr/* usr/
-../../../../../proxy/build/libs/proxy-1.0.jar usr/share/xroad/jlib/
+../../../../../proxy/.build/libs/proxy-1.0.jar usr/share/xroad/jlib/
 ../../../../src/xroad/default-configuration/proxy.ini etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/proxy-logback.xml etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/rsyslog.d/* etc/rsyslog.d/

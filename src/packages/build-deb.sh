@@ -44,28 +44,28 @@ EOF
     dpkg-buildpackage -tc -b -us -uc
     popd
 
-    find $root -name "xroad*$suffix*.deb" -exec mv {} "build/$suffix/" \;
+    find $root -name "xroad*$suffix*.deb" -exec mv {} ".build/$suffix/" \;
 }
 
 function prepare {
-    mkdir -p "build/$1"
-    rm -f "build/$1/"*.deb
+    mkdir -p ".build/$1"
+    rm -f ".build/$1/"*.deb
 }
 
 DIR="$(cd "$(dirname $0)" && pwd)"
 cd "$DIR"
 
-mkdir -p build/xroad
-cp -a src/xroad/ubuntu build/xroad/
+mkdir -p .build/xroad
+cp -a src/xroad/ubuntu .build/xroad/
 
 case "$1" in
     bionic)
         prepare ubuntu18.04
-        builddeb build/xroad/ubuntu bionic ubuntu18.04 "$2"
+        builddeb .build/xroad/ubuntu bionic ubuntu18.04 "$2"
         ;;
     focal)
         prepare ubuntu20.04
-        builddeb build/xroad/ubuntu focal ubuntu20.04 "$2"
+        builddeb .build/xroad/ubuntu focal ubuntu20.04 "$2"
         ;;
     *)
         echo "Unsupported distribution $dist"

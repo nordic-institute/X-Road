@@ -1,0 +1,98 @@
+services:
+
+  xrd-cs:
+    image: xrd-central-server
+    container_name: xrd-central-server
+    build:
+      context: ../..
+      dockerfile: ./build/docker/Dockerfile
+    entrypoint: [
+      "/bin/bash", "-c",
+      'chmod u+x /ensure_db_initialized.sh /generate_certificate.sh /db/*
+       && mkdir -p /etc/xroad/ssl && chown -R xroad:xroad /etc/xroad
+       && ([[
+              -r /etc/xroad/ssl/internal.crt
+           && -r /etc/xroad/ssl/internal.key
+           && -r /etc/xroad/ssl/internal.p12
+          ]] || /generate_certificate.sh -p -n internal -s /CN=xrd-cs -d /etc/xroad/ssl -c /etc/xroad/ssl)
+       && /ensure_db_initialized.sh
+       && sshpass -p secret ssh sshuser@xrd-cs-signer -vfN
+                                                      -p 2022
+                                                      -o StrictHostKeyChecking=accept-new
+                                                      -L 127.0.0.1:5558:127.0.0.1:5558
+                                                      -R 127.0.0.1:25520:127.0.0.1:25520
+       && (
+         id "$$ADMIN_USER" &>/dev/null
+         || (useradd --create-home
+                     --shell /usr/sbin/nologin
+                     --password "$$(mkpasswd -m sha-512 $$ADMIN_PASSWORD $$MKPASSWD_SALT)"
+                     $$ADMIN_USER
+             && usermod --append --groups xroad-registration-officer "$$ADMIN_USER"
+             && usermod --append --groups xroad-system-administrator "$$ADMIN_USER"
+             && usermod --append --groups xroad-security-officer "$$ADMIN_USER"
+         )
+       )
+       && runuser --whitelist-environment JAVA_TOOL_OPTIONS,JAVA_OPTS -l xroad -c "java $$JAVA_OPTS -Dserver.host=0.0.0.0 -Dserver.port=4000 -jar /app.jar"'
+      #&& /bin/bash'
+    ]
+    #tty: true
+    volumes:
+      # Ensure spin up for DB schemas
+      - ./scripts/ensure_db_initialized.sh:/ensure_db_initialized.sh
+      - ../db:/db
+      # For creating server key store
+      - ../../../../packages/src/xroad/common/base/etc/xroad/ssl/openssl.cnf:/etc/xroad/ssl/openssl.cnf # Find a better source for this file
+      - ../../../../packages/src/xroad/common/base/usr/share/xroad/scripts/generate_certificate.sh:/generate_certificate.sh # Find a better source for this file
+      # Liquibase migration dependencies
+      - ../../.build/libs/liquibase-core-4.9.1.jar:/libs/liquibase.jar
+      - ../../.build/libs/postgresql-42.3.4.jar:/libs/postgres.jar
+      - ../../.build/libs/snakeyaml-1.30.jar:/libs/snakeyaml.jar
+      # Shared global configuration
+      - globalconf:/etc/xroad/globalconf
+      # JAR containing Spring application
+      - ../../.build/libs/centralserver-admin-service-1.0.jar:/app.jar
+      # Application configuration dependencies
+      - ../../src/test/resources/db.properties:/etc/xroad/db.properties
+      - ../../src/test/resources/centralserver-admin-service-test-logback.xml:/etc/xroad/conf.d/centralserver-admin-service-logback.xml
+    expose:
+      - 4000
+    ports:
+      - 4000:4000
+      - 5005:5005 # For Java debugging
+    environment:
+      # Uncomment below to enable Java debugging
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n
+      # Ensure spin up DB schema env variables
+      - ENSURE_DB_INIT_SCRIPT=/ensure_db_initialized.sh
+      - PREPARE_DB_INIT_SQL_SCRIPT=/db/prepare_init_sql.sh
+      # Postgres Image related envs
+      - POSTGRES_HOST=xrd-db
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      # X-Road init script related envs
+      - POSTGRES_XRD_DATABASE=${POSTGRES_XRD_DATABASE:-xrd_cs}
+      - POSTGRES_XRD_SCHEMA=${POSTGRES_XRD_SCHEMA:-xrd}
+      - POSTGRES_XRD_ADMIN_USER=${POSTGRES_XRD_ADMIN_USER}
+      - POSTGRES_XRD_ADMIN_PASSWORD=${POSTGRES_XRD_ADMIN_PASSWORD}
+      - POSTGRES_XRD_USER=${POSTGRES_XRD_USER:-${POSTGRES_XRD_ADMIN_USER}}
+      - POSTGRES_XRD_USER_PASSWORD=${POSTGRES_XRD_USER_PASSWORD:-${POSTGRES_XRD_ADMIN_PASSWORD}}
+      # Liquibase envs
+      - LIQUIBASE_CLASSPATH=/libs/*:/app.jar
+      - LIQUIBASE_CHANGE_LOG_FILE=classpath:BOOT-INF/classes/liquibase/db.changelog-master.yml # Use change log file from classpath
+      # System/PAM Admin user
+      - ADMIN_USER=${ADMIN_USER:-xrd}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-secret}
+      - MKPASSWD_SALT=${MKPASSWD_SALT:-JeOzaeWnLAQSUVuO}
+      # Define a non-random canonical port
+      - JAVA_OPTS=-Dadmin-service.akka.remote.artery.canonical.port=25520
+
+  xrd-cs-signer:
+    extends:
+      file: ../../../../signer/build/docker/docker-compose.yml
+      service: xrd-cs-signer
+
+volumes:
+  globalconf:
+
+

@@ -86,11 +86,11 @@ public class MessageLogIntegrationTest extends AbstractMessageLogTest {
     protected void testSetUp(boolean timestampImmediately) throws Exception {
         TestUtil.initForTest();
 
-        System.setProperty(MessageLogProperties.ARCHIVE_PATH, "build/slog");
+        System.setProperty(MessageLogProperties.ARCHIVE_PATH, ".build/slog");
         System.setProperty(MessageLogProperties.ARCHIVE_INTERVAL,
                 "0 0/2 * 1/1 * ? *");
 
-        new File("build/slog/").mkdirs();
+        new File(".build/slog/").mkdirs();
 
         super.testSetUp(timestampImmediately);
 

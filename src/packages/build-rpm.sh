@@ -20,8 +20,8 @@ fi
 DIR=$(cd "$(dirname "$0")" && pwd)
 cd "$DIR"
 
-mkdir -p build/xroad/redhat
-cp -a src/xroad/redhat build/xroad
+mkdir -p .build/xroad/redhat
+cp -a src/xroad/redhat .build/xroad
 
 if [[ -z "$SNAPSHOT" ]]; then
   macro_snapshot=()
@@ -31,7 +31,7 @@ else
   compress=w1.gzdio
 fi
 
-ROOT=${DIR}/build/xroad/redhat
+ROOT=${DIR}/.build/xroad/redhat
 rpmbuild \
     --define "last_supported_version $LAST_SUPPORTED_VERSION" \
     --define "xroad_version $VERSION" \
@@ -39,7 +39,7 @@ rpmbuild \
     "${macro_snapshot[@]}" \
     --define "_topdir $ROOT" \
     --define "srcdir $DIR/src/xroad" \
-    --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
+    --define "_rpmdir ${DIR}/.build/rhel/%{rhel}" \
     --define "_binary_payload $compress" \
     -"${CMD}" "${ROOT}/SPECS/"${FILES}
 

@@ -73,7 +73,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class TokenManagerMergeTest {
 
-    private static final String ROOT = "./build/resources/test/mergetesting/";
+    private static final String ROOT = "./.build/resources/test/mergetesting/";
     private static final Path ORIGINAL_FILE_PATH = Paths.get(ROOT + "keyconf_base_no_duplicate_keyIds.xml");
     private static final Path ADDED_KEY_FILE_PATH = Paths.get(ROOT + "keyconf_added_key.xml");
     private static final Path ADDED_KEY_CERT_FILE_PATH = Paths.get(ROOT + "keyconf_added_cert.xml");

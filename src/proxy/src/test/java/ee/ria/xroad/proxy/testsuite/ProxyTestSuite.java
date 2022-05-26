@@ -144,7 +144,7 @@ public final class ProxyTestSuite {
         solver.setIfNotSet(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
         solver.setIfNotSet(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
         solver.setIfNotSet(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
-        solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
+        solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, ".build/");
     }
 
     private static class PropsSolver {

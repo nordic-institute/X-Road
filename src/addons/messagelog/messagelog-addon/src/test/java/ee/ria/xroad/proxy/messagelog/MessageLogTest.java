@@ -465,12 +465,12 @@ public class MessageLogTest extends AbstractMessageLogTest {
         System.setProperty(MessageLogProperties.ARCHIVE_INTERVAL, "0 0 0 1 1 ? 2099");
         System.setProperty(MessageLogProperties.CLEAN_INTERVAL, "0 0 0 1 1 ? 2099");
 
-        System.setProperty(MessageLogProperties.ARCHIVE_PATH, "build/");
+        System.setProperty(MessageLogProperties.ARCHIVE_PATH, ".build/");
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.SUBSYSTEM.name());
 
         System.setProperty(MessageLogProperties.MESSAGELOG_ENCRYPTION_ENABLED, Boolean.valueOf(encrypted).toString());
         System.setProperty(MessageLogProperties.MESSAGELOG_KEYSTORE_PASSWORD, "password");
-        System.setProperty(MessageLogProperties.MESSAGELOG_KEYSTORE, "build/resources/test/messagelog.p12");
+        System.setProperty(MessageLogProperties.MESSAGELOG_KEYSTORE, ".build/resources/test/messagelog.p12");
         System.setProperty(MessageLogProperties.MESSAGELOG_KEY_ID, "key1");
 
         initForTest();

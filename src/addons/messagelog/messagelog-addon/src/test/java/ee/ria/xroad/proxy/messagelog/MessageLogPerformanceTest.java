@@ -99,7 +99,7 @@ public class MessageLogPerformanceTest extends AbstractMessageLogTest {
     protected void testSetUp(boolean timestampImmediately) throws Exception {
         TestUtil.initForTest();
 
-        System.setProperty(MessageLogProperties.ARCHIVE_PATH, "build/slog");
+        System.setProperty(MessageLogProperties.ARCHIVE_PATH, ".build/slog");
         System.setProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE,
                 "2000000");
 

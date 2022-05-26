@@ -12,7 +12,7 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', 'build/generated-sources']
+        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
     }
 }
 

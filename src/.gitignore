@@ -1,5 +1,5 @@
 .idea
-build/
+**/.build/
 out/
 *.iml
 *.deb
@@ -39,7 +39,7 @@ tmp/
 ubuntu-xenial-16.04-cloudimg-console.log
 packages/jetty
 classes/
-.project 
+.project
 .classpath
 .settings
 signer/src/test/resources/.softtoken.p12

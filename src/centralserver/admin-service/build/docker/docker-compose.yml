@@ -1,0 +1,21 @@
+services:
+
+  xrd-cs:
+    extends:
+      file: ./docker-compose.yml
+      service: xrd-cs
+    depends_on:
+      xrd-db:
+        condition: service_healthy
+      xrd-cs-signer:
+        condition: service_started
+
+  xrd-cs-signer:
+    extends:
+      file: ./docker-compose.yml
+      service: xrd-cs-signer
+
+volumes:
+  globalconf:
+
+

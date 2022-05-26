@@ -3,7 +3,7 @@ testJar.enabled = true
 
 sourceSets {
     main {
-        java.srcDirs = ["src/main/java", "$buildDir/generated-sources"]
+        java.srcDirs = ["src/main/java", "${buildDir}/generated-sources"]
         resources.srcDirs = ['src/main/resources']
     }
 }

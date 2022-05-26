@@ -22,7 +22,7 @@ jar {
 
 task copyGpg(type: Copy) {
     from 'src/test/gpg'
-    into 'build/gpg'
+    into "${buildDir}/gpg"
 }
 
 test.dependsOn copyGpg

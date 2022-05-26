@@ -107,7 +107,7 @@ public class LogArchiveCacheTest {
 
     @Before
     public void setup() {
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, ".build/tmp");
 
         if (encrypted) {
             Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
@@ -253,7 +253,7 @@ public class LogArchiveCacheTest {
         final InputStream is;
 
         if (encrypted) {
-            is = new GPGInputStream(Paths.get("build/gpg"), archive);
+            is = new GPGInputStream(Paths.get(".build/gpg"), archive);
         } else {
             is = Files.newInputStream(archive);
         }
@@ -437,9 +437,9 @@ public class LogArchiveCacheTest {
     private LogArchiveCache createCache(LinkingInfoBuilder builder) {
         return new LogArchiveCache(
                 builder,
-                encrypted ? new EncryptionConfig(true, Paths.get("build/gpg"), null)
+                encrypted ? new EncryptionConfig(true, Paths.get(".build/gpg"), null)
                         : EncryptionConfig.DISABLED,
-                Paths.get("build/tmp/")
+                Paths.get(".build/tmp/")
         );
     }
 

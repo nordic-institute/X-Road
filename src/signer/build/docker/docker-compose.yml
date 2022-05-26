@@ -1,0 +1,65 @@
+services:
+
+  xrd-cs-signer:
+    image: xrd-central-server-signer
+    container_name: xrd-central-server-signer
+    build:
+      context: ../..
+      dockerfile: ./build/docker/Dockerfile
+    entrypoint: [
+      "/bin/bash", "-c", '
+         mkdir -p /var/log/xroad /var/cache/xroad /etc/xroad/signer/softtoken
+      && chown -R xroad:xroad /var/log/xroad /etc/xroad /var/cache/xroad /etc/xroad
+      && chmod u+x /var/log/xroad /usr/share/xroad/bin/xroad-signer /usr/share/xroad/bin/signer-console
+      && (
+          /usr/sbin/sshd -D -p 2022 -o PermitRootLogin=yes -o GatewayPorts=yes
+        & runuser --whitelist-environment JAVA_TOOL_OPTIONS,XROAD_SIGNER_PARAMS -l xroad -c "/usr/share/xroad/bin/xroad-signer"
+        & wait -n
+      )'
+      #&& /bin/bash'
+    ]
+    #tty: true
+    volumes:
+      # JAR containing the application
+      - ../../../signer/.build/libs/signer-1.0.jar:/usr/share/xroad/jlib/signer.jar
+      - ../../../signer-console/.build/libs/signer-console-1.0.jar:/usr/share/xroad/jlib/signer-console.jar
+      # Helper executables
+      - ../../../packages/src/xroad/common/signer/usr/share/xroad/bin/xroad-signer:/usr/share/xroad/bin/xroad-signer
+      - ../../../packages/src/xroad/common/signer/usr/share/xroad/bin/signer-console:/usr/share/xroad/bin/signer-console
+      # Native libs
+      - ../../../libs/libpkcs11wrapper.so:/usr/share/xroad/lib/libpkcs11wrapper.so
+      - ../../../lib/libpasswordstore.so:/usr/share/xroad/lib/libpasswordstore.so
+      # Configurations
+      #- ../../../asicverifier/src/test/resources/globalconf_good/instance-identifier:/etc/xroad/globalconf/instance-identifier
+      #- ../../../asicverifier/src/test/resources/globalconf_good/EE:/etc/xroad/globalconf/EE
+      - ../../../packages/src/xroad/common/base/etc/xroad/services/global.conf:/etc/xroad/services/global.conf
+      - ../../../packages/src/xroad/common/signer/etc/xroad/services/signer.conf:/etc/xroad/services/signer.conf
+      - ../../../packages/src/xroad/common/signer/etc/xroad/services/signer-console.conf:/etc/xroad/services/signer-console.conf
+      - ../../../packages/src/xroad/default-configuration/devices.ini:/etc/xroad/signer/devices.ini
+      # Shared global configuration
+      - globalconf:/etc/xroad/globalconf
+      #- ???:/etc/xroad/services/local.conf # ??? Where does it come? It is used by global.conf (optional) ???
+      #- ???:/etc/xroad/services/local.properties # ??? Where does it come? It is used by global.conf (optional) ???
+      # Logging configurations
+      - ../../../signer/src/test/resources/logback-signer.xml:/etc/xroad/conf.d/signer-logback.xml
+      - ../../../packages/src/xroad/default-configuration/signer-console-logback.xml:/etc/xroad/conf.d/signer-console-logback.xml
+    expose:
+      - 2022
+    ports:
+      - 2022:2022 # SSH
+      #- 5005:5005 # For Java debugging
+    environment:
+      # Uncomment below to enable Java debugging
+      #- JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=y
+      # Properties passed to java process
+      - >-
+        XROAD_SIGNER_PARAMS=
+        -Dsigner-main.akka.remote.artery.canonical.hostname=127.0.0.1
+      - XRD_BIN_SIGNER=/usr/share/xroad/bin/xroad-signer
+      - XRD_BIN_SIGNER_CONSOLE=/usr/share/xroad/bin/signer-console
+      - XRD_SIGNER_GLOBAL_CONF=/etc/xroad/services/global.conf
+      - XRD_SIGNER_LOCAL_CONF=/etc/xroad/services/local.conf
+
+volumes:
+  globalconf:
+

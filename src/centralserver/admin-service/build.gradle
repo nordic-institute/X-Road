@@ -4,9 +4,8 @@ plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
     id 'org.openapi.generator' version "$openApiGeneratorVersion"
+    id 'com.github.hierynomus.license'
 }
-
-apply plugin: 'com.github.hierynomus.license'
 
 archivesBaseName = 'centralserver-admin-service'
 
@@ -15,14 +14,17 @@ configurations {
         canBeConsumed = false
         canBeResolved = true
     }
+    liquibaseLibs {
+        apply plugin: 'base'
+    }
 }
 
 sourceSets {
     main {
         java.srcDirs = [
             'src/main/java',
-            'build/generated-sources/openapi/src/main/java',
-            'build/generated/sources/annotationProcessor/java/main'
+            "${buildDir}/generated-sources/openapi/src/main/java",
+            "${buildDir}/generated/sources/annotationProcessor/java/main"
         ]
     }
 }
@@ -125,17 +127,21 @@ dependencies {
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('javax.validation:validation-api')
+
+    liquibaseLibs('org.liquibase:liquibase-core:4.9.1')
+    liquibaseLibs('org.postgresql:postgresql:42.3.4')
+    liquibaseLibs('org.yaml:snakeyaml:1.30')
 }
 
 task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
     from configurations.dist
-    into 'build/admin-ui/public'
+    into "${buildDir}/admin-ui/public"
 }
 
 bootJar {
     if (!project.hasProperty('skip-frontend-build')) {
         dependsOn copyUi
-        classpath += file('build/admin-ui')
+        classpath += file("${buildDir}/admin-ui")
     } else {
         println("Warning: Excluding frontend from boot jar")
     }
@@ -146,3 +152,12 @@ bootJar {
         )
     }
 }
+
+task downloadLiquibaseLibs(type: Copy) {
+    mkdir "${buildDir}/libs/"
+
+    from configurations.liquibaseLibs
+    into "${buildDir}/libs"
+}
+
+build.dependsOn downloadLiquibaseLibs

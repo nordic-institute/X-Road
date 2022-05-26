@@ -95,7 +95,7 @@ task runPgHaTests(dependsOn: [updatePostgresDbSchema], type: Exec) {
 
 task checkRubySource(type: Exec) {
     inputs.files fileTree('app') + fileTree('lib')
-    outputs.files file('build/rubocop-result.json')
+    outputs.files file("${buildDir}/rubocop-result.json")
     commandLine = getRubySourceCheckCommand("$projectDir")
 }
 
@@ -120,6 +120,6 @@ licenseTest.dependsOn licenseFormatAddsCheck
 sonarqube {
     properties {
         properties["sonar.sources"] += [file('app'), file('lib'), file('public')]
-        property "sonar.ruby.rubocop.reportPath", file('build/rubocop-result.json')
+        property "sonar.ruby.rubocop.reportPath", file("${buildDir}/rubocop-result.json")
     }
 }
