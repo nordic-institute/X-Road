@@ -136,6 +136,7 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setMessageId(request.getQueryId());
             opMonitoringData.setMessageUserId(request.findHeaderValueByName(MimeUtils.HEADER_USER_ID));
             opMonitoringData.setMessageIssue(request.findHeaderValueByName(MimeUtils.HEADER_ISSUE));
+            opMonitoringData.setRepresentedParty(request.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
             opMonitoringData.setServiceType(Optional.ofNullable(
                     ServerConf.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());

@@ -69,6 +69,7 @@ public final class MimeUtils {
     public static final String HEADER_ISSUE = "x-road-issue";
     public static final String HEADER_SECURITY_SERVER = "x-road-security-server";
     public static final String HEADER_ERROR = "x-road-error";
+    public static final String HEADER_REPRESENTED_PARTY = "x-road-represented-party";
 
     public static final String HASH_CHAIN_CONTENT_TYPE = "application/hash-chain";
     public static final String HASH_CHAIN_RESULT_CONTENT_TYPE = "application/hash-chain-result";

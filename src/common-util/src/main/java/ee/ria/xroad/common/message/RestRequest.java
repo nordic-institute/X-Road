@@ -61,6 +61,7 @@ public class RestRequest extends RestMessage {
     private SecurityServerId targetSecurityServer;
     private int version;
     private String xRequestId;
+    private RepresentedParty representedParty;
 
     /**
      * Supported HTTP Verbs
@@ -204,6 +205,8 @@ public class RestRequest extends RestMessage {
                 this.xRequestId = h.getValue();
             } else if (MimeUtils.HEADER_SECURITY_SERVER.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
                 targetSecurityServer = decodeServerId(h.getValue());
+            } else if (MimeUtils.HEADER_REPRESENTED_PARTY.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
+                representedParty = decodeRepresentedParty(h.getValue());
             }
         }
     }
@@ -220,5 +223,27 @@ public class RestRequest extends RestMessage {
                 uriSegmentPercentDecode(parts[2]),
                 uriSegmentPercentDecode(parts[3])
         );
+    }
+
+    @SuppressWarnings(value = {"checkstyle:magicnumber"})
+    private static RepresentedParty decodeRepresentedParty(String value) {
+        final String[] parts = value.split("/");
+        if (parts.length > 2) {
+            throw new IllegalArgumentException("Invalid RepresentedParty Id");
+        }
+        switch (parts.length) {
+            case 1:
+                return new RepresentedParty(
+                        null,
+                        uriSegmentPercentDecode(parts[0])
+                );
+            case 2:
+                return new RepresentedParty(
+                        uriSegmentPercentDecode(parts[0]),
+                        uriSegmentPercentDecode(parts[1])
+                );
+            default:
+                return null;
+        }
     }
 }
