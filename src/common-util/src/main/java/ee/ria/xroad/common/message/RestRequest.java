@@ -196,17 +196,21 @@ public class RestRequest extends RestMessage {
             servicePath = "";
         }
 
-        for (Header h : headers) {
+        decodeHeaders();
+    }
+
+    private void decodeHeaders() {
+        for (Header h : this.headers) {
             if (MimeUtils.HEADER_CLIENT_ID.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
-                clientId = decodeClientId(h.getValue());
+                this.clientId = decodeClientId(h.getValue());
             } else if (MimeUtils.HEADER_QUERY_ID.equalsIgnoreCase(h.getName())) {
                 this.queryId = h.getValue();
             } else if (MimeUtils.HEADER_REQUEST_ID.equals(h.getName())) {
                 this.xRequestId = h.getValue();
             } else if (MimeUtils.HEADER_SECURITY_SERVER.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
-                targetSecurityServer = decodeServerId(h.getValue());
+                this.targetSecurityServer = decodeServerId(h.getValue());
             } else if (MimeUtils.HEADER_REPRESENTED_PARTY.equalsIgnoreCase(h.getName()) && h.getValue() != null) {
-                representedParty = decodeRepresentedParty(h.getValue());
+                this.representedParty = decodeRepresentedParty(h.getValue());
             }
         }
     }
