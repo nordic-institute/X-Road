@@ -1,0 +1,13 @@
+test: true
+logging:
+  level:
+    org.niis.xroad: DEBUG
+    ee.ria.xroad: DEBUG
+spring:
+  main:
+    allow-bean-definition-overriding: true
+    lazy-initialization: true
+    banner-mode: off
+xroad:
+  registration-service:
+    api-token: testtoken

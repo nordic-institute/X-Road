@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -277,6 +278,8 @@ public class SystemPropertiesLoader {
             try {
                 Path addOnDir = Paths.get(SystemProperties.CONF_FILE_ADDON_PATH);
                 loadFilesInOrder(addOnDir, ADDON_GLOB, LOADING_ORDER_COMPARATOR);
+            } catch (NoSuchFileException e) {
+                log.warn("Configuration file {} does not exist", e.getFile());
             } catch (IOException e) {
                 log.error("Cannot load addon configuration", e);
             }
@@ -286,6 +289,8 @@ public class SystemPropertiesLoader {
             try {
                 Path overrideDir = Paths.get(SystemProperties.getConfPath(), "conf.d");
                 loadFilesInOrder(overrideDir, OVERRIDE_GLOB, LOADING_ORDER_COMPARATOR);
+            } catch (NoSuchFileException e) {
+                log.warn("Configuration file {} does not exist", e.getFile());
             } catch (IOException e) {
                 log.error("Cannot load override configuration", e);
             }
@@ -360,6 +365,8 @@ public class SystemPropertiesLoader {
                     loadSection(sectionName, ini.getSection(sectionName));
                 }
             }
+        } catch (NoSuchFileException e) {
+            log.warn("Configuration file {} does not exist", e.getFile());
         } catch (ConfigurationException | IOException e) {
             log.warn("Error while loading {}: {}", file.getName(), e);
         }

@@ -50,6 +50,10 @@ jar {
     enabled = true
 }
 
+test {
+    useJUnitPlatform()
+}
+
 openApiGenerate {
     generatorName = "spring"
     inputSpec = "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()

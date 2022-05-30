@@ -25,31 +25,34 @@
  */
 package ee.ria.xroad.common;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+
+import javax.security.auth.x500.X500Principal;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.spec.ECGenParameterSpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
 
 /**
@@ -68,13 +71,14 @@ public final class TestCertUtil {
     private static final String CERT_ERROR_WITH_PASSWD_MSG = CERT_ERROR_MSG + " using password \"%2$s\"";
 
     /** Lazily initialized cached instances of the certs. */
-    private static volatile X509Certificate caCert;
     private static volatile X509Certificate tspCert;
     private static volatile PKCS12 producer;
     private static volatile PKCS12 consumer;
     private static volatile PKCS12 ca2TestOrg;
     private static volatile PKCS12 ocspSigner;
     private static volatile PKCS12 internal;
+
+    private static volatile PKCS12 ca;
 
     private static final class ClientKeyHolder {
         private static final PKCS12 INSTANCE = loadPKCS12("client.p12", "1", "test");
@@ -100,11 +104,17 @@ public final class TestCertUtil {
      * @return AdminCA1 from test resources
      */
     public static X509Certificate getCaCert() {
-        if (caCert == null) {
-            caCert = loadPKCS12("root-ca.p12", "1", "test").certChain[0];
-        }
+        return getCa().certChain[0];
+    }
 
-        return caCert;
+    /**
+     * @return AdminCA1 from test resources
+     */
+    public static PKCS12 getCa() {
+        if (ca == null) {
+            ca = loadPKCS12("root-ca.p12", "1", "test");
+        }
+        return ca;
     }
 
     /**
@@ -206,9 +216,8 @@ public final class TestCertUtil {
      * @return X509Certificate
      */
     public static X509Certificate getCert(String pemFileName) {
-        try {
-            String data = IOUtils.toString(getFile(pemFileName));
-            return CryptoUtils.readCertificate(data);
+        try (InputStream is = getFile(pemFileName)) {
+            return CryptoUtils.readCertificate(Base64.getMimeDecoder().wrap(is));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -341,19 +350,20 @@ public final class TestCertUtil {
         return "test".toCharArray();
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public static byte[] generateAuthCert() throws NoSuchAlgorithmException, OperatorCreationException, IOException,
-            InvalidAlgorithmParameterException {
-
-        var keyPairGenerator = KeyPairGenerator.getInstance("EC");
-        keyPairGenerator.initialize(new ECGenParameterSpec("secp256r1"));
-
-        var issuerKey = keyPairGenerator.generateKeyPair();
+    @SuppressWarnings({"checkstyle:MagicNumber", "java:S4426"})
+    public static byte[] generateAuthCert() throws NoSuchAlgorithmException, OperatorCreationException, IOException {
+        var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        keyPairGenerator.initialize(1024);
         var subjectKey = keyPairGenerator.generateKeyPair();
+        return generateAuthCert(subjectKey.getPublic());
+    }
 
-        var signer = new JcaContentSignerBuilder("SHA256withECDSA").build(issuerKey.getPrivate());
-        var issuer = new X500Name("CN=CA");
-        var subject = new X500Name("CN=Subject");
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static byte[] generateAuthCert(PublicKey subjectKey) throws OperatorCreationException, IOException {
+
+        var signer = new JcaContentSignerBuilder("SHA256withRSA").build(getCa().key);
+        var issuer = ca.certChain[0].getSubjectX500Principal();
+        var subject = new X500Principal("CN=Subject");
 
         return new JcaX509v3CertificateBuilder(
                 issuer,
@@ -361,7 +371,7 @@ public final class TestCertUtil {
                 Date.from(Instant.now()),
                 Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
                 subject,
-                subjectKey.getPublic())
+                subjectKey)
                 .addExtension(Extension.create(
                         Extension.keyUsage,
                         true,
@@ -369,6 +379,35 @@ public final class TestCertUtil {
                 .build(signer)
                 .getEncoded();
 
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static X509Certificate generateSignCert(PublicKey subjectKey, ClientId id)
+            throws OperatorCreationException, IOException, CertificateException {
+
+        var signer = new JcaContentSignerBuilder("SHA256withRSA").build(getCa().key);
+        var issuer = ca.certChain[0].getSubjectX500Principal();
+        var subject = new X500Principal(
+                //EJBCA Profile format
+                String.format("C=%s,O=%s,CN=%s",
+                        id.getXRoadInstance(),
+                        id.getMemberClass(),
+                        id.getMemberCode()));
+
+        var cert = new JcaX509v3CertificateBuilder(
+                issuer,
+                BigInteger.TWO,
+                Date.from(Instant.now()),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                subject,
+                subjectKey)
+                .addExtension(Extension.create(
+                        Extension.keyUsage,
+                        true,
+                        new KeyUsage(KeyUsage.nonRepudiation)))
+                .build(signer);
+
+        return new JcaX509CertificateConverter().getCertificate(cert);
     }
 
     private static InputStream getFile(String fileName) throws Exception {

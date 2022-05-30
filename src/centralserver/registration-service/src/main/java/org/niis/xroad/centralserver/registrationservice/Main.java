@@ -26,13 +26,23 @@
  */
 package org.niis.xroad.centralserver.registrationservice;
 
+import ee.ria.xroad.common.SystemPropertiesLoader;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 @SpringBootApplication
+@EnableScheduling
+@Slf4j
 public class Main {
+
     public static void main(String[] args) {
-        SpringApplication.run(Main.class, args);
+        var app = new SpringApplication(Main.class);
+        app.addInitializers(ctx -> SystemPropertiesLoader.create().withCommonAndLocal().load());
+        app.run(args);
     }
 }
+

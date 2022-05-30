@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,9 +26,11 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
+import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.CertificationServiceStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
@@ -78,12 +80,17 @@ public class DiagnosticService {
     private final String diagnosticsTimestampingServicesUrl;
     private final String diagnosticsOcspRespondersUrl;
     private final String diagnosticsAddOnStatusUrl;
+    private final String backupEncryptionStatusUrl;
+    private final String messageLogEncryptionStatusUrl;
 
     @Autowired
-    public DiagnosticService(@Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
+    public DiagnosticService(
+            @Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
             @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
             @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
+            @Value("${url.diagnostics-backup-encryption-status}") String backupEncryptionStatusUrl,
+            @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatusUrl,
             RestTemplateBuilder restTemplateBuilder) {
 
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
@@ -93,6 +100,10 @@ public class DiagnosticService {
         this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
                 SystemProperties.getSignerAdminPort());
         this.diagnosticsAddOnStatusUrl = String.format(diagnosticsAddOnStatusUrl, PortNumbers.ADMIN_PORT);
+        this.backupEncryptionStatusUrl = String.format(backupEncryptionStatusUrl,
+                PortNumbers.ADMIN_PORT);
+        this.messageLogEncryptionStatusUrl = String.format(messageLogEncryptionStatusUrl,
+                PortNumbers.ADMIN_PORT);
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(
                 JsonUtils.getObjectMapperCopy());
@@ -181,6 +192,32 @@ public class DiagnosticService {
     }
 
     /**
+     * Query proxy backup encryption status from admin port over HTTP.
+     *
+     * @return BackupEncryptionStatusDiagnostics
+     */
+    public BackupEncryptionStatusDiagnostics queryBackupEncryptionStatus() {
+        try {
+            return sendGetRequest(backupEncryptionStatusUrl, BackupEncryptionStatusDiagnostics.class).getBody();
+        } catch (DiagnosticRequestException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Query proxy message log encryption status from admin port over HTTP.
+     *
+     * @return MessageLogEncryptionStatusDiagnostics
+     */
+    public MessageLogEncryptionStatusDiagnostics queryMessageLogEncryptionStatus() {
+        try {
+            return sendGetRequest(messageLogEncryptionStatusUrl, MessageLogEncryptionStatusDiagnostics.class).getBody();
+        } catch (DiagnosticRequestException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
      * Send HTTP GET request to the given address (http://localhost:{port}/{path}).
      *
      * @param address
@@ -199,7 +236,7 @@ public class DiagnosticService {
 
             return response;
         } catch (RestClientException e) {
-            log.error("unable to connect to admin port (" + address + ")");
+            log.error("unable to connect to admin port (" + address + ")", e);
             throw new DiagnosticRequestException();
         }
     }

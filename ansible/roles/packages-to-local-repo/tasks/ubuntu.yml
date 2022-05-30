@@ -25,7 +25,7 @@
 
 - name: Ensure dpkg-dev
   become: yes
-  apt: name=dpkg-dev state=present
+  apt: name=dpkg-dev state=present update_cache=yes
 
 - name: Scan new packages
   become: yes

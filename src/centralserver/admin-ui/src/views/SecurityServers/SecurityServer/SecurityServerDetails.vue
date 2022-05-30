@@ -73,20 +73,89 @@
       :info-text="securityServer.registered"
       data-test="security-server-registered"
     />
+
+    <div class="delete-action" @click="showVerifyCodeDialog = true">
+      <div>
+        <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
+          >mdi-close-circle</v-icon
+        >
+      </div>
+      <div class="action-text">
+        {{ $t('securityServers.securityServer.deleteSecurityServer') }}
+        "{{ securityServer.serverCode }}"
+      </div>
+    </div>
+
+    <!-- Delete Security Server - Check code dialog -->
+
+    <v-dialog
+      v-if="showVerifyCodeDialog"
+      v-model="showVerifyCodeDialog"
+      width="500"
+      persistent
+    >
+      <ValidationObserver ref="deleteDialog" v-slot="{ invalid }">
+        <v-card class="xrd-card">
+          <v-card-title>
+            <span class="headline">{{
+              $t('securityServers.securityServer.deleteSecurityServer')
+            }}</span>
+          </v-card-title>
+          <v-card-text class="pt-4">
+            {{
+              $t('securityServers.securityServer.areYouSure', {
+                serverCode: securityServer.serverCode,
+              })
+            }}
+            <div class="dlg-input-width pt-4">
+              <ValidationProvider
+                v-slot="{ errors }"
+                ref="serverCodeInput"
+                name="init.identifier"
+                :rules="{ required: true, is: securityServer.serverCode }"
+                data-test="instance-identifier--validation"
+              >
+                <v-text-field
+                  v-model="offeredCode"
+                  outlined
+                  :label="$t('securityServers.securityServer.enterCode')"
+                  autofocus
+                  data-test="add-local-group-code-input"
+                  :error-messages="errors"
+                ></v-text-field>
+              </ValidationProvider>
+            </div>
+          </v-card-text>
+          <v-card-actions class="xrd-card-actions">
+            <v-spacer></v-spacer>
+            <xrd-button outlined @click="cancelDelete()">{{
+              $t('action.cancel')
+            }}</xrd-button>
+            <xrd-button :disabled="invalid" @click="deleteServer()">{{
+              $t('action.delete')
+            }}</xrd-button>
+          </v-card-actions>
+        </v-card>
+      </ValidationObserver>
+    </v-dialog>
   </main>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
+import { Colors } from '@/global';
+import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 
 /**
  * Component for a Security server details view
  */
 export default Vue.extend({
-  name: 'MemberDetails',
+  name: 'SecurityServerDetails',
   components: {
     InfoCard,
+    ValidationObserver,
+    ValidationProvider,
   },
   data() {
     return {
@@ -95,6 +164,9 @@ export default Vue.extend({
       loading: false,
       loadingGroups: false,
       showOnlyPending: false,
+      colors: Colors,
+      showVerifyCodeDialog: false,
+      offeredCode: '',
       securityServer: {
         ownerName: 'NIIS',
         ownerClass: 'ORG',
@@ -112,6 +184,16 @@ export default Vue.extend({
     },
     editAddress(): void {
       // do something
+    },
+
+    deleteServer() {
+      // Delete action
+      this.showVerifyCodeDialog = false;
+      this.offeredCode = '';
+    },
+    cancelDelete() {
+      this.showVerifyCodeDialog = false;
+      this.offeredCode = '';
     },
   },
 });
@@ -146,6 +228,17 @@ export default Vue.extend({
 #global-groups-table {
   tbody tr td:last-child {
     width: 50px;
+  }
+}
+
+.delete-action {
+  margin-top: 34px;
+  color: $XRoad-Link;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  .action-text {
+    margin-top: 2px;
   }
 }
 </style>

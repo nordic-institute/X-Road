@@ -50,6 +50,8 @@ dependencies {
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation('org.hsqldb:hsqldb')
+    testImplementation('org.springframework.cloud:spring-cloud-contract-wiremock:3.1.2')
+    testImplementation('com.github.tomakehurst:wiremock-jre8-standalone:2.33.2')
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('javax.validation:validation-api')
@@ -284,7 +286,7 @@ task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
 }
 
 task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
+    source = fileTree('src/test/java')
     check = true
 }
 

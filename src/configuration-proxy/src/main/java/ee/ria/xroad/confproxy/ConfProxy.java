@@ -67,12 +67,12 @@ public class ConfProxy {
                     SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion());
             ConfigurationDirectory confDir = download(version);
             log.debug("Create output builder");
-            OutputBuilder output = new OutputBuilder(confDir, conf, version);
-            log.debug("Build signed directory");
-            output.buildSignedDirectory();
-            log.debug("Move and cleanup");
-            output.moveAndCleanup();
-            log.debug("Finished execute");
+            try (OutputBuilder output = new OutputBuilder(confDir, conf, version)) {
+                log.debug("Build signed directory");
+                output.buildSignedDirectory();
+                output.move();
+                log.debug("Finished execute");
+            }
         }
     }
 

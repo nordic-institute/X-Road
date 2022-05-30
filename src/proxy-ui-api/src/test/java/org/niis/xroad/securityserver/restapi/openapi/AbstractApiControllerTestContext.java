@@ -88,8 +88,6 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     @MockBean
     UrlValidator urlValidator;
     @MockBean
-    DiagnosticService diagnosticService;
-    @MockBean
     SystemService systemService;
     @MockBean
     CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
@@ -111,6 +109,8 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     @MockBean
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
 
+    @SpyBean
+    DiagnosticService diagnosticService;
     @SpyBean
     GlobalConfService globalConfService;
     @SpyBean

@@ -123,7 +123,7 @@
             />
           </v-col>
           <v-col v-if="!messageLogEnabled" class="text-right disabled">
-            {{ $t('systemParameters.timestampingServices.messageLogDisabled') }}
+            {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
           </v-col>
         </v-row>
 
@@ -156,6 +156,7 @@
                   v-for="timestampingService in configuredTimestampingServices"
                   :key="timestampingService.url"
                   :timestamping-service="timestampingService"
+                  :message-log-enabled="messageLogEnabled"
                   @deleted="fetchConfiguredTimestampingServiced"
                 />
 

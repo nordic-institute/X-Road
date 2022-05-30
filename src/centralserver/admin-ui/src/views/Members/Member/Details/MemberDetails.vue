@@ -54,7 +54,9 @@
           $t('global.memberCode')
         }}</v-card-title>
         <v-divider></v-divider>
-        <v-card-text data-test="member-code-value">12121212</v-card-text>
+        <v-card-text data-test="member-code-value">{{
+          memberCode
+        }}</v-card-text>
         <v-divider class="pb-4"></v-divider>
       </v-card>
     </div>
@@ -130,9 +132,12 @@
         >
           <template #[`item.button`]>
             <div class="cs-table-actions-wrap">
-              <xrd-button text :outlined="false">{{
-                $t('action.delete')
-              }}</xrd-button>
+              <xrd-button
+                text
+                :outlined="false"
+                @click="showDeleteFromGroupDialog = true"
+                >{{ $t('action.delete') }}</xrd-button
+              >
             </div>
           </template>
 
@@ -141,26 +146,131 @@
           </template>
         </v-data-table>
       </v-card>
+
+      <div class="delete-action" @click="showDialog = true">
+        <div>
+          <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
+            >mdi-close-circle</v-icon
+          >
+        </div>
+        <div class="action-text">
+          {{ $t('members.member.details.deleteMember') }} "{{ memberName }}"
+        </div>
+      </div>
     </div>
+
+    <!-- Delete member - Check member code dialog -->
+
+    <v-dialog v-if="showDialog" v-model="showDialog" width="500" persistent>
+      <ValidationObserver ref="initializationForm" v-slot="{ invalid }">
+        <v-card class="xrd-card">
+          <v-card-title>
+            <span class="headline">{{
+              $t('members.member.details.deleteMember')
+            }}</span>
+          </v-card-title>
+          <v-card-text class="pt-4">
+            {{
+              $t('members.member.details.areYouSure1', {
+                member: 'NIIS',
+              })
+            }}
+            <div class="dlg-input-width pt-4">
+              <ValidationProvider
+                v-slot="{ errors }"
+                ref="initializationParamsVP"
+                name="init.identifier"
+                :rules="{ required: true, is: memberCode }"
+                data-test="instance-identifier--validation"
+              >
+                <v-text-field
+                  v-model="offeredCode"
+                  outlined
+                  :label="$t('members.member.details.enterCode')"
+                  autofocus
+                  data-test="add-local-group-code-input"
+                  :error-messages="errors"
+                ></v-text-field>
+              </ValidationProvider>
+            </div>
+          </v-card-text>
+          <v-card-actions class="xrd-card-actions">
+            <v-spacer></v-spacer>
+            <xrd-button outlined @click="cancelDelete()">{{
+              $t('action.cancel')
+            }}</xrd-button>
+            <xrd-button :disabled="invalid" @click="deleteMember()">{{
+              $t('action.delete')
+            }}</xrd-button>
+          </v-card-actions>
+        </v-card>
+      </ValidationObserver>
+    </v-dialog>
+
+    <!-- Delete member from a group -->
+    <v-dialog
+      v-if="showDeleteFromGroupDialog"
+      v-model="showDeleteFromGroupDialog"
+      width="500"
+      persistent
+    >
+      <v-card class="xrd-card">
+        <v-card-title>
+          <span class="headline">{{
+            $t('members.member.details.deleteMember')
+          }}</span>
+        </v-card-title>
+        <v-card-text class="pt-4">
+          {{
+            $t('members.member.details.areYouSure2', {
+              member: memberName,
+              group: 'opendata-providers',
+            })
+          }}
+        </v-card-text>
+        <v-card-actions class="xrd-card-actions">
+          <v-spacer></v-spacer>
+          <xrd-button outlined @click="cancelDelete()">{{
+            $t('action.cancel')
+          }}</xrd-button>
+          <xrd-button @click="deleteMemberFromGroup()">{{
+            $t('action.delete')
+          }}</xrd-button>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </main>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
+import { Colors } from '@/global';
+import { ValidationObserver, ValidationProvider } from 'vee-validate';
 
 /**
  * Component for a Members details view
  */
 export default Vue.extend({
   name: 'MemberDetails',
+  components: {
+    ValidationObserver,
+    ValidationProvider,
+  },
   data() {
     return {
       searchServers: '',
       searchGroups: '',
+      memberName: 'Netum',
       loading: false,
       loadingGroups: false,
       showOnlyPending: false,
+      colors: Colors,
+      showDialog: false,
+      offeredCode: '',
+      memberCode: '12345', // Mock. This will come from a backend with member data
+      wrongCode: false,
+      showDeleteFromGroupDialog: false,
       servers: [
         {
           name: 'SS1',
@@ -223,6 +333,22 @@ export default Vue.extend({
       ];
     },
   },
+  methods: {
+    deleteMember() {
+      // Delete action
+      this.showDialog = false;
+      this.offeredCode = '';
+    },
+
+    deleteMemberFromGroup() {
+      this.showDeleteFromGroupDialog = false;
+    },
+    cancelDelete() {
+      this.showDialog = false;
+      this.showDeleteFromGroupDialog = false;
+      this.offeredCode = '';
+    },
+  },
 });
 </script>
 
@@ -242,6 +368,17 @@ export default Vue.extend({
 .card-corner-button {
   display: flex;
   justify-content: flex-end;
+}
+
+.delete-action {
+  margin-top: 34px;
+  color: $XRoad-Link;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  .action-text {
+    margin-top: 2px;
+  }
 }
 
 #member-details {
