@@ -27,7 +27,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.restapi.service.TokenPinValidator;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;

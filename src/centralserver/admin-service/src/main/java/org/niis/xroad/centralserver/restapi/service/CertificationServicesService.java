@@ -1,6 +1,5 @@
 /**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,36 +23,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.config;
+package org.niis.xroad.centralserver.restapi.service;
 
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.niis.xroad.centralserver.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacade;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
+import org.niis.xroad.centralserver.restapi.converter.CertificationServiceConverter;
+import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
+import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Base for all tests that mock GlobalConfFacade and SignerProxyFacade.
- * Tests usually always want to do this, since they want to make sure they do not (accidentally) attempt to
- * read global configuration from filesystem, send actual management requests, or send Akka requests to signer.
- *
- * Extending this base class also helps in keeping mock injections standard, and reduce number of different
- * application contexts built for testing.
- */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@WithMockUser
-public abstract class AbstractFacadeMockingTestContext {
-    @MockBean
-    protected GlobalConfFacade globalConfFacade;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-    @MockBean
-    protected SignerProxyFacade signerProxyFacade;
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class CertificationServicesService {
+
+    private final ApprovedCaRepository approvedCaRepository;
+
+    private final CertificationServiceConverter certificationServiceConverter;
+
+    public Set<ApprovedCertificationService> getCertificationServices() {
+        List<ApprovedCa> approvedCas = approvedCaRepository.findAll();
+        return approvedCas.stream().map(certificationServiceConverter::convert).collect(Collectors.toSet());
+    }
 
 }

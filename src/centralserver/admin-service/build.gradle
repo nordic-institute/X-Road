@@ -128,3 +128,7 @@ bootJar {
         )
     }
 }
+
+test {
+    useJUnitPlatform()
+}

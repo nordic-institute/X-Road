@@ -31,9 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
@@ -49,13 +48,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.transaction.Transactional;
 
 import java.security.cert.CertificateEncodingException;
 
-@RunWith(SpringRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @Transactional
 public class ManagementRequestServiceTest {
@@ -72,7 +71,7 @@ public class ManagementRequestServiceTest {
     @Autowired
     private MemberClassRepository memberClasses;
 
-    @Before
+    @BeforeEach
     public void setup() {
         var memberClass = memberClasses.findByCode("CLASS")
                 .orElseGet(() -> memberClasses.save(new MemberClass("CLASS", "CLASS")));
@@ -137,7 +136,7 @@ public class ManagementRequestServiceTest {
         Assert.assertEquals(ManagementRequestStatus.APPROVED, response.getStatus());
     }
 
-    @Test(expected = DataIntegrityException.class)
+    @Test
     public void testAddClientRegRequestShouldFailIfServerDoesNotExist() {
         var serverId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER_NOT_EXISTS");
         var dto = new ClientRegistrationRequestDto(
@@ -145,10 +144,10 @@ public class ManagementRequestServiceTest {
                 serverId,
                 ClientId.create("TEST", "CLASS", "MEMBER", "SUB"));
 
-        service.add(dto);
+        assertThrows(DataIntegrityException.class, () -> service.add(dto));
     }
 
-    @Test(expected = DataIntegrityException.class)
+    @Test
     public void testShouldFailIfSameOrigin() throws CertificateEncodingException {
         final var certificate = TestCertUtil.getProducer().certChain[0];
         var id = SecurityServerId.create("TEST", "CLASS", "MEMBER", "CODE");
@@ -165,10 +164,10 @@ public class ManagementRequestServiceTest {
                 "server.example.org");
 
         //the second request should fail
-        service.add(dto2);
+        assertThrows(DataIntegrityException.class, () -> service.add(dto2));
     }
 
-    @Test(expected = DataIntegrityException.class)
+    @Test
     public void testShouldFailIfConflictingRequests() throws CertificateEncodingException {
         final var certificate = TestCertUtil.getProducer().certChain[0];
         var id = SecurityServerId.create("TEST", "CLASS", "MEMBER1", "CODE");
@@ -187,7 +186,7 @@ public class ManagementRequestServiceTest {
                 "server.example.org");
 
         //the second request should fail
-        service.add(dto2);
+        assertThrows(DataIntegrityException.class, () -> service.add(dto2));
     }
 
     private void addServer(SecurityServerId serverId) {

@@ -27,7 +27,7 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
 import org.niis.xroad.centralserver.restapi.entity.SystemParameter;

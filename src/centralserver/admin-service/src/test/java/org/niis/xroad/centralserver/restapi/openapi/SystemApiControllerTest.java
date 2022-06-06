@@ -29,7 +29,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.CentralServerAddress;
 import org.niis.xroad.centralserver.openapi.model.SystemStatus;
 import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;

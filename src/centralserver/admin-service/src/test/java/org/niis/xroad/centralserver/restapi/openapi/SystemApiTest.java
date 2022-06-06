@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.SystemStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.springframework.beans.factory.annotation.Autowired;

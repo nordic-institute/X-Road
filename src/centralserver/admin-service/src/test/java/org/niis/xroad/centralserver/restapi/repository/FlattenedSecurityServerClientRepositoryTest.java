@@ -28,7 +28,7 @@ package org.niis.xroad.centralserver.restapi.repository;
 
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
 import org.springframework.beans.factory.annotation.Autowired;

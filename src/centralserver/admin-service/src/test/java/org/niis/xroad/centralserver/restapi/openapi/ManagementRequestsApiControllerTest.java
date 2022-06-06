@@ -29,7 +29,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequest;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestOrigin;

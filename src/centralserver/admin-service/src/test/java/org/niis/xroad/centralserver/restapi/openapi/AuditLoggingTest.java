@@ -27,8 +27,8 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
@@ -59,7 +59,7 @@ public class AuditLoggingTest extends AbstractApiRestTemplateTestContext {
     MockableAuditEventLoggingFacade auditEventLoggingFacade;
 
 
-    @Before
+    @BeforeEach
     public void setup() {
         addApiKeyAuthorizationHeader(restTemplate);
     }

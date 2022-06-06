@@ -28,8 +28,8 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
 import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
@@ -63,7 +63,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     private InitialServerConf okConf;
     private TokenInfo testSWToken;
 
-    @Before
+    @BeforeEach
     public void setup() {
         okConf = new InitialServerConf()
                 .centralServerAddress("xroad.example.org")

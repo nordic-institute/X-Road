@@ -29,7 +29,7 @@ import ee.ria.xroad.common.util.TokenPinPolicy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.restapi.service.exception.InvalidCharactersException;
 import org.niis.xroad.centralserver.restapi.service.exception.WeakPinException;
 import org.niis.xroad.centralserver.restapi.util.DeviationTestUtils;

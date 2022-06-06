@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
 import org.springframework.beans.factory.annotation.Autowired;
