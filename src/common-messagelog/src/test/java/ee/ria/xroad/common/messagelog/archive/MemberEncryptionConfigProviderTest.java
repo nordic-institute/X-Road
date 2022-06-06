@@ -26,6 +26,11 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -34,10 +39,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class MemberEncryptionConfigProviderTest {
     private final Map<String, Set<String>> expected = new HashMap<>();
@@ -51,6 +59,80 @@ public class MemberEncryptionConfigProviderTest {
         expected.put("backslash\\#hash", setOf("1"));
     }
 
+    @Before
+    public void before() {
+        System.setProperty(MessageLogProperties.ARCHIVE_DEFAULT_ENCRYPTION_KEY,
+                "B23B8E993AC4632A896D39A27BE94D3451C16D55");
+        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/gpg/keys.ini");
+    }
+
+    @After
+    public void after() {
+        System.clearProperty(MessageLogProperties.ARCHIVE_DEFAULT_ENCRYPTION_KEY);
+        System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG);
+    }
+
+    @Test
+    public void forDiagnosticsWhenExistsRegisteredMemberAndConfigMappingThenShouldReturnMemberWithMappedKey()
+            throws IOException {
+        ClientId registeredMember = ClientId.create("INSTANCE", "memberClass", "memberCode");
+
+        MemberEncryptionConfigProvider provider = new MemberEncryptionConfigProvider();
+        EncryptionConfig encryptionConfig = provider.forDiagnostics(Collections.singletonList(registeredMember));
+        assertEncryptionConfig(encryptionConfig);
+
+        List<EncryptionMember> encryptionMembers = encryptionConfig.getEncryptionMembers();
+        EncryptionMember encryptionMember = encryptionMembers.get(0);
+        assertEquals(encryptionMember.getMemberId(), "INSTANCE/memberClass/memberCode");
+        assertEquals(encryptionMember.getKeys(), Collections.singleton("B23B8E993AC4632A896D39A27BE94D3451C16D33"));
+        assertFalse(encryptionMember.isDefaultKeyUsed());
+    }
+
+    @Test
+    public void forDiagnosticsWhenExistsRegisteredMemberAndNotExistsConfigMappingThenShouldReturnMemberWithDefaultKey()
+            throws IOException {
+        ClientId registeredMember = ClientId.create("INSTANCE", "memberClass", "memberCode2");
+
+        MemberEncryptionConfigProvider provider = new MemberEncryptionConfigProvider();
+        EncryptionConfig encryptionConfig = provider.forDiagnostics(Collections.singletonList(registeredMember));
+        assertEncryptionConfig(encryptionConfig);
+
+        List<EncryptionMember> encryptionMembers = encryptionConfig.getEncryptionMembers();
+        EncryptionMember encryptionMember = encryptionMembers.get(0);
+        assertEquals(encryptionMember.getMemberId(), "INSTANCE/memberClass/memberCode2");
+        assertEquals(encryptionMember.getKeys(), Collections.singleton("B23B8E993AC4632A896D39A27BE94D3451C16D55"));
+        assertTrue(encryptionMember.isDefaultKeyUsed());
+    }
+
+    @Test
+    public void forDiagnosticsWhenNotExistsRegisteredMembersThenShouldReturnEmptyEncryptionMembers()
+            throws IOException {
+        MemberEncryptionConfigProvider provider = new MemberEncryptionConfigProvider();
+        EncryptionConfig encryptionConfig = provider.forDiagnostics(Collections.emptyList());
+        assertEncryptionConfig(encryptionConfig);
+
+        assertEquals(encryptionConfig.getEncryptionMembers().size(), 0);
+    }
+
+    @Test
+    public void forDiagnosticsWhenExistsRegisteredMemberAndSubsystemThenShouldReturnOnlyMemberWithMappedKey()
+            throws IOException {
+        ClientId registeredMember = ClientId.create("INSTANCE", "memberClass", "memberCode");
+        ClientId registeredSubsystem = ClientId.create("INSTANCE", "memberClass", "memberCode", "subsystemCode");
+
+        MemberEncryptionConfigProvider provider = new MemberEncryptionConfigProvider();
+        EncryptionConfig encryptionConfig =
+                provider.forDiagnostics(Arrays.asList(registeredMember, registeredSubsystem));
+        assertEncryptionConfig(encryptionConfig);
+
+        List<EncryptionMember> encryptionMembers = encryptionConfig.getEncryptionMembers();
+        assertEquals(encryptionMembers.size(), 1);
+        EncryptionMember encryptionMember = encryptionMembers.get(0);
+        assertEquals(encryptionMember.getMemberId(), "INSTANCE/memberClass/memberCode");
+        assertEquals(encryptionMember.getKeys(), Collections.singleton("B23B8E993AC4632A896D39A27BE94D3451C16D33"));
+        assertFalse(encryptionMember.isDefaultKeyUsed());
+    }
+
     @Test
     public void shouldParseMappings() throws IOException {
         final Map<String, Set<String>> mappings = MemberEncryptionConfigProvider.readKeyMappings(
@@ -60,5 +142,11 @@ public class MemberEncryptionConfigProviderTest {
 
     private static Set<String> setOf(String... elem) {
         return elem.length == 1 ? Collections.singleton(elem[0]) : new HashSet<>(Arrays.asList(elem));
+    }
+
+    private void assertEncryptionConfig(EncryptionConfig encryptionConfig) {
+        assertTrue(encryptionConfig.isEnabled());
+        assertEquals(encryptionConfig.getGpgHomeDir(), Paths.get("/etc/xroad/gpghome"));
+        assertEquals(encryptionConfig.getEncryptionKeys(), Collections.emptySet());
     }
 }

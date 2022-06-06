@@ -40,6 +40,8 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
@@ -238,7 +240,23 @@ public final class ProxyMain {
                 MessageLogProperties.isArchiveEncryptionEnabled(),
                 MessageLogProperties.isMessageLogEncryptionEnabled(),
                 ARCHIVE_GROUPING.name(),
-                getMessageLogArchiveEncryptionMembers());
+                getMessageLogArchiveEncryptionMembers(getMembers()));
+    }
+
+    private static List<ClientId> getMembers() throws Exception {
+        try {
+            return ServerConf.getMembers().stream()
+                    .filter(ProxyMain::isMemberRegistered)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to get members from server configuration", e);
+            throw e;
+        }
+    }
+
+    private static boolean isMemberRegistered(ClientId member) {
+        String status = ServerConf.getMemberStatus(member);
+        return ClientType.STATUS_REGISTERED.equals(status);
     }
 
     private static void loadConfigurations() {
@@ -521,12 +539,13 @@ public final class ProxyMain {
 
     }
 
-    private static List<MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers() throws IOException {
+    private static List<MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers(
+            List<ClientId> members) throws IOException {
         EncryptionConfigProvider configProvider = EncryptionConfigProvider.getInstance(ARCHIVE_GROUPING);
         if (!configProvider.isEncryptionEnabled()) {
             return Collections.emptyList();
         }
-        return configProvider.forDiagnostics().getEncryptionMembers()
+        return configProvider.forDiagnostics(members).getEncryptionMembers()
                 .stream()
                 .map(member -> new MessageLogArchiveEncryptionMember(member.getMemberId(),
                         member.getKeys(), member.isDefaultKeyUsed()))
