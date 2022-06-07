@@ -1,6 +1,5 @@
 /**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,30 +23,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.openapi;
+package org.niis.xroad.centralserver.restapi.converter;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.MemberClass;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
+import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
+import org.niis.xroad.centralserver.restapi.entity.CaInfo;
+import org.niis.xroad.restapi.util.FormatUtils;
+
+import java.time.OffsetDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class MemberClassesApiControllerTest extends AbstractApiControllerTestContext {
-    @Autowired
-    private MemberClassesApiController memberClassesApiController;
+class CertificationServiceConverterTest {
 
     @Test
-    @WithMockUser(authorities = {"ADD_MEMBER_CLASS"})
-    void testAddMemberClass() {
-        final MemberClass mc = new MemberClass();
-        mc.setCode("FOO");
-        mc.setDescription("Description");
-        ResponseEntity<MemberClass> response = memberClassesApiController.addMemberClass(mc);
-        assertTrue(response.getStatusCode().is2xxSuccessful());
-        assertEquals(mc.getCode(), response.getBody().getCode());
+    void convert() {
+        ApprovedCa approvedCaMock = mockApprovedCa();
+
+        CertificationServiceConverter converter = new CertificationServiceConverter();
+        ApprovedCertificationService result = converter.convert(approvedCaMock);
+
+        assertEquals(approvedCaMock.getName(), result.getCaCertificate().getSubjectCommonName());
+        assertEquals(FormatUtils.fromDateToOffsetDateTime(approvedCaMock.getCaInfo().getValidFrom()),
+                result.getCaCertificate().getNotBefore());
+        assertEquals(FormatUtils.fromDateToOffsetDateTime(approvedCaMock.getCaInfo().getValidTo()),
+                result.getCaCertificate().getNotAfter());
     }
 
+    private ApprovedCa mockApprovedCa() {
+        CaInfo caInfo = new CaInfo();
+        caInfo.setValidFrom(FormatUtils.fromOffsetDateTimeToDate(OffsetDateTime.now()));
+        caInfo.setValidTo(FormatUtils.fromOffsetDateTimeToDate(OffsetDateTime.now().plusDays(1)));
+        ApprovedCa ca = new ApprovedCa();
+        ca.setName("X-Road Test CA CN");
+        ca.setCaInfo(caInfo);
+        return ca;
+    }
 }

@@ -26,8 +26,8 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
 import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
@@ -39,15 +39,15 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.INSTANCE_IDENTIFIER;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @Transactional
-public class SystemParameterServiceTest extends AbstractFacadeMockingTestContext {
+class SystemParameterServiceTest extends AbstractFacadeMockingTestContext {
 
     @Autowired
     SystemParameterRepository systemParameterRepository;
@@ -59,12 +59,12 @@ public class SystemParameterServiceTest extends AbstractFacadeMockingTestContext
     HAConfigStatus currentHaConfigStatus;
 
     @Test
-    public void mockContextLoads() {
+    void mockContextLoads() {
         assertTrue(true);
     }
 
     @Test
-    public void systemParameterValueStored() {
+    void systemParameterValueStored() {
 
         final String instanceTestValue = "VALID_INSTANCE";
         SystemParameter systemParameter = systemParameterService
@@ -82,9 +82,9 @@ public class SystemParameterServiceTest extends AbstractFacadeMockingTestContext
     }
 
     // This works only when postgresql-specific HA triggers are defined. E.g. NOT with embedded test databases.
-    @Ignore("HA-specific test cases need postgresql db")
+    @Disabled("HA-specific test cases need postgresql db")
     @Test
-    public void systemParameterValueStoredHaEnabled() {
+    void systemParameterValueStoredHaEnabled() {
         final String centralServerAddress = "example.org";
         SystemParameter systemParameter = systemParameterService
                 .updateOrCreateParameter(

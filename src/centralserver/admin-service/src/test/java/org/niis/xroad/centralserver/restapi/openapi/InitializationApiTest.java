@@ -26,8 +26,8 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.restapi.service.TokenPinValidator;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
@@ -42,14 +42,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Transactional
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class InitializationApiTest extends AbstractApiRestTemplateTestContext {
+class InitializationApiTest extends AbstractApiRestTemplateTestContext {
 
     private final ObjectMapper testObjectMapper = new ObjectMapper();
     @Autowired
@@ -58,13 +58,13 @@ public class InitializationApiTest extends AbstractApiRestTemplateTestContext {
     @Autowired
     private TokenPinValidator tokenPinValidator;
 
-    @After
+    @AfterEach
     public void cleanUp() {
         tokenPinValidator.setTokenPinEnforced(false);
     }
 
     @Test
-    public void initializationInvalidParamsRespondsCorrectly() {
+    void initializationInvalidParamsRespondsCorrectly() {
         // All privileges role api Key added to all TestRestTemplate requests
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
         InitialServerConf invalidConf = new InitialServerConf()
@@ -83,7 +83,7 @@ public class InitializationApiTest extends AbstractApiRestTemplateTestContext {
     }
 
     @Test
-    public void initializationMissingParamsRespondsCorrectly() {
+    void initializationMissingParamsRespondsCorrectly() {
         // All privileges role api Key added to all TestRestTemplate requests
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
         InitialServerConf invalidConf = new InitialServerConf()
@@ -102,7 +102,7 @@ public class InitializationApiTest extends AbstractApiRestTemplateTestContext {
     }
 
     @Test
-    public void initializationWithWeakPin() {
+    void initializationWithWeakPin() {
         // All privileges role api Key added to all TestRestTemplate requests
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
 
@@ -120,7 +120,7 @@ public class InitializationApiTest extends AbstractApiRestTemplateTestContext {
         assertNotNull(response.getBody());
         ErrorInfo errorInfo = testObjectMapper.convertValue(response.getBody(), ErrorInfo.class);
         assertEquals("weak_pin", errorInfo.getError().getCode());
-        assertNull("No validation errors from weak pin", errorInfo.getError().getValidationErrors());
+        assertNull(errorInfo.getError().getValidationErrors(), "No validation errors from weak pin");
         List<String> metadata = errorInfo.getError().getMetadata();
         assertEquals(4, errorInfo.getError().getMetadata().size());
         List<String> expectedMetadata = Arrays.asList("pin_min_length", "10", "pin_min_char_classes_count", "3");
@@ -128,7 +128,7 @@ public class InitializationApiTest extends AbstractApiRestTemplateTestContext {
     }
 
     @Test
-    public void nonAuthorizedInitializationShoudFail() {
+    void nonAuthorizedInitializationShoudFail() {
         InitialServerConf validConf = new InitialServerConf()
                 .centralServerAddress("valid.domain.org")
                 .instanceIdentifier("VALIDINSTANCE")
@@ -144,7 +144,7 @@ public class InitializationApiTest extends AbstractApiRestTemplateTestContext {
     }
 
     @Test
-    public void correctInitializationOK() {
+    void correctInitializationOK() {
         InitialServerConf validConf = new InitialServerConf()
                 .centralServerAddress("valid.domain.org")
                 .instanceIdentifier("VALIDINSTANCE")

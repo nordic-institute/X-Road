@@ -29,7 +29,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequest;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestOrigin;
@@ -47,10 +47,10 @@ import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ManagementRequestsApiControllerTest extends AbstractApiControllerTestContext {
+class ManagementRequestsApiControllerTest extends AbstractApiControllerTestContext {
     @Autowired
     private ManagementRequestsApiController controller;
 
@@ -72,7 +72,7 @@ public class ManagementRequestsApiControllerTest extends AbstractApiControllerTe
             "VIEW_MANAGEMENT_REQUEST_DETAILS",
             "ADD_AUTH_CERT_REGISTRATION_REQUEST",
             "REVOKE_AUTH_CERT_REGISTRATION_REQUEST"})
-    public void testAddRequest() throws Exception {
+    void testAddRequest() throws Exception {
         //setup test data
         setup();
 
@@ -108,7 +108,7 @@ public class ManagementRequestsApiControllerTest extends AbstractApiControllerTe
             "VIEW_MANAGEMENT_REQUEST_DETAILS",
             "ADD_CLIENT_REGISTRATION_REQUEST",
             "REVOKE_CLIENT_REGISTRATION_REQUEST"})
-    public void testAddClientRegRequest() throws Exception {
+    void testAddClientRegRequest() throws Exception {
         //setup test data
         setup();
 

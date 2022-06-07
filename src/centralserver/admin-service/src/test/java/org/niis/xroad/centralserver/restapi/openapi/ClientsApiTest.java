@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.Client;
 import org.niis.xroad.centralserver.openapi.model.PagedClients;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepositoryTest;

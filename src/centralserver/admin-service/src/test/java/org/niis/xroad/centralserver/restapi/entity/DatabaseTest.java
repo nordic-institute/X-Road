@@ -29,25 +29,23 @@ package org.niis.xroad.centralserver.restapi.entity;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(SpringRunner.class)
+
 @DataJpaTest
 @Slf4j
-public class DatabaseTest {
+class DatabaseTest {
     @Autowired
     private TestEntityManager entityManager;
 
     @Test
-    public void testPersistence() {
+    void testPersistence() {
         var memberClass = entityManager.persist(new MemberClass("CLASS", "Description for CLASS"));
         var memberId = entityManager.persist(ClientId.create("TEST", "CLASS", "CODE"));
         var subsystemId = entityManager.persist(ClientId.create("TEST", "CLASS", "CODE", "SUBSYSTEM"));

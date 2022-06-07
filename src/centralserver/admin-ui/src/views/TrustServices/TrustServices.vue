@@ -53,11 +53,14 @@
       :loader-height="2"
       hide-default-footer
     >
-      <template #[`item.server`]="{ item }">
-        <div class="server-code">
-          <xrd-icon-base class="mr-4"><XrdIconCertificate /></xrd-icon-base>
-          {{ item.server }}
-        </div>
+      <template #[`item.ca_certificate.subject_common_name`]="{ item }">
+        <div class="xrd-clickable">{{ item.ca_certificate.subject_common_name }}</div>
+      </template>
+      <template #[`item.ca_certificate.not_before`]="{ item }">
+        <div>{{ item.ca_certificate.not_before | formatDateTime }}</div>
+      </template>
+      <template #[`item.ca_certificate.not_after`]="{ item }">
+        <div>{{ item.ca_certificate.not_after | formatDateTime }}</div>
       </template>
 
       <template #footer>
@@ -112,6 +115,9 @@
  */
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
+import { mapStores } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
+import { useCertificationServiceStore } from '@/store/modules/trust-services';
 
 export default Vue.extend({
   data() {
@@ -119,55 +125,38 @@ export default Vue.extend({
       search: '' as string,
       loading: false,
       showOnlyPending: false,
-      certificationServices: [
-        {
-          server: 'X-Road test CA CN',
-          validFrom: '2021-01-15',
-          validTo: '2024-03-13',
-        },
-        {
-          server: 'X-Road test CA CN 2',
-          validFrom: '2021-03-10',
-          validTo: '2025-03-12',
-        },
-      ],
-      timestampingServices: [
-        {
-          server: 'X-Road test CA CN',
-          validFrom: '2021-01-15',
-          validTo: '2024-03-13',
-        },
-        {
-          server: 'X-Road test CA CN 2',
-          validFrom: '2021-03-10',
-          validTo: '2025-03-12',
-        },
-      ],
     };
   },
   computed: {
+    ...mapStores(useCertificationServiceStore, notificationsStore),
+    certificationServices() {
+      return this.certificationServiceStore.certificationSevices;
+    },
     headers(): DataTableHeader[] {
       return [
         {
           text: this.$t('trustServices.approvedCertificationService') as string,
           align: 'start',
-          value: 'server',
+          value: 'ca_certificate.subject_common_name',
           class: 'xrd-table-header ts-table-header-server-code',
         },
         {
           text: this.$t('trustServices.validFrom') as string,
           align: 'start',
-          value: 'validFrom',
+          value: 'ca_certificate.not_before',
           class: 'xrd-table-header ts-table-header-valid-from',
         },
         {
           text: this.$t('trustServices.validTo') as string,
           align: 'start',
-          value: 'validTo',
+          value: 'ca_certificate.not_after',
           class: 'xrd-table-header ts-table-header-valid-to',
         },
       ];
     },
+  },
+  created() {
+    this.certificationServiceStore.fetchAll();
   },
 });
 </script>

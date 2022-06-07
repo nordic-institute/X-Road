@@ -28,8 +28,8 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.CentralServerAddress;
 import org.niis.xroad.centralserver.openapi.model.SystemStatus;
 import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
@@ -55,15 +55,15 @@ import static org.mockito.Mockito.when;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.INSTANCE_IDENTIFIER;
 
-public class SystemApiControllerTest extends AbstractApiControllerTestContext {
+class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
     SystemApiController systemApiController;
 
     private TokenInfo testSWToken;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         testSWToken = new TokenTestUtils.TokenInfoBuilder()
                 .id(SSL_TOKEN_ID)
                 .build();
@@ -71,7 +71,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = { "VIEW_VERSION" })
-    public void testGetVersionEndpoint() {
+    void testGetVersionEndpoint() {
         ResponseEntity<Version> response = systemApiController.getSystemVersion();
         assertNotNull(response, "System Version response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
@@ -81,7 +81,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = { "VIEW_VERSION" })
-    public void testGetSystemStatusEndpoint() {
+    void testGetSystemStatusEndpoint() {
         ResponseEntity<SystemStatus> response = systemApiController.getSystemStatus();
         assertNotNull(response, "System status response must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "System status response status code must be 200 ");
@@ -100,7 +100,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = { "EDIT_SECURITY_SERVER_ADDRESS" })
-    public void testUpdateCentralServerAddress() throws Exception {
+    void testUpdateCentralServerAddress() throws Exception {
         when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(
                 testSWToken); // for the getInitializationStatus
         when(systemParameterService.getParameterValue(
@@ -126,7 +126,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = { "EDIT_SECURITY_SERVER_ADDRESS" })
-    public void testUpdateCentralServerAddressInvalidParam() {
+    void testUpdateCentralServerAddressInvalidParam() {
         CentralServerAddress centralServerAddress = new CentralServerAddress()
                 .centralServerAddress("invalid...address.c");
 
