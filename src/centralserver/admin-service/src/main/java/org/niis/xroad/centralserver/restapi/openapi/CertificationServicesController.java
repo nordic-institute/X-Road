@@ -26,6 +26,7 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.CertificationServicesApi;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthority;
@@ -52,39 +53,39 @@ public class CertificationServicesController implements CertificationServicesApi
     public ResponseEntity<ApprovedCertificationService> addCertificationService(
             MultipartFile certificate, String certificateProfileInfo,
             Boolean tlsAuth) {
-        return null;
+        throw new NotImplementedException("addCertificationService not implemented yet");
     }
 
     @Override
     public ResponseEntity<CertificateAuthority> addCertificationServiceIntermediateCa(
             String id, MultipartFile certificate) {
-        return null;
+        throw new NotImplementedException("addCertificationServiceIntermediateCa not implemented yet");
     }
 
     @Override
     public ResponseEntity<OcspResponder> addCertificationServiceOcspResponder(
             String id, String url, MultipartFile certificate) {
-        return null;
+        throw new NotImplementedException("addCertificationServiceOcspResponder not implemented yet");
     }
 
     @Override
     public ResponseEntity<Void> deleteCertificationService(String id) {
-        return null;
+        throw new NotImplementedException("deleteCertificationService not implemented yet");
     }
 
     @Override
     public ResponseEntity<ApprovedCertificationService> getCertificationService(String id) {
-        return null;
+        throw new NotImplementedException("getCertificationService not implemented yet");
     }
 
     @Override
     public ResponseEntity<Set<CertificateAuthority>> getCertificationServiceIntermediateCas(String id) {
-        return null;
+        throw new NotImplementedException("getCertificationServiceIntermediateCas not implemented yet");
     }
 
     @Override
     public ResponseEntity<Set<OcspResponder>> getCertificationServiceOcspResponders(String id) {
-        return null;
+        throw new NotImplementedException("getCertificationServiceOcspResponders not implemented yet");
     }
 
     @Override
@@ -96,6 +97,6 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     public ResponseEntity<ApprovedCertificationService> updateCertificationService(
             String id, CertificationServiceSettings certificationServiceSettings) {
-        return null;
+        throw new NotImplementedException("updateCertificationService not implemented yet");
     }
 }

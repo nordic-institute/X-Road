@@ -48,7 +48,9 @@ public class CertificationServicesService {
 
     public Set<ApprovedCertificationService> getCertificationServices() {
         List<ApprovedCa> approvedCas = approvedCaRepository.findAll();
-        return approvedCas.stream().map(certificationServiceConverter::convert).collect(Collectors.toSet());
+        return approvedCas.stream()
+                .map(certificationServiceConverter::convert)
+                .collect(Collectors.toSet());
     }
 
 }
