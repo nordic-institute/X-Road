@@ -42,19 +42,19 @@ import javax.validation.ConstraintViolationException;
 import java.util.List;
 
 import static java.util.Locale.ROOT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.util.AssertionErrors.assertTrue;
 
-public class SecurityServerControllerTest extends AbstractApiControllerTestContext {
+class SecurityServerControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
     private SecurityServersApiController securityServersApiController;
 
     @Test
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
-    public void testOKSortParameterReturn200OK() {
+    void testOKSortParameterReturn200OK() {
         final PagingSortingParameters sortingParameters =
                 new PagingSortingParameters().sort("xroad_id.server_code").desc(true);
         ResponseEntity<PagedSecurityServers> response =
@@ -73,8 +73,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
-    public void givenAscendingByOwnerCodeGetRightSorted() {
-
+    void givenAscendingByOwnerCodeGetRightSorted() {
         final PagingSortingParameters sortingByOwnerCode =
                 new PagingSortingParameters().sort("xroad_id.member_code").desc(false);
         ResponseEntity<PagedSecurityServers> response2 =
@@ -95,8 +94,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
-    public void givenDescendingByOwnerNameGetRightSorted() {
-
+    void givenDescendingByOwnerNameGetRightSorted() {
         final PagingSortingParameters sortingByOwnerName =
                 new PagingSortingParameters().sort("owner_name").desc(true);
         ResponseEntity<PagedSecurityServers> response2 =
@@ -115,8 +113,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
-    public void givenDescendingByOwnerClassGetRightSorted() {
-
+    void givenDescendingByOwnerClassGetRightSorted() {
         final PagingSortingParameters sortingByOwnerClass =
                 new PagingSortingParameters().sort("xroad_id.member_class").desc(true);
         ResponseEntity<PagedSecurityServers> response2 =
@@ -137,8 +134,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
-    public void testInvalidSortParameterThrowsConstraintViolation() throws ConstraintViolationException {
-
+    void testInvalidSortParameterThrowsConstraintViolation() throws ConstraintViolationException {
         PagingSortingParameters sortingParameters = new PagingSortingParameters().sort("Really invalid&&%&¤&#&&");
 
         assertThrows(ConstraintViolationException.class,
@@ -148,8 +144,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
-    public void testUnknownSortingFieldParameterThrowsConstraintViolation() throws BadRequestException {
-
+    void testUnknownSortingFieldParameterThrowsConstraintViolation() throws BadRequestException {
         PagingSortingParameters sortingParameters = new PagingSortingParameters().sort("unknown_field");
 
         assertThrows(BadRequestException.class,
@@ -159,8 +154,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"UNKNOWN_AUTHORITY"})
-    public void testUnknownAuthorityThrowsAccessDeniedExceptio() throws AccessDeniedException {
-
+    void testUnknownAuthorityThrowsAccessDeniedExceptio() throws AccessDeniedException {
         PagingSortingParameters sortingParameters = new PagingSortingParameters();
 
         assertThrows(AccessDeniedException.class,

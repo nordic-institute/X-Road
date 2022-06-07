@@ -30,7 +30,6 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
@@ -53,11 +52,12 @@ import javax.transaction.Transactional;
 
 import java.security.cert.CertificateEncodingException;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @Transactional
-public class ManagementRequestServiceTest {
+class ManagementRequestServiceTest {
 
     @Autowired
     private ManagementRequestService service;
@@ -80,7 +80,7 @@ public class ManagementRequestServiceTest {
     }
 
     @Test
-    public void testAddRequest() {
+    void testAddRequest() {
         var id = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER");
         addServer(id);
 
@@ -91,11 +91,11 @@ public class ManagementRequestServiceTest {
                 ManagementRequestStatus.APPROVED,
                 id,
                 page);
-        Assert.assertEquals(1, pagedResponse.getTotalElements());
+        assertEquals(1, pagedResponse.getTotalElements());
     }
 
     @Test
-    public void testAddRequestAutoApprove() throws CertificateEncodingException {
+    void testAddRequestAutoApprove() throws CertificateEncodingException {
         var certificate = TestCertUtil.getProducer().certChain[0];
         var id = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER");
 
@@ -113,11 +113,11 @@ public class ManagementRequestServiceTest {
                 "server.example.org");
 
         var response = service.add(dto);
-        Assert.assertEquals(ManagementRequestStatus.APPROVED, response.getStatus());
+        assertEquals(ManagementRequestStatus.APPROVED, response.getStatus());
     }
 
     @Test
-    public void testAddClientRegRequest() {
+    void testAddClientRegRequest() {
         var serverId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER");
         addServer(serverId);
 
@@ -133,11 +133,11 @@ public class ManagementRequestServiceTest {
                 ClientId.create("TEST", "CLASS", "MEMBER", "SUB"));
 
         var response = service.add(dto);
-        Assert.assertEquals(ManagementRequestStatus.APPROVED, response.getStatus());
+        assertEquals(ManagementRequestStatus.APPROVED, response.getStatus());
     }
 
     @Test
-    public void testAddClientRegRequestShouldFailIfServerDoesNotExist() {
+    void testAddClientRegRequestShouldFailIfServerDoesNotExist() {
         var serverId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER_NOT_EXISTS");
         var dto = new ClientRegistrationRequestDto(
                 Origin.CENTER,
@@ -148,7 +148,7 @@ public class ManagementRequestServiceTest {
     }
 
     @Test
-    public void testShouldFailIfSameOrigin() throws CertificateEncodingException {
+    void testShouldFailIfSameOrigin() throws CertificateEncodingException {
         final var certificate = TestCertUtil.getProducer().certChain[0];
         var id = SecurityServerId.create("TEST", "CLASS", "MEMBER", "CODE");
         var dto = new AuthenticationCertificateRegistrationRequestDto(
@@ -168,7 +168,7 @@ public class ManagementRequestServiceTest {
     }
 
     @Test
-    public void testShouldFailIfConflictingRequests() throws CertificateEncodingException {
+    void testShouldFailIfConflictingRequests() throws CertificateEncodingException {
         final var certificate = TestCertUtil.getProducer().certChain[0];
         var id = SecurityServerId.create("TEST", "CLASS", "MEMBER1", "CODE");
         var dto = new AuthenticationCertificateRegistrationRequestDto(
@@ -205,6 +205,6 @@ public class ManagementRequestServiceTest {
                 "server.example.org"));
 
         var approved = service.approve(response.getId());
-        Assert.assertEquals(ManagementRequestStatus.APPROVED, approved.getStatus());
+        assertEquals(ManagementRequestStatus.APPROVED, approved.getStatus());
     }
 }

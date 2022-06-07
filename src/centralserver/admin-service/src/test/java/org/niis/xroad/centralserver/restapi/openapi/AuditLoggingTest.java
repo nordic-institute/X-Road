@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -42,8 +41,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Map;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -91,7 +90,7 @@ public class AuditLoggingTest extends AbstractApiRestTemplateTestContext {
                 dataCaptor.capture(),
                 authCaptor.capture(),
                 urlCaptor.capture());
-        Assert.assertEquals(RestApiAuditEvent.INIT_CENTRAL_SERVER, eventCaptor.getValue());
+        assertEquals(RestApiAuditEvent.INIT_CENTRAL_SERVER, eventCaptor.getValue());
         assertEquals("api-key-1", userNameCaptor.getValue());
         Map<String, Object> data = dataCaptor.getValue();
         assertEquals(3, data.size());
@@ -101,7 +100,7 @@ public class AuditLoggingTest extends AbstractApiRestTemplateTestContext {
         assertEquals("node_0", data.get("haNode"));
         assertEquals("valid.audit.domain.org", data.get("centralServerAddress"));
         assertEquals("ApiKey", authCaptor.getValue());
-        Assert.assertEquals("/api/v1/initialization", urlCaptor.getValue());
+        assertEquals("/api/v1/initialization", urlCaptor.getValue());
         verifyNoMoreInteractions(auditEventLoggingFacade);
     }
 
@@ -133,7 +132,7 @@ public class AuditLoggingTest extends AbstractApiRestTemplateTestContext {
                 authCaptor.capture(),
                 urlCaptor.capture()
         );
-        Assert.assertEquals(RestApiAuditEvent.INIT_CENTRAL_SERVER, eventCaptor.getValue());
+        assertEquals(RestApiAuditEvent.INIT_CENTRAL_SERVER, eventCaptor.getValue());
         assertEquals("api-key-1", userNameCaptor.getValue());
         assertTrue(reasonCaptor.getValue().startsWith(
                 "Validation failed for"));

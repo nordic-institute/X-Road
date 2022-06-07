@@ -29,7 +29,6 @@ package org.niis.xroad.centralserver.restapi.repository;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -37,16 +36,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-@RunWith(SpringRunner.class)
+
 @SpringBootTest
 @AutoConfigureTestDatabase
 @Transactional
@@ -60,7 +58,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
     private FlattenedSecurityServerClientRepository repository;
 
     @Test
-    public void findUsingSpecialCharacters() {
+    void findUsingSpecialCharacters() {
         // free text search using % and _ which have special handling in LIKE queries
         // Member6\a
         // Member7_a
@@ -88,7 +86,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void multifieldTextSearch() {
+    void multifieldTextSearch() {
         // member name, member_class, member_code, subsystem_code
 
         // member name
@@ -149,7 +147,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void findClientsByInstance() {
+    void findClientsByInstance() {
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.instance("teS"));
         assertEquals(CLIENTS_TOTAL_COUNT - 1, clients.size());
@@ -160,7 +158,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void findClientsByMemberClass() {
+    void findClientsByMemberClass() {
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.memberClass("CLASSfoo"));
         assertEquals(1, clients.size());
@@ -176,7 +174,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void findClientsByMemberCode() {
+    void findClientsByMemberCode() {
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.memberCode("m1"));
         assertEquals(4, clients.size());
@@ -192,14 +190,14 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void findClientsBySubsystemCode() {
+    void findClientsBySubsystemCode() {
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.subsystemCode("ss"));
         assertEquals(1, clients.size());
     }
 
     @Test
-    public void pagedSortedFindClientsBySecurityServerId() {
+    void pagedSortedFindClientsBySecurityServerId() {
         PageRequest page = PageRequest.of(0, 2, Sort.by("id").descending());
         var clientsPage = repository.findAll(
                 FlattenedSecurityServerClientRepository.securityServerId(1000001),
@@ -222,7 +220,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void paging() {
+    void paging() {
         PageRequest page = PageRequest.of(0, 4);
         var memberPage = repository.findAll(
                 FlattenedSecurityServerClientRepository.member(),
@@ -248,7 +246,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void sorting() {
+    void sorting() {
         PageRequest page = PageRequest.of(0, 5, Sort.by("id"));
         var memberPage = repository.findAll(
                 FlattenedSecurityServerClientRepository.member(),
@@ -262,7 +260,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void findClientsBySecurityServerId() {
+    void findClientsBySecurityServerId() {
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.securityServerId(1000001));
         assertEquals(3, clients.size());
@@ -278,7 +276,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void findClientsBySecurityServerIdAndFreetext() {
+    void findClientsBySecurityServerIdAndFreetext() {
         var clients = repository.findAll(
                 (root, query, builder) -> builder.and(
                     FlattenedSecurityServerClientRepository.clientOfSecurityServerPredicate(root, builder, 1000001),
@@ -307,7 +305,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
 
     @SuppressWarnings("checkstyle:MethodLength") // I think it makes sense to test all of these in same test
     @Test
-    public void findClientsByMultiParameterSearch() {
+    void findClientsByMultiParameterSearch() {
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multiParameterSearch(
                         new FlattenedSecurityServerClientRepository.SearchParameters()
@@ -510,7 +508,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void caseInsensitiveSort() {
+    void caseInsensitiveSort() {
         var order = Sort.Order.by("memberName").ignoreCase();
         var clients = repository.findAll(Sort.by(order));
         int index = 0;
@@ -527,7 +525,7 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void findClientsByMemberName() {
+    void findClientsByMemberName() {
         String memberName = "memBer1";
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.memberName(memberName));
@@ -536,13 +534,13 @@ public class FlattenedSecurityServerClientRepositoryTest {
     }
 
     @Test
-    public void findAll() {
+    void findAll() {
         var clients = repository.findAll();
         assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
     }
 
     @Test
-    public void findByType() {
+    void findByType() {
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.member());
         assertEquals(MEMBERS_TOTAL_COUNT, clients.size());

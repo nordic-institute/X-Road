@@ -25,8 +25,8 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.centralserver.restapi.service.SystemParameterService;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
@@ -57,12 +57,12 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
      * by directly calling it is not actually considered a real request. Some tests will need a 'real' request
      * (e.g. request scoped beans will not work without an existing request)
      */
-    @Before
+    @BeforeEach
     public void mockServlet() {
         TestUtils.mockServletRequestAttributes();
     }
 
-    @After
+    @AfterEach
     public void cleanUpServlet() {
         RequestContextHolder.resetRequestAttributes();
         validateMockitoUsage();

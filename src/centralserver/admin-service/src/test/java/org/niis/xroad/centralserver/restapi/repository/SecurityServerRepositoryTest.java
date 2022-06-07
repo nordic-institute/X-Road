@@ -27,29 +27,26 @@
 package org.niis.xroad.centralserver.restapi.repository;
 
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @AutoConfigureTestDatabase
 @Transactional
-public class SecurityServerRepositoryTest {
+class SecurityServerRepositoryTest {
 
     @Autowired
     private SecurityServerRepository repository;
 
     @Test
-    public void testFindAll() {
+    void testFindAll() {
         var servers = repository.findAll(
                 SecurityServerRepository.multifieldSearch("ADMINSS"));
         assertEquals(1, servers.size());
@@ -64,7 +61,7 @@ public class SecurityServerRepositoryTest {
     }
 
     @Test
-    public void testFindMultifield() {
+    void testFindMultifield() {
         // find targets fields:
         // SecurityServer_.serverCode,
         // owner.get(XRoadMember_.name)),
@@ -94,7 +91,7 @@ public class SecurityServerRepositoryTest {
 
 
     @Test
-    public void testFindAllNonExisting() {
+    void testFindAllNonExisting() {
         var servers =
                 repository.findAll(SecurityServerRepository.multifieldSearch("NOTexisting"), Pageable.unpaged());
         assertEquals(1, servers.getTotalPages());
