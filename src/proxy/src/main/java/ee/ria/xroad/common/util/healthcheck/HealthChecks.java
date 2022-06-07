@@ -29,6 +29,7 @@ import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.proxy.addon.module.HardwareSecurityModuleUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 
 import com.google.common.base.Supplier;
@@ -127,6 +128,22 @@ public final class HealthChecks {
             } catch (Exception e) {
                 log.error("Exception when verifying global conf validity", e);
                 return failure("Global configuration is expired");
+            }
+        };
+    }
+
+    /**
+     * A {@link HealthCheckProvider} that check if Hardware Security Modules are operational
+     * @return the result of HSM check
+     */
+    public static HealthCheckProvider checkHSMOperationStatus() {
+        return () -> {
+            try {
+                HardwareSecurityModuleUtils.verifyAllHSMOperational();
+                return OK;
+            } catch (Exception e) {
+                log.error("Exception when verifying HSM status", e);
+                return failure("At least one HSM are non operational");
             }
         };
     }

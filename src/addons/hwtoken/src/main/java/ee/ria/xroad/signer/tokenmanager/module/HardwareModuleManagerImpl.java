@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfoResponse;
+
 import akka.actor.Props;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,7 +36,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
 
+    private static final String HSM_OPERATIONAL_INFO = "HsmOperationalInfo";
     private static final String DISPATCHER = "module-worker-dispatcher";
+
+    @Override
+    public void onMessage(Object message) throws Exception {
+        if (HSM_OPERATIONAL_INFO.equals(message)) {
+            handleGetHSMOperationalInfo();
+        }
+        super.onMessage(message);
+    }
+
 
     @Override
     protected void initializeModule(ModuleType module) {
@@ -54,5 +66,14 @@ public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
                 log.error("Error initializing hardware module '" + hardwareModule.getType() + "'", e);
             }
         }
+    }
+
+    private void handleGetHSMOperationalInfo() {
+        boolean hsmOperationalStatus = ModuleConf.getModules().stream()
+                .noneMatch(moduleType -> moduleType instanceof HardwareModuleType
+                        && !isModuleInitialized(moduleType));
+
+        GetHSMOperationalInfoResponse hsmOperationalInfo = new GetHSMOperationalInfoResponse(hsmOperationalStatus);
+        getSender().tell(hsmOperationalInfo, getSelf());
     }
 }
