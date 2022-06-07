@@ -399,11 +399,17 @@
   "trustServices": {
     "addCertificationService": "Add certification service",
     "addTimestampingService": "Add timestamping service",
+    "addCASettingsCheckbox": "This CA can only be used for TLS authentication (mark if true)",
     "approvedCertificationService": "Approved Certification service",
+    "caSettings": "CA Settings",
     "certificationServices": "Certification Services",
+    "certImportedSuccessfully": "Certificate imported successfully",
+    "cartProfileInput": "Certificate profile info",
+    "certProfileInputExplanation": "Fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "timestampingServices": "Timestamping Services",
     "validFrom": "Valid from",
-    "validTo": "Valid to"
+    "validTo": "Valid to",
+    "uploadCertificate": "Upload the certificate file from your computer"
   },
   "validationError": {
     "AssertFalse": "value should be 'false'",

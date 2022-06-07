@@ -51,7 +51,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = CaInfo.TABLE_NAME)
-public class CaInfo {
+public class CaInfo extends AuditableEntity {
     static final String TABLE_NAME = "ca_infos";
 
     private int id;

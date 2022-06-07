@@ -25,6 +25,13 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
+import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
+import org.niis.xroad.centralserver.restapi.converter.ApprovedCertificationServiceConverter;
+import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationServiceDto;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
 import org.niis.xroad.centralserver.restapi.converter.CertificationServiceConverter;
@@ -33,10 +40,11 @@ import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -44,7 +52,20 @@ public class CertificationServicesService {
 
     private final ApprovedCaRepository approvedCaRepository;
 
+    private final ApprovedCertificationServiceConverter approvedCertificationServiceConverter;
+
     private final CertificationServiceConverter certificationServiceConverter;
+
+    public ApprovedCertificationService add(ApprovedCertificationServiceDto approvedCa) {
+        ApprovedCa approvedCaEntity = approvedCertificationServiceConverter.toEntity(approvedCa);
+
+        CertificateProfileInfoValidator.validate(approvedCa.getCertificateProfileInfo());
+        //validate subject length approvedCaEntity.
+
+        log.info("Saving PKI: '#{approvedCa}'");
+        ApprovedCa persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
+        return approvedCertificationServiceConverter.toDomain(persistedApprovedCa);
+    }
 
     public Set<ApprovedCertificationService> getCertificationServices() {
         List<ApprovedCa> approvedCas = approvedCaRepository.findAll();

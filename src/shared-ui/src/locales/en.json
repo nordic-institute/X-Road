@@ -10,6 +10,7 @@
   "action": {
     "cancel": "Cancel",
     "add": "Add",
-    "yes": "Yes"
+    "yes": "Yes",
+    "upload": "Upload"
   }
 }
