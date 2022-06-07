@@ -34,6 +34,7 @@ import org.niis.xroad.centralserver.openapi.model.OcspResponder;
 import org.niis.xroad.centralserver.restapi.service.CertificationServicesService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
@@ -87,6 +88,7 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_APPROVED_CAS')")
     public ResponseEntity<Set<ApprovedCertificationService>> getCertificationServices() {
         return ResponseEntity.ok(certificationServicesService.getCertificationServices());
     }
