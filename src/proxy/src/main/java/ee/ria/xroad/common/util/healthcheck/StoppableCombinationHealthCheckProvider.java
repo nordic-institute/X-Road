@@ -25,9 +25,12 @@
  */
 package ee.ria.xroad.common.util.healthcheck;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -79,21 +82,25 @@ public class StoppableCombinationHealthCheckProvider implements StoppableHealthC
         final int resultValidFor = 2;
         final int errorValidFor = 30;
 
-        return Arrays.asList(
-                checkHSMOperationStatus()
-                        .map(withTimeout(timeout, TimeUnit.SECONDS, "Hardware Security Modules status"))
-                        .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)),
-                checkGlobalConfStatus()
-                        .map(withTimeout(timeout, TimeUnit.SECONDS, "Global conf validity"))
-                        .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)),
-                checkAuthKeyOcspStatus()
-                        .map(withTimeout(timeout, TimeUnit.SECONDS, "Authentication key OCSP status"))
-                        .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)),
-                checkServerConfDatabaseStatus()
-                        .map(withTimeout(timeout, TimeUnit.SECONDS, "Server conf database status"))
-                        .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS))
+        List<HealthCheckProvider> providers = new ArrayList<>();
 
-        );
+        if (SystemProperties.isHSMHealthCheckEnabled()) {
+            providers.add(checkHSMOperationStatus()
+                    .map(withTimeout(timeout, TimeUnit.SECONDS, "Hardware Security Modules status"))
+                    .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
+        }
+
+        providers.add(checkGlobalConfStatus()
+                .map(withTimeout(timeout, TimeUnit.SECONDS, "Global conf validity"))
+                .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
+        providers.add(checkAuthKeyOcspStatus()
+                .map(withTimeout(timeout, TimeUnit.SECONDS, "Authentication key OCSP status"))
+                .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
+        providers.add(checkServerConfDatabaseStatus()
+                .map(withTimeout(timeout, TimeUnit.SECONDS, "Server conf database status"))
+                .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
+
+        return Collections.unmodifiableList(providers);
     }
 
     private Function<HealthCheckProvider, HealthCheckProvider> withTimeout(
