@@ -81,8 +81,6 @@ task testsJar(type: Jar, dependsOn: testClasses) {
 jar.enabled = false
 assemble.dependsOn shadowJar
 assemble.dependsOn testsJar
-buildall.dependsOn shadowJar
-buildall.dependsOn testsJar
 
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
