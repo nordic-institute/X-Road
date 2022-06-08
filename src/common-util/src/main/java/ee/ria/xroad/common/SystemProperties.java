@@ -284,6 +284,7 @@ public final class SystemProperties {
 
     private static final String HSM_HEALTH_CHECK_ENABLED = PREFIX + "proxy.hsm-health-check-enabled";
 
+    private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = "false";
     private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = "false";
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
 
@@ -1623,10 +1624,10 @@ public final class SystemProperties {
     }
 
     /**
-     * @return whether Hardware Security Modules healtcheck is enabled
-     * 'false by default..
+     * @return Whether Hardware Security Modules Healthcheck is enabled
+     * 'false' by default
      */
     public static boolean isHSMHealthCheckEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(HSM_HEALTH_CHECK_ENABLED, "false"));
+        return Boolean.parseBoolean(System.getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
     }
 }
