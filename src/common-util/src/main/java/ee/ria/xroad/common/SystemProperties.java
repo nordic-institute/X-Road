@@ -282,6 +282,8 @@ public final class SystemProperties {
 
     private static final String PROXY_BACKUP_ENCRYPTION_KEY_IDS = PREFIX + "proxy.backup-encryption-keyids";
 
+    private static final String HSM_HEALTH_CHECK_ENABLED = PREFIX + "proxy.hsm-health-check-enabled";
+
     private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = "false";
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
 
@@ -1618,5 +1620,13 @@ public final class SystemProperties {
      */
     public static String getBackupEncryptionKeyIds() {
         return System.getProperty(PROXY_BACKUP_ENCRYPTION_KEY_IDS, "");
+    }
+
+    /**
+     * @return whether Hardware Security Modules healtcheck is enabled
+     * 'false by default..
+     */
+    public static boolean isHSMHealthCheckEnabled() {
+        return "true".equalsIgnoreCase(System.getProperty(HSM_HEALTH_CHECK_ENABLED, "false"));
     }
 }
