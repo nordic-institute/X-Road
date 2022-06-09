@@ -617,14 +617,9 @@ export default Vue.extend({
     },
 
     messageLogEncryptionTooltipIconType(enabled: boolean): string {
-      switch (enabled) {
-        case true:
-          return 'warning-icon';
-        case false:
-          return 'disabled';
-        default:
-          return 'warning-icon';
-      }
+      return enabled === false
+        ? 'disabled'
+        : 'warning-icon'
     },
   },
 });

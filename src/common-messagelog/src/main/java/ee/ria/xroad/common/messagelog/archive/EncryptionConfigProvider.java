@@ -171,10 +171,9 @@ final class MemberEncryptionConfigProvider implements EncryptionConfigProvider {
     }
 
     private List<EncryptionMember> getEncryptionMembers(List<ClientId> members) {
-        Set<String> memberIds = members.stream()
+        return members.stream()
                 .map(member -> member.getMemberId().toShortString())
-                .collect(Collectors.toSet());
-        return memberIds.stream()
+                .distinct()
                 .map(this::getEncryptionMember)
                 .collect(Collectors.toList());
     }

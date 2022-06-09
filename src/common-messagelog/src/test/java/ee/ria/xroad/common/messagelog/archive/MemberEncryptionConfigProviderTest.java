@@ -76,12 +76,13 @@ public class MemberEncryptionConfigProviderTest {
     public void forDiagnosticsWhenExistsRegisteredMemberAndConfigMappingThenShouldReturnMemberWithMappedKey()
             throws IOException {
         ClientId registeredMember = ClientId.create("INSTANCE", "memberClass", "memberCode");
-
         MemberEncryptionConfigProvider provider = new MemberEncryptionConfigProvider();
-        EncryptionConfig encryptionConfig = provider.forDiagnostics(Collections.singletonList(registeredMember));
-        assertEncryptionConfig(encryptionConfig);
 
+        EncryptionConfig encryptionConfig = provider.forDiagnostics(Collections.singletonList(registeredMember));
+
+        assertEncryptionConfig(encryptionConfig);
         List<EncryptionMember> encryptionMembers = encryptionConfig.getEncryptionMembers();
+        assertEquals(encryptionMembers.size(), 1);
         EncryptionMember encryptionMember = encryptionMembers.get(0);
         assertEquals(encryptionMember.getMemberId(), "INSTANCE/memberClass/memberCode");
         assertEquals(encryptionMember.getKeys(), Collections.singleton("B23B8E993AC4632A896D39A27BE94D3451C16D33"));
@@ -92,12 +93,13 @@ public class MemberEncryptionConfigProviderTest {
     public void forDiagnosticsWhenExistsRegisteredMemberAndNotExistsConfigMappingThenShouldReturnMemberWithDefaultKey()
             throws IOException {
         ClientId registeredMember = ClientId.create("INSTANCE", "memberClass", "memberCode2");
-
         MemberEncryptionConfigProvider provider = new MemberEncryptionConfigProvider();
-        EncryptionConfig encryptionConfig = provider.forDiagnostics(Collections.singletonList(registeredMember));
-        assertEncryptionConfig(encryptionConfig);
 
+        EncryptionConfig encryptionConfig = provider.forDiagnostics(Collections.singletonList(registeredMember));
+
+        assertEncryptionConfig(encryptionConfig);
         List<EncryptionMember> encryptionMembers = encryptionConfig.getEncryptionMembers();
+        assertEquals(encryptionMembers.size(), 1);
         EncryptionMember encryptionMember = encryptionMembers.get(0);
         assertEquals(encryptionMember.getMemberId(), "INSTANCE/memberClass/memberCode2");
         assertEquals(encryptionMember.getKeys(), Collections.singleton("B23B8E993AC4632A896D39A27BE94D3451C16D55"));
@@ -108,9 +110,10 @@ public class MemberEncryptionConfigProviderTest {
     public void forDiagnosticsWhenNotExistsRegisteredMembersThenShouldReturnEmptyEncryptionMembers()
             throws IOException {
         MemberEncryptionConfigProvider provider = new MemberEncryptionConfigProvider();
-        EncryptionConfig encryptionConfig = provider.forDiagnostics(Collections.emptyList());
-        assertEncryptionConfig(encryptionConfig);
 
+        EncryptionConfig encryptionConfig = provider.forDiagnostics(Collections.emptyList());
+
+        assertEncryptionConfig(encryptionConfig);
         assertEquals(encryptionConfig.getEncryptionMembers().size(), 0);
     }
 
@@ -119,12 +122,12 @@ public class MemberEncryptionConfigProviderTest {
             throws IOException {
         ClientId registeredMember = ClientId.create("INSTANCE", "memberClass", "memberCode");
         ClientId registeredSubsystem = ClientId.create("INSTANCE", "memberClass", "memberCode", "subsystemCode");
-
         MemberEncryptionConfigProvider provider = new MemberEncryptionConfigProvider();
+
         EncryptionConfig encryptionConfig =
                 provider.forDiagnostics(Arrays.asList(registeredMember, registeredSubsystem));
-        assertEncryptionConfig(encryptionConfig);
 
+        assertEncryptionConfig(encryptionConfig);
         List<EncryptionMember> encryptionMembers = encryptionConfig.getEncryptionMembers();
         assertEquals(encryptionMembers.size(), 1);
         EncryptionMember encryptionMember = encryptionMembers.get(0);
