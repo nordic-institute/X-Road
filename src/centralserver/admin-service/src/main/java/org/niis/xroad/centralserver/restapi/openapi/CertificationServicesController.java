@@ -32,7 +32,10 @@ import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthority;
 import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettings;
 import org.niis.xroad.centralserver.openapi.model.OcspResponder;
+import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.service.CertificationServicesService;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,16 +47,21 @@ import java.util.Set;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
+@PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class CertificationServicesController implements CertificationServicesApi {
 
     private final CertificationServicesService certificationServicesService;
 
     @Override
-    public ResponseEntity<ApprovedCertificationService> addCertificationService(
-            MultipartFile certificate, String certificateProfileInfo,
-            Boolean tlsAuth) {
-        throw new NotImplementedException("addCertificationService not implemented yet");
+    @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE)
+    @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
+    public ResponseEntity<ApprovedCertificationService> addCertificationService(MultipartFile certificate,
+            String certificateProfileInfo, String tlsAuth) {
+        var isForTlsAuth = Boolean.parseBoolean(tlsAuth);
+        var approvedCaDto = new ApprovedCertificationServiceDto(certificate, certificateProfileInfo, isForTlsAuth);
+        ApprovedCertificationService approvedCa = certificationServicesService.add(approvedCaDto);
+        return ResponseEntity.ok(approvedCa);
     }
 
     @Override

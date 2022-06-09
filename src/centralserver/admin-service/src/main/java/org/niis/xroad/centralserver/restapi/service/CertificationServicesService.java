@@ -30,16 +30,14 @@ import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
-import org.niis.xroad.centralserver.restapi.converter.ApprovedCertificationServiceConverter;
-import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationServiceDto;
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
 import org.niis.xroad.centralserver.restapi.converter.CertificationServiceConverter;
+import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.util.List;
 import java.util.Set;
@@ -50,28 +48,32 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CertificationServicesService {
 
+    private final AuditDataHelper auditDataHelper;
     private final ApprovedCaRepository approvedCaRepository;
-
-    private final ApprovedCertificationServiceConverter approvedCertificationServiceConverter;
 
     private final CertificationServiceConverter certificationServiceConverter;
 
     public ApprovedCertificationService add(ApprovedCertificationServiceDto approvedCa) {
-        ApprovedCa approvedCaEntity = approvedCertificationServiceConverter.toEntity(approvedCa);
+        ApprovedCa approvedCaEntity = certificationServiceConverter.toEntity(approvedCa);
 
         CertificateProfileInfoValidator.validate(approvedCa.getCertificateProfileInfo());
-        //validate subject length approvedCaEntity.
 
-        log.info("Saving PKI: '#{approvedCa}'");
         ApprovedCa persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
-        return approvedCertificationServiceConverter.toDomain(persistedApprovedCa);
+        addAuditData(persistedApprovedCa);
+        return certificationServiceConverter.toDomain(persistedApprovedCa);
     }
 
     public Set<ApprovedCertificationService> getCertificationServices() {
         List<ApprovedCa> approvedCas = approvedCaRepository.findAll();
         return approvedCas.stream()
-                .map(certificationServiceConverter::convert)
+                .map(certificationServiceConverter::toDomain)
                 .collect(Collectors.toSet());
+    }
+
+    private void addAuditData(ApprovedCa approvedCa) {
+        auditDataHelper.putCertificateData(Integer.toString(approvedCa.getId()), approvedCa.getCaInfo().getCert());
+        auditDataHelper.put(RestApiAuditProperty.AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());
+        auditDataHelper.put(RestApiAuditProperty.CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
     }
 
 }

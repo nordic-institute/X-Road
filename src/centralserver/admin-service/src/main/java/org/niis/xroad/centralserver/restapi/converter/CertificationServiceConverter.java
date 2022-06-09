@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,21 +26,64 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
+import ee.ria.xroad.common.util.CertUtils;
+
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
 import org.niis.xroad.centralserver.openapi.model.CertificateDetails;
+import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
+import org.niis.xroad.centralserver.restapi.entity.CaInfo;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
+import java.security.cert.X509Certificate;
+
+import static org.apache.commons.lang3.StringUtils.stripToEmpty;
+
+@Slf4j
 @Component
 public class CertificationServiceConverter {
 
-    public ApprovedCertificationService convert(ApprovedCa approvedCa) {
-        CertificateDetails certificateDetails = new CertificateDetails()
+    @SneakyThrows
+    public ApprovedCa toEntity(ApprovedCertificationServiceDto approvedCa) {
+        var caEntity = new ApprovedCa();
+        caEntity.setCertProfileInfo(approvedCa.getCertificateProfileInfo());
+        caEntity.setAuthenticationOnly(approvedCa.getTlsAuth());
+        X509Certificate[] certificate = CertUtils.readCertificateChain(approvedCa.getCertificate().getBytes());
+        caEntity.setName(CertUtils.getSubjectCommonName(certificate[0]));
+
+        var caInfo = new CaInfo();
+        caInfo.setCert(approvedCa.getCertificate().getBytes());
+        caInfo.setValidFrom(certificate[0].getNotBefore());
+        caInfo.setValidTo(certificate[0].getNotAfter());
+        caEntity.setCaInfo(caInfo);
+        return caEntity;
+    }
+
+    @SneakyThrows
+    public ApprovedCertificationService toDomain(ApprovedCa approvedCa) {
+        var certificateDetails = new CertificateDetails()
                 .subjectCommonName(approvedCa.getName())
+                .issuerCommonName(stripToEmpty(getIssuerCommonName(approvedCa.getCaInfo().getCert())))
                 .notBefore(FormatUtils.fromDateToOffsetDateTime(approvedCa.getCaInfo().getValidFrom()))
                 .notAfter(FormatUtils.fromDateToOffsetDateTime(approvedCa.getCaInfo().getValidTo()));
-        return new ApprovedCertificationService().caCertificate(certificateDetails);
+        return new ApprovedCertificationService()
+                .id(String.valueOf(approvedCa.getId()))
+                .tlsAuth(approvedCa.getAuthenticationOnly())
+                .certificateProfileInfo(approvedCa.getCertProfileInfo())
+                .caCertificate(certificateDetails);
+    }
+
+    private String getIssuerCommonName(byte[] bytes) {
+        try {
+            X509Certificate[] certificate = CertUtils.readCertificateChain(bytes);
+            return CertUtils.getIssuerCommonName(certificate[0]);
+        } catch (Exception e) {
+            log.error("Failed to read the certificate chain.");
+        }
+        return null;
     }
 
 }

@@ -68,7 +68,7 @@ public class GetCertificateProfile {
     public Class<CertificateProfileInfoProvider> klass() throws Exception {
         try {
             Class<?> clazz = Class.forName(className);
-            if (CertificateProfileInfoProvider.class.isAssignableFrom(clazz)) {
+            if (CertificateProfileInfoProvider.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
                 return (Class<CertificateProfileInfoProvider>) clazz;
             } else {
                 throw new CodedException(X_INTERNAL_ERROR,

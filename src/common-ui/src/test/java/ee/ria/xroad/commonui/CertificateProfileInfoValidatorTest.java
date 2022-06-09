@@ -55,6 +55,16 @@ public class CertificateProfileInfoValidatorTest {
     }
 
     /**
+     * Test to ensure validation fails if class does not implement the
+     * CertificateProfileInfo class but is the CertificateProfileInfo class itself.
+     */
+    @Test(expected = RuntimeException.class)
+    public void failWhenClassIsInterface() {
+        CertificateProfileInfoValidator
+                .validate("ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider");
+    }
+
+    /**
      * Test to ensure validation fails if class does not exists.
      * @throws ClassNotFoundException in case validated class not found
      */

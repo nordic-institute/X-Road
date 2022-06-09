@@ -108,61 +108,13 @@
     </v-data-table>
 
     <!-- Dialogs -->
-    <xrd-simple-dialog
+    <AddApprovedCSDialog
       v-if="showAddCSDialog"
-      :dialog="showAddCSDialog"
-      cancel-button-text="action.cancel"
-      save-button-text="action.upload"
-      title="trustServices.addCertificationService"
-      :disable-save="uploadedNewCS === null"
-      @save="onUploadButtonClick"
-      @cancel="clearDialog"
+      :show-dialog="showAddCSDialog"
+      @save="addCertificationService"
+      @cancel="hideAddCSDialog"
     >
-      <template #content>
-        <div class="dlg-input-width">
-          <xrd-file-upload
-            v-if="showAddCSDialog"
-            v-slot="{ upload }"
-            accepts=".crt"
-            @file-changed="onFileUploaded"
-          >
-            <v-text-field
-              v-model="uploadedFileTitle"
-              outlined
-              :label="$t('trustServices.uploadCertificate')"
-              append-icon="icon-Upload"
-              @click="upload"
-            ></v-text-field>
-          </xrd-file-upload>
-        </div>
-      </template>
-    </xrd-simple-dialog>
-
-    <xrd-simple-dialog
-      v-if="showCASettingsDialog"
-      :dialog="showCASettingsDialog"
-      cancel-button-text="action.cancel"
-      save-button-text="action.save"
-      title="trustServices.caSettings"
-      @save="onDialogSave"
-      @cancel="clearDialog"
-    >
-      <template #content>
-        <div class="dlg-input-width">
-          <v-checkbox
-            v-model="newCAProfileForTLSOnly"
-            :label="$t('trustServices.addCASettingsCheckbox')"
-          />
-          <v-text-field
-            v-model="newCAProfile"
-            outlined
-            :label="$t('trustServices.cartProfileInput')"
-            :hint="$t('trustServices.certProfileInputExplanation')"
-            persistent-hint
-          ></v-text-field>
-        </div>
-      </template>
-    </xrd-simple-dialog>
+    </AddApprovedCSDialog>
   </xrd-sub-view-container>
 </template>
 
@@ -171,36 +123,35 @@
  * View for 'trust services' tab
  */
 import Vue from 'vue';
-import * as api from '@/util/api';
+import AddApprovedCSDialog from '@/views/TrustServices/AddApprovedCSDialog.vue';
 import { DataTableHeader } from 'vuetify';
-import { mapStores } from 'pinia';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import { useCertificationServiceStore } from '@/store/modules/trust-services';
-import { mapState } from 'pinia';
-import { mapActions } from 'pinia';
 import { userStore } from '@/store/modules/user';
 import { Permissions } from '@/global';
-import {FileUploadResult} from "@niis/shared-ui";
+import { ApprovedCertificationService, CertificationServiceFileAndSettings } from '@/openapi-types';
 
 export default Vue.extend({
+  components: {
+    AddApprovedCSDialog,
+  },
   data() {
     return {
       search: '' as string,
       loading: false,
-      showOnlyPending: false,
       showAddCSDialog: false,
-      showCASettingsDialog: false,
-      uploadedNewCS: null as File | null,
-      uploadedFileTitle: '',
-      newCAProfile: '',
-      newCAProfileForTLSOnly: false,
       permissions: Permissions,
     };
   },
   computed: {
     ...mapStores(useCertificationServiceStore, notificationsStore),
-    certificationServices() {
-      return this.certificationServiceStore.certificationSevices;
+    ...mapState(userStore, ['hasPermission']),
+    certificationServices(): ApprovedCertificationService[] {
+      return this.certificationServiceStore.certificationServices;
+    },
+    showAddCSButton(): boolean {
+      return this.hasPermission(Permissions.ADD_APPROVED_CA);
     },
     headers(): DataTableHeader[] {
       return [
@@ -224,56 +175,28 @@ export default Vue.extend({
         },
       ];
     },
-    ...mapState(userStore, ['hasPermission']),
-    showAddCSButton(): boolean {
-      return this.hasPermission(Permissions.ADD_APPROVED_CA);
-    },
-  },
-  created() {
-    this.certificationServiceStore.fetchAll();
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    onFileUploaded(result: FileUploadResult): void {
-      this.uploadedNewCS = result.file;
-      this.uploadedFileTitle = result.file.name;
-
-      const formData = new FormData();
-      formData.set('certificate', this.uploadedNewCS, this.uploadedFileTitle);
-    },
-    onUploadButtonClick(): void {
+    hideAddCSDialog(): void {
       this.showAddCSDialog = false;
-      this.showCASettingsDialog = true;
     },
-    onDialogSave(): void {
-      if (this.uploadedNewCS !== null) {
-        const formData = new FormData();
-        formData.append('certificate_profile_info', this.newCAProfile);
-        formData.append('tls_auth', this.newCAProfileForTLSOnly.toString());
-        formData.append('certificate', this.uploadedNewCS, this.uploadedNewCS.name);
-
-        api
-        .post(
-          `/certification-services`, formData, { headers: { 'Content-Type': 'multipart/form-data'} },
-        )
+    addCertificationService(
+      addCertificationService: CertificationServiceFileAndSettings,
+    ): void {
+      this.hideAddCSDialog();
+      this.certificationServiceStore
+        .add(addCertificationService)
         .then(() => {
           this.showSuccess(this.$t('trustServices.certImportedSuccessfully'));
         })
         .catch((error) => {
           this.showError(error);
-        })
-        .finally(() => this.clearDialog());
-      }
+        });
     },
-
-    clearDialog(): void {
-      this.showAddCSDialog = false;
-      this.showCASettingsDialog = false;
-      this.uploadedNewCS = null as File | null;
-      this.newCAProfile = '';
-      this.newCAProfileForTLSOnly = false;
-      this.uploadedFileTitle = '';
-    },
+  },
+  created() {
+    this.certificationServiceStore.fetchAll();
   },
 });
 </script>
