@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,45 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package ee.ria.xroad.proxy.addon.module;
 
-import org.apache.commons.lang3.SystemUtils;
-import org.junit.Assume;
-import org.junit.Test;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfo;
+import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfoResponse;
 
-import static ee.ria.xroad.common.util.PasswordStore.getPassword;
-import static ee.ria.xroad.common.util.PasswordStore.storePassword;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static ee.ria.xroad.common.ErrorCodes.X_HW_MODULE_NON_OPERATIONAL;
 
 /**
- * Tests to verify
+ * Static class for accessing hardware security modules info.
  */
-public class PasswordStoreTest {
+public final class HardwareSecurityModuleUtils {
+
+    private HardwareSecurityModuleUtils() {
+    }
 
     /**
-     * Run tests.
-     * @throws Exception in case of unexpected errors
+     * Verify that all configured HSMs are operational at the moment
      */
-    @Test
-    public void runTest() throws Exception {
-        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
+    public static void verifyAllHSMOperational() throws Exception {
+        if (!isOperational()) {
+            throw new CodedException(X_HW_MODULE_NON_OPERATIONAL,
+                    "At least one HSM are non operational");
+        }
+    }
 
-        getPassword("foo"); // Just check if get on empty DB works.
-
-        storePassword("foo", null);
-        storePassword("bar", null);
-
-        assertNull(getPassword("foo"));
-
-        storePassword("foo", "fooPwd".toCharArray());
-        storePassword("bar", "barPwd".toCharArray());
-
-        assertEquals("fooPwd", new String(getPassword("foo")));
-        assertEquals("barPwd", new String(getPassword("bar")));
-
-        storePassword("foo", null);
-        assertNull(getPassword("foo"));
-        assertEquals("barPwd", new String(getPassword("bar")));
+    private static boolean isOperational() throws Exception {
+        return ((GetHSMOperationalInfoResponse) SignerClient.execute(new GetHSMOperationalInfo())).isOperational();
     }
 }

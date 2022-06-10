@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test RestRequest
@@ -84,6 +85,55 @@ public class RestRequestTest {
                 String.format("/r%d/Instance/Class/Member/SubSystem/ServiceCode", RestMessage.PROTOCOL_VERSION),
                 "foo=bar",
                 Collections.emptyList(),
+                "xid"
+        );
+    }
+
+    @Test
+    public void validRepresentedPartyHeaderWithMember() throws Exception {
+        final RestRequest req = new RestRequest(
+                "GET",
+                String.format("/r%d/Instance/Class/Member/SubSystem/ServiceCode", RestMessage.PROTOCOL_VERSION),
+                "foo=bar",
+                Arrays.asList(
+                        new BasicHeader("X-Road-Client", "Instance/Class/Member/SubSystem"),
+                        new BasicHeader("X-Road-Id", "42"),
+                        new BasicHeader("X-Road-ServerId", "Instance/Class/Member/ServerCode"),
+                        new BasicHeader("X-Road-Represented-Party", "Member")),
+                "xid"
+        );
+        assertEquals(null, req.getRepresentedParty().getPartyClass());
+        assertEquals("Member", req.getRepresentedParty().getPartyCode());
+    }
+
+    @Test
+    public void validRepresentedPartyHeaderWithClassAndMember() throws Exception {
+        final RestRequest req = new RestRequest(
+                "GET",
+                String.format("/r%d/Instance/Class/Member/SubSystem/ServiceCode", RestMessage.PROTOCOL_VERSION),
+                "foo=bar",
+                Arrays.asList(
+                        new BasicHeader("X-Road-Client", "Instance/Class/Member/SubSystem"),
+                        new BasicHeader("X-Road-Id", "42"),
+                        new BasicHeader("X-Road-ServerId", "Instance/Class/Member/ServerCode"),
+                        new BasicHeader("X-Road-Represented-Party", "Class/Member")),
+                "xid"
+        );
+        assertEquals("Class", req.getRepresentedParty().getPartyClass());
+        assertEquals("Member", req.getRepresentedParty().getPartyCode());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidRepresentedPartyHeader() throws Exception {
+        final RestRequest req = new RestRequest(
+                "GET",
+                String.format("/r%d/Instance/Class/Member/SubSystem/ServiceCode", RestMessage.PROTOCOL_VERSION),
+                "foo=bar",
+                Arrays.asList(
+                        new BasicHeader("X-Road-Client", "Instance/Class/Member/SubSystem"),
+                        new BasicHeader("X-Road-Id", "42"),
+                        new BasicHeader("X-Road-ServerId", "Instance/Class/Member/ServerCode"),
+                        new BasicHeader("X-Road-Represented-Party", "Instance/Class/Member")),
                 "xid"
         );
     }

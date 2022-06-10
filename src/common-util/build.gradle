@@ -1,4 +1,6 @@
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
     id 'java-library'
 }
@@ -131,29 +133,31 @@ task xjc() {
     }
 }
 
-task make(type: Exec) {
-    def javaCompiler = javaToolchains.compilerFor(java.toolchain)
-    def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
+if (Os.isName("linux")) {
+    task make(type: Exec) {
+        def javaCompiler = javaToolchains.compilerFor(java.toolchain)
+        def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
 
-    inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c','*.h','Makefile'])
-    inputs.dir file("${javaHome}/include")
-    outputs.dir file('../lib')
+        inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c', '*.h', 'Makefile'])
+        inputs.dir file("${javaHome}/include")
+        outputs.dir file('../lib')
 
-    workingDir '../'
-    commandLine 'make', 'clean', 'all'
-}
+        workingDir '../'
+        commandLine 'make', 'clean', 'all'
+    }
 
-task makeClean(type: Exec) {
-    workingDir '../'
-    commandLine 'make', 'clean'
+    task makeClean(type: Exec) {
+        workingDir '../'
+        commandLine 'make', 'clean'
+    }
+
+    classes.dependsOn make
+    clean.dependsOn makeClean
 }
 
 licenseFormatTest {
     outputs.upToDateWhen { false }
 }
-
-classes.dependsOn make
-clean.dependsOn makeClean
 
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc

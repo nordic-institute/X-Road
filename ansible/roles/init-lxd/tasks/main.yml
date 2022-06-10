@@ -28,10 +28,13 @@
       mode: pull
       server: https://images.linuxcontainers.org
       protocol: simplestreams
-      alias: centos/{{centos_releasever}}/amd64
+      alias: centos/{{centos_releasever}}/{{ arch[ansible_architecture] }}
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     timeout: 600
   tags:
     - centos-container-init
-
+  vars:
+    arch:
+      aarch64: arm64
+      x86_64: amd64

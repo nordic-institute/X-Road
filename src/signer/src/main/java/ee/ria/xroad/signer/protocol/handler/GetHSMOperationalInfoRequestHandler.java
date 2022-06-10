@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,45 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package ee.ria.xroad.signer.protocol.handler;
 
-import org.apache.commons.lang3.SystemUtils;
-import org.junit.Assume;
-import org.junit.Test;
-
-import static ee.ria.xroad.common.util.PasswordStore.getPassword;
-import static ee.ria.xroad.common.util.PasswordStore.storePassword;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.ComponentNames;
+import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfo;
+import ee.ria.xroad.signer.util.SignerUtil;
 
 /**
- * Tests to verify
+ * Handles requests for checking HSMs operational status.
  */
-public class PasswordStoreTest {
+public class GetHSMOperationalInfoRequestHandler extends AbstractRequestHandler<GetHSMOperationalInfo> {
+    @Override
+    protected Object handle(GetHSMOperationalInfo message) throws Exception {
 
-    /**
-     * Run tests.
-     * @throws Exception in case of unexpected errors
-     */
-    @Test
-    public void runTest() throws Exception {
-        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
-
-        getPassword("foo"); // Just check if get on empty DB works.
-
-        storePassword("foo", null);
-        storePassword("bar", null);
-
-        assertNull(getPassword("foo"));
-
-        storePassword("foo", "fooPwd".toCharArray());
-        storePassword("bar", "barPwd".toCharArray());
-
-        assertEquals("fooPwd", new String(getPassword("foo")));
-        assertEquals("barPwd", new String(getPassword("bar")));
-
-        storePassword("foo", null);
-        assertNull(getPassword("foo"));
-        assertEquals("barPwd", new String(getPassword("bar")));
+        return SignerUtil.ask(getContext().actorSelection("/user/" + ComponentNames.MODULE_MANAGER),
+                "HsmOperationalInfo");
     }
 }
