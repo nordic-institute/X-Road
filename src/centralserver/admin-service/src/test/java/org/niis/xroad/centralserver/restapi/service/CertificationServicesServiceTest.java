@@ -74,22 +74,4 @@ class CertificationServicesServiceTest {
         verifyNoMoreInteractions(approvedCaRepository, converter);
     }
 
-//    @Test
-//    void addCertificationService() {
-//        ApprovedCa approvedCaMock = new ApprovedCa();
-//        when(approvedCaRepository.save(approvedCaMock)).thenReturn(List.of(approvedCaMock));
-//        ApprovedCertificationService approvedCertificationServiceMock = new ApprovedCertificationService();
-//        when(converter.toDomain(approvedCaMock)).thenReturn(approvedCertificationServiceMock);
-//
-//        Set<ApprovedCertificationService> approvedCertificationServices = service.getCertificationServices();
-//
-//        assertEquals(1, approvedCertificationServices.size());
-//        assertEquals(approvedCertificationServiceMock, approvedCertificationServices.iterator().next());
-//
-//        InOrder inOrder = inOrder(approvedCaRepository, converter);
-//        inOrder.verify(approvedCaRepository).findAll();
-//        inOrder.verify(converter).toDomain(approvedCaMock);
-//        verifyNoMoreInteractions(approvedCaRepository, converter);
-//    }
-
 }

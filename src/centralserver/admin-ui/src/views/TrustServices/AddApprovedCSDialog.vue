@@ -40,7 +40,7 @@
           <xrd-file-upload
             v-if="showDialog"
             v-slot="{ upload }"
-            accepts=".crt, .pem, .cer"
+            accepts=".der"
             @file-changed="onFileUploaded"
           >
             <v-text-field
