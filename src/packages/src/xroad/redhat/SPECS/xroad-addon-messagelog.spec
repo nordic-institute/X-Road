@@ -90,14 +90,25 @@ if [ "$1" -gt 1 ] ; then
   rpm -q %{name} --queryformat="%%{version}" &> "%{_localstatedir}/lib/rpm-state/%{name}/prev-version"
 fi
 
+%define manage_messagelog_activation()                                               \\\
+    isMessagelogDisabled=\$(                                                         \\\
+        [[ -e /etc/sysconfig/xroad-addon-messagelog ]]                               \\\
+        && grep -qs "ENABLE_MESSAGELOG=false" /etc/sysconfig/xroad-addon-messagelog  \\\
+        && echo 1 || echo 0                                                          \\\
+    );                                                                               \\\
+    if (( \$isMessagelogDisabled )); then                                            \\\
+      rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf;                       \\\
+    else                                                                             \\\
+      /usr/share/xroad/scripts/setup_messagelog_db.sh;                               \\\
+    fi
+
 %post -p /bin/bash
 %systemd_post xroad-addon-messagelog.service
 
-if [ -e /etc/sysconfig/xroad-addon-messagelog ] && grep -qs "ENABLE_MESSAGELOG=false" /etc/sysconfig/xroad-addon-messagelog; then
-  rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
-else
-  /usr/share/xroad/scripts/setup_messagelog_db.sh
-fi
+# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+%if 0%{?el7}
+%manage_messagelog_activation
+%endif
 
 if [ "$1" -gt 1 ]; then
   prev_version=$(cat %{_localstatedir}/lib/rpm-state/%{name}/prev-version)
@@ -120,5 +131,11 @@ if [ "$1" -eq 0 ]; then
 fi
 
 %systemd_postun_with_restart xroad-proxy.service xroad-addon-messagelog.service
+
+%posttrans -p /bin/bash
+# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8}
+%manage_messagelog_activation
+%endif
 
 %changelog
