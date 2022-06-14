@@ -40,7 +40,7 @@
           <xrd-file-upload
             v-if="showDialog"
             v-slot="{ upload }"
-            accepts=".der"
+            accepts=".der, .crt, .pem, .cer"
             @file-changed="onFileUploaded"
           >
             <v-text-field
@@ -75,7 +75,7 @@
           <v-text-field
             v-model="certProfile"
             outlined
-            :label="$t('trustServices.cartProfileInput')"
+            :label="$t('trustServices.certProfileInput')"
             :hint="$t('trustServices.certProfileInputExplanation')"
             persistent-hint
           ></v-text-field>

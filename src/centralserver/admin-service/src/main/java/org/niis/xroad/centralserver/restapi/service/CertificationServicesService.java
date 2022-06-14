@@ -52,15 +52,15 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERTIFICA
 public class CertificationServicesService {
 
     private final AuditDataHelper auditDataHelper;
+
     private final ApprovedCaRepository approvedCaRepository;
 
     private final CertificationServiceConverter certificationServiceConverter;
 
     public ApprovedCertificationService add(ApprovedCertificationServiceDto approvedCa) {
-        ApprovedCa approvedCaEntity = certificationServiceConverter.toEntity(approvedCa);
-
         CertificateProfileInfoValidator.validate(approvedCa.getCertificateProfileInfo());
 
+        ApprovedCa approvedCaEntity = certificationServiceConverter.toEntity(approvedCa);
         ApprovedCa persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
         addAuditData(persistedApprovedCa);
         return certificationServiceConverter.toDomain(persistedApprovedCa);
@@ -78,5 +78,4 @@ public class CertificationServicesService {
         auditDataHelper.put(AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());
         auditDataHelper.put(CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
     }
-
 }

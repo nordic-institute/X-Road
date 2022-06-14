@@ -404,7 +404,7 @@
     "caSettings": "CA Settings",
     "certificationServices": "Certification Services",
     "certImportedSuccessfully": "Certificate imported successfully",
-    "cartProfileInput": "Certificate profile info",
+    "certProfileInput": "Certificate profile info",
     "certProfileInputExplanation": "Fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "timestampingServices": "Timestamping Services",
     "validFrom": "Valid from",
