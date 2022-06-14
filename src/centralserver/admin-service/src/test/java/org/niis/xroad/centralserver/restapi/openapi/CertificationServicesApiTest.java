@@ -64,9 +64,6 @@ class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
         assertNotNull(response);
         assertEquals(OK, response.getStatusCode());
         assertThat(response.getBody().length).isGreaterThanOrEqualTo(1);
-        assertEquals("X-Road Test CA CN", response.getBody()[0].getCaCertificate().getSubjectCommonName());
-        assertNotNull(response.getBody()[0].getCaCertificate().getNotBefore());
-        assertNotNull(response.getBody()[0].getCaCertificate().getNotAfter());
     }
 
     @Test
