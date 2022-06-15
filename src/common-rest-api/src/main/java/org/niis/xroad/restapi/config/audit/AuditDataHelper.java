@@ -242,7 +242,6 @@ public class AuditDataHelper {
         putDefaulCertHashAlgorithm();
     }
 
-
     /**
      * Put (only) cert hash, and hash default algorithm
      */
@@ -256,12 +255,12 @@ public class AuditDataHelper {
 
     /**
      * Put cert id, hash and default algorithm
-     * @param id
-     * @param unformattedHash unformatted hash "630b9f83", will be changed to formatted "63:0B:9F:83"
+     * @param id certificate id
+     * @param bytes unformatted hash "630b9f83", will be changed to formatted "63:0B:9F:83"
      */
-    public void putCertificateData(String id, String unformattedHash) {
+    public void putCertificateData(String id, byte[] bytes) {
         put(RestApiAuditProperty.CERT_ID, id);
-        putCertificateHash(unformattedHash);
+        putCertificateHash(createUnformattedHash(bytes));
     }
 
     /**
@@ -270,8 +269,7 @@ public class AuditDataHelper {
      */
     public void put(CertificateInfo certificateInfo) {
         if (certificateInfo != null) {
-            String hash = createUnformattedHash(certificateInfo.getCertificateBytes());
-            putCertificateData(certificateInfo.getId(), hash);
+            putCertificateData(certificateInfo.getId(), certificateInfo.getCertificateBytes());
         }
     }
 

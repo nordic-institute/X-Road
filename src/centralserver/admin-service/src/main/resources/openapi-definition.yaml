@@ -3287,7 +3287,7 @@ components:
           type: string
         tls_auth:
           description: can the CA be used for TLS authentication
-          type: boolean
+          type: string
       required:
         - tls_auth
         - certificate_profile_info

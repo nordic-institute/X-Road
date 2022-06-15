@@ -25,32 +25,57 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
+import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
 import org.niis.xroad.centralserver.restapi.converter.CertificationServiceConverter;
+import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTICATION_ONLY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERTIFICATE_PROFILE_INFO;
+
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class CertificationServicesService {
 
+    private final AuditDataHelper auditDataHelper;
+
     private final ApprovedCaRepository approvedCaRepository;
 
     private final CertificationServiceConverter certificationServiceConverter;
 
+    public ApprovedCertificationService add(ApprovedCertificationServiceDto approvedCa) {
+        CertificateProfileInfoValidator.validate(approvedCa.getCertificateProfileInfo());
+
+        ApprovedCa approvedCaEntity = certificationServiceConverter.toEntity(approvedCa);
+        ApprovedCa persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
+        addAuditData(persistedApprovedCa);
+        return certificationServiceConverter.toDomain(persistedApprovedCa);
+    }
+
     public Set<ApprovedCertificationService> getCertificationServices() {
         List<ApprovedCa> approvedCas = approvedCaRepository.findAll();
         return approvedCas.stream()
-                .map(certificationServiceConverter::convert)
-                .collect(Collectors.toSet());
+                .map(certificationServiceConverter::toDomain)
+                .collect(toSet());
     }
 
+    private void addAuditData(ApprovedCa approvedCa) {
+        auditDataHelper.putCertificateData(Integer.toString(approvedCa.getId()), approvedCa.getCaInfo().getCert());
+        auditDataHelper.put(AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());
+        auditDataHelper.put(CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
+    }
 }

@@ -25,17 +25,30 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import lombok.SneakyThrows;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.http.HttpStatus.OK;
 
 class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
+
+    private static final String CERT_PROFILE_INFO_PROVIDER
+            = "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider";
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -43,15 +56,52 @@ class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
     @Test
     void getCertificationServices() {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+
         ResponseEntity<ApprovedCertificationService[]> response = restTemplate.getForEntity(
                 "/api/v1/certification-services",
                 ApprovedCertificationService[].class);
+
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(1, response.getBody().length);
-        assertEquals("X-Road Test CA CN", response.getBody()[0].getCaCertificate().getSubjectCommonName());
-        assertNotNull(response.getBody()[0].getCaCertificate().getNotBefore());
-        assertNotNull(response.getBody()[0].getCaCertificate().getNotAfter());
+        assertEquals(OK, response.getStatusCode());
+        assertThat(response.getBody().length).isGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    void addCertificationService() {
+        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+        var entity = prepareAddCertificationServiceRequest();
+
+        ResponseEntity<ApprovedCertificationService> response = restTemplate.postForEntity(
+                "/api/v1/certification-services",
+                entity,
+                ApprovedCertificationService.class);
+
+        assertNotNull(response);
+        assertEquals(OK, response.getStatusCode());
+        assertEquals("*.google.com", response.getBody().getCaCertificate().getSubjectCommonName());
+        assertNotNull(response.getBody().getCaCertificate().getNotBefore());
+        assertNotNull(response.getBody().getCaCertificate().getNotAfter());
+    }
+
+    private HttpEntity<MultiValueMap> prepareAddCertificationServiceRequest() {
+        MultiValueMap<String, Object> request = new LinkedMultiValueMap<>();
+        request.add("certificate", generateMockCertFile());
+        request.add("tls_auth", Boolean.FALSE);
+        request.add("certificate_profile_info", CERT_PROFILE_INFO_PROVIDER);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        return new HttpEntity<>(request, headers);
+    }
+
+    @SneakyThrows
+    private ByteArrayResource generateMockCertFile() {
+        return new ByteArrayResource(
+                IOUtils.toByteArray(this.getClass().getClassLoader().getResourceAsStream("google-cert.der"))) {
+            @Override
+            public String getFilename() {
+                return "google-cert.der";
+            }
+        };
     }
 
 }

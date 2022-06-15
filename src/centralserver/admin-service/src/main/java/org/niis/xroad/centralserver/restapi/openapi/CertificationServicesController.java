@@ -32,8 +32,9 @@ import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthority;
 import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettings;
 import org.niis.xroad.centralserver.openapi.model.OcspResponder;
+import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.service.CertificationServicesService;
-import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -42,18 +43,28 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Set;
 
+import static java.lang.Boolean.parseBoolean;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CERTIFICATION_SERVICE;
+import static org.niis.xroad.restapi.openapi.ControllerUtil.API_V1_PREFIX;
+import static org.springframework.http.ResponseEntity.ok;
+
 @Controller
-@RequestMapping(ControllerUtil.API_V1_PREFIX)
+@RequestMapping(API_V1_PREFIX)
+@PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class CertificationServicesController implements CertificationServicesApi {
 
     private final CertificationServicesService certificationServicesService;
 
     @Override
-    public ResponseEntity<ApprovedCertificationService> addCertificationService(
-            MultipartFile certificate, String certificateProfileInfo,
-            Boolean tlsAuth) {
-        throw new NotImplementedException("addCertificationService not implemented yet");
+    @AuditEventMethod(event = ADD_CERTIFICATION_SERVICE)
+    @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
+    public ResponseEntity<ApprovedCertificationService> addCertificationService(MultipartFile certificate,
+            String certificateProfileInfo, String tlsAuth) {
+        var isForTlsAuth = parseBoolean(tlsAuth);
+        var approvedCaDto = new ApprovedCertificationServiceDto(certificate, certificateProfileInfo, isForTlsAuth);
+        ApprovedCertificationService approvedCa = certificationServicesService.add(approvedCaDto);
+        return ok(approvedCa);
     }
 
     @Override
@@ -91,7 +102,7 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CAS')")
     public ResponseEntity<Set<ApprovedCertificationService>> getCertificationServices() {
-        return ResponseEntity.ok(certificationServicesService.getCertificationServices());
+        return ok(certificationServicesService.getCertificationServices());
     }
 
     @Override

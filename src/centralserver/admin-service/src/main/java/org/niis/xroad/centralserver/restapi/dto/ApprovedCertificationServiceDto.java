@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.commonui;
+package org.niis.xroad.centralserver.restapi.dto;
 
-import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
-import lombok.extern.slf4j.Slf4j;
-
-/**
- * Checks if correct class for certificate profile info validating is used.
- *
- * Valid class must implement CertificateProfileInfo interface.
- */
-@Slf4j
-public final class CertificateProfileInfoValidator {
-
-    private CertificateProfileInfoValidator() {
-    }
-
-    /**
-     * Validates the class against CertificateProfileInfo.
-     * @param className Class name
-     */
-    public static void validate(String className) {
-        try {
-            new GetCertificateProfile(className).klass();
-        } catch (Exception e) {
-            log.error("Error getting profile info for class '{}'", className, e);
-            throw new RuntimeException(e.getMessage());
-        }
-    }
+@Getter
+@RequiredArgsConstructor
+public class ApprovedCertificationServiceDto {
+    private final MultipartFile certificate;
+    private final String certificateProfileInfo;
+    private final Boolean tlsAuth;
 }

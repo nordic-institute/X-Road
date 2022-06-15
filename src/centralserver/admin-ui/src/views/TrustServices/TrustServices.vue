@@ -32,7 +32,7 @@
         {{ $t('trustServices.certificationServices') }}
       </div>
 
-      <xrd-button data-test="add-certification-service" @click="() => {}">
+      <xrd-button v-if="showAddCSButton" data-test="add-certification-service" @click="showAddCSDialog = true">
         <xrd-icon-base class="xrd-large-button-icon"
           ><XrdIconAdd
         /></xrd-icon-base>
@@ -106,6 +106,15 @@
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
+
+    <!-- Dialogs -->
+    <AddApprovedCSDialog
+      v-if="showAddCSDialog"
+      :show-dialog="showAddCSDialog"
+      @save="addCertificationService"
+      @cancel="hideAddCSDialog"
+    >
+    </AddApprovedCSDialog>
   </xrd-sub-view-container>
 </template>
 
@@ -114,23 +123,35 @@
  * View for 'trust services' tab
  */
 import Vue from 'vue';
+import AddApprovedCSDialog from '@/views/TrustServices/AddApprovedCSDialog.vue';
 import { DataTableHeader } from 'vuetify';
-import { mapStores } from 'pinia';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { userStore } from '@/store/modules/user';
+import { Permissions } from '@/global';
+import { ApprovedCertificationService, CertificationServiceFileAndSettings } from '@/openapi-types';
 
 export default Vue.extend({
+  components: {
+    AddApprovedCSDialog,
+  },
   data() {
     return {
       search: '' as string,
       loading: false,
-      showOnlyPending: false,
+      showAddCSDialog: false,
+      permissions: Permissions,
     };
   },
   computed: {
     ...mapStores(useCertificationServiceStore, notificationsStore),
-    certificationServices() {
-      return this.certificationServiceStore.certificationSevices;
+    ...mapState(userStore, ['hasPermission']),
+    certificationServices(): ApprovedCertificationService[] {
+      return this.certificationServiceStore.certificationServices;
+    },
+    showAddCSButton(): boolean {
+      return this.hasPermission(Permissions.ADD_APPROVED_CA);
     },
     headers(): DataTableHeader[] {
       return [
@@ -153,6 +174,25 @@ export default Vue.extend({
           class: 'xrd-table-header ts-table-header-valid-to',
         },
       ];
+    },
+  },
+  methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    hideAddCSDialog(): void {
+      this.showAddCSDialog = false;
+    },
+    addCertificationService(
+      addCertificationService: CertificationServiceFileAndSettings,
+    ): void {
+      this.hideAddCSDialog();
+      this.certificationServiceStore
+        .add(addCertificationService)
+        .then(() => {
+          this.showSuccess(this.$t('trustServices.certImportedSuccessfully'));
+        })
+        .catch((error) => {
+          this.showError(error);
+        });
     },
   },
   created() {

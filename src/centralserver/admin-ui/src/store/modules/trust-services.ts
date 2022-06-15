@@ -24,27 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-import { ApprovedCertificationService } from '@/openapi-types';
+import {ApprovedCertificationService, CertificationServiceFileAndSettings} from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
 export interface State {
-  certificationSevices: ApprovedCertificationService[];
+  certificationServices: ApprovedCertificationService[];
 }
 
 export const useCertificationServiceStore = defineStore(
   'certificationService',
   {
     state: (): State => ({
-      certificationSevices: [],
+      certificationServices: [],
     }),
     persist: true,
     actions: {
       fetchAll() {
         return axios
           .get<ApprovedCertificationService[]>('/certification-services')
-          .then((resp) => (this.certificationSevices = resp.data));
+          .then((resp) => (this.certificationServices = resp.data));
+      },
+      add(newCas: CertificationServiceFileAndSettings) {
+        const formData = new FormData();
+        formData.append('certificate_profile_info', newCas.certificate_profile_info);
+        formData.append('tls_auth', newCas.tls_auth);
+        formData.append('certificate', newCas.certificate);
+        return axios
+          .post('/certification-services', formData)
+          .finally(() => this.fetchAll());
       },
     },
   },

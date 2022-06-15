@@ -61,7 +61,7 @@ class CertificationServicesServiceTest {
         ApprovedCa approvedCaMock = new ApprovedCa();
         when(approvedCaRepository.findAll()).thenReturn(List.of(approvedCaMock));
         ApprovedCertificationService approvedCertificationServiceMock = new ApprovedCertificationService();
-        when(converter.convert(approvedCaMock)).thenReturn(approvedCertificationServiceMock);
+        when(converter.toDomain(approvedCaMock)).thenReturn(approvedCertificationServiceMock);
 
         Set<ApprovedCertificationService> approvedCertificationServices = service.getCertificationServices();
 
@@ -70,7 +70,7 @@ class CertificationServicesServiceTest {
 
         InOrder inOrder = inOrder(approvedCaRepository, converter);
         inOrder.verify(approvedCaRepository).findAll();
-        inOrder.verify(converter).convert(approvedCaMock);
+        inOrder.verify(converter).toDomain(approvedCaMock);
         verifyNoMoreInteractions(approvedCaRepository, converter);
     }
 
