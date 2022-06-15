@@ -68,7 +68,7 @@ task rollbackSQLiteDbSchema(dependsOn: [copyDeps, ':center-service:build'], type
 }
 
 // FUTURE - We might want to get rid of warning at .war file generation
-task warble(dependsOn: [copyDeps, ':center-service:build'], type: Exec) {
+task warble(dependsOn: [copyDeps], type: Exec) {
     commandLine = ['jruby', '-S', 'warble']
 }
 
@@ -87,7 +87,7 @@ task checkRubySource(type: Exec) {
 }
 
 check.dependsOn checkRubySource
-build.dependsOn copyDeps
+build.dependsOn warble
 
 sonarqube {
     properties {
