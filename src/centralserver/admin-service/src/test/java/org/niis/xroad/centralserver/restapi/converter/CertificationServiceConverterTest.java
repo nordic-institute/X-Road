@@ -70,9 +70,9 @@ class CertificationServiceConverterTest {
         assertEquals("Subject", result.getName());
         assertEquals(certProfileInfo, result.getCertProfileInfo());
         assertThat(result.getCaInfo().getValidFrom())
-                .isEqualToIgnoringMillis(FormatUtils.fromOffsetDateTimeToDate(OffsetDateTime.now()));
+                .isAfter(FormatUtils.fromOffsetDateTimeToDate(OffsetDateTime.now().minusMinutes(1)));
         assertThat(result.getCaInfo().getValidTo())
-                .isEqualToIgnoringMillis(FormatUtils.fromOffsetDateTimeToDate(OffsetDateTime.now().plusYears(1)));
+                .isBefore(FormatUtils.fromOffsetDateTimeToDate(OffsetDateTime.now().plusYears(1)));
     }
 
     @SneakyThrows
