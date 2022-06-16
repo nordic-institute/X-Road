@@ -1,6 +1,5 @@
 /**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,17 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.repository;
+package org.niis.xroad.centralserver.restapi.converter;
 
-import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroup;
 
-import java.util.Optional;
+import java.time.ZoneOffset;
 
-@Repository("GlobalGroupRepository")
-@Transactional
-public interface GlobalGroupRepository extends JpaRepository<GlobalGroup, Integer> {
-    Optional<GlobalGroup> getByGroupCode(String code);
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class GlobalGroupConverterTest {
+
+    @Test
+    void convert() {
+        org.niis.xroad.centralserver.restapi.entity.GlobalGroup mockEntity = mockEntity();
+        GlobalGroupConverter converter = new GlobalGroupConverter();
+
+        GlobalGroup result = converter.convert(mockEntity);
+
+        assertEquals(String.valueOf(mockEntity.getId()), result.getId());
+        assertEquals(mockEntity.getGroupCode(), result.getCode());
+        assertEquals(mockEntity.getDescription(), result.getDescription());
+        assertEquals(mockEntity.getMemberCount(), result.getMemberCount());
+        assertEquals(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC), result.getCreatedAt());
+        assertEquals(mockEntity.getUpdatedAt().atOffset(ZoneOffset.UTC), result.getUpdatedAt());
+    }
+
+    private org.niis.xroad.centralserver.restapi.entity.GlobalGroup mockEntity() {
+        org.niis.xroad.centralserver.restapi.entity.GlobalGroup globalGroup =
+                new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
+        globalGroup.setId(1);
+        globalGroup.setGroupCode("code");
+        globalGroup.setDescription("description");
+        return globalGroup;
+    }
 }
