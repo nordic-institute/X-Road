@@ -24,7 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import {ApprovedCertificationService, CertificationServiceFileAndSettings} from '@/openapi-types';
+import {
+  ApprovedCertificationService,
+  CertificationServiceFileAndSettings,
+} from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
@@ -47,7 +50,10 @@ export const useCertificationServiceStore = defineStore(
       },
       add(newCas: CertificationServiceFileAndSettings) {
         const formData = new FormData();
-        formData.append('certificate_profile_info', newCas.certificate_profile_info);
+        formData.append(
+          'certificate_profile_info',
+          newCas.certificate_profile_info,
+        );
         formData.append('tls_auth', newCas.tls_auth);
         formData.append('certificate', newCas.certificate);
         return axios

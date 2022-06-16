@@ -27,7 +27,7 @@
 <template>
   <xrd-sub-view-container>
     <xrd-simple-dialog
-      :dialog="showDialog"
+      :dialog="showUploadCertificateDialog"
       cancel-button-text="action.cancel"
       save-button-text="action.upload"
       title="trustServices.addCertificationService"
@@ -38,7 +38,7 @@
       <template #content>
         <div class="dlg-input-width">
           <xrd-file-upload
-            v-if="showDialog"
+            v-if="showUploadCertificateDialog"
             v-slot="{ upload }"
             accepts=".der, .crt, .pem, .cer"
             @file-changed="onFileUploaded"
@@ -78,6 +78,7 @@
             :label="$t('trustServices.certProfileInput')"
             :hint="$t('trustServices.certProfileInputExplanation')"
             persistent-hint
+            data-test="cert-profile-input"
           ></v-text-field>
         </div>
       </template>
@@ -87,8 +88,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import {FileUploadResult} from '@niis/shared-ui';
-import {Prop} from 'vue/types/options';
+import { FileUploadResult } from '@niis/shared-ui';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
   name: 'AddApprovedCSDialog',
@@ -105,6 +106,7 @@ export default Vue.extend({
       certFileTitle: '',
       certProfile: '',
       tlsAuthOnly: false,
+      showUploadCertificateDialog: this.showDialog,
     };
   },
   methods: {
@@ -114,6 +116,7 @@ export default Vue.extend({
     },
     onUpload(): void {
       this.showCASettingsDialog = true;
+      this.showUploadCertificateDialog = false;
     },
     onSave(): void {
       if (this.certFile !== null) {
