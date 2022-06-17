@@ -1,6 +1,4 @@
-# X-Road: Third Party Representation Extension for the X-Road Message Protocol
-
-**Technical Specification**
+# Third Party Representation Extension for the X-Road Message Protocol
 
 Version: 1.1  
 Doc. ID: PR-THIRDPARTY
@@ -71,9 +69,9 @@ The following listing shows the header of the schema definition.
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-elementFormDefault="qualified"
-targetNamespace="http://x-road.eu/xsd/representation.xsd"
-xmlns="http://x-road.eu/xsd/representation.xsd">
+    elementFormDefault="qualified"
+    targetNamespace="http://x-road.eu/xsd/representation.xsd"
+    xmlns="http://x-road.eu/xsd/representation.xsd">
 
 </xs:schema>
 ```
