@@ -78,7 +78,7 @@ The following listing shows the header of the schema definition.
 
 ### 2.2 Represented Parties
 
-The `XRoadRepresentedPartyType` complex type is used to describe represented parties. It consists of two elements – `partyClass` and `partyCode` from which only `partyCode` is mandatory and other can be used for additional information.
+The `XRoadRepresentedPartyType` complex type is used to describe represented parties. It consists of two elements: `partyClass` and `partyCode`. The `partyCode` element is mandatory and the `partyClass` element is optional.
 
 ```xml
 <xs:complexType name="XRoadRepresentedPartyType">
@@ -89,7 +89,7 @@ The `XRoadRepresentedPartyType` complex type is used to describe represented par
 </xs:complexType>
 ```
 
-Next, we define the elements used in the `XRoadRepresentedPartyType`. Element `partyClass` is similar to the element `memberClass` described in the X-Road protocol for adapter server messaging, but can additionally identify institutions that can not become members of X-Road.
+Next, the elements used in the `XRoadRepresentedPartyType` are defined. Element `partyClass` is similar to the element `memberClass` described in the X-Road Message Protocol 4.0 \[[PR-MESS](#Ref_PR-MESS)\], but can additionally identify institutions that can not become members of X-Road.
 
 Element `partyCode` is used to uniquely identify represented parties.
 
@@ -98,7 +98,7 @@ Element `partyCode` is used to uniquely identify represented parties.
 <xs:element name="partyCode" type="xs:string"/>
 ```
 
-Finally we define the `representedParty` element.
+Finally, the `representedParty` element is defined.
 
 ```xml
 <xs:element name="representedParty" type="XRoadRepresentedPartyType"/>
@@ -106,7 +106,7 @@ Finally we define the `representedParty` element.
 
 ### 2.3 Message Headers
 
-This section describes additional SOAP headers that are used by the X-Road system. The header fields are described in [Table 1](#Ref_Supported_header_fields).
+This section describes the additional SOAP headers that are added by this extension. The header fields are described in [Table 1](#Ref_Supported_header_fields).
 
 <a name="Ref_Supported_header_fields" class="anchor"></a>
 Table 1. Supported header fields
