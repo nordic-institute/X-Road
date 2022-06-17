@@ -25,8 +25,9 @@ Doc. ID: PR-THIRDPARTY
       - [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
       - [1.2 References](#12-references)
     - [2 Format of Messages](#2-format-of-messages)
-        - [2.1 Represented Parties](#21-represented-parties)
-        - [2.2 Message Headers](#22-message-headers)
+      - [2.1 Schema Header](#21-schema-header)
+      - [2.2 Represented Parties](#22-represented-parties)
+      - [2.3 Message Headers](#23-message-headers)
     - [Annex A XML Schema for Representation](#annex-a-xml-schema-for-representation)
     - [Annex B Example WSDL](#annex-b-example-wsdl)
     - [Annex C Example Messages](#annex-c-example-messages)
@@ -61,9 +62,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\]
 
 ## 2 Format of Messages
 
-### 2.1 Represented Parties
+This section describes XML-based data formats for expressing the represented parties. The data structures and elements defined in this section are in the namespace `http://x-road.eu/xsd/representation.xsd`. The schema file can be found at [`http://x-road.eu/xsd/representation.xsd`](http://x-road.eu/xsd/representation.xsd). The XML Schema for this extension is also listed in the section [Annex A XML Schema for Representation](#annex-a-xml-schema-for-representation).
 
-This section describes XML-based data formats for expressing the represented parties. The data structures and elements defined in this section are in the namespace `http://x-road.eu/xsd/representation.xsd`. The complete XML Schema is shown in [Annex A XML Schema for Representation](#annex-a-xml-schema-for-representation).
+### 2.1 Schema Header
 
 The following listing shows the header of the schema definition.
 
@@ -73,15 +74,20 @@ The following listing shows the header of the schema definition.
 elementFormDefault="qualified"
 targetNamespace="http://x-road.eu/xsd/representation.xsd"
 xmlns="http://x-road.eu/xsd/representation.xsd">
+
+</xs:schema>
 ```
+
+### 2.2 Represented Parties
+
 The `XRoadRepresentedPartyType` complex type is used to describe represented parties. It consists of two elements – `partyClass` and `partyCode` from which only `partyCode` is mandatory and other can be used for additional information.
 
 ```xml
 <xs:complexType name="XRoadRepresentedPartyType">
-<xs:sequence>
-<xs:element minOccurs="0" ref="partyClass"/>
-<xs:element minOccurs="1" ref="partyCode"/>
-</xs:sequence>
+    <xs:sequence>
+        <xs:element minOccurs="0" ref="partyClass"/>
+        <xs:element minOccurs="1" ref="partyCode"/>
+    </xs:sequence>
 </xs:complexType>
 ```
 
@@ -100,7 +106,7 @@ Finally we define the `representedParty` element.
 <xs:element name="representedParty" type="XRoadRepresentedPartyType"/>
 ```
 
-### 2.2 Message Headers
+### 2.3 Message Headers
 
 This section describes additional SOAP headers that are used by the X-Road system. The header fields are described in [Table 1](#Ref_Supported_header_fields).
 
