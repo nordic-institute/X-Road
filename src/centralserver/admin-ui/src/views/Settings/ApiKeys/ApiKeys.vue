@@ -49,6 +49,7 @@
       :headers="headers"
       :items="apiKeys"
       :search="search"
+      :sort-by="['id']"
       :must-sort="true"
       :items-per-page="-1"
       class="elevation-0 data-table"
