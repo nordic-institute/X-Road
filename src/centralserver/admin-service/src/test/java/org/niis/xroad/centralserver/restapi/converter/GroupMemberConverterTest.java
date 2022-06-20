@@ -25,34 +25,36 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
-import org.niis.xroad.centralserver.openapi.model.GlobalGroup;
+import ee.ria.xroad.common.identifier.ClientId;
+
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.GroupMember;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
-import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-@Component
-public class GlobalGroupConverter {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    private final GroupMemberConverter groupMemberConverter = new GroupMemberConverter();
+class GroupMemberConverterTest {
 
-    public GlobalGroup convert(org.niis.xroad.centralserver.restapi.entity.GlobalGroup entity) {
-        return new GlobalGroup()
-                .id(String.valueOf(entity.getId()))
-                .code(entity.getGroupCode())
-                .memberCount(entity.getMemberCount())
-                .members(convertMembers(entity.getGlobalGroupMembers()))
-                .description(entity.getDescription())
-                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC))
-                .updatedAt(entity.getUpdatedAt().atOffset(ZoneOffset.UTC));
+    @Test
+    void convert() {
+        GlobalGroupMember mockEntity = mockEntity();
+        GroupMemberConverter converter = new GroupMemberConverter();
+
+        GroupMember result = converter.convert(mockEntity);
+
+        assertEquals(String.valueOf(mockEntity.getId()), result.getId());
+        assertEquals(mockEntity.getIdentifier().toShortString(':'), result.getName());
+        assertEquals(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC), result.getCreatedAt());
     }
 
-    private Set<GroupMember> convertMembers(Set<GlobalGroupMember> memberEntities) {
-        return memberEntities.stream()
-                .map(groupMemberConverter::convert)
-                .collect(Collectors.toSet());
+    private GlobalGroupMember mockEntity() {
+        org.niis.xroad.centralserver.restapi.entity.GlobalGroup globalGroup =
+                new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
+        ClientId clientId = ClientId.create("CS", "ORG", "123", "2");
+        GlobalGroupMember member = new GlobalGroupMember(globalGroup, clientId);
+        member.setId(1);
+        return member;
     }
 }

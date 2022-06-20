@@ -25,34 +25,19 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
-import org.niis.xroad.centralserver.openapi.model.GlobalGroup;
 import org.niis.xroad.centralserver.openapi.model.GroupMember;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
-public class GlobalGroupConverter {
+public class GroupMemberConverter {
 
-    private final GroupMemberConverter groupMemberConverter = new GroupMemberConverter();
-
-    public GlobalGroup convert(org.niis.xroad.centralserver.restapi.entity.GlobalGroup entity) {
-        return new GlobalGroup()
+    public GroupMember convert(GlobalGroupMember entity) {
+        return new GroupMember()
                 .id(String.valueOf(entity.getId()))
-                .code(entity.getGroupCode())
-                .memberCount(entity.getMemberCount())
-                .members(convertMembers(entity.getGlobalGroupMembers()))
-                .description(entity.getDescription())
-                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC))
-                .updatedAt(entity.getUpdatedAt().atOffset(ZoneOffset.UTC));
-    }
-
-    private Set<GroupMember> convertMembers(Set<GlobalGroupMember> memberEntities) {
-        return memberEntities.stream()
-                .map(groupMemberConverter::convert)
-                .collect(Collectors.toSet());
+                .name(entity.getIdentifier().toShortString(':'))
+                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
     }
 }

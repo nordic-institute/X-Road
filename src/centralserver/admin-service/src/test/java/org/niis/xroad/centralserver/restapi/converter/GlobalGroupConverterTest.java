@@ -45,6 +45,7 @@ class GlobalGroupConverterTest {
         assertEquals(mockEntity.getGroupCode(), result.getCode());
         assertEquals(mockEntity.getDescription(), result.getDescription());
         assertEquals(mockEntity.getMemberCount(), result.getMemberCount());
+        assertEquals(0, result.getMembers().size());
         assertEquals(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC), result.getCreatedAt());
         assertEquals(mockEntity.getUpdatedAt().atOffset(ZoneOffset.UTC), result.getUpdatedAt());
     }

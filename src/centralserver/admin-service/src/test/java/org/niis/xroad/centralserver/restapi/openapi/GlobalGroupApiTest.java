@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 
+import java.util.HashMap;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,11 +51,33 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
                 GlobalGroup[].class);
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
+        assertGlobalGroup(response);
+    }
+
+    @Test
+    void findGlobalGroupsWithContainsMember() {
+        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+        var uriVariables = new HashMap<String, String>();
+        uriVariables.put("containsMember", "TEST:GOV:M1:SS1");
+        ResponseEntity<GlobalGroup[]> response = restTemplate.getForEntity(
+                "/api/v1/global-groups?contains_member={containsMember}",
+                GlobalGroup[].class,
+                uriVariables);
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCodeValue());
+        assertGlobalGroup(response);
+    }
+
+    private void assertGlobalGroup(ResponseEntity<GlobalGroup[]> response) {
         assertEquals(1, Objects.requireNonNull(response.getBody()).length);
         assertEquals("1000001", response.getBody()[0].getId());
         assertEquals("CODE_1", response.getBody()[0].getCode());
         assertEquals("First global group", response.getBody()[0].getDescription());
         assertEquals(1, response.getBody()[0].getMemberCount());
+        assertEquals(1, response.getBody()[0].getMembers().size());
+        assertEquals("1000001", response.getBody()[0].getMembers().stream().iterator().next().getId());
+        assertEquals("TEST:GOV:M1:SS1", response.getBody()[0].getMembers().stream().iterator().next().getName());
+        assertNotNull(response.getBody()[0].getMembers().stream().iterator().next().getCreatedAt());
         assertNotNull(response.getBody()[0].getCreatedAt());
         assertNotNull(response.getBody()[0].getUpdatedAt());
     }

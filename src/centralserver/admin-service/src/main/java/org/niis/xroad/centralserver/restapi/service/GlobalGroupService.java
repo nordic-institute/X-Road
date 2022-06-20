@@ -26,8 +26,10 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
+import org.eclipse.jetty.util.StringUtil;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.converter.GlobalGroupConverter;
+import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,9 +45,16 @@ public class GlobalGroupService {
     private final GlobalGroupRepository globalGroupRepository;
     private final GlobalGroupConverter globalGroupConverter;
 
-    public Set<GlobalGroup> findGlobalGroups() {
+    public Set<GlobalGroup> findGlobalGroups(String containsMember) {
         return globalGroupRepository.findAll().stream()
+                .filter(globalGroup -> isMemberExistsInGlobalGroup(containsMember, globalGroup.getGlobalGroupMembers()))
                 .map(globalGroupConverter::convert)
                 .collect(Collectors.toSet());
+    }
+
+    private boolean isMemberExistsInGlobalGroup(String memberId, Set<GlobalGroupMember> members) {
+        return StringUtil.isEmpty(memberId)
+                || members.stream()
+                .anyMatch(member -> memberId.equals(member.getIdentifier().toShortString(':')));
     }
 }

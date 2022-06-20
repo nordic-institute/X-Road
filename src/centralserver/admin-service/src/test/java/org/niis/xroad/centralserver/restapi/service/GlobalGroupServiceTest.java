@@ -61,7 +61,7 @@ class GlobalGroupServiceTest {
         GlobalGroup globalGroup = new GlobalGroup();
         when(converter.convert(entity)).thenReturn(globalGroup);
 
-        Set<GlobalGroup> globalGroups = service.findGlobalGroups();
+        Set<GlobalGroup> globalGroups = service.findGlobalGroups(null);
 
         assertEquals(1, globalGroups.size());
         assertEquals(globalGroup, globalGroups.iterator().next());
@@ -70,5 +70,35 @@ class GlobalGroupServiceTest {
         inOrder.verify(globalGroupRepository).findAll();
         inOrder.verify(converter).convert(entity);
         verifyNoMoreInteractions(globalGroupRepository, converter);
+    }
+
+    @Test
+    void findGlobalGroupsContainsMemberIsEmpty() {
+        org.niis.xroad.centralserver.restapi.entity.GlobalGroup entity =
+                new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
+        when(globalGroupRepository.findAll()).thenReturn(List.of(entity));
+        GlobalGroup globalGroup = new GlobalGroup();
+        when(converter.convert(entity)).thenReturn(globalGroup);
+
+        Set<GlobalGroup> globalGroups = service.findGlobalGroups("");
+
+        assertEquals(1, globalGroups.size());
+        assertEquals(globalGroup, globalGroups.iterator().next());
+
+        InOrder inOrder = inOrder(globalGroupRepository, converter);
+        inOrder.verify(globalGroupRepository).findAll();
+        inOrder.verify(converter).convert(entity);
+        verifyNoMoreInteractions(globalGroupRepository, converter);
+    }
+
+    @Test
+    void findGlobalGroupsContainsMemberNotExistsInGlobalGroup() {
+        org.niis.xroad.centralserver.restapi.entity.GlobalGroup entity =
+                new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
+        when(globalGroupRepository.findAll()).thenReturn(List.of(entity));
+
+        Set<GlobalGroup> globalGroups = service.findGlobalGroups("CS:ORG:123");
+
+        assertEquals(0, globalGroups.size());
     }
 }

@@ -26,7 +26,6 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
-import org.eclipse.jetty.util.StringUtil;
 import org.niis.xroad.centralserver.openapi.GlobalGroupsApi;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroup;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescription;
@@ -72,11 +71,7 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_GLOBAL_GROUPS')")
     public ResponseEntity<Set<GlobalGroup>> findGlobalGroups(String containsMember) {
-        //TODO XRDDEV-2059 need to be implement or not?
-        if (!StringUtil.isEmpty(containsMember)) {
-            throw new NotImplementedException("If containsMember exists need to be implement");
-        }
-        return ResponseEntity.ok(globalGroupService.findGlobalGroups());
+        return ResponseEntity.ok(globalGroupService.findGlobalGroups(containsMember));
     }
 
     @Override
