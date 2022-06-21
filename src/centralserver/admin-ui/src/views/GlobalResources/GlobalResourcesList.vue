@@ -45,7 +45,7 @@
 
     <!-- Table 1 - Global Groups -->
     <v-data-table
-      :loading="loading"
+      :loading="groupsLoading"
       :headers="globalGroupsHeaders"
       :items="globalGroups"
       :must-sort="true"
@@ -60,6 +60,9 @@
           <xrd-icon-base class="mr-4"><XrdIconFolder /></xrd-icon-base>
           <div>{{ item.code }}</div>
         </div>
+      </template>
+      <template #[`item.updated_at`]="{ item }">
+        {{ item.updated_at | formatDateTime }}
       </template>
 
       <template #footer>
@@ -138,6 +141,10 @@
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { RouteName } from '@/global';
+import { GlobalGroup } from '@/openapi-types';
+import { mapActions, mapStores } from 'pinia';
+import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { notificationsStore } from '@/store/modules/notifications';
 
 export default Vue.extend({
   data() {
@@ -146,27 +153,6 @@ export default Vue.extend({
       loading: false,
       showOnlyPending: false,
       showAddGroupDialog: false,
-      globalGroups: [
-        {
-          code: 'Security-server-owner_1',
-          description: 'Security server owners HKI',
-          memberCount: '11',
-          updated: '2021-07-10 12:00',
-        },
-
-        {
-          code: 'Security-server-owner_2',
-          description: 'Security server owners TRE',
-          memberCount: '3',
-          updated: '2020-11-10 18:00',
-        },
-        {
-          code: 'Security-server-owner_3',
-          description: 'Descriptionish',
-          memberCount: '9',
-          updated: '2021-10-18 14:00',
-        },
-      ],
 
       centralServices: [
         {
@@ -198,6 +184,13 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapStores(useGlobalGroupsStore),
+    globalGroups(): GlobalGroup[] {
+      return this.globalGroupStore.globalGroups;
+    },
+    groupsLoading(): boolean {
+      return this.globalGroupStore.groupsLoading;
+    },
     globalGroupsHeaders(): DataTableHeader[] {
       return [
         {
@@ -215,13 +208,13 @@ export default Vue.extend({
         {
           text: this.$t('globalResources.memberCount') as string,
           align: 'start',
-          value: 'memberCount',
+          value: 'member_count',
           class: 'xrd-table-header ss-table-header-owner-code',
         },
         {
           text: this.$t('globalResources.updated') as string,
           align: 'start',
-          value: 'updated',
+          value: 'updated_at',
           class: 'xrd-table-header ss-table-header-owner-class',
         },
       ];
@@ -268,8 +261,14 @@ export default Vue.extend({
       ];
     },
   },
+  created() {
+    this.globalGroupStore.findGlobalGroups().catch((error) => {
+      this.showError(error);
+    });
+  },
 
   methods: {
+    ...mapActions(notificationsStore, ['showError']),
     // Add the type later when it exists
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     toDetails(globalGroup: any): void {
