@@ -37,7 +37,7 @@ class GlobalGroupConverterTest {
     @Test
     void convert() {
         org.niis.xroad.centralserver.restapi.entity.GlobalGroup mockEntity = mockEntity();
-        GlobalGroupConverter converter = new GlobalGroupConverter();
+        GlobalGroupConverter converter = new GlobalGroupConverter(new GroupMemberConverter());
 
         GlobalGroup result = converter.convert(mockEntity);
 
