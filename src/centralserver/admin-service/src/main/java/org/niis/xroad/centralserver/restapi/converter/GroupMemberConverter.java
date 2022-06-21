@@ -1,6 +1,5 @@
 /**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,17 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.repository;
+package org.niis.xroad.centralserver.restapi.converter;
 
-import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import org.niis.xroad.centralserver.openapi.model.GroupMember;
+import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
+import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import java.time.ZoneOffset;
 
-@Repository("GlobalGroupRepository")
-@Transactional
-public interface GlobalGroupRepository extends JpaRepository<GlobalGroup, Integer> {
-    Optional<GlobalGroup> getByGroupCode(String code);
+@Component
+public class GroupMemberConverter {
+
+    public GroupMember convert(GlobalGroupMember entity) {
+        return new GroupMember()
+                .id(String.valueOf(entity.getId()))
+                .name(entity.getIdentifier().toShortString(':'))
+                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
+    }
 }

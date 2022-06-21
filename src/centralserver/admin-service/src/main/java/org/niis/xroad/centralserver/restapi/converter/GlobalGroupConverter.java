@@ -1,6 +1,5 @@
 /**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,17 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.repository;
+package org.niis.xroad.centralserver.restapi.converter;
 
-import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroup;
+import org.niis.xroad.centralserver.openapi.model.GroupMember;
+import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
+import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import java.time.ZoneOffset;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@Repository("GlobalGroupRepository")
-@Transactional
-public interface GlobalGroupRepository extends JpaRepository<GlobalGroup, Integer> {
-    Optional<GlobalGroup> getByGroupCode(String code);
+@RequiredArgsConstructor
+@Component
+public class GlobalGroupConverter {
+
+    private final GroupMemberConverter groupMemberConverter;
+
+    public GlobalGroup convert(org.niis.xroad.centralserver.restapi.entity.GlobalGroup entity) {
+        return new GlobalGroup()
+                .id(String.valueOf(entity.getId()))
+                .code(entity.getGroupCode())
+                .memberCount(entity.getMemberCount())
+                .members(convertMembers(entity.getGlobalGroupMembers()))
+                .description(entity.getDescription())
+                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC))
+                .updatedAt(entity.getUpdatedAt().atOffset(ZoneOffset.UTC));
+    }
+
+    private Set<GroupMember> convertMembers(Set<GlobalGroupMember> memberEntities) {
+        return memberEntities.stream()
+                .map(groupMemberConverter::convert)
+                .collect(Collectors.toSet());
+    }
 }
