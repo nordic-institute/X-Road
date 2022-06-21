@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroup;
 import org.niis.xroad.centralserver.openapi.model.GroupMember;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
@@ -34,10 +35,11 @@ import java.time.ZoneOffset;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Component
 public class GlobalGroupConverter {
 
-    private final GroupMemberConverter groupMemberConverter = new GroupMemberConverter();
+    private final GroupMemberConverter groupMemberConverter;
 
     public GlobalGroup convert(org.niis.xroad.centralserver.restapi.entity.GlobalGroup entity) {
         return new GlobalGroup()
