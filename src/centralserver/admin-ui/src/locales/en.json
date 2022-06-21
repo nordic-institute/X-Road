@@ -223,7 +223,7 @@
     "codeIS": "Code (Implementing Service)",
     "description": "Description",
     "globalGroups": "Global Groups",
-    "memberCount": "Member Count",
+    "memberCount": "Member count",
     "providerClass": "Provider Class",
     "providerCode": "Provider Code",
     "providerSubsystem": "Provider Subsystem",
