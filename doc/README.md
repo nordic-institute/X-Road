@@ -17,6 +17,9 @@
 ## Protocols
 - [\[PR-REST\] Message Protocol for REST](Protocols/pr-rest_x-road_message_protocol_for_rest.md)
 - [\[PR-MESS\] Message Protocol](Protocols/pr-mess_x-road_message_protocol.md)
+  - [\[PR-TARGETSS\] Security Server Targeting Extension for the X-Road Message Protocol](Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md)
+  - [\[PR-SECTOKEN\] Security Token extension Extension for the X-Road Message Protocol](Protocols/SecurityTokenExtension/pr-sectoken_security_token_extension_for_the_x-road_protocol.md)
+  - [\[PR-THIRDPARTY\] Security Server Targeting Extension for the X-Road Message Protocol](Protocols/ThirdPartyRepresentationExtension/pr-third_party_representation_extension_for_the_x-road_protocol.md)
 - [\[PR-MESSTRANSP\] Message Transport Protocol](Protocols/pr-messtransp_x-road_message_transport_protocol.md)
 - [\[PR-MSERV\] Protocol for Management Services](Protocols/pr-mserv_x-road_protocol_for_management_services.md)
 - [\[PR-META\] Service Metadata Protocol](Protocols/pr-meta_x-road_service_metadata_protocol.md)
