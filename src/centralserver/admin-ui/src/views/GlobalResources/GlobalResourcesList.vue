@@ -142,8 +142,9 @@ import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { RouteName } from '@/global';
 import { GlobalGroup } from '@/openapi-types';
-import { mapStores } from 'pinia';
+import { mapActions, mapStores } from 'pinia';
 import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { notificationsStore } from '@/store/modules/notifications';
 
 export default Vue.extend({
   data() {
@@ -261,10 +262,13 @@ export default Vue.extend({
     },
   },
   created() {
-    this.globalGroupStore.findGlobalGroups();
+    this.globalGroupStore.findGlobalGroups().catch((error) => {
+      this.showError(error);
+    });
   },
 
   methods: {
+    ...mapActions(notificationsStore, ['showError']),
     // Add the type later when it exists
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     toDetails(globalGroup: any): void {
