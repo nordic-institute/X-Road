@@ -19,6 +19,7 @@
 - XRDDEV-1966: Add sections to the Security Server UI diagnostics page to display information about backup encryption, message log archive encryption, message log archive grouping and message log database encryption.
 - XRDDEV-1986: Increase the default maximum body size for REST messages from 10mb to 20mb for the Security Server in the Estonian metapackage.
 - XRDDEV-1994: Fix issue with the configuration proxy where temporary files were not getting removed if the global configuration generation failed during the process. The issue caused temporary files to accumulate in the "/var/tmp/xroad/{INSTANCE_IDENTIFIER}" directory and eat up disk space.
+- XRDDEV-2043: Fix database migrations fail during installation in RHEL8.
 
 
 ## 7.0.3 - 2022-04-25
