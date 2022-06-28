@@ -25,7 +25,7 @@
  -->
 <template>
   <v-container fluid fill-height class="login-view-wrap">
-    <AlertsContainer class="alerts" />
+    <alerts-container class="alerts" />
     <div class="graphics">
       <v-img
         :src="require('../assets/xroad7_large.svg')"
@@ -101,8 +101,8 @@
               :disabled="isDisabled"
               :loading="loading"
               @click="submit"
-              >{{ $t('login.logIn') }}</xrd-button
-            >
+              >{{ $t('login.logIn') }}
+            </xrd-button>
           </v-card-actions>
         </v-card>
       </v-flex>
@@ -112,9 +112,14 @@
 
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
-import { RouteName, Permissions } from '@/global';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { Permissions, RouteName } from '@/global';
+import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+import axios, { AxiosError } from 'axios';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useSystemStore } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default (
   Vue as VueConstructor<
@@ -139,6 +144,12 @@ export default (
     };
   },
   computed: {
+    ...mapState(useUser, [
+      'hasPermission',
+      'firstAllowedTab',
+      'hasInitState',
+      'needsInitialization',
+    ]),
     isDisabled() {
       if (
         this.username.length < 1 ||
@@ -151,16 +162,37 @@ export default (
     },
   },
   methods: {
+    ...mapActions(useUser, [
+      'loginUser',
+      'logoutUser',
+      'fetchInitializationStatus',
+      'fetchUserData',
+      'fetchCurrentSecurityServer',
+      'clearAuth',
+    ]),
+    ...mapActions(useSystemStore, [
+      'fetchSecurityServerVersion',
+      'fetchSecurityServerNodeType',
+      'clearSystemStore',
+    ]),
+    ...mapActions(useNotifications, [
+      'showError',
+      'showErrorMessage',
+      'clearErrorNotifications',
+    ]),
     async submit() {
       // Clear error notifications when route is changed
-      this.$store.commit('clearErrorNotifications');
+      this.clearErrorNotifications();
+
+      /* Clear user data so there is nothing left from previous sessions.
+       For example user has closed browser tab without loggin out > user data is left in browser local storage */
+      this.clearAuth();
+      this.clearSystemStore();
 
       // Validate inputs
       const isValid = await this.$refs.form.validate();
 
-      if (!isValid) {
-        return;
-      }
+      if (!isValid) return;
 
       const loginData = {
         username: this.username,
@@ -170,13 +202,10 @@ export default (
       this.$refs.form.reset();
       this.loading = true;
 
-      this.$store.dispatch('login', loginData).then(
-        () => {
-          // Auth ok. Start phase 2 (fetch user data and current security server info).
-          this.fetchUserData();
-          this.fetchSecurityServerVersion();
-        },
-        (error) => {
+      try {
+        await this.loginUser(loginData);
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
           // Display invalid username/password error in inputs
           if (error?.response?.status === 401) {
             // Clear inputs
@@ -194,86 +223,64 @@ export default (
               });
             });
           }
-          this.$store.dispatch('showErrorMessageCode', 'login.generalError');
-          // Clear loading state
-          this.loading = false;
-        },
-      );
-    },
-    fetchUserData() {
-      this.loading = true;
-      this.$store.dispatch('fetchUserData').then(
-        () => {
-          // Check if initialization is needed
-          this.fetchInitializationData();
-        },
-        (error) => {
-          // Display error
-          this.$store.dispatch('showErrorMessageRaw', error.message);
-          this.loading = false;
-        },
-      );
+          this.showErrorMessage(this.$t('login.generalError'));
+        } else {
+          if (error instanceof Error) {
+            this.showErrorMessage(error.message);
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      // Auth ok. Start phase 2 (fetch user data and current security server info).
+
+      try {
+        await this.fetchUserData();
+        await this.fetchInitializationData(); // Used to be inside fetchUserData()
+        await this.fetchSecurityServerVersion();
+        await this.fetchSecurityServerNodeType();
+      } catch (error) {
+        this.showError(error as AxiosError);
+      }
+
+      // Clear loading state
+      this.loading = false;
     },
 
-    fetchInitializationData() {
-      const redirectToLogin = () => {
+    async fetchInitializationData() {
+      const redirectToLogin = async () => {
         // Logout without page refresh
-        this.$store.dispatch('logout', false);
+        await this.logoutUser(false);
         // Clear inputs
         this.username = '';
         this.password = '';
         this.$refs.form.reset();
       };
 
-      this.$store
-        .dispatch('fetchInitializationStatus')
-        .then(
-          () => {
-            if (!this.$store.getters.hasInitState) {
-              this.$store.dispatch(
-                'showErrorMessageCode',
-                'initialConfiguration.noInitializationStatus',
-              );
-              redirectToLogin();
-            } else if (this.$store.getters.needsInitialization) {
-              // Check if the user has permission to initialize the server
-              if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
-                this.$store.dispatch(
-                  'showErrorMessageCode',
-                  'initialConfiguration.noPermission',
-                );
-                redirectToLogin();
-
-                return;
-              }
-              this.$router.replace({ name: RouteName.InitialConfiguration });
-            } else {
-              this.fetchCurrentSecurityServer();
-              this.$router.replace({
-                name: this.$store.getters.firstAllowedTab.to.name,
-              });
-            }
-          },
-          (error) => {
-            // Display error
-            this.$store.dispatch('showError', error);
-          },
-        )
-        .finally(() => {
-          // Clear loading state
-          this.loading = false;
+      await this.fetchInitializationStatus();
+      await this.fetchSecurityServerNodeType();
+      if (!this.hasInitState) {
+        this.showErrorMessage(
+          this.$t('initialConfiguration.noInitializationStatus'),
+        );
+        await redirectToLogin();
+      } else if (this.needsInitialization) {
+        // Check if the user has permission to initialize the server
+        if (!this.hasPermission(Permissions.INIT_CONFIG)) {
+          await redirectToLogin();
+          throw new Error(
+            this.$t('initialConfiguration.noPermission') as string,
+          );
+        }
+        await this.$router.replace({ name: RouteName.InitialConfiguration });
+      } else {
+        // No need to initialise, proceed to "main view"
+        await this.fetchCurrentSecurityServer();
+        await this.$router.replace({
+          name: this.firstAllowedTab.to.name,
         });
-    },
-
-    async fetchCurrentSecurityServer() {
-      this.$store.dispatch('fetchCurrentSecurityServer').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
-    async fetchSecurityServerVersion() {
-      this.$store
-        .dispatch('fetchSecurityServerVersion')
-        .catch((error) => this.$store.dispatch('showError', error));
+      }
     },
   },
 });
@@ -291,6 +298,7 @@ export default (
   z-index: 100;
   position: absolute;
 }
+
 .graphics {
   height: 100%;
   width: 40%;

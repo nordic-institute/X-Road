@@ -132,10 +132,6 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../../assets/dialogs';
 
-.long-row-title {
-  min-width: 170px !important;
-}
-
 .dlg-edit-row {
   width: 400px;
 }

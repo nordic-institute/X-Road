@@ -165,6 +165,8 @@ sudo lxd init
 
 An example of an LXD-specific host file can be found in `hosts/lxd_hosts.txt`. While it is possible to use and modify this file it is recommended to create your own host file to facilitate further configuration.
 
+Some LXD installations may create the Unix-domain socket for connecting to the service in a location different from those searched by ansible. If that is the case in your environment, override the variable `lxd_url` for the server running LXD (group `lxd_servers` in the example inventory file) by creating a yml file in the `group_vars` directory.
+
 The playbook initializes LXD-containers according to the hosts defined in the inventory. The host for the LXD-containers themselves is
 defined with the group `lxd_servers`, normally localhost. After inventory configurations, Ansible playbooks can be used to deploy X-Road to the LXD-hosts much like with other inventories.
 

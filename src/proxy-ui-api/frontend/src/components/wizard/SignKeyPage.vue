@@ -26,14 +26,14 @@
 <template>
   <div>
     <div class="wizard-step-form-content py-10 mt-10">
-      <div class="row-wrap">
+      <div class="wizard-row-wrap">
         <xrd-form-label
           :label-text="$t('wizard.signKey.keyLabel')"
           :help-text="$t('wizard.signKey.info')"
         />
         <v-text-field
           v-model="keyLabel"
-          class="form-input"
+          class="wizard-form-input"
           type="text"
           data-test="key-label-input"
           outlined
@@ -66,6 +66,9 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapActions, mapWritableState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   data() {
@@ -74,16 +77,11 @@ export default Vue.extend({
     };
   },
   computed: {
-    keyLabel: {
-      get(): string {
-        return this.$store.getters.keyLabel;
-      },
-      set(value: string) {
-        this.$store.commit('storeKeyLabel', value);
-      },
-    },
+    ...mapWritableState(useCsrStore, ['keyLabel']),
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useCsrStore, ['requestGenerateCsr']),
     cancel(): void {
       this.$emit('cancel');
     },
@@ -94,12 +92,12 @@ export default Vue.extend({
       this.$emit('done');
     },
     generateCsr(): void {
-      this.$store.dispatch('generateCsr').then(
+      this.requestGenerateCsr().then(
         () => {
           this.disableDone = false;
         },
         (error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         },
       );
     },

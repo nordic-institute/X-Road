@@ -97,6 +97,8 @@ import { ServiceClient } from '@/openapi-types';
 import * as api from '@/util/api';
 import { Prop } from 'vue/types/options';
 import { encodePathParameter } from '@/util/api';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   props: {
@@ -120,13 +122,14 @@ export default Vue.extend({
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     fetchData(): void {
       api
         .get<ServiceClient[]>(
           `/clients/${encodePathParameter(this.id)}/service-client-candidates`,
         )
         .then((response) => (this.serviceClientCandidates = response.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
     cancel(): void {
       this.$router.go(-1);

@@ -53,24 +53,12 @@ module.exports = {
     `${process.env.VUE_DEV_SERVER_URL}/#/service/${clientId}/${serviceId}/endpoints/${endpointId}/accessrights`,
   commands: commands,
   elements: {
-    removeAllButton: {
-      selector: '//button[@data-test="remove-all-access-rights"]',
-      locateStrategy: 'xpath',
-    },
-    addSubjectsButton: {
-      selector: '//button[@data-test="add-subjects-dialog"]',
-      locateStrategy: 'xpath',
-    },
-    closeButton: {
-      selector:
+    removeAllButton: '//button[@data-test="remove-all-access-rights"]',
+    addSubjectsButton:  '//button[@data-test="add-subjects-dialog"]',
+    closeButton:
         '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
-      locateStrategy: 'xpath',
-    },
-    pageHeader: {
-      selector:
+    pageHeader:
         '//div[contains(@class, "group-members-row)]//div[contains(@class, "row-title")]/text()',
-      locateStrategy: 'xpath',
-    },
   },
   sections: {
     addSubjectsPopup,

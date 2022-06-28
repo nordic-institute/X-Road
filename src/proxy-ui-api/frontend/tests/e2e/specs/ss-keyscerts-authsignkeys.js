@@ -29,7 +29,7 @@ var fs = require('fs');
 module.exports = {
   tags: ['ss', 'keyscerts', 'signauthkeys'],
   'Security server add signkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -105,7 +105,7 @@ module.exports = {
     browser.end();
   },
   'Security server add authkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -181,7 +181,7 @@ module.exports = {
     browser.end();
   },
   'Security server add signkey pem/empty label': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -280,7 +280,7 @@ module.exports = {
     browser.end();
   },
   'Security server add authkey pem/empty label': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -375,7 +375,7 @@ module.exports = {
     browser.end();
   },
   'Security server generate sign key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -490,7 +490,7 @@ module.exports = {
     browser.end();
   },
   'Security server delete sign key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -553,7 +553,7 @@ module.exports = {
     browser.end();
   },
   'Security server generate auth key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -676,7 +676,7 @@ module.exports = {
     browser.end();
   },
   'Security server delete auth key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -739,7 +739,7 @@ module.exports = {
     browser.end();
   },
   'Security server import authkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -757,34 +757,53 @@ module.exports = {
     browser.waitForElementVisible(signAuthTab);
 
     signAuthTab.toggleExpandToken();
-    browser.waitForElementNotPresent(signAuthTab.elements.initializedAuthCert)
+    browser.waitForElementNotPresent(signAuthTab.elements.initializedAuthCert);
 
     // Test wrong type of file
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_auth_csr);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.ss2_auth_csr,
+    );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Invalid certificate'
     mainPage.closeAlertMessage();
 
     // Test wrong server cert
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_auth_cert);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.ss2_auth_cert,
+    );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Key not found'
     mainPage.closeAlertMessage();
 
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.import_auth_cert);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.import_auth_cert,
+    );
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
     mainPage.closeSnackbar();
 
     // Verify status of new certificate
-    browser.waitForElementVisible('//tr[.//td[contains(text(), "Disabled")] and .//div[contains(@class, "status-text") and contains(text(), "Saved")]]//div[contains(@class, "clickable-link")]');
+    browser.waitForElementVisible(
+      '//tr[.//td[contains(text(), "Disabled")] and .//div[contains(@class, "status-text") and contains(text(), "Saved")]]//div[contains(@class, "clickable-link")]',
+    );
 
     browser.click(signAuthTab.elements.initializedAuthCert);
 
     // Verify that the correct crt was imported
-    browser.waitForElementVisible('//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road import")]]');
+    browser.waitForElementVisible(
+      '//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road import")]]',
+    );
 
     browser.end();
   },
   'Security server import signkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -814,21 +833,35 @@ module.exports = {
       },
     );
     // Test wrong type of file
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_sign_csr);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.ss2_sign_csr,
+    );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Invalid certificate'
     mainPage.closeAlertMessage();
 
     // Test wrong server cert
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_sign_cert);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.ss2_sign_cert,
+    );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Key not found'
     mainPage.closeAlertMessage();
 
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.import_sign_cert);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.import_sign_cert,
+    );
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
     mainPage.closeSnackbar();
 
-
-    // Verify that a certificate has been added with the correct status
+    // Verify that one certificate has been added (position is not known for certain though)
     browser.perform(function () {
       browser.waitForElementVisible(
         '(//tr[.//div[contains(@class, "clickable-link")] and .//div[contains(@class, "status-text") and contains(text(), "Registered")]])[' +
@@ -840,15 +873,14 @@ module.exports = {
     // Open imported certificate
     browser.perform(function () {
       browser.click(
-        '(//tr[.//div[contains(@class, "status-text") and contains(text(), "Registered")]]//div[contains(@class, "clickable-link")])[' +
-          (initialCerts + 1) +
-          ']',
+        '//div[contains(@class, "clickable-link") and contains(text(), "X-Road Test CA CN 20")]'
       );
     });
 
-
     // Verify that the correct crt was imported
-    browser.waitForElementVisible('//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road Import")]]');
+    browser.waitForElementVisible(
+      '//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road Import")]]',
+    );
 
     browser.end();
   },

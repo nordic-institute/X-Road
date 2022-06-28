@@ -67,18 +67,16 @@ export default Vue.extend({
 @import '../assets/colors';
 
 .new-content {
-  max-width: 850px;
   width: 100%;
 }
 
 .cert-dialog-header {
   display: flex;
   justify-content: center;
-  color: $XRoad-Grey60;
+  color: $XRoad-WarmGrey100;
   font-style: normal;
   font-weight: bold;
   font-size: 24px;
   line-height: 34px;
-  color: $XRoad-WarmGrey100;
 }
 </style>

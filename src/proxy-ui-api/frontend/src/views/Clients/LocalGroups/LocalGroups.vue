@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <div class="table-toolbar">
+    <div class="xrd-table-toolbar">
       <v-text-field
         v-model="search"
         label="Search"
@@ -46,28 +46,34 @@
       >
     </div>
 
-    <v-card flat>
-      <table class="xrd-table details-certificates">
-        <tr>
-          <th>{{ $t('localGroups.code') }}</th>
-          <th>{{ $t('localGroups.description') }}</th>
-          <th>{{ $t('localGroups.memberCount') }}</th>
-          <th>{{ $t('localGroups.updated') }}</th>
-        </tr>
-        <template v-if="groups && groups.length > 0">
-          <tr v-for="group in filtered()" :key="group.code">
-            <td class="identifier-wrap">
-              <span class="cert-name" @click="viewGroup(group)">{{
-                group.code
-              }}</span>
-            </td>
-            <td class="identifier-wrap">{{ group.description }}</td>
-            <td>{{ group.member_count }}</td>
-            <td>{{ group.updated_at | formatDate }}</td>
-          </tr>
-        </template>
-      </table>
-    </v-card>
+    <v-data-table
+      :loading="loading"
+      :headers="headers"
+      :items="groups"
+      :search="search"
+      :must-sort="true"
+      :items-per-page="-1"
+      class="elevation-0 data-table mt-10"
+      item-key="id"
+      :loader-height="2"
+      hide-default-footer
+      :no-data-text="$t('noData.noLocalGroups')"
+      data-test="local-groups-table"
+    >
+      <template #[`item.code`]="{ item }">
+        <div class="group-code identifier-wrap" @click="viewGroup(item)">
+          {{ item.code }}
+        </div>
+      </template>
+
+      <template #[`item.updated_at`]="{ item }">
+        {{ item.updated_at | formatDate }}
+      </template>
+
+      <template #footer>
+        <div class="custom-footer"></div>
+      </template>
+    </v-data-table>
 
     <newGroupDialog
       :id="id"
@@ -80,13 +86,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { DataTableHeader } from 'vuetify';
 import * as api from '@/util/api';
 import NewGroupDialog from './NewGroupDialog.vue';
-import { mapGetters } from 'vuex';
+
 import { Permissions, RouteName } from '@/global';
 import { selectedFilter } from '@/util/helpers';
 import { LocalGroup } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+import { useClientStore } from '@/store/modules/client';
 
 export default Vue.extend({
   components: {
@@ -104,18 +115,49 @@ export default Vue.extend({
       dialog: false,
       groups: [] as LocalGroup[],
       addGroupDialog: false,
+      loading: false,
     };
   },
   computed: {
-    ...mapGetters(['client']),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useClientStore, ['client']),
     showAddGroup(): boolean {
-      return this.$store.getters.hasPermission(Permissions.ADD_LOCAL_GROUP);
+      return this.hasPermission(Permissions.ADD_LOCAL_GROUP);
+    },
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('localGroups.code') as string,
+          align: 'start',
+          value: 'code',
+          class: 'xrd-table-header lg-table-header-code',
+        },
+        {
+          text: this.$t('localGroups.description') as string,
+          align: 'start',
+          value: 'description',
+          class: 'xrd-table-header lg-table-header-description',
+        },
+        {
+          text: this.$t('localGroups.memberCount') as string,
+          align: 'start',
+          value: 'member_count',
+          class: 'xrd-table-header lg-table-header-member-count',
+        },
+        {
+          text: this.$t('localGroups.updated') as string,
+          align: 'start',
+          value: 'updated_at',
+          class: 'xrd-table-header lg-table-header-updated',
+        },
+      ];
     },
   },
   created() {
     this.fetchGroups(this.id);
   },
   methods: {
+    ...mapActions(useNotifications, ['showError']),
     addGroup(): void {
       this.addGroupDialog = true;
     },
@@ -144,6 +186,7 @@ export default Vue.extend({
     },
 
     fetchGroups(id: string): void {
+      this.loading = true;
       api
         .get<LocalGroup[]>(`/clients/${encodePathParameter(id)}/local-groups`)
         .then((res) => {
@@ -159,8 +202,9 @@ export default Vue.extend({
           });
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
+          this.showError(error);
+        })
+        .finally(() => (this.loading = false));
     },
   },
 });
@@ -169,13 +213,9 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/tables';
 
-.cert-name {
+.group-code {
   color: $XRoad-Link;
   cursor: pointer;
-}
-
-.details-certificates {
-  margin-top: 40px;
 }
 
 .search-input {

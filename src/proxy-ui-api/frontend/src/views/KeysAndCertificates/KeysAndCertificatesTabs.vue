@@ -43,6 +43,8 @@ import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
@@ -54,10 +56,11 @@ export default Vue.extend({
   }),
 
   computed: {
+    ...mapState(useUser, ['getAllowedTabs']),
     tabs(): Tab[] {
       const allTabs: Tab[] = [
         {
-          key: 'signAndAuthKeys',
+          key: 'sign-and-auth-keys-tab-button',
           name: 'tab.keys.signAndAuthKeys',
           to: {
             name: RouteName.SignAndAuthKeys,
@@ -65,7 +68,7 @@ export default Vue.extend({
           permissions: [Permissions.VIEW_KEYS],
         },
         {
-          key: 'apiKey',
+          key: 'api-key-tab-button',
           name: 'tab.keys.apiKey',
           to: {
             name: RouteName.ApiKey,
@@ -78,7 +81,7 @@ export default Vue.extend({
           ],
         },
         {
-          key: 'ssTlsCertificate',
+          key: 'ss-tls-certificate-tab-button',
           name: 'tab.keys.ssTlsCertificate',
           to: {
             name: RouteName.SSTlsCertificate,
@@ -87,14 +90,8 @@ export default Vue.extend({
         },
       ];
 
-      return this.$store.getters.getAllowedTabs(allTabs);
+      return this.getAllowedTabs(allTabs);
     },
   },
 });
 </script>
-
-<style lang="scss" scoped>
-.content {
-  width: 1000px;
-}
-</style>

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="mt-3">
+  <div class="mt-3" data-test="security-server-tls-key-view">
     <div class="title-row">
       <div class="xrd-view-title">{{ $t('tab.keys.ssTlsCertificate') }}</div>
       <div>
@@ -36,7 +36,7 @@
       </div>
     </div>
 
-    <div class="details-view-tools">
+    <div class="dtlv-tools">
       <xrd-button
         v-if="generateKeyVisible"
         class="button-spacing"
@@ -80,27 +80,11 @@
       <div class="content-title">{{ $t('ssTlsCertificate.keyCertTitle') }}</div>
       <div class="horizontal-line-dark"></div>
 
-      <div class="content-wrap">
-        <div>
-          <div class="key-wrap">
-            <i class="icon-Key icon" />
+      <div class="key-row">
+        <div class="key-wrap">
+          <i class="icon-Key icon" />
 
-            {{ $t('ssTlsCertificate.keyText') }}
-          </div>
-          <div class="cert-wrap">
-            <i
-              class="icon-Certificate icon clickable-link"
-              @click="certificateClick()"
-            />
-
-            <div
-              v-if="certificate"
-              class="clickable-link"
-              @click="certificateClick()"
-            >
-              {{ certificate.hash | colonize }}
-            </div>
-          </div>
+          {{ $t('ssTlsCertificate.keyText') }}
         </div>
 
         <div>
@@ -116,7 +100,28 @@
         </div>
       </div>
 
-      <div class="horizontal-line-light"></div>
+      <div v-if="certificate" class="cert-row">
+        <div>
+          <i
+            class="icon-Certificate icon clickable-link"
+            @click="certificateClick()"
+          />
+        </div>
+        <div
+          v-if="certificate"
+          class="clickable-link"
+          @click="certificateClick()"
+        >
+          {{ certificate.hash | colonize }}
+        </div>
+      </div>
+      <XrdEmptyPlaceholder
+        :data="certificate"
+        :loading="loading"
+        :no-items-text="$t('noData.noCertificate')"
+      />
+
+      <div class="footer-pad"></div>
     </div>
   </div>
 </template>
@@ -130,6 +135,9 @@ import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/Securit
 import { saveResponseAsFile } from '@/util/helpers';
 import { FileUploadResult } from '@niis/shared-ui';
 import HelpButton from '../HelpButton.vue';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -141,34 +149,29 @@ export default Vue.extend({
       certificate: undefined as CertificateDetails | undefined,
       generateDialog: false,
       exportPending: false,
+      loading: false,
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     generateKeyVisible(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
-      );
+      return this.hasPermission(Permissions.GENERATE_INTERNAL_TLS_KEY_CERT);
     },
     importCertificateVisible(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.IMPORT_INTERNAL_TLS_CERT,
-      );
+      return this.hasPermission(Permissions.IMPORT_INTERNAL_TLS_CERT);
     },
     exportCertificateVisible(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EXPORT_INTERNAL_TLS_CERT,
-      );
+      return this.hasPermission(Permissions.EXPORT_INTERNAL_TLS_CERT);
     },
     generateCsrVisible(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.GENERATE_INTERNAL_TLS_CSR,
-      );
+      return this.hasPermission(Permissions.GENERATE_INTERNAL_TLS_CSR);
     },
   },
   created() {
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     certificateClick(): void {
       this.$router.push({
         name: RouteName.InternalTlsCertificate,
@@ -180,14 +183,16 @@ export default Vue.extend({
       });
     },
     fetchData(): void {
+      this.loading = true;
       api
         .get<CertificateDetails>('/system/certificate')
         .then((res) => {
           this.certificate = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
+          this.showError(error);
+        })
+        .finally(() => (this.loading = false));
     },
     newCertificateGenerated(): void {
       this.fetchData();
@@ -198,7 +203,7 @@ export default Vue.extend({
       api
         .get('/system/certificate/export', { responseType: 'blob' })
         .then((res) => saveResponseAsFile(res, 'certs.tar.gz'))
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => (this.exportPending = false));
     },
     onImportFileChanged(result: FileUploadResult): void {
@@ -209,13 +214,10 @@ export default Vue.extend({
           },
         })
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            'ssTlsCertificate.certificateImported',
-          );
+          this.showSuccess(this.$t('ssTlsCertificate.certificateImported'));
           this.fetchData();
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
   },
 });
@@ -231,7 +233,7 @@ export default Vue.extend({
 }
 
 .content-title {
-  color: $XRoad-Black;
+  color: $XRoad-Black100;
   font-size: $XRoad-DefaultFontSize;
   font-weight: 500;
   margin-top: 40px;
@@ -249,34 +251,39 @@ export default Vue.extend({
   border-radius: 4px;
 }
 
-.content-wrap {
-  margin-top: 30px;
+.key-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  align-items: center;
+  height: 56px;
+  border-bottom: 1px solid $XRoad-WarmGrey30;
 }
 
 .key-wrap {
   display: flex;
+  width: 100%;
+  align-items: center;
+  padding-left: 15px;
 }
 
-.cert-wrap {
+.cert-row {
   display: flex;
-  margin-top: 20px;
-  padding-left: 40px;
+  width: 100%;
+  align-items: center;
+  padding-left: 56px;
+  height: 56px;
 }
 
 .horizontal-line-dark {
   width: 100%;
-  height: 1.5px;
-  border-top: 1px solid $XRoad-Grey40;
-  background-color: $XRoad-Grey10;
+  height: 1px;
+  border-top: 1px solid $XRoad-WarmGrey30;
 }
 
-.horizontal-line-light {
+.footer-pad {
   width: 100%;
-  height: 1px;
-  background-color: $XRoad-Grey10;
+  height: 16px;
+  border-top: 1px solid $XRoad-WarmGrey30;
 }
 
 .icon {
@@ -284,12 +291,10 @@ export default Vue.extend({
   margin-right: 20px;
 }
 
-.clickable {
-  cursor: pointer;
-}
-
 .clickable-link {
   cursor: pointer;
+  display: flex;
+  align-items: center;
   height: 100%;
   color: $XRoad-Link;
 }

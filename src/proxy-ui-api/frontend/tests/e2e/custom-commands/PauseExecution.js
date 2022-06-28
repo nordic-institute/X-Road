@@ -30,5 +30,4 @@ module.exports = class PauseExecution {
     //TODO might want figure out a way to make this resumeable
     this.api.pause(time);
   }
-}
-
+};

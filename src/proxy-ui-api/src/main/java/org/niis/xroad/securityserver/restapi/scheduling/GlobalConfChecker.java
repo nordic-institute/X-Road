@@ -117,10 +117,11 @@ public class GlobalConfChecker {
     }
 
     private void checkGlobalConf() {
-        globalConfFacade.verifyValidity();
-
+        // conf MUST be reloaded before checking validity otherwise expired or invalid conf is never reloaded
         log.debug("Reloading globalconf");
-        globalConfFacade.reload(); // XXX: temporary fix
+        globalConfFacade.reload();
+
+        globalConfFacade.verifyValidity();
 
         ServerConfType serverConf = globalConfCheckerHelper.getServerConf();
         SecurityServerId securityServerId = null;

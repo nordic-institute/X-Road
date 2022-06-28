@@ -36,8 +36,8 @@
         }}</v-col>
       </v-row>
       <v-row>
-        <v-col cols="3" class="mt-6">
-          <xrd-help-iconcon
+        <v-col cols="3" class="mt-6 icon-wrapper">
+          <xrd-help-icon
             :text="$t('ssTlsCertificate.generateInternalCsr.step1.tooltip')"
           />
           {{ $t('ssTlsCertificate.generateInternalCsr.step1.label') }}
@@ -95,6 +95,8 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { saveResponseAsFile } from '@/util/helpers';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   data() {
@@ -105,6 +107,7 @@ export default Vue.extend({
     };
   },
   methods: {
+    ...mapActions(useNotifications, ['showError']),
     back(): void {
       this.$router.go(-1);
     },
@@ -121,7 +124,7 @@ export default Vue.extend({
           this.csrGenerated = true;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => (this.generatingCsr = false));
     },
@@ -140,7 +143,7 @@ $spacing: 12rem;
   max-width: 850px;
   height: 100%;
   width: 100%;
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
   background-color: $XRoad-White100;
   box-shadow: $XRoad-DefaultShadow;
   border-radius: 4px;
@@ -148,17 +151,13 @@ $spacing: 12rem;
   margin-top: 20px;
 }
 
-.help-wrapper {
-  display: inline;
+.icon-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
 }
 
 .first-action {
-  margin-top: $spacing;
-}
-
-.bottom-buttons-wrapper {
-  border-top: solid 1px $XRoad-Grey40;
-  padding-top: 1rem;
   margin-top: $spacing;
 }
 </style>

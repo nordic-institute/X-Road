@@ -168,6 +168,9 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import * as Sorting from './keyColumnSorting';
 import { Prop } from 'vue/types/options';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -202,6 +205,7 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     sortedKeys(): Key[] {
       return Sorting.keyArraySort(
         this.keys,
@@ -211,18 +215,17 @@ export default Vue.extend({
     },
     canImportFromToken(): boolean {
       // Can the user import certificate from hardware token
-      return this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT);
+      return this.hasPermission(Permissions.IMPORT_SIGN_CERT);
     },
 
     showRegisterCertButton(): boolean {
       // Decide if the user can register a certificate
-      return this.$store.getters.hasPermission(
-        Permissions.SEND_AUTH_CERT_REG_REQ,
-      );
+      return this.hasPermission(Permissions.SEND_AUTH_CERT_REG_REQ);
     },
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     setSort(sort: KeysSortColumn): void {
       // Set sort column and direction
       if (sort === this.selectedSort) {
@@ -234,9 +237,9 @@ export default Vue.extend({
     canDeleteCsr(key: Key): boolean {
       // Decide if the user can delete CSR based on the key usage type and permissions
       if (key.usage === 'AUTHENTICATION') {
-        return this.$store.getters.hasPermission(Permissions.DELETE_AUTH_CERT);
+        return this.hasPermission(Permissions.DELETE_AUTH_CERT);
       }
-      return this.$store.getters.hasPermission(Permissions.DELETE_SIGN_CERT);
+      return this.hasPermission(Permissions.DELETE_SIGN_CERT);
     },
     keyClick(key: Key): void {
       this.$emit('key-click', key);
@@ -266,11 +269,11 @@ export default Vue.extend({
           { address },
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'keys.certificateRegistered');
+          this.showSuccess(this.$t('keys.certificateRegistered'));
           this.$emit('refresh-list');
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
     showDeleteCsrDialog(req: TokenCertificateSigningRequest, key: Key): void {
@@ -292,11 +295,11 @@ export default Vue.extend({
           )}/csrs/${encodePathParameter(this.selectedCsr.id)}`,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'keys.csrDeleted');
+          this.showSuccess(this.$t('keys.csrDeleted'));
           this.$emit('refresh-list');
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
   },

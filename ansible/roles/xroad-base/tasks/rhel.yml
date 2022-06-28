@@ -7,7 +7,7 @@
 - name: EPEL repo key
   rpm_key:
     state: present
-    key: https://getfedora.org/static/fedora.gpg
+    key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ansible_distribution_major_version}}
 
 - name: Install EPEL repository (RHEL)
   yum:

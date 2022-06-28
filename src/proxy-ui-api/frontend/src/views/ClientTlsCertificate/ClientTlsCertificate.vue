@@ -28,7 +28,7 @@
     <div class="new-content">
       <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
       <template v-if="certificate">
-        <div class="cert-hash-wrapper">
+        <div class="dtlv-cert-hash">
           <certificateHash :hash="certificate.hash" />
           <xrd-button
             v-if="showDeleteButton"
@@ -54,13 +54,17 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+
 import { Permissions } from '@/global';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import * as api from '@/util/api';
 import { CertificateDetails } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useClientStore } from '@/store/modules/client';
 
 export default Vue.extend({
   components: {
@@ -84,17 +88,17 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['tlsCertificates']),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useClientStore, ['tlsCertificates']),
     showDeleteButton(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.DELETE_CLIENT_INTERNAL_CERT,
-      );
+      return this.hasPermission(Permissions.DELETE_CLIENT_INTERNAL_CERT);
     },
   },
   created() {
     this.fetchData(this.id, this.hash);
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
       this.$router.go(-1);
     },
@@ -108,7 +112,7 @@ export default Vue.extend({
             this.certificate = response.data;
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         );
     },
@@ -126,10 +130,10 @@ export default Vue.extend({
         )
         .then(
           () => {
-            this.$store.dispatch('showSuccess', 'cert.certDeleted');
+            this.showSuccess(this.$t('cert.certDeleted'));
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         )
         .finally(() => {
@@ -141,6 +145,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+@import '~styles/detail-views';
+
 .wrapper {
   display: flex;
   justify-content: center;
@@ -148,12 +154,5 @@ export default Vue.extend({
   max-width: 850px;
   height: 100%;
   width: 100%;
-}
-
-.cert-hash-wrapper {
-  margin-top: 30px;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
 }
 </style>

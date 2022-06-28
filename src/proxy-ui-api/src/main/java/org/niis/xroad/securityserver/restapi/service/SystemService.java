@@ -88,7 +88,6 @@ public class SystemService {
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
-
     @Setter
     private String tempFilesPath = SystemProperties.getTempFilesPath();
 
@@ -241,7 +240,7 @@ public class SystemService {
      * returns an error
      * @throws ConfigurationVerifier.ConfigurationVerificationException when a known exception happens during
      * @throws AnchorAlreadyExistsException if there already is an anchor -> a new one cannot be uploaded. Instead the
-     * old anchor should be updated by using {@link #uploadAnchor(byte[])}
+     * old anchor should be updated by using {@link #uploadAnchor(byte[], boolean)}
      * verification
      */
     public void uploadInitialAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
@@ -430,6 +429,14 @@ public class SystemService {
 
     static boolean isCausedByMalformedAnchorContent(CodedException e) {
         return (X_MALFORMED_GLOBALCONF).equals(e.getFaultCode());
+    }
+
+    /**
+     * Return the node type of the server
+     * @return server node type
+     */
+    public SystemProperties.NodeType getServerNodeType() {
+        return SystemProperties.getServerNodeType();
     }
 
     /**

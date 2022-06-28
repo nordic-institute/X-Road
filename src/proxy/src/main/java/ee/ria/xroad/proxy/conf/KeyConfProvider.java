@@ -39,8 +39,8 @@ import java.util.List;
 public interface KeyConfProvider {
 
     /**
-     * @return security (signing) context for given member.
      * @param memberId client ID of the member
+     * @return security (signing) context for given member.
      */
     SigningCtx getSigningCtx(ClientId memberId);
 
@@ -50,24 +50,24 @@ public interface KeyConfProvider {
     AuthKey getAuthKey();
 
     /**
-     * @return the OCSP server response for the given certificate hash,
-     * or null, if no response is available for that certificate.
      * @param cert the certificate
+     * @return the OCSP server response for the given certificate hash,
+     *         or null, if no response is available for that certificate.
      * @throws Exception in case of any errors
      */
     OCSPResp getOcspResponse(X509Certificate cert) throws Exception;
 
     /**
-     * @return the OCSP server response for the given certificate hash,
-     * or null, if no response is available for that certificate.
      * @param certHash hash of the certificate
+     * @return the OCSP server response for the given certificate hash,
+     *         or null, if no response is available for that certificate.
      * @throws Exception in case of any errors
      */
     OCSPResp getOcspResponse(String certHash) throws Exception;
 
     /**
-     * @return OCSP responses for given certificates.
      * @param certs list of certificates
+     * @return OCSP responses for given certificates.
      * @throws Exception in case of any errors
      */
     List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
@@ -82,5 +82,12 @@ public interface KeyConfProvider {
      */
     void setOcspResponses(List<X509Certificate> certs,
             List<OCSPResp> responses) throws Exception;
+
+    /**
+     * Cleans up any resources hold by KeyConf Provider
+     */
+    default void destroy() {
+        //NOP
+    }
 
 }

@@ -62,9 +62,13 @@
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider } from 'vee-validate';
+import { mapActions, mapState } from 'pinia';
 import { Token } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { useAlerts } from '@/store/modules/alerts';
+import { useNotifications } from '@/store/modules/notifications';
+import { useTokensStore } from '@/store/modules/tokens';
 
 export default Vue.extend({
   components: { ValidationProvider },
@@ -83,6 +87,8 @@ export default Vue.extend({
   },
 
   computed: {
+    ...mapState(useTokensStore, ['selectedToken']),
+
     isValid(): boolean {
       // Check that input is not empty
       if (this.pin && this.pin.length > 0) {
@@ -93,16 +99,19 @@ export default Vue.extend({
   },
 
   methods: {
+    ...mapActions(useAlerts, ['checkAlertStatus']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
       this.clear();
     },
     save(): void {
-      const token: Token = this.$store.getters.selectedToken;
-
-      if (!token) {
+      if (!this.selectedToken) {
+        // eslint-disable-next-line no-console
+        console.error('Selected token missing');
         return;
       }
+      const token: Token = this.selectedToken;
 
       this.loading = true;
       api
@@ -111,7 +120,7 @@ export default Vue.extend({
         })
         .then(() => {
           this.loading = false;
-          this.$store.dispatch('showSuccess', 'keys.loggedIn');
+          this.showSuccess(this.$t('keys.loggedIn'));
           this.$emit('save');
         })
         .catch((error) => {
@@ -125,9 +134,9 @@ export default Vue.extend({
             ).setErrors([this.$t('keys.incorrectPin') as string]);
           }
 
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
-        .finally(() => this.$store.dispatch('checkAlertStatus'));
+        .finally(() => this.checkAlertStatus());
 
       this.clear();
     },

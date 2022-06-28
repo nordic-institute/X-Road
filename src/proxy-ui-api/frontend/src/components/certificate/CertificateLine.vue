@@ -114,7 +114,7 @@ export default Vue.extend({
       const translated: string[] = [];
 
       arr.forEach((element) => {
-        translated.push(this.$t('cert.keyUsage.' + element) as string);
+        translated.push(this.$t(`cert.keyUsage.${element}`) as string);
       });
 
       // Return nice looking string representation of an array of strings

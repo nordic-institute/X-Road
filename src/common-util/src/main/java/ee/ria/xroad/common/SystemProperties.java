@@ -278,10 +278,14 @@ public final class SystemProperties {
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
 
-    private static final String PROXY_BACKUP_ENCRYPTED = PREFIX + "proxy.backup-encrypted";
+    private static final String PROXY_BACKUP_ENCRYPTION_ENABLED = PREFIX + "proxy.backup-encryption-enabled";
 
-    private static final String PROXY_BACKUP_PUBLIC_KEY_PATH = PREFIX + "proxy.backup-public-key-path";
+    private static final String PROXY_BACKUP_ENCRYPTION_KEY_IDS = PREFIX + "proxy.backup-encryption-keyids";
 
+    private static final String HSM_HEALTH_CHECK_ENABLED = PREFIX + "proxy.hsm-health-check-enabled";
+
+    private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = "false";
+    private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = "false";
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = "false";
@@ -1601,5 +1605,29 @@ public final class SystemProperties {
     public static boolean isClientIsCertValidityPeriodCheckEnforced() {
         return "true".equalsIgnoreCase(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
                 DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
+    }
+
+    /**
+     * @return Whether encryption to security server backup files using server's OpenPGP key is enabled,
+     * 'false' by default..
+     */
+    public static boolean isBackupEncryptionEnabled() {
+        return "true".equalsIgnoreCase(System.getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,
+                DEFAULT_PROXY_BACKUP_ENCRYPTED));
+    }
+
+    /**
+     * @return Comma-separated list of additional recipient OpenPGP key identifiers
+     */
+    public static String getBackupEncryptionKeyIds() {
+        return System.getProperty(PROXY_BACKUP_ENCRYPTION_KEY_IDS, "");
+    }
+
+    /**
+     * @return Whether Hardware Security Modules Healthcheck is enabled
+     * 'false' by default
+     */
+    public static boolean isHSMHealthCheckEnabled() {
+        return Boolean.parseBoolean(System.getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
     }
 }

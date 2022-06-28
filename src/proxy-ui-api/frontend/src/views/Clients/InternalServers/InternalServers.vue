@@ -30,7 +30,7 @@
         <h1 class="title mb-3">{{ $t('internalServers.connectionType') }}</h1>
         <v-select
           :key="revertHack"
-          v-model="connectionType"
+          v-model="connectionTypeModel"
           :items="connectionTypes"
           class="select-connection"
           outlined
@@ -61,7 +61,7 @@
       <div class="cert-table-title pl-4">
         {{ $t('internalServers.certHash') }}
       </div>
-      <table class="certificate-table server-certificates">
+      <table class="server-certificates xrd-table">
         <template v-if="tlsCertificates && tlsCertificates.length > 0">
           <tr v-for="certificate in tlsCertificates" :key="certificate.hash">
             <td class="pl-4 pt-2">
@@ -78,6 +78,13 @@
             </td>
           </tr>
         </template>
+
+        <XrdEmptyPlaceholderRow
+          :colspan="2"
+          :loading="tlsCertLoading"
+          :data="tlsCertificates"
+          :no-items-text="$t('noData.noCertificates')"
+        />
       </table>
     </v-card>
 
@@ -88,8 +95,8 @@
       <div class="cert-table-title pl-4">
         {{ $t('internalServers.certHash') }}
       </div>
-      <table class="certificate-table server-certificates">
-        <template v-if="ssCertificate">
+      <table class="server-certificates xrd-table">
+        <template v-if="ssCertificate && !ssCertLoading">
           <tr>
             <td class="pl-4 pt-2">
               <i class="icon-Certificate icon" />
@@ -111,6 +118,12 @@
             </td>
           </tr>
         </template>
+        <XrdEmptyPlaceholderRow
+          :colspan="3"
+          :loading="ssCertLoading"
+          :data="ssCertificate"
+          :no-items-text="$t('noData.noCertificate')"
+        />
       </table>
     </v-card>
   </div>
@@ -119,13 +132,16 @@
 <script lang="ts">
 import Vue from 'vue';
 
-import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { FileUploadResult } from '@niis/shared-ui';
 import { CertificateDetails } from '@/openapi-types';
 import { saveResponseAsFile } from '@/util/helpers';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+import { useClientStore } from '@/store/modules/client';
 
 export default Vue.extend({
   props: {
@@ -144,70 +160,71 @@ export default Vue.extend({
       dialog: false,
       selectedCertificate: null,
       revertHack: 0,
+      tlsCertLoading: false,
+      ssCertLoading: false,
     };
   },
   computed: {
-    ...mapGetters(['tlsCertificates', 'ssCertificate']),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useClientStore, [
+      'tlsCertificates',
+      'ssCertificate',
+      'connectionType',
+    ]),
 
-    connectionType: {
-      get(): string | undefined {
-        return this.$store.getters.connectionType;
+    connectionTypeModel: {
+      get(): string | undefined | null {
+        return this.connectionType;
       },
       set(value: string) {
-        this.$store
-          .dispatch('saveConnectionType', {
-            clientId: this.id,
-            connType: value,
-          })
+        this.saveConnectionType({
+          clientId: this.id,
+          connType: value,
+        })
           .then(() => {
-            this.$store.dispatch(
-              'showSuccess',
-              'internalServers.connTypeUpdated',
-            );
+            this.showSuccess(this.$t('internalServers.connTypeUpdated'));
           })
           .catch((error) => {
             this.revertHack += 1;
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           });
       },
     },
 
     showConnectionType(): boolean {
-      return this.$store.getters.hasPermission(
+      return this.hasPermission(
         Permissions.VIEW_CLIENT_INTERNAL_CONNECTION_TYPE,
       );
     },
     canEditConnectionType(): boolean {
-      return this.$store.getters.hasPermission(
+      return this.hasPermission(
         Permissions.EDIT_CLIENT_INTERNAL_CONNECTION_TYPE,
       );
     },
     canViewTlsCertDetails(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS,
-      );
+      return this.hasPermission(Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS);
     },
     canAddTlsCert(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.ADD_CLIENT_INTERNAL_CERT,
-      );
+      return this.hasPermission(Permissions.ADD_CLIENT_INTERNAL_CERT);
     },
     canViewSSCert(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.VIEW_INTERNAL_TLS_CERT,
-      );
+      return this.hasPermission(Permissions.VIEW_INTERNAL_TLS_CERT);
     },
     canExportSSCert(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EXPORT_INTERNAL_TLS_CERT,
-      );
+      return this.hasPermission(Permissions.EXPORT_INTERNAL_TLS_CERT);
     },
   },
   created() {
-    this.fetchSSCertificate(this.id);
-    this.fetchTlsCertificates(this.id);
+    this.fetchSSCert(this.id);
+    this.fetchTlsCerts(this.id);
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useClientStore, [
+      'saveConnectionType',
+      'fetchTlsCertificates',
+      'fetchSSCertificate',
+    ]),
     onFileChange(event: FileUploadResult): void {
       api
         .post(
@@ -222,18 +239,21 @@ export default Vue.extend({
         .then(
           () => {
             // Refresh the tls cert list
-            this.fetchTlsCertificates(this.id);
+            this.fetchTlsCerts(this.id);
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         );
     },
 
-    fetchTlsCertificates(id: string): void {
-      this.$store.dispatch('fetchTlsCertificates', id).catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
+    fetchTlsCerts(id: string): void {
+      this.tlsCertLoading = true;
+      this.fetchTlsCertificates(id)
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => (this.tlsCertLoading = false));
     },
 
     exportSSCertificate(): void {
@@ -243,14 +263,17 @@ export default Vue.extend({
           saveResponseAsFile(response);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
-    fetchSSCertificate(id: string): void {
-      this.$store.dispatch('fetchSSCertificate', id).catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
+    fetchSSCert(id: string): void {
+      this.ssCertLoading = true;
+      this.fetchSSCertificate(id)
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => (this.ssCertLoading = false));
     },
 
     openCertificate(cert: CertificateDetails): void {
@@ -288,11 +311,11 @@ export default Vue.extend({
 }
 
 .conn-info {
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
 }
 
 .cert-table-title {
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
   font-size: $XRoad-DefaultFontSize;
   font-weight: bold;
   margin: 5px;

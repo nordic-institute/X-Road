@@ -27,9 +27,9 @@
   <div>
     <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
-        <div v-for="item in csrForm" :key="item.id" class="row-wrap">
-          <div class="label">
-            {{ $t('certificateProfile.' + item.label_key) }}
+        <div v-for="item in csrForm" :key="item.id" class="wizard-row-wrap">
+          <div class="wizard-label">
+            {{ $t(`certificateProfile.${item.label_key}`) }}
           </div>
 
           <div>
@@ -40,7 +40,7 @@
             >
               <v-text-field
                 v-model="item.default_value"
-                class="form-input"
+                class="wizard-form-input"
                 :name="item.id"
                 type="text"
                 outlined
@@ -92,8 +92,11 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { AxiosError } from 'axios';
 
 export default Vue.extend({
   components: {
@@ -117,9 +120,11 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['csrForm']),
+    ...mapState(useCsrStore, ['csrForm', 'csrTokenId']),
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useCsrStore, ['requestGenerateCsr', 'generateKeyAndCsr']),
     cancel(): void {
       this.$emit('cancel');
     },
@@ -130,24 +135,33 @@ export default Vue.extend({
       this.$emit('done');
     },
     async generateCsr(): Promise<void> {
-      const tokenId = this.$store.getters.csrTokenId;
       if (this.keyAndCsr) {
+        // Create Key AND CSR
+
+        if (!this.csrTokenId) {
+          // Should not happen
+          throw new Error('Token id does not exist');
+        }
+        const tokenId = this.csrTokenId;
+
         // Create key and CSR
         try {
-          await this.$store.dispatch('generateKeyAndCsr', tokenId);
+          await this.generateKeyAndCsr(tokenId);
           this.disableDone = false;
         } catch (error) {
           this.disableDone = true;
-          await this.$store.dispatch('showError', error);
+          // Error comes from axios, so it most probably is AxiosError
+          this.showError(error as AxiosError);
         }
       } else {
         // Create only CSR
         try {
-          await this.$store.dispatch('generateCsr');
+          await this.requestGenerateCsr();
           this.disableDone = false;
         } catch (error) {
           this.disableDone = true;
-          await this.$store.dispatch('showError', error);
+          // Error comes from axios, so it most probably is AxiosError
+          this.showError(error as AxiosError);
         }
       }
     },

@@ -26,7 +26,7 @@
 <template>
   <div>
     <div class="wizard-step-form-content pt-6">
-      <div class="row-wrap">
+      <div class="wizard-row-wrap">
         <xrd-form-label
           v-if="tokenType === 'HARDWARE'"
           :label-text="$t('wizard.signKey.keyLabel')"
@@ -40,7 +40,7 @@
 
         <v-text-field
           v-model="keyLabel"
-          class="form-input"
+          class="wizard-form-input"
           type="text"
           outlined
           data-test="key-label-button"
@@ -66,7 +66,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapWritableState } from 'pinia';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   props: {
@@ -82,15 +83,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['csrForm']),
-    keyLabel: {
-      get(): string {
-        return this.$store.getters.keyLabel;
-      },
-      set(value: string) {
-        this.$store.commit('storeKeyLabel', value);
-      },
-    },
+    ...mapWritableState(useCsrStore, ['keyLabel']),
     keyLabelText(): string {
       if (this.$props.tokenType === 'HARDWARE') {
         return 'wizard.signKey.keyLabel';

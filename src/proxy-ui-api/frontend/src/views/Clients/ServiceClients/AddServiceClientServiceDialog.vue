@@ -70,7 +70,7 @@
               </div>
             </td>
             <td>{{ accessRight.service_code }}</td>
-            <td>{{ accessRight.title }}</td>
+            <td>{{ accessRight.service_title }}</td>
           </tr>
         </tbody>
       </table>
@@ -123,9 +123,14 @@ export default Vue.extend({
       this.selections = [];
     },
     searchResults(): ServiceCandidate[] {
-      return this.serviceCandidates.filter((candidate) =>
-        candidate.service_code.includes(this.search),
-      );
+      const cleanedSearch = this.search.toLowerCase();
+
+      return this.serviceCandidates.filter((candidate: ServiceCandidate) => {
+        return (
+          candidate.service_code.toLowerCase().includes(cleanedSearch) ||
+          candidate.service_title?.toLowerCase().includes(cleanedSearch)
+        );
+      });
     },
     filterSelections(): AccessRight[] {
       return this.selections.filter((ac: AccessRight) =>
@@ -137,7 +142,7 @@ export default Vue.extend({
 </script>
 <style lang="scss" scoped>
 @import '../../../assets/tables';
-@import '../../../assets/dialogs';
+
 .selection-checkbox {
   width: 40px;
 }

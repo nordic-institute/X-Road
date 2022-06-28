@@ -25,15 +25,15 @@
  -->
 <template>
   <div>
-    <sub-tabs :tab="currentTab">
+    <sub-tabs>
       <v-tab
         v-for="tab in tabs"
         :key="tab.key"
         :to="tab.to"
         :data-test="tab.key"
         exact-path
-        >{{ $t(tab.name) }}</v-tab
-      >
+        >{{ $t(tab.name) }}
+      </v-tab>
     </sub-tabs>
   </div>
 </template>
@@ -43,17 +43,15 @@ import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
     SubTabs,
   },
-  data() {
-    return {
-      currentTab: undefined as undefined | Tab,
-    };
-  },
   computed: {
+    ...mapState(useUser, ['getAllowedTabs']),
     tabs(): Tab[] {
       const allTabs: Tab[] = [
         {
@@ -73,7 +71,7 @@ export default Vue.extend({
           permissions: [Permissions.BACKUP_CONFIGURATION],
         },
       ];
-      return this.$store.getters.getAllowedTabs(allTabs);
+      return this.getAllowedTabs(allTabs);
     },
   },
 });

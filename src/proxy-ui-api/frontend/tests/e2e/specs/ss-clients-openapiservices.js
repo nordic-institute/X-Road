@@ -27,7 +27,7 @@
 module.exports = {
   tags: ['ss', 'clients', 'openapiservices'],
   'Security server client add openapi service': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -139,7 +139,7 @@ module.exports = {
     browser.end();
   },
   'Security server client edit openapi operation': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -184,11 +184,11 @@ module.exports = {
 
     // Verify cancel
     operationDetails.modifyUrl('https://niis.org/nosuch.yaml');
-    browser.logMessage("changing timeout 60->40")
+    browser.logMessage('changing timeout 60->40');
     operationDetails.modifyTimeout('40');
-    browser.logMessage("changed timeout 60->40, toggling verification")
+    browser.logMessage('changed timeout 60->40, toggling verification');
     operationDetails.toggleCertVerification();
-    browser.logMessage("verification toggled")
+    browser.logMessage('verification toggled');
     browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.close();
 
@@ -258,7 +258,7 @@ module.exports = {
     browser.end();
   },
   'Security server client add openapi operation access rights': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -343,7 +343,7 @@ module.exports = {
   'Security server client remove openapi operation access rights': (
     browser,
   ) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -425,7 +425,7 @@ module.exports = {
     browser.end();
   },
   'Security server client add openapi endpoints': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -562,7 +562,7 @@ module.exports = {
     browser.end();
   },
   'Security server client edit openapi endpoints': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -652,7 +652,7 @@ module.exports = {
     browser.end();
   },
   'Security server client edit openapi service': async (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -812,7 +812,7 @@ module.exports = {
     browser.end();
   },
   'Security server client delete openapi service': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;

@@ -26,7 +26,7 @@
 <template>
   <div class="view-wrap">
     <xrd-sub-view-title
-      class="view-title"
+      class="wizard-view-title"
       :title="$t('wizard.addClientTitle')"
       :show-close="false"
       data-test="wizard-title"
@@ -34,10 +34,10 @@
     <v-stepper
       v-model="currentStep"
       :alt-labels="true"
-      class="stepper noshadow"
+      class="wizard-stepper wizard-noshadow"
     >
       <template v-if="addMemberWizardMode === wizardModes.FULL">
-        <v-stepper-header class="noshadow">
+        <v-stepper-header class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('wizard.clientDetails')
           }}</v-stepper-step>
@@ -65,7 +65,7 @@
       </template>
 
       <template v-if="addMemberWizardMode === wizardModes.CERTIFICATE_EXISTS">
-        <v-stepper-header class="noshadow">
+        <v-stepper-header class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('wizard.clientDetails')
           }}</v-stepper-step>
@@ -77,7 +77,7 @@
       </template>
 
       <template v-if="addMemberWizardMode === wizardModes.CSR_EXISTS">
-        <v-stepper-header class="noshadow">
+        <v-stepper-header class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('wizard.clientDetails')
           }}</v-stepper-step>
@@ -96,7 +96,7 @@
         </v-stepper-header>
       </template>
 
-      <v-stepper-items class="stepper-content">
+      <v-stepper-items class="wizard-stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
           <ClientDetailsPage @cancel="cancel" @done="currentStep++" />
@@ -146,7 +146,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import ClientDetailsPage from './ClientDetailsPage.vue';
 import TokenPage from '@/components/wizard/TokenPage.vue';
 import SignKeyPage from '@/components/wizard/SignKeyPage.vue';
@@ -154,6 +153,10 @@ import FinishPage from './FinishPage.vue';
 import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
 import GenerateCsrPage from '@/components/wizard/GenerateCsrPage.vue';
 import { RouteName, AddMemberWizardModes } from '@/global';
+import { mapActions, mapState } from 'pinia';
+import { useAddClient } from '@/store/modules/addClient';
+import { useNotifications } from '@/store/modules/notifications';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
 
 const NO_SELECTION = 999;
 
@@ -173,7 +176,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['addMemberWizardMode']),
+    ...mapState(useAddClient, ['addMemberWizardMode', 'selectedMemberId']),
 
     tokenPageNumber(): number {
       if (
@@ -236,31 +239,44 @@ export default Vue.extend({
   },
   created() {
     // Set up the CSR part with Sign mode
-    this.$store.dispatch('setupSignKey');
+    this.setupSignKey();
     // Fetch certificate authorities. Used in "sign key" step.
-    this.fetchCertificateAuthorities();
+    this.fetchCertificateAuthorities().catch((error) => {
+      this.showError(error);
+    });
   },
   beforeDestroy() {
-    // Clear the vuex stores used in the wizard
-    this.$store.dispatch('resetAddClientState');
-    this.$store.dispatch('resetCsrState');
+    // Clear the stores used in the wizard
+    this.resetAddClientState();
+    this.resetCsrState();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useCsrStore, [
+      'setupSignKey',
+      'resetCsrState',
+      'fetchCertificateAuthorities',
+      'storeCsrClient',
+      'storeCsrIsNewMember',
+      'fetchCsrForm',
+    ]),
+    ...mapActions(useAddClient, ['resetAddClientState']),
+
     cancel(): void {
       this.$router.replace({ name: RouteName.Clients });
     },
     csrDetailsReady(): void {
       // Add the selected client id in the CSR store
-      const idString = this.$store.getters.selectedMemberId;
-      this.$store.commit('storeCsrClient', idString);
-      this.$store.commit('storeCsrIsNewMember', true);
+      const idString = this.selectedMemberId;
+      this.storeCsrClient(idString);
+      this.storeCsrIsNewMember(true);
 
-      this.$store.dispatch('fetchCsrForm').then(
+      this.fetchCsrForm().then(
         () => {
           this.currentStep++;
         },
         (error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         },
       );
     },
@@ -268,18 +284,10 @@ export default Vue.extend({
     done(): void {
       this.$router.replace({ name: RouteName.Clients });
     },
-
-    fetchCertificateAuthorities(): void {
-      this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/shared';
 @import '~styles/wizards';
 </style>

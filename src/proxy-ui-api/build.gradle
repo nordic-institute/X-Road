@@ -1,26 +1,9 @@
-import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
-
-buildscript {
-    ext {
-        openapiGeneratorVersion = '5.3.1'
-        nodePluginVersion = '3.1.1'
-        nodeVersion = '12.22.6'
-        swaggerParserVersion = '2.0.28'
-    }
-    repositories {
-        mavenCentral()
-    }
-}
-
 plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
     id 'com.github.node-gradle.node' version "$nodePluginVersion"
-    id 'org.openapi.generator' version "$openapiGeneratorVersion"
-}
-
-ext {
-    set('springCloudVersion', "2020.0.5")
+    id 'org.openapi.generator' version "$openApiGeneratorVersion"
+    id 'org.niis.xroad.oasvalidatorplugin'
 }
 
 sourceSets {
@@ -29,8 +12,48 @@ sourceSets {
     }
 }
 
-apply plugin: 'com.github.hierynomus.license'
-apply plugin: Oas3ValidatorGradlePlugin
+configurations {
+    npm { canBeConsumed(false); canBeResolved(true) }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+dependencies {
+    npm project(path: ':shared-ui', configuration: 'npm')
+
+    implementation project(':common-util')
+    implementation project(':common-verifier')
+    implementation project(':signer-protocol')
+    implementation project(':serverconf')
+    implementation project(':common-ui')
+    implementation project(':common-rest-api')
+
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
+    implementation('org.kohsuke:libpam4j:1.11')
+    implementation('org.apache.commons:commons-compress:1.21')
+    implementation('wsdl4j:wsdl4j:1.6.3')
+    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:7.0.0')
+    implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
+    implementation('io.swagger:swagger-annotations:1.6.4')
+
+    testImplementation project(':common-util')
+    testImplementation project(':common-test')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.springframework.security:spring-security-test')
+    testImplementation('org.hsqldb:hsqldb')
+
+    implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
+    implementation('javax.validation:validation-api')
+}
 
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
@@ -49,14 +72,34 @@ processResources {
 node {
     download = true
     version = nodeVersion
-    nodeModulesDir = file("frontend")
+    nodeProjectDir = file("frontend")
+    if (System.getenv().containsKey("CI")) {
+      npmInstallCommand = "ci"
+    }
 }
 
-task buildFront(type: NpmTask) {
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
+task npmInstallDeps(type: NpmTask, dependsOn: configurations.npm) {
+    inputs.files('frontend/package.json')
+    outputs.files('frontend/package-lock.json')
+    args = ['install', '--quiet', '--package-lock-only'] + configurations.npm.files.collect { it.toString() }
+    execOverrides {
+        it.workingDir = 'frontend'
     }
-    inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
+}
+
+task cleanNpmInstallDeps {
+  //NOP
+}
+
+npmInstall {
+    dependsOn += 'npmInstallDeps'
+}
+
+task buildFront(type: NpmTask, dependsOn: npmInstall) {
+    inputs.files(configurations.npm)
+    inputs.files(fileTree("frontend/") {
+      exclude("dist/", "node_modules/.cache/")
+    })
     outputs.dir("frontend/dist")
     args = ['run', 'build']
     execOverrides {
@@ -64,21 +107,15 @@ task buildFront(type: NpmTask) {
     }
 }
 
-task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
-    onlyIf {
-        (!project.hasProperty('skip-frontend-build') && !project.hasProperty('skip-frontend-audit'))
-    }
-    inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
-    outputs.dir("frontend/dist")
-    if (project.hasProperty('strict-frontend-audit')) {
-        // do a strict front audit with npm run check-audit
-        // check-audit uses ignore list from audit-resolve.json
-        // To update that, do "npm run resolve-audit" from frontend dir
-        args = ['run', 'check-audit']
-    } else {
-        // do a loose front audit with npm in-built audit
-        args = ['audit', '--production', '--audit-level=moderate']
-    }
+task checkFrontAudit(type: NpmTask) {
+    inputs.files(
+      'frontend/package.json',
+      'frontend/package-lock.json'
+    )
+    outputs.files('build/reports/audit-ci.txt')
+    // do a front end audit with npm run npx-check-audit
+    // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
+    args = ['run', 'npx-check-audit']
     execOverrides {
         it.workingDir = 'frontend'
     }
@@ -86,9 +123,6 @@ task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
 
 // check that npm run license-check passes
 task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
     inputs.files("frontend/src/", "frontend/test/", "frontend/public/")
     outputs.upToDateWhen { true }
     args = ['run', 'license-check']
@@ -97,72 +131,15 @@ task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
     }
 }
 
-// install frontend ui library
-task installUILibrary(type: NpmTask) {
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
-    inputs.files("frontend/src/", "frontend/test/", "frontend/public/")
-    outputs.upToDateWhen { true }
-    args = ['run', 'install-ui-lib']
-    execOverrides {
-        it.workingDir = 'frontend'
-    }
-}
-
-// build frontend ui library
-task buildUILibrary(type: NpmTask) {
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
-    inputs.files("frontend/src/", "frontend/test/", "frontend/public/")
-    outputs.upToDateWhen { true }
-    args = ['run', 'build-ui-lib']
-    execOverrides {
-        it.workingDir = 'frontend'
-    }
-}
-
-// check frontend ui library npm audit
-task auditCheckUILibrary(type: NpmTask) {
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
-    inputs.files("frontend/src/", "frontend/test/", "frontend/public/")
-    outputs.upToDateWhen { true }
-    args = ['run', 'audit-check-ui-lib']
-    execOverrides {
-        it.workingDir = 'frontend'
-    }
-}
-
-// check frontend ui library licenses
-task licenseCheckUILibrary(type: NpmTask) {
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
-    inputs.files("frontend/src/", "frontend/test/", "frontend/public/")
-    outputs.upToDateWhen { true }
-    args = ['run', 'license-check-ui-lib']
-    execOverrides {
-        it.workingDir = 'frontend'
-    }
-}
-
 // check that npm run test:unit passes
-task frontendUnitTests(type: NpmTask, dependsOn: 'npmInstall') {
-    onlyIf {
-        (!project.hasProperty('skip-frontend-build') && project.hasProperty('frontend-unit-tests'))
-    }
-    inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
-    outputs.dir("frontend/dist")
+task frontendUnitTests(type: NpmTask, dependsOn: buildFront) {
+    inputs.files('frontend/dist', 'frontend/test', 'frontend/public')
+    outputs.upToDateWhen { true }
     args = ['run', 'test:unit']
     execOverrides {
         it.workingDir = 'frontend'
     }
 }
-
-
 
 // run e2e tests vs remote url
 if (!project.hasProperty("testTargetUrl")) {
@@ -256,17 +233,15 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
     }
 }
 
-npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
-
-// checkFrontLicense -> checkFrontAudit -> buildFront -> frontendUnitTests -> processResources
-processResources.dependsOn 'frontendUnitTests'
-frontendUnitTests.dependsOn 'buildFront'
-buildFront.dependsOn 'checkFrontAudit'
-checkFrontAudit.dependsOn 'checkFrontLicense'
-checkFrontLicense.dependsOn 'buildUILibrary'
-buildUILibrary.dependsOn 'licenseCheckUILibrary'
-licenseCheckUILibrary.dependsOn 'auditCheckUILibrary'
-auditCheckUILibrary.dependsOn 'installUILibrary'
+if (!project.hasProperty('skip-frontend-build')) {
+  // checkFrontLicense -> checkFrontAudit -> buildFront -> frontendUnitTests -> processResources
+  processResources.dependsOn 'buildFront'
+  check.dependsOn checkFrontLicense
+  check.dependsOn frontendUnitTests
+  if (project.hasProperty('frontend-npm-audit')) {
+    npmInstallDeps.dependsOn checkFrontAudit
+  }
+}
 
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
@@ -334,43 +309,6 @@ validateApiDefinitions {
 }
 
 tasks.openApiGenerate.dependsOn 'validateApiDefinitions'
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
-}
-
-dependencies {
-    implementation project(':common-util')
-    implementation project(':common-verifier')
-    implementation project(':signer-protocol')
-    implementation project(':serverconf')
-    implementation project(':common-ui')
-    implementation project(':common-rest-api')
-
-    implementation('org.springframework.boot:spring-boot-starter-security')
-    implementation('org.springframework.boot:spring-boot-starter-web')
-    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
-    implementation("org.springframework.boot:spring-boot-starter-cache")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
-    implementation('org.kohsuke:libpam4j:1.11')
-    implementation('org.apache.commons:commons-compress:1.21')
-    implementation('wsdl4j:wsdl4j:1.6.3')
-    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:6.3.0')
-    implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
-    implementation('io.swagger:swagger-annotations:1.6.3')
-
-    testImplementation project(':common-util')
-    testImplementation project(':common-test')
-    testImplementation('org.springframework.boot:spring-boot-starter-test')
-    testImplementation('org.springframework.security:spring-security-test')
-    testImplementation('org.hsqldb:hsqldb')
-
-    implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-    implementation('javax.validation:validation-api')
-}
 
 task copyDeps(type: Copy) {
     into "$buildDir/unpacked-libs"

@@ -134,6 +134,9 @@ import * as api from '@/util/api';
 import { Anchor } from '@/openapi-types';
 import { FileUploadResult } from '@niis/shared-ui';
 import { PostPutPatch } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 
 const EmptyAnchorPreview: Anchor = {
   hash: '',
@@ -160,11 +163,13 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     showUploadAnchor(): boolean {
-      return this.$store.getters.hasPermission(Permissions.UPLOAD_ANCHOR);
+      return this.hasPermission(Permissions.UPLOAD_ANCHOR);
     },
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     onUploadFileChanged(event: FileUploadResult): void {
       if (this.initMode) {
         this.previewAnchor(
@@ -190,7 +195,7 @@ export default Vue.extend({
           this.showPreview = true;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
           // Clear the anchor file
           this.anchorFile = undefined;
         })
@@ -213,13 +218,14 @@ export default Vue.extend({
         },
       })
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            'systemParameters.configurationAnchor.action.upload.dialog.success',
+          this.showSuccess(
+            this.$t(
+              'systemParameters.configurationAnchor.action.upload.dialog.success',
+            ),
           );
           this.$emit('uploaded');
         })
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => {
           this.uploading = false;
           this.close();
@@ -233,7 +239,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style scoped lang="scss">
-@import '../../../assets/dialogs';
-</style>

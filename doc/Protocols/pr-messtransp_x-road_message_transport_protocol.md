@@ -399,7 +399,7 @@ All the example messages only contain the relevant HTTP headers (content-type) a
 
 ### 4.1 Response to OCSP Downloading Request
 
-```
+```http
 Content-Type: multipart/related; charset=UTF-8; boundary=jetty625909216ic7gfi1u 
 
 --jetty625909216ic7gfi1u 
@@ -411,7 +411,7 @@ Content-Type: application/ocsp-response
 
 ### 4.2 Simple SOAP Request
 
-```
+```http
 Content-Type: multipart/mixed; charset=UTF-8; boundary=xtop1357783211hcn1yiro 
 
 --xtop1357783211hcn1yiro 
@@ -431,7 +431,7 @@ Content-Type: signature/bdoc-1.0/ts
 
 ### 4.3 Simple SOAP Response
 
-```
+```http
 Content-Type: multipart/mixed; charset=UTF-8; boundary=xatt569125687hcu8vfma
 
 --xatt569125687hcu8vfma
@@ -447,7 +447,7 @@ Content-Type: signature/bdoc-1.0/ts
 
 ### 4.4 SOAP Request with Attachments
 
-```
+```http
 Content-Type: multipart/mixed; charset=UTF-8; boundary=xtop1357783211hcn1yiro
  
 --xtop1357783211hcn1yiro 
@@ -491,7 +491,7 @@ Content-Type: signature/bdoc-1.0/ts
 
 ### 4.5 SOAP Response with Fault as Last Part
 
-```
+```http
 Content-Type: multipart/mixed; charset=UTF-8; boundary=xatt569125687hcu8vfma
 
 --xatt569125687hcu8vfma
@@ -507,7 +507,7 @@ Content-Type: text/xml; charset=UTF-8
 
 ### 4.6 REST Request
 
-```
+```http
 Content-Type: multipart/mixed; charset=UTF-8; boundary=xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
 
 --xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
@@ -539,7 +539,7 @@ content-type: signature/bdoc-1.0/ts
 
 ### 4.7 REST Response
 
-```
+```http
 Content-Type: multipart/mixed; charset=UTF-8; boundary=xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
 
 --xtoptrgBinKkBvoijBRQYWabkZvkECcuIH

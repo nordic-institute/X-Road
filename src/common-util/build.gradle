@@ -1,4 +1,6 @@
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
     id 'java-library'
 }
@@ -38,7 +40,7 @@ dependencies {
     api "com.fasterxml.jackson.core:jackson-databind"
     api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
-    api 'com.google.code.gson:gson:2.8.7'
+    api 'com.google.code.gson:gson:2.9.0'
     api "com.google.guava:guava:$guavaVersion"
 
     api ('org.quartz-scheduler:quartz:2.3.2') {
@@ -47,7 +49,7 @@ dependencies {
 
     api 'org.apache.commons:commons-configuration2:2.7'
 
-    implementation "ch.qos.logback:logback-classic:$logbackVersion"
+    implementation "ch.qos.logback:logback-classic:${logbackVersion}"
 
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation project(':common-test')
@@ -131,25 +133,31 @@ task xjc() {
     }
 }
 
-task make(type: Exec) {
-    inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c','*.h','Makefile'])
-    outputs.dir file('../lib')
+if (Os.isName("linux")) {
+    task make(type: Exec) {
+        def javaCompiler = javaToolchains.compilerFor(java.toolchain)
+        def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
 
-    workingDir '../'
-    commandLine 'make'
-}
+        inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c', '*.h', 'Makefile'])
+        inputs.dir file("${javaHome}/include")
+        outputs.dir file('../lib')
 
-task makeClean(type: Exec) {
-    workingDir '../'
-    commandLine 'make', 'clean'
+        workingDir '../'
+        commandLine 'make', 'clean', 'all'
+    }
+
+    task makeClean(type: Exec) {
+        workingDir '../'
+        commandLine 'make', 'clean'
+    }
+
+    classes.dependsOn make
+    clean.dependsOn makeClean
 }
 
 licenseFormatTest {
     outputs.upToDateWhen { false }
 }
-
-classes.dependsOn make
-clean.dependsOn makeClean
 
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc

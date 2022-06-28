@@ -54,7 +54,7 @@
     <v-data-table
       :loading="clientsLoading"
       :headers="headers"
-      :items="clients"
+      :items="getClients"
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
@@ -172,6 +172,10 @@
       <v-alert slot="no-results" :value="true" color="error">{{
         $t('action.emptySearch', { msg: search })
       }}</v-alert>
+
+      <template #footer>
+        <div class="custom-footer"></div>
+      </template>
     </v-data-table>
 
     <xrd-confirm-dialog
@@ -192,13 +196,17 @@
  */
 import Vue from 'vue';
 import ClientStatus from './ClientStatus.vue';
-import { mapGetters } from 'vuex';
+
 import { Permissions, RouteName, ClientTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
 import { DataTableHeader } from 'vuetify';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+import { useClientsStore } from '@/store/modules/clients';
 
 export default Vue.extend({
   components: {
@@ -217,7 +225,13 @@ export default Vue.extend({
   }),
 
   computed: {
-    ...mapGetters(['clients', 'clientsLoading', 'ownerMember']),
+    ...mapState(useClientsStore, [
+      'getClients',
+      'clientsLoading',
+      'ownerMember',
+      'realMembers',
+    ]),
+    ...mapState(useUser, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
         {
@@ -247,26 +261,29 @@ export default Vue.extend({
       ];
     },
     showAddClient(): boolean {
-      return this.$store.getters.hasPermission(Permissions.ADD_CLIENT);
+      return this.hasPermission(Permissions.ADD_CLIENT);
     },
     showAddMember(): boolean {
       return (
-        this.$store.getters.hasPermission(Permissions.ADD_CLIENT) &&
-        this.$store.getters.realMembers?.length < 2
+        this.hasPermission(Permissions.ADD_CLIENT) &&
+        this.realMembers?.length < 2
       );
     },
     showRegister(): boolean {
-      return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_REG_REQ);
+      return this.hasPermission(Permissions.SEND_CLIENT_REG_REQ);
     },
     canOpenClient(): boolean {
-      return this.$store.getters.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
+      return this.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
     },
   },
   created() {
-    this.fetchClients();
+    this.fetchData();
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useClientsStore, ['fetchClients']),
+
     openClient(item: ExtendedClient): void {
       if (!item.id) {
         // Should not happen
@@ -296,6 +313,11 @@ export default Vue.extend({
     },
 
     addMember(): void {
+      if (!this.ownerMember?.instance_id) {
+        // Should not happen
+        throw new Error('Invalid owner member');
+      }
+
       this.$router.push({
         name: RouteName.AddMember,
         params: {
@@ -347,17 +369,14 @@ export default Vue.extend({
         .put(`/clients/${encodePathParameter(clientId)}/register`, {})
         .then(
           () => {
-            this.$store.dispatch(
-              'showSuccess',
-              'clients.action.register.success',
-            );
+            this.showSuccess(this.$t('clients.action.register.success'));
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         )
         .finally(() => {
-          this.fetchClients();
+          this.fetchData();
           this.confirmRegisterClient = false;
           this.registerClientLoading = false;
         });
@@ -459,9 +478,9 @@ export default Vue.extend({
         );
     },
 
-    fetchClients() {
-      this.$store.dispatch('fetchClients').catch((error) => {
-        this.$store.dispatch('showError', error);
+    fetchData() {
+      this.fetchClients().catch((error) => {
+        this.showError(error);
       });
     },
   },
@@ -515,22 +534,6 @@ export default Vue.extend({
   margin-bottom: 24px;
 }
 
-.search-input {
-  max-width: 300px;
-}
-
-.data-table-wrapper {
-  width: 100%;
-  max-width: 1600px;
-  margin-left: 10px;
-  margin-right: 10px;
-
-  @media only screen and (max-width: 1620px) {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-}
-
 .data-table {
   width: 100%;
 }
@@ -569,12 +572,6 @@ export default Vue.extend({
   color: #575169;
   margin-left: 16px;
   padding-top: 1px;
-
-  &.clickable {
-    text-decoration: none;
-    color: $XRoad-Link;
-    cursor: pointer;
-  }
 }
 
 .button-wrap {

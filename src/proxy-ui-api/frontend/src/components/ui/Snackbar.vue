@@ -37,23 +37,20 @@
         multi-line
         class="success-snackbar"
         :min-width="760"
-        @input="closeSuccess(notification.timeAdded)"
+        @input="deleteSuccessNotification(notification.timeAdded)"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
           <v-icon :color="colors.Success100">icon-Checker</v-icon>
           <div class="row-wrapper">
-            <div v-if="notification.successMessageCode">
-              {{ $t(notification.successMessageCode) }}
-            </div>
-            <div v-if="notification.successMessageRaw">
-              {{ notification.successMessageRaw }}
+            <div v-if="notification.successMessage">
+              {{ $t(notification.successMessage) }}
             </div>
           </div>
           <v-btn
             icon
             :color="colors.Black100"
             data-test="close-snackbar"
-            @click="closeSuccess(notification.timeAdded)"
+            @click="deleteSuccessNotification(notification.timeAdded)"
           >
             <v-icon dark>icon-Close</v-icon>
           </v-btn>
@@ -65,9 +62,11 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import { Colors } from '@/global';
 import { Notification } from '@/ui-types';
+
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 declare global {
   interface Window {
@@ -83,16 +82,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters([
-      'successMessageCode',
-      'successMessageRaw',
-      'successNotifications',
-    ]),
+    ...mapState(useNotifications, ['successNotifications']),
   },
   methods: {
-    closeSuccess(id: number): void {
-      this.$store.commit('deleteSuccessNotification', id);
-    },
+    ...mapActions(useNotifications, ['deleteSuccessNotification']),
     snackbarTimeout(notification: Notification) {
       // Check global window value to see if e2e testing mode should be enabled
       if (window.e2eTestingMode === true) {

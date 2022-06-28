@@ -25,7 +25,6 @@
  */
 
 @import "./colors";
-@import "./shared";
 
 .wizard-step-form-content {
   margin: 24px;
@@ -35,7 +34,7 @@
   justify-content: center;
 }
 
-.label {
+.wizard-label {
   width: 405px;
   display: flex;
   flex-direction: row;
@@ -45,7 +44,7 @@
   font-size: $XRoad-DefaultFontSize;
 }
 
-.row-wrap {
+.wizard-row-wrap {
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -64,7 +63,7 @@
   }
 }
 
-.form-input {
+.wizard-form-input {
   width: 405px;
 }
 
@@ -106,29 +105,29 @@
   background-color: #ffffff;
 }
 
-.view-title {
+.wizard-view-title {
   width: 100%;
   max-width: 100%;
   margin: 30px;
 }
 
-.stepper-content {
+.wizard-stepper-content {
   width: 100%;
   margin-left: auto;
   margin-right: auto;
 }
 
-.stepper {
+.wizard-stepper {
   width: 100%;
 }
 
-.noshadow {
+.wizard-noshadow {
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
   box-shadow: none;
 }
 
-.info-block {
+.wizard-info-block {
   display: flex;
   flex-direction: row;
   margin-left: auto;
@@ -144,13 +143,13 @@
   }
 }
 
-.duplicate-warning {
+.wizard-duplicate-warning {
   margin-left: 230px;
   margin-top: 10px;
   color: #ff5252;
   font-size: 12px;
 }
 
-.finish-info {
+.wizard-finish-info {
   font-size: 14px;
 }

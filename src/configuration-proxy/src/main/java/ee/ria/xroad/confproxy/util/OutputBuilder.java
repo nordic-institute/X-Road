@@ -46,6 +46,7 @@ import org.eclipse.jetty.util.MultiPartWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -77,7 +78,7 @@ import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
  * global configuration and moving it to the target location.
  */
 @Slf4j
-public class OutputBuilder {
+public class OutputBuilder implements AutoCloseable {
 
     public static final String SIGNED_DIRECTORY_NAME = "conf";
     private static final DateTimeFormatter DATETIME_FORMAT =
@@ -101,10 +102,10 @@ public class OutputBuilder {
      * and configuration proxy instance configuration.
      * @param confDirectory global configuration to be processed
      * @param configuration configuration proxy instance configuration
-     * @throws Exception in case of errors when a temporary directory
+     * @throws IOException in case of errors when a temporary directory
      */
     public OutputBuilder(final ConfigurationDirectory confDirectory, final ConfProxyProperties configuration,
-            int version) throws Exception {
+            int version) throws IOException {
         this.confDir = confDirectory;
         this.conf = configuration;
         this.version = version;
@@ -134,10 +135,10 @@ public class OutputBuilder {
 
     /**
      * Moves the signed global configuration to the location where it is
-     * accessible to clients and cleans up any remaining temporary files.
-     * @throws Exception in case of unsuccessful file operations
+     * accessible to clients.
+     * @throws IOException in case of unsuccessful file operations
      */
-    public final void moveAndCleanup() throws Exception {
+    public final void move() throws IOException {
         String path = conf.getConfigurationTargetPath();
         Path targetPath = Paths.get(path, timestamp);
         Path targetConf = Paths.get(path, String.format("%s-v%d", SIGNED_DIRECTORY_NAME, version));
@@ -150,14 +151,23 @@ public class OutputBuilder {
         log.debug("Moving '{}' to '{}'", tempConfPath, targetConf);
 
         Files.move(tempConfPath, targetConf, StandardCopyOption.ATOMIC_MOVE);
+    }
+
+    /**
+     * Cleans up any remaining temporary files.
+     * @throws IOException in case of unsuccessful file operations
+     */
+    @Override
+    public final void close() throws IOException {
+        log.debug("Cleaning up '{}'", tempDirPath);
         FileUtils.deleteDirectory(tempDirPath.toFile());
     }
 
     /**
      * Setup reference data and temporary directory for the output builder.
-     * @throws Exception if temporary directory could not be created
+     * @throws IOException if temporary directory could not be created
      */
-    private void setup() throws Exception {
+    private void setup() throws IOException {
         String tempDir = conf.getTemporaryDirectoryPath();
         String hashAlgURI = conf.getHashAlgorithmURI();
 
@@ -264,10 +274,10 @@ public class OutputBuilder {
      * @param targetPath location to write the file to
      * @param metadata   describes the configuration file
      * @return output stream for writing the file
-     * @throws Exception if errors during file operations occur
+     * @throws IOException if errors during file operations occur
      */
     private FileOutputStream createFileOutputStream(final Path targetPath, final ConfigurationPartMetadata metadata)
-            throws Exception {
+            throws IOException {
         Path filepath = targetPath.resolve(Paths.get(metadata.getInstanceIdentifier(), metadata.getContentLocation()));
         Files.createDirectories(filepath.getParent());
         Path newFile = Files.createFile(filepath);

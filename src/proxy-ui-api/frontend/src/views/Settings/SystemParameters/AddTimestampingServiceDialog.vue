@@ -107,6 +107,8 @@ import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import { Prop } from 'vue/types/options';
 import { TimestampingService } from '@/openapi-types';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'AddTimestampingServiceDialog',
@@ -146,11 +148,12 @@ export default Vue.extend({
     this.fetchApprovedTimestampingServices();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     fetchApprovedTimestampingServices(): void {
       api
         .get<TimestampingService[]>('/timestamping-services')
         .then((resp) => (this.approvedTimestampingServices = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
     add(): void {
       this.loading = true;
@@ -160,12 +163,13 @@ export default Vue.extend({
           this.$emit('added');
           this.loading = false;
           this.close();
-          this.$store.dispatch(
-            'showSuccess',
-            'systemParameters.timestampingServices.action.add.dialog.success',
+          this.showSuccess(
+            this.$t(
+              'systemParameters.timestampingServices.action.add.dialog.success',
+            ),
           );
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
     close(): void {
       this.show = false;
@@ -176,17 +180,12 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '../../../assets/dialogs';
-@import '../../../assets/colors';
+@import '~styles/colors';
 .option-row {
-  border-bottom: solid 1px $XRoad-Grey10;
+  border-bottom: solid 1px $XRoad-WarmGrey30;
 }
 
 .content-wrapper {
-  color: #000000 !important;
-}
-
-.v-label {
-  color: $XRoad-Black !important;
+  color: $XRoad-Black100 !important;
 }
 </style>

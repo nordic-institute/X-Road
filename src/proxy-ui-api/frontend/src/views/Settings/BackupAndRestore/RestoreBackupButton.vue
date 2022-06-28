@@ -50,6 +50,9 @@ import { Prop } from 'vue/types/options';
 import { Backup } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions } from 'pinia';
+import { useAlerts } from '@/store/modules/alerts';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'RestoreBackupButton',
@@ -66,6 +69,8 @@ export default Vue.extend({
     };
   },
   methods: {
+    ...mapActions(useAlerts, ['checkAlertStatus']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     restoreBackup() {
       this.restoring = true;
       api
@@ -75,18 +80,17 @@ export default Vue.extend({
         )
         .then(() => {
           this.$emit('restored');
-          this.$store.dispatch(
-            'showSuccessRaw',
+          this.showSuccess(
             this.$t('backup.action.restore.success', {
               file: this.backup.filename,
             }),
           );
         })
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => {
           this.showConfirmation = false;
           this.restoring = false;
-          this.$store.dispatch('checkAlertStatus');
+          this.checkAlertStatus();
         });
     },
   },

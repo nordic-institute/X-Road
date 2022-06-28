@@ -25,11 +25,11 @@
  -->
 
 <template>
-  <div class="xrd-view-common">
+  <div class="xrd-view-common" data-test="404-view">
     <TabsBase />
     <AlertsContainer />
     <v-container>
-      <div class="xrd-view-title pt-6">{{ $t('404') }}</div>
+      <div class="xrd-view-title pt-6">{{ $t('404.pageNotFound') }}</div>
       <v-card flat class="xrd-card custom-card">
         <v-card-text>
           <div class="content-wrap">
@@ -42,8 +42,8 @@
             ></v-img>
 
             <div class="unicorn-text">
-              {{ $t('404text') }}
-              <span class="unicorn-gradient">{{ $t('404textUnicorn') }}</span>
+              {{ $t('404.text') }}
+              <span class="unicorn-gradient">{{ $t('404.textUnicorn') }}</span>
             </div>
             <xrd-button
               test-data="error-404-button"
@@ -68,16 +68,21 @@
 import Vue from 'vue';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
     TabsBase,
     AlertsContainer,
   },
+  computed: {
+    ...mapState(useUser, ['firstAllowedTab']),
+  },
   methods: {
     home(): void {
       this.$router.replace({
-        name: this.$store.getters.firstAllowedTab.to.name,
+        name: this.firstAllowedTab.to.name,
       });
     },
   },
@@ -85,7 +90,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/shared';
 @import '~styles/colors';
 
 .xrd-view-common {

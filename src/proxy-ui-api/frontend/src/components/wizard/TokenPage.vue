@@ -104,9 +104,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import { Token } from '@/openapi-types';
+import { mapActions, mapState } from 'pinia';
+
+import { useNotifications } from '@/store/modules/notifications';
+import { useTokensStore } from '@/store/modules/tokens';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   components: {
@@ -121,11 +125,11 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['tokens']),
+    ...mapState(useTokensStore, ['tokens', 'tokensFilteredByName']),
 
     filteredTokens: {
       get(): Token[] {
-        return this.$store.getters.tokensFilteredByName(this.search);
+        return this.tokensFilteredByName(this.search);
       },
     },
 
@@ -147,6 +151,9 @@ export default Vue.extend({
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useCsrStore, ['setCsrTokenId']),
+    ...mapActions(useTokensStore, ['setSelectedToken', 'fetchTokens']),
     cancel(): void {
       this.$emit('cancel');
     },
@@ -157,11 +164,11 @@ export default Vue.extend({
       if (!this.tokenGroup?.id) {
         return;
       }
-      this.$store.dispatch('setCsrTokenId', this.tokenGroup.id);
+      this.setCsrTokenId(this.tokenGroup.id);
       this.$emit('done');
     },
     confirmLogin(token: Token): void {
-      this.$store.dispatch('setSelectedToken', token);
+      this.setSelectedToken(token);
       this.loginDialog = true;
     },
     tokenLogin(): void {
@@ -170,8 +177,7 @@ export default Vue.extend({
     },
     fetchData(): void {
       // Fetch tokens from backend
-      this.$store
-        .dispatch('fetchTokens')
+      this.fetchTokens()
         .then(() => {
           // Preselect the token if there is only one
           if (
@@ -182,7 +188,7 @@ export default Vue.extend({
           }
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
   },
@@ -208,7 +214,7 @@ export default Vue.extend({
   padding-right: 10px;
   flex-direction: row;
   flex-wrap: wrap;
-  border-bottom: 1px solid $XRoad-Grey20;
+  border-bottom: 1px solid $XRoad-WarmGrey30;
   padding-left: 12px;
   padding-bottom: 5px;
   padding-top: 5px;

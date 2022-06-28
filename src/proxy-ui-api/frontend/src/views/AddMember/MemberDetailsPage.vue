@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <div class="info-block">
+    <div class="wizard-info-block">
       <div>
         {{ $t('wizard.member.info1') }}
         <br />
@@ -44,7 +44,7 @@
 
     <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberName')"
             :help-text="$t('wizard.client.memberNameTooltip')"
@@ -52,7 +52,7 @@
           <div data-test="selected-member-name">{{ selectedMemberName }}</div>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberClass')"
             :help-text="$t('wizard.client.memberClassTooltip')"
@@ -66,14 +66,14 @@
             <v-select
               v-model="memberClass"
               :items="memberClassesCurrentInstance"
-              class="form-input"
+              class="wizard-form-input"
               data-test="member-class-input"
               :placeholder="$t('wizard.selectMemberClass')"
               outlined
             ></v-select>
           </ValidationProvider>
         </div>
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberCode')"
             :help-text="$t('wizard.client.memberCodeTooltip')"
@@ -86,7 +86,7 @@
           >
             <v-text-field
               v-model="memberCode"
-              class="form-input"
+              class="wizard-form-input"
               type="text"
               :error-messages="errors"
               :placeholder="$t('wizard.memberCode')"
@@ -97,7 +97,7 @@
           </ValidationProvider>
         </div>
 
-        <div v-if="duplicateClient" class="duplicate-warning">
+        <div v-if="duplicateClient" class="wizard-duplicate-warning">
           {{ $t('wizard.client.memberExists') }}
         </div>
       </div>
@@ -117,10 +117,10 @@
     </ValidationObserver>
 
     <SelectClientDialog
-      title="wizard.addMemberTitle"
-      search-label="wizard.member.searchLabel"
+      :title="$t('wizard.addMemberTitle')"
+      :search-label="$t('wizard.member.searchLabel')"
       :dialog="showSelectClient"
-      :selectable-clients="selectableMembers"
+      :selectable-clients="filteredSelectableMembers"
       @cancel="showSelectClient = false"
       @save="saveSelectedClient"
     />
@@ -129,13 +129,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { Client } from '@/openapi-types';
 import { debounce, isEmpty } from '@/util/helpers';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { AddMemberWizardModes } from '@/global';
 import { validate } from 'vee-validate';
+import { mapActions, mapState, mapWritableState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useAddClient } from '@/store/modules/addClient';
+import { useGeneral } from '@/store/modules/general';
+import { useUser } from '@/store/modules/user';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -155,41 +160,23 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters([
+    ...mapState(useAddClient, [
       'reservedMember',
-      'memberClassesCurrentInstance',
       'selectedMemberName',
-      'currentSecurityServer',
+      'selectableMembers',
     ]),
+    ...mapState(useGeneral, ['memberClassesCurrentInstance']),
+    ...mapState(useUser, ['currentSecurityServer']),
+    ...mapWritableState(useAddClient, ['memberClass', 'memberCode']),
 
-    memberClass: {
-      get(): string {
-        return this.$store.getters.memberClass;
-      },
-      set(value: string) {
-        this.$store.commit('setMemberClass', value);
-      },
-    },
-
-    memberCode: {
-      get(): string {
-        return this.$store.getters.memberCode;
-      },
-      set(value: string) {
-        this.$store.commit('setMemberCode', value);
-      },
-    },
-
-    selectableMembers(): Client[] {
+    filteredSelectableMembers(): Client[] {
       // Filter out the owner member
-      const filtered = this.$store.getters.selectableMembers.filter(
-        (client: Client) => {
-          return !(
-            client.member_class === this.reservedMember.memberClass &&
-            client.member_code === this.reservedMember.memberCode
-          );
-        },
-      );
+      const filtered = this.selectableMembers.filter((client: Client) => {
+        return !(
+          client.member_class === this.reservedMember?.memberClass &&
+          client.member_code === this.reservedMember.memberCode
+        );
+      });
       return filtered;
     },
 
@@ -200,7 +187,7 @@ export default Vue.extend({
 
       // Check that the info doesn't match the reserved member (owner member)
       return !(
-        this.reservedMember.memberClass.toLowerCase() !==
+        this.reservedMember?.memberClass.toLowerCase() !==
           this.memberClass.toLowerCase() ||
         this.reservedMember.memberCode.toLowerCase() !==
           this.memberCode.toLowerCase()
@@ -211,7 +198,7 @@ export default Vue.extend({
   watch: {
     async memberCode(val) {
       // Set wizard mode to default (full)
-      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+      this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
 
       // Needs to be done here, because the watcher runs before the setter
       validate(this.memberCode, 'required|xrdIdentifier', {
@@ -231,7 +218,7 @@ export default Vue.extend({
     },
     memberClass(val): void {
       // Set wizard mode to default (full)
-      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+      this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
       if (isEmpty(val) || isEmpty(this.memberCode)) {
         return;
       }
@@ -251,13 +238,20 @@ export default Vue.extend({
   },
   created() {
     that = this;
-    this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-    this.$store.dispatch(
-      'fetchSelectableMembers',
-      that.currentSecurityServer.instance_id,
-    );
+    this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
+    this.fetchSelectableMembers(that.currentSecurityServer.instance_id);
   },
   methods: {
+    ...mapActions(useNotifications, ['showError']),
+
+    ...mapActions(useAddClient, [
+      'setSelectedMember',
+      'fetchSelectableMembers',
+      'setAddMemberWizardMode',
+      'searchTokens',
+      'setSelectedMemberName',
+    ]),
+
     cancel(): void {
       this.$emit('cancel');
     },
@@ -265,7 +259,7 @@ export default Vue.extend({
       this.$emit('done');
     },
     saveSelectedClient(selectedMember: Client): void {
-      this.$store.dispatch('setSelectedMember', selectedMember);
+      this.setSelectedMember(selectedMember);
       this.showSelectClient = false;
     },
     checkClient(): void {
@@ -276,15 +270,17 @@ export default Vue.extend({
       this.checkRunning = true;
 
       // Find if the selectable clients array has a match
-      const tempClient = this.selectableMembers.find((client: Client) => {
-        return (
-          client.member_code === this.memberCode &&
-          client.member_class === this.memberClass
-        );
-      });
+      const tempClient = this.filteredSelectableMembers.find(
+        (client: Client) => {
+          return (
+            client.member_code === this.memberCode &&
+            client.member_class === this.memberClass
+          );
+        },
+      );
 
       // Fill the name "field" if it's available or set it undefined
-      this.$store.commit('setSelectedMemberName', tempClient?.member_name);
+      this.setSelectedMemberName(tempClient?.member_name);
 
       // Pass the arguments so that we use the validated information instead of the state at that time
       this.checkClientDebounce(this.memberClass, this.memberCode);
@@ -292,8 +288,8 @@ export default Vue.extend({
     checkClientDebounce: debounce((memberClass: string, memberCode: string) => {
       // Debounce is used to reduce unnecessary api calls
       // Search tokens for suitable CSR:s and certificates
-      that.$store
-        .dispatch('searchTokens', {
+      that
+        .searchTokens({
           instanceId: that.reservedMember.instanceId,
           memberClass: memberClass,
           memberCode: memberCode,
@@ -303,7 +299,7 @@ export default Vue.extend({
             that.checkRunning = false;
           },
           (error: Error) => {
-            that.$store.dispatch('showError', error);
+            that.showError(error);
             that.checkRunning = true;
           },
         );

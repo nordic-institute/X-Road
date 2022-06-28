@@ -26,13 +26,13 @@
 <template>
   <div class="view-wrap">
     <xrd-sub-view-title
-      class="view-title"
+      class="wizard-view-title"
       :title="$t('wizard.addSubsystemTitle')"
       :show-close="false"
     />
     <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
-        <div class="info-block">
+        <div class="wizard-info-block">
           <div>
             {{ $t('wizard.subsystem.info1') }}
             <br />
@@ -49,7 +49,7 @@
           </div>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberName')"
             :help-text="$t('wizard.client.memberNameTooltip')"
@@ -59,7 +59,7 @@
           </div>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberClass')"
             :help-text="$t('wizard.client.memberClassTooltip')"
@@ -68,7 +68,7 @@
             {{ memberClass }}
           </div>
         </div>
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberCode')"
             :help-text="$t('wizard.client.memberCodeTooltip')"
@@ -78,7 +78,7 @@
           </div>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.subsystemCode')"
             :help-text="$t('wizard.client.subsystemCodeTooltip')"
@@ -91,7 +91,7 @@
           >
             <v-text-field
               v-model="subsystemCode"
-              class="form-input"
+              class="wizard-form-input"
               type="text"
               :error-messages="errors"
               autofocus
@@ -101,11 +101,11 @@
             ></v-text-field>
           </ValidationProvider>
         </div>
-        <div v-if="duplicateClient" class="duplicate-warning">
+        <div v-if="duplicateClient" class="wizard-duplicate-warning">
           {{ $t('wizard.client.memberExists') }}
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.subsystem.registerSubsystem')"
           />
@@ -135,8 +135,8 @@
     </ValidationObserver>
 
     <SelectClientDialog
-      title="wizard.addSubsystemTitle"
-      search-label="wizard.subsystem.searchLabel"
+      :title="$t('wizard.addSubsystemTitle')"
+      :search-label="$t('wizard.subsystem.searchLabel')"
       :dialog="showSelectClient"
       :selectable-clients="selectableSubsystems"
       @cancel="showSelectClient = false"
@@ -163,6 +163,8 @@ import { Client } from '@/openapi-types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -219,6 +221,7 @@ export default Vue.extend({
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     done(): void {
       this.submitLoading = true;
       const body = {
@@ -234,10 +237,7 @@ export default Vue.extend({
       api.post('/clients', body).then(
         () => {
           this.submitLoading = false;
-          this.$store.dispatch(
-            'showSuccess',
-            'wizard.subsystem.subsystemAdded',
-          );
+          this.showSuccess(this.$t('wizard.subsystem.subsystemAdded'));
           if (this.registerChecked) {
             this.confirmRegisterClient = true;
           } else {
@@ -246,7 +246,7 @@ export default Vue.extend({
         },
         (error) => {
           this.submitLoading = false;
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         },
       );
     },
@@ -262,14 +262,11 @@ export default Vue.extend({
       );
       api.put(`/clients/${encodePathParameter(clientId)}/register`, {}).then(
         () => {
-          this.$store.dispatch(
-            'showSuccess',
-            'wizard.subsystem.subsystemAdded',
-          );
+          this.showSuccess(this.$t('wizard.subsystem.subsystemAdded'));
           this.exitView();
         },
         (error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
           this.exitView();
         },
       );
@@ -295,7 +292,7 @@ export default Vue.extend({
           this.selectableSubsystems = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
 
       // Fetch existing subsystems
@@ -307,7 +304,7 @@ export default Vue.extend({
           this.existingSubsystems = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
   },
@@ -316,36 +313,4 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/wizards';
-
-.view-wrap {
-  width: 100%;
-  max-width: 1000px;
-  margin: 10px;
-  margin-top: 30px;
-
-  .view-title {
-    width: 100%;
-    max-width: 100%;
-    margin-bottom: 30px;
-  }
-
-  .info-block {
-    display: flex;
-    flex-direction: row;
-    margin-bottom: 40px;
-
-    .action-block {
-      margin-top: 30px;
-      margin-left: auto;
-      margin-right: 0px;
-    }
-  }
-
-  .duplicate-warning {
-    margin-left: 230px;
-    margin-top: 10px;
-    color: #ff5252;
-    font-size: 12px;
-  }
-}
 </style>

@@ -9,6 +9,7 @@ module.exports = {
     '@vue/typescript/recommended',
     '@vue/prettier',
     '@vue/prettier/@typescript-eslint',
+    'plugin:vue-scoped-css/recommended', // Linter for vue scoped styles (eslint-plugin-vue-scoped-css)
   ],
   ignorePatterns: ['node_modules/'],
   parserOptions: {

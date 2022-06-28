@@ -1,0 +1,73 @@
+plugins {
+    id 'base'
+    id 'com.github.node-gradle.node' version "$nodePluginVersion"
+}
+
+configurations {
+    npm { canBeConsumed(true); canBeResolved(false) }
+}
+
+node {
+    download = true
+    version = nodeVersion
+    if (System.getenv().containsKey("CI")) {
+        npmInstallCommand = "ci"
+    }
+}
+
+task npmBuild(type: NpmTask, dependsOn: npmInstall) {
+    inputs.files(
+        'src/',
+        'public/',
+        'svg-icons/',
+        'package.json',
+        'package-lock.json',
+        'vue.config.js',
+        'tsconfig.json',
+        'babel.config.js',
+        fileTree('node_modules') {
+            exclude '.cache'
+        }
+    )
+    outputs.dir('dist')
+    args = ['run', '--quiet', 'build-lib']
+}
+
+task npmPack(type: NpmTask, dependsOn: npmBuild) {
+    inputs.files('dist/')
+    outputs.file('niis-shared-ui-0.1.0.tgz')
+    args = ['pack', '--quiet']
+}
+
+task checkFrontAudit(type: NpmTask) {
+    inputs.files("package.json", "package-lock.json")
+    outputs.files('build/reports/audit-ci.txt')
+    // do a front end audit with npm run npx-check-audit
+    // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
+    args = ['run', 'npx-check-audit']
+}
+
+// check that npm run license-check passes
+task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.files("LICENSE.txt", "src/", "test/", "public/")
+    outputs.upToDateWhen { true }
+    args = ['run', 'license-check']
+}
+
+clean {
+    delete file('node_modules')
+    delete file('dist')
+}
+
+assemble.dependsOn npmPack
+check.dependsOn checkFrontLicense
+
+if (project.hasProperty('frontend-npm-audit')) {
+  npmInstall.dependsOn checkFrontAudit
+}
+
+artifacts {
+    npm(file("niis-shared-ui-0.1.0.tgz")) {
+        builtBy(npmPack)
+    }
+}

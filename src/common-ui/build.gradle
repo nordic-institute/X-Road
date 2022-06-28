@@ -16,11 +16,6 @@ dependencies {
     testImplementation project(path: ':common-util', configuration: 'testArtifacts')
 }
 
-task copyDeps(type: Copy) {
-    into "$buildDir/libs"
-    from configurations.runtimeClasspath
-}
-
 task checkRubySource(type: Exec) {
     inputs.files fileTree('app') + fileTree('lib')
     outputs.files file('build/rubocop-result.json')
@@ -39,7 +34,6 @@ test {
 }
 
 check.dependsOn checkRubySource
-build.dependsOn copyDeps
 
 sonarqube {
     properties {

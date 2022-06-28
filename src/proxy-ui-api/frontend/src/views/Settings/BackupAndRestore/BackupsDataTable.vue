@@ -28,7 +28,7 @@
     <table class="xrd-table">
       <thead>
         <tr>
-          <th>{{ $t('name') }}</th>
+          <th>{{ $t('general.name') }}</th>
           <th></th>
         </tr>
       </thead>
@@ -63,6 +63,16 @@
           </tr>
         </tbody>
       </template>
+      <template v-if="backups && backups.length === 0">
+        <tbody>
+          <XrdEmptyPlaceholderRow
+            :colspan="2"
+            :data="backups"
+            :loading="loading"
+            :no-items-text="$t('noData.noBackups')"
+          />
+        </tbody>
+      </template>
     </table>
   </v-card>
 </template>
@@ -77,6 +87,9 @@ import { Prop } from 'vue/types/options';
 import RestoreBackupButton from '@/views/Settings/BackupAndRestore/RestoreBackupButton.vue';
 import { encodePathParameter } from '@/util/api';
 import { Permissions } from '@/global';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -93,19 +106,23 @@ export default Vue.extend({
       default: false,
       required: true,
     },
+    loading: {
+      type: Boolean,
+      required: true,
+    },
     backups: {
       type: Array as Prop<Backup[]>,
       required: true,
     },
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     canRestore(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.RESTORE_CONFIGURATION,
-      );
+      return this.hasPermission(Permissions.RESTORE_CONFIGURATION);
     },
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     filtered(): Backup[] {
       return selectedFilter(this.backups, this.filter, 'created_at');
     },
@@ -115,7 +132,7 @@ export default Vue.extend({
           responseType: 'blob',
         })
         .then((resp) => saveResponseAsFile(resp, fileName))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
     refreshData(): void {
       this.$emit('refresh-data');
@@ -125,6 +142,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
 @import '~styles/tables';
 </style>

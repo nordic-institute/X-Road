@@ -11,12 +11,12 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '3.3'
-    id 'org.owasp.dependencycheck' version '7.0.4.1'
+    id 'org.owasp.dependencycheck' version '6.5.3'
     id 'jacoco'
     id 'java'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
-    id 'org.springframework.boot' version '2.5.13' apply false
+    id 'org.springframework.boot' version "${springBootVersion}" apply false
 }
 
 repositories {
@@ -61,6 +61,12 @@ dependencyCheck {
         autoconfEnabled = false
         composerEnabled = false
         nodeEnabled = false
+        nodeAudit {
+          enabled = false
+        }
+        ossIndex {
+          enabled = false
+        }
     }
 }
 
@@ -73,8 +79,10 @@ allprojects {
 
     repositories {
       mavenCentral()
-      mavenLocal()
     }
+
+    group = 'ee.ria.xroad'
+    version = '1.0'
 
     jacoco {
         toolVersion = "0.8.7"
@@ -93,7 +101,7 @@ allprojects {
     }
 }
 
-subprojects {
+configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
@@ -124,20 +132,32 @@ subprojects {
         from sourceSets.test.output
     }
 
+    java {
+      toolchain {
+          languageVersion = JavaLanguageVersion.of(8)
+      }
+    }
+
+    def javaCompiler = javaToolchains.compilerFor(java.toolchain)
+    def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
+
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
     }
 
     tasks.withType(JavaExec) {
+        javaLauncher = javaToolchains.launcherFor(java.toolchain)
         if (project.hasProperty("args")) {
             args = project.getProperty("args").tokenize()
         }
     }
 
+    tasks.withType(Exec) {
+        environment "JAVA_HOME", javaHome
+    }
+
     test {
-        if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+        if (java.toolchain.languageVersion.get() == JavaLanguageVersion.of(8)) {
             //workaround for JDK-8156584
             systemProperty("java.security.properties",
                 "${project.rootDir}/config/workaround-jdk-8156584-security.properties");

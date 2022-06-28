@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width main-wrap">
+  <div class="xrd-tab-max-width xrd-main-wrap">
     <div class="pa-4">
       <xrd-sub-view-title
         :title="`${endpoint.method}${endpoint.path}`"
@@ -103,7 +103,7 @@
       :dialog="addSubjectsDialogVisible"
       :existing-service-clients="serviceClients"
       :client-id="clientId"
-      title="accessRights.addServiceClientsTitle"
+      :title="$t('accessRights.addServiceClientsTitle')"
       @cancel="toggleAddServiceClientsDialog"
       @service-clients-added="doAddServiceClients"
     />
@@ -117,6 +117,10 @@ import { Endpoint, ServiceClient } from '@/openapi-types';
 import AccessRightsDialog from '@/views/Service/AccessRightsDialog.vue';
 import { encodePathParameter } from '@/util/api';
 import { Permissions } from '@/global';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'EndpointAccessRights',
@@ -145,14 +149,16 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     canEdit(): boolean {
-      return this.$store.getters.hasPermission(Permissions.EDIT_ENDPOINT_ACL);
+      return this.hasPermission(Permissions.EDIT_ENDPOINT_ACL);
     },
   },
   created(): void {
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
       this.$router.go(-1);
     },
@@ -182,7 +188,7 @@ export default Vue.extend({
           this.endpoint = endpoint.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error.message);
+          this.showError(error);
         });
       api
         .get<ServiceClient[]>(
@@ -192,7 +198,7 @@ export default Vue.extend({
           this.serviceClients = accessRights.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error.message);
+          this.showError(error);
         });
     },
     doRemoveSelectedServiceClients(isDeleteAll: boolean): void {
@@ -204,14 +210,11 @@ export default Vue.extend({
           },
         )
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            'accessRights.removeSubjectsSuccess',
-          );
+          this.showSuccess(this.$t('accessRights.removeSuccess'));
           this.fetchData();
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error.message);
+          this.showError(error);
         })
         .finally(() => {
           this.resetDeletionSettings(isDeleteAll);
@@ -226,14 +229,11 @@ export default Vue.extend({
           },
         )
         .then((accessRights) => {
-          this.$store.dispatch(
-            'showSuccess',
-            'accessRights.addSubjectsSuccess',
-          );
+          this.showSuccess(this.$t('accessRights.addSubjectsSuccess'));
           this.serviceClients = accessRights.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error.message);
+          this.showError(error);
         })
         .finally(() => {
           this.toggleAddServiceClientsDialog();

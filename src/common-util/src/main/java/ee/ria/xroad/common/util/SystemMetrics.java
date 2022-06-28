@@ -59,51 +59,43 @@ public final class SystemMetrics {
     private static final int INDEX_PROC_SOFTIRQ = 7;
     private static final int INDEX_PROC_STEAL = 8;
 
-    private static UnixOperatingSystemMXBean stats;
+    private static final UnixOperatingSystemMXBean STATS;
 
-    private static MemoryMXBean memoryStats;
+    private static final MemoryMXBean MEMORY_STATS;
 
-    private static AtomicInteger numConnections = new AtomicInteger(0);
+    private static final AtomicInteger NUM_CONNECTIONS = new AtomicInteger(0);
 
-    private SystemMetrics() {
+    static {
+        OperatingSystemMXBean osStatsBean = ManagementFactory.getOperatingSystemMXBean();
+        if (osStatsBean instanceof UnixOperatingSystemMXBean) {
+            STATS = ((UnixOperatingSystemMXBean) osStatsBean);
+        } else {
+            log.warn("Unexpected OperatingSystemMXBean {}", osStatsBean.getName());
+            STATS = null;
+        }
+        MEMORY_STATS = ManagementFactory.getMemoryMXBean();
     }
 
-    /**
-     * Initializes system metrics internals.
-     */
-    public static void init() {
-        OperatingSystemMXBean osStatsBean =
-                ManagementFactory.getOperatingSystemMXBean();
-        if (osStatsBean instanceof UnixOperatingSystemMXBean) {
-            stats = ((UnixOperatingSystemMXBean) osStatsBean);
-        } else {
-            throw new RuntimeException(
-                    "Unexpected OperatingSystemMXBean " + osStatsBean);
-        }
-        memoryStats = ManagementFactory.getMemoryMXBean();
+    private SystemMetrics() {
     }
 
     /**
      * @return UNIX operating system stats object
      */
     public static UnixOperatingSystemMXBean getStats() {
-        if (stats == null) {
-            init();
+        if (STATS == null) {
+            throw new IllegalStateException("Operating system statistics are not available.");
         }
-
-        return stats;
+        return STATS;
     }
 
     /**
      * @return the current ratio of heap usage on the current JVM.
      */
     public static double getHeapUsage() {
-        if (memoryStats == null) {
-            init();
-        }
         try {
-            long max = memoryStats.getHeapMemoryUsage().getMax();
-            long used = memoryStats.getHeapMemoryUsage().getUsed();
+            long max = MEMORY_STATS.getHeapMemoryUsage().getMax();
+            long used = MEMORY_STATS.getHeapMemoryUsage().getUsed();
             return ((double) used) / max;
         } catch (InternalError err) {
             log.error("Error getting heap usage", err);
@@ -115,21 +107,21 @@ public final class SystemMetrics {
      * Informs system metrics of a connection accepted event.
      */
     public static void connectionAccepted() {
-        numConnections.getAndIncrement();
+        NUM_CONNECTIONS.getAndIncrement();
     }
 
     /**
      * Informs system metrics of a connection closed event.
      */
     public static void connectionClosed() {
-        numConnections.getAndDecrement();
+        NUM_CONNECTIONS.getAndDecrement();
     }
 
     /**
      * @return the current number of open connection.
      */
     public static int getNumConnections() {
-        return numConnections.get();
+        return NUM_CONNECTIONS.get();
     }
 
     /**
@@ -198,7 +190,7 @@ public final class SystemMetrics {
 
     /**
      * @return the number of free file handles, or -1 if
-     * the system operation failed (i.e. out of file handles)
+     *         the system operation failed (i.e. out of file handles)
      */
     public static long getFreeFileDescriptorCount() {
         try {

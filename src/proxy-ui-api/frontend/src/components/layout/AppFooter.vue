@@ -105,18 +105,19 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapState } from 'pinia';
+import { useSystemStore } from '@/store/modules/system';
 
 export default Vue.extend({
   name: 'AppFooter',
   computed: {
-    ...mapGetters(['securityServerVersion']),
+    ...mapState(useSystemStore, ['securityServerVersion']),
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
+@import '~styles/colors';
 $text-color: $XRoad-Black100;
 
 .footer {

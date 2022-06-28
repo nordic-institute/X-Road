@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="xrd-view-common">
+  <v-container class="xrd-view-common" data-test="diagnostics-view">
     <div class="inner-wrap">
       <div class="xrd-view-title pt-6">{{ $t('tab.main.diagnostics') }}</div>
       <v-layout align-center justify-center column fill-height elevation-0>
@@ -96,7 +96,7 @@
             <span
               class="headline"
               data-test="diagnostics-global-configuration"
-              >{{ $t('diagnostics.globalCongiguration.title') }}</span
+              >{{ $t('diagnostics.globalConfiguration.title') }}</span
             >
           </v-card-title>
           <v-card-text class="xrd-card-text">
@@ -124,8 +124,7 @@
                   <td>
                     {{
                       $t(
-                        'diagnostics.globalCongiguration.configurationStatus.' +
-                          globalConf.status_code,
+                        `diagnostics.globalConfiguration.configurationStatus.${globalConf.status_code}`,
                       )
                     }}
                   </td>
@@ -136,24 +135,38 @@
                     {{ globalConf.next_update_at | formatHoursMins }}
                   </td>
                 </tr>
+                <XrdEmptyPlaceholderRow
+                  :colspan="4"
+                  :loading="globalConfLoading"
+                  :data="globalConf"
+                  :no-items-text="$t('noData.noTimestampingServices')"
+                />
               </tbody>
             </table>
           </v-card-text>
         </v-card>
 
-        <v-card flat class="xrd-card diagnostic-card">
-          <v-card-title>
-            <span class="headline" data-test="diagnostics-timestamping">{{
-              $t('diagnostics.timestamping.title')
-            }}</span>
-          </v-card-title>
-
+        <v-card flat class="xrd-card diagnostic-card" :class="{ disabled: !messageLogEnabled }">
           <v-card-text class="xrd-card-text">
+            <v-row
+              no-gutters
+              class="px-4"
+            >
+              <v-col>
+                <h3 :class="{ disabled: !messageLogEnabled }">
+                  {{ $t('diagnostics.timestamping.title') }}
+                </h3>
+              </v-col>
+              <v-col v-if="!messageLogEnabled" class="text-right disabled">
+                {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
+              </v-col>
+            </v-row>
+
             <table class="xrd-table">
               <thead>
                 <tr>
                   <th class="status-column">{{ $t('diagnostics.status') }}</th>
-                  <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
+                  <th class="url-column" >{{ $t('diagnostics.serviceUrl') }}</th>
                   <th>{{ $t('diagnostics.message') }}</th>
                   <th class="time-column">
                     {{ $t('diagnostics.previousUpdate') }}
@@ -168,25 +181,30 @@
                 >
                   <td>
                     <xrd-status-icon
-                      :status="statusIconType(timestampingService.status_class)"
+                      :status="statusIconTypeTSP(timestampingService.status_class)"
                     />
                   </td>
-                  <td class="url-column" data-test="service-url">
+                  <td class="url-column" :class="{ disabled: !messageLogEnabled }" data-test="service-url">
                     {{ timestampingService.url }}
                   </td>
-                  <td>
+                  <td :class="{ disabled: !messageLogEnabled }">
                     {{
                       $t(
-                        'diagnostics.timestamping.timestampingStatus.' +
-                          timestampingService.status_code,
+                        `diagnostics.timestamping.timestampingStatus.${timestampingService.status_code}`,
                       )
                     }}
                   </td>
-                  <td class="time-column">
+                  <td class="time-column" :class="{ disabled: !messageLogEnabled }">
                     {{ timestampingService.prev_update_at | formatHoursMins }}
                   </td>
                   <td></td>
                 </tr>
+                <XrdEmptyPlaceholderRow
+                  :colspan="5"
+                  :loading="timestampingLoading || addonStatusLoading"
+                  :data="timestampingServices"
+                  :no-items-text="$t('noData.noTimestampingServices')"
+                />
               </tbody>
             </table>
           </v-card-text>
@@ -199,11 +217,17 @@
             }}</span>
           </v-card-title>
           <v-card-text class="xrd-card-text">
+            <XrdEmptyPlaceholder
+              :loading="ocspLoading"
+              :data="ocspResponderDiagnostics"
+              :no-items-text="$t('noData.noData')"
+            />
+
             <div
               v-for="ocspDiags in ocspResponderDiagnostics"
               :key="ocspDiags.distinguished_name"
             >
-              <div class="cert-service-name">
+              <div class="sub-title">
                 <span>{{
                   $t('diagnostics.ocspResponders.certificationService')
                 }}</span>
@@ -240,8 +264,7 @@
                     <td>
                       {{
                         $t(
-                          'diagnostics.ocspResponders.ocspStatus.' +
-                            ocsp.status_code,
+                          `diagnostics.ocspResponders.ocspStatus.${ocsp.status_code}`,
                         )
                       }}
                     </td>
@@ -252,9 +275,172 @@
                       {{ ocsp.next_update_at | formatHoursMins }}
                     </td>
                   </tr>
+                  <XrdEmptyPlaceholderRow
+                    :colspan="4"
+                    :loading="ocspLoading"
+                    :data="ocspDiags"
+                    :no-items-text="$t('noData.noCertificateAuthorities')"
+                  />
                 </tbody>
               </table>
             </div>
+          </v-card-text>
+        </v-card>
+
+        <v-card flat class="xrd-card diagnostic-card">
+          <v-card-title>
+            <span class="headline" data-test="diagnostics-backup-encryption">{{
+              $t('diagnostics.encryption.backup.title')
+            }}</span>
+          </v-card-title>
+
+          <v-card-text class="xrd-card-text">
+            <div v-if="backupEncryptionDiagnostics">
+              <div class="sub-title status-wrapper">
+                <span>
+                  {{ $t('diagnostics.encryption.statusTitle') }}
+                </span>
+                <xrd-status-icon
+                  :status="
+                    encryptionStatusIconType(backupEncryptionDiagnostics.backup_encryption_status)
+                  "
+                />
+                {{ $t(`diagnostics.encryption.status.${backupEncryptionDiagnostics.backup_encryption_status}`,) }}
+              </div>
+
+              <table class="xrd-table" v-if="backupEncryptionDiagnostics.backup_encryption_status">
+                <thead>
+                  <tr>
+                    <th>
+                      {{ $t('diagnostics.encryption.backup.configuredKeyId') }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="confKeys in backupEncryptionDiagnostics.backup_encryption_keys"
+                    :key="confKeys"
+                  >
+                    <td>
+                      {{ confKeys }}
+                    </td>
+                  </tr>
+                  <XrdEmptyPlaceholderRow
+                    :loading="backupEncryptionLoading"
+                    :data="backupEncryptionDiagnostics.backup_encryption_keys"
+                    :no-items-text="$t('noData.noBackUpEncryptionKeys')"
+                  />
+                </tbody>
+              </table>
+            </div>
+          </v-card-text>
+        </v-card>
+
+        <v-card flat class="xrd-card diagnostic-card" :class="{ disabled: !messageLogEnabled }">
+          <v-card-text class="xrd-card-text">
+
+            <v-row
+              no-gutters
+              class="px-4"
+            >
+              <v-col>
+                <h3 :class="{ disabled: !messageLogEnabled }">
+                  {{ $t('diagnostics.encryption.messageLog.archive.title') }}
+                </h3>
+              </v-col>
+              <v-col v-if="!messageLogEnabled" class="text-right disabled">
+                {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
+              </v-col>
+            </v-row>
+
+            <div v-if="messageLogEncryptionDiagnostics">
+              <div class="sub-title status-wrapper">
+                <span>
+                  {{ $t('diagnostics.encryption.statusTitle') }}
+                </span>
+                <xrd-status-icon
+                  :status="messageLogEncryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_archive_encryption_status)"
+                />
+                {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_archive_encryption_status}`) }}
+                <span class="group-name">
+                  {{ $t('diagnostics.encryption.messageLog.archive.groupingTitle') }}
+                </span>
+                {{ $t(`${messageLogEncryptionDiagnostics.message_log_grouping_rule}`) }}
+              </div>
+
+              <table class="xrd-table" v-if="messageLogEncryptionDiagnostics.message_log_archive_encryption_status">
+                <thead>
+                  <tr>
+                    <th>
+                      {{ $t('diagnostics.encryption.messageLog.archive.memberIdentifier') }}
+                    </th>
+                    <th>
+                      {{ $t('diagnostics.encryption.messageLog.archive.keyId') }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="member in messageLogEncryptionDiagnostics.members" :key="member.member_id">
+                    <td :class="{ disabled: !messageLogEnabled }">{{ member.member_id }}</td>
+                    <td class="status-wrapper" :class="{ disabled: !messageLogEnabled }">
+                      {{ member.keys | commaSeparate }}
+                      <v-tooltip
+                        v-if="member.default_key_used"
+                        max-width="267px"
+                        right
+                      >
+                        <template #activator="{ on }">
+                          <v-icon small :class="messageLogEncryptionTooltipIconType(messageLogEnabled)" v-on="on">icon-Error</v-icon>
+                        </template>
+                        <span>{{ $t('diagnostics.encryption.messageLog.archive.defaultKeyNote') }}</span>
+                      </v-tooltip>
+                    </td>
+                  </tr>
+                  <XrdEmptyPlaceholderRow
+                    :colspan="2"
+                    :loading="messageLogEncryptionLoading || addonStatusLoading"
+                    :data="messageLogEncryptionDiagnostics.members"
+                    :no-items-text="$t('noData.noData')"
+                  />
+                </tbody>
+              </table>
+            </div>
+          </v-card-text>
+        </v-card>
+
+        <v-card flat class="xrd-card diagnostic-card" :class="{ disabled: !messageLogEnabled }">
+          <v-card-text class="xrd-card-text">
+
+            <v-row
+              no-gutters
+              class="px-4"
+            >
+              <v-col>
+                <h3 :class="{ disabled: !messageLogEnabled }">
+                  {{ $t('diagnostics.encryption.messageLog.database.title') }}
+                </h3>
+              </v-col>
+              <v-col v-if="!messageLogEnabled" class="text-right disabled">
+                {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
+              </v-col>
+            </v-row>
+
+            <div v-if="messageLogEncryptionDiagnostics" class="sub-title status-wrapper">
+              <span>
+                {{ $t('diagnostics.encryption.statusTitle') }}
+              </span>
+              <xrd-status-icon
+                :status="
+                  messageLogEncryptionStatusIconType(messageLogEncryptionDiagnostics.message_log_database_encryption_status)
+                "
+              />
+              {{ $t(`diagnostics.encryption.status.${messageLogEncryptionDiagnostics.message_log_database_encryption_status}`,) }}
+            </div>
+            <XrdEmptyPlaceholder
+              :loading="messageLogEncryptionLoading"
+              :data="messageLogEncryptionDiagnostics"
+              :no-items-text="$t('noData.noData')"
+            />
           </v-card-text>
         </v-card>
       </v-layout>
@@ -264,35 +450,62 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 import {
-  TimestampingServiceDiagnostics,
+  BackupEncryptionStatus,
+  MessageLogEncryptionStatus,
   OcspResponderDiagnostics,
   GlobalConfDiagnostics,
+  AddOnStatus,
+  TimestampingServiceDiagnostics,
 } from '@/openapi-types';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSystemStore } from '@/store/modules/system';
 
 export default Vue.extend({
   data: () => ({
+    messageLogEnabled: false,
     timestampingServices: [] as TimestampingServiceDiagnostics[],
     globalConf: undefined as GlobalConfDiagnostics | undefined,
     ocspResponderDiagnostics: [] as OcspResponderDiagnostics[],
+    backupEncryptionDiagnostics: undefined as BackupEncryptionStatus | undefined,
+    messageLogEncryptionDiagnostics: undefined as MessageLogEncryptionStatus | undefined,
     globalConfLoading: false,
     timestampingLoading: false,
     ocspLoading: false,
+    addonStatusLoading: false,
+    backupEncryptionLoading: false,
+    messageLogEncryptionLoading: false,
   }),
   computed: {
-    ...mapGetters(['securityServerVersion']),
+    ...mapState(useSystemStore, ['securityServerVersion']),
   },
 
   created() {
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError']),
     fetchData(): void {
       this.globalConfLoading = true;
       this.timestampingLoading = true;
       this.ocspLoading = true;
+      this.addonStatusLoading = true;
+      this.backupEncryptionLoading = true;
+      this.messageLogEncryptionLoading = true;
+
+      api
+        .get<AddOnStatus>('/diagnostics/addon-status')
+        .then((res) => {
+          this.messageLogEnabled = res.data.messagelog_enabled;
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.addonStatusLoading = false;
+        });
 
       api
         .get<TimestampingServiceDiagnostics[]>(
@@ -302,7 +515,7 @@ export default Vue.extend({
           this.timestampingServices = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.timestampingLoading = false;
@@ -314,7 +527,7 @@ export default Vue.extend({
           this.globalConf = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.globalConfLoading = false;
@@ -326,11 +539,46 @@ export default Vue.extend({
           this.ocspResponderDiagnostics = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.ocspLoading = false;
         });
+
+      api
+        .get<BackupEncryptionStatus>('/diagnostics/backup-encryption-status')
+        .then((res) => {
+          this.backupEncryptionDiagnostics = res.data;
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.backupEncryptionLoading = false;
+        });
+
+      api
+        .get<MessageLogEncryptionStatus>('/diagnostics/message-log-encryption-status')
+        .then((res) => {
+          this.messageLogEncryptionDiagnostics = res.data;
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.messageLogEncryptionLoading = false;
+        });
+    },
+
+    statusIconTypeTSP(status: string): string {
+      if (!status) {
+        return '';
+      }
+      if (this.messageLogEnabled) {
+        return this.statusIconType(status);
+      } else {
+        return this.statusIconType(status) + '-disabled';
+      }
     },
 
     statusIconType(status: string): string {
@@ -348,14 +596,52 @@ export default Vue.extend({
           return 'error';
       }
     },
+
+    messageLogEncryptionStatusIconType(enabled: boolean): string {
+      if (this.messageLogEnabled) {
+        return this.encryptionStatusIconType(enabled);
+      } else {
+        return this.encryptionStatusIconType(enabled) + '-disabled';
+      }
+    },
+
+    encryptionStatusIconType(enabled: boolean): string {
+      switch (enabled) {
+        case true:
+          return 'ok';
+        case false:
+          return 'pending';
+        default:
+          return 'error';
+      }
+    },
+
+    messageLogEncryptionTooltipIconType(enabled: boolean): string {
+      return enabled === false
+        ? 'disabled'
+        : 'warning-icon'
+    },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/shared';
 @import '~styles/colors';
 @import '~styles/tables';
+
+h3 {
+  color: $XRoad-Black100;
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 2rem;
+}
+
+.disabled {
+  cursor: not-allowed;
+  background: $XRoad-Black10;
+  color: $XRoad-WarmGrey100;
+}
 
 .xrd-card-text {
   padding-left: 0;
@@ -371,6 +657,7 @@ export default Vue.extend({
 
   margin-bottom: 30px;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .v-card__title {
     color: $XRoad-Black100;
     height: 30px;
@@ -382,6 +669,12 @@ export default Vue.extend({
 
 .status-column {
   width: 80px;
+}
+
+.status-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .level-column {
@@ -398,7 +691,7 @@ export default Vue.extend({
   width: 160px;
 }
 
-.cert-service-name {
+.sub-title {
   margin-top: 30px;
   margin-left: 16px;
 
@@ -413,6 +706,16 @@ export default Vue.extend({
     font-weight: normal;
     font-size: $XRoad-DefaultFontSize;
     line-height: 20px;
+    padding-right: 16px;
   }
+}
+
+.warning-icon {
+  margin-right: 12px;
+  color: $XRoad-Warning;
+}
+
+.group-name {
+  padding-left: 32px;
 }
 </style>

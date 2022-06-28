@@ -5,24 +5,24 @@
 # X-Road: Message Protocol for REST
 **Technical Specification**
 
-Version: 1.0.1  
+Version: 1.0.2  
 Doc. ID: PR-REST
 
 ---
 
 ## Version history
 
-|Date       | Version | Description                                                             | Author         |
-|:----------|:--------|:------------------------------------------------------------------------|:---------------|
-|02.10.2018 | 0.1.0	  | Initial draft version                                                   | Ilkka Seppälä  |
-|30.10.2018 | 0.2.0	  | <ul><li>Multiple phrasing improvements</li><li>Protocol version format changed to 'r1' from 'v1'</li><li>Introduced serviceId concept</li><li>Image updated</li><li>Improved error handling</li><li>Introduced security section</li><li>Clarified REST interface section</li><li>Add default content-type</li><li>Clarified optional X-Road headers</li><li>Clarified error handling</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
+|Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Author         |
+|:----------|:--------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------------|
+|02.10.2018 | 0.1.0	  | Initial draft version                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Ilkka Seppälä  |
+|30.10.2018 | 0.2.0	  | <ul><li>Multiple phrasing improvements</li><li>Protocol version format changed to 'r1' from 'v1'</li><li>Introduced serviceId concept</li><li>Image updated</li><li>Improved error handling</li><li>Introduced security section</li><li>Clarified REST interface section</li><li>Add default content-type</li><li>Clarified optional X-Road headers</li><li>Clarified error handling</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                  | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
 |11.01.2019 | 0.3.0	  | <ul><li>Remove constant prefix `/rest` from the protocol</li><li>Consumer ID is specified with HTTP headers instead of encoding it to the request URL</li><li>Clarified service id and client id encoding (percent-encoded UTF-8)</li><li>Changes to "Use of HTTP Headers" section <br /> - Clarified user defined headers rules <br /> - Added filtered headers section <br /> - Added cache headers section <br /> - Added cross-origin resource sharing section <br /> - Clarified Content-Type header <br /> - Added explanation of specially handled headers </li><li>Added HTTP version to "Scope and Requirements" chapter</li><li>Use OpenAPI 3.0 service description</li><li>Updated the examples according to REST guidelines</li><li>Added section about HTTP redirections</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty <br /> Janne Mattila <br /> Lauri Koutaniemi |
-|21.02.2019 | 0.4.0	  | <ul><li>Added chapter 1.2 containing general description about REST architectural style</li><li>Clarified 3.2 objectives</li><li>Clarified 'X-Road-UserId' header</li><li>Added 4.3 request hash header</li><li>Added 4.6 example 5 about tracking the source of error</li><li>Clarified 2.3 protocol versioning</li><li>Minor grammar changes to 4.1</li><li>Added a warning to 4.4 about following redirects</li><li>Fixed 4.6 example 2 -> X-Road-Error header added</li><li>Clarified 4.6 user defined headers</li><li>Clarified 5.1 what is the role of OpenAPI 3</li><li>Updated the response body format in 4.6 error handling</li><li>Added X-Road-Security-Server header to 4.3 to make it possible to call monitoring via REST</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
-|22.03.2019 | 0.5.0	  | <ul><li>Clarified 1.1 overview</li><li>Clarified 3.2 objectives</li><li>Added to 4.3 chapter "X-Road specific headers returned in the response"</li><li>Clarified the use of X-Road-Id in 4.3</li><li>Removed chapter 5.2 where it was recommended to use \[REST-BEST-PRACTISES\]</li><li>Updated examples in chapters 4.6 and 6</li><li>Updated request hash description in 4.3</li></ul> | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
-|22.03.2019 | 0.9.0   | Initial Markdown documentation | Caro Hautamäki |
-|25.04.2019 | 1.0.0   | Update document version number | Jarkko Hyöty |
-|19.05.2020 | 1.0.1   | Added chapter [4.8 Identifier Character Restrictions](#48-identifier-character-restrictions) | Ilkka Seppälä |
-
+|21.02.2019 | 0.4.0	  | <ul><li>Added chapter 1.2 containing general description about REST architectural style</li><li>Clarified 3.2 objectives</li><li>Clarified 'X-Road-UserId' header</li><li>Added 4.3 request hash header</li><li>Added 4.6 example 5 about tracking the source of error</li><li>Clarified 2.3 protocol versioning</li><li>Minor grammar changes to 4.1</li><li>Added a warning to 4.4 about following redirects</li><li>Fixed 4.6 example 2 -> X-Road-Error header added</li><li>Clarified 4.6 user defined headers</li><li>Clarified 5.1 what is the role of OpenAPI 3</li><li>Updated the response body format in 4.6 error handling</li><li>Added X-Road-Security-Server header to 4.3 to make it possible to call monitoring via REST</li></ul>                                              | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
+|22.03.2019 | 0.5.0	  | <ul><li>Clarified 1.1 overview</li><li>Clarified 3.2 objectives</li><li>Added to 4.3 chapter "X-Road specific headers returned in the response"</li><li>Clarified the use of X-Road-Id in 4.3</li><li>Removed chapter 5.2 where it was recommended to use \[REST-BEST-PRACTISES\]</li><li>Updated examples in chapters 4.6 and 6</li><li>Updated request hash description in 4.3</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                      | Ilkka Seppälä <br /> Petteri Kivimäki <br /> Jarkko Hyöty |
+|22.03.2019 | 0.9.0   | Initial Markdown documentation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Caro Hautamäki |
+|25.04.2019 | 1.0.0   | Update document version number                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Jarkko Hyöty |
+|19.05.2020 | 1.0.1   | Added chapter [4.8 Identifier Character Restrictions](#48-identifier-character-restrictions)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Ilkka Seppälä |
+|27.05.2022 | 1.0.2   | <ul><li>Added `X-Road-Represented-Party` extension header to 4.3</li><li>Updated `X-Road-Client` header description in 4.3</ul>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Petteri Kivimäki |
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
@@ -199,12 +199,12 @@ for at least a year after releasing the new version.
 HTTP version 1.1 is used by the protocol as described in \[[RFC2616](#Ref_RFC2616)\]. The consumer member/subsystem is specified using HTTP headers. The service to be called is encoded as part of the HTTP/HTTPS request URL. Here is the generic form of the REST service call.
 
 **Request format**
-```
+```http
 {http-request-method} /{protocol-version}/{serviceId}[/path][?query-parameters]
 ```
 
 **HTTP request headers**
-```
+```http
 X-Road-Client: {client}
 ```
 
@@ -220,12 +220,12 @@ X-Road-Client: {client}
 Here is a practical example of an X-Road REST call.
 
 **Request example**
-```
+```http
 GET /r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/BARSERVICE/v1/bar/zyggy?quu=1
 ```
 
 **HTTP request headers**
-```
+```http
 X-Road-Client: INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1
 ```
 
@@ -268,7 +268,8 @@ Note. HTTP headers are not case-sensitive. `X-Road-Client` and `x-road-client` a
 
 **Mandatory X-Road headers in the request**
 - **X-Road-Client**: Specifies the member/subsystem that is used as a service client - an entity that initiates the service call. The identifier consists of the following parts: `[X-Road instance]/[member class]/[member code]/[subsystem code]`. Including the subsystem code is OPTIONAL. The identifier parts MUST be represented as UTF-8 and encoded using \[[PERCENT-ENCODING](#Ref_PERCENTENC)\].
-  ```  
+  - The service client MUST NOT generate multiple `X-Road-Client` headers in the request. If multiple `X-Road-Client` headers are present in the request, the Security Server SHOULD use the last defined header as the initiator of the service call. 
+  ```http
   X-Road-Client: INSTANCE/CLASS/MEMBER/SUBSYSTEM
   ```
 
@@ -282,7 +283,7 @@ The response contains some X-Road specific headers that are set by the provider 
 - **X-Road-Request-Hash**: For responses, this field contains sha-512 encoded hash of the request message
 - **X-Road-Error**: This header is provided in case there was an error processing the request and it occurred somewhere in X-Road (on the consumer or provider Security Server)
 - **X-Road-Request-Id**: Unique identifier for the request
-  ```
+  ```http
   X-Road-Client: INSTANCE/CLASS/MEMBER/SUBSYSTEM
   X-Road-Service: INSTANCE/CLASS/MEMBER/SUBSYSTEM/PETSTORE
   X-Road-Id: fa2e18a5-c2cb-4d09-b994-f57727f7c3fb
@@ -296,7 +297,7 @@ The response contains some X-Road specific headers that are set by the provider 
   and it MUST be verified by the service client's Security Server
 - The request message SHOULD NOT contain the request hash header.
 - The response message returned by a service provider SHOULD NOT contain the request hash header. If the response message contains the request hash header, the service provider's Security Server MUST ignore the field and replace it with the created field.
-  ``` 
+  ```http
   X-Road-Request-Hash: 14sEri8SmLNy/DJyTob0ZddAskmdRy5ZUyhbr33iLkaA+gLpWcivUH16fzbuIs7hhs2AnA4lJDloyIihXMlVQA== 
   ```
 
@@ -305,7 +306,7 @@ The response contains some X-Road specific headers that are set by the provider 
 - The REST messages originating from the Security Server (e.g. error messages) MUST include the header and indicate the content's type and character encoding with it.
 - If Content-Type header is included in the request message by the consumer information system, it MUST be transported unmodified through X-Road to the provider information system
 - If Content-Type header is included in the response message by the provider information system, it MUST be transported unmodified through X-Road to the consumer information system
-  ```
+  ```http
   Content-Type: application/json; charset=utf-8
   Content-Type: multipart/form-data; boundary=something
   ```
@@ -315,25 +316,30 @@ In case the service consumer does not provide the `Content-Type` header (or some
 **Accept header**
 - It is RECOMMENDED that the service consumer advertises the content types it is able to understand by including the `Accept` header in the request message.
 - If `Accept` header is included in the request message, it MUST be transported unmodified through X-Road to the service provider.
-  ```
+  ```http
   Accept: application/xml
   ```
 
 In case the service consumer does not provide the Accept header, the Security Server MUST use the default content-type `application/json`.
 
-**Security Server and X-Road extension headers**
-- **X-Road-Security-Server**: To send the request to a specific Security Server this header needs to be included. It contains the following parts
+**Security Server, Represented Party and X-Road extension headers**
+- **X-Road-Security-Server**: To send the request to a specific Security Server this header needs to be included. It contains the following parts:
   - `[X-Road instance]/[member class]/[member code]/[server code]`
+- **X-Road-Represented-Party**: The purpose of this header is to allow sending of additional information to the X-Road service providers in case when service client represents third party while issuing a query. The query is initiated by a third party and the results are also forwarded to that third party, but the request itself is signed by a client identified by the `X-Road-Client` header. It contains the following parts:
+  - `[member class]/[member code]`
+  - Including the member class is OPTIONAL. If the member class is omitted, also the separator `/` must be omitted:
+    - `[member code]`
 - Other X-Road extension headers are not defined in this document. Rather they are just contracts between information systems and X-Road handles them like any user defined header.
-  ```
+  ```http
   X-Road-Security-Server: INSTANCE/MEMBERCLASS/MEMBERCODE/SERVERCODE
+  X-Road-Represented-Party: MEMBERCLASS/MEMBERCODE
   ```
 
 **Optional X-Road headers**
 - **X-Road-Id**: Unique identifier for this message. It is RECOMMENDED to use universally unique identifiers \[[UUID](#Ref_UUID)\]. If `X-Road-Id` is not provided, it SHALL be generated by the consumer Security Server. The provider Security Server SHALL include the `X-Road-Id` header in the response message.
 - **X-Road-UserId**: User whose action initiated the request. The user ID should be prefixed with two-letter ISO country code (e.g., EE12345678901).
 - **X-Road-Issue**: Identifies received application, issue or document that was the cause of the service request. This field may be used by the client information system to connect service requests (and responses) to working procedures.
-  ```
+  ```http
   X-Road-Id: fa2e18a5-c2cb-4d09-b994-f57727f7c3fb
   X-Road-UserId: EE12345678901
   X-Road-Issue: MT324223MSD
@@ -347,14 +353,14 @@ In case the service consumer does not provide the Accept header, the Security Se
 
 **User defined headers**
 - User defined HTTP headers (i.e. the headers not mentioned in \[[LIST-OF-HTTP-HEADERS](#Ref_HTTPHEADERS)\] or this document) MUST be passed to recipient unmodified by X-Road Security Server.
-  ```
+  ```http
   X-Powered-By: PHP/5.2.17
   X-Pingback: https://example.com/xmlrpc.php
   ```
 
 **Cache headers**
 - X-Road does not cache messages. Cache headers MUST be passed as-is and the consumer/provider MAY take advantage of this information.
-  ```
+  ```http
   Cache-Control: no-cache, no-store, must-revalidate
   Pragma: no-cache
   ```
@@ -435,7 +441,7 @@ Response body:
 ```
 
 HTTP headers:
-```
+```http
 Content-Type: application/json;charset=utf-8
 Date: Thu, 21 Mar 2019 09:45:19 GMT
 x-road-id: 5ea48ae9-15c1-465a-be15-9b6ef2c7ef4a
@@ -464,7 +470,7 @@ Response body:
 ```
 
 HTTP headers:
-```
+```http
 Date: Thu, 21 Mar 2019 11:42:03 GMT
 Content-Type: application/json;charset=utf-8
 X-Road-Error: Server.ServerProxy.NetworkError
@@ -489,7 +495,7 @@ Response body:
 ```
 
 HTTP headers:
-```
+```http
 Date: Thu, 21 Mar 2019 11:45:12 GMT
 Content-Type: application/json;charset=utf-8
 X-Road-Error: Client.BadRequest
@@ -514,7 +520,7 @@ Response body:
 ```
 
 HTTP headers:
-```
+```http
 Date: Thu, 21 Mar 2019 11:57:11 GMT
 Content-Type: application/json;charset=utf-8
 X-Road-Error: Server.ServerProxy.DatabaseError

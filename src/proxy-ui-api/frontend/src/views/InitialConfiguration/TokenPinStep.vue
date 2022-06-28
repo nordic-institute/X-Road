@@ -36,7 +36,7 @@
           >
             <v-text-field
               v-model="pin"
-              class="form-input"
+              class="wizard-form-input"
               name="pin"
               autofocus
               :label="$t('initialConfiguration.pin.pin')"
@@ -55,7 +55,7 @@
           >
             <v-text-field
               v-model="pinConfirm"
-              class="form-input"
+              class="wizard-form-input"
               name="confirmPin"
               :label="$t('initialConfiguration.pin.confirmPin')"
               type="password"
@@ -141,10 +141,4 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../assets/wizards';
-
-.readonly-info-field {
-  max-width: 300px;
-  height: 60px;
-  padding-top: 12px;
-}
 </style>

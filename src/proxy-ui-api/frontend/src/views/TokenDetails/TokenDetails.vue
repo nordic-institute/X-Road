@@ -24,9 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width detail-view-outer">
+  <div class="xrd-tab-max-width dtlv-outer">
     <ValidationObserver ref="form" v-slot="{ dirty, invalid }">
-      <div class="detail-view-content">
+      <div class="dtlv-content">
         <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close" />
         <v-row>
           <v-col>
@@ -81,9 +81,9 @@
                     data-test="token-open-pin-change-link"
                     @click="toggleChangePinOpen"
                   >
-                    <span class="font-weight-black">{{
-                      $t('token.changePin')
-                    }}</span>
+                    <span class="font-weight-black">
+                      {{ $t('token.changePin') }}
+                    </span>
                   </div>
                 </template>
                 <template #content>
@@ -157,17 +157,20 @@
           </v-col>
         </v-row>
       </div>
-      <div class="footer-button-wrap">
-        <xrd-button outlined data-test="token-details-cancel" @click="close()"
-          >{{ $t('action.cancel') }}
-        </xrd-button>
+      <div class="dtlv-actions-footer">
+        <xrd-button
+          outlined
+          data-test="token-details-cancel"
+          @click="close()"
+          >{{ $t('action.cancel') }}</xrd-button
+        >
         <xrd-button
           :loading="saveBusy"
           :disabled="!dirty || invalid"
           data-test="token-details-save"
           @click="save()"
-          >{{ $t('action.save') }}
-        </xrd-button>
+          >{{ $t('action.save') }}</xrd-button
+        >
       </div>
     </ValidationObserver>
   </div>
@@ -188,6 +191,10 @@ import {
   TokenPinUpdate,
   TokenType,
 } from '@/openapi-types';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { AxiosError } from 'axios';
 
 export default Vue.extend({
   components: {
@@ -212,19 +219,20 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
+
     hasEditPermission(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_TOKEN_FRIENDLY_NAME,
-      );
+      return this.hasPermission(Permissions.EDIT_TOKEN_FRIENDLY_NAME);
     },
     canUpdatePin(): boolean {
-      return this.$store.getters.hasPermission(Permissions.UPDATE_TOKEN_PIN);
+      return this.hasPermission(Permissions.UPDATE_TOKEN_PIN);
     },
   },
   created() {
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
       this.$router.go(-1);
     },
@@ -247,10 +255,11 @@ export default Vue.extend({
             this.token,
           );
         }
-        await this.$store.dispatch('showSuccessRaw', successMsg);
+        this.showSuccess(successMsg);
         this.$router.go(-1);
       } catch (error) {
-        await this.$store.dispatch('showError', error);
+        // Error comes from axios, so it most probably is AxiosError
+        this.showError(error as AxiosError);
       } finally {
         this.saveBusy = false;
       }
@@ -264,7 +273,7 @@ export default Vue.extend({
           this.token = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.loading = false;
@@ -314,5 +323,9 @@ export default Vue.extend({
 .expandable::v-deep .exp-header {
   padding: 0;
   margin-left: -12px;
+}
+
+.pointer {
+  cursor: pointer;
 }
 </style>

@@ -40,9 +40,8 @@
         <span
           class="token-status-indicator token-name"
           :class="tokenStatusClass"
+          >{{ $t('keys.token') }} {{ token.name }}</span
         >
-          {{ $t('keys.token') }} {{ token.name }}
-        </span>
 
         <v-btn
           icon
@@ -63,9 +62,9 @@
             class="token-status token-status-indicator label"
             :class="tokenStatusClass"
           >
-            <v-icon class="token-status-indicator" :class="tokenStatusClass">{{
-              tokenIcon
-            }}</v-icon>
+            <v-icon class="token-status-indicator" :class="tokenStatusClass">
+              {{ tokenIcon }}
+            </v-icon>
             {{ $t(tokenLabelKey) }}
           </div>
           <TokenLoggingButton
@@ -87,9 +86,10 @@
             :disabled="!token.logged_in"
             data-test="token-add-key-button"
             @click="addKey()"
-            ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('keys.addKey') }}</xrd-button
           >
+            <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+            {{ $t('keys.addKey') }}
+          </xrd-button>
           <xrd-file-upload
             v-if="canImportCertificate"
             v-slot="{ upload }"
@@ -104,8 +104,8 @@
               @click="upload"
             >
               <v-icon class="xrd-large-button-icon">icon-Import</v-icon>
-              {{ $t('keys.importCert') }}</xrd-button
-            >
+              {{ $t('keys.importCert') }}
+            </xrd-button>
           </xrd-file-upload>
         </div>
 
@@ -113,7 +113,7 @@
 
         <div v-if="getAuthKeys(token.keys).length > 0">
           <KeysTableTitle
-            title="keys.authKeyCert"
+            :title="$t('keys.authKeyCert')"
             :keys="getAuthKeys(token.keys)"
             :arrow-state="authKeysOpen"
             @click="authKeysOpen = !authKeysOpen"
@@ -135,7 +135,7 @@
 
         <div v-if="getSignKeys(token.keys).length > 0">
           <KeysTableTitle
-            title="keys.signKeyCert"
+            :title="$t('keys.signKeyCert')"
             :keys="getSignKeys(token.keys)"
             :arrow-state="signKeysOpen"
             @click="signKeysOpen = !signKeysOpen"
@@ -159,7 +159,7 @@
         <!-- Keys with unknown type -->
         <div v-if="getOtherKeys(token.keys).length > 0">
           <KeysTableTitle
-            title="keys.unknown"
+            :title="$t('keys.unknown')"
             :keys="getOtherKeys(token.keys)"
             :arrow-state="unknownKeysOpen"
             @click="unknownKeysOpen = !unknownKeysOpen"
@@ -198,6 +198,10 @@ import {
   getTokenUIStatus,
   TokenUIStatus,
 } from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useTokensStore } from '@/store/modules/tokens';
 
 export default Vue.extend({
   components: {
@@ -221,19 +225,21 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
+
+    ...mapState(useTokensStore, ['tokenExpanded']),
+
     canActivateToken(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
-      );
+      return this.hasPermission(Permissions.ACTIVATE_DEACTIVATE_TOKEN);
     },
     canImportCertificate(): boolean {
       return (
-        this.$store.getters.hasPermission(Permissions.IMPORT_AUTH_CERT) ||
-        this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT)
+        this.hasPermission(Permissions.IMPORT_AUTH_CERT) ||
+        this.hasPermission(Permissions.IMPORT_SIGN_CERT)
       );
     },
     canAddKey(): boolean {
-      return this.$store.getters.hasPermission(Permissions.GENERATE_KEY);
+      return this.hasPermission(Permissions.GENERATE_KEY);
     },
 
     tokenLabelKey(): string {
@@ -301,18 +307,24 @@ export default Vue.extend({
     }
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useTokensStore, [
+      'setSelectedToken',
+      'hideToken',
+      'expandToken',
+    ]),
     addKey(): void {
-      this.$store.dispatch('setSelectedToken', this.token);
+      this.setSelectedToken(this.token);
       this.$emit('add-key');
     },
 
     login(): void {
-      this.$store.dispatch('setSelectedToken', this.token);
+      this.setSelectedToken(this.token);
       this.$emit('token-login');
     },
 
     logout(): void {
-      this.$store.dispatch('setSelectedToken', this.token);
+      this.setSelectedToken(this.token);
       this.$emit('token-logout');
     },
 
@@ -368,13 +380,13 @@ export default Vue.extend({
     },
 
     descClose(tokenId: string) {
-      this.$store.dispatch('hideToken', tokenId);
+      this.hideToken(tokenId);
     },
     descOpen(tokenId: string) {
-      this.$store.dispatch('expandToken', tokenId);
+      this.expandToken(tokenId);
     },
     isExpanded(tokenId: string) {
-      return this.$store.getters.tokenExpanded(tokenId);
+      return this.tokenExpanded(tokenId);
     },
 
     importCert(event: FileUploadResult) {
@@ -386,11 +398,11 @@ export default Vue.extend({
         })
         .then(
           () => {
-            this.$store.dispatch('showSuccess', 'keys.importCertSuccess');
+            this.showSuccess(this.$t('keys.importCertSuccess'));
             this.fetchData();
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         );
     },
@@ -399,11 +411,11 @@ export default Vue.extend({
         .post(`/token-certificates/${encodePathParameter(hash)}/import`, {})
         .then(
           () => {
-            this.$store.dispatch('showSuccess', 'keys.importCertSuccess');
+            this.showSuccess(this.$t('keys.importCertSuccess'));
             this.fetchData();
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         );
     },
@@ -464,7 +476,7 @@ export default Vue.extend({
 }
 
 .expandable {
-  margin-bottom: 10px;
+  margin-bottom: 24px;
 }
 
 .action-slot-wrapper {

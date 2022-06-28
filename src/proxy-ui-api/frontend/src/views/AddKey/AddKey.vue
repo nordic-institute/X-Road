@@ -26,16 +26,16 @@
 <template>
   <div class="view-wrap">
     <xrd-sub-view-title
-      class="view-title"
+      class="wizard-view-title"
       :title="$t('csr.addKey')"
       :show-close="false"
     />
     <v-stepper
       v-model="currentStep"
       :alt-labels="true"
-      class="stepper noshadow"
+      class="wizard-stepper wizard-noshadow"
     >
-      <v-stepper-header class="noshadow">
+      <v-stepper-header class="wizard-noshadow">
         <v-stepper-step :complete="currentStep > 1" step="1">{{
           $t('keys.detailsTitle')
         }}</v-stepper-step>
@@ -49,7 +49,7 @@
         }}</v-stepper-step>
       </v-stepper-header>
 
-      <v-stepper-items class="stepper-content">
+      <v-stepper-items class="wizard-stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
           <WizardPageKeyLabel
@@ -86,6 +86,9 @@ import WizardPageKeyLabel from '@/components/wizard/WizardPageKeyLabel.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
 import { RouteName } from '@/global';
+import { mapActions } from 'pinia';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -109,40 +112,39 @@ export default Vue.extend({
     };
   },
   created() {
-    this.$store.dispatch('setCsrTokenId', this.tokenId);
-    this.$store.dispatch('setCsrTokenType', this.tokenType);
-    this.fetchCertificateAuthorities();
+    this.setCsrTokenId(this.tokenId);
+    this.setCsrTokenType(this.tokenType);
+    this.fetchCertificateAuthorities().catch((error) => {
+      this.showError(error);
+    });
   },
   methods: {
+    ...mapActions(useNotifications, ['showError']),
+    ...mapActions(useCsrStore, [
+      'setCsrTokenId',
+      'setCsrTokenType',
+      'fetchCsrForm',
+      'resetCsrState',
+      'fetchCertificateAuthorities',
+    ]),
+
     save(): void {
-      this.$store.dispatch('fetchCsrForm').then(
+      this.fetchCsrForm().then(
         () => {
           this.currentStep = 3;
         },
         (error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         },
       );
     },
     cancel(): void {
-      this.$store.dispatch('resetCsrState');
+      this.resetCsrState();
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
     done(): void {
-      this.$store.dispatch('resetCsrState');
+      this.resetCsrState();
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
-    },
-
-    fetchKeyData(): void {
-      this.$store.dispatch('fetchKeyData').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
-
-    fetchCertificateAuthorities(): void {
-      this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
     },
   },
 });

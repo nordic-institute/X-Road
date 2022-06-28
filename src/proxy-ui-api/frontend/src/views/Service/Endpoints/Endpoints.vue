@@ -89,12 +89,16 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+
 import { Endpoint } from '@/openapi-types';
 import * as api from '@/util/api';
 import addEndpointDialog from './AddEndpointDialog.vue';
 import { RouteName, Permissions } from '@/global';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useServicesStore } from '@/store/modules/services';
 
 export default Vue.extend({
   components: {
@@ -116,32 +120,35 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['service']),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useServicesStore, ['service']),
 
     endpoints(): Endpoint[] {
+      // Check if the service has endpoints
+      if (!this.service.endpoints) {
+        return [];
+      }
+
       return this.service.endpoints.filter((endpoint: Endpoint) => {
         return !this.isBaseEndpoint(endpoint);
       });
     },
 
     canAddEndpoint(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.ADD_OPENAPI3_ENDPOINT,
-      );
+      return this.hasPermission(Permissions.ADD_OPENAPI3_ENDPOINT);
     },
 
     canEditEndpoint(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_OPENAPI3_ENDPOINT,
-      );
+      return this.hasPermission(Permissions.EDIT_OPENAPI3_ENDPOINT);
     },
 
     canViewAccessRights(): boolean {
-      return this.$store.getters.hasPermission(Permissions.VIEW_ENDPOINT_ACL);
+      return this.hasPermission(Permissions.VIEW_ENDPOINT_ACL);
     },
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     addEndpoint(method: string, path: string): void {
       api
         .post(`/services/${encodePathParameter(this.service.id)}/endpoints`, {
@@ -150,13 +157,10 @@ export default Vue.extend({
           service_code: this.service.service_code,
         })
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            'endpoints.saveNewEndpointSuccess',
-          );
+          this.showSuccess(this.$t('endpoints.saveNewEndpointSuccess'));
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.isAddEndpointDialogVisible = false;
@@ -200,23 +204,11 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/colors';
-@import '../../../assets/tables';
-
-.path-wrapper {
-  white-space: nowrap;
-  min-width: 100px;
-}
-
-.url-wrapper {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 400px;
-}
+@import '~styles/colors';
+@import '~styles/tables';
 
 .generated {
-  color: $XRoad-Grey40;
+  color: $XRoad-Black50;
 }
 
 .wrap-right-tight {

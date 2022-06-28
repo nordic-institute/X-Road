@@ -25,7 +25,7 @@
  -->
 
 <template>
-  <div class="xrd-view-common">
+  <div class="xrd-view-common" data-test="forbidden-view">
     <TabsBase />
     <AlertsContainer />
     <v-container>
@@ -69,16 +69,21 @@
 import Vue from 'vue';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
     TabsBase,
     AlertsContainer,
   },
+  computed: {
+    ...mapState(useUser, ['firstAllowedTab']),
+  },
   methods: {
     home(): void {
       this.$router.replace({
-        name: this.$store.getters.firstAllowedTab.to.name,
+        name: this.firstAllowedTab.to.name,
       });
     },
     goBack(): void {
@@ -89,7 +94,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/shared';
 @import '~styles/colors';
 
 .xrd-view-common {

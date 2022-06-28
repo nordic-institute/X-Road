@@ -27,7 +27,7 @@
   <div class="step-content-wrapper">
     <ValidationObserver ref="form1" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberName')"
             :help-text="$t('wizard.client.memberNameTooltip')"
@@ -42,7 +42,7 @@
           <div v-else class="readonly-info-field"></div>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberClass')"
             :help-text="$t('wizard.client.memberClassTooltip')"
@@ -54,11 +54,11 @@
               :items="memberClassesCurrentInstance"
               :disabled="isServerOwnerInitialized"
               data-test="member-class-input"
-              class="form-input"
+              class="wizard-form-input"
             ></v-select>
           </ValidationProvider>
         </div>
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberCode')"
             :help-text="$t('wizard.client.memberCodeTooltip')"
@@ -72,7 +72,7 @@
           >
             <v-text-field
               v-model="memberCode"
-              class="form-input"
+              class="wizard-form-input"
               type="text"
               :error-messages="errors"
               :disabled="isServerOwnerInitialized"
@@ -82,7 +82,7 @@
           </ValidationProvider>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('fields.securityServerCode')"
             :help-text="$t('initialConfiguration.member.serverCodeHelp')"
@@ -95,7 +95,7 @@
           >
             <v-text-field
               v-model="securityServerCode"
-              class="form-input"
+              class="wizard-form-input"
               type="text"
               :error-messages="errors"
               :disabled="isServerCodeInitialized"
@@ -129,8 +129,14 @@
 
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
-import { mapGetters } from 'vuex';
+
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
+
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useGeneral } from '@/store/modules/general';
+import { useUser } from '@/store/modules/user';
+import { useInitializeServer } from '@/store/modules/initializeServer';
 
 export default (
   Vue as VueConstructor<
@@ -161,46 +167,50 @@ export default (
     };
   },
   computed: {
-    ...mapGetters([
-      'memberClassesCurrentInstance',
-      'initExistingMembers',
+    ...mapState(useGeneral, ['memberClassesCurrentInstance', 'memberName']),
+
+    ...mapState(useUser, [
       'currentSecurityServer',
       'isServerCodeInitialized',
       'isServerOwnerInitialized',
-      'memberName',
+    ]),
+    ...mapState(useInitializeServer, [
+      'initServerMemberClass',
+      'initServerMemberCode',
+      'initServerSSCode',
     ]),
 
     memberClass: {
-      get(): string {
+      get(): string | undefined {
         if (this.currentSecurityServer?.member_class) {
           return this.currentSecurityServer.member_class;
         }
-        return this.$store.getters.initServerMemberClass;
+        return this.initServerMemberClass;
       },
       set(value: string) {
-        this.$store.commit('storeInitServerMemberClass', value);
+        this.storeInitServerMemberClass(value);
       },
     },
     memberCode: {
-      get(): string {
+      get(): string | undefined {
         if (this.currentSecurityServer?.member_code) {
           return this.currentSecurityServer.member_code;
         }
-        return this.$store.getters.initServerMemberCode;
+        return this.initServerMemberCode;
       },
       set(value: string) {
-        this.$store.commit('storeInitServerMemberCode', value);
+        this.storeInitServerMemberCode(value);
       },
     },
     securityServerCode: {
-      get(): string {
+      get(): string | undefined {
         if (this.currentSecurityServer?.server_code) {
           return this.currentSecurityServer.server_code;
         }
-        return this.$store.getters.initServerSSCode;
+        return this.initServerSSCode;
       },
       set(value: string) {
-        this.$store.commit('storeInitServerSSCode', value);
+        this.storeInitServerSSCode(value);
       },
     },
   },
@@ -209,7 +219,7 @@ export default (
     memberClassesCurrentInstance(val: string[]) {
       // Set first member class selected if there is only one
       if (val?.length === 1) {
-        this.$store.commit('storeInitServerMemberClass', val[0]);
+        this.storeInitServerMemberClass(val[0]);
       }
     },
     memberClass(val) {
@@ -228,15 +238,13 @@ export default (
     },
   },
   beforeMount() {
-    this.$store
-      .dispatch('fetchMemberClassesForCurrentInstance')
-      .catch((error) => {
-        if (error.response.status === 500) {
-          // this can happen if anchor is not ready
-          return;
-        }
-        this.$store.dispatch('showError', error);
-      });
+    this.fetchMemberClassesForCurrentInstance().catch((error) => {
+      if (error.response.status === 500) {
+        // this can happen if anchor is not ready
+        return;
+      }
+      this.showError(error);
+    });
 
     this.checkMember();
   },
@@ -244,6 +252,18 @@ export default (
     this.$refs.memberCodeVP;
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useInitializeServer, [
+      'storeInitServerSSCode',
+      'storeInitServerMemberClass',
+      'storeInitServerMemberCode',
+    ]),
+
+    ...mapActions(useGeneral, [
+      'fetchMemberClassesForCurrentInstance',
+      'fetchMemberName',
+    ]),
+
     done(): void {
       this.$emit('done');
     },
@@ -253,22 +273,21 @@ export default (
 
     checkMember(): void {
       if (
-        this.memberClass?.length > 0 &&
-        this.memberCode?.length > 0 &&
+        this.memberClass &&
+        this.memberCode &&
+        this.memberClass.length > 0 &&
+        this.memberCode.length > 0 &&
         this.isMemberCodeValid
       ) {
-        this.$store
-          .dispatch('fetchMemberName', {
-            memberClass: this.memberClass,
-            memberCode: this.memberCode,
-          })
-          .catch((error) => {
+        this.fetchMemberName(this.memberClass, this.memberCode).catch(
+          (error) => {
             if (error.response.status === 404) {
               // no match found
               return;
             }
-            this.$store.dispatch('showError', error);
-          });
+            this.showError(error);
+          },
+        );
       }
     },
   },

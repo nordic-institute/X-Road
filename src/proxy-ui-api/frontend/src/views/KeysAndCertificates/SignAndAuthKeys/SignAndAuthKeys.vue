@@ -38,11 +38,16 @@
         <xrd-search v-model="search" />
       </div>
     </div>
-    <div v-if="filtered && filtered.length < 1">
-      {{ $t('services.noMatches') }}
-    </div>
 
-    <template v-if="filtered">
+    <XrdEmptyPlaceholder
+      :data="filtered"
+      :loading="loading"
+      :filtered="search && search.length > 0"
+      :no-items-text="$t('noData.noTokens')"
+      skeleton-type="table-heading"
+    />
+
+    <template v-if="filtered && !loading">
       <token-expandable
         v-for="token in filtered"
         :key="token.id"
@@ -77,8 +82,16 @@ import { RouteName } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import HelpButton from '../HelpButton.vue';
-import { mapGetters } from 'vuex';
-import { Key, Token, TokenCertificate } from '@/openapi-types';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useTokensStore } from '@/store/modules/tokens';
+
+import {
+  Key,
+  Token,
+  TokenCertificate,
+  TokenCertificateSigningRequest,
+} from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
 
 export default Vue.extend({
@@ -92,10 +105,11 @@ export default Vue.extend({
       search: '',
       loginDialog: false,
       logoutDialog: false,
+      loading: false,
     };
   },
   computed: {
-    ...mapGetters(['tokens']),
+    ...mapState(useTokensStore, ['tokens', 'selectedToken']),
     filtered(): Token[] {
       if (!this.tokens || this.tokens.length === 0) {
         return [];
@@ -114,18 +128,16 @@ export default Vue.extend({
         return 0;
       });
 
-      if (!this.search) {
+      // Check that there is a search input
+      if (!this.search || this.search.length < 1) {
         return arr;
       }
 
       const mysearch = this.search.toLowerCase();
 
-      if (mysearch.length < 1) {
-        return this.tokens;
-      }
-
       arr.forEach((token: Token) => {
         token.keys.forEach((key: Key) => {
+          // Filter the certificates
           const certs = key.certificates.filter((cert: TokenCertificate) => {
             if (cert.owner_id) {
               return cert.owner_id.toLowerCase().includes(mysearch);
@@ -133,12 +145,30 @@ export default Vue.extend({
             return false;
           });
           key.certificates = certs;
+
+          // Filter the CSR:s
+          const csrs = key.certificate_signing_requests.filter(
+            (csr: TokenCertificateSigningRequest) => {
+              if (csr.id) {
+                return csr.id.toLowerCase().includes(mysearch);
+              }
+              return false;
+            },
+          );
+          key.certificate_signing_requests = csrs;
         });
       });
 
       arr.forEach((token: Token) => {
         const keys = token.keys.filter((key: Key) => {
           if (key.certificates && key.certificates.length > 0) {
+            return true;
+          }
+
+          if (
+            key.certificate_signing_requests &&
+            key.certificate_signing_requests.length > 0
+          ) {
             return true;
           }
 
@@ -168,25 +198,32 @@ export default Vue.extend({
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useTokensStore, ['fetchTokens', 'tokenLogout']),
     fetchData(): void {
       // Fetch tokens from backend
-      this.$store.dispatch('fetchTokens').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
+      this.loading = true;
+      this.fetchTokens()
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     acceptTokenLogout(): void {
-      const token: Token = this.$store.getters.selectedToken;
-
-      if (!token) {
+      if (!this.selectedToken) {
+        // eslint-disable-next-line no-console
+        console.error('Token is undefined');
         return;
       }
 
-      this.$store.dispatch('tokenLogout', token.id).then(
+      this.tokenLogout(this.selectedToken.id).then(
         () => {
-          this.$store.dispatch('showSuccess', 'keys.loggedOut');
+          this.showSuccess(this.$t('keys.loggedOut'));
         },
         (error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         },
       );
 
@@ -197,11 +234,16 @@ export default Vue.extend({
       this.loginDialog = false;
     },
     addKey() {
+      if (!this.selectedToken) {
+        // Should not happen
+        throw new Error('Token is undefined');
+      }
+
       this.$router.push({
         name: RouteName.AddKey,
         params: {
-          tokenId: this.$store.getters.selectedToken.id,
-          tokenType: this.$store.getters.selectedToken.type,
+          tokenId: this.selectedToken.id,
+          tokenType: this.selectedToken.type,
         },
       });
     },
@@ -223,9 +265,5 @@ export default Vue.extend({
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-}
-
-.search-input {
-  max-width: 300px;
 }
 </style>

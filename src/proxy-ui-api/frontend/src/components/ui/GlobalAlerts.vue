@@ -25,7 +25,7 @@
  -->
 <template>
   <v-container
-    v-if="isAuthenticated && !needsInitialization && hasAlerts"
+    v-if="authenticated && !needsInitialization && hasAlerts"
     fluid
     class="alerts-container px-3"
   >
@@ -78,40 +78,57 @@
         })
       }}</span>
     </v-alert>
+    <v-alert
+      data-test="global-alert-secondary-node"
+      :value="isSecondaryNode"
+      color="red"
+      border="left"
+      colored-border
+      class="alert"
+      icon="icon-Error-notification"
+    >
+      <span class="alert-text">{{ $t('globalAlert.secondaryNode') }}</span>
+    </v-alert>
   </v-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapState } from 'pinia';
+import { useAlerts } from '@/store/modules/alerts';
+import { useSystemStore } from '@/store/modules/system';
+import { useUser } from '@/store/modules/user';
 import { formatDateTime } from '@/filters';
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
-  name: 'AlertsContainer',
   computed: {
-    hasAlerts(): boolean {
-      return (
-        this.showGlobalConfAlert ||
-        this.showSoftTokenPinEnteredAlert ||
-        this.showRestoreInProgress
-      );
-    },
-    showLoginLink(): boolean {
-      return this.$route.name !== RouteName.SignAndAuthKeys;
-    },
-    ...mapGetters([
+    ...mapState(useAlerts, [
       'showGlobalConfAlert',
       'showSoftTokenPinEnteredAlert',
       'showRestoreInProgress',
       'restoreStartTime',
-      'isAuthenticated',
-      'needsInitialization',
     ]),
-    isAllowedToLoginToken(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
+    ...mapState(useSystemStore, ['isSecondaryNode']),
+    ...mapState(useUser, [
+      'authenticated',
+      'needsInitialization',
+      'hasPermission',
+    ]),
+    hasAlerts(): boolean {
+      return (
+        this.showGlobalConfAlert ||
+        this.showSoftTokenPinEnteredAlert ||
+        this.showRestoreInProgress ||
+        this.isSecondaryNode
       );
+    },
+
+    showLoginLink(): boolean {
+      return this.$route.name !== RouteName.SignAndAuthKeys;
+    },
+    isAllowedToLoginToken(): boolean {
+      return this.hasPermission(Permissions.ACTIVATE_DEACTIVATE_TOKEN);
     },
   },
   methods: {
@@ -135,12 +152,12 @@ export default Vue.extend({
   }
 
   & > :first-child {
-    margin-top: 8px;
+    margin-top: 16px;
   }
 }
 
 .alert {
-  margin-top: 8px;
+  margin-top: 16px;
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;

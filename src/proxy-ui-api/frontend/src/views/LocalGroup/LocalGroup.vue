@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width main-wrap">
+  <div class="xrd-tab-max-width xrd-main-wrap">
     <div class="pa-4">
       <xrd-sub-view-title :title="groupCode" @close="close" />
 
@@ -48,8 +48,7 @@
           outlined
           :label="$t('localGroup.description')"
           hide-details
-          data-test="ocal-group-edit-description-input"
-          class="description-input"
+          data-test="local-group-edit-description-input"
           @change="saveDescription"
         ></v-text-field>
       </template>
@@ -162,6 +161,9 @@ import { GroupMember, LocalGroup } from '@/openapi-types';
 import AddMembersDialog from './AddMembersDialog.vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -190,19 +192,16 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     showDelete(): boolean {
-      return this.$store.getters.hasPermission(Permissions.DELETE_LOCAL_GROUP);
+      return this.hasPermission(Permissions.DELETE_LOCAL_GROUP);
     },
     canEditDescription(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_LOCAL_GROUP_DESC,
-      );
+      return this.hasPermission(Permissions.EDIT_LOCAL_GROUP_DESC);
     },
 
     canEditMembers(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_LOCAL_GROUP_MEMBERS,
-      );
+      return this.hasPermission(Permissions.EDIT_LOCAL_GROUP_MEMBERS);
     },
 
     hasMembers(): boolean {
@@ -216,6 +215,7 @@ export default Vue.extend({
     this.fetchData(this.clientId, this.groupId);
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
       this.$router.go(-1);
     },
@@ -229,13 +229,13 @@ export default Vue.extend({
           },
         )
         .then((res) => {
-          this.$store.dispatch('showSuccess', 'localGroup.descSaved');
+          this.showSuccess(this.$t('localGroup.descSaved'));
           this.group = res.data;
           this.groupCode = res.data.code;
           this.description = res.data.description;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
@@ -248,7 +248,7 @@ export default Vue.extend({
           this.description = res.data.description;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
@@ -267,7 +267,7 @@ export default Vue.extend({
           this.fetchData(this.clientId, this.groupId);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
@@ -320,7 +320,7 @@ export default Vue.extend({
           },
         )
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.fetchData(this.clientId, this.groupId);
@@ -336,11 +336,11 @@ export default Vue.extend({
       api
         .remove(`/local-groups/${encodePathParameter(this.groupId)}`)
         .then(() => {
-          this.$store.dispatch('showSuccess', 'localGroup.groupDeleted');
+          this.showSuccess(this.$t('localGroup.groupDeleted'));
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
   },
@@ -349,25 +349,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-
-.main-wrap {
-  background-color: white;
-  margin-top: 20px;
-  border-radius: 4px;
-  box-shadow: $XRoad-DefaultShadow;
-  font-size: $XRoad-DefaultFontSize;
-}
-
-.edit-row {
-  display: flex;
-  align-content: center;
-  align-items: baseline;
-  margin-top: 30px;
-
-  .description-input {
-    margin-left: 60px;
-  }
-}
 
 .group-members-row {
   width: 100%;

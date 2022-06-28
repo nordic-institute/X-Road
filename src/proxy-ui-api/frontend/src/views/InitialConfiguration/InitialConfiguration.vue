@@ -27,7 +27,7 @@
   <v-layout align-center justify-center class="mt-6">
     <div class="view-wrap">
       <xrd-sub-view-title
-        class="view-title"
+        class="wizard-view-title"
         :title="$t('initialConfiguration.title')"
         :show-close="false"
         data-test="wizard-title"
@@ -35,10 +35,10 @@
       <v-stepper
         v-model="currentStep"
         :alt-labels="true"
-        class="stepper noshadow"
+        class="wizard-stepper wizard-noshadow"
       >
         <!-- Headers without anchor page -->
-        <v-stepper-header v-if="isAnchorImported" class="noshadow">
+        <v-stepper-header v-if="isAnchorImported" class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('initialConfiguration.member.title')
           }}</v-stepper-step>
@@ -48,7 +48,7 @@
           }}</v-stepper-step>
         </v-stepper-header>
         <!-- Headers with anchor page -->
-        <v-stepper-header v-else class="noshadow">
+        <v-stepper-header v-else class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('initialConfiguration.anchor.title')
           }}</v-stepper-step>
@@ -62,7 +62,7 @@
           }}</v-stepper-step>
         </v-stepper-header>
 
-        <v-stepper-items v-if="isAnchorImported" class="stepper-content">
+        <v-stepper-items v-if="isAnchorImported" class="wizard-stepper-content">
           <!-- Member step -->
           <v-stepper-content step="1">
             <OwnerMemberStep :show-previous-button="false" @done="nextStep" />
@@ -73,7 +73,7 @@
           </v-stepper-content>
         </v-stepper-items>
 
-        <v-stepper-items v-else class="stepper-content">
+        <v-stepper-items v-else class="wizard-stepper-content">
           <!-- Anchor step -->
           <v-stepper-content step="1">
             <ConfigurationAnchorStep @done="nextStep" />
@@ -107,13 +107,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+
 import TokenPinStep from './TokenPinStep.vue';
 import ConfigurationAnchorStep from './ConfigurationAnchorStep.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import OwnerMemberStep from './OwnerMemberStep.vue';
 import * as api from '@/util/api';
 import { InitialServerConf } from '@/openapi-types';
+import { mapActions, mapState } from 'pinia';
+import { useAlerts } from '@/store/modules/alerts';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useInitializeServer } from '@/store/modules/initializeServer';
 
 export default Vue.extend({
   components: {
@@ -132,17 +137,32 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters([
+    ...mapState(useUser, [
       'isAnchorImported',
       'isServerOwnerInitialized',
       'isServerCodeInitialized',
+      'firstAllowedTab',
+    ]),
+    ...mapState(useInitializeServer, [
+      'initServerSSCode',
+      'initServerMemberClass',
+      'initServerMemberCode',
     ]),
   },
 
   created() {
-    this.fetchInitStatus();
+    this.fetchInitializationStatus().catch((error) => {
+      this.showError(error);
+    });
   },
   methods: {
+    ...mapActions(useAlerts, ['checkAlertStatus']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useUser, [
+      'setInitializationStatus',
+      'fetchInitializationStatus',
+      'fetchCurrentSecurityServer',
+    ]),
     nextStep(): void {
       this.currentStep++;
     },
@@ -157,16 +177,13 @@ export default Vue.extend({
 
       // If owner member is not already set up add it
       if (!this.isServerOwnerInitialized) {
-        this.requestPayload.owner_member_class =
-          this.$store.getters.initServerMemberClass;
-        this.requestPayload.owner_member_code =
-          this.$store.getters.initServerMemberCode;
+        this.requestPayload.owner_member_class = this.initServerMemberClass;
+        this.requestPayload.owner_member_code = this.initServerMemberCode;
       }
 
       // Add security code if it's not already set up
       if (!this.isServerCodeInitialized) {
-        this.requestPayload.security_server_code =
-          this.$store.getters.initServerSSCode;
+        this.requestPayload.security_server_code = this.initServerSSCode;
       }
 
       this.initServer(this.requestPayload);
@@ -182,14 +199,14 @@ export default Vue.extend({
       api
         .post('/initialization', payload)
         .then(() => {
-          this.$store.dispatch('showSuccess', 'initialConfiguration.success');
+          this.showSuccess(this.$t('initialConfiguration.success'));
           // Set init state to done so that the routing goes into "normal" mode
-          this.$store.dispatch('setInitializationStatus');
+          this.setInitializationStatus();
           this.pinSaveBusy = false;
           this.fetchCurrentSecurityServer();
-          this.$store.dispatch('checkAlertStatus'); // Check if we have any alerts after initialisation
+          this.checkAlertStatus(); // Check if we have any alerts after initialisation
           this.$router.replace({
-            name: this.$store.getters.firstAllowedTab.to.name,
+            name: this.firstAllowedTab.to.name,
           });
         })
         .catch((error) => {
@@ -197,29 +214,15 @@ export default Vue.extend({
             this.warningInfo = error.response.data.warnings;
             this.confirmInitWarning = true;
           } else {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
             this.pinSaveBusy = false;
           }
         });
-    },
-
-    fetchInitStatus(): void {
-      this.$store.dispatch('fetchInitializationStatus').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
-
-    fetchCurrentSecurityServer() {
-      this.$store.dispatch('fetchCurrentSecurityServer').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/shared';
 @import '~styles/wizards';
 </style>

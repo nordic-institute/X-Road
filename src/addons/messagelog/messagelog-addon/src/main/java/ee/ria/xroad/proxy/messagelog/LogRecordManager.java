@@ -167,13 +167,16 @@ public final class LogRecordManager {
      * @throws Exception if an error occurs while communicating with database.
      */
     @SuppressWarnings("JpaQlInspection")
-    static void updateMessageRecordSignature(MessageRecord messageRecord) throws Exception {
+    static void updateMessageRecordSignature(MessageRecord messageRecord, String oldHash) throws Exception {
         doInTransaction(session -> {
-            final Query<?> query = session.createQuery(
-                    "update MessageRecord m set m.signature = :signature, m.signatureHash = :hash where m.id = :id");
+            final Query<?> query = session.createQuery("update MessageRecord m "
+                    + "set m.signature = :signature, m.signatureHash = :hash "
+                    + "where m.id = :id and m.timestampRecord is null and m.signatureHash = :oldhash");
+
             query.setParameter("id", messageRecord.getId());
             query.setParameter("hash", messageRecord.getSignatureHash());
             query.setParameter("signature", messageRecord.getSignature());
+            query.setParameter("oldhash", oldHash);
             query.executeUpdate();
             return null;
         });

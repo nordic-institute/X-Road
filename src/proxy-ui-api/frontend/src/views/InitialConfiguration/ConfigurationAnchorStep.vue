@@ -36,8 +36,8 @@
 
       <div style="height: 120px">
         <template v-if="configuratonAnchor">
-          <div class="row-wrap">
-            <div class="label">
+          <div class="wizard-row-wrap">
+            <div class="wizard-label">
               {{ $t('initialConfiguration.anchor.hash') }}
             </div>
             <template v-if="configuratonAnchor">{{
@@ -45,8 +45,8 @@
             }}</template>
           </div>
 
-          <div class="row-wrap">
-            <div class="label">
+          <div class="wizard-row-wrap">
+            <div class="wizard-label">
               {{ $t('initialConfiguration.anchor.generated') }}
             </div>
             <template v-if="configuratonAnchor">{{
@@ -72,10 +72,12 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import { Anchor } from '@/openapi-types';
 import * as api from '@/util/api';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useGeneral } from '@/store/modules/general';
 
 export default Vue.extend({
   components: {
@@ -97,24 +99,19 @@ export default Vue.extend({
       configuratonAnchor: undefined as Anchor | undefined,
     };
   },
-  computed: {
-    ...mapGetters([
-      'filteredServiceList',
-      'isUsageReadOnly',
-      'selectedMember',
-      'usage',
-    ]),
-  },
+
   methods: {
+    ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance']),
+    ...mapActions(useNotifications, ['showError']),
     // Fetch anchor data so it can be shown in the UI
     fetchConfigurationAnchor() {
       api
         .get<Anchor>('/system/anchor')
         .then((resp) => (this.configuratonAnchor = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
 
       // Fetch member classes for owner member step after anchor is ready
-      this.$store.dispatch('fetchMemberClassesForCurrentInstance');
+      this.fetchMemberClassesForCurrentInstance();
     },
     done(): void {
       this.$emit('done');
@@ -126,7 +123,8 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/wizards';
 
-.label {
+/* Expand imported wizard class */
+.wizard-label {
   width: 170px;
   min-width: 170px;
 }
@@ -138,11 +136,5 @@ export default Vue.extend({
   width: 100%;
   margin-top: 20px;
   margin-bottom: 50px;
-}
-
-.readonly-info-field {
-  max-width: 300px;
-  height: 60px;
-  padding-top: 12px;
 }
 </style>

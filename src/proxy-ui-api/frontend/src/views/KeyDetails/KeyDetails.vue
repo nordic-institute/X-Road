@@ -24,9 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width detail-view-outer">
+  <div class="xrd-tab-max-width dtlv-outer">
     <ValidationObserver ref="form" v-slot="{ invalid }">
-      <div class="detail-view-content">
+      <div class="dtlv-content">
         <div>
           <xrd-sub-view-title
             v-if="key.usage == 'SIGNING'"
@@ -43,7 +43,7 @@
             :title="$t('keys.detailsTitle')"
             @close="close"
           />
-          <div class="details-view-tools">
+          <div class="dtlv-tools">
             <xrd-button
               v-if="canDelete"
               :loading="deleting"
@@ -92,7 +92,7 @@
           </div>
         </div>
       </div>
-      <div class="footer-button-wrap">
+      <div class="dtlv-actions-footer">
         <xrd-button outlined @click="close()">{{
           $t('action.cancel')
         }}</xrd-button>
@@ -142,9 +142,13 @@ import {
 } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
-import { mapGetters } from 'vuex';
+
 import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 import { isEmpty } from '@/util/helpers';
+import { mapActions, mapState } from 'pinia';
+import { useTokensStore } from '@/store/modules/tokens';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -172,15 +176,15 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['tokens']),
+    ...mapState(useTokensStore, ['tokens']),
+
+    ...mapState(useUser, ['hasPermission']),
     canEdit(): boolean {
       if (!this.possibleActions.includes(PossibleAction.EDIT_FRIENDLY_NAME)) {
         return false;
       }
 
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_KEY_FRIENDLY_NAME,
-      );
+      return this.hasPermission(Permissions.EDIT_KEY_FRIENDLY_NAME);
     },
     canDelete(): boolean {
       if (!this.possibleActions.includes(PossibleAction.DELETE)) {
@@ -188,20 +192,22 @@ export default Vue.extend({
       }
 
       if (this.key.usage === KeyUsageType.SIGNING) {
-        return this.$store.getters.hasPermission(Permissions.DELETE_SIGN_KEY);
+        return this.hasPermission(Permissions.DELETE_SIGN_KEY);
       }
 
       if (this.key.usage === KeyUsageType.AUTHENTICATION) {
-        return this.$store.getters.hasPermission(Permissions.DELETE_AUTH_KEY);
+        return this.hasPermission(Permissions.DELETE_AUTH_KEY);
       }
 
-      return this.$store.getters.hasPermission(Permissions.DELETE_KEY);
+      return this.hasPermission(Permissions.DELETE_KEY);
     },
   },
   created() {
     this.fetchData(this.id);
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useTokensStore, ['fetchTokens']),
     close(): void {
       this.$router.go(-1);
     },
@@ -213,43 +219,33 @@ export default Vue.extend({
         .patch(`/keys/${encodePathParameter(this.id)}`, this.key)
         .then(() => {
           this.saveBusy = false;
-          this.$store.dispatch('showSuccess', 'keys.keySaved');
+          this.showSuccess(this.$t('keys.keySaved'));
           this.close();
         })
         .catch((error) => {
           this.saveBusy = false;
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
-    fetchData(id: string): void {
-      const promises = [];
-      const keyPromise = api.get<Key>(`/keys/${encodePathParameter(id)}`);
+    async fetchData(id: string) {
+      const keyResponse = await api.get<Key>(
+        `/keys/${encodePathParameter(id)}`,
+      );
 
-      promises.push(keyPromise);
+      this.key = keyResponse.data;
+      this.fetchPossibleActions(id);
+      // If the key has no name, use key id instead
+      this.setKeyName();
 
       if (this.tokens?.length === 0) {
-        const tokenPromise = this.$store.dispatch('fetchTokens');
-        promises.push(tokenPromise);
+        await this.fetchTokens();
       }
 
-      keyPromise
-        .then((res) => {
-          this.key = res.data;
-          this.fetchPossibleActions(id);
-          // If the key has no name, use key id instead
-          this.setKeyName();
-        })
-        .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
-
-      // Find the token that contains current key after token and keys are fetched
-      Promise.all(promises).then(() => {
-        this.tokenForCurrentKey = this.tokens.find((token: Token) =>
-          token.keys.find((key: Key) => key.id === this.id),
-        );
-      });
+      // Find the token that contains current key after token and key are fetched
+      this.tokenForCurrentKey = this.tokens.find((token: Token) =>
+        token.keys.find((key: Key) => key.id === this.id),
+      ) as Token;
     },
     fetchPossibleActions(id: string): void {
       api
@@ -260,7 +256,7 @@ export default Vue.extend({
           this.possibleActions = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
     cancelSubmit(): void {
@@ -281,7 +277,7 @@ export default Vue.extend({
           )}?ignore_warnings=${ignoreWarnings}`,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'keys.keyDeleted');
+          this.showSuccess(this.$t('keys.keyDeleted'));
           this.close();
         })
         .catch((error) => {
@@ -289,7 +285,7 @@ export default Vue.extend({
             this.warningInfo = error.response.data.warnings;
             this.warningDialog = true;
           } else {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           }
         })
         .finally(() => (this.deleting = false));
@@ -306,6 +302,16 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/detail-views';
 @import '~styles/wizards';
+
+.info-title {
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: row;
+}
 
 .key-name {
   width: 405px;

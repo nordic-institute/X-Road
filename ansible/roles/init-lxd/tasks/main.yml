@@ -3,6 +3,7 @@
   with_inventory_hostnames: all:!lxd_servers:!centos_ss
   lxd_container:
     name: "{{item}}"
+    url: "{{ lxd_url | default(omit) }}"
     state: started
     source:
       type: image
@@ -20,16 +21,20 @@
   with_inventory_hostnames: centos_ss
   lxd_container:
     name: "{{item}}"
+    url: "{{ lxd_url | default(omit) }}"
     state: started
     source:
       type: image
       mode: pull
       server: https://images.linuxcontainers.org
       protocol: simplestreams
-      alias: centos/{{centos_releasever}}/amd64
+      alias: centos/{{centos_releasever}}/{{ arch[ansible_architecture] }}
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     timeout: 600
   tags:
     - centos-container-init
-
+  vars:
+    arch:
+      aarch64: arm64
+      x86_64: amd64

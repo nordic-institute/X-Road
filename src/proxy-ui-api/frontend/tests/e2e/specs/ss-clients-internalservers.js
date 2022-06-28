@@ -29,7 +29,7 @@ var fs = require('fs');
 module.exports = {
   tags: ['ss', 'clients', 'internalservers'],
   'Security server client internal servers page': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -114,7 +114,7 @@ module.exports = {
     );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Certificate already exists'
 
-    browser.logMessage("closing alertMessage now");
+    browser.logMessage('closing alertMessage now');
 
     mainPage.closeAlertMessage();
 

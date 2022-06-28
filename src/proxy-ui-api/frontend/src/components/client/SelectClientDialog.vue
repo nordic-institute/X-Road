@@ -27,7 +27,7 @@
   <v-dialog v-if="dialog" :value="dialog" width="750" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{ $t(title) }}</span>
+        <span class="headline">{{ title }}</span>
         <v-spacer />
         <i data-test="x-close-button" @click="cancel()"></i>
       </v-card-title>
@@ -35,7 +35,7 @@
       <v-card-text style="height: 500px" class="elevation-0">
         <v-text-field
           v-model="search"
-          :label="$t(searchLabel)"
+          :label="searchLabel"
           single-line
           hide-details
           class="search-input"
@@ -51,7 +51,7 @@
             <thead>
               <tr>
                 <th class="checkbox-column"></th>
-                <th>{{ $t('name') }}</th>
+                <th>{{ $t('general.name') }}</th>
                 <th>{{ $t('localGroup.id') }}</th>
               </tr>
             </thead>
@@ -108,11 +108,11 @@ export default Vue.extend({
     },
     title: {
       type: String,
-      default: 'wizard.client.addClient',
+      required: true,
     },
     searchLabel: {
       type: String,
-      default: 'action.search',
+      required: true,
     },
     selectableClients: {
       type: Array as PropType<Client[]>,

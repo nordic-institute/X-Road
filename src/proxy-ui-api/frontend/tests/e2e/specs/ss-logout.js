@@ -30,8 +30,8 @@ module.exports = {
   tags: ['ss', 'logout'],
   before: function (browser) {
     mainPage = browser.page.ssMainPage();
-    frontPage = browser.page.ssFrontPage();
-    },
+    frontPage = browser.page.ssLoginPage();
+  },
 
   beforeEach: function (browser) {
     browser.LoginCommand();

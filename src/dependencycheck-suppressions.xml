@@ -16,4 +16,9 @@
       <cve>CVE-2021-40111</cve>
       <cve>CVE-2021-40525</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[Ignored since we are not vulnerable.]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring.*$</packageUrl>
+        <cve>CVE-2016-1000027</cve>
+    </suppress>
 </suppressions>

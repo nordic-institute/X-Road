@@ -26,7 +26,7 @@
 <template>
   <div data-test="finish-content">
     <div class="wizard-step-form-content px-12 pt-10">
-      <div class="finish-info">
+      <div class="wizard-finish-info">
         <p>{{ $t('wizard.finish.infoLine1') }}</p>
         <p>{{ $t('wizard.finish.infoLine2') }}</p>
         <br />
@@ -87,13 +87,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { memberHasValidSignCert } from '@/util/ClientUtil';
+import { mapActions, mapState } from 'pinia';
+
+import { useNotifications } from '@/store/modules/notifications';
+import { useAddClient } from '@/store/modules/addClient';
+import { useUser } from '@/store/modules/user';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   components: {
@@ -109,14 +114,16 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters([
+    ...mapState(useAddClient, [
       'addMemberWizardMode',
       'memberClass',
       'memberCode',
       'subsystemCode',
-      'currentSecurityServer',
       'tokens',
     ]),
+    ...mapState(useUser, ['currentSecurityServer']),
+    ...mapState(useCsrStore, ['csrTokenId']),
+
     showRegisterOption(): boolean {
       return (
         this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
@@ -129,6 +136,9 @@ export default Vue.extend({
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useAddClient, ['createClient']),
+    ...mapActions(useCsrStore, ['generateKeyAndCsr']),
     cancel(): void {
       this.$emit('cancel');
     },
@@ -136,13 +146,13 @@ export default Vue.extend({
       this.$emit('previous');
     },
     done(): void {
-      this.createClient(false);
+      this.requestCreateClient(false);
     },
-    createClient(ignoreWarnings: boolean): void {
+    requestCreateClient(ignoreWarnings: boolean): void {
       this.disableCancel = true;
       this.submitLoading = true;
 
-      this.$store.dispatch('createClient', ignoreWarnings).then(
+      this.createClient(ignoreWarnings).then(
         () => {
           if (
             this.addMemberWizardMode ===
@@ -162,7 +172,7 @@ export default Vue.extend({
           ) {
             this.generateCsr();
           } else {
-            this.generateKeyAndCsr();
+            this.requestGenerateKeyAndCsr();
           }
         },
         (error) => {
@@ -170,7 +180,7 @@ export default Vue.extend({
             this.warningInfo = error.response.data.warnings;
             this.warningDialog = true;
           } else {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
             this.disableCancel = false;
             this.submitLoading = false;
           }
@@ -183,19 +193,23 @@ export default Vue.extend({
       this.warningDialog = false;
     },
     acceptWarnings(): void {
-      this.createClient(true);
+      this.requestCreateClient(true);
     },
-    generateKeyAndCsr(): void {
-      const tokenId = this.$store.getters.csrTokenId;
+    requestGenerateKeyAndCsr(): void {
+      if (!this.csrTokenId) {
+        // Should not happen
+        throw new Error('Token id is missing');
+      }
 
-      this.$store
-        .dispatch('generateKeyAndCsr', tokenId)
+      const tokenId = this.csrTokenId;
+
+      this.generateKeyAndCsr(tokenId)
         .then(
           () => {
             this.$emit('done');
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         )
         .finally(() => {
@@ -205,16 +219,13 @@ export default Vue.extend({
     },
 
     generateCsr(): void {
-      const tokenId = this.$store.getters.csrTokenId;
-
-      this.$store
-        .dispatch('generateCsr', tokenId)
+      this.requestGenerateCsr()
         .then(
           () => {
             this.$emit('done');
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         )
         .finally(() => {
@@ -224,6 +235,11 @@ export default Vue.extend({
     },
 
     registerClient(): void {
+      if (!this.currentSecurityServer.instance_id) {
+        // Should not happen
+        throw new Error('Current security server is missing instance id');
+      }
+
       const clientId = createClientId(
         this.currentSecurityServer.instance_id,
         this.memberClass,
@@ -238,7 +254,7 @@ export default Vue.extend({
             this.$emit('done');
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
             this.$emit('done');
           },
         )

@@ -35,10 +35,15 @@ export default {
         type: 'select',
         options: [
           'ok',
+          'ok-disabled',
           'saved',
           'progress-register',
+          'progress-register-disabled',
           'progress-delete',
           'error',
+          'error-disabled',
+          'pending',
+          'pending-disabled',
         ],
       },
     },
@@ -52,10 +57,15 @@ const Template = (args, { argTypes }) => ({
     <div>
     <status-icon v-bind="$props" /><br>
     <status-icon status="ok" /> ok<br>
+    <status-icon status="ok-disabled" /> ok-disabled<br>
     <status-icon status="saved" /> saved<br>
     <status-icon status="progress-register" /> progress-register<br>
+    <status-icon status="progress-register-disabled" /> progress-register-disabled<br>
     <status-icon status="progress-delete" /> progress-delete<br>
     <status-icon status="error" /> error<br>
+    <status-icon status="error-disabled" /> error-disabled<br>
+    <status-icon status="pending" /> pending<br>
+    <status-icon status="pending-disabled" /> pending-disabled<br>
     </div>`,
 });
 

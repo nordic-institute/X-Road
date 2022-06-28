@@ -24,13 +24,6 @@
  * THE SOFTWARE.
  */
 
-// Deprecated colors
-$XRoad-Black: #202020;
-$XRoad-Grey60: #6f6f6f;
-$XRoad-Grey40: #9c9c9c;
-$XRoad-Grey20: #dddddd;
-$XRoad-Grey10: #ededed;
-
 // New UI colors
 $XRoad-Purple10: #efebfb;
 $XRoad-Purple20: #e0d8f8;
@@ -53,6 +46,7 @@ $XRoad-WarmGrey70: #b4afc2;
 $XRoad-WarmGrey100: #575169;
 
 $XRoad-Error: #ec4040;
+$XRoad-Warning: #f5a623;
 $XRoad-Success100: #0cc177;
 $XRoad-Success10: #e6f8f1;
 
@@ -61,3 +55,4 @@ $XRoad-Link: $XRoad-Purple100;
 
 $XRoad-DefaultShadow: 20px 20px 30px rgba(148, 141, 168, 0.3);
 $XRoad-DefaultFontSize: 14px;
+

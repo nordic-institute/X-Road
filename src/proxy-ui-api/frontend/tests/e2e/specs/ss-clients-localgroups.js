@@ -27,7 +27,7 @@
 module.exports = {
   tags: ['ss', 'clients', 'localgroups'],
   'Security server client local groups filtering': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -70,7 +70,7 @@ module.exports = {
     browser.end();
   },
   'Security server client add local group': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -149,7 +149,7 @@ module.exports = {
     );
     browser.logMessage("closing 'local group added' snackbar");
     mainPage.closeSnackbar();
-    browser.logMessage("closed");
+    browser.logMessage('closed');
     // Close also alert, this cannot be closed while the popup is active
     mainPage.closeAlertMessage();
 
@@ -164,7 +164,7 @@ module.exports = {
     browser.end();
   },
   'Security server add local group member': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -218,7 +218,7 @@ module.exports = {
     browser.end();
   },
   'Security server delete local group members': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -285,7 +285,7 @@ module.exports = {
     browser.end();
   },
   'Security server edit local group': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -321,7 +321,7 @@ module.exports = {
     localGroupPopup.close();
 
     browser.waitForElementVisible(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
     );
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
@@ -337,15 +337,13 @@ module.exports = {
     mainPage.closeAlertMessage();
     localGroupPopup.close();
     browser.waitForElementVisible(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
     );
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.waitForDescription('Group4');
     let maxLengthDescription = browser.globals.test_string_300.slice(0, 255);
-    localGroupPopup.modifyDescription(
-      maxLengthDescription,
-    );
+    localGroupPopup.modifyDescription(maxLengthDescription);
     browser.keys(browser.Keys.ENTER);
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
@@ -354,7 +352,7 @@ module.exports = {
     mainPage.closeSnackbar();
     localGroupPopup.close();
     browser.waitForElementVisible(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "' +
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "' +
         maxLengthDescription +
         '")]]',
     );
@@ -370,12 +368,12 @@ module.exports = {
     mainPage.closeSnackbar();
     localGroupPopup.close();
     browser.waitForElementVisible(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
     );
     browser.end();
   },
   'Security server delete local group': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -399,7 +397,7 @@ module.exports = {
 
     // Delete and confirm
     browser.assert.elementPresent(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"bac")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"bac")]]',
     );
     clientLocalGroups.openDetails('abc');
     browser.waitForElementVisible(localGroupPopup);
@@ -413,7 +411,7 @@ module.exports = {
     localGroupPopup.confirmDelete();
     browser.waitForElementVisible(clientLocalGroups);
     browser.assert.not.elementPresent(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"abc")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"abc")]]',
     );
 
     // Delete and cancel
@@ -429,7 +427,7 @@ module.exports = {
     );
     localGroupPopup.close();
     browser.waitForElementVisible(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")]]',
     );
   },
 };

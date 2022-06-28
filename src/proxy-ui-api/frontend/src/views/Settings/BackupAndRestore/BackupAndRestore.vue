@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-view-common">
-    <div class="table-toolbar mt-0 pl-0">
+    <div class="xrd-table-toolbar mt-0 pl-0">
       <div class="xrd-title-search">
         <div class="xrd-view-title">
           {{ $t('tab.settings.backupAndRestore') }}
@@ -79,6 +79,7 @@
       :can-backup="canBackup"
       :backups="backups"
       :filter="search"
+      :loading="loadingBackups"
       @refresh-data="fetchData"
     />
   </div>
@@ -92,8 +93,11 @@ import Vue from 'vue';
 import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
-import { Backup } from '@/openapi-types';
+import { Backup, BackupExt } from '@/openapi-types';
 import { FileUploadResult } from '@niis/shared-ui';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
   const formData = new FormData();
@@ -121,27 +125,26 @@ export default Vue.extend({
       needsConfirmation: false,
       uploadedFile: null as File | null,
       backups: [] as Backup[],
+      loadingBackups: false,
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     canBackup(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.BACKUP_CONFIGURATION,
-      );
+      return this.hasPermission(Permissions.BACKUP_CONFIGURATION);
     },
   },
   created(): void {
     this.fetchData();
-    this.$store.dispatch('showStaticNotification', [
-      this.$t('info.backups_incompatible[0]'),
-      this.$t('info.backups_incompatible[1]'),
-    ]);
-  },
-  beforeDestroy() {
-    this.$store.dispatch('clearStaticNotification');
   },
   methods: {
+    ...mapActions(useNotifications, [
+      'showError',
+      'showSuccess',
+      'showWarningMessage',
+    ]),
     async fetchData() {
+      this.loadingBackups = true;
       return api
         .get<Backup[]>('/backups')
         .then((res) => {
@@ -149,22 +152,27 @@ export default Vue.extend({
             return b.created_at.localeCompare(a.created_at);
           });
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error))
+        .finally(() => (this.loadingBackups = false));
     },
     async createBackup() {
       this.creatingBackup = true;
       return api
-        .post<Backup>('/backups', null)
+        .post<BackupExt>('/backups/ext', null)
         .then((resp) => {
-          this.$store.dispatch(
-            'showSuccessRaw',
+          if (resp.data.local_conf_present) {
+            this.showWarningMessage(
+              this.$t('backup.backupConfiguration.message.localConfWarning'),
+            );
+          }
+          this.showSuccess(
             this.$t('backup.backupConfiguration.message.success', {
-              file: resp.data.filename,
+              file: resp.data.backup.filename,
             }),
           );
           this.fetchData();
         })
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => (this.creatingBackup = false));
     },
     onFileUploaded(result: FileUploadResult): void {
@@ -173,8 +181,7 @@ export default Vue.extend({
       uploadBackup(result.file)
         .then(() => {
           this.fetchData();
-          this.$store.dispatch(
-            'showSuccessRaw',
+          this.showSuccess(
             this.$t('backup.uploadBackup.success', {
               file: this.uploadedFile?.name,
             }),
@@ -193,7 +200,7 @@ export default Vue.extend({
             this.needsConfirmation = true;
             return;
           }
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => (this.uploadingBackup = false));
     },
@@ -204,14 +211,13 @@ export default Vue.extend({
       return uploadBackup(this.uploadedFile!, true)
         .then(() => {
           this.fetchData();
-          this.$store.dispatch(
-            'showSuccessRaw',
+          this.showSuccess(
             this.$t('backup.uploadBackup.success', {
               file: this.uploadedFile?.name,
             }),
           );
         })
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => {
           this.uploadingBackup = false;
           this.needsConfirmation = false;
@@ -223,9 +229,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-.search-input {
-  max-width: 300px;
-}
 
 .button-spacing {
   margin-left: 20px;

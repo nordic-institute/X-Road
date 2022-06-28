@@ -64,6 +64,10 @@ import {
   KeyUsageType,
 } from '@/openapi-types';
 import { Permissions } from '@/global';
+import { mapState } from 'pinia';
+
+import { useUser } from '@/store/modules/user';
+
 export default Vue.extend({
   props: {
     tokenKey: {
@@ -75,22 +79,19 @@ export default Vue.extend({
     },
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     showGenerateCsr(): boolean {
       // Check if the user has permission to see generate csr action
       if (this.tokenKey.usage === KeyUsageType.AUTHENTICATION) {
-        return this.$store.getters.hasPermission(
-          Permissions.GENERATE_AUTH_CERT_REQ,
-        );
+        return this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ);
       } else if (this.tokenKey.usage === KeyUsageType.SIGNING) {
-        return this.$store.getters.hasPermission(
-          Permissions.GENERATE_SIGN_CERT_REQ,
-        );
+        return this.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ);
       }
 
       // If key doesn't have a usage type it is in the "unknown" category. Then any permission is fine.
       return (
-        this.$store.getters.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
-        this.$store.getters.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ)
+        this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
+        this.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ)
       );
     },
 
@@ -146,14 +147,10 @@ export default Vue.extend({
   color: $XRoad-Purple100;
 }
 
-.name-wrap {
+.name-wrap-top {
   display: flex;
   flex-direction: row;
   align-items: center;
-}
-
-.name-wrap-top {
-  @extend .name-wrap;
   align-content: center;
   margin-top: 5px;
   margin-bottom: 5px;

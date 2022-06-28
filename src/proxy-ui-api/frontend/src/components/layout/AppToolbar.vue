@@ -24,8 +24,17 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app-bar app dark absolute color="#636161" flat height="32" max-height="32">
-    <div v-if="isAuthenticated" class="auth-container">
+  <v-app-bar
+    class="main-toolbar"
+    app
+    dark
+    absolute
+    color="#636161"
+    flat
+    height="32"
+    max-height="32"
+  >
+    <div v-if="authenticated" class="auth-container">
       <div class="server-type">X-ROAD SECURITY SERVER</div>
       <div
         v-show="currentSecurityServer.id"
@@ -40,43 +49,40 @@
         {{ currentSecurityServer.server_address }}
       </div>
     </div>
+    <div
+      v-if="shouldShowNodeType"
+      class="node-type"
+      data-test="app-toolbar-node-type"
+    >
+      {{ $t(`toolbar.securityServerNodeType.${securityServerNodeType}`) }}
+    </div>
   </v-app-bar>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import { RouteName } from '@/global';
+import { NodeType } from '@/openapi-types';
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useSystemStore } from '@/store/modules/system';
 
 export default Vue.extend({
   name: 'Toolbar',
   computed: {
-    ...mapGetters(['currentSecurityServer', 'isAuthenticated']),
-  },
-  methods: {
-    home(): void {
-      this.$router
-        .replace({
-          name: this.$store.getters.firstAllowedTab.to.name,
-        })
-        .catch((err) => {
-          // Ignore the error regarding navigating to the same path
-          if (err.name === 'NavigationDuplicated') {
-            // eslint-disable-next-line no-console
-            console.info('Duplicate navigation');
-          } else {
-            // Throw for any other errors
-            throw err;
-          }
-        });
-    },
-    logout(): void {
-      this.$store.dispatch('logout');
-      this.$router.replace({ name: RouteName.Login });
+    ...mapState(useUser, ['authenticated', 'currentSecurityServer']),
+    ...mapState(useSystemStore, ['securityServerNodeType']),
+    shouldShowNodeType(): boolean {
+      return this.securityServerNodeType !== NodeType.STANDALONE;
     },
   },
 });
 </script>
+
+<style lang="scss">
+.main-toolbar > .v-toolbar__content {
+  justify-content: space-between;
+}
+</style>
 
 <style lang="scss" scoped>
 @import '~styles/colors';
@@ -97,6 +103,19 @@ export default Vue.extend({
   }
 }
 
+.node-type {
+  font-size: 12px;
+  font-style: normal;
+  font-weight: bold;
+  color: $XRoad-WarmGrey30;
+  margin-right: 64px;
+  user-select: none;
+
+  @media only screen and (max-width: 920px) {
+    margin-right: 20px;
+  }
+}
+
 .auth-container {
   font-size: 12px;
   line-height: 16px;
@@ -105,6 +124,5 @@ export default Vue.extend({
   display: flex;
   height: 100%;
   align-items: center;
-  width: 100%;
 }
 </style>

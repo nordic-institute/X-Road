@@ -35,10 +35,14 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
+
+import { mapState } from 'pinia';
+
+import { useUser } from '@/store/modules/user';
+import { useClientStore } from '@/store/modules/client';
 
 export default Vue.extend({
   components: {
@@ -58,12 +62,14 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['client']),
+    ...mapState(useUser, ['hasPermission', 'getAllowedTabs']),
+    ...mapState(useClientStore, ['client']),
 
     showUnregister(): boolean {
+      if (!this.client) return false;
       return (
         this.client &&
-        this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
+        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
         (this.client.status === 'REGISTERED' ||
           this.client.status === 'REGISTRATION_IN_PROGRESS')
       );
@@ -78,7 +84,7 @@ export default Vue.extend({
         return false;
       }
 
-      return this.$store.getters.hasPermission(Permissions.DELETE_CLIENT);
+      return this.hasPermission(Permissions.DELETE_CLIENT);
     },
 
     tabs(): Tab[] {
@@ -129,30 +135,8 @@ export default Vue.extend({
         },
       ];
 
-      return this.$store.getters.getAllowedTabs(allTabs);
-    },
-  },
-  created() {
-    this.fetchClient(this.id);
-  },
-  methods: {
-    fetchClient(id: string): void {
-      this.$store.dispatch('fetchClient', id).catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
+      return this.getAllowedTabs(allTabs);
     },
   },
 });
 </script>
-
-<style lang="scss" scoped>
-.title-action {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-.content {
-  width: 1000px;
-  margin-top: 30px;
-}
-</style>

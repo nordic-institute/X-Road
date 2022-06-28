@@ -61,6 +61,8 @@ import Vue from 'vue';
 import { RouteName } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   props: {
@@ -79,15 +81,16 @@ export default Vue.extend({
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     deleteClient(): void {
       this.deleteLoading = true;
       api.remove(`/clients/${encodePathParameter(this.id)}`).then(
         () => {
-          this.$store.dispatch('showSuccess', 'client.action.delete.success');
+          this.showSuccess(this.$t('client.action.delete.success'));
           this.checkOrphans();
         },
         (error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
           this.confirmDelete = false;
           this.deleteLoading = false;
         },
@@ -109,7 +112,7 @@ export default Vue.extend({
             this.$router.replace({ name: RouteName.Clients });
           } else {
             // There was some other error, but the client is already deleted so exit the view
-            this.$store.dispatch('showError', error);
+            this.showError(error);
             this.$router.replace({ name: RouteName.Clients });
           }
         },
@@ -122,14 +125,11 @@ export default Vue.extend({
         .remove(`/clients/${encodePathParameter(this.id)}/orphans`)
         .then(
           () => {
-            this.$store.dispatch(
-              'showSuccess',
-              'client.action.removeOrphans.success',
-            );
+            this.showSuccess(this.$t('client.action.removeOrphans.success'));
           },
           (error) => {
             // There was some other error, but the client is already deleted so exit the view
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         )
         .finally(() => {
