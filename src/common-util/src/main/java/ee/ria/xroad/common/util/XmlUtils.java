@@ -71,6 +71,8 @@ public final class XmlUtils {
     public static final String FEATURE_DISALLOW_DOCTYPE = "http://apache.org/xml/features/disallow-doctype-decl";
     public static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES =
             "http://xml.org/sax/features/external-parameter-entities";
+    public static final String FEATURE_LOAD_EXTERNAL_DTD =
+            "http://apache.org/xml/features/nonvalidating/load-external-dtd";
 
     private static final String ELEMENT_NOT_FOUND_WARNING = "Element not found with getElementXPathNS {}";
     private static final int DEFAULT_INDENT = 4;
@@ -333,6 +335,11 @@ public final class XmlUtils {
             dbf.setFeature(FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
         } catch (ParserConfigurationException e) {
             log.warn("external-parameter-entities not supported");
+        }
+        try {
+            dbf.setFeature(FEATURE_LOAD_EXTERNAL_DTD, false);
+        } catch (ParserConfigurationException e) {
+            log.warn("load-external-dtd not supported");
         }
         return dbf;
     }
