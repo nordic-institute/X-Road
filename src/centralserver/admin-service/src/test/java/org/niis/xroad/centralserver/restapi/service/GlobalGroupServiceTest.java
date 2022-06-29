@@ -36,10 +36,10 @@ import org.niis.xroad.centralserver.restapi.converter.GlobalGroupConverter;
 import org.niis.xroad.centralserver.restapi.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
-import org.niis.xroad.centralserver.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
 import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
-import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 
 import java.util.List;
 import java.util.Optional;
@@ -113,15 +113,13 @@ class GlobalGroupServiceTest {
 
     @Test
     void getGlobalGroupResultsInException() {
-        assertThrowsExactly(InternalServerErrorException.class, () -> service.getGlobalGroup(1),
-                "Failed to retrieve global group");
+        assertThrowsExactly(NotFoundException.class, () -> service.getGlobalGroup(1));
     }
 
     @Test
     void updateGlobalGroupDescriptionResultsInException() {
         GlobalGroupUpdateDto updateDto = new GlobalGroupUpdateDto(1, "New description");
-        assertThrowsExactly(InternalServerErrorException.class, () -> service.updateGlobalGroupDescription(updateDto),
-                "Failed to update global group description");
+        assertThrowsExactly(NotFoundException.class, () -> service.updateGlobalGroupDescription(updateDto));
     }
 
     @Test
@@ -132,8 +130,7 @@ class GlobalGroupServiceTest {
         SystemParameter systemParameter = new SystemParameter();
         systemParameter.setValue(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
         when(systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP)).thenReturn(List.of(systemParameter));
-
-        assertThrowsExactly(BadRequestException.class, () -> service.deleteGlobalGroup(1),
-                "Cannot perform delete action on server owners group");
+å
+        assertThrowsExactly(ValidationFailureException.class, () -> service.deleteGlobalGroup(1));
     }
 }

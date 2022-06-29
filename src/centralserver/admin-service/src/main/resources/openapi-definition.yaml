@@ -693,9 +693,9 @@ paths:
           name: group_id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -721,9 +721,9 @@ paths:
           name: group_id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       responses:
         '200':
           content:
@@ -753,9 +753,9 @@ paths:
           name: group_id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           application/json:
@@ -791,9 +791,9 @@ paths:
           name: group_id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           application/json:
@@ -831,9 +831,9 @@ paths:
           name: group_id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           application/json:
@@ -3394,9 +3394,9 @@ components:
         id:
           description: unique identifier
           example: 123
-          format: text
+          format: int32
           readOnly: true
-          type: string
+          type: integer
         code:
           type: string
           format: text

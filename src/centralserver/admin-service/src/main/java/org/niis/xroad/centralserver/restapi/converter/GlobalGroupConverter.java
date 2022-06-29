@@ -44,7 +44,7 @@ public class GlobalGroupConverter {
 
     public GlobalGroupResource convert(GlobalGroup entity) {
         return new GlobalGroupResource()
-                .id(String.valueOf(entity.getId()))
+                .id(entity.getId())
                 .code(entity.getGroupCode())
                 .memberCount(entity.getMemberCount())
                 .members(convertMembers(entity.getGlobalGroupMembers()))

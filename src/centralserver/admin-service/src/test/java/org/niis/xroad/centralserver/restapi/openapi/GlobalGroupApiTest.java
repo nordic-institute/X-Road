@@ -40,7 +40,7 @@ import java.util.Objects;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
 class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
@@ -58,7 +58,7 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
         assertEquals(OK, response.getStatusCode());
         assertThat(Objects.requireNonNull(response.getBody()).length).isGreaterThanOrEqualTo(1);
         GlobalGroupResource expectedGroup = Arrays.stream(response.getBody())
-                .filter(ent -> "1000001".equals(ent.getId()))
+                .filter(ent -> 1000001 == ent.getId())
                 .findFirst()
                 .orElse(null);
         assertGlobalGroup(expectedGroup);
@@ -97,7 +97,7 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
                 restTemplate.getForEntity("/api/v1/global-groups/1000002", GlobalGroupResource.class);
         assertNotNull(existingGlobalGroup.getBody());
         assertEquals(OK, existingGlobalGroup.getStatusCode());
-        assertEquals("1000002", existingGlobalGroup.getBody().getId());
+        assertEquals(1000002, existingGlobalGroup.getBody().getId());
 
         restTemplate.delete("/api/v1/global-groups/1000002");
 
@@ -105,7 +105,7 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
                 restTemplate.getForEntity("/api/v1/global-groups/1000002", GlobalGroupResource.class);
 
         assertNotNull(deleteGlobalGroup.getBody());
-        assertEquals(INTERNAL_SERVER_ERROR, deleteGlobalGroup.getStatusCode());
+        assertEquals(NOT_FOUND, deleteGlobalGroup.getStatusCode());
     }
 
     @Test
@@ -117,7 +117,7 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
     }
 
     private void assertGlobalGroup(GlobalGroupResource globalGroup) {
-        assertEquals("1000001", globalGroup.getId());
+        assertEquals(1000001, globalGroup.getId());
         assertEquals("CODE_1", globalGroup.getCode());
         assertEquals("First global group", globalGroup.getDescription());
         assertEquals(1, globalGroup.getMemberCount());

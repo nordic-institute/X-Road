@@ -42,7 +42,7 @@ class GlobalGroupConverterTest {
 
         GlobalGroupResource result = converter.convert(mockEntity);
 
-        assertEquals(String.valueOf(mockEntity.getId()), result.getId());
+        assertEquals(mockEntity.getId(), result.getId());
         assertEquals(mockEntity.getGroupCode(), result.getCode());
         assertEquals(mockEntity.getDescription(), result.getDescription());
         assertEquals(mockEntity.getMemberCount(), result.getMemberCount());

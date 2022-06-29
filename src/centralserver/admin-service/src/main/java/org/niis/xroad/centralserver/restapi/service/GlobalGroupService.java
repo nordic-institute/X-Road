@@ -33,11 +33,11 @@ import org.niis.xroad.centralserver.restapi.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
-import org.niis.xroad.centralserver.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
 import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +46,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.SECURITY_SERVER_OWNERS_GROUP;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.GLOBAL_GROUP_NOT_FOUND;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DESCRIPTION;
 
@@ -67,22 +69,24 @@ public class GlobalGroupService {
     }
 
     public GlobalGroupResource getGlobalGroup(Integer groupId) {
-        return globalGroupRepository.findById(groupId)
-                .map(globalGroupConverter::convert)
-                .orElseThrow(() -> new InternalServerErrorException("Failed to retrieve global group"));
+        GlobalGroup globalGroup = findGlobalGroupOrThrowException(groupId);
+        return globalGroupConverter.convert(globalGroup);
     }
 
     public void deleteGlobalGroup(Integer groupId) {
-        globalGroupRepository.findById(groupId).ifPresent(this::handleInternalDelete);
+        handleInternalDelete(findGlobalGroupOrThrowException(groupId));
     }
 
     public GlobalGroupResource updateGlobalGroupDescription(GlobalGroupUpdateDto updateDto) {
-        return globalGroupRepository.findById(updateDto.getGroupId())
-                .map(entity -> handleInternalUpdate(entity, updateDto))
-                .map(globalGroupConverter::convert)
-                .orElseThrow(() -> new InternalServerErrorException("Failed to update global group description"));
+        GlobalGroup globalGroup = findGlobalGroupOrThrowException(updateDto.getGroupId());
+        GlobalGroup updatedGlobalGroup = handleInternalUpdate(globalGroup, updateDto);
+        return globalGroupConverter.convert(updatedGlobalGroup);
     }
 
+    private GlobalGroup findGlobalGroupOrThrowException(Integer groupId) {
+        return globalGroupRepository.findById(groupId)
+                .orElseThrow(() -> new NotFoundException(GLOBAL_GROUP_NOT_FOUND));
+    }
     private boolean isMemberExistsInGlobalGroup(String memberId, Set<GlobalGroupMember> members) {
         return StringUtil.isEmpty(memberId)
                 || members.stream()
@@ -92,7 +96,7 @@ public class GlobalGroupService {
     private void handleInternalDelete(GlobalGroup entity) {
         List<SystemParameter> ownersGroupCode = systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP);
         if (isOwnersGroup(ownersGroupCode, entity.getGroupCode())) {
-            throw new BadRequestException("Cannot perform delete action on server owners group");
+            throw new ValidationFailureException(OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED);
         }
         addAuditData(entity);
         globalGroupRepository.deleteById(entity.getId());

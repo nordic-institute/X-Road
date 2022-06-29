@@ -59,20 +59,20 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     }
 
     @Override
-    public ResponseEntity<Members> addGlobalGroupMembers(String groupId, Members members) {
+    public ResponseEntity<Members> addGlobalGroupMembers(Integer groupId, Members members) {
         throw new NotImplementedException("addGlobalGroupMembers not implemented yet");
     }
 
     @Override
     @AuditEventMethod(event = DELETE_GLOBAL_GROUP)
     @PreAuthorize("hasAuthority('DELETE_GROUP')")
-    public ResponseEntity<Void> deleteGlobalGroup(String groupId) {
-        globalGroupService.deleteGlobalGroup(Integer.valueOf(groupId));
+    public ResponseEntity<Void> deleteGlobalGroup(Integer groupId) {
+        globalGroupService.deleteGlobalGroup(groupId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity<Void> deleteGlobalGroupMembers(String groupId, Members members) {
+    public ResponseEntity<Void> deleteGlobalGroupMembers(Integer groupId, Members members) {
         throw new NotImplementedException("deleteGlobalGroupMembers not implemented yet");
     }
 
@@ -84,17 +84,16 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_GROUP_DETAILS')")
-    public ResponseEntity<GlobalGroupResource> getGlobalGroup(String groupId) {
-        return ResponseEntity.ok(globalGroupService.getGlobalGroup(Integer.valueOf(groupId)));
+    public ResponseEntity<GlobalGroupResource> getGlobalGroup(Integer groupId) {
+        return ResponseEntity.ok(globalGroupService.getGlobalGroup(groupId));
     }
 
     @Override
     @AuditEventMethod(event = EDIT_GLOBAL_GROUP_DESCRIPTION)
     @PreAuthorize("hasAuthority('EDIT_GROUP_DESCRIPTION')")
     public ResponseEntity<GlobalGroupResource> updateGlobalGroupDescription(
-            String groupId, GlobalGroupDescription globalGroupDescription) {
-        GlobalGroupUpdateDto updateDto =
-                new GlobalGroupUpdateDto(Integer.valueOf(groupId), globalGroupDescription.getDescription());
+            Integer groupId, GlobalGroupDescription globalGroupDescription) {
+        GlobalGroupUpdateDto updateDto = new GlobalGroupUpdateDto(groupId, globalGroupDescription.getDescription());
         return ResponseEntity.ok(globalGroupService.updateGlobalGroupDescription(updateDto));
     }
 }

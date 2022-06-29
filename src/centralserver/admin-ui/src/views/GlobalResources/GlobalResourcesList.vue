@@ -139,12 +139,12 @@
  * View for 'global resources'
  */
 import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
-import { RouteName } from '@/global';
-import { GlobalGroupResource } from '@/openapi-types';
-import { mapActions, mapStores } from 'pinia';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
-import { notificationsStore } from '@/store/modules/notifications';
+import {DataTableHeader} from 'vuetify';
+import {RouteName} from '@/global';
+import {GlobalGroupResource} from '@/openapi-types';
+import {mapActions, mapStores} from 'pinia';
+import {useGlobalGroupsStore} from '@/store/modules/global-groups';
+import {notificationsStore} from '@/store/modules/notifications';
 
 export default Vue.extend({
   data() {
@@ -269,7 +269,7 @@ export default Vue.extend({
     toDetails(globalGroup: GlobalGroupResource): void {
       this.$router.push({
         name: RouteName.GlobalGroup,
-        params: { groupId: globalGroup.id || ''},
+        params: { groupId: String(globalGroup.id) || '' },
       });
     },
     fetchAllGroups(): void {
