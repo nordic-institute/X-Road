@@ -26,17 +26,22 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroup;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupResource;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.OK;
 
 class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
 
@@ -46,12 +51,17 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
     @Test
     void findGlobalGroups() {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<GlobalGroup[]> response = restTemplate.getForEntity(
+        ResponseEntity<GlobalGroupResource[]> response = restTemplate.getForEntity(
                 "/api/v1/global-groups",
-                GlobalGroup[].class);
+                GlobalGroupResource[].class);
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-        assertGlobalGroup(response);
+        assertEquals(OK, response.getStatusCode());
+        assertThat(Objects.requireNonNull(response.getBody()).length).isGreaterThanOrEqualTo(1);
+        GlobalGroupResource expectedGroup = Arrays.stream(response.getBody())
+                .filter(ent -> "1000001".equals(ent.getId()))
+                .findFirst()
+                .orElse(null);
+        assertGlobalGroup(expectedGroup);
     }
 
     @Test
@@ -59,26 +69,63 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
         var uriVariables = new HashMap<String, String>();
         uriVariables.put("containsMember", "TEST:GOV:M1:SS1");
-        ResponseEntity<GlobalGroup[]> response = restTemplate.getForEntity(
+        ResponseEntity<GlobalGroupResource[]> response = restTemplate.getForEntity(
                 "/api/v1/global-groups?contains_member={containsMember}",
-                GlobalGroup[].class,
+                GlobalGroupResource[].class,
                 uriVariables);
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-        assertGlobalGroup(response);
+        assertEquals(OK, response.getStatusCode());
+        assertEquals(1, Objects.requireNonNull(response.getBody()).length);
+        assertGlobalGroup(response.getBody()[0]);
     }
 
-    private void assertGlobalGroup(ResponseEntity<GlobalGroup[]> response) {
-        assertEquals(1, Objects.requireNonNull(response.getBody()).length);
-        assertEquals("1000001", response.getBody()[0].getId());
-        assertEquals("CODE_1", response.getBody()[0].getCode());
-        assertEquals("First global group", response.getBody()[0].getDescription());
-        assertEquals(1, response.getBody()[0].getMemberCount());
-        assertEquals(1, response.getBody()[0].getMembers().size());
-        assertEquals("1000001", response.getBody()[0].getMembers().stream().iterator().next().getId());
-        assertEquals("TEST:GOV:M1:SS1", response.getBody()[0].getMembers().stream().iterator().next().getName());
-        assertNotNull(response.getBody()[0].getMembers().stream().iterator().next().getCreatedAt());
-        assertNotNull(response.getBody()[0].getCreatedAt());
-        assertNotNull(response.getBody()[0].getUpdatedAt());
+    @Test
+    void getGlobalGroups() {
+        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+        ResponseEntity<GlobalGroupResource> response = restTemplate.getForEntity(
+                "/api/v1/global-groups/1000001",
+                GlobalGroupResource.class);
+        assertNotNull(response.getBody());
+        assertEquals(OK, response.getStatusCode());
+        assertGlobalGroup(response.getBody());
+    }
+
+    @Test
+    void deleteGlobalGroup() {
+        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+        ResponseEntity<GlobalGroupResource> existingGlobalGroup =
+                restTemplate.getForEntity("/api/v1/global-groups/1000002", GlobalGroupResource.class);
+        assertNotNull(existingGlobalGroup.getBody());
+        assertEquals(OK, existingGlobalGroup.getStatusCode());
+        assertEquals("1000002", existingGlobalGroup.getBody().getId());
+
+        restTemplate.delete("/api/v1/global-groups/1000002");
+
+        ResponseEntity<GlobalGroupResource> deleteGlobalGroup =
+                restTemplate.getForEntity("/api/v1/global-groups/1000002", GlobalGroupResource.class);
+
+        assertNotNull(deleteGlobalGroup.getBody());
+        assertEquals(INTERNAL_SERVER_ERROR, deleteGlobalGroup.getStatusCode());
+    }
+
+    @Test
+    void updateGlobalGroupDescription() {
+        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+        GlobalGroupResource updatedGlobalGroup = restTemplate.patchForObject("/api/v1/global-groups/1000002",
+                Collections.singletonMap("description", "New description"), GlobalGroupResource.class);
+        assertEquals("New description", updatedGlobalGroup.getDescription());
+    }
+
+    private void assertGlobalGroup(GlobalGroupResource globalGroup) {
+        assertEquals("1000001", globalGroup.getId());
+        assertEquals("CODE_1", globalGroup.getCode());
+        assertEquals("First global group", globalGroup.getDescription());
+        assertEquals(1, globalGroup.getMemberCount());
+        assertEquals(1, globalGroup.getMembers().size());
+        assertEquals("1000001", globalGroup.getMembers().stream().iterator().next().getId());
+        assertEquals("TEST:GOV:M1:SS1", globalGroup.getMembers().stream().iterator().next().getName());
+        assertNotNull(globalGroup.getMembers().stream().iterator().next().getCreatedAt());
+        assertNotNull(globalGroup.getCreatedAt());
+        assertNotNull(globalGroup.getUpdatedAt());
     }
 }

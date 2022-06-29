@@ -141,7 +141,7 @@
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { RouteName } from '@/global';
-import { GlobalGroup } from '@/openapi-types';
+import { GlobalGroupResource } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { useGlobalGroupsStore } from '@/store/modules/global-groups';
 import { notificationsStore } from '@/store/modules/notifications';
@@ -185,7 +185,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(useGlobalGroupsStore),
-    globalGroups(): GlobalGroup[] {
+    globalGroups(): GlobalGroupResource[] {
       return this.globalGroupStore.globalGroups;
     },
     groupsLoading(): boolean {
@@ -262,19 +262,19 @@ export default Vue.extend({
     },
   },
   created() {
-    this.globalGroupStore.findGlobalGroups().catch((error) => {
-      this.showError(error);
-    });
+    this.fetchAllGroups();
   },
-
   methods: {
-    ...mapActions(notificationsStore, ['showError']),
-    // Add the type later when it exists
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    toDetails(globalGroup: any): void {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    toDetails(globalGroup: GlobalGroupResource): void {
       this.$router.push({
         name: RouteName.GlobalGroup,
-        params: { groupId: 'foo11' },
+        params: { groupId: globalGroup.id || ''},
+      });
+    },
+    fetchAllGroups(): void {
+      this.globalGroupStore.findAll().catch((error) => {
+        this.showError(error);
       });
     },
   },

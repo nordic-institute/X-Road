@@ -25,36 +25,65 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <sub-tabs>
-      <v-tab
-        v-for="tab in tabs"
-        :key="tab.key"
-        :to="tab.to"
-        :data-test="tab.key"
-        exact-path
-        >{{ $t(tab.name) }}</v-tab
-      >
-    </sub-tabs>
-  </div>
+  <xrd-sub-view-container>
+    <xrd-simple-dialog
+      :dialog="showDialog"
+      cancel-button-text="action.cancel"
+      save-button-text="action.save"
+      title="globalGroup.editDescription"
+      :disable-save="newDescription === ''"
+      @save="saveDescription"
+      @cancel="cancelEdit"
+    >
+      <template #content>
+        <div class="dlg-input-width">
+          <v-text-field
+            v-model="newDescription"
+            outlined
+            :label="$t('globalGroup.description')"
+            persistent-hint
+          ></v-text-field>
+        </div>
+      </template>
+    </xrd-simple-dialog>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
+import { Prop } from 'vue/types/options';
 import Vue from 'vue';
-import { Tab } from '@/ui-types';
-import SubTabs from '@/components/layout/SubTabs.vue';
-import { mapStores } from 'pinia';
-import { availableSettingsTabsStore } from '@/store/modules/settings-tabs';
 
 export default Vue.extend({
-  components: {
-    SubTabs,
+  name: 'GlobalGroupEditDescriptionDialog',
+  props: {
+    groupCode: {
+      type: String,
+      required: true,
+    },
+    groupDescription: {
+      type: String,
+      required: true,
+    },
+    showDialog: {
+      type: Boolean as Prop<boolean>,
+      required: true,
+    },
   },
-  computed: {
-    ...mapStores(availableSettingsTabsStore, ['getAvailableTabs']),
-    tabs(): Tab[] {
-      return this.settingsTabServiceStore.getAvailableTabs();
+  data() {
+    return {
+      newDescription: this.groupDescription,
+    };
+  },
+  methods: {
+    cancelEdit(): void {
+      this.$emit('cancel');
+    },
+    saveDescription(): void {
+      this.$emit('edit', this.newDescription);
     },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+</style>

@@ -31,17 +31,27 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroup;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupResource;
 import org.niis.xroad.centralserver.restapi.converter.GlobalGroupConverter;
+import org.niis.xroad.centralserver.restapi.dto.GlobalGroupUpdateDto;
+import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
+import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
+import org.niis.xroad.centralserver.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
+import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.SECURITY_SERVER_OWNERS_GROUP;
 
 @ExtendWith(MockitoExtension.class)
 class GlobalGroupServiceTest {
@@ -50,18 +60,19 @@ class GlobalGroupServiceTest {
     private GlobalGroupRepository globalGroupRepository;
     @Mock
     private GlobalGroupConverter converter;
+    @Mock
+    private SystemParameterRepository systemParameterRepository;
     @InjectMocks
     private GlobalGroupService service;
 
     @Test
     void findGlobalGroups() {
-        org.niis.xroad.centralserver.restapi.entity.GlobalGroup entity =
-                new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
+        GlobalGroup entity = new GlobalGroup();
         when(globalGroupRepository.findAll()).thenReturn(List.of(entity));
-        GlobalGroup globalGroup = new GlobalGroup();
+        GlobalGroupResource globalGroup = new GlobalGroupResource();
         when(converter.convert(entity)).thenReturn(globalGroup);
 
-        Set<GlobalGroup> globalGroups = service.findGlobalGroups(null);
+        Set<GlobalGroupResource> globalGroups = service.findGlobalGroups(null);
 
         assertEquals(1, globalGroups.size());
         assertEquals(globalGroup, globalGroups.iterator().next());
@@ -74,13 +85,12 @@ class GlobalGroupServiceTest {
 
     @Test
     void findGlobalGroupsContainsMemberIsEmpty() {
-        org.niis.xroad.centralserver.restapi.entity.GlobalGroup entity =
-                new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
+        GlobalGroup entity = new GlobalGroup();
         when(globalGroupRepository.findAll()).thenReturn(List.of(entity));
-        GlobalGroup globalGroup = new GlobalGroup();
+        GlobalGroupResource globalGroup = new GlobalGroupResource();
         when(converter.convert(entity)).thenReturn(globalGroup);
 
-        Set<GlobalGroup> globalGroups = service.findGlobalGroups("");
+        Set<GlobalGroupResource> globalGroups = service.findGlobalGroups("");
 
         assertEquals(1, globalGroups.size());
         assertEquals(globalGroup, globalGroups.iterator().next());
@@ -93,12 +103,37 @@ class GlobalGroupServiceTest {
 
     @Test
     void findGlobalGroupsContainsMemberNotExistsInGlobalGroup() {
-        org.niis.xroad.centralserver.restapi.entity.GlobalGroup entity =
-                new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
+        GlobalGroup entity = new GlobalGroup();
         when(globalGroupRepository.findAll()).thenReturn(List.of(entity));
 
-        Set<GlobalGroup> globalGroups = service.findGlobalGroups("CS:ORG:123");
+        Set<GlobalGroupResource> globalGroups = service.findGlobalGroups("CS:ORG:123");
 
         assertEquals(0, globalGroups.size());
+    }
+
+    @Test
+    void getGlobalGroupResultsInException() {
+        assertThrowsExactly(InternalServerErrorException.class, () -> service.getGlobalGroup(1),
+                "Failed to retrieve global group");
+    }
+
+    @Test
+    void updateGlobalGroupDescriptionResultsInException() {
+        GlobalGroupUpdateDto updateDto = new GlobalGroupUpdateDto(1, "New description");
+        assertThrowsExactly(InternalServerErrorException.class, () -> service.updateGlobalGroupDescription(updateDto),
+                "Failed to update global group description");
+    }
+
+    @Test
+    void deleteGlobalGroupResultsInException() {
+        GlobalGroup entity = new GlobalGroup();
+        entity.setGroupCode(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+        when(globalGroupRepository.findById(1)).thenReturn(Optional.of(entity));
+        SystemParameter systemParameter = new SystemParameter();
+        systemParameter.setValue(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+        when(systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP)).thenReturn(List.of(systemParameter));
+
+        assertThrowsExactly(BadRequestException.class, () -> service.deleteGlobalGroup(1),
+                "Cannot perform delete action on server owners group");
     }
 }

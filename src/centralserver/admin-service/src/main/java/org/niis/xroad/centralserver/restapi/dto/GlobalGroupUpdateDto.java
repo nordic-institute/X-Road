@@ -24,17 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.repository;
+package org.niis.xroad.centralserver.restapi.dto;
 
-import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Optional;
-
-@Repository
-@Transactional
-public interface GlobalGroupRepository extends JpaRepository<GlobalGroup, Integer> {
-    Optional<GlobalGroup> getByGroupCode(String code);
+@Getter
+@RequiredArgsConstructor
+public class GlobalGroupUpdateDto {
+    private final Integer groupId;
+    private final String description;
 }

@@ -627,7 +627,7 @@ paths:
               schema:
                 description: array of global groups
                 items:
-                  $ref: '#/components/schemas/GlobalGroup'
+                  $ref: '#/components/schemas/GlobalGroupResource'
                 type: array
                 uniqueItems: true
           description: list of global groups
@@ -655,7 +655,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GlobalGroup'
+                $ref: '#/components/schemas/GlobalGroupResource'
           description: new global group created
         '400':
           content:
@@ -729,7 +729,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GlobalGroup'
+                $ref: '#/components/schemas/GlobalGroupResource'
           description: global group
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -766,7 +766,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GlobalGroup'
+                $ref: '#/components/schemas/GlobalGroupResource'
           description: global group modified
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -3385,7 +3385,7 @@ components:
       required:
         - url
       type: object
-    GlobalGroup:
+    GlobalGroupResource:
       allOf:
         - $ref: '#/components/schemas/GlobalGroupCodeAndDescription'
         - $ref: '#/components/schemas/ModificationTimestamps'
@@ -3475,6 +3475,41 @@ components:
         name:
           description: group member name
           example: Member123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        type:
+          description: group member type
+          example: MEMBER
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        instance:
+          description: group member instance
+          example: FI
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        class:
+          description: group member class
+          example: GOV
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        code:
+          description: group member code
+          example: 123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        subsystem:
+          description: group member subsystem
+          example: SS1
           format: text
           maxLength: 255
           minLength: 1

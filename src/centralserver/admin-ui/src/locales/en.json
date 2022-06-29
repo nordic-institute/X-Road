@@ -209,10 +209,21 @@
     "trustedAnchors": "Trusted Anchor"
   },
   "globalGroup": {
+    "added": "Added",
     "addMembers": "Add Members",
+    "areYouSure": "Are you sure you want to remove the global group {group}?",
+    "code": "Code",
+    "class": "Class",
     "deleteGroup": "Delete Group",
+    "description": "Description",
+    "descriptionSaved": "Description saved successfully.",
+    "editDescription": "Edit Description",
+    "groupDeletedSuccessfully": "Global group deleted successfully.",
     "groupMembers": "Group members",
-    "memberName": "Member Name"
+    "instance": "Instance",
+    "memberName": "Member Name",
+    "subsystem": "Subsystem",
+    "type": "Type"
   },
   "globalResources": {
     "addCentralService": "Add Central Service",

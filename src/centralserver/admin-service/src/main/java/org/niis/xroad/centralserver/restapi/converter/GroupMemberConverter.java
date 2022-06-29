@@ -38,6 +38,11 @@ public class GroupMemberConverter {
         return new GroupMember()
                 .id(String.valueOf(entity.getId()))
                 .name(entity.getIdentifier().toShortString(':'))
+                .type(entity.getIdentifier().getObjectType().name())
+                .propertyClass(entity.getIdentifier().getMemberClass())
+                .instance(entity.getIdentifier().getXRoadInstance())
+                .subsystem(entity.getIdentifier().getSubsystemCode())
+                .code(entity.getIdentifier().getMemberCode())
                 .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
     }
 }
