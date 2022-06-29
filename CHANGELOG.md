@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.2.0 - UNRELEASED
+
 ## 7.1.0 - 2022-05-26
 - XRDDEV-1788: Show a warning if the deprecated "/etc/xroad/services/local.conf" configuration file exists when generating a backup on the Security Server. The warning is shown in the Security Server UI and on the command line.
 - XRDDEV-1800: Add primary and secondary node information to the Security Server UI for clustered HA setups. Display global alert for read-only state on the secondary node UI.
@@ -20,7 +22,6 @@
 - XRDDEV-1986: Increase the default maximum body size for REST messages from 10mb to 20mb for the Security Server in the Estonian metapackage.
 - XRDDEV-1994: Fix issue with the configuration proxy where temporary files were not getting removed if the global configuration generation failed during the process. The issue caused temporary files to accumulate in the "/var/tmp/xroad/{INSTANCE_IDENTIFIER}" directory and eat up disk space.
 - XRDDEV-2043: Fix database migrations fail during installation in RHEL8.
-
 
 ## 7.0.3 - 2022-04-25
 - XRDDEV-1973: Update dependencies with known vulnerabilities
