@@ -130,7 +130,7 @@ class GlobalGroupServiceTest {
         SystemParameter systemParameter = new SystemParameter();
         systemParameter.setValue(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
         when(systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP)).thenReturn(List.of(systemParameter));
-å
+
         assertThrowsExactly(ValidationFailureException.class, () -> service.deleteGlobalGroup(1));
     }
 }
