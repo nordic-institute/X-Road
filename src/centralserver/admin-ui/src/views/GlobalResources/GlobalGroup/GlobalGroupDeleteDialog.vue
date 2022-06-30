@@ -25,36 +25,52 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <sub-tabs>
-      <v-tab
-        v-for="tab in tabs"
-        :key="tab.key"
-        :to="tab.to"
-        :data-test="tab.key"
-        exact-path
-        >{{ $t(tab.name) }}</v-tab
-      >
-    </sub-tabs>
-  </div>
+  <xrd-sub-view-container>
+    <xrd-simple-dialog
+      :dialog="showDialog"
+      cancel-button-text="action.cancel"
+      save-button-text="action.yes"
+      title="globalGroup.deleteGroup"
+      @save="proceedWithDelete"
+      @cancel="cancelDelete"
+    >
+      <template #content>
+        <div class="dlg-input-width">
+            {{ $t('globalGroup.areYouSure', { group: groupCode }) }}
+        </div>
+      </template>
+    </xrd-simple-dialog>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
+/** Base component for simple dialogs */
+
 import Vue from 'vue';
-import { Tab } from '@/ui-types';
-import SubTabs from '@/components/layout/SubTabs.vue';
-import { mapStores } from 'pinia';
-import { availableSettingsTabsStore } from '@/store/modules/settings-tabs';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
-  components: {
-    SubTabs,
+  name: 'GlobalGroupDeleteDialog',
+  props: {
+    groupCode: {
+      type: String,
+      required: true,
+    },
+    showDialog: {
+      type: Boolean as Prop<boolean>,
+      required: true,
+    },
   },
-  computed: {
-    ...mapStores(availableSettingsTabsStore, ['getAvailableTabs']),
-    tabs(): Tab[] {
-      return this.settingsTabServiceStore.getAvailableTabs();
+  methods: {
+    cancelDelete(): void {
+      this.$emit('cancel');
+    },
+    proceedWithDelete(): void {
+      this.$emit('delete');
     },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+</style>

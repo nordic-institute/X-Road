@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.GroupMember;
+import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 
 import java.time.ZoneOffset;
@@ -46,12 +47,16 @@ class GroupMemberConverterTest {
 
         assertEquals(String.valueOf(mockEntity.getId()), result.getId());
         assertEquals(mockEntity.getIdentifier().toShortString(':'), result.getName());
+        assertEquals("ORG", result.getPropertyClass());
+        assertEquals("CS", result.getInstance());
+        assertEquals("2", result.getSubsystem());
+        assertEquals("123", result.getCode());
+        assertEquals("SUBSYSTEM", result.getType());
         assertEquals(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC), result.getCreatedAt());
     }
 
     private GlobalGroupMember mockEntity() {
-        org.niis.xroad.centralserver.restapi.entity.GlobalGroup globalGroup =
-                new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
+        GlobalGroup globalGroup = new GlobalGroup();
         ClientId clientId = ClientId.create("CS", "ORG", "123", "2");
         GlobalGroupMember member = new GlobalGroupMember(globalGroup, clientId);
         member.setId(1);

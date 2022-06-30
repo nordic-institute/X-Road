@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-@Repository("GlobalGroupRepository")
+@Repository
 @Transactional
 public interface GlobalGroupRepository extends JpaRepository<GlobalGroup, Integer> {
     Optional<GlobalGroup> getByGroupCode(String code);

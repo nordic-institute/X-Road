@@ -25,53 +25,62 @@
  * THE SOFTWARE.
  */
 import { defineStore } from 'pinia';
-import axios from 'axios';
-import { GlobalGroupDescription, GlobalGroupResource} from '@/openapi-types';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import { userStore } from '@/store/modules/user';
 
 export interface State {
-  globalGroups: GlobalGroupResource[];
-  groupsLoading: boolean;
+  allSettingsTabs: Tab[];
 }
 
-export const useGlobalGroupsStore = defineStore('globalGroup', {
+export const availableSettingsTabsStore = defineStore('settingsTabService', {
   state: (): State => ({
-    globalGroups: [],
-    groupsLoading: false,
+    allSettingsTabs: [
+      {
+        key: 'globalresources-tab-button',
+        name: 'tab.settings.globalResources',
+        to: {
+          name: RouteName.GlobalResources,
+        },
+        permissions: [
+          Permissions.VIEW_GLOBAL_GROUPS,
+          Permissions.VIEW_SECURITY_SERVERS,
+        ],
+      },
+      {
+        key: 'systemsettings-tab-button',
+        name: 'tab.settings.systemSettings',
+        to: {
+          name: RouteName.SystemSettings,
+        },
+        permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+      },
+      {
+        key: 'backupandrestore-tab-button',
+        name: 'tab.settings.backupAndRestore',
+        to: {
+          name: RouteName.BackupAndRestore,
+        },
+        permissions: [Permissions.BACKUP_CONFIGURATION],
+      },
+      {
+        key: 'apikeys-tab-button',
+        name: 'tab.settings.apiKeys',
+        to: {
+          name: RouteName.ApiKeys,
+        },
+        permissions: [
+          Permissions.VIEW_API_KEYS,
+          Permissions.CREATE_API_KEY,
+          Permissions.REVOKE_API_KEY,
+        ],
+      },
+    ],
   }),
+  persist: false,
   actions: {
-    findAll() {
-      this.groupsLoading = true;
-      return axios
-        .get<GlobalGroupResource[]>('/global-groups')
-        .then((resp) => (this.globalGroups = resp.data))
-        .catch((error) => {
-          throw error;
-        })
-        .finally(() => {
-          this.groupsLoading = false;
-        });
-    },
-    getById(groupId: string) {
-      return axios
-        .get<GlobalGroupResource>(`/global-groups/${groupId}`)
-        .then((resp) => resp.data)
-        .catch((error) => {
-          throw error;
-        });
-    },
-    deleteById(groupId: string) {
-      return axios
-        .delete<GlobalGroupResource>(`/global-groups/${groupId}`)
-        .catch((error) => {
-          throw error;
-        });
-    },
-    editGroupDescription(groupId: string, description: GlobalGroupDescription) {
-      return axios
-        .patch<GlobalGroupResource>(`/global-groups/${groupId}`, description)
-        .catch((error) => {
-          throw error;
-        });
+    getAvailableTabs() {
+      return userStore().getAllowedTabs(this.allSettingsTabs);
     },
   },
 });

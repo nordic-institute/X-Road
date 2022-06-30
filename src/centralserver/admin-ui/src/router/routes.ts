@@ -85,6 +85,7 @@ const routes: RouteConfig[] = [
     redirect: { name: RouteName.Members },
     children: [
       {
+        name: RouteName.Settings,
         path: '/settings',
         meta: {
           permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
@@ -100,10 +101,10 @@ const routes: RouteConfig[] = [
         },
         children: [
           {
-            path: 'globalresources',
+            path: 'global-resources',
             component: GlobalResources,
             props: true,
-            meta: { permissions: [Permissions.VIEW_GLOBAL_GROUPS] },
+            meta: { permissions: [Permissions.VIEW_GLOBAL_GROUPS, Permissions.VIEW_SECURITY_SERVERS] },
             children: [
               {
                 name: RouteName.GlobalResources,
@@ -122,7 +123,7 @@ const routes: RouteConfig[] = [
           },
           {
             name: RouteName.SystemSettings,
-            path: 'systemsettings',
+            path: 'system-settings',
             component: SystemSettings,
             props: true,
             meta: { permissions: [Permissions.VIEW_SYSTEM_SETTINGS] },

@@ -27,12 +27,13 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.GlobalGroupsApi;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroup;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescription;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupDescription;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupResource;
 import org.niis.xroad.centralserver.openapi.model.Members;
+import org.niis.xroad.centralserver.restapi.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.centralserver.restapi.service.GlobalGroupService;
-import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,8 +41,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Set;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_GLOBAL_GROUP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_GLOBAL_GROUP_DESCRIPTION;
+import static org.niis.xroad.restapi.openapi.ControllerUtil.API_V1_PREFIX;
+
 @RestController
-@RequestMapping(ControllerUtil.API_V1_PREFIX)
+@RequestMapping(API_V1_PREFIX)
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class GlobalGroupsApiController implements GlobalGroupsApi {
@@ -49,39 +54,46 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     private final GlobalGroupService globalGroupService;
 
     @Override
-    public ResponseEntity<GlobalGroup> addGlobalGroup(GlobalGroupCodeAndDescription globalGroupCodeAndDescription) {
+    public ResponseEntity<GlobalGroupResource> addGlobalGroup(GlobalGroupCodeAndDescription codeAndDescription) {
         throw new NotImplementedException("addGlobalGroup not implemented yet");
     }
 
     @Override
-    public ResponseEntity<Members> addGlobalGroupMembers(String groupId, Members members) {
+    public ResponseEntity<Members> addGlobalGroupMembers(Integer groupId, Members members) {
         throw new NotImplementedException("addGlobalGroupMembers not implemented yet");
     }
 
     @Override
-    public ResponseEntity<Void> deleteGlobalGroup(String groupId) {
-        throw new NotImplementedException("deleteGlobalGroup not implemented yet");
+    @AuditEventMethod(event = DELETE_GLOBAL_GROUP)
+    @PreAuthorize("hasAuthority('DELETE_GROUP')")
+    public ResponseEntity<Void> deleteGlobalGroup(Integer groupId) {
+        globalGroupService.deleteGlobalGroup(groupId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity<Void> deleteGlobalGroupMembers(String groupId, Members members) {
+    public ResponseEntity<Void> deleteGlobalGroupMembers(Integer groupId, Members members) {
         throw new NotImplementedException("deleteGlobalGroupMembers not implemented yet");
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_GLOBAL_GROUPS')")
-    public ResponseEntity<Set<GlobalGroup>> findGlobalGroups(String containsMember) {
+    public ResponseEntity<Set<GlobalGroupResource>> findGlobalGroups(String containsMember) {
         return ResponseEntity.ok(globalGroupService.findGlobalGroups(containsMember));
     }
 
     @Override
-    public ResponseEntity<GlobalGroup> getGlobalGroup(String groupId) {
-        throw new NotImplementedException("getGlobalGroup not implemented yet");
+    @PreAuthorize("hasAuthority('VIEW_GROUP_DETAILS')")
+    public ResponseEntity<GlobalGroupResource> getGlobalGroup(Integer groupId) {
+        return ResponseEntity.ok(globalGroupService.getGlobalGroup(groupId));
     }
 
     @Override
-    public ResponseEntity<GlobalGroup> updateGlobalGroupDescription(
-            String groupId, GlobalGroupDescription globalGroupDescription) {
-        throw new NotImplementedException("updateGlobalGroupDescription not implemented yet");
+    @AuditEventMethod(event = EDIT_GLOBAL_GROUP_DESCRIPTION)
+    @PreAuthorize("hasAuthority('EDIT_GROUP_DESCRIPTION')")
+    public ResponseEntity<GlobalGroupResource> updateGlobalGroupDescription(
+            Integer groupId, GlobalGroupDescription globalGroupDescription) {
+        GlobalGroupUpdateDto updateDto = new GlobalGroupUpdateDto(groupId, globalGroupDescription.getDescription());
+        return ResponseEntity.ok(globalGroupService.updateGlobalGroupDescription(updateDto));
     }
 }
