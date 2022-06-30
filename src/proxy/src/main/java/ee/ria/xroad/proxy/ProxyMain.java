@@ -242,13 +242,12 @@ public final class ProxyMain {
                 getMessageLogArchiveEncryptionMembers(getMembers()));
     }
 
-    private static List<ClientId> getMembers() throws Exception {
+    private static List<ClientId> getMembers() {
         try {
-            return ServerConf.getMembers().stream()
-                    .collect(Collectors.toList());
+            return new ArrayList<>(ServerConf.getMembers());
         } catch (Exception e) {
-            log.error("Failed to get members from server configuration", e);
-            throw e;
+            log.warn("Failed to get members from server configuration", e);
+            return Collections.emptyList();
         }
     }
 
