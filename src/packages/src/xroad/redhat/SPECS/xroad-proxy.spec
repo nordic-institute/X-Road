@@ -173,6 +173,10 @@ if [ $1 -gt 1 ] ; then
 fi
 
 /usr/share/xroad/scripts/xroad-proxy-setup.sh
+# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+%if 0%{?el7}
+/usr/share/xroad/scripts/setup_serverconf_db.sh
+%endif
 
 if [ $1 -gt 1 ]; then
     # upgrade
@@ -218,6 +222,11 @@ fi
 %systemd_postun_with_restart rsyslogd.service
 
 %posttrans
+# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8}
+/usr/share/xroad/scripts/setup_serverconf_db.sh
+%endif
+
 # restart (if running) nginx after /etc/xroad/nginx/xroad-proxy.conf has (possibly) been removed, so that port 4000 is freed
 %{_bindir}/systemctl --quiet try-restart nginx.service >/dev/null 2>&1 || true
 

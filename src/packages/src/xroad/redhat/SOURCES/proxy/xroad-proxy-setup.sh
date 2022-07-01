@@ -23,5 +23,3 @@ fi
 mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
 mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
 mkdir -p /etc/xroad/globalconf; chown xroad:xroad /etc/xroad/globalconf
-
-/usr/share/xroad/scripts/setup_serverconf_db.sh

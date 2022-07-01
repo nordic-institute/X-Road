@@ -66,10 +66,22 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
+%define manage_messagelog_activation()                                               \\\
+    /usr/share/xroad/scripts/setup_messagelog_db.sh
+
 %post
-/usr/share/xroad/scripts/setup_messagelog_db.sh
+# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+%if 0%{?el7}
+%manage_messagelog_activation
+%endif
 
 %postun
 %systemd_postun_with_restart xroad-proxy.service
+
+%posttrans
+# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8}
+%manage_messagelog_activation
+%endif
 
 %changelog
