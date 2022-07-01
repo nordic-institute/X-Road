@@ -81,4 +81,8 @@ module.exports = {
     selector: '//button[@data-test="close-snackbar"]',
     locateStrategy: 'xpath',
   },
+  successSnackBar: {
+    selector: '//div[@data-test="success-snackbar"]',
+    locateStrategy: 'xpath',
+  },
 };
