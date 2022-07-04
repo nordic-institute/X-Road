@@ -72,9 +72,6 @@ class GlobalGroupServiceTest {
     @InjectMocks
     private GlobalGroupService service;
 
-
-
-
     @Test
     void addGlobalGroup() {
         var globalGroupCodeAndDescription = new GlobalGroupCodeAndDescription().code("code");
@@ -99,6 +96,7 @@ class GlobalGroupServiceTest {
         inOrder.verify(converter).convert(persistedGlobalGroup);
         verifyNoMoreInteractions(globalGroupRepository, converter, auditDataHelper);
     }
+
     @Test
     void findGlobalGroups() {
         GlobalGroup entity = new GlobalGroup();
