@@ -26,6 +26,7 @@
 package org.niis.xroad.centralserver.restapi.converter;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescription;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupResource;
 import org.niis.xroad.centralserver.openapi.model.GroupMember;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
@@ -51,6 +52,14 @@ public class GlobalGroupConverter {
                 .description(entity.getDescription())
                 .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC))
                 .updatedAt(entity.getUpdatedAt().atOffset(ZoneOffset.UTC));
+    }
+
+    public GlobalGroup toEntity(
+            GlobalGroupCodeAndDescription globalGroupCodeAndDescription) {
+        var entity = new GlobalGroup();
+        entity.setGroupCode(globalGroupCodeAndDescription.getCode());
+        entity.setDescription(globalGroupCodeAndDescription.getDescription());
+        return entity;
     }
 
     private Set<GroupMember> convertMembers(Set<GlobalGroupMember> memberEntities) {

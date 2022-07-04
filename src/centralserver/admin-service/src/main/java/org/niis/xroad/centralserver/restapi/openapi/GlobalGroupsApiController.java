@@ -34,6 +34,7 @@ import org.niis.xroad.centralserver.openapi.model.Members;
 import org.niis.xroad.centralserver.restapi.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.centralserver.restapi.service.GlobalGroupService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Set;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_GLOBAL_GROUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_GLOBAL_GROUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_GLOBAL_GROUP_DESCRIPTION;
 import static org.niis.xroad.restapi.openapi.ControllerUtil.API_V1_PREFIX;
@@ -53,9 +55,10 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
 
     private final GlobalGroupService globalGroupService;
 
-    @Override
+    @AuditEventMethod(event = ADD_GLOBAL_GROUP)
+    @PreAuthorize("hasAuthority('ADD_GLOBAL_GROUP')")
     public ResponseEntity<GlobalGroupResource> addGlobalGroup(GlobalGroupCodeAndDescription codeAndDescription) {
-        throw new NotImplementedException("addGlobalGroup not implemented yet");
+        return new ResponseEntity<>(globalGroupService.addGlobalGroup(codeAndDescription), HttpStatus.CREATED);
     }
 
     @Override

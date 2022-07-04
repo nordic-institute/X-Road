@@ -31,6 +31,7 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescription;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupResource;
 import org.niis.xroad.centralserver.restapi.converter.GlobalGroupConverter;
 import org.niis.xroad.centralserver.restapi.dto.GlobalGroupUpdateDto;
@@ -40,22 +41,28 @@ import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
 import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.SECURITY_SERVER_OWNERS_GROUP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DESCRIPTION;
 
 @ExtendWith(MockitoExtension.class)
 class GlobalGroupServiceTest {
 
+    @Mock
+    private AuditDataHelper auditDataHelper;
     @Mock
     private GlobalGroupRepository globalGroupRepository;
     @Mock
@@ -65,6 +72,33 @@ class GlobalGroupServiceTest {
     @InjectMocks
     private GlobalGroupService service;
 
+
+
+
+    @Test
+    void addGlobalGroup() {
+        var globalGroupCodeAndDescription = new GlobalGroupCodeAndDescription().code("code");
+        var globalGroupEntity = new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
+        when(converter.toEntity(globalGroupCodeAndDescription)).thenReturn(globalGroupEntity);
+        var persistedGlobalGroup = new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
+        persistedGlobalGroup.setGroupCode("code");
+        persistedGlobalGroup.setDescription("description");
+        when(globalGroupRepository.save(globalGroupEntity)).thenReturn(persistedGlobalGroup);
+        GlobalGroupResource globalGroup = new GlobalGroupResource();
+        when(converter.convert(persistedGlobalGroup)).thenReturn(globalGroup);
+
+        GlobalGroupResource result = service.addGlobalGroup(globalGroupCodeAndDescription);
+
+        assertNotNull(result);
+        InOrder inOrder = inOrder(globalGroupRepository, converter, auditDataHelper);
+        inOrder.verify(globalGroupRepository).getByGroupCode("code");
+        inOrder.verify(converter).toEntity(globalGroupCodeAndDescription);
+        inOrder.verify(globalGroupRepository).save(globalGroupEntity);
+        inOrder.verify(auditDataHelper).put(CODE, "code");
+        inOrder.verify(auditDataHelper).put(DESCRIPTION, "description");
+        inOrder.verify(converter).convert(persistedGlobalGroup);
+        verifyNoMoreInteractions(globalGroupRepository, converter, auditDataHelper);
+    }
     @Test
     void findGlobalGroups() {
         GlobalGroup entity = new GlobalGroup();
