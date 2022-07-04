@@ -50,7 +50,8 @@ public enum ErrorMessage {
     MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND("Client registration does not exist"),
     MANAGEMENT_REQUEST_ALREADY_REGISTERED("Client already registered to a server"),
     GLOBAL_GROUP_NOT_FOUND("Global group by given id does not exist"),
-    OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED("Cannot perform delete action on server owners group");
+    OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED("Cannot perform delete action on server owners group"),
+    GLOBAL_GROUP_EXISTS("Global group with the same code already exists.");
 
     @Getter
     final String description;

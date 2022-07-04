@@ -26,19 +26,21 @@
 package org.niis.xroad.centralserver.restapi.converter;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescription;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupResource;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 
 import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class GlobalGroupConverterTest {
+    private final GlobalGroupConverter converter = new GlobalGroupConverter(new GroupMemberConverter());
 
     @Test
     void convert() {
         GlobalGroup mockEntity = mockEntity();
-        GlobalGroupConverter converter = new GlobalGroupConverter(new GroupMemberConverter());
 
         GlobalGroupResource result = converter.convert(mockEntity);
 
@@ -49,6 +51,21 @@ class GlobalGroupConverterTest {
         assertEquals(0, result.getMembers().size());
         assertEquals(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC), result.getCreatedAt());
         assertEquals(mockEntity.getUpdatedAt().atOffset(ZoneOffset.UTC), result.getUpdatedAt());
+    }
+
+    @Test
+    void toEntity() {
+        var globalGroupCodeAndDescription = new GlobalGroupCodeAndDescription()
+                .code("code")
+                .description("description");
+
+        var result = converter.toEntity(globalGroupCodeAndDescription);
+        assertEquals(0, result.getId());
+        assertEquals(globalGroupCodeAndDescription.getCode(), result.getGroupCode());
+        assertEquals(globalGroupCodeAndDescription.getDescription(), result.getDescription());
+        assertEquals(0, result.getGlobalGroupMembers().size());
+        assertNotNull(result.getCreatedAt());
+        assertNotNull(result.getUpdatedAt());
     }
 
     private GlobalGroup mockEntity() {

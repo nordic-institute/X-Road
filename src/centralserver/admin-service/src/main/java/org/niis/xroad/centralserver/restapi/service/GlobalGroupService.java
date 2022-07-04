@@ -27,6 +27,7 @@ package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import org.eclipse.jetty.util.StringUtil;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescription;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupResource;
 import org.niis.xroad.centralserver.restapi.converter.GlobalGroupConverter;
 import org.niis.xroad.centralserver.restapi.dto.GlobalGroupUpdateDto;
@@ -35,6 +36,7 @@ import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
 import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
 import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
+import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -46,11 +48,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.SECURITY_SERVER_OWNERS_GROUP;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.GLOBAL_GROUP_EXISTS;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.GLOBAL_GROUP_NOT_FOUND;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DESCRIPTION;
 
+@SuppressWarnings("checkstyle:RegexpSingleline")
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -66,6 +70,14 @@ public class GlobalGroupService {
                 .filter(globalGroup -> isMemberExistsInGlobalGroup(containsMember, globalGroup.getGlobalGroupMembers()))
                 .map(globalGroupConverter::convert)
                 .collect(Collectors.toSet());
+    }
+
+    public GlobalGroupResource addGlobalGroup(GlobalGroupCodeAndDescription codeAndDescription) {
+        assertGlobalGroupExists(codeAndDescription.getCode());
+        var globalGroupEntity = globalGroupConverter.toEntity(codeAndDescription);
+        var persistedGlobalGroup = globalGroupRepository.save(globalGroupEntity);
+        addAuditData(persistedGlobalGroup);
+        return globalGroupConverter.convert(persistedGlobalGroup);
     }
 
     public GlobalGroupResource getGlobalGroup(Integer groupId) {
@@ -91,6 +103,13 @@ public class GlobalGroupService {
         return StringUtil.isEmpty(memberId)
                 || members.stream()
                 .anyMatch(member -> memberId.equals(member.getIdentifier().toShortString(':')));
+    }
+
+    private void assertGlobalGroupExists(String code) {
+        globalGroupRepository.getByGroupCode(code)
+                .ifPresent(globalGroup -> {
+                    throw new DataIntegrityException(GLOBAL_GROUP_EXISTS);
+                });
     }
 
     private void handleInternalDelete(GlobalGroup entity) {
