@@ -128,7 +128,8 @@
     "member_class_not_found": "No member class with the specifier code found.",
     "member_class_exists": "Member class with the same code already exists.",
     "global_group_not_found": "Global group by the given id not found.",
-    "owners_global_group_cannot_be_deleted": "Cannot perform delete action on server owners group."
+    "owners_global_group_cannot_be_deleted": "Cannot perform delete action on server owners group.",
+    "global_group_exists": "Global group with the same code already exists."
   },
   "fields": {
     "init": {
@@ -230,6 +231,7 @@
   "globalResources": {
     "addCentralService": "Add Central Service",
     "addGlobalGroup": "Add Global Group",
+    "globalGroupSuccessfullyAdded": "Global group added successfully.",
     "centralServices": "Central Services",
     "code": "Code",
     "codeCS": "Code (Central Service)",

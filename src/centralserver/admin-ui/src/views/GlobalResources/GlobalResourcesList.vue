@@ -101,36 +101,12 @@
       </template>
     </v-data-table>
 
-    <!-- Dialogs -->
-    <xrd-simple-dialog
-      v-if="showAddGroupDialog"
+    <addGroupDialog
+      :id="id"
       :dialog="showAddGroupDialog"
-      cancel-button-text="action.cancel"
-      title="globalResources.addGlobalGroup"
-      @cancel="showAddGroupDialog = false"
-    >
-      <template #content>
-        <div class="dlg-input-width">
-          <v-text-field
-            v-model="code"
-            outlined
-            :label="$t('globalResources.code')"
-            autofocus
-            data-test="add-local-group-code-input"
-          ></v-text-field>
-        </div>
-
-        <div class="dlg-input-width">
-          <v-text-field
-            v-model="description"
-            hint
-            :label="$t('globalResources.description')"
-            outlined
-            data-test="add-local-group-description-input"
-          ></v-text-field>
-        </div>
-      </template>
-    </xrd-simple-dialog>
+      @cancel="closeAddGroupDialog()"
+      @group-added="groupAdded()"
+    />
   </div>
 </template>
 
@@ -139,14 +115,24 @@
  * View for 'global resources'
  */
 import Vue from 'vue';
-import {DataTableHeader} from 'vuetify';
-import {RouteName} from '@/global';
-import {GlobalGroupResource} from '@/openapi-types';
-import {mapActions, mapStores} from 'pinia';
-import {useGlobalGroupsStore} from '@/store/modules/global-groups';
-import {notificationsStore} from '@/store/modules/notifications';
+import { DataTableHeader } from 'vuetify';
+import { RouteName } from '@/global';
+import { GlobalGroupResource } from '@/openapi-types';
+import { mapActions, mapStores } from 'pinia';
+import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { notificationsStore } from '@/store/modules/notifications';
+import AddGroupDialog from '@/views/GlobalResources/AddGroupDialog.vue';
 
 export default Vue.extend({
+  components: {
+    AddGroupDialog,
+  },
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       search: '',
@@ -184,7 +170,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useGlobalGroupsStore),
+    ...mapStores(useGlobalGroupsStore, notificationsStore),
     globalGroups(): GlobalGroupResource[] {
       return this.globalGroupStore.globalGroups;
     },
@@ -266,6 +252,12 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    closeAddGroupDialog(): void {
+      this.showAddGroupDialog = false;
+    },
+    groupAdded(): void {
+      this.showAddGroupDialog = false;
+    },
     toDetails(globalGroup: GlobalGroupResource): void {
       this.$router.push({
         name: RouteName.GlobalGroup,
