@@ -36,7 +36,7 @@ import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
 import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
 import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
-import org.niis.xroad.centralserver.restapi.service.exception.AlreadyExistsException;
+import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -108,7 +108,7 @@ public class GlobalGroupService {
     private void assertGlobalGroupExists(String code) {
         globalGroupRepository.getByGroupCode(code)
                 .ifPresent(globalGroup -> {
-                    throw new AlreadyExistsException(GLOBAL_GROUP_EXISTS);
+                    throw new DataIntegrityException(GLOBAL_GROUP_EXISTS);
                 });
     }
 
