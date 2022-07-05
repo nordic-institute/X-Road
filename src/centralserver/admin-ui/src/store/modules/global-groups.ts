@@ -26,7 +26,11 @@
  */
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import { GlobalGroupDescription, GlobalGroupResource} from '@/openapi-types';
+import {
+  GlobalGroupDescription,
+  GlobalGroupResource,
+  GlobalGroupCodeAndDescription,
+} from '@/openapi-types';
 
 export interface State {
   globalGroups: GlobalGroupResource[];
@@ -58,6 +62,11 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
         .catch((error) => {
           throw error;
         });
+    },
+    add(codeAndDescription: GlobalGroupCodeAndDescription) {
+      return axios
+        .post('/global-groups', codeAndDescription)
+        .finally(() => this.findAll());
     },
     deleteById(groupId: string) {
       return axios
