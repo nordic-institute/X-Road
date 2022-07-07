@@ -24,49 +24,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import axios from 'axios';
-import {
-  PagedSecurityServers,
-  PagingMetadata,
-  SecurityServer,
-} from '@/openapi-types';
+
 import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';
+import axios, { AxiosRequestConfig } from 'axios';
+import {
+  ManagementRequest,
+  ManagementRequestsFilter,
+  PagedManagementRequests,
+  PagingMetadata,
+} from '@/openapi-types';
 
 export interface State {
-  securityServers: SecurityServer[];
-  securityServerPagingOptions: PagingMetadata;
+  items: ManagementRequest[];
+  pagingOptions: PagingMetadata;
 }
 
-export const useSecurityServerStore = defineStore('securityServer', {
+export const managementRequestsStore = defineStore('managementRequests', {
   state: (): State => ({
-    securityServers: [],
-    securityServerPagingOptions: {
+    items: [],
+    pagingOptions: {
       total_items: 0,
       items: 0,
       limit: 25,
       offset: 0,
     },
   }),
-  persist: true,
+  getters: {},
   actions: {
-    async find(dataOptions: DataOptions, q: string) {
+    async find(dataOptions: DataOptions, filter: ManagementRequestsFilter) {
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
-      const searchUrlParams = {
-        offset: offset,
+      const params: unknown = {
         limit: dataOptions.itemsPerPage,
+        offset: offset,
         sort: dataOptions.sortBy[0],
         desc: dataOptions.sortDesc[0],
-        q,
+        ...filter,
       };
 
+      const axiosParams: AxiosRequestConfig = { params };
+
       return axios
-        .get<PagedSecurityServers>('/security-servers/', {
-          params: searchUrlParams,
-        })
+        .get<PagedManagementRequests>('/management-requests/', axiosParams)
         .then((resp) => {
-          this.securityServers = resp.data.items || [];
-          this.securityServerPagingOptions = resp.data.paging_metadata;
+          this.items = resp.data.items || [];
+          this.pagingOptions = resp.data.paging_metadata;
         });
     },
   },

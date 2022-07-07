@@ -32,49 +32,52 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
+import { ManagementRequestStatus } from '@/openapi-types';
 
 export default Vue.extend({
   props: {
     status: {
-      type: String,
+      type: String as PropType<ManagementRequestStatus>,
       default: undefined,
     },
   },
 
   computed: {
     statusIconType(): string {
-      if (!this.status) {
-        return '';
+      if (this.status) {
+        switch (this.status) {
+          case ManagementRequestStatus.REVOKED:
+          case ManagementRequestStatus.DECLINED:
+            return 'progress-delete';
+          case ManagementRequestStatus.APPROVED:
+            return 'ok';
+          case ManagementRequestStatus.WAITING:
+          case ManagementRequestStatus.SUBMITTED_FOR_APPROVAL:
+            return 'pending';
+        }
       }
-      switch (this.status) {
-        case 'REJECTED':
-          return 'progress-delete';
-        case 'APPROVED':
-          return 'ok';
-        case 'PENDING':
-          return 'pending';
-        default:
-          return 'error';
-      }
+      return 'error';
     },
   },
 
   methods: {
-    getStatusText(status: string): string {
-      if (!status) {
-        return '';
+    getStatusText(status: ManagementRequestStatus): string {
+      if (status) {
+        switch (status) {
+          case ManagementRequestStatus.WAITING:
+            return this.$t('managementRequests.pending') as string;
+          case ManagementRequestStatus.APPROVED:
+            return this.$t('managementRequests.approved') as string;
+          case ManagementRequestStatus.DECLINED:
+            return this.$t('managementRequests.rejected') as string;
+          case ManagementRequestStatus.REVOKED:
+            return this.$t('managementRequests.revoked') as string;
+          case ManagementRequestStatus.SUBMITTED_FOR_APPROVAL:
+            return this.$t('managementRequests.submitted') as string;
+        }
       }
-      switch (status) {
-        case 'REJECTED':
-          return this.$t('managementRequests.rejected') as string;
-        case 'APPROVED':
-          return this.$t('managementRequests.approved') as string;
-        case 'PENDING':
-          return this.$t('managementRequests.pending') as string;
-        default:
-          return '';
-      }
+      return this.$t('managementRequests.unknown') as string;
     },
   },
 });
