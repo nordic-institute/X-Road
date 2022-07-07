@@ -10,7 +10,10 @@ indent_size = 2
 
 [*.java]
 indent_size = 4
-continuation_indent_size = 8
+ij_continuation_indent_size  = 8
+ij_java_imports_layout = ee.ria.xroad.**,|,*,|,javax.**,java.**,|,$*
+ij_java_class_count_to_use_import_on_demand = 999
+ij_java_names_count_to_use_import_on_demand = 999
 
 [{*.xml, *.xsd, *.gradle}]
 indent_size = 4
