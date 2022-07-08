@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
