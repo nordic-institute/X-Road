@@ -39,9 +39,13 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
+import static org.niis.xroad.centralserver.restapi.entity.OwnerChangeRequest.DISCRIMINATOR_VALUE;
+
 @Entity
-@DiscriminatorValue("OwnerChangeRequest")
+@DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class OwnerChangeRequest extends RequestWithProcessing {
+    public static final String DISCRIMINATOR_VALUE = "OwnerChangeRequest";
+
 
     private ClientId clientId;
 
@@ -56,7 +60,7 @@ public class OwnerChangeRequest extends RequestWithProcessing {
 
     @Override
     @Transient
-    public ManagementRequestType getType() {
+    public ManagementRequestType getManagementRequestType() {
         return ManagementRequestType.OWNER_CHANGE_REQUEST;
     }
 

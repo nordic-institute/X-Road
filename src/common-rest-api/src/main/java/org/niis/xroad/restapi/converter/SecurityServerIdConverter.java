@@ -30,10 +30,12 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * Converter for encoded client ids
  */
+@Component
 public class SecurityServerIdConverter {
 
     public static final int SECURITY_SERVER_CODE_INDEX = 3;
@@ -54,8 +56,8 @@ public class SecurityServerIdConverter {
         String encodedMemberClientId = encodedId.substring(0, serverCodeSeparatorIndex);
         ClientId memberClientId = clientIdConverter.convertId(encodedMemberClientId);
         String serverCode = encodedId.substring(serverCodeSeparatorIndex + 1);
-        SecurityServerId securityServerId = SecurityServerId.create(memberClientId, serverCode);
-        return securityServerId;
+
+        return SecurityServerId.create(memberClientId, serverCode);
     }
 
     private void validateEncodedString(String encodedId) {
@@ -73,11 +75,9 @@ public class SecurityServerIdConverter {
      */
     public String convertId(SecurityServerId securityServerId) {
         ClientId ownerId = securityServerId.getOwner();
-        StringBuilder builder = new StringBuilder();
-        builder.append(clientIdConverter.convertId(ownerId));
-        builder.append(Converters.ENCODED_ID_SEPARATOR);
-        builder.append(securityServerId.getServerCode());
-        return builder.toString();
+        return clientIdConverter.convertId(ownerId) +
+                Converters.ENCODED_ID_SEPARATOR +
+                securityServerId.getServerCode();
     }
 
 }

@@ -26,16 +26,14 @@
  */
 package org.niis.xroad.centralserver.restapi.service.managementrequest;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.centralserver.restapi.dto.ManagementRequestDto;
 import org.niis.xroad.centralserver.restapi.dto.ManagementRequestInfoDto;
 import org.niis.xroad.centralserver.restapi.entity.Request;
 import org.niis.xroad.centralserver.restapi.entity.RequestWithProcessing;
+import org.niis.xroad.centralserver.restapi.repository.ManagementRequestViewRepository;
 import org.niis.xroad.centralserver.restapi.repository.RequestRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
@@ -61,6 +59,7 @@ import java.util.function.Function;
 @Transactional
 public class ManagementRequestService {
     private final RequestRepository<Request> requests;
+    private final ManagementRequestViewRepository managementRequestViewRepository;
     private final List<RequestHandler<? extends ManagementRequestDto, ? extends Request>> handlers;
 
     /**
@@ -76,11 +75,11 @@ public class ManagementRequestService {
     /**
      * Find management requests matching criteria.
      */
-    public Page<ManagementRequestInfoDto> findRequests(Origin origin, ManagementRequestType type,
-                                                       ManagementRequestStatus status, SecurityServerId server,
-                                                       Pageable page) {
-        var spec = RequestRepository.findSpec(origin, type, status, server);
-        var result = requests.findAll(spec, page);
+    public Page<ManagementRequestInfoDto> findRequests(
+            ManagementRequestViewRepository.Criteria filter,
+            Pageable page) {
+        var spec = ManagementRequestViewRepository.findSpec(filter);
+        var result = managementRequestViewRepository.findAll(spec, page);
         return result.map(ManagementRequests::asInfoDto);
     }
 

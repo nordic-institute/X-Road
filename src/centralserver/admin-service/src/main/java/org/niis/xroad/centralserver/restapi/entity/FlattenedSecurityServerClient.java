@@ -48,7 +48,7 @@ import java.util.Set;
 @Entity
 @Immutable
 // Subselect prevents table creation: https://stackoverflow.com/a/33689357
-@Subselect("select * from flattened_security_server_client")
+@Subselect("select * from " + FlattenedSecurityServerClient.TABLE_NAME)
 @Table(name = FlattenedSecurityServerClient.TABLE_NAME)
 public class FlattenedSecurityServerClient extends AuditableEntity {
     static final String TABLE_NAME = "flattened_security_server_client";

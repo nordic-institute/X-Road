@@ -42,6 +42,7 @@ public class ManagementRequestInfoDto {
     private final int id;
     private final ManagementRequestType type;
     private final Origin origin;
+    private final String serverOwnerName;
     private final SecurityServerId serverId;
     private final ManagementRequestStatus status;
     private final Instant createdAt;

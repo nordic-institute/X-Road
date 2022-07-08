@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,10 +26,42 @@
  */
 package org.niis.xroad.centralserver.restapi.domain;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateDeletionRequest;
+import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateRegistrationRequest;
+import org.niis.xroad.centralserver.restapi.entity.ClientDeletionRequest;
+import org.niis.xroad.centralserver.restapi.entity.ClientRegistrationRequest;
+import org.niis.xroad.centralserver.restapi.entity.OwnerChangeRequest;
+
+@RequiredArgsConstructor
 public enum ManagementRequestType {
-    AUTH_CERT_REGISTRATION_REQUEST,
-    CLIENT_REGISTRATION_REQUEST,
-    OWNER_CHANGE_REQUEST,
-    CLIENT_DELETION_REQUEST,
-    AUTH_CERT_DELETION_REQUEST;
+    AUTH_CERT_REGISTRATION_REQUEST(AuthenticationCertificateRegistrationRequest.DISCRIMINATOR_VALUE),
+    CLIENT_REGISTRATION_REQUEST(ClientRegistrationRequest.DISCRIMINATOR_VALUE),
+    OWNER_CHANGE_REQUEST(OwnerChangeRequest.DISCRIMINATOR_VALUE),
+    CLIENT_DELETION_REQUEST(ClientDeletionRequest.DISCRIMINATOR_VALUE),
+    AUTH_CERT_DELETION_REQUEST(AuthenticationCertificateDeletionRequest.DISCRIMINATOR_VALUE);
+
+
+    /**
+     * JPA discriminator value.
+     */
+    @Getter
+    private final String requestDiscriminatorValue;
+
+    /**
+     * Get enum of specified discriminator value.
+     *
+     * @param value discriminator value
+     * @return resolved {@link  ManagementRequestType}
+     * @throws IllegalArgumentException if value is not defined.
+     */
+    public static ManagementRequestType ofDiscriminatorValue(final String value) {
+        for (ManagementRequestType requestType : values()) {
+            if (requestType.getRequestDiscriminatorValue().equalsIgnoreCase(value)) {
+                return requestType;
+            }
+        }
+        throw new IllegalArgumentException("Enum with requestDiscriminatorValue [" + value + "] was not found");
+    }
 }
