@@ -41,10 +41,9 @@ import org.apache.http.ssl.SSLContexts;
 import org.niis.xroad.centralserver.registrationservice.config.RegistrationServiceProperties;
 import org.niis.xroad.centralserver.registrationservice.openapi.model.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.centralserver.registrationservice.openapi.model.ErrorInfo;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestInfo;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequest;
 import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestOrigin;
 import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestType;
-import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -67,11 +66,9 @@ class AdminApiServiceImpl implements AdminApiService {
     public static final String REQUEST_FAILED = "Registration request failed";
     private final RestTemplate restTemplate;
     private final ObjectMapper mapper;
-    private final SecurityServerIdConverter securityServerIdConverter;
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    AdminApiServiceImpl(RegistrationServiceProperties properties, RestTemplateBuilder builder, ObjectMapper mapper,
-                        SecurityServerIdConverter securityServerIdConverter) {
+    AdminApiServiceImpl(RegistrationServiceProperties properties, RestTemplateBuilder builder, ObjectMapper mapper) {
 
         CloseableHttpClient client;
         try {
@@ -109,7 +106,6 @@ class AdminApiServiceImpl implements AdminApiService {
                 .rootUri(properties.getApiBaseUrl().toString())
                 .defaultHeader("Authorization", "X-ROAD-APIKEY TOKEN=" + properties.getApiToken())
                 .build();
-        this.securityServerIdConverter = securityServerIdConverter;
     }
 
     @Override
@@ -120,12 +116,12 @@ class AdminApiServiceImpl implements AdminApiService {
         request.setOrigin(ManagementRequestOrigin.SECURITY_SERVER);
         request.setServerAddress(address);
         request.setAuthenticationCertificate(certificate);
-        request.setSecurityServerId(securityServerIdConverter.convertId(serverId));
+        request.setSecurityServerId(serverId.asEncodedId());
 
         try {
             var result = restTemplate.exchange(
                     RequestEntity.post("/management-requests").body(request),
-                    ManagementRequestInfo.class);
+                    ManagementRequest.class);
 
             if (!result.hasBody()) {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");

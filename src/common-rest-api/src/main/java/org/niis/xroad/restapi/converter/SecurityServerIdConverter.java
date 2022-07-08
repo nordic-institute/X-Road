@@ -74,10 +74,7 @@ public class SecurityServerIdConverter {
      * @return
      */
     public String convertId(SecurityServerId securityServerId) {
-        ClientId ownerId = securityServerId.getOwner();
-        return clientIdConverter.convertId(ownerId)
-                + Converters.ENCODED_ID_SEPARATOR
-                + securityServerId.getServerCode();
+        return securityServerId.asEncodedId();
     }
 
 }

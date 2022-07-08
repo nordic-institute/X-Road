@@ -56,7 +56,6 @@ dependencies {
     annotationProcessor "org.springframework:spring-context-indexer"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-    implementation project(':common-rest-api')
     implementation(project(':common-util')) {
         exclude group: 'com.typesafe.akka'
         exclude group: 'org.eclipse.jetty'
