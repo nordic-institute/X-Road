@@ -157,7 +157,7 @@ public class EndpointsApiController implements EndpointsApi {
         List<ServiceClientDto> serviceClientsByEndpoint = null;
 
         try {
-            Set<XRoadId> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
+            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
             serviceClientsByEndpoint = accessRightService.addEndpointAccessRights(endpointId,
                     new HashSet<>(xRoadIds));
         } catch (EndpointNotFoundException e) {
@@ -180,7 +180,7 @@ public class EndpointsApiController implements EndpointsApi {
     public ResponseEntity<Void> deleteEndpointServiceClients(String id, ServiceClients serviceClients) {
         Long endpointId = FormatUtils.parseLongIdOrThrowNotFound(id);
         try {
-            Set<XRoadId> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
+            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
             accessRightService.deleteEndpointAccessRights(endpointId, xRoadIds);
         } catch (EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new ResourceNotFoundException(e);

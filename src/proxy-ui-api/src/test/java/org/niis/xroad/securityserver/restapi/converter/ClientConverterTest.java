@@ -59,8 +59,8 @@ public class ClientConverterTest {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
             }
         };
-        ClientId ownerId = ClientId.create("XRD2", "GOV", "M4");
-        SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "CS");
+        ClientId.Conf ownerId = ClientId.Conf.create("XRD2", "GOV", "M4");
+        SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "CS");
 
         clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId),
                 new CurrentSecurityServerSignCertificates(new ArrayList<>()), clientSortingComparator);
@@ -71,7 +71,7 @@ public class ClientConverterTest {
         ClientType clientType = new ClientType();
         clientType.setClientStatus("registered");
         clientType.setIsAuthentication("SSLNOAUTH");
-        clientType.setIdentifier(ClientId.create("XRD2", "GOV", "M4", "SS1"));
+        clientType.setIdentifier(ClientId.Conf.create("XRD2", "GOV", "M4", "SS1"));
         Client converted = clientConverter.convert(clientType);
         assertEquals("XRD2:GOV:M4:SS1", converted.getId());
         assertEquals(ClientStatus.REGISTERED, converted.getStatus());

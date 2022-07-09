@@ -53,7 +53,6 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
-import static ee.ria.xroad.common.identifier.CentralServiceId.create;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.DUMMY_QUERY_FILE;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.PARAM_INSTANCE_IDENTIFIER;
 import static org.hamcrest.CoreMatchers.is;
@@ -68,10 +67,10 @@ import static org.junit.Assert.assertThat;
 public class GetListCentralServicesMessage extends MessageTestCase {
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
-    private static final List<CentralServiceId> EXPECTED_CENTRAL_SERVICES = Arrays.asList(
-            create(EXPECTED_XR_INSTANCE, "getInfo"),
-            create(EXPECTED_XR_INSTANCE, "someService"),
-            create(EXPECTED_XR_INSTANCE, "getRandom"));
+    private static final List<CentralServiceId.Conf> EXPECTED_CENTRAL_SERVICES = Arrays.asList(
+            CentralServiceId.Conf.create(EXPECTED_XR_INSTANCE, "getInfo"),
+            CentralServiceId.Conf.create(EXPECTED_XR_INSTANCE, "someService"),
+            CentralServiceId.Conf.create(EXPECTED_XR_INSTANCE, "getRandom"));
 
     /**
      * Constructs the test case.
@@ -96,7 +95,7 @@ public class GetListCentralServicesMessage extends MessageTestCase {
             throws Exception {
 
         CentralServicesMessage message = (CentralServicesMessage) receivedResponse.parse();
-        List<CentralServiceId> resultCentralServices = message.getCentralServiceListType().getCentralService();
+        List<CentralServiceId.Conf> resultCentralServices = message.getCentralServiceListType().getCentralService();
 
         List<String> expectedContentTypes = MetaserviceTestUtil.xmlUtf8ContentTypes();
 
@@ -118,7 +117,7 @@ public class GetListCentralServicesMessage extends MessageTestCase {
         GlobalConf.reload(new TestSuiteGlobalConf() {
 
             @Override
-            public List<CentralServiceId> getCentralServices(String instanceIdentifier) {
+            public List<CentralServiceId.Conf> getCentralServices(String instanceIdentifier) {
                 assertThat("Wrong Xroad instance in query", instanceIdentifier, is(EXPECTED_XR_INSTANCE));
                 return EXPECTED_CENTRAL_SERVICES;
             }

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import io.vavr.control.Option;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -55,17 +56,17 @@ public class SoapHeader {
 
     @CheckConsistency
     @XmlElement(name = "client", required = true, namespace = NS_XROAD)
-    private ClientId client;
+    private ClientId.Conf client;
 
     @CheckConsistency
     @XmlElement(name = "service", required = false, namespace = NS_XROAD)
-    private ServiceId service;
+    private ServiceId.Conf service;
 
     @XmlElement(name = "centralService", required = false, namespace = NS_XROAD)
-    private CentralServiceId centralService;
+    private CentralServiceId.Conf centralService;
 
     @XmlElement(name = "securityServer", required = false, namespace = NS_XROAD)
-    private SecurityServerId securityServer;
+    private SecurityServerId.Conf securityServer;
 
     @CheckConsistency
     @XmlElement(name = "userId", required = false, namespace = NS_XROAD)
@@ -88,6 +89,24 @@ public class SoapHeader {
 
     @XmlElement(name = "protocolVersion", required = true, namespace = NS_XROAD)
     private ProtocolVersion protocolVersion;
+
+    public void setCentralService(CentralServiceId centralServiceId) {
+        this.centralService = Option.of(centralServiceId)
+                .map(CentralServiceId.Conf::ensure)
+                .getOrNull();
+    }
+
+    public void setClient(ClientId clientId) {
+        this.client = Option.of(clientId)
+                .map(ClientId.Conf::ensure)
+                .getOrNull();
+    }
+
+    public void setService(ServiceId serviceId) {
+        this.service = Option.of(serviceId)
+                .map(ServiceId.Conf::ensure)
+                .getOrNull();
+    }
 
     @Override
     public String toString() {

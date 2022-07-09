@@ -64,13 +64,13 @@ public class RequestTest {
     @Test
     public void shouldCreateBodyMassIndexDoclitRequest() throws IOException {
         // Given
-        ClientId client = ClientId.create(
+        ClientId client = ClientId.Conf.create(
                 "EE",
                 "riigiasutus",
                 "consumer",
                 "subClient");
 
-        ServiceId service = ServiceId.create(
+        ServiceId service = ServiceId.Conf.create(
                 "EE",
                 "riigiasutus",
                 "producer",
@@ -109,13 +109,13 @@ public class RequestTest {
     public void shouldCreateBodyMassIndexRpcRequestWithVersion()
             throws IOException {
         // Given
-        ClientId client = ClientId.create(
+        ClientId client = ClientId.Conf.create(
                 "EE",
                 "riigiasutus",
                 "consumer",
                 "subClient");
 
-        ServiceId service = ServiceId.create(
+        ServiceId service = ServiceId.Conf.create(
                 "EE",
                 "riigiasutus",
                 "producer",
@@ -153,13 +153,13 @@ public class RequestTest {
     public void shouldCreateBodyMassIndexRpcRequestWithoutVersion()
             throws IOException {
         // Given
-        ClientId client = ClientId.create(
+        ClientId client = ClientId.Conf.create(
                 "EE",
                 "riigiasutus",
                 "consumer",
                 "subClient");
 
-        ServiceId service = ServiceId.create(
+        ServiceId service = ServiceId.Conf.create(
                 "EE",
                 "riigiasutus",
                 "producer",

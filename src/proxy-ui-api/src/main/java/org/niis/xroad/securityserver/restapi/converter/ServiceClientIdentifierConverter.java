@@ -64,10 +64,10 @@ public class ServiceClientIdentifierConverter {
         ServiceClientIdentifierDto dto = new ServiceClientIdentifierDto();
         if (clientIdConverter.isEncodedSubsystemId(encodedServiceClientIdentifier)) {
             // subsystem
-            ClientId clientId = clientIdConverter.convertId(encodedServiceClientIdentifier);
+            ClientId.Conf clientId = clientIdConverter.convertId(encodedServiceClientIdentifier);
             dto.setXRoadId(clientId);
         } else if (globalGroupConverter.isEncodedGlobalGroupId(encodedServiceClientIdentifier)) {
-            GlobalGroupId globalGroupId = globalGroupConverter.convertId(encodedServiceClientIdentifier);
+            GlobalGroupId.Conf globalGroupId = globalGroupConverter.convertId(encodedServiceClientIdentifier);
             dto.setXRoadId(globalGroupId);
         } else if (StringUtils.isNumeric(encodedServiceClientIdentifier)) {
             // local group

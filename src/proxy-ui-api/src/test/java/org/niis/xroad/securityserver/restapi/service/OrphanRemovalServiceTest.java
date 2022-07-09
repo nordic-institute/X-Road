@@ -71,24 +71,24 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
     @Autowired
     OrphanRemovalService orphanRemovalService;
 
-    private static final ClientId NON_DELETED_CLIENT_ID_O1 =
+    private static final ClientId.Conf NON_DELETED_CLIENT_ID_O1 =
             TestUtils.getClientId("FI:GOV:O_1:SS1");
-    private static final ClientId DELETED_CLIENT_ID_WITH_SIBLINGS_O3 =
+    private static final ClientId.Conf DELETED_CLIENT_ID_WITH_SIBLINGS_O3 =
             TestUtils.getClientId("FI:GOV:O_3:SS1");
-    private static final ClientId SIBLING_CLIENT_ID_O3 =
+    private static final ClientId.Conf SIBLING_CLIENT_ID_O3 =
             TestUtils.getClientId("FI:GOV:O_3:SS2");
-    private static final ClientId DELETED_CLIENT_ID_WITHOUT_ORPHAN_ITEMS_O4 =
+    private static final ClientId.Conf DELETED_CLIENT_ID_WITHOUT_ORPHAN_ITEMS_O4 =
             TestUtils.getClientId("FI:GOV:O_4:SS1");
-    private static final ClientId DELETED_CLIENT_ID_WITH_ORPHAN_CSR_O5 =
+    private static final ClientId.Conf DELETED_CLIENT_ID_WITH_ORPHAN_CSR_O5 =
             TestUtils.getClientId("FI:GOV:O_5:SS1");
-    private static final ClientId DELETED_CLIENT_ID_WITH_ORPHAN_CERT_O6 =
+    private static final ClientId.Conf DELETED_CLIENT_ID_WITH_ORPHAN_CERT_O6 =
             TestUtils.getClientId("FI:GOV:O_6:SS1");
-    private static final ClientId DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07 =
+    private static final ClientId.Conf DELETED_CLIENT_ID_WITH_MULTIPLE_KEYS_07 =
             TestUtils.getClientId("FI:GOV:O_7:SS1");
-    private static final ClientId KEY_SHARING_CLIENT_07_08 =
+    private static final ClientId.Conf KEY_SHARING_CLIENT_07_08 =
             TestUtils.getClientId("FI:GOV:O_8:SS1");
 
-    private static final List<ClientId> ALL_LOCAL_CLIENTS = Arrays.asList(
+    private static final List<ClientId.Conf> ALL_LOCAL_CLIENTS = Arrays.asList(
             NON_DELETED_CLIENT_ID_O1, SIBLING_CLIENT_ID_O3, KEY_SHARING_CLIENT_07_08
     );
 
@@ -239,10 +239,10 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void isOrphanKey() {
-        ClientId orphanMember = TestUtils.getClientId("FI:GOV:ORPHAN");
-        ClientId orphanSubsystemDeleted = TestUtils.getClientId("FI:GOV:ORPHAN:DELETED");
-        ClientId orphanSubsystemAlive = TestUtils.getClientId("FI:GOV:ORPHAN:ALIVE");
-        ClientId aliveMember = TestUtils.getClientId("FI:GOV:ALIVE");
+        ClientId.Conf orphanMember = TestUtils.getClientId("FI:GOV:ORPHAN");
+        ClientId.Conf orphanSubsystemDeleted = TestUtils.getClientId("FI:GOV:ORPHAN:DELETED");
+        ClientId.Conf orphanSubsystemAlive = TestUtils.getClientId("FI:GOV:ORPHAN:ALIVE");
+        ClientId.Conf aliveMember = TestUtils.getClientId("FI:GOV:ALIVE");
 
         CertificateInfo orphanMemberCert =
                 new CertificateTestUtils.CertificateInfoBuilder().clientId(orphanMember).build();

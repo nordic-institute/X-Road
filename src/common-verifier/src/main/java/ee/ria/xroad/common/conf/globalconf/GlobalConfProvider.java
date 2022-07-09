@@ -79,7 +79,7 @@ public interface GlobalConfProvider {
      * @param serviceId the service id
      * @return mapped service identifier
      */
-    ServiceId getServiceId(CentralServiceId serviceId);
+    ServiceId.Conf getServiceId(CentralServiceId serviceId);
 
     /**
      * @param instanceIdentifiers the instance identifiers
@@ -98,7 +98,7 @@ public interface GlobalConfProvider {
      * @param instanceIdentifier the instance identifier
      * @return all central services for the given instance identifier
      */
-    List<CentralServiceId> getCentralServices(String instanceIdentifier);
+    List<CentralServiceId.Conf> getCentralServices(String instanceIdentifier);
 
     /**
      * @param instanceIdentifiers the optional instance identifiers
@@ -208,14 +208,14 @@ public interface GlobalConfProvider {
      * server.
      * @throws Exception if an error occurs
      */
-    SecurityServerId getServerId(X509Certificate cert) throws Exception;
+    SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception;
 
     /**
      * @param serverId the security server id
      * @return the client id that owns the security server with the specified id
      * or null if the given id does not match an existing server
      */
-    ClientId getServerOwner(SecurityServerId serverId);
+    ClientId.Conf getServerOwner(SecurityServerId serverId);
 
     /**
      * @param cert the certificate
@@ -233,7 +233,7 @@ public interface GlobalConfProvider {
      * to security server associated with this authentication certificate
      * @throws Exception if an error occurs
      */
-    Set<SecurityCategoryId> getProvidedCategories(X509Certificate authCert)
+    Set<SecurityCategoryId.Conf> getProvidedCategories(X509Certificate authCert)
             throws Exception;
 
     /**
@@ -360,7 +360,7 @@ public interface GlobalConfProvider {
      * or all security server identifiers if no instance identifiers are
      * specified
      */
-    List<SecurityServerId> getSecurityServers(String... instanceIdentifiers);
+    List<SecurityServerId.Conf> getSecurityServers(String... instanceIdentifiers);
 
     /**
      * Get ApprovedCAInfo matching given CA certificate

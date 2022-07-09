@@ -404,13 +404,13 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
-    private ClientId getClientIdFromRequest() {
+    private ClientId.Conf getClientIdFromRequest() {
         String instanceIdentifier = getParameter(PARAM_INSTANCE_IDENTIFIER, false);
         String memberClass = getParameter(PARAM_MEMBER_CLASS, false);
         String memberCode = getParameter(PARAM_MEMBER_CODE, false);
         String subsystemCode = getParameter(PARAM_SUBSYSTEM_CODE, true);
 
-        return ClientId.create(instanceIdentifier, memberClass, memberCode, subsystemCode);
+        return ClientId.Conf.create(instanceIdentifier, memberClass, memberCode, subsystemCode);
     }
 
     private String getParameter(String param, boolean optional) {

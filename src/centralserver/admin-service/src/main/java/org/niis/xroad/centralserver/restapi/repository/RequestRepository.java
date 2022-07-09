@@ -37,14 +37,19 @@ import org.niis.xroad.centralserver.restapi.entity.ClientDeletionRequest;
 import org.niis.xroad.centralserver.restapi.entity.ClientRegistrationRequest;
 import org.niis.xroad.centralserver.restapi.entity.OwnerChangeRequest;
 import org.niis.xroad.centralserver.restapi.entity.Request;
+import org.niis.xroad.centralserver.restapi.entity.RequestProcessing;
 import org.niis.xroad.centralserver.restapi.entity.RequestProcessing_;
 import org.niis.xroad.centralserver.restapi.entity.RequestWithProcessing;
 import org.niis.xroad.centralserver.restapi.entity.RequestWithProcessing_;
 import org.niis.xroad.centralserver.restapi.entity.Request_;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerId_;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
+
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
 
 @Repository
 public interface RequestRepository<T extends Request>
@@ -79,7 +84,7 @@ public interface RequestRepository<T extends Request>
         }
 
         return (root, query, builder) -> {
-            var pred = builder.conjunction();
+            Predicate pred = builder.conjunction();
             if (origin != null) {
                 pred = builder.and(pred, builder.equal(root.get(Request_.origin), origin));
             }
@@ -87,19 +92,22 @@ public interface RequestRepository<T extends Request>
                 pred = builder.and(pred, builder.equal(root.type(), entityType));
             }
             if (status != null) {
-                var processing = builder
+                Join<RequestWithProcessing, RequestProcessing> processing = builder
                         .treat(root, RequestWithProcessing.class)
                         .join(RequestWithProcessing_.requestProcessing);
                 pred = builder.and(pred, builder.equal(processing.get(RequestProcessing_.status), status));
             }
             if (serverId != null) {
-                var sid = root.join(Request_.securityServerId);
+                Join<Request, org.niis.xroad.centralserver.restapi.entity.SecurityServerId> sid =
+                        root.join(Request_.securityServerId);
                 pred = builder.and(pred,
-                        builder.equal(sid.get("type"), serverId.getObjectType()),
-                        builder.equal(sid.get("xRoadInstance"), serverId.getXRoadInstance()),
-                        builder.equal(sid.get("memberClass"), serverId.getMemberClass()),
-                        builder.equal(sid.get("memberCode"), serverId.getMemberCode()),
-                        builder.equal(sid.get("serverCode"), serverId.getServerCode()));
+                        builder.equal(
+                                sid.get(SecurityServerId_.OBJECT_TYPE)/*.as(String.class)*/,
+                                serverId.getObjectType()/*.toString()*/),
+                        builder.equal(sid.get(SecurityServerId_.X_ROAD_INSTANCE), serverId.getXRoadInstance()),
+                        builder.equal(sid.get(SecurityServerId_.MEMBER_CLASS), serverId.getMemberClass()),
+                        builder.equal(sid.get(SecurityServerId_.MEMBER_CODE), serverId.getMemberCode()),
+                        builder.equal(sid.get(SecurityServerId_.SERVER_CODE), serverId.getServerCode()));
             }
             return pred;
         };

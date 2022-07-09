@@ -51,18 +51,18 @@ public class SecurityCategory extends MessageTestCase {
     }
 
     @Override
-    public Set<SecurityCategoryId> getRequiredCategories(ServiceId service) {
-        Set<SecurityCategoryId> ret = new HashSet<>();
+    public Set<SecurityCategoryId.Conf> getRequiredCategories(ServiceId service) {
+        Set<SecurityCategoryId.Conf> ret = new HashSet<>();
 
-        ret.add(SecurityCategoryId.create("EE", "CAT1"));
-        ret.add(SecurityCategoryId.create("EE", "CAT2"));
+        ret.add(SecurityCategoryId.Conf.create("EE", "CAT1"));
+        ret.add(SecurityCategoryId.Conf.create("EE", "CAT2"));
 
         return ret;
     }
 
     @Override
-    public Set<SecurityCategoryId> getProvidedCategories() {
-        return Collections.singleton(SecurityCategoryId.create("EE", "CAT3"));
+    public Set<SecurityCategoryId.Conf> getProvidedCategories() {
+        return Collections.singleton(SecurityCategoryId.Conf.create("EE", "CAT3"));
     }
 
     @Override

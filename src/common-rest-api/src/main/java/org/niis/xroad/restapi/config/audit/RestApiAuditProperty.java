@@ -110,6 +110,8 @@ public enum RestApiAuditProperty {
     CENTRAL_SERVER_ADDRESS,
     HA_NODE,
 
+    MEMBER_NAME,
+
     CODE,
     DESCRIPTION;
 

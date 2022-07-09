@@ -52,7 +52,8 @@ class ManagementRequestTypeResolver implements TargetTypeResolver<ManagementRequ
             throw new IllegalArgumentException("Unable to resolve " + targetType);
         }
 
-        return requests.findById((Integer) id).map(Request::getType)
+        return requests.findById((Integer) id)
+                .map(Request::getType)
                 .orElseThrow(() -> new NotFoundException(ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND));
     }
 }

@@ -2,7 +2,7 @@ services:
 
   xrd-cs:
     extends:
-      file: ./docker-compose.yml
+      file: ./docker-compose.base.yml
       service: xrd-cs
     depends_on:
       xrd-db:
@@ -12,7 +12,7 @@ services:
 
   xrd-cs-signer:
     extends:
-      file: ./docker-compose.yml
+      file: ./docker-compose.base.yml
       service: xrd-cs-signer
 
 volumes:

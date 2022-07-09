@@ -202,7 +202,7 @@ public class SkKlass3CertificateProfileInfoProviderTest {
         return provider().getSignCertProfile(new SignCertificateProfileInfo.Parameters() {
             @Override
             public ClientId getClientId() {
-                return ClientId.create("XX", "foo", "bar");
+                return ClientId.Conf.create("XX", "foo", "bar");
             }
 
             @Override
@@ -221,7 +221,7 @@ public class SkKlass3CertificateProfileInfoProviderTest {
         return provider().getAuthCertProfile(new AuthCertificateProfileInfo.Parameters() {
             @Override
             public SecurityServerId getServerId() {
-                return SecurityServerId.create("XX", "foo", "bar", "server");
+                return SecurityServerId.Conf.create("XX", "foo", "bar", "server");
             }
 
             @Override

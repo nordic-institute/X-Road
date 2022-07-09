@@ -28,7 +28,35 @@ package ee.ria.xroad.common.identifier;
 /**
  * Enumeration containing types of objects that have global identifiers.
  */
-public enum XRoadObjectType {
-    MEMBER, SUBSYSTEM, SERVER, GLOBALGROUP, SECURITYCATEGORY, SERVICE,
-    CENTRALSERVICE, LOCALGROUP
+public enum XRoadObjectType { // todo: the usage of this enumeration is a mess. These identifiers are used in several
+                              //       places, but the names are not very descriptive.
+                              // todo: Add javadoc for the identifiers.
+    SERVER,
+    SERVICE,
+    MEMBER,
+    SUBSYSTEM,
+    GLOBALGROUP,
+    SECURITYCATEGORY,
+    /** @deprecated this type will be removed in the future */
+    @Deprecated CENTRALSERVICE,
+    /** @deprecated this type will be removed in the future */
+    @Deprecated LOCALGROUP;
+
+    public String getIdentifier() {
+        return this.name();
+    }
+
+    public static XRoadObjectType forIdentifierOf(String value) {
+        if (value != null) {
+            for (XRoadObjectType xRoadObjectType : values()) {
+                boolean isFound = value.equals(xRoadObjectType.getIdentifier());
+                if (isFound) {
+                    return xRoadObjectType;
+                }
+            }
+        }
+
+        return null;
+    }
+
 }

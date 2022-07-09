@@ -190,15 +190,15 @@ public final class OpMonitoringBufferMemoryUsage {
         return buffer;
     }
 
-    private static ClientId createClient(int shortStrLen, int longStrLen) {
-        return ClientId.create(getDummyStr(shortStrLen),
+    private static ClientId.Conf createClient(int shortStrLen, int longStrLen) {
+        return ClientId.Conf.create(getDummyStr(shortStrLen),
                 getDummyStr(shortStrLen),
                 getDummyStr(longStrLen),
                 getDummyStr(longStrLen));
     }
 
-    private static ServiceId createService(int shortStrLen, int longStrLen) {
-        return ServiceId.create(getDummyStr(shortStrLen),
+    private static ServiceId.Conf createService(int shortStrLen, int longStrLen) {
+        return ServiceId.Conf.create(getDummyStr(shortStrLen),
                 getDummyStr(shortStrLen), getDummyStr(longStrLen),
                 getDummyStr(longStrLen), getDummyStr(longStrLen),
                 getDummyStr(shortStrLen));

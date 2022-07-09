@@ -51,8 +51,8 @@ public class TestServerConf extends EmptyServerConf {
     }
 
     @Override
-    public SecurityServerId getIdentifier() {
-        return SecurityServerId.create("EE", "BUSINESS", "consumer", "proxytest");
+    public SecurityServerId.Conf getIdentifier() {
+        return SecurityServerId.Conf.create("EE", "BUSINESS", "consumer", "proxytest");
     }
 
     @Override
@@ -71,7 +71,7 @@ public class TestServerConf extends EmptyServerConf {
     }
 
     @Override
-    public Set<SecurityCategoryId> getRequiredCategories(ServiceId service) {
+    public Set<SecurityCategoryId.Conf> getRequiredCategories(ServiceId service) {
         return Collections.emptySet();
     }
 

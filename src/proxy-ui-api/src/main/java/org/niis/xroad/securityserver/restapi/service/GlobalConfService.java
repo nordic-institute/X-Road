@@ -108,7 +108,7 @@ public class GlobalConfService {
      * @return whether the global groups exist in global configuration
      * Global groups may or may not have entries in IDENTIFIER table
      */
-    public boolean globalGroupsExist(Collection<XRoadId> identifiers) {
+    public boolean globalGroupsExist(Collection<? extends XRoadId> identifiers) {
         List<XRoadId> existingIdentifiers = globalConfFacade.getGlobalGroups().stream()
                 .map(GlobalGroupInfo::getId)
                 .collect(Collectors.toList());
@@ -120,7 +120,7 @@ public class GlobalConfService {
      * @return whether the clients exist in global configuration.
      * Clients may or may not have entries in IDENTIFIER table
      */
-    public boolean clientsExist(Collection<XRoadId> identifiers) {
+    public boolean clientsExist(Collection<? extends XRoadId> identifiers) {
         List<XRoadId> existingIdentifiers = globalConfFacade.getMembers().stream()
                 .map(MemberInfo::getId)
                 .collect(Collectors.toList());
@@ -234,7 +234,7 @@ public class GlobalConfService {
      */
     public String findMemberName(String memberClass, String memberCode) {
         String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
-        ClientId clientId = ClientId.create(instanceIdentifier, memberClass, memberCode);
+        ClientId clientId = ClientId.Conf.create(instanceIdentifier, memberClass, memberCode);
         return globalConfFacade.getMemberName(clientId);
     }
 }

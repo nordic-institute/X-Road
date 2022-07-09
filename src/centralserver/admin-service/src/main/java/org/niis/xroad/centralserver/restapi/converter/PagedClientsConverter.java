@@ -25,28 +25,27 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
-import org.niis.xroad.centralserver.openapi.model.Client;
-import org.niis.xroad.centralserver.openapi.model.PagedClients;
-import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
-import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
-import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.centralserver.openapi.model.ClientDto;
+import org.niis.xroad.centralserver.openapi.model.PagedClientsDto;
+import org.niis.xroad.centralserver.openapi.model.PagingMetadataDto;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+@Slf4j
+@Service
+@RequiredArgsConstructor
 public class PagedClientsConverter {
 
-    private PagingMetadataConverter pagingMetadataConverter = new PagingMetadataConverter();
+    private final PagingMetadataConverter pagingMetadataConverter;
 
-    private ClientConverter clientConverter = new ClientConverter();
-
-    public PagedClients convert(Page<FlattenedSecurityServerClientDto> page,
-            PagingSortingParameters pagingSorting) {
-        PagingMetadata meta = pagingMetadataConverter.convert(page, pagingSorting);
-        List<Client> clients = page.get().map(clientConverter::convert).collect(Collectors.toList());
-        PagedClients result = new PagedClients();
-        result.setClients(clients);
+    public PagedClientsDto convert(Page<ClientDto> page,
+                                   PagingSortingParametersDto pagingSorting) {
+        PagingMetadataDto meta = pagingMetadataConverter.convert(page, pagingSorting);
+        PagedClientsDto result = new PagedClientsDto();
+        result.setClients(page.getContent());
         result.setPagingMetadata(meta);
         return result;
     }

@@ -27,7 +27,10 @@
 package org.niis.xroad.centralserver.restapi.entity;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.Fn;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 
@@ -39,9 +42,20 @@ import javax.validation.constraints.NotNull;
 
 @Entity
 @DiscriminatorValue("AuthCertRegRequest")
-public class AuthenticationCertificateRegistrationRequest extends RequestWithProcessing {
+public class AuthenticationCertificateRegistrationRequest extends RequestWithProcessing
+        implements Fn.Self<AuthenticationCertificateRegistrationRequest> {
+
+    private static final int KILOBYTE = 1024;
+
+    @NotNull
+    @Column(name = "auth_cert", length = 100 * KILOBYTE)
+    @Getter
+    @Setter
     private byte[] authCert;
 
+    @Column(name = "address")
+    @Getter
+    @Setter
     private String address;
 
     protected AuthenticationCertificateRegistrationRequest() {
@@ -59,27 +73,8 @@ public class AuthenticationCertificateRegistrationRequest extends RequestWithPro
     }
 
     public AuthenticationCertificateRegistrationRequest(Origin origin,
-            AuthenticationCertificateRegistrationRequest other) {
+                                                        AuthenticationCertificateRegistrationRequest other) {
         super(origin, other.getSecurityServerId(), other.getRequestProcessing());
-    }
-
-    @Column(name = "auth_cert", length = 10000)
-    @NotNull
-    public byte[] getAuthCert() {
-        return this.authCert;
-    }
-
-    public void setAuthCert(byte[] authCert) {
-        this.authCert = authCert;
-    }
-
-    @Column(name = "address")
-    public String getAddress() {
-        return this.address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
 }

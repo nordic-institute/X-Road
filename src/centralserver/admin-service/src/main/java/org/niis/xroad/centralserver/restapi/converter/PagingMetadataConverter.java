@@ -25,16 +25,20 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
-import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
-import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.centralserver.openapi.model.PagingMetadataDto;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
 
 import static java.lang.Math.toIntExact;
 
+@Slf4j
+@Service
 public class PagingMetadataConverter {
-    public PagingMetadata convert(Page page,
-            PagingSortingParameters pagingSorting) {
-        PagingMetadata meta = new PagingMetadata();
+    public PagingMetadataDto convert(Page page,
+                                     PagingSortingParametersDto pagingSorting) {
+        PagingMetadataDto meta = new PagingMetadataDto();
         meta.setTotalItems(toIntExact(page.getTotalElements()));
         meta.setLimit(pagingSorting.getLimit());
         meta.setOffset(pagingSorting.getOffset());

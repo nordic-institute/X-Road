@@ -227,7 +227,7 @@ public final class GlobalConf {
      * @param instanceIdentifier the instance identifier
      * @return all central services for the given instance identifier
      */
-    public static List<CentralServiceId> getCentralServices(
+    public static List<CentralServiceId.Conf> getCentralServices(
             String instanceIdentifier) {
         log.trace("getCentralServices({})", instanceIdentifier);
 
@@ -463,7 +463,7 @@ public final class GlobalConf {
      * to security server associated with this authentication certificate
      * @throws Exception if an error occurs
      */
-    public static Collection<SecurityCategoryId> getProvidedCategories(
+    public static Collection<SecurityCategoryId.Conf> getProvidedCategories(
             X509Certificate authCert) throws Exception {
         log.trace("getProvidedCategories()");
 
@@ -519,7 +519,7 @@ public final class GlobalConf {
      * @return subject client identifier
      * @throws Exception if an error occurs
      */
-    public static ClientId getSubjectName(
+    public static ClientId.Conf getSubjectName(
             SignCertificateProfileInfo.Parameters parameters,
             X509Certificate cert) throws Exception {
         log.trace("getSubjectName({})", parameters.getClientId());
@@ -679,7 +679,7 @@ public final class GlobalConf {
      * or all security server identifiers if no instance identifiers are
      * specified
      */
-    public static List<SecurityServerId> getSecurityServers(
+    public static List<SecurityServerId.Conf> getSecurityServers(
             String... instanceIdentifiers) {
         log.trace("getSecurityServers()");
 

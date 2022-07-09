@@ -130,7 +130,7 @@ public class AccessRightService {
     /**
      * Adds clientId, serviceCode, and subjectIds
      */
-    private void addAuditData(ClientId clientId, Set<XRoadId> subjectIds, String serviceCode) {
+    private void addAuditData(ClientId clientId, Set<? extends XRoadId> subjectIds, String serviceCode) {
         auditDataHelper.put(clientId);
         auditDataHelper.put(RestApiAuditProperty.SERVICE_CODE, serviceCode);
         if (subjectIds != null) {
@@ -148,7 +148,7 @@ public class AccessRightService {
      * @throws ClientNotFoundException if client attached to endpoint is not found
      * @throws AccessRightNotFoundException if at least one access right expected is not found
      */
-    public void deleteEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds)
+    public void deleteEndpointAccessRights(Long endpointId, Set<? extends XRoadId> subjectIds)
             throws EndpointNotFoundException,
             ClientNotFoundException, AccessRightNotFoundException {
 
@@ -165,7 +165,9 @@ public class AccessRightService {
      * @param subjectIds
      * @throws AccessRightNotFoundException if subjects did not have access rights that were attempted to be deleted
      */
-    private void deleteEndpointAccessRights(ClientType clientType, EndpointType endpointType, Set<XRoadId> subjectIds)
+    private void deleteEndpointAccessRights(ClientType clientType,
+                                            EndpointType endpointType,
+                                            Set<? extends XRoadId> subjectIds)
             throws AccessRightNotFoundException {
 
         deleteEndpointAccessRights(clientType, Collections.singletonList(endpointType), subjectIds);
@@ -185,7 +187,7 @@ public class AccessRightService {
      * @throws AccessRightNotFoundException if subjects did not have access rights that were attempted to be deleted
      */
     private void deleteEndpointAccessRights(ClientType clientType, List<EndpointType> endpointTypes,
-            Set<XRoadId> subjectIds) throws AccessRightNotFoundException {
+            Set<? extends XRoadId> subjectIds) throws AccessRightNotFoundException {
 
         for (EndpointType endpointType: endpointTypes) {
             // check that all access rights exist and can be deleted
@@ -225,7 +227,7 @@ public class AccessRightService {
      * subjectId did not exist
      */
     public List<ServiceClientDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
-            Set<XRoadId> subjectIds) throws ClientNotFoundException,
+            Set<XRoadId.Conf> subjectIds) throws ClientNotFoundException,
             ServiceNotFoundException, DuplicateAccessRightException,
             ServiceClientNotFoundException {
 
@@ -253,7 +255,7 @@ public class AccessRightService {
      * subjectId did not exist
      * @throws DuplicateAccessRightException Trying to add duplicate access rights
      */
-    public List<ServiceClientDto> addEndpointAccessRights(Long endpointId, Set<XRoadId> subjectIds)
+    public List<ServiceClientDto> addEndpointAccessRights(Long endpointId, Set<XRoadId.Conf> subjectIds)
             throws EndpointNotFoundException, ClientNotFoundException,
             ServiceClientNotFoundException, DuplicateAccessRightException {
 
@@ -271,7 +273,7 @@ public class AccessRightService {
      * @throws DuplicateAccessRightException
      */
     private List<ServiceClientDto> addEndpointAccessRights(ClientType clientType, EndpointType endpointType,
-            Set<XRoadId> subjectIds) throws DuplicateAccessRightException, ServiceClientNotFoundException {
+            Set<XRoadId.Conf> subjectIds) throws DuplicateAccessRightException, ServiceClientNotFoundException {
 
         subjectIds.forEach(this::validateServiceClientObjectType);
 
@@ -279,7 +281,7 @@ public class AccessRightService {
         identifierService.verifyServiceClientObjectsExist(clientType, subjectIds);
 
         // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
-        Set<XRoadId> managedIds = identifierService.getOrPersistXroadIds(subjectIds);
+        Set<XRoadId.Conf> managedIds = identifierService.getOrPersistXroadIds(subjectIds);
 
         // Add access rights to endpoint
         addAccessRightsInternal(managedIds, clientType, Collections.singletonList(endpointType));
@@ -306,7 +308,7 @@ public class AccessRightService {
      * subjectId did not exist
      */
     public List<ServiceClientAccessRightDto> addServiceClientAccessRights(ClientId clientId, Set<String> serviceCodes,
-            XRoadId subjectId) throws ServiceNotFoundException,
+            XRoadId.Conf subjectId) throws ServiceNotFoundException,
             DuplicateAccessRightException, ClientNotFoundException, ServiceClientNotFoundException {
 
         addAuditData(clientId, subjectId, serviceCodes);
@@ -327,7 +329,7 @@ public class AccessRightService {
         }
 
         // make sure subject id exists in serverconf db IDENTIFIER table, and use a managed entity
-        XRoadId managedSubjectId = identifierService.getOrPersistXroadId(subjectId);
+        XRoadId.Conf managedSubjectId = identifierService.getOrPersistXroadId(subjectId);
 
         return addAccessRightsInternal(new HashSet<>(Arrays.asList(managedSubjectId)), clientType, baseEndpoints)
                     .get(managedSubjectId);
@@ -483,7 +485,7 @@ public class AccessRightService {
      * @return map, key = subjectId (service client), value = list of access rights added for the subject
      * @throws DuplicateAccessRightException if trying to add existing access right
      */
-    Map<XRoadId, List<ServiceClientAccessRightDto>> addAccessRightsInternal(Set<XRoadId> subjectIds,
+    Map<XRoadId.Conf, List<ServiceClientAccessRightDto>> addAccessRightsInternal(Set<XRoadId.Conf> subjectIds,
             ClientType clientType, List<EndpointType> endpoints)
             throws DuplicateAccessRightException {
         Date now = new Date();
@@ -495,10 +497,10 @@ public class AccessRightService {
             throw new IllegalArgumentException("missing endpoints");
         }
 
-        Map<XRoadId, List<ServiceClientAccessRightDto>> addedAccessRights = new HashMap<>();
+        Map<XRoadId.Conf, List<ServiceClientAccessRightDto>> addedAccessRights = new HashMap<>();
 
         for (EndpointType endpoint: endpoints) {
-            for (XRoadId subjectId : subjectIds) {
+            for (XRoadId.Conf subjectId : subjectIds) {
                 ServiceClientAccessRightDto dto = addAccessRightInternal(clientType, now, endpoint, subjectId);
                 List<ServiceClientAccessRightDto> addedAccessRightsForSubject = addedAccessRights
                         .computeIfAbsent(subjectId, k -> new ArrayList<>());
@@ -648,7 +650,7 @@ public class AccessRightService {
                     ServiceClientDto serviceClientDto = new ServiceClientDto();
                     serviceClientDto.setLocalGroupId(localGroup.getId().toString());
                     serviceClientDto.setLocalGroupCode(localGroup.getGroupCode());
-                    serviceClientDto.setSubjectId(LocalGroupId.create(localGroup.getGroupCode()));
+                    serviceClientDto.setSubjectId(LocalGroupId.Conf.create(localGroup.getGroupCode()));
                     serviceClientDto.setLocalGroupDescription(localGroup.getDescription());
                     return serviceClientDto;
                 }).collect(Collectors.toList());

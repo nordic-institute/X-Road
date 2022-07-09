@@ -142,7 +142,7 @@ public class GetListClientsMessage extends MessageTestCase {
 
 
     private static MemberInfo createMember(String member, String subsystem) {
-        return new MemberInfo(ClientId.create(EXPECTED_XR_INSTANCE, "BUSINESS",
+        return new MemberInfo(ClientId.Conf.create(EXPECTED_XR_INSTANCE, "BUSINESS",
                 member, subsystem), member + "-name");
     }
 

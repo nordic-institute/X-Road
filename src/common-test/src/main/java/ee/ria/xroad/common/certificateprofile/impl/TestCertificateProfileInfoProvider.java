@@ -67,8 +67,8 @@ public class TestCertificateProfileInfoProvider
         }
 
         @Override
-        public ClientId getSubjectIdentifier(X509Certificate certificate) {
-            return ClientId.create(
+        public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
+            return ClientId.Conf.create(
                 params.getClientId().getXRoadInstance(),
                 "BUSINESS",
                 CertUtils.getSubjectCommonName(certificate)

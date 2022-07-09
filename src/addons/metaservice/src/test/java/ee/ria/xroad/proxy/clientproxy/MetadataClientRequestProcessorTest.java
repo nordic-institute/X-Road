@@ -57,7 +57,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.identifier.CentralServiceId.create;
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CENTRAL_SERVICES;
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.xmlUtf8ContentTypes;
@@ -216,15 +215,15 @@ public class MetadataClientRequestProcessorTest {
     @Test
     public void shouldProcessListCentralServices() throws Exception {
 
-        final List<CentralServiceId> expectedCentraServices = Arrays.asList(
-                create(EXPECTED_XR_INSTANCE, "getInfo"),
-                create(EXPECTED_XR_INSTANCE, "someService"),
-                create(EXPECTED_XR_INSTANCE, "getRandom"));
+        final List<CentralServiceId.Conf> expectedCentraServices = Arrays.asList(
+                CentralServiceId.Conf.create(EXPECTED_XR_INSTANCE, "getInfo"),
+                CentralServiceId.Conf.create(EXPECTED_XR_INSTANCE, "someService"),
+                CentralServiceId.Conf.create(EXPECTED_XR_INSTANCE, "getRandom"));
 
         GlobalConf.reload(new TestSuiteGlobalConf() {
 
             @Override
-            public List<CentralServiceId> getCentralServices(String instanceIdentifier) {
+            public List<CentralServiceId.Conf> getCentralServices(String instanceIdentifier) {
                 assertThat("Wrong Xroad instance in query", instanceIdentifier, is(EXPECTED_XR_INSTANCE));
                 return expectedCentraServices;
             }
@@ -237,7 +236,7 @@ public class MetadataClientRequestProcessorTest {
 
         assertContentTypeIsIn(xmlUtf8ContentTypes());
 
-        List<CentralServiceId> resultCentralServices = unmarshaller.unmarshal(
+        List<CentralServiceId.Conf> resultCentralServices = unmarshaller.unmarshal(
                 mockServletOutputStream.getResponseSource(), CentralServiceListType.class)
                 .getValue().getCentralService();
 
@@ -279,7 +278,7 @@ public class MetadataClientRequestProcessorTest {
     }
 
     private static MemberInfo createMember(String member, String subsystem) {
-        return new MemberInfo(ClientId.create(EXPECTED_XR_INSTANCE, "BUSINESS",
+        return new MemberInfo(ClientId.Conf.create(EXPECTED_XR_INSTANCE, "BUSINESS",
                 member, subsystem), member + "-name");
     }
 

@@ -40,7 +40,7 @@ public class GenerateCertRequest implements Serializable {
 
     private final String keyId;
 
-    private final ClientId memberId;
+    private final ClientId.Conf memberId;
 
     private final KeyUsageInfo keyUsage;
 

@@ -26,19 +26,19 @@
  */
 package org.niis.xroad.centralserver.restapi.repository;
 
-import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
+import io.vavr.collection.Seq;
+import io.vavr.control.Option;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-
 @Repository
-public interface MemberClassRepository extends JpaRepository<MemberClass, Long> {
+public interface MemberClassRepository extends
+        JpaRepository<MemberClass, Long>,
+        FindOrCreateAwareRepository<MemberClass, Long>  {
 
-    Optional<MemberClass> findByCode(String code);
+    Option<MemberClass> findByCode(String code);
 
-    List<MemberClassDto> findAllAsDtoBy(Sort sort);
+    Seq<MemberClass> findAllSortedBy(Sort sort);
 }

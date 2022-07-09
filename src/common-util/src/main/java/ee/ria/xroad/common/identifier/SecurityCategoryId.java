@@ -25,50 +25,89 @@
  */
 package ee.ria.xroad.common.identifier;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import java.util.Objects;
+
+import static ee.ria.xroad.common.util.Validation.validateArgument;
 
 /**
  * Security category ID.
  */
-@XmlJavaTypeAdapter(IdentifierTypeConverter.SecurityCategoryIdAdapter.class)
-public final class SecurityCategoryId extends XRoadId {
+public interface SecurityCategoryId extends XRoadId {
 
-    private final String securityCategory;
-
-    SecurityCategoryId() { // required by Hibernate
-        this(null, null);
-    }
-
-    private SecurityCategoryId(String xRoadInstance, String securityCategory) {
-        super(XRoadObjectType.SECURITYCATEGORY, xRoadInstance);
-
-        this.securityCategory = securityCategory;
-    }
-
-    /**
-     * Returns the security category code.
-     * @return String
-     */
-    public String getCategoryCode() {
-        return securityCategory;
-    }
+    String getCategoryCode();
 
     @Override
-    public String[] getFieldsForStringFormat() {
-        return new String[] {securityCategory};
+    default String[] getFieldsForStringFormat() {
+        return new String[]{getCategoryCode()};
     }
 
-    /**
-     * Factory method for creating a new GlobalGroupId.
-     * @param xRoadInstance instance of the new security category
-     * @param securityCategory code of the new security category
-     * @return SecurityCategoryId
-     */
-    public static SecurityCategoryId create(String xRoadInstance,
-            String securityCategory) {
-        validateField("xRoadInstance", xRoadInstance);
-        validateField("securityCategory", securityCategory);
-        return new SecurityCategoryId(xRoadInstance, securityCategory);
+    @XmlJavaTypeAdapter(IdentifierTypeConverter.SecurityCategoryIdAdapter.class)
+    final class Conf extends XRoadId.Conf implements SecurityCategoryId {
+
+        private final String securityCategory;
+
+        Conf() { // required by Hibernate
+            this(null, null);
+        }
+
+        private Conf(String xRoadInstance, String securityCategory) {
+            super(XRoadObjectType.SECURITYCATEGORY, xRoadInstance);
+
+            this.securityCategory = securityCategory;
+        }
+
+        /**
+         * Returns the security category code.
+         *
+         * @return String
+         */
+        public String getCategoryCode() {
+            return securityCategory;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return SecurityCategoryId.equals(this, other);
+        }
+
+        @Override
+        public int hashCode() {
+            return SecurityCategoryId.hashCode(this);
+        }
+
+        /**
+         * Factory method for creating a new GlobalGroupId.
+         *
+         * @param xRoadInstance    instance of the new security category
+         * @param securityCategory code of the new security category
+         * @return SecurityCategoryId
+         */
+        public static SecurityCategoryId.Conf create(String xRoadInstance,
+                                                     String securityCategory) {
+            validateArgument("xRoadInstance", xRoadInstance);
+            validateArgument("securityCategory", securityCategory);
+            return new SecurityCategoryId.Conf(xRoadInstance, securityCategory);
+        }
+    }
+
+    static boolean equals(SecurityCategoryId self, Object other) {
+        if (self == other) return true;
+        if (!(other instanceof SecurityCategoryId)) return false;
+        if (!XRoadId.equals(self, other)) return false;
+        SecurityCategoryId identifier = (SecurityCategoryId) other;
+        if (!Objects.equals(self.getCategoryCode(), identifier.getCategoryCode())) return false;
+        return true;
+    }
+
+    static int hashCode(SecurityCategoryId self) {
+        return new HashCodeBuilder()
+                .appendSuper(XRoadId.hashCode(self))
+                .append(self.getCategoryCode())
+                .build();
     }
 
 }

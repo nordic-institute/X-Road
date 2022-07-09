@@ -106,7 +106,7 @@ public class ManagementRequestSenderService {
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
-    public Integer sendClientRegisterRequest(ClientId clientId)
+    public Integer sendClientRegisterRequest(ClientId.Conf clientId)
             throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
@@ -127,7 +127,7 @@ public class ManagementRequestSenderService {
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
-    Integer sendClientUnregisterRequest(ClientId clientId)
+    Integer sendClientUnregisterRequest(ClientId.Conf clientId)
             throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
@@ -148,7 +148,7 @@ public class ManagementRequestSenderService {
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
-    public Integer sendOwnerChangeRequest(ClientId clientId)
+    public Integer sendOwnerChangeRequest(ClientId.Conf clientId)
             throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {

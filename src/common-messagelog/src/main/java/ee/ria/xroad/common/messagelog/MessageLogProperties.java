@@ -115,6 +115,7 @@ public final class MessageLogProperties {
      *
      * @deprecated
      **/
+    @Deprecated
     public static final String SOAP_BODY_LOGGING_ENABLED = PREFIX + "soap-body-logging";
 
     /**
@@ -453,7 +454,7 @@ public final class MessageLogProperties {
                         + "list of four slash-separated codesidentifying one subsystem, for example "
                         + "\"FI/ORG/1234567-1/subsystem1\", detected bad value: " + oneSubsystemParam);
             }
-            ClientId id = ClientId.create(codes.get(FIRST_COMPONENT), codes.get(SECOND_COMPONENT),
+            ClientId id = ClientId.Conf.create(codes.get(FIRST_COMPONENT), codes.get(SECOND_COMPONENT),
                     codes.get(THIRD_COMPONENT), codes.get(FOURTH_COMPONENT));
             toReturn.add(id);
         }

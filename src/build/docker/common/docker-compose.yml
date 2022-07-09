@@ -1,6 +1,7 @@
 services:
 
   xrd-db:
+    #image: postgres:9.4.21
     image: postgres:10.19
     container_name: xrd-database
     expose:
@@ -15,8 +16,12 @@ services:
       timeout: 3s
       retries: 15
     environment:
+      # for Postgres 10 containers
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # for Postgres 9 containers
+      DB_USER: ${POSTGRES_USER}
+      DB_PASS: ${POSTGRES_PASSWORD}
 
 volumes:
   x_road_db:

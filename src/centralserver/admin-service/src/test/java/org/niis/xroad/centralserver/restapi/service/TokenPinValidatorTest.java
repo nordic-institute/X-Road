@@ -28,8 +28,8 @@ package org.niis.xroad.centralserver.restapi.service;
 import ee.ria.xroad.common.util.TokenPinPolicy;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.restapi.service.exception.InvalidCharactersException;
 import org.niis.xroad.centralserver.restapi.service.exception.WeakPinException;
 import org.niis.xroad.centralserver.restapi.util.DeviationTestUtils;
@@ -46,7 +46,7 @@ public class TokenPinValidatorTest {
     private static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
     private static final String SOFTWARE_TOKEN_INVALID_PIN = "‘œ‘–ßçıı–ç˛®ç†é®ß";
 
-    @Before
+    @BeforeEach
     public void setup() {
         tokenPinValidator.setTokenPinEnforced(true);
     }

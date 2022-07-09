@@ -36,5 +36,5 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class CurrentSecurityServerId {
-    private final SecurityServerId serverId;
+    private final SecurityServerId.Conf serverId;
 }

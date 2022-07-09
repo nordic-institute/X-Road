@@ -126,40 +126,40 @@ final class IdentifierTypeConverter {
                     "Redundant subsystem code");
         }
 
-        return ClientId.create(v.getXRoadInstance(), v.getMemberClass(),
+        return ClientId.Conf.create(v.getXRoadInstance(), v.getMemberClass(),
                 v.getMemberCode(),
                 XRoadObjectType.MEMBER.equals(v.getObjectType())
                         ? null : v.getSubsystemCode());
     }
 
     static ServiceId parseServiceId(XRoadIdentifierType v) {
-        return ServiceId.create(v.getXRoadInstance(),
+        return ServiceId.Conf.create(v.getXRoadInstance(),
                 v.getMemberClass(), v.getMemberCode(),
                 v.getSubsystemCode(), v.getServiceCode(),
                 v.getServiceVersion());
     }
 
     static SecurityCategoryId parseSecurityCategoryId(XRoadIdentifierType v) {
-        return SecurityCategoryId.create(v.getXRoadInstance(),
+        return SecurityCategoryId.Conf.create(v.getXRoadInstance(),
                 v.getSecurityCategoryCode());
     }
 
     static CentralServiceId parseCentralServiceId(XRoadIdentifierType v) {
-        return CentralServiceId.create(v.getXRoadInstance(),
+        return CentralServiceId.Conf.create(v.getXRoadInstance(),
                 v.getServiceCode());
     }
 
     static SecurityServerId parseSecurityServerId(XRoadIdentifierType v) {
-        return SecurityServerId.create(v.getXRoadInstance(),
+        return SecurityServerId.Conf.create(v.getXRoadInstance(),
                 v.getMemberClass(), v.getMemberCode(), v.getServerCode());
     }
 
     static GlobalGroupId parseGlobalGroupId(XRoadIdentifierType v) {
-        return GlobalGroupId.create(v.getXRoadInstance(), v.getGroupCode());
+        return GlobalGroupId.Conf.create(v.getXRoadInstance(), v.getGroupCode());
     }
 
     static LocalGroupId parseLocalGroupId(XRoadIdentifierType v) {
-        return LocalGroupId.create(v.getGroupCode());
+        return LocalGroupId.Conf.create(v.getGroupCode());
     }
 
     // -- Identifier-specific adapter classes ---------------------------------

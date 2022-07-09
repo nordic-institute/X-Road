@@ -28,6 +28,7 @@ package org.niis.xroad.centralserver.restapi.entity;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.Getter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 
@@ -48,6 +49,7 @@ public abstract class RequestWithProcessing extends Request {
     @JoinColumn(name = "request_processing_id", updatable = false, nullable = false)
     @Access(AccessType.FIELD)
     @NotNull
+    @Getter
     private RequestProcessing requestProcessing;
 
     protected RequestWithProcessing() {
@@ -58,10 +60,6 @@ public abstract class RequestWithProcessing extends Request {
         super(origin, serverId);
         this.requestProcessing = processing;
         requestProcessing.getRequests().add(this);
-    }
-
-    public RequestProcessing getRequestProcessing() {
-        return requestProcessing;
     }
 
     @Override

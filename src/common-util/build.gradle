@@ -43,6 +43,8 @@ dependencies {
     api 'com.google.code.gson:gson:2.9.0'
     api "com.google.guava:guava:$guavaVersion"
 
+    api "io.vavr:vavr:$vavrVersion"
+
     api ('org.quartz-scheduler:quartz:2.3.2') {
         exclude module: 'c3p0'
     }

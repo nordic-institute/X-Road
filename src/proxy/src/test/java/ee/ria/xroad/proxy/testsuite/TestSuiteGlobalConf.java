@@ -76,7 +76,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public Set<SecurityCategoryId> getProvidedCategories(
+    public Set<SecurityCategoryId.Conf> getProvidedCategories(
             X509Certificate authCert) {
         return currentTestCase().getProvidedCategories();
     }
@@ -124,8 +124,8 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public ServiceId getServiceId(CentralServiceId serviceId) {
-        return ServiceId.create(serviceId.getXRoadInstance(),
+    public ServiceId.Conf getServiceId(CentralServiceId serviceId) {
+        return ServiceId.Conf.create(serviceId.getXRoadInstance(),
                 "BUSINESS", "producer", null, serviceId.getServiceCode(), null);
     }
 
@@ -135,12 +135,12 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
             X509Certificate cert) throws Exception {
         return new EjbcaSignCertificateProfileInfo(parameters) {
             @Override
-            public ClientId getSubjectIdentifier(X509Certificate certificate) {
+            public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
                 // Currently the test certificate contains invalid member class
                 // so we just fix the member class here instead of regenerating
                 // new certificate.
                 ClientId id = super.getSubjectIdentifier(certificate);
-                return ClientId.create(
+                return ClientId.Conf.create(
                     id.getXRoadInstance(),
                     "BUSINESS",
                     id.getMemberCode()
@@ -157,9 +157,9 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public SecurityServerId getServerId(X509Certificate cert) throws Exception {
+    public SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception {
         // For SSL connections AuthTrustManager checks that client certificate
         // belongs to some X-Road member
-        return SecurityServerId.create("FI", "COM", "1111", "SS1");
+        return SecurityServerId.Conf.create("FI", "COM", "1111", "SS1");
     }
 }

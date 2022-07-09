@@ -80,8 +80,8 @@ public class SoapMessageTest {
     public void simpleRequest() throws Exception {
         SoapMessageImpl message = createRequest("simple.query");
 
-        ClientId expectedClient = ClientId.create("EE", "BUSINESS", "consumer");
-        ServiceId expectedService = ServiceId.create("EE", "BUSINESS", "producer", null, "testQuery");
+        ClientId expectedClient = ClientId.Conf.create("EE", "BUSINESS", "consumer");
+        ServiceId expectedService = ServiceId.Conf.create("EE", "BUSINESS", "producer", null, "testQuery");
 
         assertTrue(message.isRequest());
         assertEquals(expectedClient, message.getClient());
@@ -99,8 +99,8 @@ public class SoapMessageTest {
     public void simpleRpcRequest() throws Exception {
         SoapMessageImpl message = createRequest("simple-rpc.query");
 
-        ClientId expectedClient = ClientId.create("EE", "BUSINESS", "consumer");
-        ServiceId expectedService = ServiceId.create("EE", "BUSINESS", "producer", null, "testQuery");
+        ClientId expectedClient = ClientId.Conf.create("EE", "BUSINESS", "consumer");
+        ServiceId expectedService = ServiceId.Conf.create("EE", "BUSINESS", "producer", null, "testQuery");
 
         assertTrue(message.isRpcEncoded());
         assertTrue(message.isRequest());
@@ -118,8 +118,8 @@ public class SoapMessageTest {
     public void simpleResponse() throws Exception {
         SoapMessageImpl message = createResponse("simple.answer");
 
-        ClientId expectedClient = ClientId.create("EE", "BUSINESS", "consumer");
-        ServiceId expectedService = ServiceId.create("EE", "BUSINESS", "producer", null, "testQuery");
+        ClientId expectedClient = ClientId.Conf.create("EE", "BUSINESS", "consumer");
+        ServiceId expectedService = ServiceId.Conf.create("EE", "BUSINESS", "producer", null, "testQuery");
 
         assertTrue(message.isResponse());
         assertEquals(expectedClient, message.getClient());
@@ -306,9 +306,9 @@ public class SoapMessageTest {
      */
     @Test
     public void shouldParseBuiltMessage() throws Exception {
-        ClientId client = ClientId.create("EE", "BUSINESS", "producer");
-        ServiceId service = ServiceId.create("EE", "BUSINESS", "consumer", null, "test");
-        CentralServiceId centralService = CentralServiceId.create("EE", "central");
+        ClientId client = ClientId.Conf.create("EE", "BUSINESS", "producer");
+        ServiceId service = ServiceId.Conf.create("EE", "BUSINESS", "consumer", null, "test");
+        CentralServiceId centralService = CentralServiceId.Conf.create("EE", "central");
         String userId = "foobar";
         String queryId = "barbaz";
 
@@ -354,8 +354,8 @@ public class SoapMessageTest {
      */
     @Test
     public void shouldBuildRpcMessage() throws Exception {
-        ClientId client = ClientId.create("EE", "BUSINESS", "producer");
-        ServiceId service = ServiceId.create("EE", "BUSINESS", "consumer", null, "test");
+        ClientId client = ClientId.Conf.create("EE", "BUSINESS", "producer");
+        ServiceId service = ServiceId.Conf.create("EE", "BUSINESS", "consumer", null, "test");
         String userId = "foobar";
         String queryId = "barbaz";
 
@@ -378,7 +378,7 @@ public class SoapMessageTest {
         thrown.expectError(X_MISSING_HEADER_FIELD);
 
         ClientId client = null;
-        ServiceId service = ServiceId.create("EE", "BUSINESS", "consumer", null, "test");
+        ServiceId service = ServiceId.Conf.create("EE", "BUSINESS", "consumer", null, "test");
         String userId = "foobar";
         String queryId = "barbaz";
 
@@ -405,9 +405,9 @@ public class SoapMessageTest {
     public void centralServiceMessage() throws Exception {
         SoapMessageImpl message = createRequest("simple-centralservice.query");
 
-        ClientId expectedClient = ClientId.create("EE", "BUSINESS", "consumer");
+        ClientId expectedClient = ClientId.Conf.create("EE", "BUSINESS", "consumer");
 
-        CentralServiceId expectedService = CentralServiceId.create("EE", "centralservice");
+        CentralServiceId expectedService = CentralServiceId.Conf.create("EE", "centralservice");
 
         assertTrue(message.isRequest());
         assertEquals(expectedClient, message.getClient());

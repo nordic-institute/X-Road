@@ -283,14 +283,14 @@ public class LocalGroupService {
      * @return
      * @throws LocalGroupNotFoundException if local group with given id was not found in database
      */
-    public Set<XRoadId> getLocalGroupIdsAsXroadIds(Set<Long> localGroupIds) throws LocalGroupNotFoundException {
-        Set<XRoadId> localGroupXRoadIds = new HashSet<>();
+    public Set<XRoadId.Conf> getLocalGroupIdsAsXroadIds(Set<Long> localGroupIds) throws LocalGroupNotFoundException {
+        Set<XRoadId.Conf> localGroupXRoadIds = new HashSet<>();
         for (Long groupId : localGroupIds) {
             LocalGroupType localGroup = localGroupRepository.getLocalGroup(groupId); // no need to batch
             if (localGroup == null) {
                 throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
             }
-            localGroupXRoadIds.add(LocalGroupId.create(localGroup.getGroupCode()));
+            localGroupXRoadIds.add(LocalGroupId.Conf.create(localGroup.getGroupCode()));
         }
         return localGroupXRoadIds;
     }
@@ -301,7 +301,7 @@ public class LocalGroupService {
      * @return
      * @throws LocalGroupNotFoundException if local group with given id was not found in database
      */
-    public XRoadId getLocalGroupIdAsXroadId(long localGroupId) throws LocalGroupNotFoundException {
+    public XRoadId.Conf getLocalGroupIdAsXroadId(long localGroupId) throws LocalGroupNotFoundException {
         Set<Long> ids = new HashSet<>();
         ids.add(localGroupId);
         return getLocalGroupIdsAsXroadIds(ids).iterator().next();
@@ -313,9 +313,9 @@ public class LocalGroupService {
      * @return whether all the local groups exist in LOCALGROUP table for the given client.
      * Entry in IDENTIFIER table may or may not exist
      */
-    public boolean localGroupsExist(ClientType clientType, List<XRoadId> identifiers) {
+    public boolean localGroupsExist(ClientType clientType, List<? extends XRoadId> identifiers) {
         Set<LocalGroupId> clientsLocalGroupIds = clientType.getLocalGroup().stream()
-                .map(localGroup -> LocalGroupId.create(localGroup.getGroupCode()))
+                .map(localGroup -> LocalGroupId.Conf.create(localGroup.getGroupCode()))
                 .collect(Collectors.toSet());
         return clientsLocalGroupIds.containsAll(identifiers);
     }

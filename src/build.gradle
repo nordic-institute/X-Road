@@ -180,17 +180,18 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
     checkstyle {
         toolVersion = "8.44"
         configDirectory = file("${project.rootDir}/config/checkstyle")
-        configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
         ignoreFailures = false
         showViolations = false
     }
 
     checkstyleMain {
         source = fileTree('src/main/java')
+        configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
     }
 
     checkstyleTest {
         source = fileTree('src/test/java')
+        configFile = file("${project.rootDir}/config/checkstyle/checkstyle-test.xml")
     }
 
     jacocoTestReport {

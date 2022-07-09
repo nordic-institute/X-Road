@@ -27,27 +27,34 @@ package ee.ria.xroad.common.identifier;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import static ee.ria.xroad.common.util.Validation.validateArgument;
+
 /**
  * Local group ID.
  */
-@XmlJavaTypeAdapter(IdentifierTypeConverter.LocalGroupIdAdapter.class)
-public final class LocalGroupId extends AbstractGroupId {
+public interface LocalGroupId extends AbstractGroupId {
 
-    LocalGroupId() { // required by Hibernate
-        this(null);
+    @XmlJavaTypeAdapter(IdentifierTypeConverter.LocalGroupIdAdapter.class)
+    final class Conf extends AbstractGroupId.Conf implements LocalGroupId {
+
+        Conf() { // required by Hibernate
+            this(null);
+        }
+
+        private Conf(String groupCode) {
+            super(XRoadObjectType.LOCALGROUP, null, groupCode);
+        }
+
+        /**
+         * Factory method for creating a new LocalGroupId.
+         *
+         * @param groupCode code of the new group
+         * @return LocalGroupId
+         */
+        public static LocalGroupId.Conf create(String groupCode) {
+            validateArgument("groupCode", groupCode);
+            return new LocalGroupId.Conf(groupCode);
+        }
     }
 
-    private LocalGroupId(String groupCode) {
-        super(XRoadObjectType.LOCALGROUP, null, groupCode);
-    }
-
-    /**
-     * Factory method for creating a new LocalGroupId.
-     * @param groupCode code of the new group
-     * @return LocalGroupId
-     */
-    public static LocalGroupId create(String groupCode) {
-        validateField("groupCode", groupCode);
-        return new LocalGroupId(groupCode);
-    }
 }

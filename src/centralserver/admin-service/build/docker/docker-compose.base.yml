@@ -45,6 +45,7 @@ services:
       - ../../../../packages/src/xroad/common/base/usr/share/xroad/scripts/generate_certificate.sh:/generate_certificate.sh # Find a better source for this file
       # Liquibase migration dependencies
       - ../../.build/libs/liquibase-core-4.9.1.jar:/libs/liquibase.jar
+      - ../../.build/libs/picocli-4.6.3.jar:/libs/picocli.jar
       - ../../.build/libs/postgresql-42.3.4.jar:/libs/postgres.jar
       - ../../.build/libs/snakeyaml-1.30.jar:/libs/snakeyaml.jar
       # Shared global configuration

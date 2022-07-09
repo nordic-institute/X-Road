@@ -50,14 +50,14 @@ public class MonitorAgentServerProxyFailed extends MonitorAgentMessageTestCase {
 
         monitorAgent.expectServerProxyFailed(
                 new MessageInfo(Origin.CLIENT_PROXY,
-                        ClientId.create("EE", "BUSINESS", "consumer"),
-                        ServiceId.create("EE", "BUSINESS", "producer", null,
+                        ClientId.Conf.create("EE", "BUSINESS", "consumer"),
+                        ServiceId.Conf.create("EE", "BUSINESS", "producer", null,
                                 "getState"), null, null));
 
         monitorAgent.expectFailure(
                 new MessageInfo(Origin.CLIENT_PROXY,
-                        ClientId.create("EE", "BUSINESS", "consumer"),
-                        ServiceId.create("EE", "BUSINESS", "producer", null,
+                        ClientId.Conf.create("EE", "BUSINESS", "consumer"),
+                        ServiceId.Conf.create("EE", "BUSINESS", "producer", null,
                                 "getState"), null, null),
                 errorCode(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR));
     }

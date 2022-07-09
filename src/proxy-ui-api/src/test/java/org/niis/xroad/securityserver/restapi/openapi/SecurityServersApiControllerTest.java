@@ -54,9 +54,9 @@ public class SecurityServersApiControllerTest extends AbstractApiControllerTestC
     SecurityServersApiController securityServersApiController;
 
     // our global configuration has only this security server
-    public static final SecurityServerId EXISTING_SERVER_ID = SecurityServerId.create(
+    public static final SecurityServerId.Conf EXISTING_SERVER_ID = SecurityServerId.Conf.create(
             "XRD2", "GOV", "M4", "server1");
-    public static final SecurityServerId OWNER_SERVER_ID = SecurityServerId.create(
+    public static final SecurityServerId.Conf OWNER_SERVER_ID = SecurityServerId.Conf.create(
             "XRD2", "GOV", "M4", "owner");
     private static final String SERVER_ADDRESS = "foo.bar.baz";
 

@@ -28,11 +28,11 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
-import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
-import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.centralserver.openapi.model.InitialServerConfDto;
+import org.niis.xroad.centralserver.openapi.model.InitializationStatusDto;
+import org.niis.xroad.centralserver.openapi.model.TokenInitStatusDto;
 import org.niis.xroad.centralserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -60,12 +60,12 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Autowired
     InitializationApiController initializationApiController;
 
-    private InitialServerConf okConf;
+    private InitialServerConfDto okConf;
     private TokenInfo testSWToken;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        okConf = new InitialServerConf()
+        okConf = new InitialServerConfDto()
                 .centralServerAddress("xroad.example.org")
                 .instanceIdentifier("TEST")
                 .softwareTokenPin("1234ABCD%&/(");
@@ -86,13 +86,13 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         )).thenReturn("");
         when(systemParameterService.getParameterValue(eq(CENTRAL_SERVER_ADDRESS), any())).thenReturn("");
 
-        ResponseEntity<InitializationStatus> response = initializationApiController.getInitializationStatus();
+        ResponseEntity<InitializationStatusDto> response = initializationApiController.getInitializationStatus();
         assertNotNull(response, "status should be always available");
         assertEquals(200, response.getStatusCodeValue());
         assertTrue(response.hasBody());
         assertNotNull(response.getBody());
         assertEquals(
-                TokenInitStatus.NOT_INITIALIZED,
+                TokenInitStatusDto.NOT_INITIALIZED,
                 response.getBody().getSoftwareTokenInitStatus(),
                 "TokenInit status should be NOT_INITIALIZED before initialization"
         );
@@ -107,30 +107,30 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
         when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenThrow(RuntimeException.class);
         assertDoesNotThrow(() -> {
-            final ResponseEntity<InitializationStatus> response;
+            final ResponseEntity<InitializationStatusDto> response;
             response = initializationApiController.getInitializationStatus();
             assertTrue(response.hasBody());
-            InitializationStatus status = response.getBody();
+            InitializationStatusDto status = response.getBody();
             assertNotNull(status);
-            assertEquals(TokenInitStatus.UNKNOWN, status.getSoftwareTokenInitStatus());
+            assertEquals(TokenInitStatusDto.UNKNOWN, status.getSoftwareTokenInitStatus());
         });
     }
 
     @Test
     public void getInitializationStatusFromSignerProxy() throws Exception {
         when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(testSWToken);
-        ResponseEntity<InitializationStatus> statusResponseEntity =
+        ResponseEntity<InitializationStatusDto> statusResponseEntity =
                 initializationApiController.getInitializationStatus();
         assertTrue(statusResponseEntity.hasBody());
-        InitializationStatus status = statusResponseEntity.getBody();
+        InitializationStatusDto status = statusResponseEntity.getBody();
         assertNotNull(status);
-        assertEquals(TokenInitStatus.INITIALIZED, status.getSoftwareTokenInitStatus());
+        assertEquals(TokenInitStatusDto.INITIALIZED, status.getSoftwareTokenInitStatus());
 
     }
 
     @Test
     public void initCentralServer() throws Exception {
-        InitialServerConf initialServerConf1 = okConf.centralServerAddress("initCentralServer.example.org");
+        InitialServerConfDto initialServerConf1 = okConf.centralServerAddress("initCentralServer.example.org");
         when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(
                         null)  // For 1st status query during initCentralServer() call
                 .thenReturn(testSWToken); // for the getInitializationStatus
@@ -146,11 +146,11 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
 
-        ResponseEntity<InitializationStatus> statusResponseEntity =
+        ResponseEntity<InitializationStatusDto> statusResponseEntity =
                 initializationApiController.getInitializationStatus();
         assertNotNull(statusResponseEntity.getBody());
         assertEquals(
-                TokenInitStatus.INITIALIZED,
+                TokenInitStatusDto.INITIALIZED,
                 statusResponseEntity.getBody().getSoftwareTokenInitStatus()
         );
         assertEquals(okConf.getInstanceIdentifier(), statusResponseEntity.getBody().getInstanceIdentifier());
@@ -159,7 +159,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
     @Test
     public void initCentralServerMissingParams() {
-        InitialServerConf testConf = new InitialServerConf()
+        InitialServerConfDto testConf = new InitialServerConfDto()
                 .instanceIdentifier("TEST")
                 .centralServerAddress("initCentralServerMissingParams.example.org")
                 .softwareTokenPin(null);
@@ -176,7 +176,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Test
     public void initCentralServerAlreadyInitialized() throws Exception {
         String testAddress = "initCentralServerAlreadyInitialized.example.org";
-        InitialServerConf testInitConf = new InitialServerConf()
+        InitialServerConfDto testInitConf = new InitialServerConfDto()
                 .centralServerAddress(testAddress)
                 .instanceIdentifier("initCentralServerAlreadyInitialized-instance")
                 .softwareTokenPin("12341234ABCabc___");

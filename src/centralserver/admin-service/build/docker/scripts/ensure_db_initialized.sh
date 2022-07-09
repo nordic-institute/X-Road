@@ -15,10 +15,11 @@ java \
   -cp "${LIQUIBASE_CLASSPATH}" \
   -Ddb_user="${POSTGRES_XRD_USER}" -Ddb_schema="${POSTGRES_XRD_SCHEMA}" `# Changelog interpolation parameters` \
   -Dliquibase.hub.mode=off `# Do not send any data to Liquibase Hub` \
-  liquibase.integration.commandline.Main \
+  liquibase.integration.commandline.LiquibaseCommandLine \
   --url="jdbc:postgresql://${POSTGRES_HOST}:5432/${POSTGRES_XRD_DATABASE}?currentSchema=${POSTGRES_XRD_SCHEMA},public" \
-  --changeLogFile="${LIQUIBASE_CHANGE_LOG_FILE}" \
+  --changelog-file="${LIQUIBASE_CHANGE_LOG_FILE}" \
   --password="${POSTGRES_XRD_ADMIN_PASSWORD}" --username="${POSTGRES_XRD_ADMIN_USER}" \
-  --defaultSchemaName="${POSTGRES_XRD_SCHEMA}" \
+  --liquibaseSchemaName="${POSTGRES_XRD_SCHEMA}" \
   --contexts="$context" \
+  --sql-log-level=FINE --log-level=FINE \
   update

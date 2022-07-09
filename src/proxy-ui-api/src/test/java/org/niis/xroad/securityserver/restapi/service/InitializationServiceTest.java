@@ -65,9 +65,9 @@ public class InitializationServiceTest {
     private static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
     private static final String SOFTWARE_TOKEN_INVALID_PIN = "‘œ‘–ßçıı–ç˛®ç†é®ß";
     private static final String SOFTWARE_TOKEN_VALID_PIN = "TopSecretP1n.";
-    private static final ClientId CLIENT = ClientId.create(INSTANCE, OWNER_MEMBER_CLASS,
+    private static final ClientId.Conf CLIENT = ClientId.Conf.create(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE);
-    private static final SecurityServerId SERVER = SecurityServerId.create(INSTANCE, OWNER_MEMBER_CLASS,
+    private static final SecurityServerId SERVER = SecurityServerId.Conf.create(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE, SECURITY_SERVER_CODE);
 
     @Mock

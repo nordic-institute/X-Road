@@ -193,7 +193,7 @@ public class TokensApiController implements TokensApi {
         // fine since keyUsageInfo is mandatory parameter
         CsrGenerate csrGenerate = keyLabelWithCsrGenerate.getCsrGenerateRequest();
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerate.getKeyUsageType()).get();
-        ClientId memberId = null;
+        ClientId.Conf memberId = null;
         if (KeyUsageInfo.SIGNING == keyUsageInfo) {
             // memberId not used for authentication csrs
             memberId = clientIdConverter.convertId(csrGenerate.getMemberId());

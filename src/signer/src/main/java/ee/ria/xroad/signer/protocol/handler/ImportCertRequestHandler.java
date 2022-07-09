@@ -81,7 +81,7 @@ public class ImportCertRequestHandler
     }
 
     private String importCertificate(X509Certificate cert,
-            String initialStatus, ClientId memberId) throws Exception {
+            String initialStatus, ClientId.Conf memberId) throws Exception {
         String publicKey = encodeBase64(cert.getPublicKey().getEncoded());
 
         // Find the key based on the public key of the cert
@@ -124,7 +124,7 @@ public class ImportCertRequestHandler
     }
 
     private void importCertificateToKey(KeyInfo keyInfo, X509Certificate cert,
-            String initialStatus, ClientId memberId) throws Exception {
+            String initialStatus, ClientId.Conf memberId) throws Exception {
         String certHash = calculateCertHexHash(cert.getEncoded());
 
         CertificateInfo existingCert =

@@ -26,20 +26,25 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.ManagementRequestsApi;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequest;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestInfo;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestInfoPage;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestOrigin;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatus;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.converter.ManagementRequestConverter;
-import org.niis.xroad.centralserver.restapi.dto.ManagementRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestInfoPageDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatusDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.centralserver.restapi.dto.converter.db.ManagementRequestDtoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestDtoTypeConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestOriginDtoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestStatusConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.model.SecurityServerIdDtoConverter;
+import org.niis.xroad.centralserver.restapi.entity.Request;
 import org.niis.xroad.centralserver.restapi.service.managementrequest.ManagementRequestService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -55,27 +60,35 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
 
     public static final int MAX_PAGE_SIZE = 10;
     private final ManagementRequestService service;
-    private final ManagementRequestConverter converter = new ManagementRequestConverter();
+    private final ManagementRequestDtoConverter managementRequestDtoConverter;
+    private final ManagementRequestOriginDtoConverter.Service originMapper;
+    private final ManagementRequestDtoTypeConverter.Service typeMapper;
+    private final ManagementRequestStatusConverter.Service statusMapper;
+    private final SecurityServerIdDtoConverter securityServerIdDtoMapper;
 
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.ADD_MANAGEMENT_REQUEST)
     @PreAuthorize("hasPermission(#request, 'ADD') "
             + "and ((#request.origin.name() == 'SECURITY_SERVER' and hasAuthority('IMPERSONATE_SECURITY_SERVER'))"
             + "or (#request.origin.name() == 'CENTER' and !hasAuthority('IMPERSONATE_SECURITY_SERVER')))")
-    public ResponseEntity<ManagementRequestInfo> addManagementRequest(ManagementRequest request) {
-        ManagementRequestDto dto = converter.convert(request);
-        var response = converter.convert(service.add(dto));
-        var status = HttpStatus.ACCEPTED;
-        if (response.getStatus() == ManagementRequestStatus.APPROVED) {
-            status = HttpStatus.CREATED;
-        }
+    public ResponseEntity<ManagementRequestDto> addManagementRequest(ManagementRequestDto request) {
+        ManagementRequestDto response = Option.of(request)
+                .map(managementRequestDtoConverter::fromDto)
+                .map(service::add)
+                .map(managementRequestDtoConverter::toDto).get();
+        HttpStatus status = response.getStatus() == ManagementRequestStatusDto.APPROVED
+                ? HttpStatus.CREATED
+                : HttpStatus.ACCEPTED;
         return ResponseEntity.status(status).body(response);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MANAGEMENT_REQUEST_DETAILS')")
-    public ResponseEntity<ManagementRequest> getManagementRequest(Integer id) {
-        return ResponseEntity.ok(converter.convert(service.getRequest(id)));
+    public ResponseEntity<ManagementRequestDto> getManagementRequest(Integer id) {
+        return Option.of(id)
+                .map(service::getRequest)
+                .map(managementRequestDtoConverter::toDto)
+                .map(ResponseEntity::ok).get();
     }
 
     @Override
@@ -89,31 +102,40 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.APPROVE_MANAGEMENT_REQUEST)
     @PreAuthorize("hasPermission(#id, 'MANAGEMENT_REQUEST', 'APPROVE')")
-    public ResponseEntity<ManagementRequestInfo> approveManagementRequest(Integer id) {
-        return ResponseEntity.ok(converter.convert(service.approve(id)));
+    public ResponseEntity<ManagementRequestDto> approveManagementRequest(Integer id) {
+        return Option.of(id)
+                .map(service::<Request>approve)
+                .map(managementRequestDtoConverter::toDto)
+                .map(ResponseEntity::ok).get();
     }
 
     @Override
-    public ResponseEntity<ManagementRequestInfoPage> findManagementRequests(ManagementRequestOrigin origin,
-            ManagementRequestType type, ManagementRequestStatus status, String serverId, Integer page) {
-
+    public ResponseEntity<ManagementRequestInfoPageDto> findManagementRequests(ManagementRequestOriginDto origin,
+                                                                            ManagementRequestTypeDto type,
+                                                                            ManagementRequestStatusDto status,
+                                                                            String serverId,
+                                                                            Integer page) {
         //todo: sorting, page size handling, free text search
 
-        var requests =
+        int pageNr = page == null ? 0 : page;
+        Page<ManagementRequestDto> requests =
                 service.findRequests(
-                        converter.convert(origin),
-                        converter.convert(type),
-                        converter.convert(status),
-                        converter.parseServerId(serverId),
-                        PageRequest.of(page == null ? 0 : page, MAX_PAGE_SIZE,
-                                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.by("id"))));
+                        originMapper.fromDto(origin),
+                        typeMapper.fromDto(type),
+                        statusMapper.fromDto(status),
+                        managementRequestDtoConverter.parseServerId(serverId),
+                        PageRequest.of(pageNr,
+                                MAX_PAGE_SIZE,
+                                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.by("id"))
+                        )).map(managementRequestDtoConverter::toDto);
 
-        var response = new ManagementRequestInfoPage();
+        ManagementRequestInfoPageDto response = new ManagementRequestInfoPageDto();
         response.setNumber(requests.getNumber());
         response.setSize(requests.getSize());
         response.setTotalPages(requests.getTotalPages());
         response.setTotalElements((int) requests.getTotalElements());
-        response.setItems(converter.convert(requests.getContent()));
+        response.setItems(requests.getContent());
+
         return ResponseEntity.ok(response);
     }
 }

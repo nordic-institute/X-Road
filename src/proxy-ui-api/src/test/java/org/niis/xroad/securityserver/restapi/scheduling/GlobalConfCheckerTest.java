@@ -81,14 +81,14 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     @Autowired
     private GlobalConfService globalConfService;
 
-    private static final ClientId OWNER_MEMBER =
+    private static final ClientId.Conf OWNER_MEMBER =
             TestUtils.getClientId("FI", "GOV", "M1", null);
-    private static final ClientId SUBSYSTEM =
+    private static final ClientId.Conf SUBSYSTEM =
             TestUtils.getClientId("FI", "GOV", "M1", "SS1");
-    private static final ClientId NEW_OWNER_MEMBER =
+    private static final ClientId.Conf NEW_OWNER_MEMBER =
             TestUtils.getClientId("FI", "GOV", "M2", null);
-    private static final SecurityServerId SS_ID = SecurityServerId.create(OWNER_MEMBER, "TEST-INMEM-SS");
-    private static final SecurityServerId NEW_SS_ID = SecurityServerId.create(NEW_OWNER_MEMBER, "TEST-INMEM-SS");
+    private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create(OWNER_MEMBER, "TEST-INMEM-SS");
+    private static final SecurityServerId.Conf NEW_SS_ID = SecurityServerId.Conf.create(NEW_OWNER_MEMBER, "TEST-INMEM-SS");
     private static final String KEY_OWNER_ID = "key-owner";
     private static final String CERT_OWNER_HASH = "cert-owner";
     private static final String KEY_NEW_OWNER_ID = "key-new-owner";

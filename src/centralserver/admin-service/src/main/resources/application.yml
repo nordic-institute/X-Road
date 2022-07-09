@@ -4,13 +4,15 @@ spring:
   jpa:
     mapping-resources:
       - apikey.hbm.xml
-      - META-INF/orm.xml
     open-in-view: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: false
+    properties:
+      hibernate:
+        dialect_resolvers: ee.ria.xroad.common.db.Postgres10FixedImplicitSequenceDialectResolver
   profiles:
     include: nontest
   jackson:

@@ -26,33 +26,29 @@
  */
 package org.niis.xroad.centralserver.restapi.entity;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureTestEntityManager;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(SpringRunner.class)
-@DataJpaTest
+@AutoConfigureTestEntityManager
 @Slf4j
-public class DatabaseTest {
+public class DatabaseTest extends AbstractFacadeMockingTestContext {
+
     @Autowired
     private TestEntityManager entityManager;
 
     @Test
     public void testPersistence() {
-        var memberClass = entityManager.persist(new MemberClass("CLASS", "Description for CLASS"));
-        var memberId = entityManager.persist(ClientId.create("TEST", "CLASS", "CODE"));
-        var subsystemId = entityManager.persist(ClientId.create("TEST", "CLASS", "CODE", "SUBSYSTEM"));
+        MemberClass memberClass = entityManager.persist(new MemberClass("CLASS", "Description for CLASS"));
+        MemberId memberId = entityManager.persist(MemberId.create("TEST", "CLASS", "CODE"));
+        SubsystemId subsystemId = entityManager.persist(SubsystemId.create("TEST", "CLASS", "CODE", "SUBSYSTEM"));
 
-        XRoadMember member = new XRoadMember(memberId, memberClass);
+        XRoadMember member = new XRoadMember("XRoadMemberName", memberId, memberClass);
         member.getSubsystems().add(new Subsystem(member, subsystemId));
         member = entityManager.persist(member);
 
@@ -78,8 +74,4 @@ public class DatabaseTest {
         assertEquals(1, sub.getServerClients().size());
     }
 
-    @SpringBootApplication
-    static class TestApplication {
-
-    }
 }

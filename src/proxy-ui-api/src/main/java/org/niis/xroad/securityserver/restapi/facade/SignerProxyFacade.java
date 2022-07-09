@@ -107,9 +107,9 @@ public class SignerProxyFacade {
     }
 
     /**
-     * {@link SignerProxy#generateSelfSignedCert(String, ClientId, KeyUsageInfo, String, Date, Date)}
+     * {@link SignerProxy#generateSelfSignedCert(String, ClientId.Conf, KeyUsageInfo, String, Date, Date)}
      */
-    public byte[] generateSelfSignedCert(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
+    public byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
             String commonName, Date notBefore, Date notAfter) throws Exception {
         return SignerProxy.generateSelfSignedCert(keyId, memberId, keyUsage,
                 commonName, notBefore, notAfter);
@@ -123,9 +123,9 @@ public class SignerProxyFacade {
     }
 
     /**
-     * {@link SignerProxy#importCert(byte[], String, ClientId)}
+     * {@link SignerProxy#importCert(byte[], String, ClientId.Conf)}
      */
-    public String importCert(byte[] certBytes, String initialStatus, ClientId clientId) throws Exception {
+    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
         return SignerProxy.importCert(certBytes, initialStatus, clientId);
     }
 
@@ -144,10 +144,9 @@ public class SignerProxyFacade {
     }
 
     /**
-     * {@link SignerProxy#generateCertRequest(String, ClientId, KeyUsageInfo,
-     * String, CertificateRequestFormat)}
+     * {@link SignerProxy#generateCertRequest(String, ClientId.Conf, KeyUsageInfo, String, CertificateRequestFormat)}
      */
-    public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
+    public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
             String subjectName, CertificateRequestFormat format) throws Exception {
         return SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, format);
     }

@@ -91,7 +91,7 @@ public class KeyAndCertificateRequestService {
      * were some extra parameters
      */
     public KeyAndCertRequestInfo addKeyAndCertRequest(String tokenId, String keyLabel,
-            ClientId memberId, KeyUsageInfo keyUsageInfo, String caName,
+            ClientId.Conf memberId, KeyUsageInfo keyUsageInfo, String caName,
             Map<String, String> subjectFieldValues, CertificateRequestFormat csrFormat)
             throws ActionNotPossibleException,
             ClientNotFoundException, CertificateAuthorityNotFoundException, TokenNotFoundException,

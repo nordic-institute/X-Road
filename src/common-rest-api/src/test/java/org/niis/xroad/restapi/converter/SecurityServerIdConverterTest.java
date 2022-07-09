@@ -43,7 +43,7 @@ public class SecurityServerIdConverterTest {
     public void convertEncodedId() {
         String securityServerCode = "security-server-foo";
         String memberCode = "XRD2:GOV:M4";
-        SecurityServerId id = securityServerIdConverter.convertId(
+        SecurityServerId id = securityServerIdConverter.convert(
                 memberCode + ":" + securityServerCode);
         assertEquals("XRD2", id.getXRoadInstance());
         assertEquals("GOV", id.getMemberClass());
@@ -51,7 +51,7 @@ public class SecurityServerIdConverterTest {
         assertEquals(securityServerCode, id.getServerCode());
 
         String difficultServerCode = "FOO SS-;/?@=&-X<!-- o -->BAR";
-        id = securityServerIdConverter.convertId(
+        id = securityServerIdConverter.convert(
                 memberCode + ":" + difficultServerCode);
         assertEquals("XRD2", id.getXRoadInstance());
         assertEquals("GOV", id.getMemberClass());
@@ -61,40 +61,40 @@ public class SecurityServerIdConverterTest {
 
     @Test(expected = BadRequestException.class)
     public void convertEncodedIdWithSubsystem() {
-        securityServerIdConverter.convertId("XRD2:GOV:M4:SS1:serverCode");
+        securityServerIdConverter.convert("XRD2:GOV:M4:SS1:serverCode");
     }
 
     @Test(expected = BadRequestException.class)
     public void convertEncodedIdWithMissingMember() {
-        securityServerIdConverter.convertId("XRD2:GOV:serverCode");
+        securityServerIdConverter.convert("XRD2:GOV:serverCode");
     }
 
     @Test(expected = BadRequestException.class)
     public void convertEncodedIdWithTooManyElements() {
-        securityServerIdConverter.convertId("XRD2:GOV:M4:SS1:serverCode::::");
+        securityServerIdConverter.convert("XRD2:GOV:M4:SS1:serverCode::::");
     }
 
     @Test(expected = BadRequestException.class)
     public void convertEmptyEncodedId() {
-        securityServerIdConverter.convertId("");
+        securityServerIdConverter.convert("");
     }
 
     @Test(expected = BadRequestException.class)
     public void convertNullEncodedId() {
         String id = null;
-        securityServerIdConverter.convertId(id);
+        securityServerIdConverter.convert(id);
     }
 
     @Test(expected = BadRequestException.class)
     public void convertEncodedIdWithoutDelimiter() {
-        securityServerIdConverter.convertId(";;;;asdsdas");
+        securityServerIdConverter.convert(";;;;asdsdas");
     }
 
     @Test
     public void convertSecurityServerId() {
-        SecurityServerId securityServerId = SecurityServerId.create(
+        SecurityServerId securityServerId = SecurityServerId.Conf.create(
                 "XRD2", "GOV", "M4", "server1");
-        String id = securityServerIdConverter.convertId(securityServerId);
+        String id = securityServerIdConverter.convert(securityServerId);
         assertEquals("XRD2:GOV:M4:server1", id);
     }
 

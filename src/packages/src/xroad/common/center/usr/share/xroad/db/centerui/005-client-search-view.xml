@@ -17,7 +17,7 @@
             FROM security_server_clients c
             LEFT JOIN identifiers i
             ON c.server_client_id = i.id
-            WHERE c.type = 'XRoadMember')
+            WHERE c.object_type = 'MEMBER')
             union
             (SELECT c.id,
             c.server_client_id,

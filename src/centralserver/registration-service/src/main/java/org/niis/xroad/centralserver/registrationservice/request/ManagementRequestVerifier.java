@@ -191,7 +191,7 @@ public final class ManagementRequestVerifier {
     private static ClientId getClientIdFromCert(X509Certificate cert, ClientId clientId) throws Exception {
         return GlobalConf.getSubjectName(
                 new SignCertificateProfileInfoParameters(
-                        ClientId.create(
+                        ClientId.Conf.create(
                                 GlobalConf.getInstanceIdentifier(),
                                 clientId.getMemberClass(),
                                 clientId.getMemberCode()

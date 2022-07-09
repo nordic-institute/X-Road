@@ -491,23 +491,19 @@ Identifier that can be used to identify various objects on X-Road. An identifier
 
 ### 2.14.1 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| object_type  | character varying(255) |  | Specifies the type of the object that the identifier identifies. Possible values, defined in enum ee.ria.xroad.common.identifier.XroadObjectType, are 'MEMBER', 'SUBSYSTEM', 'SERVICE', 'CENTRALSERVICE', 'SERVER'. |
-| xroad_instance  | character varying(255) |  | X-Road instance identifier. Present (otherwise NULL) in identifiers of all types. |
-| member_class  | character varying(255) |  | Member class. Present in identifiers of 'MEMBER', 'SUBSYSTEM', 'SERVER' and 'SERVICE' type.  |
-| member_code  | character varying(255) |  | Member code. Present in identifiers of 'MEMBER', 'SUBSYSTEM, SERVER' and 'SERVICE' type.  |
-| subsystem_code  | character varying(255) |  | Subsystem code. Present in identifiers of 'SUBSYSTEM' and 'SERVICE' type. |
-| service_code  | character varying(255) |  | Service code. Present in identifiers of 'SERVICE' type.  |
-| server_code  | character varying(255) |  | Security server code. Present in identifiers of 'SERVER' type.  |
-| type | character varying(255) |  | Application model class type, managed automatically by the Rails framework. Possible value are:
-'ClientId' – if field object_type has value 'MEMBER' or 'SUBSYSTEM'.
-'SecurityServerId' – if field object_type has value 'SERVER'.
-'ServiceId' – if field object_type has value 'SERVICE' or 'CENTRALSERVICE'. |
-| created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
-| updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
-| service_version  | character varying(255) |  | X-Road service version. May be present in identifiers of 'SERVICE' type. |
+| Name            | Type                        | Modifiers | Description           |
+|:----------------|:---------------------------:|:--------- |:-----------------:|
+| id [PK]         | integer                     | NOT NULL  | Primary key |
+| type            | character varying(255)      |           | Specifies the type of the object that the identifier identifies. Possible values, defined in enum ee.ria.xroad.common.identifier.XroadObjectType, are 'MEMBER', 'SUBSYSTEM', 'SERVICE', 'CENTRALSERVICE', 'SERVER'. |
+| xroad_instance  | character varying(255)      |           | X-Road instance identifier. Present (otherwise NULL) in identifiers of all types. |
+| member_class    | character varying(255)      |           | Member class. Present in identifiers of 'MEMBER', 'SUBSYSTEM', 'SERVER' and 'SERVICE' type.  |
+| member_code     | character varying(255)      |           | Member code. Present in identifiers of 'MEMBER', 'SUBSYSTEM, SERVER' and 'SERVICE' type.  |
+| subsystem_code  | character varying(255)      |           | Subsystem code. Present in identifiers of 'SUBSYSTEM' and 'SERVICE' type. |
+| service_code    | character varying(255)      |           | Service code. Present in identifiers of 'SERVICE' type.  |
+| server_code     | character varying(255)      |           | Security server code. Present in identifiers of 'SERVER' type.  |
+| created_at      | timestamp without time zone | NOT NULL  | Record creation time, managed automatically by the Rails framework.  |
+| updated_at      | timestamp without time zone | NOT NULL  | Record last modified time, managed automatically by the Rails framework.  |
+| service_version | character varying(255)      |           | X-Road service version. May be present in identifiers of 'SERVICE' type. |
 
 ## 2.15 MEMBER_CLASSES
 

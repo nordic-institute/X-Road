@@ -72,8 +72,8 @@ public class RegistrationRequestControllerTest {
     private static KeyPair authKeyPair;
 
     private static MessageFactory factory;
-    private final SecurityServerId serverId =
-            SecurityServerId.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEMBER", "SS1");
+    private final SecurityServerId.Conf serverId =
+            SecurityServerId.Conf.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEMBER", "SS1");
 
     @Autowired
     RegistrationRequestController controller;
@@ -219,7 +219,7 @@ public class RegistrationRequestControllerTest {
 
     @Test
     public void shouldFailIfWrongInstanceId() throws Exception {
-        var sid = SecurityServerId.create(GlobalConf.getInstanceIdentifier() + "-X", "CLASS", "MEMBER", "SS1");
+        var sid = SecurityServerId.Conf.create(GlobalConf.getInstanceIdentifier() + "-X", "CLASS", "MEMBER", "SS1");
         var result = register(sid, "ss1.example.org");
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "InvalidRequest");
@@ -227,7 +227,7 @@ public class RegistrationRequestControllerTest {
 
     @Test
     public void shouldFailIfInvalidServerId() throws Exception {
-        var sid = SecurityServerId.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEM BER", "S:;S1");
+        var sid = SecurityServerId.Conf.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEM BER", "S:;S1");
         var result = register(sid, "ss1.example.org");
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "InvalidClientIdentifier");
@@ -247,7 +247,7 @@ public class RegistrationRequestControllerTest {
         assertFault(result.getBody(), "IncorrectCertificate");
     }
 
-    private ResponseEntity<String> register(SecurityServerId sid, String address) throws Exception {
+    private ResponseEntity<String> register(SecurityServerId.Conf sid, String address) throws Exception {
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
         var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), sid.getOwner());
         var ownerOcsp = OcspTestUtils.createOCSPResponse(ownerCert,
@@ -270,7 +270,7 @@ public class RegistrationRequestControllerTest {
         return controller.register(envelope.getRequestContentType(), is);
     }
 
-    private ResponseEntity<String> registerWithInvalidCerts(SecurityServerId sid)
+    private ResponseEntity<String> registerWithInvalidCerts(SecurityServerId.Conf sid)
             throws Exception {
 
         var mockData = new byte[1024];

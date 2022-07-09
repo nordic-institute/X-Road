@@ -26,13 +26,13 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.Test;
-import org.niis.xroad.centralserver.openapi.model.PagedSecurityServers;
-import org.niis.xroad.centralserver.openapi.model.SecurityServer;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.centralserver.openapi.model.PagedSecurityServersDto;
+import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
+import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -44,17 +44,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
 @Transactional
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
+
+    @Autowired
+    SecurityServerClientRepository securityServerClientRepository;
 
     @Autowired
     TestRestTemplate restTemplate;
 
     @Test
     public void testGetSecurityServersSucceedsWithoutParameters() {
+        securityServerClientRepository.findAll();
+
         addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers",
-                PagedSecurityServers.class);
+
+        ResponseEntity<PagedSecurityServersDto> response = restTemplate.getForEntity("/api/v1/security-servers",
+                PagedSecurityServersDto.class);
+
         assertNotNull(response, "Security server list response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Security server list request status code must be 200 ");
         assertNotNull(response.getBody());
@@ -66,14 +72,13 @@ public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
         assertTrue(0 < itemCount, "Should return more than one client");
         assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
                 "Total items must not be less than clients returned in one page");
-
     }
 
     @Test
     public void testPagingParameterLimit() {
         addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers/?limit=1",
-                PagedSecurityServers.class);
+        ResponseEntity<PagedSecurityServersDto> response = restTemplate.getForEntity("/api/v1/security-servers/?limit=1",
+                PagedSecurityServersDto.class);
         assertNotNull(response, "Security server list response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Security server list request status code must be 200 ");
         assertNotNull(response.getBody());
@@ -83,9 +88,9 @@ public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
         assertTrue(itemCount < response.getBody().getPagingMetadata().getTotalItems(),
                 "Total items be more than returned in one page");
 
-        ResponseEntity<PagedSecurityServers> response2 =
+        ResponseEntity<PagedSecurityServersDto> response2 =
                 restTemplate.getForEntity("/api/v1/security-servers/?limit=1&offset=1",
-                        PagedSecurityServers.class);
+                        PagedSecurityServersDto.class);
 
         assertEquals(200, response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
@@ -100,13 +105,15 @@ public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
     @Test
     public void givenQParameterReturnsMatchingServers() {
         addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers/?q=ADMIN",
-                PagedSecurityServers.class);
+
+        ResponseEntity<PagedSecurityServersDto> response = restTemplate.getForEntity("/api/v1/security-servers/?q=ADMIN",
+                PagedSecurityServersDto.class);
+
         assertNotNull(response, "Security server list response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(),
                 "Security server list request return 200 status");
         assertNotNull(response.getBody());
-        List<SecurityServer> securityServers = response.getBody().getClients();
+        List<SecurityServerDto> securityServers = response.getBody().getClients();
         assertNotNull(securityServers);
         final int securityServersMatchingSearchTermAdmin = 1;
         assertEquals(securityServersMatchingSearchTermAdmin, securityServers.size());
@@ -115,20 +122,21 @@ public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
         assertNotNull(itemCount);
         assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
                 "Total items must not be less than clients returned in one page");
-
     }
 
     @Test
     public void givenDescSortReturnsCorrectlySorted() {
         addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<PagedSecurityServers> response =
+
+        ResponseEntity<PagedSecurityServersDto> response =
                 restTemplate.getForEntity("/api/v1/security-servers/?desc=true&sort=xroad_id.member_code",
-                        PagedSecurityServers.class);
+                        PagedSecurityServersDto.class);
+
         assertNotNull(response, "Security server list response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(),
                 "Security server list request return 200 status");
         assertNotNull(response.getBody());
-        List<SecurityServer> securityServers = response.getBody().getClients();
+        List<SecurityServerDto> securityServers = response.getBody().getClients();
         assertNotNull(securityServers);
         assertNotNull(response.getBody().getPagingMetadata());
         int itemCount = response.getBody().getClients().size();

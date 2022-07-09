@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.centralserver.restapi;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
 
 /**

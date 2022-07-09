@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.centralserver.restapi.entity;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.Getter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 
@@ -45,33 +45,30 @@ import javax.persistence.Transient;
 @DiscriminatorValue("ClientRegRequest")
 public class ClientRegistrationRequest extends RequestWithProcessing {
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sec_serv_user_id")
+    @Access(AccessType.FIELD)
+    @Getter
     private ClientId clientId;
 
     protected ClientRegistrationRequest() {
         //JPA
     }
 
-    @Override
-    @Transient
-    public ManagementRequestType getType() {
-        return ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
-    }
-
     public ClientRegistrationRequest(Origin origin, SecurityServerId serverId, ClientId clientId) {
         super(origin, serverId, new ClientRegistrationRequestProcessing());
-        this.clientId = clientId;
+        this.clientId = ClientId.ensure(clientId);
     }
 
     public ClientRegistrationRequest(Origin origin, ClientRegistrationRequest other) {
         super(origin, other.getSecurityServerId(), other.getRequestProcessing());
-        this.clientId = other.getClientId();
+        this.clientId = ClientId.ensure(other.getClientId());
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sec_serv_user_id")
-    @Access(AccessType.FIELD)
-    public ClientId getClientId() {
-        return this.clientId;
+    @Override
+    @Transient
+    public ManagementRequestType getType() {
+        return ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
     }
 
 }

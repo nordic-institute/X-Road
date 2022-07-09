@@ -206,7 +206,7 @@ public final class SignerProxy {
      * @return byte content of the generated certificate
      * @throws Exception if any errors occur
      */
-    public static byte[] generateSelfSignedCert(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
+    public static byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
             String commonName, Date notBefore, Date notAfter) throws Exception {
         log.trace("Generate self-signed cert for key '{}'", keyId);
 
@@ -239,7 +239,7 @@ public final class SignerProxy {
      * @return key ID of the new certificate as a String
      * @throws Exception if any errors occur
      */
-    public static String importCert(byte[] certBytes, String initialStatus, ClientId clientId) throws Exception {
+    public static String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
         log.trace("Importing cert from file with length of '{}' bytes", certBytes.length);
 
         ImportCertResponse response = execute(new ImportCert(certBytes, initialStatus, clientId));
@@ -281,7 +281,7 @@ public final class SignerProxy {
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId,
+    public static GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId,
             KeyUsageInfo keyUsage, String subjectName,
             CertificateRequestFormat format) throws Exception {
 

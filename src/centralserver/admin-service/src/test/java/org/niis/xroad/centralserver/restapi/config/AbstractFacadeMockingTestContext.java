@@ -26,15 +26,28 @@
  */
 package org.niis.xroad.centralserver.restapi.config;
 
-import org.junit.runner.RunWith;
+import liquibase.database.core.HsqlDatabase;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.niis.xroad.centralserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacade;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Base for all tests that mock GlobalConfFacade and SignerProxyFacade.
@@ -44,16 +57,64 @@ import org.springframework.transaction.annotation.Transactional;
  * Extending this base class also helps in keeping mock injections standard, and reduce number of different
  * application contexts built for testing.
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@AutoConfigureTestDatabase
+@AutoConfigureTestDatabase(
+        replace = AutoConfigureTestDatabase.Replace.NONE,
+        connection = EmbeddedDatabaseConnection.HSQLDB
+)
 @Transactional
 @WithMockUser
 public abstract class AbstractFacadeMockingTestContext {
+
+    static {
+        fixSupportedDefaultValueComputedMap();
+    }
+
     @MockBean
     protected GlobalConfFacade globalConfFacade;
 
     @MockBean
     protected SignerProxyFacade signerProxyFacade;
+
+
+    @Primary
+    @Configuration
+    @ConfigurationProperties(prefix = "spring.datasource")
+    public static class ExtDataSourceProperties extends DataSourceProperties {
+
+        @Getter
+        @Setter
+        private Map<String, String> urlProperties = new LinkedHashMap<>();
+
+        @SneakyThrows
+        public String determineUrl() {
+            String url = super.determineUrl();
+            url = appendPropertiesToUrl(url);
+            return url;
+        }
+
+        private String appendPropertiesToUrl(String url) {
+            for (Map.Entry<String, String> entry : this.urlProperties.entrySet()) {
+                url += ";" + entry.getKey() + "=" + entry.getValue();
+            }
+            return url;
+        }
+
+    }
+
+    @SneakyThrows
+    private static void fixSupportedDefaultValueComputedMap() {
+        Field supportedDefaultValueComputedMapField = FieldUtils.getDeclaredField(
+                HsqlDatabase.class, "SUPPORTED_DEFAULT_VALUE_COMPUTED_MAP", true);
+        Map<String, HashSet<String>> supportedDefaultValueComputedMap =
+                (Map<String, HashSet<String>>) supportedDefaultValueComputedMapField.get(null);
+        HashSet<String> set = supportedDefaultValueComputedMap.get("datetime");
+        HashSet<String> modifiedSet = new HashSet<>();
+        for (String value : set) {
+            modifiedSet.add(value.toLowerCase());
+        }
+        set.clear();
+        set.addAll(modifiedSet);
+    }
 
 }

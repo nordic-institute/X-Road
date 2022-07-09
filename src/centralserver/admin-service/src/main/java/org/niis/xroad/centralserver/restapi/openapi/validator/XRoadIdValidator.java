@@ -27,31 +27,31 @@
 package org.niis.xroad.centralserver.restapi.openapi.validator;
 
 import com.google.common.base.CharMatcher;
-import org.niis.xroad.centralserver.openapi.model.ClientId;
-import org.niis.xroad.centralserver.openapi.model.SecurityServerId;
-import org.niis.xroad.centralserver.openapi.model.XRoadId;
+import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
+import org.niis.xroad.centralserver.openapi.model.SecurityServerIdDto;
+import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-public class XRoadIdValidator implements ConstraintValidator<ValidXRoadId, XRoadId> {
+public class XRoadIdValidator implements ConstraintValidator<ValidXRoadId, XRoadIdDto> {
 
     private static final CharMatcher MATCHER = CharMatcher.javaIsoControl()
             .or(CharMatcher.anyOf(":;%/\\\ufeff\u200b"));
 
     @Override
-    public boolean isValid(XRoadId value, ConstraintValidatorContext context) {
+    public boolean isValid(XRoadIdDto value, ConstraintValidatorContext context) {
         if (value == null) return true;
         if (!isValidPart(value.getInstanceId())) return false;
 
-        if (value instanceof ClientId) {
-            var id = (ClientId) value;
+        if (value instanceof ClientIdDto) {
+            var id = (ClientIdDto) value;
             return isValidPart(id.getMemberClass())
                     && isValidPart(id.getMemberCode())
-                    && ((id.getType() == XRoadId.TypeEnum.SUBSYSTEM && isValidPart(id.getSubsystemCode()))
-                    || ((id.getType() == XRoadId.TypeEnum.MEMBER && id.getSubsystemCode() == null)));
-        } else if (value instanceof SecurityServerId) {
-            var id = (SecurityServerId) value;
+                    && ((id.getType() == XRoadIdDto.TypeEnum.SUBSYSTEM && isValidPart(id.getSubsystemCode()))
+                    || ((id.getType() == XRoadIdDto.TypeEnum.MEMBER && id.getSubsystemCode() == null)));
+        } else if (value instanceof SecurityServerIdDto) {
+            var id = (SecurityServerIdDto) value;
             return isValidPart(id.getMemberClass())
                     && isValidPart(id.getMemberCode())
                     && isValidPart(id.getServerCode());

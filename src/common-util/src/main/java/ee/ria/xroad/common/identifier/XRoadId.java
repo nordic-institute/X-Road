@@ -25,93 +25,47 @@
  */
 package ee.ria.xroad.common.identifier;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
+import ee.ria.xroad.common.util.NoCoverage;
+
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import java.io.Serializable;
+import java.util.Objects;
+import java.util.Optional;
 
 
 /**
  * Base class for global identifiers in the X-Road system.
  */
-@XmlJavaTypeAdapter(IdentifierTypeConverter.GenericXRoadIdAdapter.class)
-public abstract class XRoadId implements Serializable {
+public interface XRoadId extends Serializable {
 
-    private final XRoadObjectType type;
-    private final String xRoadInstance;
+    XRoadObjectType getObjectType();
 
-    private Long id; // used for references in database
+    String getXRoadInstance();
 
-    XRoadId() {
-        this(null, null);
+    String[] getFieldsForStringFormat();
+
+    default String toString(char delimiter) {
+        return getObjectType().toString() + delimiter + toShortString(delimiter);
     }
 
-    XRoadId(XRoadObjectType type, String xRoadInstance) {
-        this.type = type;
-        this.xRoadInstance = xRoadInstance;
-    }
-
-    Long getId() {
-        return id;
-    }
-
-    /** Returns type of the object for this identifier.
-     * @return XRoadObjectType
-     */
-    public XRoadObjectType getObjectType() {
-        return type;
-    }
-
-    /**
-     * Returns code of the X-Road instance.
-     * @return String
-     */
-    public String getXRoadInstance() {
-        return xRoadInstance;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        // exclude 'id' field, because it is not part of identifier
-        // and all identifiers are unique
-        return EqualsBuilder.reflectionEquals(this, obj, new String[] {"id"});
-    }
-
-    @Override
-    public int hashCode() {
-        // exclude 'id' field, because it is not part of identifier
-        // and all identifiers are unique
-        return HashCodeBuilder.reflectionHashCode(this, new String[] {"id"});
-    }
-
-    @Override
-    public String toString() {
-        return type + ":" + toShortString();
-    }
-
-    public String toString(char delimiter) {
-        return type.toString() + delimiter + toShortString(delimiter);
-    }
-
-    public String toShortString() {
+    default String toShortString() {
         return toShortString('/');
     }
 
-        /**
-         * Returns short string representation of the identifier that is
-         * more suitable for user interface usage than output
-         * of the toString() method.
-         * @return String
-         */
-    public String toShortString(char delimiter) {
+    /**
+     * Returns short string representation of the identifier that is
+     * more suitable for user interface usage than output
+     * of the toString() method.
+     *
+     * @return String
+     */
+    default String toShortString(char delimiter) {
         StringBuilder sb = new StringBuilder();
-        if (xRoadInstance != null) {
-            sb.append(xRoadInstance);
-        }
+        Optional.ofNullable(getXRoadInstance())
+                .ifPresent(sb::append);
 
         for (String part : getFieldsForStringFormat()) {
             if (part != null) {
@@ -126,23 +80,80 @@ public abstract class XRoadId implements Serializable {
         return sb.toString();
     }
 
-    /**
-     * Returns the fields for string format of this identifier.
-     */
-    @JsonIgnore
-    public abstract String[] getFieldsForStringFormat();
+    // todo: move to a proper location
+    @XmlJavaTypeAdapter(IdentifierTypeConverter.GenericXRoadIdAdapter.class)
+    abstract class Conf implements XRoadId {
 
-    protected static void validateField(String fieldName, String fieldValue) {
-        if (StringUtils.isBlank(fieldValue)) {
-            throw new IllegalArgumentException(
-                    "'" + fieldName + "' must not be blank");
+        private Long id; // used for references in database
+
+        private final XRoadObjectType type;
+        private final String xRoadInstance;
+
+        Conf() {
+            this(null, null);
         }
+
+        Conf(XRoadObjectType type, String xRoadInstance) {
+            this.type = type;
+            this.xRoadInstance = xRoadInstance;
+        }
+
+        /**
+         * Returns type of the object for this identifier.
+         *
+         * @return XRoadObjectType
+         */
+        public XRoadObjectType getObjectType() {
+            return type;
+        }
+
+        /**
+         * Returns code of the X-Road instance.
+         *
+         * @return String
+         */
+        public String getXRoadInstance() {
+            return xRoadInstance;
+        }
+
+        @Override
+        @NoCoverage
+        public String toString() {
+            return XRoadId.toString(this);
+        }
+
+        @Override
+        @NoCoverage
+        public boolean equals(Object obj) {
+            return XRoadId.equals(this, obj);
+        }
+
+        @Override
+        @NoCoverage
+        public int hashCode() {
+            return XRoadId.hashCode(this);
+        }
+
     }
 
-    protected static void validateOptionalField(String fieldName,
-            String fieldValue) {
-        if (fieldValue != null) {
-            validateField(fieldName, fieldValue);
-        }
+    static String toString(XRoadId identifier) {
+        return identifier.getObjectType().toString() + ":" + identifier.toShortString();
     }
+
+    static boolean equals(XRoadId self, Object target) {
+        if (self == target) return true;
+        if (!(target instanceof XRoadId)) return false;
+        XRoadId identifier = (XRoadId) target;
+        if (self.getObjectType() != identifier.getObjectType()) return false;
+        if (!Objects.equals(self.getXRoadInstance(), identifier.getXRoadInstance())) return false;
+        return true;
+    }
+
+    static int hashCode(XRoadId self) {
+        return new HashCodeBuilder()
+                .append(self.getObjectType())
+                .append(self.getXRoadInstance())
+                .build();
+    }
+
 }

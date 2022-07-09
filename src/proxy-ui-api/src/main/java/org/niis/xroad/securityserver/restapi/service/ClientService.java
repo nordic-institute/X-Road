@@ -146,7 +146,7 @@ public class ClientService {
         Set<ClientId> members = new HashSet<>();
         for (ClientType client : allClients) {
             ClientId id = client.getIdentifier();
-            members.add(ClientId.create(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode()));
+            members.add(ClientId.Conf.create(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode()));
         }
         return members;
     }
@@ -511,7 +511,7 @@ public class ClientService {
      * @throws InvalidMemberClassException
      * @throws InvalidInstanceIdentifierException
      */
-    public void registerClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+    public void registerClient(ClientId.Conf clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             CannotRegisterOwnerException, ActionNotPossibleException, InvalidMemberClassException,
             InvalidInstanceIdentifierException {
 
@@ -529,7 +529,7 @@ public class ClientService {
             throw new InvalidMemberClassException(INVALID_MEMBER_CLASS + memberClass);
         }
 
-        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
+        ClientId.Conf ownerId = currentSecurityServerId.getServerId().getOwner();
         if (ownerId.equals(client.getIdentifier())) {
             throw new CannotRegisterOwnerException();
         }
@@ -555,7 +555,7 @@ public class ClientService {
      * @throws CannotUnregisterOwnerException when trying to unregister the security server owner
      * @throws ActionNotPossibleException when trying do unregister a client that cannot be unregistered
      */
-    public void unregisterClient(ClientId clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+    public void unregisterClient(ClientId.Conf clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             CannotUnregisterOwnerException, ActionNotPossibleException {
 
         auditDataHelper.put(clientId);
@@ -565,7 +565,7 @@ public class ClientService {
         if (!allowedStatuses.contains(client.getClientStatus())) {
             throw new ActionNotPossibleException("cannot unregister client with status " + client.getClientStatus());
         }
-        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
+        ClientId.Conf ownerId = currentSecurityServerId.getServerId().getOwner();
         if (clientId.equals(ownerId)) {
             throw new CannotUnregisterOwnerException();
         }
@@ -596,11 +596,12 @@ public class ClientService {
         if (subsystemCode != null) {
             throw new ActionNotPossibleException("Only member can be an owner");
         }
-        ClientId clientId = ClientId.create(globalConfFacade.getInstanceIdentifier(), memberClass, memberCode);
+        ClientId.Conf clientId =
+                ClientId.Conf.create(globalConfFacade.getInstanceIdentifier(), memberClass, memberCode);
         auditDataHelper.put(clientId);
         ClientType client = getLocalClientOrThrowNotFound(clientId);
         auditDataHelper.putClientStatus(client);
-        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
+        ClientId.Conf ownerId = currentSecurityServerId.getServerId().getOwner();
         if (ownerId.equals(client.getIdentifier())) {
             throw new MemberAlreadyOwnerException();
         }
@@ -724,7 +725,7 @@ public class ClientService {
             throw new InvalidMemberClassException(INVALID_MEMBER_CLASS + memberClass);
         }
 
-        ClientId clientId = ClientId.create(globalConfFacade.getInstanceIdentifier(),
+        ClientId.Conf clientId = ClientId.Conf.create(globalConfFacade.getInstanceIdentifier(),
                 memberClass,
                 memberCode,
                 subsystemCode);
@@ -750,7 +751,7 @@ public class ClientService {
         }
 
         // check if the member associated with clientId exists in global conf
-        ClientId memberId = clientId.getMemberId();
+        ClientId.Conf memberId = clientId.getMemberId();
         if (globalConfFacade.getMemberName(memberId) == null) {
             // unregistered member
             if (!ignoreWarnings) {
@@ -794,8 +795,8 @@ public class ClientService {
      * If ClientId already exists in DB, return the managed instance.
      * Otherwise return transient instance that was given as parameter
      */
-    public ClientId getPossiblyManagedEntity(ClientId transientClientId) {
-        ClientId managedEntity = identifierRepository.getClientId(transientClientId);
+    public ClientId.Conf getPossiblyManagedEntity(ClientId.Conf transientClientId) {
+        ClientId.Conf managedEntity = identifierRepository.getClientId(transientClientId);
         if (managedEntity != null) {
             return managedEntity;
         } else {

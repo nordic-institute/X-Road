@@ -27,17 +27,20 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.identifier.ClientId;
 
-import org.junit.Test;
-import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequest;
-import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequest;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestOrigin;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatus;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestType;
-import org.niis.xroad.centralserver.openapi.model.SecurityServerId;
-import org.niis.xroad.centralserver.openapi.model.XRoadId;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
+import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatusDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.centralserver.openapi.model.SecurityServerIdDto;
+import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
+import org.niis.xroad.centralserver.restapi.entity.MemberId;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.IdentifierRepository;
@@ -45,6 +48,7 @@ import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.junit.Assert.assertEquals;
@@ -61,10 +65,21 @@ public class ManagementRequestsApiControllerTest extends AbstractApiControllerTe
     private SecurityServerRepository servers;
 
     @Autowired
-    private IdentifierRepository<ClientId> clientIds;
+    private IdentifierRepository<MemberId> memberIds;
 
     @Autowired
     private MemberClassRepository memberClasses;
+
+    @BeforeEach
+    private void setup() {
+        MemberClass memberClass = memberClasses.save(new MemberClass("CLASS", "CLASS"));
+        MemberId memberId = memberIds.save(MemberId.create("TEST", "CLASS", "MEMBER"));
+        XRoadMember member = members.save(new XRoadMember("MEMBER_NAME", memberId, memberClass));
+
+        SecurityServer server = new SecurityServer(member, "TESTSERVER");
+        server.setAddress("server.example.org");
+        servers.save(server);
+    }
 
     @Test
     @WithMockUser(authorities = {
@@ -73,33 +88,30 @@ public class ManagementRequestsApiControllerTest extends AbstractApiControllerTe
             "ADD_AUTH_CERT_REGISTRATION_REQUEST",
             "REVOKE_AUTH_CERT_REGISTRATION_REQUEST"})
     public void testAddRequest() throws Exception {
-        //setup test data
-        setup();
-
-        var sid = new SecurityServerId();
-        sid.setType(XRoadId.TypeEnum.SERVER);
+        SecurityServerIdDto sid = new SecurityServerIdDto();
+        sid.setType(XRoadIdDto.TypeEnum.SERVER);
         sid.setInstanceId("TEST");
         sid.setMemberClass("CLASS");
         sid.setMemberCode("MEMBER");
         sid.setServerCode("SERVERCODE");
 
-        var req = new AuthenticationCertificateRegistrationRequest();
+        AuthenticationCertificateRegistrationRequestDto req = new AuthenticationCertificateRegistrationRequestDto();
         //redundant, but openapi-generator generates a property for the type
-        req.setType(ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST);
-        req.setSecurityserverId(sid);
+        req.setType(ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST);
+        req.setSecurityServerId(sid);
         req.setAuthenticationCertificate(TestCertUtil.generateAuthCert());
-        req.setOrigin(ManagementRequestOrigin.CENTER);
+        req.setOrigin(ManagementRequestOriginDto.CENTER);
 
-        var r1 = controller.addManagementRequest(req);
+        ResponseEntity<ManagementRequestDto> r1 = controller.addManagementRequest(req);
         assertTrue(r1.getStatusCode().is2xxSuccessful());
-        assertEquals(ManagementRequestStatus.WAITING, r1.getBody().getStatus());
+        assertEquals(ManagementRequestStatusDto.WAITING, r1.getBody().getStatus());
 
-        var r2 = controller.getManagementRequest(r1.getBody().getId());
-        assertEquals(r2.getBody().getSecurityserverId(), r1.getBody().getSecurityserverId());
+        ResponseEntity<ManagementRequestDto> r2 = controller.getManagementRequest(r1.getBody().getId());
+        assertEquals(r2.getBody().getSecurityServerId(), r1.getBody().getSecurityServerId());
 
         controller.revokeManagementRequest(r1.getBody().getId());
-        var r3 = controller.getManagementRequest(r2.getBody().getId());
-        assertEquals(ManagementRequestStatus.REVOKED, r3.getBody().getStatus());
+        ResponseEntity<ManagementRequestDto> r3 = controller.getManagementRequest(r2.getBody().getId());
+        assertEquals(ManagementRequestStatusDto.REVOKED, r3.getBody().getStatus());
     }
 
     @Test
@@ -108,50 +120,35 @@ public class ManagementRequestsApiControllerTest extends AbstractApiControllerTe
             "VIEW_MANAGEMENT_REQUEST_DETAILS",
             "ADD_CLIENT_REGISTRATION_REQUEST",
             "REVOKE_CLIENT_REGISTRATION_REQUEST"})
-    public void testAddClientRegRequest() throws Exception {
-        //setup test data
-        setup();
-
-        var sid = new SecurityServerId();
-        sid.setType(XRoadId.TypeEnum.SERVER);
+    public void testAddClientRegRequest() {
+        SecurityServerIdDto sid = new SecurityServerIdDto();
+        sid.setType(XRoadIdDto.TypeEnum.SERVER);
         sid.setInstanceId("TEST");
         sid.setMemberClass("CLASS");
         sid.setMemberCode("MEMBER");
         sid.setServerCode("TESTSERVER");
 
-        var cid = new org.niis.xroad.centralserver.openapi.model.ClientId();
-        cid.setType(XRoadId.TypeEnum.SUBSYSTEM);
+        ClientIdDto cid = new ClientIdDto();
+        cid.setType(XRoadIdDto.TypeEnum.SUBSYSTEM);
         cid.setInstanceId("TEST");
         cid.setMemberClass("CLASS");
         cid.setMemberCode("MEMBER");
         cid.setSubsystemCode("SUB");
 
-        var req = new ClientRegistrationRequest();
+        ClientRegistrationRequestDto req = new ClientRegistrationRequestDto();
         //redundant, but openapi-generator generates a property for the type
-        req.setType(ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
-        req.setSecurityserverId(sid);
+        req.setType(ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST);
+        req.setSecurityServerId(sid);
         req.setClientId(cid);
-        req.setOrigin(ManagementRequestOrigin.CENTER);
+        req.setOrigin(ManagementRequestOriginDto.CENTER);
 
-        var r1 = controller.addManagementRequest(req);
+        ResponseEntity<ManagementRequestDto> r1 = controller.addManagementRequest(req);
         assertTrue(r1.getStatusCode().is2xxSuccessful());
-        assertEquals(ManagementRequestStatus.WAITING, r1.getBody().getStatus());
+        assertEquals(ManagementRequestStatusDto.WAITING, r1.getBody().getStatus());
 
         controller.revokeManagementRequest(r1.getBody().getId());
-        var r3 = controller.getManagementRequest(r1.getBody().getId());
-        assertEquals(ManagementRequestStatus.REVOKED, r3.getBody().getStatus());
-    }
-
-    private void setup() {
-        var memberClass = memberClasses.findByCode("CLASS")
-                .orElseGet(() -> memberClasses.save(new MemberClass("CLASS", "CLASS")));
-        var memberId = clientIds.merge(ClientId.create("TEST", "CLASS", "MEMBER"));
-        var member = new XRoadMember(memberId, memberClass);
-        members.save(member);
-
-        var server = new SecurityServer(member, "TESTSERVER");
-        server.setAddress("server.example.org");
-        servers.save(server);
+        ResponseEntity<ManagementRequestDto> r3 = controller.getManagementRequest(r1.getBody().getId());
+        assertEquals(ManagementRequestStatusDto.REVOKED, r3.getBody().getStatus());
     }
 
 }

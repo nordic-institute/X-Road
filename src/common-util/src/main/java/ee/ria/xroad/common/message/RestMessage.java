@@ -163,7 +163,7 @@ public abstract class RestMessage {
         if (parts.length != 5) {
             throw new IllegalArgumentException("Invalid Service Id");
         }
-        return ServiceId.create(
+        return ServiceId.Conf.create(
                 uriSegmentPercentDecode(parts[0]),
                 uriSegmentPercentDecode(parts[1]),
                 uriSegmentPercentDecode(parts[2]),
@@ -178,7 +178,7 @@ public abstract class RestMessage {
         if (parts.length < 3 || parts.length > 4) {
             throw new IllegalArgumentException("Invalid Client Id");
         }
-        return ClientId.create(
+        return ClientId.Conf.create(
                 uriSegmentPercentDecode(parts[0]),
                 uriSegmentPercentDecode(parts[1]),
                 uriSegmentPercentDecode(parts[2]),

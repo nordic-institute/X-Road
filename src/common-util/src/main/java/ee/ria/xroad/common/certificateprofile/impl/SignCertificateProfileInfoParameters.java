@@ -48,7 +48,9 @@ public class SignCertificateProfileInfoParameters
      * @param clientId
      * @param memberName
      */
-    public SignCertificateProfileInfoParameters(SecurityServerId serverId, ClientId clientId, String memberName) {
+    public SignCertificateProfileInfoParameters(SecurityServerId serverId,
+                                                ClientId clientId,
+                                                String memberName) {
         this.serverId = serverId;
         this.clientId = clientId;
         this.memberName = memberName;
@@ -62,6 +64,6 @@ public class SignCertificateProfileInfoParameters
     public SignCertificateProfileInfoParameters(ClientId clientId, String memberName) {
         this.clientId = clientId;
         this.memberName = memberName;
-        this.serverId = SecurityServerId.create(clientId, "dummy");
+        this.serverId = SecurityServerId.Conf.create(clientId, "dummy");
     }
 }

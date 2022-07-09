@@ -1,0 +1,13 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 202207011455-identifiers-remove-redundant-type-field
+      author: niis
+
+      changes:
+
+        - dropColumn:
+            tableName: identifiers
+            columns:
+              - column:
+                  name: type

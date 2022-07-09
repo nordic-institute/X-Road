@@ -171,8 +171,8 @@ public final class MetaserviceTestUtil {
         return element.getValue();
     }
 
-    public static ServiceId createService(String serviceCode) {
-        return ServiceId.create("EE", "BUSINESS",
+    public static ServiceId.Conf createService(String serviceCode) {
+        return ServiceId.Conf.create("EE", "BUSINESS",
                 "consumer", "SUB", serviceCode);
     }
 

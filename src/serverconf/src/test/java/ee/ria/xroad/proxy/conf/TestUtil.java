@@ -159,7 +159,7 @@ public final class TestUtil {
                 conf.setOwner(client);
                 continue;
             } else {
-                ClientId id;
+                ClientId.Conf id;
                 if (i == NUM_CLIENTS - 1) {
                     id = createTestClientId(client(i), SUBSYSTEM);
                 } else {
@@ -205,7 +205,7 @@ public final class TestUtil {
                     service.setTimeout(SERVICE_TIMEOUT);
 
                     service.getRequiredSecurityCategory().add(
-                            SecurityCategoryId.create(XROAD_INSTANCE,
+                            SecurityCategoryId.Conf.create(XROAD_INSTANCE,
                                     SECURITY_CATEGORY + k));
 
                     service.setSslAuthentication(k % 2 == 0);
@@ -230,14 +230,14 @@ public final class TestUtil {
             client.getAcl().add(
                     createAccessRight(endpoint, client.getIdentifier()));
 
-            ClientId cl = ClientId.create("XX", "memberClass", "memberCode" + i);
+            ClientId.Conf cl = ClientId.Conf.create("XX", "memberClass", "memberCode" + i);
             client.getAcl().add(createAccessRight(endpoint, cl));
 
-            ServiceId se = ServiceId.create("XX", "memberClass",
+            ServiceId.Conf se = ServiceId.Conf.create("XX", "memberClass",
                     "memberCode" + i, null, "serviceCode" + i);
             client.getAcl().add(createAccessRight(endpoint, se));
 
-            LocalGroupId lg = LocalGroupId.create("testGroup" + i);
+            LocalGroupId.Conf lg = LocalGroupId.Conf.create("testGroup" + i);
             client.getAcl().add(createAccessRight(endpoint, lg));
 
             //rest service
@@ -281,34 +281,34 @@ public final class TestUtil {
         return conf;
     }
 
-    static ServiceId createTestServiceId(String memberCode,
+    static ServiceId.Conf createTestServiceId(String memberCode,
             String serviceCode) {
-        return ServiceId.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
+        return ServiceId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
                 serviceCode);
     }
 
-    static ServiceId createTestServiceId(String memberCode, String serviceCode,
+    static ServiceId.Conf createTestServiceId(String memberCode, String serviceCode,
             String serviceVerison) {
-        return ServiceId.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
+        return ServiceId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
                 serviceCode, serviceVerison);
     }
 
-    static ServiceId createTestServiceId(ClientId member, String serviceCode,
+    static ServiceId.Conf createTestServiceId(ClientId member, String serviceCode,
             String serviceVersion) {
-        return ServiceId.create(member, serviceCode, serviceVersion);
+        return ServiceId.Conf.create(member, serviceCode, serviceVersion);
     }
 
-    static ClientId createTestClientId() {
-        return ClientId.create(XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE);
+    static ClientId.Conf createTestClientId() {
+        return ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE);
     }
 
-    static ClientId createTestClientId(String memberCode) {
+    static ClientId.Conf createTestClientId(String memberCode) {
         return createTestClientId(memberCode, null);
     }
 
-    static ClientId createTestClientId(String memberCode,
+    static ClientId.Conf createTestClientId(String memberCode,
             String subsystemCode) {
-        return ClientId.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode,
+        return ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode,
                 subsystemCode);
     }
 

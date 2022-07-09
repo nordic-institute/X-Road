@@ -668,7 +668,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
                 }
 
                 @Override
-                protected void onCentralService(CentralServiceId centralServiceId) {
+                protected void onCentralService(CentralServiceId.Conf centralServiceId) {
                     super.onCentralService(centralServiceId);
                     header.setCentralService(centralServiceId);
                     serviceId = GlobalConf.getServiceId(centralServiceId);

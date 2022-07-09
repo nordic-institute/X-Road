@@ -39,7 +39,7 @@ public class ServiceClientIdentifierDto {
     // primary key of a local group - null if not a local group
     private Long localGroupId;
     // XRoadId for GlobalGroup, subsystem or member - null if local group
-    private XRoadId xRoadId;
+    private XRoadId.Conf xRoadId;
 
     public boolean isLocalGroup() {
         return localGroupId != null;

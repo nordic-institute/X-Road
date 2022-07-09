@@ -30,10 +30,14 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
+import io.vavr.control.Option;
+import org.niis.xroad.centralserver.restapi.entity.ClientId_;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient_;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer_;
 import org.niis.xroad.centralserver.restapi.entity.ServerClient_;
+import org.niis.xroad.centralserver.restapi.entity.Subsystem_;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember_;
 import org.springframework.data.jpa.domain.Specification;
@@ -42,10 +46,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-
-import java.util.Optional;
 
 import static org.niis.xroad.centralserver.restapi.repository.CriteriaBuilderUtil.caseInsensitiveLike;
 
@@ -53,35 +56,37 @@ import static org.niis.xroad.centralserver.restapi.repository.CriteriaBuilderUti
 public interface SecurityServerRepository extends
         JpaRepository<SecurityServer, Integer>, JpaSpecificationExecutor<SecurityServer> {
 
-    String X_ROAD_INSTANCE = "xRoadInstance";
-    String TYPE = "type";
+    Option<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
 
-    Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
-
-    default Optional<SecurityServer> findBy(SecurityServerId serverId, ClientId clientId) {
-        return findOne(serverIdSpec(serverId).and(clientIdSpec(clientId)));
+    default Option<SecurityServer> findBy(SecurityServerId serverId, ClientId clientId) {
+        return Option.ofOptional(
+                findOne(serverIdSpec(serverId).and(clientIdSpec(clientId)))
+        );
     }
 
-    default Optional<SecurityServer> findBy(SecurityServerId serverId) {
-        return findOne(serverIdSpec(serverId));
+    default Option<SecurityServer> findBy(SecurityServerId serverId) {
+        return Option.ofOptional(
+                findOne(serverIdSpec(serverId))
+        );
     }
 
     static Specification<SecurityServer> clientIdSpec(ClientId clientId) {
 
         return (root, query, builder) -> {
-            var cid = root
+            Join<SecurityServerClient, org.niis.xroad.centralserver.restapi.entity.ClientId> cid = root
                     .join(SecurityServer_.serverClients)
                     .join(ServerClient_.securityServerClient)
                     .join(SecurityServerClient_.identifier);
 
-            var pred = builder.and(
-                    builder.equal(cid.get(TYPE), clientId.getObjectType()),
-                    builder.equal(cid.get(X_ROAD_INSTANCE), clientId.getXRoadInstance()),
-                    builder.equal(cid.get(XRoadMember_.MEMBER_CLASS), clientId.getMemberClass()),
-                    builder.equal(cid.get(XRoadMember_.MEMBER_CODE), clientId.getMemberCode()));
+            Predicate pred = builder.and(
+                    builder.equal(cid.get(ClientId_.OBJECT_TYPE), clientId.getObjectType()),
+                    builder.equal(cid.get(ClientId_.X_ROAD_INSTANCE), clientId.getXRoadInstance()),
+                    builder.equal(cid.get(ClientId_.MEMBER_CLASS), clientId.getMemberClass()),
+                    builder.equal(cid.get(ClientId_.MEMBER_CODE), clientId.getMemberCode()));
 
             if (clientId.getSubsystemCode() != null) {
-                pred = builder.and(pred, builder.equal(cid.get("subsystemCode"), clientId.getSubsystemCode()));
+                pred = builder.and(pred,
+                        builder.equal(cid.get(Subsystem_.SUBSYSTEM_CODE), clientId.getSubsystemCode()));
             }
 
             return pred;
@@ -91,14 +96,16 @@ public interface SecurityServerRepository extends
     static Specification<SecurityServer> serverIdSpec(SecurityServerId serverId) {
 
         return (root, query, builder) -> {
-            var pred = builder.and(builder.equal(root.get(SecurityServer_.serverCode), serverId.getServerCode()));
+            Predicate pred = builder.and(builder.equal(root.get(SecurityServer_.serverCode), serverId.getServerCode()));
 
-            var oid = root.join(SecurityServer_.owner).join(SecurityServerClient_.identifier);
+            Join<XRoadMember, org.niis.xroad.centralserver.restapi.entity.ClientId> oid =
+                    root.join(SecurityServer_.owner).join(SecurityServerClient_.identifier);
 
-            pred = builder.and(pred, builder.equal(oid.get(TYPE), XRoadObjectType.MEMBER),
-                    builder.equal(oid.get(X_ROAD_INSTANCE), serverId.getXRoadInstance()),
-                    builder.equal(oid.get(XRoadMember_.MEMBER_CLASS), serverId.getMemberClass()),
-                    builder.equal(oid.get(XRoadMember_.MEMBER_CODE), serverId.getMemberCode()));
+            pred = builder.and(pred,
+                    builder.equal(oid.get(ClientId_.OBJECT_TYPE), XRoadObjectType.MEMBER),
+                    builder.equal(oid.get(ClientId_.X_ROAD_INSTANCE), serverId.getXRoadInstance()),
+                    builder.equal(oid.get(ClientId_.MEMBER_CLASS), serverId.getMemberClass()),
+                    builder.equal(oid.get(ClientId_.MEMBER_CODE), serverId.getMemberCode()));
             return pred;
         };
     }
@@ -111,8 +118,9 @@ public interface SecurityServerRepository extends
     }
 
     private static Predicate multifieldSearchPredicate(Root<SecurityServer> root, CriteriaBuilder builder, String q) {
-        final var owner = root.join(SecurityServer_.owner);
-        final var identifier = owner.join(SecurityServerClient_.identifier);
+        final Join<SecurityServer, XRoadMember> owner = root.join(SecurityServer_.owner);
+        final Join<XRoadMember, org.niis.xroad.centralserver.restapi.entity.ClientId> identifier =
+                owner.join(SecurityServerClient_.identifier);
 
         return builder.or(
                 caseInsensitiveLike(root, builder, q, root.get(SecurityServer_.serverCode)),

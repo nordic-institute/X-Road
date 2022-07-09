@@ -683,7 +683,7 @@ public class SaxSoapParserImpl implements SoapParser {
          * Called when a security server header has been parsed.
          * @param securityServerId the parsed client ID
          */
-        protected void onSecurityServer(SecurityServerId securityServerId) {
+        protected void onSecurityServer(SecurityServerId.Conf securityServerId) {
             header.setSecurityServer(securityServerId);
         }
 
@@ -691,7 +691,7 @@ public class SaxSoapParserImpl implements SoapParser {
          * Called when a client header has been parsed.
          * @param clientId the parsed client ID
          */
-        protected void onClient(ClientId clientId) {
+        protected void onClient(ClientId.Conf clientId) {
             header.setClient(clientId);
         }
 
@@ -699,7 +699,7 @@ public class SaxSoapParserImpl implements SoapParser {
          * Called when a service header has been parsed.
          * @param serviceId the parsed service ID
          */
-        protected void onService(ServiceId serviceId) {
+        protected void onService(ServiceId.Conf serviceId) {
             header.setService(serviceId);
         }
 
@@ -707,7 +707,7 @@ public class SaxSoapParserImpl implements SoapParser {
          * Called when a central service header has been parsed.
          * @param centralServiceId the parsed central service ID
          */
-        protected void onCentralService(CentralServiceId centralServiceId) {
+        protected void onCentralService(CentralServiceId.Conf centralServiceId) {
             header.setCentralService(centralServiceId);
         }
 
@@ -857,9 +857,9 @@ public class SaxSoapParserImpl implements SoapParser {
                 QNAME_ID_INSTANCE, QNAME_ID_MEMBER_CLASS, QNAME_ID_MEMBER_CODE,
                 QNAME_ID_SUBSYSTEM_CODE);
 
-        private final Consumer<ClientId> onClientCallback;
+        private final Consumer<ClientId.Conf> onClientCallback;
 
-        XRoadClientHeaderHandler(Consumer<ClientId> callback) {
+        XRoadClientHeaderHandler(Consumer<ClientId.Conf> callback) {
             super(Arrays.asList(XRoadObjectType.MEMBER, XRoadObjectType.SUBSYSTEM));
             this.onClientCallback = callback;
         }
@@ -871,7 +871,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         @Override
         public void closeTag() {
-            onClientCallback.accept(ClientId.create(
+            onClientCallback.accept(ClientId.Conf.create(
                     getValue(QNAME_ID_INSTANCE),
                     getValue(QNAME_ID_MEMBER_CLASS),
                     getValue(QNAME_ID_MEMBER_CODE),
@@ -889,9 +889,9 @@ public class SaxSoapParserImpl implements SoapParser {
                 QNAME_ID_SUBSYSTEM_CODE, QNAME_ID_SERVICE_CODE,
                 QNAME_ID_SERVICE_VERSION);
 
-        private final Consumer<ServiceId> onServiceCallback;
+        private final Consumer<ServiceId.Conf> onServiceCallback;
 
-        XRoadServiceHeaderHandler(Consumer<ServiceId> callback) {
+        XRoadServiceHeaderHandler(Consumer<ServiceId.Conf> callback) {
             super(Collections.singletonList(XRoadObjectType.SERVICE));
             this.onServiceCallback = callback;
         }
@@ -903,7 +903,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         @Override
         protected void closeTag() {
-            onServiceCallback.accept(ServiceId.create(
+            onServiceCallback.accept(ServiceId.Conf.create(
                     getValue(QNAME_ID_INSTANCE),
                     getValue(QNAME_ID_MEMBER_CLASS),
                     getValue(QNAME_ID_MEMBER_CODE),
@@ -980,9 +980,9 @@ public class SaxSoapParserImpl implements SoapParser {
         protected static final List<QName> CENTRAL_SERVICE_ID_PARTS =
                 Arrays.asList(QNAME_ID_INSTANCE, QNAME_ID_SERVICE_CODE);
 
-        private final Consumer<CentralServiceId> onServiceCallback;
+        private final Consumer<CentralServiceId.Conf> onServiceCallback;
 
-        XRoadCentralServiceHeaderHandler(Consumer<CentralServiceId> callback) {
+        XRoadCentralServiceHeaderHandler(Consumer<CentralServiceId.Conf> callback) {
             super(Collections.singletonList(XRoadObjectType.CENTRALSERVICE));
             this.onServiceCallback = callback;
         }
@@ -994,7 +994,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         @Override
         protected void closeTag() {
-            onServiceCallback.accept(CentralServiceId.create(
+            onServiceCallback.accept(CentralServiceId.Conf.create(
                     getValue(QNAME_ID_INSTANCE),
                     getValue(QNAME_ID_SERVICE_CODE)));
         }
@@ -1009,9 +1009,9 @@ public class SaxSoapParserImpl implements SoapParser {
                 Arrays.asList(QNAME_ID_INSTANCE, QNAME_ID_MEMBER_CLASS,
                         QNAME_ID_MEMBER_CODE, QNAME_ID_SERVER_CODE);
 
-        private final Consumer<SecurityServerId> onServiceCallback;
+        private final Consumer<SecurityServerId.Conf> onServiceCallback;
 
-        XRoadSecurityServerHeaderHandler(Consumer<SecurityServerId> callback) {
+        XRoadSecurityServerHeaderHandler(Consumer<SecurityServerId.Conf> callback) {
             super(Collections.singletonList(XRoadObjectType.SERVER));
             this.onServiceCallback = callback;
         }
@@ -1023,7 +1023,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         @Override
         protected void closeTag() {
-            onServiceCallback.accept(SecurityServerId.create(
+            onServiceCallback.accept(SecurityServerId.Conf.create(
                     getValue(QNAME_ID_INSTANCE),
                     getValue(QNAME_ID_MEMBER_CLASS),
                     getValue(QNAME_ID_MEMBER_CODE),

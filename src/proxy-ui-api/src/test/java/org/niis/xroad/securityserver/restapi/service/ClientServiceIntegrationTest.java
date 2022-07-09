@@ -89,10 +89,10 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     private byte[] derBytes;
     private byte[] sqlFileBytes;
 
-    private ClientId existingSavedClientId = ClientId.create("FI", "GOV", "M2", "SS6");
-    private ClientId existingRegisteredClientId = ClientId.create("FI", "GOV", "M1", "SS1");
-    private ClientId ownerClientId = ClientId.create("FI", "GOV", "M1", null);
-    private ClientId newOwnerClientId = ClientId.create("FI", "GOV", "M2", null);
+    private ClientId.Conf existingSavedClientId = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
+    private ClientId.Conf existingRegisteredClientId = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
+    private ClientId.Conf ownerClientId = ClientId.Conf.create("FI", "GOV", "M1", null);
+    private ClientId.Conf newOwnerClientId = ClientId.Conf.create("FI", "GOV", "M2", null);
 
     private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
             TestUtils.MEMBER_CLASS_PRO);
@@ -174,18 +174,18 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // Create cert with good ocsp response status
         // This certificate is valid for all subsystems owned by the member "FI:GOV:M1".
-        ClientId clientId1 = ClientId.create("FI", "GOV", "M1");
+        ClientId.Conf clientId1 = ClientId.Conf.create("FI", "GOV", "M1");
         certificateInfoBuilder.clientId(clientId1);
         CertificateInfo cert1 = certificateInfoBuilder.build();
 
         // Create cert with revoked ocsp response status
         // N.B. This cert is ignored, and FI:GOV:M1 is considered to have valid sign cert since there's also a valid one
-        ClientId clientId2 = ClientId.create("FI", "GOV", "M1");
+        ClientId.Conf clientId2 = ClientId.Conf.create("FI", "GOV", "M1");
         certificateInfoBuilder.clientId(clientId2).ocspStatus(new RevokedStatus(new Date(), CRLReason.certificateHold));
         CertificateInfo cert2 = certificateInfoBuilder.build();
 
         // Create cert with unknown ocsp response status
-        ClientId clientId3 = ClientId.create("FI", "GOV", "M2");
+        ClientId.Conf clientId3 = ClientId.Conf.create("FI", "GOV", "M2");
         certificateInfoBuilder.clientId(clientId3).ocspStatus(new UnknownStatus());
         CertificateInfo cert3 = certificateInfoBuilder.build();
 
@@ -209,7 +209,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     private List<CertificateInfo> createComplexSignCertList() {
 
         // FI:GOV:M1 has a sign cert "cert1" with ocsp status GOOD
-        ClientId clientIdFiGovM1 = ClientId.create("FI", "GOV", "M1");
+        ClientId.Conf clientIdFiGovM1 = ClientId.Conf.create("FI", "GOV", "M1");
         CertificateInfo cert1 = new CertificateTestUtils.CertificateInfoBuilder()
                 .clientId(clientIdFiGovM1)
                 .build();
@@ -222,13 +222,13 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // FI:GOV:M2 has a sign cert "cert3" with ocsp status UNKNOWN
         CertificateInfo cert3 = new CertificateTestUtils.CertificateInfoBuilder()
-                .clientId(ClientId.create("FI", "GOV", "M2"))
+                .clientId(ClientId.Conf.create("FI", "GOV", "M2"))
                 .ocspStatus(new UnknownStatus())
                 .build();
 
         // FI:DUMMY:M2 has a sign cert "cert4" with ocsp status REVOKED
         CertificateInfo cert4 = new CertificateTestUtils.CertificateInfoBuilder()
-                .clientId(ClientId.create("FI", "DUMMY", "M2"))
+                .clientId(ClientId.Conf.create("FI", "DUMMY", "M2"))
                 .ocspStatus(new RevokedStatus(new Date(), CRLReason.certificateHold))
                 .build();
 
@@ -236,12 +236,12 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // EE:PRO:M1 has a sign cert "cert5" with ocsp status GOOD
         CertificateInfo cert5 = new CertificateTestUtils.CertificateInfoBuilder()
-                .clientId(ClientId.create("EE", "PRO", "M1"))
+                .clientId(ClientId.Conf.create("EE", "PRO", "M1"))
                 .build();
 
         // EE:PRO:M2 has a sign cert "cert6" with ocsp status REVOKED
         CertificateInfo cert6 = new CertificateTestUtils.CertificateInfoBuilder()
-                .clientId(ClientId.create("EE", "PRO", "M2"))
+                .clientId(ClientId.Conf.create("EE", "PRO", "M2"))
                 .ocspStatus(new RevokedStatus(new Date(), CRLReason.certificateHold))
                 .build();
 
@@ -1096,12 +1096,12 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void getLocalClientMemberIds() {
         Set<ClientId> expected = new HashSet();
-        expected.add(ClientId.create(TestUtils.INSTANCE_FI,
+        expected.add(ClientId.Conf.create(TestUtils.INSTANCE_FI,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1));
-        expected.add(ClientId.create(TestUtils.INSTANCE_FI,
+        expected.add(ClientId.Conf.create(TestUtils.INSTANCE_FI,
                 TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2));
-        expected.add(ClientId.create("DUMMY", "PRO", "M2"));
-        expected.add(ClientId.create("FI", "DUMMY", "M2"));
+        expected.add(ClientId.Conf.create("DUMMY", "PRO", "M2"));
+        expected.add(ClientId.Conf.create("FI", "DUMMY", "M2"));
         Set<ClientId> result = clientService.getLocalClientMemberIds();
         assertEquals(expected, result);
     }
@@ -1117,17 +1117,17 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Test(expected = ClientNotFoundException.class)
     public void registerNonExistingClient() throws Exception {
-        clientService.registerClient(ClientId.create("non", "existing", "client", null));
+        clientService.registerClient(ClientId.Conf.create("non", "existing", "client", null));
     }
 
     @Test(expected = ClientService.InvalidInstanceIdentifierException.class)
     public void registerClientWithInvalidInstanceIdentifier() throws Exception {
-        clientService.registerClient(ClientId.create("DUMMY", "PRO", "M2", "SS6"));
+        clientService.registerClient(ClientId.Conf.create("DUMMY", "PRO", "M2", "SS6"));
     }
 
     @Test(expected = ClientService.InvalidMemberClassException.class)
     public void registerClientWithInvalidMemberClass() throws Exception {
-        clientService.registerClient(ClientId.create("FI", "DUMMY", "M2", "SS6"));
+        clientService.registerClient(ClientId.Conf.create("FI", "DUMMY", "M2", "SS6"));
     }
 
     @Test(expected = CodedException.class)
@@ -1179,7 +1179,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Test(expected = ClientNotFoundException.class)
     public void unregisterNonExistingClient() throws Exception {
-        clientService.unregisterClient(ClientId.create("non", "existing", "client", null));
+        clientService.unregisterClient(ClientId.Conf.create("non", "existing", "client", null));
     }
 
     @Test

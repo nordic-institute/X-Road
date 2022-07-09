@@ -29,11 +29,8 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.openapi.InitializationApi;
-import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
-import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
-import org.niis.xroad.centralserver.restapi.converter.InitializationStatusConverter;
-import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
-import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
+import org.niis.xroad.centralserver.openapi.model.InitialServerConfDto;
+import org.niis.xroad.centralserver.openapi.model.InitializationStatusDto;
 import org.niis.xroad.centralserver.restapi.service.InitializationService;
 import org.niis.xroad.centralserver.restapi.service.exception.InvalidCharactersException;
 import org.niis.xroad.centralserver.restapi.service.exception.InvalidInitParamsException;
@@ -58,27 +55,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class InitializationApiController implements InitializationApi {
 
     private final InitializationService initializationService;
-    private final InitializationStatusConverter initializationStatusConverter;
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<InitializationStatus> getInitializationStatus() {
+    public ResponseEntity<InitializationStatusDto> getInitializationStatus() {
         InitializationStatusDto initializationStatusDto =
                 initializationService.getInitializationStatus();
-        return ResponseEntity.ok(
-                initializationStatusConverter.convert(initializationStatusDto)
-        );
+        return ResponseEntity.ok(initializationStatusDto);
     }
 
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     @AuditEventMethod(event = RestApiAuditEvent.INIT_CENTRAL_SERVER)
-    public ResponseEntity<Void> initCentralServer(@Validated InitialServerConf initialServerConf) {
-        InitializationConfigDto configDto = new InitializationConfigDto();
-        configDto.setInstanceIdentifier(initialServerConf.getInstanceIdentifier());
-        configDto.setCentralServerAddress(initialServerConf.getCentralServerAddress());
-        configDto.setSoftwareTokenPin(initialServerConf.getSoftwareTokenPin());
-
+    public ResponseEntity<Void> initCentralServer(@Validated InitialServerConfDto configDto) {
         try {
             initializationService.initialize(configDto);
         } catch (ServerAlreadyFullyInitializedException e) {

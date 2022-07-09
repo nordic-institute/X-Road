@@ -164,7 +164,7 @@ public class GlobalConfFacade {
     /**
      * {@link GlobalConf#getSecurityServers(String...)}
      */
-    public List<SecurityServerId> getSecurityServers(String... instanceIdentifiers) {
+    public List<SecurityServerId.Conf> getSecurityServers(String... instanceIdentifiers) {
         return GlobalConf.getSecurityServers(instanceIdentifiers);
     }
 

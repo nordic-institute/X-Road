@@ -89,9 +89,9 @@ public class SystemServiceTest {
 
         when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(
                 Arrays.asList(tsa1, tsa2));
-        ClientId ownerId = ClientId.create("CS", "GOV", "1111");
+        ClientId.Conf ownerId = ClientId.Conf.create("CS", "GOV", "1111");
         when(serverConfService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(Arrays.asList(tsa1)));
-        SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "TEST-INMEM-SS");
+        SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
 
         systemService = new SystemService(globalConfService, serverConfService, anchorRepository,
@@ -182,8 +182,8 @@ public class SystemServiceTest {
 
     @Test(expected = SystemService.InvalidAnchorInstanceException.class)
     public void getAnchorFileFromBytesWrongInstance() throws Exception {
-        ClientId ownerId = ClientId.create("INVALID", "GOV", "1111");
-        SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "TEST-INMEM-SS");
+        ClientId.Conf ownerId = ClientId.Conf.create("INVALID", "GOV", "1111");
+        SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         systemService.getAnchorFileFromBytes(anchorBytes, true);

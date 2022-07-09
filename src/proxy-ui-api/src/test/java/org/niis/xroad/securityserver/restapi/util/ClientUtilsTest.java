@@ -52,7 +52,7 @@ public class ClientUtilsTest {
                 new CertificateTestUtils.CertificateInfoBuilder();
 
         // Create cert with good ocsp response status
-        ClientId clientId1 = ClientId.create("FI", "GOV", "M1");
+        ClientId.Conf clientId1 = ClientId.Conf.create("FI", "GOV", "M1");
         certificateInfoBuilder.clientId(clientId1);
         CertificateInfo cert1 = certificateInfoBuilder.build();
 
@@ -71,7 +71,7 @@ public class ClientUtilsTest {
     @Test
     public void hasValidLocalSignCertTest() throws Exception {
         // Valid sign cert found
-        ClientId clientId = ClientId.create("FI", "GOV", "M1");
+        ClientId.Conf clientId = ClientId.Conf.create("FI", "GOV", "M1");
         assertTrue(ClientUtils.hasValidLocalSignCert(clientId,
                 createCertificateInfoList()));
 
@@ -88,7 +88,7 @@ public class ClientUtilsTest {
         assertFalse(ClientUtils.hasValidLocalSignCert(clientId, Collections.singletonList(nullCert)));
 
         // No valid sign cert for the client
-        clientId = ClientId.create("FI", "GOV", "M2");
+        clientId = ClientId.Conf.create("FI", "GOV", "M2");
         assertFalse(ClientUtils.hasValidLocalSignCert(clientId,
                 createCertificateInfoList()));
     }

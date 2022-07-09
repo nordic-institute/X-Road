@@ -110,7 +110,7 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
         }
 
         @Override
-        public ClientId getSubjectIdentifier(X509Certificate certificate) throws Exception {
+        public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) throws Exception {
             X500Name x500Name = new X500Name(certificate.getSubjectX500Principal().getName());
             String organizationIdentifier = CertUtils.getRDNValue(x500Name, ORGANIZATION_IDENTIFIER);
 
@@ -119,7 +119,7 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
                     : getSubjectIdentifierByOrgId(organizationIdentifier);
         }
 
-        private ClientId getSubjectIdentifierBySerialNumber(X500Name x500Name) throws Exception {
+        private ClientId.Conf getSubjectIdentifierBySerialNumber(X500Name x500Name) throws Exception {
             if (log.isTraceEnabled()) {
                 log.trace("getSubjectIdentifierBySerialNumber {}", x500Name.toString());
             }
@@ -138,21 +138,21 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
                 throw new Exception("Serial number must be " + SN_LENGTH + " digits long");
             }
 
-            return ClientId.create(instanceIdentifier, getMemberClass(sn), sn);
+            return ClientId.Conf.create(instanceIdentifier, getMemberClass(sn), sn);
         }
 
-        private ClientId getSubjectIdentifierByOrgId(String orgId) {
+        private ClientId.Conf getSubjectIdentifierByOrgId(String orgId) {
             log.trace("getSubjectIdentifierByOrgId {}", orgId);
 
             if (orgId.startsWith(COM_PREFIX)) {
-                return ClientId.create(instanceIdentifier, COM_MEMBER, getRegisterCode(orgId));
+                return ClientId.Conf.create(instanceIdentifier, COM_MEMBER, getRegisterCode(orgId));
             } else if (orgId.startsWith(GOV_PREFIX)) {
-                return ClientId.create(instanceIdentifier, GOV_MEMBER, getRegisterCode(orgId));
+                return ClientId.Conf.create(instanceIdentifier, GOV_MEMBER, getRegisterCode(orgId));
             } else if (orgId.startsWith(NGO_PREFIX)) {
-                return ClientId.create(instanceIdentifier, NGO_MEMBER, getRegisterCode(orgId));
+                return ClientId.Conf.create(instanceIdentifier, NGO_MEMBER, getRegisterCode(orgId));
             } else {
                 // In order to guarantee member code uniques, use full organization identifier here.
-                return ClientId.create(instanceIdentifier, NEE_MEMBER, orgId);
+                return ClientId.Conf.create(instanceIdentifier, NEE_MEMBER, orgId);
             }
         }
 

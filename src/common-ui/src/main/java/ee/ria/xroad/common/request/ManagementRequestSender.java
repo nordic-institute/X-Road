@@ -97,7 +97,7 @@ public final class ManagementRequestSender {
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
-    public Integer sendAuthCertRegRequest(SecurityServerId securityServer, String address, byte[] authCert)
+    public Integer sendAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
             throws Exception {
         try (HttpSender sender = ManagementRequestClient.createCentralHttpSender()) {
             return send(sender, getCentralServiceURI(), new AuthCertRegRequest(authCert, securityServer.getOwner(),
@@ -114,7 +114,7 @@ public final class ManagementRequestSender {
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
-    public Integer sendAuthCertDeletionRequest(SecurityServerId securityServer,
+    public Integer sendAuthCertDeletionRequest(SecurityServerId.Conf securityServer,
             byte[] authCert) throws Exception {
         return sendToProxy(builder.buildAuthCertDeletionRequest(securityServer,
                 authCert));
@@ -127,8 +127,7 @@ public final class ManagementRequestSender {
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
-    public Integer sendClientRegRequest(SecurityServerId securityServer,
-            ClientId clientId) throws Exception {
+    public Integer sendClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new ClientRegRequest(clientId, builder.buildClientRegRequest(securityServer, clientId)));
@@ -142,8 +141,8 @@ public final class ManagementRequestSender {
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
-    public Integer sendClientDeletionRequest(SecurityServerId securityServer,
-            ClientId clientId) throws Exception {
+    public Integer sendClientDeletionRequest(SecurityServerId.Conf securityServer,
+                                             ClientId.Conf clientId) throws Exception {
         return sendToProxy(builder.buildClientDeletionRequest(securityServer,
                 clientId));
     }
@@ -155,8 +154,8 @@ public final class ManagementRequestSender {
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
-    public Integer sendOwnerChangeRequest(SecurityServerId securityServer,
-                                        ClientId clientId) throws Exception {
+    public Integer sendOwnerChangeRequest(SecurityServerId.Conf securityServer,
+                                          ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new OwnerChangeRequest(clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));

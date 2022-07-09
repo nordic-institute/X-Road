@@ -9,6 +9,8 @@ dependencies {
     // JUnit is needed for ExpectedCodedException
     implementation "junit:junit:$junitVersion"
     api "org.mockito:mockito-core:$mockitoVersion"
+
+    implementation "io.vavr:vavr:$vavrVersion"
 }
 
 sourceSets {

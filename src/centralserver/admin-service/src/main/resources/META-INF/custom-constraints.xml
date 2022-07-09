@@ -7,7 +7,7 @@
     version="2.0">
     <default-package>org.niis.xroad.centralserver.openapi.model</default-package>
 
-    <bean class="InitialServerConf" ignore-annotations="false">
+    <bean class="InitialServerConfDto" ignore-annotations="false">
         <field name="instanceIdentifier">
             <constraint annotation="org.niis.xroad.centralserver.restapi.openapi.validator.IdentifierChars">
             </constraint>
@@ -18,20 +18,20 @@
         </field>
     </bean>
 
-    <bean class="CentralServerAddress" ignore-annotations="false">
+    <bean class="CentralServerAddressDto" ignore-annotations="false">
         <field name="centralServerAddress">
             <constraint annotation="org.niis.xroad.centralserver.restapi.openapi.validator.ValidHostAddress">
             </constraint>
         </field>
     </bean>
 
-    <bean class="XRoadId" ignore-annotations="false">
+    <bean class="XRoadIdDto" ignore-annotations="false">
         <class ignore-annotations="false">
             <constraint annotation="org.niis.xroad.centralserver.restapi.openapi.validator.ValidXRoadId"/>
         </class>
     </bean>
 
-    <bean class="AuthenticationCertificateRegistrationRequest">
+    <bean class="AuthenticationCertificateRegistrationRequestDto">
         <field name="authenticationCertificate">
             <constraint annotation="org.niis.xroad.centralserver.restapi.openapi.validator.ValidX509Certificate"/>
         </field>

@@ -85,7 +85,7 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
     @MockBean
     TokenPinValidator tokenPinValidator;
 
-    static final ClientId COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
+    static final ClientId.Conf COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
 
     @Before
     public void setupCommonMocks() {
@@ -97,13 +97,13 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
         when(serverConfRepository.getServerConf()).thenReturn(sct);
         when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
-            ClientId identifier = (ClientId) args[0];
+            ClientId.Conf identifier = (ClientId.Conf) args[0];
             return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
                     : TestUtils.NAME_FOR + "test-member";
         });
-        when(clientRepository.getClient(any(ClientId.class))).thenAnswer((Answer<ClientType>) invocation -> {
+        when(clientRepository.getClient(any(ClientId.Conf.class))).thenAnswer((Answer<ClientType>) invocation -> {
             Object[] args = invocation.getArguments();
-            ClientId identifier = (ClientId) args[0];
+            ClientId.Conf identifier = (ClientId.Conf) args[0];
             ClientType clientType = new ClientType();
             clientType.setIdentifier(identifier);
             return clientType;

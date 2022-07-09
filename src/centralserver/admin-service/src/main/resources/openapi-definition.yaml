@@ -2846,13 +2846,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequestInfo'
+                $ref: '#/components/schemas/ManagementRequest'
         '202':
           description: The request was accepted for processing
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequestInfo'
+                $ref: '#/components/schemas/ManagementRequest'
 
         '400':
           description: request was invalid
@@ -2943,7 +2943,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequestInfo'
+                $ref: '#/components/schemas/ManagementRequest'
         '400':
           description: invalid request
         '401':
@@ -3694,6 +3694,7 @@ components:
           format: text
           maxLength: 255
           minLength: 1
+          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           type: string
       required:
         - code
@@ -3720,9 +3721,24 @@ components:
           format: text
           maxLength: 255
           minLength: 1
+          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           type: string
       required:
         - member_name
+      type: object
+    MemberCode:
+      description: x-road member code
+      properties:
+        member_code:
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: MEMBER123
+          format: text
+          maxLength: 255
+          minLength: 1
+          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
+          type: string
+      required:
+        - member_code
       type: object
     ClientType:
       description: client type
@@ -4152,6 +4168,7 @@ components:
           maxLength: 255
           minLength: 1
           type: string
+          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           readOnly: true
         type:
           type: string
@@ -4180,6 +4197,7 @@ components:
           format: text
           maxLength: 255
           minLength: 1
+          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           type: string
         member_code:
           description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
@@ -4187,6 +4205,7 @@ components:
           format: text
           maxLength: 255
           minLength: 1
+          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           type: string
         subsystem_code:
           type: string
@@ -4226,10 +4245,13 @@ components:
     ManagementRequest:
       type: object
       description: Management request
+      allOf:
+        - $ref: '#/components/schemas/ModificationTimestamps'
       discriminator:
         propertyName: type
         mapping:
           AUTH_CERT_REGISTRATION_REQUEST: "AuthenticationCertificateRegistrationRequest"
+          AUTH_CERT_DELETION_REQUEST: "AuthenticationCertificateDeletionRequest"
           CLIENT_REGISTRATION_REQUEST: "ClientRegistrationRequest"
           CLIENT_DELETION_REQUEST: "ClientDeletionRequest"
       properties:
@@ -4241,38 +4263,14 @@ components:
           $ref: '#/components/schemas/ManagementRequestType'
         origin:
           $ref: '#/components/schemas/ManagementRequestOrigin'
-        securityserverId:
+        securityServerId:
           $ref: '#/components/schemas/SecurityServerId'
         status:
           $ref: '#/components/schemas/ManagementRequestStatus'
       required:
         - type
         - source
-        - securityserverId
-    ManagementRequestInfo:
-      type: object
-      description: Management request summary
-      properties:
-        id:
-          type: integer
-          description: request id
-          readOnly: true
-        type:
-          $ref: '#/components/schemas/ManagementRequestType'
-        origin:
-          $ref: '#/components/schemas/ManagementRequestOrigin'
-        securityserverId:
-          $ref: '#/components/schemas/SecurityServerId'
-        status:
-          $ref: '#/components/schemas/ManagementRequestStatus'
-        createdAt:
-          type: string
-          format: date-time
-          readOnly: true
-      required:
-        - type
-        - source
-        - securityserverId
+        - securityServerId
     ManagementRequestType:
       type: string
       enum:
@@ -4320,7 +4318,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/ManagementRequestInfo'
+            $ref: '#/components/schemas/ManagementRequest'
     AuthenticationCertificateRegistrationRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
@@ -4333,6 +4331,16 @@ components:
           format: byte
       required:
         - serverAddress
+        - authencationCertificate
+    AuthenticationCertificateDeletionRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        authenticationCertificate:
+          type: string
+          format: byte
+      required:
         - authencationCertificate
     ClientRegistrationRequest:
       allOf:

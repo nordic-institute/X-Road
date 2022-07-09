@@ -194,7 +194,7 @@ public class HealthChecksTest {
         ServerConfProvider mockProvider = mock(ServerConfProvider.class);
         when(mockProvider.isAvailable()).thenReturn(true);
         when(mockProvider.getIdentifier()).thenReturn(
-                SecurityServerId.create("XE", "member", "code", "servercode"));
+                SecurityServerId.Conf.create("XE", "member", "code", "servercode"));
 
         ServerConf.reload(mockProvider);
 

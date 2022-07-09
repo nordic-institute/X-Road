@@ -445,7 +445,7 @@ public class SignerCLI {
     @Command(description = "Returns suitable authentication key for security server")
     public void getAuthenticationKey(@Param(name = "clientId", description = "Member identifier") ClientId clientId,
             @Param(name = "serverCode", description = "Security server code") String serverCode) throws Exception {
-        SecurityServerId serverId = SecurityServerId.create(clientId, serverCode);
+        SecurityServerId serverId = SecurityServerId.Conf.create(clientId, serverCode);
         AuthKeyInfo authKey = SignerClient.execute(new GetAuthKey(serverId));
 
         System.out.println("Auth key:");
@@ -480,7 +480,7 @@ public class SignerCLI {
      */
     @Command(description = "Imports a certificate")
     public void importCertificate(@Param(name = "file", description = "Certificate file (PEM)") String file,
-            @Param(name = "clientId", description = "Member identifier") ClientId clientId) throws Exception {
+            @Param(name = "clientId", description = "Member identifier") ClientId.Conf clientId) throws Exception {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(CERT_FILE_NAME_PARAM, file);
         logData.put(CLIENT_IDENTIFIER_PARAM, clientId);
@@ -740,7 +740,7 @@ public class SignerCLI {
      */
     @Command(description = "Generate certificate request")
     public void generateCertRequest(@Param(name = "keyId", description = "Key ID") String keyId,
-            @Param(name = "memberId", description = "Member identifier") ClientId memberId,
+            @Param(name = "memberId", description = "Member identifier") ClientId.Conf memberId,
             @Param(name = "usage", description = "Key usage (a - auth, s - sign)") String usage,
             @Param(name = "subjectName", description = "Subject name") String subjectName,
             @Param(name = "format", description = "Format of request (der/pem)") String format) throws Exception {
@@ -789,7 +789,7 @@ public class SignerCLI {
         cal.add(Calendar.YEAR, 2);
         Date notAfter = cal.getTime();
 
-        ClientId memberId = ClientId.create("FOO", "BAR", "BAZ");
+        ClientId.Conf memberId = ClientId.Conf.create("FOO", "BAR", "BAZ");
 
         GenerateSelfSignedCert request = new GenerateSelfSignedCert(keyId, cn, notBefore, notAfter,
                 KeyUsageInfo.SIGNING, memberId);

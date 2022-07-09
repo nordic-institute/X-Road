@@ -26,25 +26,22 @@
  */
 package org.niis.xroad.centralserver.restapi.service.managementrequest;
 
-import org.niis.xroad.centralserver.restapi.dto.ManagementRequestDto;
+import io.vavr.control.Option;
 import org.niis.xroad.centralserver.restapi.entity.Request;
-
-import java.util.Optional;
 
 /**
  * Interface for management request handlers.
- * @param <R> Dto type
  * @param <T> Request entity type
  * @see ManagementRequestService
  */
-interface RequestHandler<R extends ManagementRequestDto, T extends Request> {
+interface RequestHandler<T extends Request> {
 
     /**
      * Returns true if the request can be automatically approved
      */
     boolean canAutoApprove(T request);
 
-    T add(R request);
+    T add(T request);
 
     T approve(T request);
 
@@ -52,26 +49,11 @@ interface RequestHandler<R extends ManagementRequestDto, T extends Request> {
      * If the request can be handled by this handler, return the narrowed type,
      * otherwise return Optional.empty.
      */
-    default Optional<T> narrow(Request request) {
-        if (requestType().isAssignableFrom(request.getClass())) {
-            return Optional.of(requestType().cast(request));
-        }
-        return Optional.empty();
+    default Option<T> narrow(T request) {
+        return Option.of(request)
+                .filter(r -> requestType().isAssignableFrom(r.getClass()));
     }
 
     Class<T> requestType();
-
-    /**
-     * If the request can be handled by this handler, return the narrowed type,
-     * otherwise return Optional.empty.
-     */
-    default Optional<R> narrow(ManagementRequestDto request) {
-        if (dtoType().isAssignableFrom(request.getClass())) {
-            return Optional.of(dtoType().cast(request));
-        }
-        return Optional.empty();
-    }
-
-    Class<R> dtoType();
 
 }

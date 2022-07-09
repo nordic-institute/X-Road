@@ -491,7 +491,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     private void initLastHashStep() throws Exception {
         DigestEntry lastArchive = new DigestEntry(LAST_DIGEST, LAST_LOG_ARCHIVE_FILE);
-        ArchiveDigest digest = new ArchiveDigest(ClientId.create("XRD", "BUSINESS", "consumer").toShortString(),
+        ArchiveDigest digest = new ArchiveDigest(ClientId.Conf.create("XRD", "BUSINESS", "consumer").toShortString(),
                 lastArchive);
         doInTransaction(session -> {
             session.createQuery(getLastEntryDeleteQuery()).executeUpdate();

@@ -67,7 +67,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     public ResponseEntity<SecurityServer> getSecurityServer(String encodedSecurityServerId) {
-        SecurityServerId securityServerId = securityServerIdConverter.convertId(encodedSecurityServerId);
+        SecurityServerId securityServerId = securityServerIdConverter.convert(encodedSecurityServerId);
         if (!globalConfService.securityServerExists(securityServerId)) {
             throw new ResourceNotFoundException("Security server " + encodedSecurityServerId + " not found");
         }
@@ -85,7 +85,7 @@ public class SecurityServersApiController implements SecurityServersApi {
             SecurityServer currentSecurityServer = securityServerConverter.convert(currentSecurityServerId);
             securityServers = Collections.singleton(currentSecurityServer);
         } else {
-            List<SecurityServerId> securityServerIds = globalConfFacade.getSecurityServers();
+            List<SecurityServerId.Conf> securityServerIds = globalConfFacade.getSecurityServers();
             securityServers = securityServerConverter.convert(securityServerIds);
         }
         return new ResponseEntity<>(securityServers, HttpStatus.OK);

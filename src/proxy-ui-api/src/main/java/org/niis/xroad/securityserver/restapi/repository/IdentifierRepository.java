@@ -52,7 +52,7 @@ public class IdentifierRepository {
      * Executes a Hibernate saveOrUpdate(identifier)
      * @param identifier
      */
-    public void saveOrUpdate(XRoadId identifier) {
+    public void saveOrUpdate(XRoadId.Conf identifier) {
         saveOrUpdate(identifier, false);
     }
 
@@ -60,7 +60,7 @@ public class IdentifierRepository {
      * Executes a Hibernate saveOrUpdate(identifier) and flushes whole entityManager
      * @param identifier
      */
-    public void saveOrUpdateAndFlush(XRoadId identifier) {
+    public void saveOrUpdateAndFlush(XRoadId.Conf identifier) {
         saveOrUpdate(identifier, true);
     }
 
@@ -69,7 +69,7 @@ public class IdentifierRepository {
      * @param identifier
      * @param flush
      */
-    public void saveOrUpdate(XRoadId identifier, boolean flush) {
+    public void saveOrUpdate(XRoadId.Conf identifier, boolean flush) {
         persistenceUtils.getCurrentSession().saveOrUpdate(identifier);
         if (flush) {
             persistenceUtils.flush();
@@ -80,9 +80,9 @@ public class IdentifierRepository {
      * Executes a Hibernate persist(XRoadId) for multiple group members
      * @param identifiers
      */
-    public void saveOrUpdate(Collection<XRoadId> identifiers) {
+    public void saveOrUpdate(Collection<XRoadId.Conf> identifiers) {
         Session session = persistenceUtils.getCurrentSession();
-        for (XRoadId identifier : identifiers) {
+        for (XRoadId.Conf identifier : identifiers) {
             session.saveOrUpdate(identifier);
         }
     }
@@ -90,18 +90,18 @@ public class IdentifierRepository {
     /**
      * return all identifiers
      */
-    public Collection<XRoadId> getIdentifiers() {
+    public Collection<XRoadId.Conf> getIdentifiers() {
         IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
-        return identifierDao.findAll(persistenceUtils.getCurrentSession(), XRoadId.class);
+        return identifierDao.findAll(persistenceUtils.getCurrentSession(), XRoadId.Conf.class);
     }
 
     /**
      * Finds a (local) client identifier corresponding the example or null if none exits
      */
-    public ClientId getClientId(ClientId clientId) {
+    public ClientId.Conf getClientId(ClientId clientId) {
         Session session = persistenceUtils.getCurrentSession();
         IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
-        ClientId localClientId = identifierDao.findClientId(session, clientId);
+        ClientId.Conf localClientId = identifierDao.findClientId(session, clientId);
         return localClientId;
     }
 
