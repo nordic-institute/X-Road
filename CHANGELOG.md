@@ -1,6 +1,7 @@
 # Change Log
 
 ## 6.26.3 - 2022-07-14
+- XRDDEV-2043: RHEL8 database migrations fail during installation
 - XRDDEV-2076: Update dependencies with known vulnerabilities
 
 ## 6.26.2 - 2022-04-25
