@@ -91,8 +91,6 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/examples/zabbix/*
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
-%pre
-
 %define init_xroad_opmonitor_db()                       \
      /usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
 
