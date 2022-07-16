@@ -3,6 +3,7 @@
 ## 6.26.3 - 2022-07-14
 - XRDDEV-2043: RHEL8 database migrations fail during installation
 - XRDDEV-2076: Update dependencies with known vulnerabilities
+- XRDDEV-2095: Operational monitoring database migrations are not executed on RHEL8 during installation
 
 ## 6.26.2 - 2022-04-25
 - XRDDEV-1972: Update dependencies with known vulnerabilities
