@@ -113,7 +113,7 @@ rm -rf %{buildroot}
 %postun
 %systemd_postun_with_restart xroad-opmonitor.service
 
-$posttrans
+%posttrans
 # RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
 %if 0%{?el8}
 %init_xroad_opmonitor_db
