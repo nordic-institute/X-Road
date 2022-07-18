@@ -43,4 +43,15 @@
       ]]></notes>
       <cve>CVE-2016-1000027</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+        file name: jakarta.annotations-api-1.3.5.jar
+        file name: jakarta.transaction-api-1.3.3.jar
+        file name: spring-cloud-commons-2.2.9.RELEASE.jar
+        file name: spring-cloud-context-2.2.9.RELEASE.jar
+        file name: spring-cloud-starter-2.2.9.RELEASE.jar
+        file name: stax-ex-1.8.3.jar
+        ]]></notes>
+        <cve>CVE-2022-31569</cve>
+    </suppress>
 </suppressions>
