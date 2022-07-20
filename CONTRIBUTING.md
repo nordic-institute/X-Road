@@ -33,7 +33,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 Before you ask a question, it is best to check the existing resources first:
 
 - [X-Road documentation portal](https://docs.x-road.global);
-- [Knowledge Base](https://confluence.niis.org/display/XRDKB);
+- [Knowledge Base](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB);
 - [List of X-Road resources](https://x-road.global/resources).
 
 If you then still feel the need to ask a question and need clarification, please submit a question to the [X-Road community Slack](https://jointxroad.slack.com/)
@@ -96,9 +96,9 @@ Approving the  request typically requires 1-2 business days.
 Before submitting a bug:
 
 - Make sure that you are using the latest version.
-- Check the [Knowledge Base](https://confluence.niis.org/display/XRDKB) for a list of common questions and problems.
+- Check the [Knowledge Base](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB) for a list of common questions and problems.
 - Ask the community on the [X-Road community Slack](https://jointxroad.slack.com/) if the problem is a known issue or a feature. Also, check the Slack history for previous questions on the same topic.
-- Perform a [cursory search](https://jira.niis.org/projects/XRDDEV/) to see if the problem has already been reported. If it has and the issue is still open, add a comment to the existing issue instead of opening a new one.
+- Perform a [cursory search](https://nordic-institute.atlassian.net/browse/XRDDEV) to see if the problem has already been reported. If it has and the issue is still open, add a comment to the existing issue instead of opening a new one.
 
 When submitting a bug, explain the problem and include additional details to help maintainers reproduce the problem:
 
@@ -117,7 +117,7 @@ Before submitting an enhancement request:
 
 - Make sure that you are using the latest version.
 - Read the [documentation](https://docs.x-road.global) carefully and find out if the functionality is already covered, maybe by an individual configuration.
-- Perform a [search](https://jira.niis.org/projects/XRDDEV/) to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
+- Perform a [search](https://nordic-institute.atlassian.net/browse/XRDDEV) to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
 - Find out whether your idea fits with the scope and aims of the project. It's up to you to make a strong case to convince the project's developers of the merits of this feature. Keep in mind that we want features that will be useful to the majority of our users and not just a small subset. If you're just targeting a minority of users, consider writing an add-on or an extension.
 
 The evaluation process of the enhancement requests is described [here](https://github.com/nordic-institute/X-Road-development/blob/master/DEVELOPMENT_MODEL.md#3-change-management).
@@ -125,10 +125,10 @@ The evaluation process of the enhancement requests is described [here](https://g
 ### Security Issues And Vulnerabilities
 
 Security issues and vulnerabilities are reported privately to the [X-Road Service
-Desk](https://jira.niis.org/servicedesk/customer/portal/1) using the
+Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4) using the
 `Report a software problem` request type.
-[Sign up](https://jira.niis.org/secure/Signup!default.jspa) for an account and
-get access to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1).
+[Sign up](https://id.atlassian.com/signup) for an account and
+get access to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4).
 
 Another alternative to report security issues and vulnerabilities is the X-Road bug bounty program that is run on the Intigrity platform. [Visit the program details](https://app.intigriti.com/programs/niis/x-road/detail) to get started.
 
@@ -136,8 +136,8 @@ Another alternative to report security issues and vulnerabilities is the X-Road 
 
 Unsure where to begin contributing to X-Road? You can start by looking through these `beginner` and `help-wanted` issues:
 
-- [Beginner issues](https://jira.niis.org/issues/?jql=project%20%3D%20XRDDEV%20AND%20status%20%3D%20%22To%20Do%22%20AND%20labels%20%3D%20beginner%20ORDER%20BY%20key%20DESC) - issues which should only require a few lines of code, and a test or two.
-- [Help wanted issues](https://jira.niis.org/issues/?jql=project%20%3D%20XRDDEV%20AND%20status%20%3D%20%22To%20Do%22%20AND%20labels%20%3D%20help-wanted%20ORDER%20BY%20key%20DESC) - issues which should be a bit more involved than beginner issues.
+- [Beginner issues](https://nordic-institute.atlassian.net/jira/software/c/projects/XRDDEV/issues/?jql=project%20%3D%20XRDDEV%20AND%20status%20%3D%20%22To%20Do%22%20AND%20labels%20%3D%20beginner%20ORDER%20BY%20key%20DESC) - issues which should only require a few lines of code, and a test or two.
+- [Help wanted issues](https://nordic-institute.atlassian.net/jira/software/c/projects/XRDDEV/issues/?jql=project%20%3D%20XRDDEV%20AND%20status%20%3D%20%22To%20Do%22%20AND%20labels%20%3D%20help-wanted%20ORDER%20BY%20key%20DESC) - issues which should be a bit more involved than beginner issues.
 
 X-Road can be developed locally. For instructions on how to do this, see the [build instructions](src/BUILD.md). Also,
 completing the X-Road Academy [Core Developer training](https://academy.x-road.global/courses/x-road-core-developer) is
