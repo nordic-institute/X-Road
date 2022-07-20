@@ -83,11 +83,13 @@ by post:
 ### Enhancement Requests and Error Reports
 
 X-Road enhancement requests and error reports can be submitted to the [X-Road Service
-Desk](https://jira.niis.org/servicedesk/customer/portal/1).
-[Sign up](https://jira.niis.org/secure/Signup!default.jspa) for an account and
-get access to the [X-Road Service
-Desk](https://jira.niis.org/servicedesk/customer/portal/1) and
-[X-Road Backlog](https://jira.niis.org/projects/XRDDEV/).
+Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4). In order 
+to access the X-Road Service Desk, [sign up](https://id.atlassian.com/signup) for an 
+account and request access to the [X-Road Backlog](https://nordic-institute.atlassian.net/jira/software/c/projects/XRDDEV/boards/6/backlog).
+Alternatively, you can use your existing account, sign in and request for access. Once 
+your request has been approved, you're able to access the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4) 
+and the [X-Road Backlog](https://nordic-institute.atlassian.net/jira/software/c/projects/XRDDEV/boards/6/backlog). 
+Approving the  request typically requires 1-2 business days.
 
 #### Submitting a Bug
 
