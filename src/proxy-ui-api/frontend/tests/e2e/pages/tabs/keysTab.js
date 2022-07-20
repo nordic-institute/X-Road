@@ -227,6 +227,10 @@ var addKeywizardCSRCommands = {
 
     this.api.pause(1000);
     // The picker menu is attached to the main app dom tree, not the dialog
+    this.api.assert.containsText(
+      '//div[contains(@class, "v-select-list")]',
+      service,
+    );
     this.api.click(
       '//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"' +
         service +
