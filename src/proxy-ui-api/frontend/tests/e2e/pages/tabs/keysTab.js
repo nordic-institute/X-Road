@@ -210,60 +210,38 @@ var addKeywizardCSRCommands = {
   },
   selectUsageMethod: function (method) {
     this.waitForElementVisible('@csrUsage');
-    this.click('@csrUsage');
-
-    this.api.pause(1000);
-    // The picker menu is attached to the main app dom tree, not the dialog
-    this.api.click(
-      '//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"' +
-        method +
-        '")]',
-    );
-
-    return this;
+    return this.selectDropdownOption('@csrUsage', method);
   },
   selectService: function (service) {
     this.click('@csrService');
 
     this.api.pause(1000);
     // The picker menu is attached to the main app dom tree, not the dialog
-    this.api.assert.containsText(
-      '//div[contains(@class, "v-select-list")]',
-      service,
-    );
-    this.api.click(
-      '//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"' +
-        service +
-        '")]',
-    );
+    let serviceNotPresentMsg = 'Certification service selection does not contain ' + service + ' option.';
+    this.api.assert.elementPresent(this.dropdownValueSelector(service), serviceNotPresentMsg);
+    this.api.click(this.dropdownValueSelector(service));
 
     return this;
   },
   selectFormat: function (format) {
-    this.click('@csrFormat');
-
-    this.api.pause(1000);
-    // The picker menu is attached to the main app dom tree, not the dialog
-    this.api.click(
-      '//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"' +
-        format +
-        '")]',
-    );
-
-    return this;
+    return this.selectDropdownOption('@csrFormat', format);
   },
   selectClient: function (client) {
-    this.click('@csrClient');
-
+    return this.selectDropdownOption('@csrClient', client);
+  },
+  selectDropdownOption: function (dropdown, value) {
+    this.click(dropdown);
     this.api.pause(1000);
     // The picker menu is attached to the main app dom tree, not the dialog
-    this.api.click(
-      '//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"' +
-        client +
-        '")]',
-    );
-
+    this.api.click(this.dropdownValueSelector(value));
     return this;
+  },
+  dropdownValueSelector: function (optionName) {
+    return (
+      '//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"' +
+      optionName +
+      '")]'
+    );
   },
 };
 
