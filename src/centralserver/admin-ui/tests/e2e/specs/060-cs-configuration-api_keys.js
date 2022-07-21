@@ -50,10 +50,13 @@ module.exports = {
       .click('@apiKeysCheckboxRoleRegistrationOfficerButton')
       .pause(1000)
       .click('@apiKeysViewWizardNextButton')
+      .waitForElementVisible('@apiKeysViewWizardPreviousButton')
       .click('@apiKeysViewWizardPreviousButton')
+      .waitForElementVisible('@apiKeysViewWizardNextButton')
       .click('@apiKeysViewWizardNextButton')
-      .waitForElementVisible('@apiKeysViewWizardCreateKeyButton', 5 * 1000)
+      .waitForElementVisible('@apiKeysViewWizardCreateKeyButton')
       .click('@apiKeysViewWizardCreateKeyButton')
+      .waitForElementVisible('@successSnackBar')
       .waitForElementPresent('@apiKeysCreatedKeyId', 1000)
       .getText('@apiKeysCreatedKeyId', function (result) {
         createdApiKeyId = result.value;
@@ -63,10 +66,7 @@ module.exports = {
 
     await settings
       .apiKeysViewIsVisible()
-      .waitForElementVisible(
-        `//div[@data-test="api-keys-view"]//div[text()=" ${createdApiKeyId} "]`,
-        5 * 1000,
-      );
+      .waitForElementVisible(`//div[@data-test="api-keys-view"]//div[text()=" ${createdApiKeyId} "]`);
   },
   'Api Key is revoked and not listed anymore': async () => {
     let firstApiKeyId;
@@ -110,8 +110,9 @@ module.exports = {
       .click('@apiKeysCheckboxRoleRegistrationOfficerButton')
       .pause(1000)
       .click('@apiKeysViewWizardNextButton')
-      .waitForElementVisible('@apiKeysViewWizardCreateKeyButton', 5 * 1000)
+      .waitForElementVisible('@apiKeysViewWizardCreateKeyButton')
       .click('@apiKeysViewWizardCreateKeyButton')
+      .waitForElementVisible('@successSnackBar')
       .waitForElementPresent('@apiKeysCreatedKeyId', 1000)
       .getText('@apiKeysCreatedKeyId', function (result) {
         createdApiKeyId = result.value;
