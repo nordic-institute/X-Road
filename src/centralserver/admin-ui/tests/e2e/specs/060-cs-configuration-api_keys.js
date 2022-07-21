@@ -110,7 +110,7 @@ module.exports = {
       .click('@apiKeysCheckboxRoleRegistrationOfficerButton')
       .pause(1000)
       .click('@apiKeysViewWizardNextButton')
-      .waitForElementVisible('@apiKeysViewWizardCreateKeyButton', 5 * 1000)
+      .waitForElementVisible('@apiKeysViewWizardCreateKeyButton')
       .click('@apiKeysViewWizardCreateKeyButton')
       .waitForElementVisible('@successSnackBar')
       .waitForElementPresent('@apiKeysCreatedKeyId', 1000)
