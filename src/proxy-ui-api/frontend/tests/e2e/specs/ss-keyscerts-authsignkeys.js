@@ -603,10 +603,7 @@ module.exports = {
       generateKeyCsrWizardCsr.elements.csrUsage,
       'AUTHENTICATION',
     );
-    browser.assert.containsText(
-      generateKeyCsrWizardCsr.elements.csrService,
-      'X-Road Test CA CN',
-    );
+
     generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
     generateKeyCsrWizardCsr.selectFormat('DER');
     generateKeyCsrWizardCsr.next();
