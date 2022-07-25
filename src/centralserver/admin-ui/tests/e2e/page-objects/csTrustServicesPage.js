@@ -44,7 +44,7 @@ const certificationServicesCommands = {
   getCertificationServices() {
     return this.api.elements(
       'xpath',
-      '//div[@data-test="certification-services"]//table/tbody/tr',
+      '//div[@data-test="certification-services"]//table/tbody/tr[.//td[not(contains(text(), "No data available"))]]',
     );
   },
 };
