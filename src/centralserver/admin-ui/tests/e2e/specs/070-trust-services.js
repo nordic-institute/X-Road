@@ -75,7 +75,7 @@ module.exports = {
 
     browser
       .waitForElementVisible(trustServicesPage.elements.successSnackBar)
-      .pause(1000);
+      .pause(5 * 1000);
     const certificationServices =
       await certificationServicesSection.getCertificationServices();
     browser.assert.ok(
