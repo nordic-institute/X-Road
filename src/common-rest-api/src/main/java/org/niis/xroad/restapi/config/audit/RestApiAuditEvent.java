@@ -125,7 +125,14 @@ public enum RestApiAuditEvent {
     APPROVE_MANAGEMENT_REQUEST("Approve management request"),
 
     DELETE_SECURITY_SERVER("Delete security server"),
-    UPDATE_SECURITY_SERVER_ADDRESS("Update security server address");
+    UPDATE_SECURITY_SERVER_ADDRESS("Update security server address"),
+
+    ADD_CERTIFICATION_SERVICE("Add certification service"),
+
+    ADD_GLOBAL_GROUP("Add global group"),
+    DELETE_GLOBAL_GROUP("Delete global group"),
+
+    EDIT_GLOBAL_GROUP_DESCRIPTION("Edit global group description");
 
     private final String eventName;
 

@@ -64,9 +64,9 @@ public class ConfProxyTest {
                 ConfigFactory.load().getConfig("configuration-proxy"));
         SignerClient.init(actorSystem);
         System.setProperty(CONFIGURATION_PROXY_CONF_PATH, "src/test/resources/conf-proxy-conf");
-        System.setProperty(CONFIGURATION_PROXY_GENERATED_CONF_PATH, "build/tmp/test/generated-conf");
+        System.setProperty(CONFIGURATION_PROXY_GENERATED_CONF_PATH, ".build/tmp/test/generated-conf");
         System.setProperty(CONFIGURATION_PATH, "src/test/resources/test-conf-simple");
-        System.setProperty(TEMP_FILES_PATH, "build/tmp/test");
+        System.setProperty(TEMP_FILES_PATH, ".build/tmp/test");
     }
 
     @Test
@@ -81,7 +81,7 @@ public class ConfProxyTest {
             CodedException exception = assertThrows(CodedException.class, output::buildSignedDirectory);
             assertEquals("InternalError: Signer is unreachable", exception.getMessage());
         }
-        assertEquals(0, Files.list(Paths.get("build/tmp/test/PROXY1")).count());
+        assertEquals(0, Files.list(Paths.get(".build/tmp/test/PROXY1")).count());
     }
 
     @After

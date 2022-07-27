@@ -39,7 +39,7 @@ import org.niis.xroad.restapi.exceptions.DeviationCodes;
  * test token pin validator
  */
 @Slf4j
-public class TokenPinValidatorTest {
+class TokenPinValidatorTest {
     private final TokenPinValidator tokenPinValidator = new TokenPinValidator();
 
     private static final String SOFTWARE_TOKEN_PIN = "ABCdef123456.";
@@ -52,12 +52,12 @@ public class TokenPinValidatorTest {
     }
 
     @Test
-    public void validateSoftwareTokenPinSuccess() throws Exception {
+    void validateSoftwareTokenPinSuccess() throws Exception {
         tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_PIN.toCharArray());
     }
 
     @Test
-    public void validateSoftwareTokenPinWeak() throws Exception {
+    void validateSoftwareTokenPinWeak() throws Exception {
         try {
             tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray());
         } catch (WeakPinException expected) {
@@ -70,13 +70,13 @@ public class TokenPinValidatorTest {
     }
 
     @Test
-    public void validateSoftwareTokenPinNotEnforcedSuccess() throws Exception {
+    void validateSoftwareTokenPinNotEnforcedSuccess() throws Exception {
         tokenPinValidator.setTokenPinEnforced(false);
         tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray());
     }
 
     @Test
-    public void validateSoftwareTokenPinInvalid() throws Exception {
+    void validateSoftwareTokenPinInvalid() throws Exception {
         try {
             tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_INVALID_PIN.toCharArray());
         } catch (InvalidCharactersException expected) {

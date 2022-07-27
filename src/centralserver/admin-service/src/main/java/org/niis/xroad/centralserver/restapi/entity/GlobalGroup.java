@@ -27,6 +27,7 @@
 package org.niis.xroad.centralserver.restapi.entity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Access;
@@ -47,6 +48,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@NoArgsConstructor
 @Table(name = GlobalGroup.TABLE_NAME)
 public class GlobalGroup extends AuditableEntity {
 
@@ -78,16 +80,10 @@ public class GlobalGroup extends AuditableEntity {
     @Getter
     private Set<GlobalGroupMember> globalGroupMembers = new HashSet<>(0);
 
-    protected GlobalGroup() {
-        //JPA
-    }
-
     public GlobalGroup(String groupCode) {
         this.groupCode = groupCode;
     }
 
     @Transient
-    public int getMemberCount() {
-        return this.memberCount == null ? 0 : this.memberCount;
-    }
+    private Integer memberCount = 0;
 }

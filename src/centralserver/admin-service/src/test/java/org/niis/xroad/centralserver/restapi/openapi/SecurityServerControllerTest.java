@@ -43,10 +43,10 @@ import javax.validation.ConstraintViolationException;
 import java.util.List;
 
 import static java.util.Locale.ROOT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.util.AssertionErrors.assertTrue;
 
 public class SecurityServerControllerTest extends AbstractApiControllerTestContext {
 

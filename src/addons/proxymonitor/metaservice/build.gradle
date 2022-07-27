@@ -70,7 +70,6 @@ shadowJar {
 }
 
 build.dependsOn shadowJar
-buildall.dependsOn shadowJar
 
 compileJava.dependsOn processResources
 

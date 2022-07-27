@@ -96,15 +96,28 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
+%define init_xroad_opmonitor_db()                       \
+    /usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
+
 %post
-/usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
 %systemd_post xroad-opmonitor.service
+
+# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+%if 0%{?el7}
+%init_xroad_opmonitor_db
+%endif
 
 %preun
 %systemd_preun xroad-opmonitor.service
 
 %postun
 %systemd_postun_with_restart xroad-opmonitor.service
+
+$posttrans
+# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8}
+%init_xroad_opmonitor_db
+%endif
 
 %changelog
 

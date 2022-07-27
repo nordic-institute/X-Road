@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.centralserver.restapi.service.SystemParameterService;
@@ -62,7 +62,7 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
         TestUtils.mockServletRequestAttributes();
     }
 
-    @After
+    @AfterEach
     public void cleanUpServlet() {
         RequestContextHolder.resetRequestAttributes();
         validateMockitoUsage();
