@@ -1307,6 +1307,130 @@
     "1070412|@vue/cli-service>webpack-bundle-analyzer>ejs": {
       "decision": "ignore",
       "madeAt": 1659015388125
+    },
+    "1070415|@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check": {
+      "decision": "ignore",
+      "madeAt": 1659022151356
+    },
+    "1070415|@vue/cli-plugin-babel>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check": {
+      "decision": "ignore",
+      "madeAt": 1659022151356
+    },
+    "1070415|@vue/cli-plugin-e2e-nightwatch>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check": {
+      "decision": "ignore",
+      "madeAt": 1659022151356
+    },
+    "1070415|@vue/cli-plugin-eslint>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check": {
+      "decision": "ignore",
+      "madeAt": 1659022151356
+    },
+    "1070415|@vue/cli-plugin-typescript>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check": {
+      "decision": "ignore",
+      "madeAt": 1659022151356
+    },
+    "1070415|@vue/cli-plugin-vuex>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check": {
+      "decision": "ignore",
+      "madeAt": 1659022151356
+    },
+    "1070415|@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check": {
+      "decision": "ignore",
+      "madeAt": 1659022151356
+    },
+    "1070259|@mdx-js/loader>@mdx-js/mdx>remark-mdx>remark-parse>trim": {
+      "decision": "ignore",
+      "madeAt": 1659022161646
+    },
+    "1070259|@storybook/addon-essentials>@storybook/addon-docs>@mdx-js/mdx>remark-mdx>remark-parse>trim": {
+      "decision": "ignore",
+      "madeAt": 1659022161646
+    },
+    "1081528|@storybook/addon-essentials>@storybook/addon-docs>@mdx-js/mdx>remark-mdx>remark-parse>trim>@storybook/core>@storybook/core-server>@storybook/csf-tools>cpy>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1659022164368
+    },
+    "1081528|@vue/cli-plugin-babel>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1659022164368
+    },
+    "1081528|@vue/cli-plugin-e2e-nightwatch>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1659022164368
+    },
+    "1081528|@vue/cli-plugin-eslint>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1659022164368
+    },
+    "1081528|@vue/cli-plugin-typescript>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1659022164368
+    },
+    "1081528|@vue/cli-plugin-vuex>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1659022164368
+    },
+    "1081528|@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1659022164368
+    },
+    "1081528|webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1659022164368
+    },
+    "1081528|webpack-dev-server>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1659022164368
+    },
+    "1070412|@vue/cli-plugin-babel>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check>globby>fast-glob>webpack-bundle-analyzer>ejs": {
+      "decision": "ignore",
+      "madeAt": 1659022169507
+    },
+    "1070412|@vue/cli-plugin-e2e-nightwatch>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check>globby>fast-glob>webpack-bundle-analyzer>ejs": {
+      "decision": "ignore",
+      "madeAt": 1659022169507
+    },
+    "1070412|@vue/cli-plugin-eslint>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check>globby>fast-glob>webpack-bundle-analyzer>ejs": {
+      "decision": "ignore",
+      "madeAt": 1659022169507
+    },
+    "1070412|@vue/cli-plugin-typescript>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check>globby>fast-glob>webpack-bundle-analyzer>ejs": {
+      "decision": "ignore",
+      "madeAt": 1659022169507
+    },
+    "1070412|@vue/cli-plugin-vuex>@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check>globby>fast-glob>webpack-bundle-analyzer>ejs": {
+      "decision": "ignore",
+      "madeAt": 1659022169507
+    },
+    "1070412|@vue/cli-service>@vue/cli-plugin-router>copy-webpack-plugin>glob-parent>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check>globby>fast-glob>webpack-bundle-analyzer>ejs": {
+      "decision": "ignore",
+      "madeAt": 1659022169507
+    },
+    "1075671|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-environment-jsdom>jsdom": {
+      "decision": "ignore",
+      "madeAt": 1659022172582
+    },
+    "1075671|ts-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-environment-jsdom>jsdom": {
+      "decision": "ignore",
+      "madeAt": 1659022172582
+    },
+    "1068287|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-environment-jsdom>jsdom>node-notifier": {
+      "decision": "ignore",
+      "madeAt": 1659022176008
+    },
+    "1068287|ts-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-environment-jsdom>jsdom>node-notifier": {
+      "decision": "ignore",
+      "madeAt": 1659022176008
+    },
+    "1068310|ts-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>@jest/test-sequencer>jest-runner>jest-jasmine2>jest-environment-jsdom>jsdom>node-notifier>yargs-parser": {
+      "decision": "ignore",
+      "madeAt": 1659022178130
+    },
+    "1067473|webpack-dev-server>chokidar>glob-parent>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1659022180308
+    },
+    "1070356|webpack-dev-server>chokidar>glob-parent>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1659022184496
     }
   },
   "rules": {},
