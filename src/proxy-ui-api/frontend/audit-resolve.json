@@ -1303,6 +1303,10 @@
     "1006947|@vue/cli-service>webpack-dev-server>chokidar>glob-parent": {
       "decision": "ignore",
       "madeAt": 1644409240027
+    },
+    "1070412|@vue/cli-service>webpack-bundle-analyzer>ejs": {
+      "decision": "ignore",
+      "madeAt": 1659015388125
     }
   },
   "rules": {},
