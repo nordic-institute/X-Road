@@ -25,7 +25,7 @@ dependencies {
     api 'org.apache.james:apache-mime4j-core:0.8.6'
     api "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
     api 'com.sun.xml.messaging.saaj:saaj-impl:1.5.3'
-    api 'com.sun.activation:jakarta.activation:1.2.2'
+    api 'com.sun.activation:jakarta.activation:2.0.1'
     api "org.eclipse.jetty:jetty-server:$jettyVersion"
     api 'org.apache.httpcomponents:httpclient:4.5.13'
     api 'org.apache.httpcomponents:httpasyncclient:4.1.4'
@@ -38,14 +38,14 @@ dependencies {
     api "com.fasterxml.jackson.core:jackson-databind"
     api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
-    api 'com.google.code.gson:gson:2.8.7'
+    api 'com.google.code.gson:gson:2.9.0'
     api "com.google.guava:guava:$guavaVersion"
 
     api ('org.quartz-scheduler:quartz:2.3.2') {
         exclude module: 'c3p0'
     }
 
-    api 'org.apache.commons:commons-configuration2:2.7'
+    api 'org.apache.commons:commons-configuration2:2.8.0'
 
     implementation "ch.qos.logback:logback-classic:$logbackVersion"
 

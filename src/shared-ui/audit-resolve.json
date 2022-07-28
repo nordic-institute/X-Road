@@ -1935,6 +1935,22 @@
     "1070206|@vue/cli-service>webpack-dev-server>portfinder>async": {
       "decision": "ignore",
       "madeAt": 1650867333753
+    },
+    "1070412|@vue/cli-service>webpack-bundle-analyzer>ejs": {
+      "decision": "ignore",
+      "madeAt": 1659015388125
+    },
+    "1070434|@vue/cli-service>webpack-dev-server>sockjs-client>eventsource": {
+      "decision": "ignore",
+      "madeAt": 1659015388125
+    },
+    "1075650|@vue/cli-plugin-babel>@vue/cli-shared-utils>launch-editor>shell-quote": {
+      "decision": "ignore",
+      "madeAt": 1659015388125
+    },
+    "1075650|@vue/cli-service>@vue/cli-plugin-router>@vue/cli-shared-utils>launch-editor>shell-quote": {
+      "decision": "ignore",
+      "madeAt": 1659015388125
     }
   },
   "rules": {},
