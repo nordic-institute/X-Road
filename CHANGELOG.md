@@ -1,5 +1,9 @@
 # Change Log
 
+## 7.0.4 - 2022-08-03
+- XRDDEV-2043: RHEL8 database migrations fail during installation
+- XRDDEV-2075: Update dependencies with known vulnerabilities
+
 ## 7.0.3 - 2022-04-25
 - XRDDEV-1973: Update dependencies with known vulnerabilities
 

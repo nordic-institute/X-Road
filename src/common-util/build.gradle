@@ -45,7 +45,7 @@ dependencies {
         exclude module: 'c3p0'
     }
 
-    api 'org.apache.commons:commons-configuration2:2.7'
+    api 'org.apache.commons:commons-configuration2:2.8'
 
     implementation "ch.qos.logback:logback-classic:$logbackVersion"
 

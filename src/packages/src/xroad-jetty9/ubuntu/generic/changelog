@@ -1,3 +1,9 @@
+xroad-jetty9 (7.0.4-1) stable; urgency=medium
+
+  * Version bump
+
+ -- NIIS <info@niis.org>  Tue, 26 Jul 2022 14:53:23 +0300
+
 xroad-jetty9 (7.0.3-1) stable; urgency=medium
 
   * Version bump
