@@ -19,5 +19,6 @@ Gem::Specification.new do |s|
   s.add_dependency "transaction_isolation", "~> 1.0.3"
   s.add_dependency "foreigner", "~> 1.7.0"
   s.add_dependency 'rack-cache', '~> 1.6.1'
+  s.add_dependency 'jar-dependencies', '~> 0.4.1'
 
 end

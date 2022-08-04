@@ -19,4 +19,5 @@ Gem::Specification.new do |s|
 
   s.add_dependency "addressable", '~> 2.4.0'
   s.add_dependency "psych", '~> 3.0.3'
+  s.add_dependency 'jar-dependencies', '~> 0.4.1'
 end
