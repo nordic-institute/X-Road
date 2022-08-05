@@ -18,6 +18,8 @@ dependencies {
     implementation project(':common-verifier')
     implementation project(':signer-protocol')
 
+    implementation('com.nimbusds:nimbus-jose-jwt:9.23')
+
     // Necessary since there are jars with no adequate Maven dependencies
     implementation fileTree(dir: '../libs', include: '*.jar')
 

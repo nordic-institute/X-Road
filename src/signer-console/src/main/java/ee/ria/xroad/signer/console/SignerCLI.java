@@ -52,6 +52,7 @@ import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
 import ee.ria.xroad.signer.protocol.message.GetAuthKey;
+import ee.ria.xroad.signer.protocol.message.GetDidDocument;
 import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
 import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
 import ee.ria.xroad.signer.protocol.message.GetMemberCerts;
@@ -174,6 +175,21 @@ public class SignerCLI {
                 }
             },
     };
+
+    /**
+     * Creates a Gaia-X Self-Description.
+     *
+     * @throws Exception if an error occurs
+     */
+    @Command(description = "Creates a Gaia-X Self-Description")
+    public void getSelfDescription(
+            @Param(name = "memberId", description = "Member identifier") ClientId memberId,
+            @Param(name = "didDomain", description = "DID domain") String didDomain
+        ) throws Exception {
+        String response = SignerClient.execute(new GetDidDocument(memberId, didDomain));
+
+        System.out.println("The DID document was written to \"" + response + "\".");
+    }
 
     /**
      * Lists all tokens.
