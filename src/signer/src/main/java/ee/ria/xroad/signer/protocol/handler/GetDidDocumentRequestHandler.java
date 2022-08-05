@@ -51,6 +51,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -70,7 +77,10 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
@@ -85,7 +95,12 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
 @Slf4j
 public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidDocument> {
 
+    public static final String ISO_8601_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private String didFileLocation = SystemProperties.getTempFilesPath() + "did-web.json";
+    private String selfDescriptionFileLocation = SystemProperties.getTempFilesPath() + "self-description.json";
+    private String termsAndConditionsHash = "36ba819f30a3c4d4a7f16ee0a77259fc92f2e1ebf739713609f"
+            + "1c11eb41499e7aa2cd3a5d2011e073f9ba9c107493e3e8629cc15cd4fc07f67281d7ea9023db0";
+    private boolean isDetached = true;
 
     @Override
     protected Object handle(GetDidDocument message) throws Exception {
@@ -117,17 +132,29 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
                         log.trace("Found suitable sign key {}",
                                 keyInfo.getId());
 
+                        // Convert the existing sign key to a JSON Web Key (JWK)
                         JWK jwk = createJwk(keyInfo, certInfo);
 
+                        // Create a DID document for DID Web identifier
                         JsonObject did = createDidJson(jwk, message.getDidDomain());
 
-                        writeDidDocumentToFile(did.toString().getBytes());
+                        // Write the DID document to file
+                        writeToFile(did.toString().getBytes(), didFileLocation);
+
+                        // Create a Gaia-X Self-Description
+                        JsonObject sd = createSelfDescription(message.getDidDomain(),
+                                "https://niis.org/credentials/1",
+                                "123456-7", "FI-18");
+
+                        // Create a JSON Web Signature (JWS) for the Self-Description
+                        JWSObject jws = createJws(sd, jwk);
+                        // Add the signature and the proof to the Self-Description
+                        addProofToSelfDescription(sd, did, jws);
+
+                        // Write the Self-Description to file
+                        writeToFile(sd.toString().getBytes(), selfDescriptionFileLocation);
 
                         return didFileLocation;
-
-                        //return "Member ID: " + message.getMemberId() + " | DID domain: " + message.getDidDomain();
-                        //return jwk.toPublicJWK().toJSONString();
-                        //return did.toString();
                     }
                 }
             }
@@ -136,6 +163,34 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
                 "sign_key_not_found_for_member",
                 "Could not find active sign key for "
                         + "member '%s'", message.getMemberId());
+    }
+
+    private JWSObject createJws(JsonObject selfDescription, JWK jwk) throws Exception {
+        // The payload is not be encoded and must be passed to
+        // the JWS consumer in a detached manner
+        Payload payload = new Payload(selfDescription.toString());
+
+        // Create and sign JWS
+        // The JWS signature is created using unencoded payload option and a detached payload
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
+                .base64URLEncodePayload(false)
+                .criticalParams(Collections.singleton("b64"))
+                .build();
+
+        JWSObject jwsObject = new JWSObject(header, payload);
+        jwsObject.sign(new RSASSASigner(jwk.toRSAKey()));
+
+        // Serialize JWS to String
+        String jws = jwsObject.serialize(isDetached);
+
+        // Verify the generated JWS
+        JWSObject parsedJWSObject = JWSObject.parse(jws, payload);
+        JWSVerifier verifier = new RSASSAVerifier(jwk.toPublicJWK().toRSAKey());
+        if (!parsedJWSObject.verify(verifier)) {
+            throw new Exception("Verifying the JWS failed");
+        }
+
+        return jwsObject;
     }
 
     private JWK createJwk(KeyInfo keyInfo, CertificateInfo certInfo) throws Exception {
@@ -169,10 +224,13 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
                 .x509CertChain(certs)
                 .build();
     }
-    private JsonObject createDidJson(JWK jwk, String didDomain) {
-        String didWed = "did:web:" + didDomain
+    private String createDidWed(String didDomain) {
+        return "did:web:" + didDomain
                 .replace(":", "%3A")
                 .replaceAll("[./]", ":");
+    }
+    private JsonObject createDidJson(JWK jwk, String didDomain) {
+        String didWed = createDidWed(didDomain);
         JsonObject did = new JsonObject();
         JsonArray context = new JsonArray();
         context.add("https://www.w3.org/ns/did/v1");
@@ -198,8 +256,70 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
 
         return did;
     }
-    private void writeDidDocumentToFile(byte[] data) throws Exception {
-        Path didFilePath = Paths.get(didFileLocation);
+
+    private JsonObject createSelfDescription(String didDomain, String credentialId,
+                                             String businessId, String countryCode) {
+        String didWed = createDidWed(didDomain);
+        String date = getDateISOString();
+
+        JsonObject sd = new JsonObject();
+        JsonArray context = new JsonArray();
+        context.add("https://www.w3.org/2018/credentials/v1");
+        context.add("https://www.w3.org/2018/credentials/examples/v1");
+        sd.add("@context", context);
+        sd.addProperty("id", credentialId);
+        sd.addProperty("type", "VerifiableCredential");
+        sd.addProperty("issuer", didWed);
+        sd.addProperty("issuanceDate", date);
+
+        JsonObject credentialSubject = new JsonObject();
+        JsonObject credentialSubjectContext = new JsonObject();
+        credentialSubjectContext.addProperty("gx", "https://registry.gaia-x.eu/22.04/schema/gaia-x");
+        credentialSubject.add("@context", credentialSubjectContext);
+        credentialSubject.addProperty("id", didWed);
+
+        JsonObject registrationNumber = new JsonObject();
+        registrationNumber.addProperty("gx:local", businessId);
+        credentialSubject.add("gx:registrationNumber", registrationNumber);
+
+        JsonObject headquarterAddress = new JsonObject();
+        headquarterAddress.addProperty("gx:countryCode", countryCode);
+        credentialSubject.add("gx:headquarterAddress", headquarterAddress);
+
+        JsonObject legalAddress = new JsonObject();
+        legalAddress.addProperty("gx:countryCode", countryCode);
+        credentialSubject.add("gx:legalAddress", legalAddress);
+
+        credentialSubject.addProperty("gx:termsAndConditions", termsAndConditionsHash);
+
+        sd.add("credentialSubject", credentialSubject);
+
+        return sd;
+    }
+
+    private void addProofToSelfDescription(JsonObject sd, JsonObject did, JWSObject jws) {
+        String date = getDateISOString();
+        String verificationMethod = did.getAsJsonArray("verificationMethod")
+                .get(0).getAsJsonObject().get("id").getAsString();
+
+        sd.getAsJsonArray("@context").add("https://w3id.org/security/suites/jws-2020/v1");
+        JsonObject proof = new JsonObject();
+        proof.addProperty("type", "JsonWebSignature2020");
+        proof.addProperty("created", date);
+        proof.addProperty("jws", jws.serialize(isDetached));
+        proof.addProperty("proofPurpose", "assertionMethod");
+        proof.addProperty("verificationMethod", verificationMethod);
+
+        sd.add("proof", proof);
+    }
+
+    private String getDateISOString() {
+        Date date = new Date(System.currentTimeMillis());
+        return new SimpleDateFormat(ISO_8601_DATE_PATTERN).format(date);
+    }
+
+    private void writeToFile(byte[] data, String filePath) throws Exception {
+        Path didFilePath = Paths.get(filePath);
         Files.deleteIfExists(didFilePath);
         Path newFile = Files.createFile(didFilePath);
 
