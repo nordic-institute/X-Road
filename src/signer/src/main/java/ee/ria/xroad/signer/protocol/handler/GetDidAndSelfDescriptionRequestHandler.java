@@ -144,8 +144,8 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
 
                         // Create a Gaia-X Self-Description
                         JsonObject sd = createSelfDescription(message.getDidDomain(),
-                                "https://niis.org/credentials/1",
-                                "123456-7", "FI-18");
+                                message.getCredentialId(), message.getBusinessId(),
+                                message.getHeadquarterAddressCountryCode(), message.getLegalAddressCountryCode());
 
                         // Create a JSON Web Signature (JWS) for the Self-Description
                         JWSObject jws = createJws(sd, jwk);
@@ -303,11 +303,13 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
      * @param didDomain
      * @param credentialId
      * @param businessId
-     * @param countryCode
+     * @param headquarterAddressCountryCode
+     * @param legalAddressCountryCode
      * @return
      */
     private JsonObject createSelfDescription(String didDomain, String credentialId,
-                                             String businessId, String countryCode) {
+                                             String businessId, String headquarterAddressCountryCode,
+                                             String legalAddressCountryCode) {
         String didWed = createDidWed(didDomain);
         String date = getDateISOString();
 
@@ -332,11 +334,11 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
         credentialSubject.add("gx:registrationNumber", registrationNumber);
 
         JsonObject headquarterAddress = new JsonObject();
-        headquarterAddress.addProperty("gx:countryCode", countryCode);
+        headquarterAddress.addProperty("gx:countryCode", headquarterAddressCountryCode);
         credentialSubject.add("gx:headquarterAddress", headquarterAddress);
 
         JsonObject legalAddress = new JsonObject();
-        legalAddress.addProperty("gx:countryCode", countryCode);
+        legalAddress.addProperty("gx:countryCode", legalAddressCountryCode);
         credentialSubject.add("gx:legalAddress", legalAddress);
 
         credentialSubject.addProperty("gx:termsAndConditions", termsAndConditionsHash);
