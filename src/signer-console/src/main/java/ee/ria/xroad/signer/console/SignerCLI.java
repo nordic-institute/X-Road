@@ -178,7 +178,7 @@ public class SignerCLI {
     };
 
     /**
-     * Creates a Gaia-X Self-Description.
+     * Creates a DID Web and a Gaia-X Self-Description documents that are store on disk.
      *
      * @throws Exception if an error occurs
      */
