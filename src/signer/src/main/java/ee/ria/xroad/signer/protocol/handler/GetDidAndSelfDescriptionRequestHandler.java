@@ -96,7 +96,7 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
 @Slf4j
 public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandler<GetDidAndSelfDescription> {
 
-    public static final String ISO_8601_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    private static final String ISO_8601_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private String didFileLocation = SystemProperties.getTempFilesPath() + "did-web.json";
     private String selfDescriptionFileLocation = SystemProperties.getTempFilesPath() + "self-description.json";
     private String termsAndConditionsHash = "36ba819f30a3c4d4a7f16ee0a77259fc92f2e1ebf739713609f"
