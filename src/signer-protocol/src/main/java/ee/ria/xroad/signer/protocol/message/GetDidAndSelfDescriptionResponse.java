@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.signer.protocol.message;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
 import lombok.Value;
 
 import java.io.Serializable;
@@ -35,10 +33,10 @@ import java.io.Serializable;
  * Signer API message.
  */
 @Value
-public class GetDidDocument implements Serializable {
+public class GetDidAndSelfDescriptionResponse implements Serializable {
 
-    private final ClientId memberId;
+    private String didDocumentPath;
 
-    private String didDomain;
+    private String selfDescriptionPath;
+
 }
-

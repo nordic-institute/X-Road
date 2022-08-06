@@ -52,7 +52,8 @@ import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
 import ee.ria.xroad.signer.protocol.message.GetAuthKey;
-import ee.ria.xroad.signer.protocol.message.GetDidDocument;
+import ee.ria.xroad.signer.protocol.message.GetDidAndSelfDescription;
+import ee.ria.xroad.signer.protocol.message.GetDidAndSelfDescriptionResponse;
 import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
 import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
 import ee.ria.xroad.signer.protocol.message.GetMemberCerts;
@@ -182,13 +183,31 @@ public class SignerCLI {
      * @throws Exception if an error occurs
      */
     @Command(description = "Creates a Gaia-X Self-Description")
-    public void getSelfDescription(
+    public void createDidAndSelfDescription(
             @Param(name = "memberId", description = "Member identifier") ClientId memberId,
-            @Param(name = "didDomain", description = "DID domain") String didDomain
+            @Param(name = "didDomain", description = "DID domain") String didDomain,
+            @Param(name = "credentialId", description = "Credential ID") String credentialId,
+            @Param(name = "businessId", description = "Member business ID") String businessId,
+            @Param(name = "headquarterAddressCountryCode", description = "Headquarter country code")
+            String headquarterAddressCountryCode,
+            @Param(name = "legalAddressCountryCode", description = "Legal address country code")
+            String legalAddressCountryCode
         ) throws Exception {
-        String response = SignerClient.execute(new GetDidDocument(memberId, didDomain));
+        GetDidAndSelfDescriptionResponse response = SignerClient.execute(new GetDidAndSelfDescription(
+                memberId, didDomain, credentialId, businessId,
+                headquarterAddressCountryCode, legalAddressCountryCode));
 
-        System.out.println("The DID document was written to \"" + response + "\".");
+        System.out.println("Input parameters:");
+        System.out.println("\tMember ID: " + memberId);
+        System.out.println("\tDID domain: " + didDomain);
+        System.out.println("\tCredential ID: " + credentialId);
+        System.out.println("\tBusiness ID: " + businessId);
+        System.out.println("\tHeadquarter address country code: " + headquarterAddressCountryCode);
+        System.out.println("\tLegal address country code: " + legalAddressCountryCode);
+
+        System.out.println("\nThe following files were created:");
+        System.out.println("\tDID document:\t\t " + response.getDidDocumentPath());
+        System.out.println("\tGaia-X Self-Description: " + response.getSelfDescriptionPath());
     }
 
     /**

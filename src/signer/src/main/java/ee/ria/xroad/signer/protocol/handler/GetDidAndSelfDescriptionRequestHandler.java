@@ -41,7 +41,8 @@ import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.GetDidDocument;
+import ee.ria.xroad.signer.protocol.message.GetDidAndSelfDescription;
+import ee.ria.xroad.signer.protocol.message.GetDidAndSelfDescriptionResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
@@ -93,7 +94,7 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
  * Handles requests for DID documents.
  */
 @Slf4j
-public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidDocument> {
+public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandler<GetDidAndSelfDescription> {
 
     public static final String ISO_8601_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private String didFileLocation = SystemProperties.getTempFilesPath() + "did-web.json";
@@ -103,7 +104,7 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
     private boolean isDetached = true;
 
     @Override
-    protected Object handle(GetDidDocument message) throws Exception {
+    protected Object handle(GetDidAndSelfDescription message) throws Exception {
         log.trace("Selecting sign key for member {}",
                 message.getMemberId());
 
@@ -154,7 +155,7 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
                         // Write the Self-Description to file
                         writeToFile(sd.toString().getBytes(), selfDescriptionFileLocation);
 
-                        return didFileLocation;
+                        return new GetDidAndSelfDescriptionResponse(didFileLocation, selfDescriptionFileLocation);
                     }
                 }
             }
@@ -165,6 +166,17 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
                         + "member '%s'", message.getMemberId());
     }
 
+    /**
+     * Create a JWS signature of the Gaia-X Self-Description using the JWK presentation
+     * of an X-Road Member's sign key. The JWS signature is created using unencoded
+     * payload option and a detached payload. The generated JWS is verified and an
+     * exception is thrown if the verification fails.
+     *
+     * @param selfDescription
+     * @param jwk
+     * @return
+     * @throws Exception
+     */
     private JWSObject createJws(JsonObject selfDescription, JWK jwk) throws Exception {
         // The payload is not be encoded and must be passed to
         // the JWS consumer in a detached manner
@@ -193,8 +205,18 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
         return jwsObject;
     }
 
+    /**
+     * Convert an X-Road Member's sign key to a JSON Web Key (JWK).
+     *
+     * @param keyInfo
+     * @param certInfo
+     * @return
+     * @throws Exception
+     */
     private JWK createJwk(KeyInfo keyInfo, CertificateInfo certInfo) throws Exception {
-        AuthKeyInfo signKeyInfo = authKeyResponse(keyInfo, certInfo);
+        // Use AuthKeyInfo class since it contains all required properties.
+        // Consider creating SignKeyInfo class for production level implementation.
+        AuthKeyInfo signKeyInfo = signKeyResponse(keyInfo, certInfo);
         PrivateKey privateKey = loadSignPrivateKey(signKeyInfo);
 
         if (privateKey == null) {
@@ -224,11 +246,29 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
                 .x509CertChain(certs)
                 .build();
     }
+
+    /**
+     * Create a DID using the given web domain according to the did:web method spec:
+     * https://w3c-ccg.github.io/did-method-web/
+     *
+     * @param didDomain target domain
+     * @return web method DID
+     */
     private String createDidWed(String didDomain) {
         return "did:web:" + didDomain
                 .replace(":", "%3A")
                 .replaceAll("[./]", ":");
     }
+
+    /**
+     * Create a did:web DID document using the given JWK and domain. The
+     * resulting file should be published in the given domain following
+     * the did:web method specifications.
+     *
+     * @param jwk
+     * @param didDomain
+     * @return
+     */
     private JsonObject createDidJson(JWK jwk, String didDomain) {
         String didWed = createDidWed(didDomain);
         JsonObject did = new JsonObject();
@@ -257,6 +297,15 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
         return did;
     }
 
+    /**
+     * Create an unsigned Gaia-X Self-Description using the given parameters.
+     *
+     * @param didDomain
+     * @param credentialId
+     * @param businessId
+     * @param countryCode
+     * @return
+     */
     private JsonObject createSelfDescription(String didDomain, String credentialId,
                                              String businessId, String countryCode) {
         String didWed = createDidWed(didDomain);
@@ -297,6 +346,13 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
         return sd;
     }
 
+    /**
+     * Add proof section including the JWS signature to the Gaia-X Self-Description.
+     *
+     * @param sd
+     * @param did
+     * @param jws
+     */
     private void addProofToSelfDescription(JsonObject sd, JsonObject did, JWSObject jws) {
         String date = getDateISOString();
         String verificationMethod = did.getAsJsonArray("verificationMethod")
@@ -313,6 +369,11 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
         sd.add("proof", proof);
     }
 
+    /**
+     * Get current date/time in UTC as ISO 8601 formatted string.
+     *
+     * @return
+     */
     private String getDateISOString() {
         Date date = new Date(System.currentTimeMillis());
         return new SimpleDateFormat(ISO_8601_DATE_PATTERN).format(date);
@@ -329,6 +390,11 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
         }
     }
 
+    /**
+     * Copied from GetAuthKeyRequestHandler.
+     *
+     * @throws CodedException
+     */
     private void validateToken() throws CodedException {
         if (!SoftwareTokenUtil.isTokenInitialized()) {
             throw tokenNotInitialized(SoftwareTokenType.ID);
@@ -339,7 +405,15 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
         }
     }
 
-    private AuthKeyInfo authKeyResponse(KeyInfo keyInfo,
+    /**
+     * Copied from GetAuthKeyRequestHandler.
+     *
+     * @param keyInfo
+     * @param certInfo
+     * @return
+     * @throws Exception
+     */
+    private AuthKeyInfo signKeyResponse(KeyInfo keyInfo,
                                         CertificateInfo certInfo) throws Exception {
         String alias = keyInfo.getId();
         String keyStoreFileName = SoftwareTokenUtil.getKeyStoreFileName(alias);
@@ -348,6 +422,14 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
         return new AuthKeyInfo(alias, keyStoreFileName, password, certInfo);
     }
 
+    /**
+     * Copied from GetAuthKeyRequestHandler with some modifications.
+     *
+     * @param certInfo
+     * @param memberId
+     * @return
+     * @throws Exception
+     */
     private boolean signCertValid(CertificateInfo certInfo,
                                   ClientId memberId) throws Exception {
         X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
@@ -400,6 +482,15 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
         return false;
     }
 
+    /**
+     * Copied from GetAuthKeyRequestHandler.
+     *
+     * @param instanceIdentifier
+     * @param subject
+     * @param ocspBytes
+     * @param verifierOptions
+     * @throws Exception
+     */
     private void verifyOcspResponse(String instanceIdentifier, X509Certificate subject,
                                     byte[] ocspBytes, OcspVerifierOptions verifierOptions) throws Exception {
         if (ocspBytes == null) {
@@ -414,6 +505,13 @@ public class GetDidDocumentRequestHandler extends AbstractRequestHandler<GetDidD
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
+    /**
+     * Copied from GetAuthKeyRequestHandler with minor modifications.
+     *
+     * @param keyInfo
+     * @return
+     * @throws Exception
+     */
     private PrivateKey loadSignPrivateKey(AuthKeyInfo keyInfo) throws Exception {
         File keyStoreFile = new File(keyInfo.getKeyStoreFileName());
         log.trace("Loading sign key from key store '{}'",
