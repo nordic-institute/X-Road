@@ -215,8 +215,6 @@ export default Vue.extend({
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
-      // eslint-disable-next-line no-console
-      console.log('debouncedFetchItems');
       // Debounce is used to reduce unnecessary api calls
       that.fetchItems(that.pagingSortingOptions);
     }, 600),
@@ -228,8 +226,6 @@ export default Vue.extend({
       });
     },
     changeOptions: async function () {
-      // eslint-disable-next-line no-console
-      console.log('changeOptions');
       await this.fetchItems(this.pagingSortingOptions, this.filter);
     },
     fetchItems: async function (
@@ -237,8 +233,6 @@ export default Vue.extend({
       filter: ManagementRequestsFilter,
     ) {
       this.loading = true;
-      // eslint-disable-next-line no-console
-      console.log('fetchItems');
       try {
         await this.managementRequestsStore.find(options, this.filter);
       } catch (error: unknown) {
