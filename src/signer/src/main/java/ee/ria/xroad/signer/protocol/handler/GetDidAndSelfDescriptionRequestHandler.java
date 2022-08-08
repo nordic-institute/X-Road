@@ -74,15 +74,16 @@ import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
@@ -232,11 +233,11 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
         X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
 
         CertChain chain = GlobalConf.getCertChain(GlobalConf.getInstanceIdentifier(), cert);
-        List<Base64> certs = new ArrayList<Base64>();
 
-        for (X509Certificate c: chain.getAllCerts()) {
-            certs.add(Base64.encode(c.getEncoded()));
-        }
+        List<Base64> certs = chain.getAllCerts()
+                .stream()
+                .map(this::base64EncodeCertificate)
+                .collect(Collectors.toList());
 
         return new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
@@ -245,6 +246,14 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
                 .algorithm(Algorithm.parse("RS256"))
                 .x509CertChain(certs)
                 .build();
+    }
+
+    private Base64 base64EncodeCertificate(X509Certificate cert) {
+        try {
+            return Base64.encode(cert.getEncoded());
+        } catch (CertificateEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
