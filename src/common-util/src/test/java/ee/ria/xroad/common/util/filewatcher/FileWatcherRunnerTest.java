@@ -25,7 +25,9 @@
  */
 package ee.ria.xroad.common.util.filewatcher;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,6 +69,9 @@ public class FileWatcherRunnerTest {
 
     @Before
     public void setUp() throws IOException {
+        //TODO Java does not have native macos filewatcher implementation, it does not work well with this test.
+        Assume.assumeTrue("OS not supported.", SystemUtils.IS_OS_LINUX);
+
         runner = null;
     }
 

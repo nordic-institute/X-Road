@@ -32,10 +32,12 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.proxy.clientproxy.AsicContainerClientRequestProcessor;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.bouncycastle.bcpg.BCPGInputStream;
 import org.bouncycastle.bcpg.PacketTags;
 import org.bouncycastle.bcpg.PublicKeyEncSessionPacket;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -80,6 +82,8 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
     @Test
     public void downloadAsicContainer() throws Exception {
+        //TODO /usr/bin/gpg is usually not present on macos
+        Assume.assumeTrue("OS not supported.", SystemUtils.IS_OS_LINUX);
 
         final String requestId = UUID.randomUUID().toString();
         final String queryId = "q-" + requestId;
@@ -126,6 +130,8 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
     @Test
     public void downloadUniqueAsicContainer() throws Exception {
+        //TODO /usr/bin/gpg is usually not present on macos
+        Assume.assumeTrue("OS not supported.", SystemUtils.IS_OS_LINUX);
 
         final String requestId = UUID.randomUUID().toString();
         final String queryId = "q-" + requestId;
