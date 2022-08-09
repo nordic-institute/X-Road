@@ -65,7 +65,7 @@ export const useSecurityServerStore = defineStore('securityServer', {
           params: searchUrlParams,
         })
         .then((resp) => {
-          this.securityServers = resp.data.clients || [];
+          this.securityServers = resp.data.items || [];
           this.securityServerPagingOptions = resp.data.paging_metadata;
         });
     },

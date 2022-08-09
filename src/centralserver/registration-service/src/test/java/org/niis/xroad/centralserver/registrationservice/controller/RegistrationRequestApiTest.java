@@ -43,7 +43,8 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.centralserver.registrationservice.config.RegistrationServiceProperties;
 import org.niis.xroad.centralserver.registrationservice.openapi.model.CodeWithDetails;
 import org.niis.xroad.centralserver.registrationservice.openapi.model.ErrorInfo;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestInfo;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequest;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestType;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthCertRegRequest;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthRegRequestBuilder;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestGlobalConf;
@@ -93,8 +94,9 @@ public class RegistrationRequestApiTest {
     public void shouldRegisterAuthCert() throws Exception {
 
         properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.httpsPort())));
-        var response = new ManagementRequestInfo();
+        var response = new ManagementRequest();
         response.setId(42);
+        response.setType(ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
 
         wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
                 .willReturn(WireMock.jsonResponse(response, 202)));

@@ -38,6 +38,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.Optional;
@@ -78,7 +79,10 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
             status = getAnnotatedResponseStatus(wrappedStatusCause.get(), status);
         } else if (ex instanceof MethodArgumentNotValidException) {
             errorInfo.setError(validationErrorHelper.createError((MethodArgumentNotValidException) ex));
+        } else if (ex instanceof MethodArgumentTypeMismatchException) {
+            errorInfo.setError(validationErrorHelper.createError((MethodArgumentTypeMismatchException) ex));
         }
+
         errorInfo.setStatus(status.value());
         return super.handleExceptionInternal(ex, errorInfo, headers,
                 status, request);

@@ -284,13 +284,16 @@
     "addCertificate": "Add Certificate",
     "addClient": "Add Client",
     "approved": "Approved",
+    "submitted": "Submitted for approval",
     "changeOwner": "Change Owner",
     "pending": "Pending",
     "rejected": "Rejected",
+    "revoked": "Revoked",
+    "unknown" : "Unknown",
     "removeCertificate": "Remove Certificate",
     "removeClient": "Remove Client",
-    "serverIdentifier": "Server Identifier",
-    "serverOwnerName": "Server Owner Name",
+    "securityServerId": "Server Identifier",
+    "securityServerOwnerName": "Server Owner Name",
     "showOnlyPending": "Show only pending requests"
   },
   "members": {

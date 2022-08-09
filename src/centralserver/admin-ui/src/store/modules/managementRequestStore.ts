@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,41 +24,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import { defineStore } from 'pinia';
+import { DataOptions } from 'vuetify';
+import axios, { AxiosRequestConfig } from 'axios';
+import {
+  ManagementRequest,
+  ManagementRequestsFilter,
+  PagedManagementRequests,
+  PagingMetadata,
+} from '@/openapi-types';
 
-/**
- * Utility for working with CriteriaBuilder
- */
-public final class CriteriaBuilderUtil {
-
-    public static final char LIKE_EXPRESSION_ESCAPE_CHAR = '\\';
-    public static final String LIKE_EXPRESSION_ESCAPE_STRING = String.valueOf(LIKE_EXPRESSION_ESCAPE_CHAR);
-
-    private CriteriaBuilderUtil() {
-    }
-
-    /**
-     * Create a case-insensite LIKE expression Predicate. Also escape special characters \, % and _
-     */
-    public static Predicate caseInsensitiveLike(Root root, CriteriaBuilder builder, String s, Expression expression) {
-        var predicate = builder.like(
-                builder.lower(expression),
-                builder.lower(builder.literal("%" + escapeSpecialChars(s) + "%")),
-                LIKE_EXPRESSION_ESCAPE_CHAR
-        );
-        return predicate;
-    }
-
-    private static String escapeSpecialChars(String s) {
-        return s.replace(LIKE_EXPRESSION_ESCAPE_STRING, LIKE_EXPRESSION_ESCAPE_STRING + LIKE_EXPRESSION_ESCAPE_STRING)
-                .replace("%", LIKE_EXPRESSION_ESCAPE_STRING + "%")
-                .replace("_", LIKE_EXPRESSION_ESCAPE_STRING + "_");
-    }
-
-
+export interface State {
+  items: ManagementRequest[];
+  pagingOptions: PagingMetadata;
 }
+
+export const managementRequestsStore = defineStore('managementRequests', {
+  state: (): State => ({
+    items: [],
+    pagingOptions: {
+      total_items: 0,
+      items: 0,
+      limit: 25,
+      offset: 0,
+    },
+  }),
+  getters: {},
+  actions: {
+    async find(dataOptions: DataOptions, filter: ManagementRequestsFilter) {
+      const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
+      const params: unknown = {
+        limit: dataOptions.itemsPerPage,
+        offset: offset,
+        sort: dataOptions.sortBy[0],
+        desc: dataOptions.sortDesc[0],
+        ...filter,
+      };
+
+      const axiosParams: AxiosRequestConfig = { params };
+
+      return axios
+        .get<PagedManagementRequests>('/management-requests/', axiosParams)
+        .then((resp) => {
+          this.items = resp.data.items || [];
+          this.pagingOptions = resp.data.paging_metadata;
+        });
+    },
+  },
+});

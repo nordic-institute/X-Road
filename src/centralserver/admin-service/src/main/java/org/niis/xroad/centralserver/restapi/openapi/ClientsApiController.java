@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -52,8 +52,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.HashMap;
-import java.util.Map;
+import static java.util.Map.entry;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -63,10 +62,19 @@ public class ClientsApiController implements ClientsApi {
 
     private final ClientSearchService clientSearchService;
     private final SecurityServerService securityServerService;
+    private final PagedClientsConverter pagedClientsConverter;
+    private final PageRequestConverter pageRequestConverter;
+    private final SecurityServerIdConverter securityServerIdConverter;
 
-    private PagedClientsConverter pagedClientsConverter = new PagedClientsConverter();
-    private PageRequestConverter pageRequestConverter = new PageRequestConverter();
-    private SecurityServerIdConverter securityServerIdConverter = new SecurityServerIdConverter();
+    private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
+            new PageRequestConverter.MappableSortParameterConverter(
+                    entry("id", "id"),
+                    entry("member_name", "memberName"),
+                    entry("xroad_id.instance_id", "xroadInstance"),
+                    entry("xroad_id.member_class", "memberClass"),
+                    entry("xroad_id.member_code", "memberCode"),
+                    entry("client_type", "type")
+            );
 
     @Override
     public ResponseEntity<Client> addClient(Client client) {
@@ -81,11 +89,11 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('SEARCH_MEMBERS') or hasAuthority('VIEW_MEMBERS')")
     public ResponseEntity<PagedClients> findClients(String q,
-            PagingSortingParameters pagingSorting, String name,
-            String instance, String memberClass,
-            String memberCode, String subsystemCode,
-            ClientType clientType, String encodedSecurityServerId) {
-        PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, new MemberSortParameterConverter());
+                                                    PagingSortingParameters pagingSorting, String name,
+                                                    String instance, String memberClass,
+                                                    String memberCode, String subsystemCode,
+                                                    ClientType clientType, String encodedSecurityServerId) {
+        PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
         var params = new FlattenedSecurityServerClientRepository.SearchParameters()
                 .setMultifieldSearch(q)
                 .setInstanceSearch(instance)
@@ -105,24 +113,6 @@ public class ClientsApiController implements ClientsApi {
         Page<FlattenedSecurityServerClientDto> page = clientSearchService.find(params, pageRequest);
         PagedClients pagedResults = pagedClientsConverter.convert(page, pagingSorting);
         return ResponseEntity.ok(pagedResults);
-    }
-
-    private class MemberSortParameterConverter implements PageRequestConverter.SortParameterConverter {
-        Map<String, String> conversions = new HashMap<>();
-        {
-            conversions.put("id", "id");
-            conversions.put("member_name", "memberName");
-            conversions.put("xroad_id.instance_id", "xroadInstance");
-            conversions.put("xroad_id.member_class", "memberClass");
-            conversions.put("xroad_id.member_code", "memberCode");
-            conversions.put("client_type", "type");
-        }
-        @Override
-        public String convertToSortProperty(String sortParameter) throws BadRequestException {
-            String sortProperty = conversions.get(sortParameter);
-            if (sortProperty == null) throw new BadRequestException("Unknown sort parameter " + sortParameter);
-            return sortProperty;
-        }
     }
 
     @Override

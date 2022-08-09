@@ -40,10 +40,7 @@ import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,9 +48,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
+
+import static java.util.Map.entry;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -61,14 +58,19 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class SecurityServersApiController implements SecurityServersApi {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SecurityServersApiController.class);
-
     private final AuditDataHelper auditData;
     private final SecurityServerService securityServerService;
 
     SecurityServerConverter serverConverter = new SecurityServerConverter();
-    private PageRequestConverter pageRequestConverter = new PageRequestConverter();
+    private final PageRequestConverter pageRequestConverter;
+
+    private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
+            new PageRequestConverter.MappableSortParameterConverter(
+                    entry("owner_name", "owner.name"),
+                    entry("xroad_id.member_class", "owner.memberClass.code"),
+                    entry("xroad_id.member_code", "owner.memberCode"),
+                    entry("xroad_id.server_code", "serverCode")
+            );
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_SECURITY_SERVER')")
@@ -87,29 +89,13 @@ public class SecurityServersApiController implements SecurityServersApi {
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
     public ResponseEntity<PagedSecurityServers> findSecurityServers(String q, PagingSortingParameters pagingSorting) {
 
-        PageRequest pageRequest = pageRequestConverter.convert(
-                pagingSorting, new SecurityServersApiController.SecurityServerSortParameterConverter());
+        PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
 
         var servers = securityServerService.findSecurityServers(q, pageRequest);
 
         return ResponseEntity.ok(serverConverter.convert(servers));
     }
 
-    private class SecurityServerSortParameterConverter implements PageRequestConverter.SortParameterConverter {
-        Map<String, String> conversions = new HashMap<>();
-        {
-            conversions.put("owner_name", "owner.name");
-            conversions.put("xroad_id.member_class", "owner.memberClass.code");
-            conversions.put("xroad_id.member_code", "owner.memberCode");
-            conversions.put("xroad_id.server_code", "serverCode");
-        }
-        @Override
-        public String convertToSortProperty(String sortParameter) throws BadRequestException {
-            String sortProperty = conversions.get(sortParameter);
-            if (sortProperty == null) throw new BadRequestException("Unknown sort parameter " + sortParameter);
-            return sortProperty;
-        }
-    }
 
     @Override
     public ResponseEntity<SecurityServer> getSecurityServer(String id) {
@@ -130,7 +116,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = RestApiAuditEvent.UPDATE_SECURITY_SERVER_ADDRESS)
     public ResponseEntity<SecurityServer> updateSecurityServerAddress(String id,
-            SecurityServerAddress securityServerAddress) {
+                                                                      SecurityServerAddress securityServerAddress) {
         throw new NotImplementedException("updateSecurityServerAddress not implemented yet");
     }
 }

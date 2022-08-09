@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.identifier;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
@@ -32,6 +34,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  */
 @XmlJavaTypeAdapter(IdentifierTypeConverter.SecurityServerIdAdapter.class)
 public final class SecurityServerId extends XRoadId {
+    private static final char ENCODED_ID_SEPARATOR = ':';
 
     private final String memberClass;
     private final String memberCode;
@@ -42,7 +45,7 @@ public final class SecurityServerId extends XRoadId {
     }
 
     private SecurityServerId(String xRoadInstance,
-            String memberClass, String memberCode, String serverCode) {
+                             String memberClass, String memberCode, String serverCode) {
         super(XRoadObjectType.SERVER, xRoadInstance);
 
         this.memberClass = memberClass;
@@ -52,6 +55,7 @@ public final class SecurityServerId extends XRoadId {
 
     /**
      * Returns the owner member class of thesecurity server.
+     *
      * @return String
      */
     public String getMemberClass() {
@@ -60,6 +64,7 @@ public final class SecurityServerId extends XRoadId {
 
     /**
      * Returns the owner member code of the security server.
+     *
      * @return String
      */
     public String getMemberCode() {
@@ -68,6 +73,7 @@ public final class SecurityServerId extends XRoadId {
 
     /**
      * Returns the server code of the security server.
+     *
      * @return String
      */
     public String getServerCode() {
@@ -76,6 +82,7 @@ public final class SecurityServerId extends XRoadId {
 
     /**
      * Returns the client ID of the owner of the security server.
+     *
      * @return ClientId
      */
     public ClientId getOwner() {
@@ -84,19 +91,44 @@ public final class SecurityServerId extends XRoadId {
 
     @Override
     public String[] getFieldsForStringFormat() {
-        return new String[] {memberClass, memberCode, serverCode};
+        return new String[]{memberClass, memberCode, serverCode};
+    }
+
+    /**
+     * Get ServerId as an encoded identifier.
+     *
+     * @return encoded identifier.
+     */
+    public String asEncodedId() {
+        ClientId ownerId = getOwner();
+
+        StringBuilder builder = new StringBuilder();
+
+        builder.append(ownerId.getXRoadInstance())
+                .append(ENCODED_ID_SEPARATOR)
+                .append(ownerId.getMemberClass())
+                .append(ENCODED_ID_SEPARATOR)
+                .append(ownerId.getMemberCode());
+        if (StringUtils.isNotEmpty(ownerId.getSubsystemCode())) {
+            builder.append(ENCODED_ID_SEPARATOR)
+                    .append(ownerId.getSubsystemCode());
+        }
+        builder.append(ENCODED_ID_SEPARATOR)
+                .append(getServerCode());
+        return builder.toString().trim();
     }
 
     /**
      * Factory method for creating a new SecurityServerId.
+     *
      * @param xRoadInstance instance of the new security server
-     * @param memberClass class of the new security server owner
-     * @param memberCode code of the new security server owner
-     * @param serverCode code of the new security server
+     * @param memberClass   class of the new security server owner
+     * @param memberCode    code of the new security server owner
+     * @param serverCode    code of the new security server
      * @return SecurityServerId
      */
     public static SecurityServerId create(String xRoadInstance,
-            String memberClass, String memberCode, String serverCode) {
+                                          String memberClass, String memberCode, String serverCode) {
         validateField("xRoadInstance", xRoadInstance);
         validateField("memberClass", memberClass);
         validateField("memberCode", memberCode);
@@ -108,7 +140,8 @@ public final class SecurityServerId extends XRoadId {
     /**
      * Factory method for creating a new SecurityServerId from ClientId and
      * server code.
-     * @param client ID of the new security server owner
+     *
+     * @param client     ID of the new security server owner
      * @param serverCode code of the new security server
      * @return SecurityServerId
      */

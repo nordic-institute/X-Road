@@ -62,7 +62,7 @@ class SecurityServerControllerTest extends AbstractApiControllerTestContext {
         assertNotNull(response);
         assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
         assertNotNull(response.getBody());
-        List<SecurityServer> securityServerList = response.getBody().getClients();
+        List<SecurityServer> securityServerList = response.getBody().getItems();
         assertTrue(
                 "In descending sort for server code, the first item have be lexicographically"
                         + " prior server code compared to the second",
@@ -81,7 +81,7 @@ class SecurityServerControllerTest extends AbstractApiControllerTestContext {
         assertNotNull(response2);
         assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
-        List<SecurityServer> securityServerList2 = response2.getBody().getClients();
+        List<SecurityServer> securityServerList2 = response2.getBody().getItems();
         assertTrue(
                 "In descending sort for owner code, the first item have be lexicographically"
                         + " prior owner code compared to the last",
@@ -102,7 +102,7 @@ class SecurityServerControllerTest extends AbstractApiControllerTestContext {
         assertNotNull(response2);
         assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
-        List<SecurityServer> securityServerList2 = response2.getBody().getClients();
+        List<SecurityServer> securityServerList2 = response2.getBody().getItems();
         assertTrue(
                 "In descending sort for owner name, the first item have be lexicographically"
                         + " after owner name compared to the last",
@@ -121,7 +121,7 @@ class SecurityServerControllerTest extends AbstractApiControllerTestContext {
         assertNotNull(response2);
         assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
-        List<SecurityServer> securityServerList2 = response2.getBody().getClients();
+        List<SecurityServer> securityServerList2 = response2.getBody().getItems();
         assertTrue(
                 "In descending sort for owner class, the first item have be lexicographically"
                         + " after owner class compared to the last",

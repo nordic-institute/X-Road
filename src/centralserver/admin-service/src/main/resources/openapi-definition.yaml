@@ -2779,42 +2779,36 @@ paths:
       description: List management requests
       parameters:
         - in: query
-          name: origin
-          description: management request origin
+          name: filter
+          description: >
+            optional filtering parameters. Filtering is possible according to one of the following values:
+            <ul>
+                <li><b>q</b> Free text query</li>
+                <li><b>origin</b> Request origin</li>
+                <li><b>type</b> an array of types</li>
+                <li><b>serverId</b> Security server id</li>
+            </ul>
           required: false
           schema:
-            $ref: '#/components/schemas/ManagementRequestOrigin'
+            $ref: '#/components/schemas/ManagementRequestsFilter'
         - in: query
-          name: type
-          description: management request type
+          name: paging_sorting
+          description: >
+            optional paging and sorting parameters. Sorting possible according to one of the following values:
+            <ul>
+                <li><b>id</b> for id</li>
+                <li><b>created_at</b> Creation date</li>
+            </ul>
           required: false
           schema:
-            $ref: '#/components/schemas/ManagementRequestType'
-        - in: query
-          name: status
-          description: request status
-          required: false
-          schema:
-            $ref: '#/components/schemas/ManagementRequestStatus'
-        - in: query
-          name: serverId
-          description: security server id
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: page
-          description: page number (zero based)
-          required: false
-          schema:
-            type: integer
+            $ref: '#/components/schemas/PagingSortingParameters'
       responses:
         '200':
           description: array of management requests
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequestInfoPage'
+                $ref: '#/components/schemas/PagedManagementRequests'
         '400':
           description: request was invalid
         '401':
@@ -2846,13 +2840,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequestInfo'
+                $ref: '#/components/schemas/ManagementRequest'
         '202':
           description: The request was accepted for processing
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequestInfo'
+                $ref: '#/components/schemas/ManagementRequest'
 
         '400':
           description: request was invalid
@@ -2943,7 +2937,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequestInfo'
+                $ref: '#/components/schemas/ManagementRequest'
         '400':
           description: invalid request
         '401':
@@ -3886,10 +3880,24 @@ components:
     PagedSecurityServers:
       description: array of SecurityServers with paging metadata
       properties:
-        clients:
-          description: clients
+        items:
+          description: Security Servers
           items:
             $ref: '#/components/schemas/SecurityServer'
+          type: array
+        paging_metadata:
+          $ref: '#/components/schemas/PagingMetadata'
+      required:
+        - items
+        - paging_metadata
+      type: object
+    PagedManagementRequests:
+      description: an array of ManagementRequests with paging metadata
+      properties:
+        items:
+          description: Management Requests
+          items:
+            $ref: '#/components/schemas/ManagementRequest'
           type: array
         paging_metadata:
           $ref: '#/components/schemas/PagingMetadata'
@@ -4276,31 +4284,15 @@ components:
           $ref: '#/components/schemas/ManagementRequestType'
         origin:
           $ref: '#/components/schemas/ManagementRequestOrigin'
-        securityserverId:
-          $ref: '#/components/schemas/SecurityServerId'
-        status:
-          $ref: '#/components/schemas/ManagementRequestStatus'
-      required:
-        - type
-        - source
-        - securityserverId
-    ManagementRequestInfo:
-      type: object
-      description: Management request summary
-      properties:
-        id:
-          type: integer
-          description: request id
+        security_server_owner:
+          type: string
           readOnly: true
-        type:
-          $ref: '#/components/schemas/ManagementRequestType'
-        origin:
-          $ref: '#/components/schemas/ManagementRequestOrigin'
-        securityserverId:
-          $ref: '#/components/schemas/SecurityServerId'
+        security_server_id:
+          type: string
+          description: Encoded Security Server ID
         status:
           $ref: '#/components/schemas/ManagementRequestStatus'
-        createdAt:
+        created_at:
           type: string
           format: date-time
           readOnly: true
@@ -4332,6 +4324,33 @@ components:
       enum:
         - CENTER
         - SECURITY_SERVER
+    ManagementRequestsFilter:
+      description: parameters for filtering management requests search results
+      properties:
+        query:
+          description: Free text query
+          nullable: true
+          type: string
+        origin:
+          description: management request origin
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ManagementRequestOrigin'
+        types:
+          description: management request type
+          nullable: true
+          items:
+           $ref: '#/components/schemas/ManagementRequestType'
+        status:
+          description: request status
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ManagementRequestStatus'
+        serverId:
+          description: security server id
+          nullable: true
+          type: string
+      type: object
     Page:
       type: object
       properties:
@@ -4347,15 +4366,6 @@ components:
         totalElements:
           type: integer
           description: total number of elements (<=size * totalPages)
-    ManagementRequestInfoPage:
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/Page'
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ManagementRequestInfo'
     AuthenticationCertificateRegistrationRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'

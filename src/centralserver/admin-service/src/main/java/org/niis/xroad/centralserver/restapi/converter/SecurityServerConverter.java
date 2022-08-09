@@ -46,7 +46,7 @@ public class SecurityServerConverter {
                         .limit(servers.getSize())
                         .offset(servers.getNumber())
                 )
-                .clients(servers.getContent().stream()
+                .items(servers.getContent().stream()
                         .map(dto -> new org.niis.xroad.centralserver.openapi.model.SecurityServer()
                                 .id(dto.getServerId().toShortString(':'))
                                 .xroadId(getSecurityServerId(dto))

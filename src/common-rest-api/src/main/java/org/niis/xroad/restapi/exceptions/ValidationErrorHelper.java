@@ -30,11 +30,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -66,6 +68,21 @@ public class ValidationErrorHelper {
     public CodeWithDetails createError(MethodArgumentNotValidException e) {
         Errors errors = e.getBindingResult();
         return createError(errors);
+    }
+
+    /**
+     * Create DeviationAware error code & metadata from given MethodArgumentTypeMismatchException.
+     * Error code = {@link DeviationCodes#ERROR_VALIDATION_FAILURE}, metadata is the
+     * String representation of {@link Errors}
+     */
+    public CodeWithDetails createError(final MethodArgumentTypeMismatchException e) {
+        final CodeWithDetails result = new CodeWithDetails();
+        result.setCode(ERROR_VALIDATION_FAILURE);
+
+        final String message = Optional.ofNullable(e.getMessage()).orElseGet(e::toString);
+
+        result.setValidationErrors(Map.of(e.getName(), List.of(message)));
+        return result;
     }
 
     private Map<String, List<String>> getValidationErrorsAsMap(Errors validationErrors) {
