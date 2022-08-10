@@ -27,7 +27,7 @@
 <template>
   <div>
     <!-- Title and action -->
-    <div class="table-toolbar align-fix mt-0 pl-0" >
+    <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-view-title align-fix">
         {{ $t('globalResources.globalGroups') }}
       </div>
