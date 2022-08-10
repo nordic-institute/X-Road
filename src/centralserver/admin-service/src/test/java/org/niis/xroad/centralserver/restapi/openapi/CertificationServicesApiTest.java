@@ -28,7 +28,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
+import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -57,9 +57,9 @@ class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
     void getCertificationServices() {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
 
-        ResponseEntity<ApprovedCertificationService[]> response = restTemplate.getForEntity(
+        ResponseEntity<ApprovedCertificationServiceDto[]> response = restTemplate.getForEntity(
                 "/api/v1/certification-services",
-                ApprovedCertificationService[].class);
+                ApprovedCertificationServiceDto[].class);
 
         assertNotNull(response);
         assertEquals(OK, response.getStatusCode());
@@ -71,10 +71,10 @@ class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
         var entity = prepareAddCertificationServiceRequest();
 
-        ResponseEntity<ApprovedCertificationService> response = restTemplate.postForEntity(
+        ResponseEntity<ApprovedCertificationServiceDto> response = restTemplate.postForEntity(
                 "/api/v1/certification-services",
                 entity,
-                ApprovedCertificationService.class);
+                ApprovedCertificationServiceDto.class);
 
         assertNotNull(response);
         assertEquals(OK, response.getStatusCode());

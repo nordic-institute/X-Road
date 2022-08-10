@@ -31,12 +31,6 @@ test {
     useJUnitPlatform()
 }
 
-tasks.withType(JavaCompile) {
-    doFirst {
-        println "AnnotationProcessorPath for $name is ${options.getAnnotationProcessorPath().getFiles()}"
-    }
-}
-
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
     if (project.hasProperty('args')) {
@@ -93,7 +87,7 @@ dependencies {
     dist(project(path: ':centralserver:admin-ui', configuration: 'dist'))
 
     annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
-    //annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
+    annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
     implementation project(':common-util')
     implementation project(':common-verifier')
     implementation project(':signer-protocol')

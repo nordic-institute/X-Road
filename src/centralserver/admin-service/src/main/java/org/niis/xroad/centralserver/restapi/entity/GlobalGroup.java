@@ -42,7 +42,6 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -59,6 +58,7 @@ public class GlobalGroup extends AuditableEntity {
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
     @Getter
+    @Setter
     private int id;
 
     @Column(name = "group_code")
@@ -84,6 +84,7 @@ public class GlobalGroup extends AuditableEntity {
         this.groupCode = groupCode;
     }
 
-    @Transient
-    private Integer memberCount = 0;
+    public int getMemberCount() {
+        return this.memberCount == null ? 0 : this.memberCount;
+    }
 }

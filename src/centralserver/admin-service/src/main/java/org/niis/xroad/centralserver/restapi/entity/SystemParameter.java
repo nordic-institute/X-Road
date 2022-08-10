@@ -63,7 +63,7 @@ public class SystemParameter extends AuditableEntity {
     @Setter
     private String haNodeName;
 
-    protected SystemParameter() {
+    public SystemParameter() {
         //JPA
     }
 

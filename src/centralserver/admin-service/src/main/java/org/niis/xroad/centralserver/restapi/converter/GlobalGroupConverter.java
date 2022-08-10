@@ -26,9 +26,9 @@
 package org.niis.xroad.centralserver.restapi.converter;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescription;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroupResource;
-import org.niis.xroad.centralserver.openapi.model.GroupMember;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescriptionDto;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupResourceDto;
+import org.niis.xroad.centralserver.openapi.model.GroupMemberDto;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.springframework.stereotype.Component;
@@ -43,8 +43,8 @@ public class GlobalGroupConverter {
 
     private final GroupMemberConverter groupMemberConverter;
 
-    public GlobalGroupResource convert(GlobalGroup entity) {
-        return new GlobalGroupResource()
+    public GlobalGroupResourceDto convert(GlobalGroup entity) {
+        return new GlobalGroupResourceDto()
                 .id(entity.getId())
                 .code(entity.getGroupCode())
                 .memberCount(entity.getMemberCount())
@@ -55,14 +55,14 @@ public class GlobalGroupConverter {
     }
 
     public GlobalGroup toEntity(
-            GlobalGroupCodeAndDescription globalGroupCodeAndDescription) {
+            GlobalGroupCodeAndDescriptionDto globalGroupCodeAndDescription) {
         var entity = new GlobalGroup();
         entity.setGroupCode(globalGroupCodeAndDescription.getCode());
         entity.setDescription(globalGroupCodeAndDescription.getDescription());
         return entity;
     }
 
-    private Set<GroupMember> convertMembers(Set<GlobalGroupMember> memberEntities) {
+    private Set<GroupMemberDto> convertMembers(Set<GlobalGroupMember> memberEntities) {
         return memberEntities.stream()
                 .map(groupMemberConverter::convert)
                 .collect(Collectors.toSet());

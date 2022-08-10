@@ -108,7 +108,7 @@ INSERT INTO ca_infos
 VALUES (100, now(),      now(),    now(),      now());
 
 INSERT INTO approved_cas
-       (id,  top_ca_id, name,                create_at, updated_at)
+       (id,  top_ca_id, name,                created_at, updated_at)
 VALUES (100, 100,       'X-Road Test CA CN', now(),     now());
 
 INSERT INTO global_groups

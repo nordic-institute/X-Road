@@ -32,7 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @RequiredArgsConstructor
-public class ApprovedCertificationServiceDto {
+public class AddApprovedCertificationServiceDto {
     private final MultipartFile certificate;
     private final String certificateProfileInfo;
     private final Boolean tlsAuth;

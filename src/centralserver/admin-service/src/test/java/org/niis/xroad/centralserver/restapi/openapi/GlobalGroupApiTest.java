@@ -26,8 +26,8 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescription;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroupResource;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescriptionDto;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupResourceDto;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -59,8 +59,8 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
         var entity = prepareAddGlobalGroupRequest("code");
 
-        ResponseEntity<GlobalGroupResource> response =
-                restTemplate.postForEntity("/api/v1/global-groups", entity, GlobalGroupResource.class);
+        ResponseEntity<GlobalGroupResourceDto> response =
+                restTemplate.postForEntity("/api/v1/global-groups", entity, GlobalGroupResourceDto.class);
         assertNotNull(response);
         assertEquals(CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -72,8 +72,8 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
         var entity = prepareAddGlobalGroupRequest("CODE_1");
 
-        ResponseEntity<GlobalGroupResource> response =
-                restTemplate.postForEntity("/api/v1/global-groups", entity, GlobalGroupResource.class);
+        ResponseEntity<GlobalGroupResourceDto> response =
+                restTemplate.postForEntity("/api/v1/global-groups", entity, GlobalGroupResourceDto.class);
         assertNotNull(response);
         assertEquals(CONFLICT, response.getStatusCode());
     }
@@ -81,13 +81,13 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
     @Test
     void findGlobalGroups() {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<GlobalGroupResource[]> response = restTemplate.getForEntity(
+        ResponseEntity<GlobalGroupResourceDto[]> response = restTemplate.getForEntity(
                 "/api/v1/global-groups",
-                GlobalGroupResource[].class);
+                GlobalGroupResourceDto[].class);
         assertNotNull(response);
         assertEquals(OK, response.getStatusCode());
         assertThat(Objects.requireNonNull(response.getBody()).length).isGreaterThanOrEqualTo(1);
-        GlobalGroupResource expectedGroup = Arrays.stream(response.getBody())
+        GlobalGroupResourceDto expectedGroup = Arrays.stream(response.getBody())
                 .filter(ent -> 1000001 == ent.getId())
                 .findFirst()
                 .orElse(null);
@@ -100,9 +100,9 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
         var uriVariables = new HashMap<String, String>();
         uriVariables.put("containsMember", "TEST:GOV:M1:SS1");
-        ResponseEntity<GlobalGroupResource[]> response = restTemplate.getForEntity(
+        ResponseEntity<GlobalGroupResourceDto[]> response = restTemplate.getForEntity(
                 "/api/v1/global-groups?contains_member={containsMember}",
-                GlobalGroupResource[].class,
+                GlobalGroupResourceDto[].class,
                 uriVariables);
         assertNotNull(response);
         assertEquals(OK, response.getStatusCode());
@@ -113,9 +113,9 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
     @Test
     void getGlobalGroups() {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<GlobalGroupResource> response = restTemplate.getForEntity(
+        ResponseEntity<GlobalGroupResourceDto> response = restTemplate.getForEntity(
                 "/api/v1/global-groups/1000001",
-                GlobalGroupResource.class);
+                GlobalGroupResourceDto.class);
         assertNotNull(response.getBody());
         assertEquals(OK, response.getStatusCode());
         assertGlobalGroup(response.getBody());
@@ -124,16 +124,16 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
     @Test
     void deleteGlobalGroup() {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<GlobalGroupResource> existingGlobalGroup =
-                restTemplate.getForEntity("/api/v1/global-groups/1000002", GlobalGroupResource.class);
+        ResponseEntity<GlobalGroupResourceDto> existingGlobalGroup =
+                restTemplate.getForEntity("/api/v1/global-groups/1000002", GlobalGroupResourceDto.class);
         assertNotNull(existingGlobalGroup.getBody());
         assertEquals(OK, existingGlobalGroup.getStatusCode());
         assertEquals(1000002, existingGlobalGroup.getBody().getId());
 
         restTemplate.delete("/api/v1/global-groups/1000002");
 
-        ResponseEntity<GlobalGroupResource> deleteGlobalGroup =
-                restTemplate.getForEntity("/api/v1/global-groups/1000002", GlobalGroupResource.class);
+        ResponseEntity<GlobalGroupResourceDto> deleteGlobalGroup =
+                restTemplate.getForEntity("/api/v1/global-groups/1000002", GlobalGroupResourceDto.class);
 
         assertNotNull(deleteGlobalGroup.getBody());
         assertEquals(NOT_FOUND, deleteGlobalGroup.getStatusCode());
@@ -142,13 +142,13 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
     @Test
     void updateGlobalGroupDescription() {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-        GlobalGroupResource updatedGlobalGroup = restTemplate.patchForObject("/api/v1/global-groups/1000002",
-                Collections.singletonMap("description", "New description"), GlobalGroupResource.class);
+        GlobalGroupResourceDto updatedGlobalGroup = restTemplate.patchForObject("/api/v1/global-groups/1000002",
+                Collections.singletonMap("description", "New description"), GlobalGroupResourceDto.class);
         assertEquals("New description", updatedGlobalGroup.getDescription());
     }
 
-    private HttpEntity<GlobalGroupCodeAndDescription> prepareAddGlobalGroupRequest(String code) {
-        GlobalGroupCodeAndDescription request = new GlobalGroupCodeAndDescription();
+    private HttpEntity<GlobalGroupCodeAndDescriptionDto> prepareAddGlobalGroupRequest(String code) {
+        GlobalGroupCodeAndDescriptionDto request = new GlobalGroupCodeAndDescriptionDto();
         request.code(code);
         request.description("description");
         HttpHeaders headers = new HttpHeaders();
@@ -156,7 +156,7 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
         return new HttpEntity<>(request, headers);
     }
 
-    private void assertGlobalGroup(GlobalGroupResource globalGroup) {
+    private void assertGlobalGroup(GlobalGroupResourceDto globalGroup) {
         assertEquals(1000001, globalGroup.getId());
         assertEquals("CODE_1", globalGroup.getCode());
         assertEquals("First global group", globalGroup.getDescription());
@@ -169,8 +169,8 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
         assertNotNull(globalGroup.getUpdatedAt());
     }
 
-    private void assertAddedGlobalGroup(GlobalGroupResource globalGroup) {
-        assertEquals(1, globalGroup.getId());
+    private void assertAddedGlobalGroup(GlobalGroupResourceDto globalGroup) {
+        assertNotNull(globalGroup.getId());
         assertEquals("code", globalGroup.getCode());
         assertEquals("description", globalGroup.getDescription());
         assertEquals(0, globalGroup.getMemberCount());

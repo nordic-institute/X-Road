@@ -30,9 +30,9 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
-import org.niis.xroad.centralserver.openapi.model.CertificateDetails;
-import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.openapi.model.CertificateDetailsDto;
+import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.entity.CaInfo;
 import org.niis.xroad.restapi.openapi.BadRequestException;
@@ -49,7 +49,7 @@ import static org.apache.commons.lang3.StringUtils.stripToEmpty;
 public class CertificationServiceConverter {
 
     @SneakyThrows
-    public ApprovedCa toEntity(ApprovedCertificationServiceDto approvedCa) {
+    public ApprovedCa toEntity(AddApprovedCertificationServiceDto approvedCa) {
         var caEntity = new ApprovedCa();
         caEntity.setCertProfileInfo(approvedCa.getCertificateProfileInfo());
         caEntity.setAuthenticationOnly(approvedCa.getTlsAuth());
@@ -58,19 +58,19 @@ public class CertificationServiceConverter {
 
         var caInfo = new CaInfo();
         caInfo.setCert(approvedCa.getCertificate().getBytes());
-        caInfo.setValidFrom(certificate.getNotBefore());
-        caInfo.setValidTo(certificate.getNotAfter());
+        caInfo.setValidFrom(certificate.getNotBefore().toInstant());
+        caInfo.setValidTo(certificate.getNotAfter().toInstant());
         caEntity.setCaInfo(caInfo);
         return caEntity;
     }
 
-    public ApprovedCertificationService toDomain(ApprovedCa approvedCa) {
-        var certificateDetails = new CertificateDetails()
+    public ApprovedCertificationServiceDto toDomain(ApprovedCa approvedCa) {
+        var certificateDetails = new CertificateDetailsDto()
                 .subjectCommonName(approvedCa.getName())
                 .issuerCommonName(stripToEmpty(getIssuerCommonName(approvedCa.getCaInfo().getCert())))
-                .notBefore(FormatUtils.fromDateToOffsetDateTime(approvedCa.getCaInfo().getValidFrom()))
-                .notAfter(FormatUtils.fromDateToOffsetDateTime(approvedCa.getCaInfo().getValidTo()));
-        return new ApprovedCertificationService()
+                .notBefore(FormatUtils.fromInstantToOffsetDateTime(approvedCa.getCaInfo().getValidFrom()))
+                .notAfter(FormatUtils.fromInstantToOffsetDateTime(approvedCa.getCaInfo().getValidTo()));
+        return new ApprovedCertificationServiceDto()
                 .id(String.valueOf(approvedCa.getId()))
                 .tlsAuth(approvedCa.getAuthenticationOnly())
                 .certificateProfileInfo(approvedCa.getCertProfileInfo())

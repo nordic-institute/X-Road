@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.function.ThrowingRunnable;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
@@ -142,33 +141,30 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
     public void testInvalidSortParameterThrowsConstraintViolation() throws ConstraintViolationException {
         PagingSortingParametersDto sortingParameters = new PagingSortingParametersDto().sort("Really invalid&&%&¤&#&&");
-
-        ThrowingRunnable testable = () ->
-                securityServersApiController.findSecurityServers("not_relevant", sortingParameters);
-
-        assertThrows(ConstraintViolationException.class, testable);
+        assertThrows(
+                ConstraintViolationException.class,
+                () -> securityServersApiController.findSecurityServers("not_relevant", sortingParameters)
+        );
     }
 
     @Test
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
     public void testUnknownSortingFieldParameterThrowsConstraintViolation() throws BadRequestException {
         PagingSortingParametersDto sortingParameters = new PagingSortingParametersDto().sort("unknown_field");
-
-        ThrowingRunnable testable = () ->
-                securityServersApiController.findSecurityServers("not_relevant", sortingParameters);
-
-        assertThrows(BadRequestException.class, testable);
+        assertThrows(
+                BadRequestException.class,
+                () -> securityServersApiController.findSecurityServers("not_relevant", sortingParameters)
+        );
     }
 
     @Test
     @WithMockUser(authorities = {"UNKNOWN_AUTHORITY"})
-    public void testUnknownAuthorityThrowsAccessDeniedExceptio() throws AccessDeniedException {
+    public void testUnknownAuthorityThrowsAccessDeniedException() throws AccessDeniedException {
         PagingSortingParametersDto sortingParameters = new PagingSortingParametersDto();
-
-        ThrowingRunnable testable = () ->
-                securityServersApiController.findSecurityServers("not_relevant", sortingParameters);
-
-        assertThrows(AccessDeniedException.class, testable);
+        assertThrows(
+                AccessDeniedException.class,
+                () -> securityServersApiController.findSecurityServers("not_relevant", sortingParameters)
+        );
     }
 
 }

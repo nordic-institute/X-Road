@@ -28,7 +28,7 @@ package org.niis.xroad.centralserver.restapi.converter;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.GroupMember;
+import org.niis.xroad.centralserver.openapi.model.GroupMemberDto;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 
@@ -43,7 +43,7 @@ class GroupMemberConverterTest {
         GlobalGroupMember mockEntity = mockEntity();
         GroupMemberConverter converter = new GroupMemberConverter();
 
-        GroupMember result = converter.convert(mockEntity);
+        GroupMemberDto result = converter.convert(mockEntity);
 
         assertEquals(String.valueOf(mockEntity.getId()), result.getId());
         assertEquals(mockEntity.getIdentifier().toShortString(':'), result.getName());
@@ -57,7 +57,7 @@ class GroupMemberConverterTest {
 
     private GlobalGroupMember mockEntity() {
         GlobalGroup globalGroup = new GlobalGroup();
-        ClientId clientId = ClientId.create("CS", "ORG", "123", "2");
+        ClientId clientId = ClientId.Conf.create("CS", "ORG", "123", "2");
         GlobalGroupMember member = new GlobalGroupMember(globalGroup, clientId);
         member.setId(1);
         return member;
