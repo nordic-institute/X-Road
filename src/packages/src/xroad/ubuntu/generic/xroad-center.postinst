@@ -46,6 +46,14 @@ setup_database() {
     local db_password=$(get_prop ${db_properties} 'password' 'centerui')
     local db_database=$(get_prop ${db_properties} 'database' 'centerui_production')
     local db_master_user=postgres
+
+    local db_admin_conn_user=$(get_prop ${root_properties} 'centerui.database.admin_user')
+    local db_admin_password=$(get_prop ${root_properties} 'centerui.database.admin_password' 'centerui')
+    if [[ -z "$db_admin_conn_user" ]]; then
+      db_admin_conn_user="${db_user}_admin"
+    fi
+    local db_admin_user=${db_admin_conn_user}
+
     export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
 
     local_psql() { su -l -c "psql -qtA -p $db_port ${*@Q}" postgres; }
@@ -54,6 +62,10 @@ setup_database() {
     psql_dbuser() {
         PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
     }
+
+    psql_adminuser() {
+            PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
+        }
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
@@ -66,37 +78,61 @@ setup_database() {
     fi
 
     local db_plain_user=${db_user%%@*}
-    local db_plain_master=${db_master_user%%@*}
 
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
 
         if [ "$db_schema" != "public" ]; then
-          if [[ $(psql_dbuser -c "SELECT 1 from public.schema_migrations limit 1;" 2>/dev/null) != "1" ]]; then
-            psql_dbuser -c "CREATE SCHEMA IF NOT EXISTS \"${db_schema}\"" || abort "Creating schema '$db_schema' failed."
+          if [[ $(psql_adminuser -c "SELECT 1 from public.schema_migrations limit 1;" 2>/dev/null) != "1" ]]; then
+            psql_adminuser -c "CREATE SCHEMA IF NOT EXISTS \"${db_schema}\"" || abort "Creating schema '$db_schema' failed."
           fi
         fi
     else
+
+        if [[ ! -f "$root_properties" ]]; then
+          touch ${root_properties}
+          chown root:root ${root_properties}
+          chmod 600 ${root_properties}
+        fi
+
+        db_admin_password=$(gen_pw)
         db_password=$(gen_pw)
+        echo "Creating database"
         psql_master <<EOF || abort "Creating database '${db_database}' on '${db_host}' failed."
 CREATE DATABASE "${db_database}" ENCODING 'UTF8';
 REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
 DO \$\$
 BEGIN
-  CREATE ROLE "${db_plain_user}" LOGIN PASSWORD '${db_password}';
-  GRANT "${db_plain_user}" to "${db_plain_master}";
+  CREATE ROLE "${db_admin_user}" LOGIN PASSWORD '${db_admin_password}';
+  GRANT "${db_admin_user}" TO "${db_master_user}";
   EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_plain_user already exists';
-END\$\$;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
+    RAISE NOTICE 'User $db_admin_user already exists';
+END
+\$\$;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_admin_user}";
 \c "${db_database}"
 CREATE EXTENSION hstore;
-CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_plain_user}";
+CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_admin_user}";
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to "${db_plain_user}";
+GRANT USAGE ON SCHEMA public TO "${db_admin_user}";
+EOF
+        echo "Creating database plain user"
+        psql_master <<EOF || abort "Creating plain user."
+DO \$\$
+BEGIN
+  CREATE ROLE "${db_plain_user}" LOGIN PASSWORD '${db_password}';
+  GRANT "${db_plain_user}" TO "${db_master_user}";
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'User $db_plain_user already exists';
+END
+\$\$;
+GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
+GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
 EOF
         crudini --set "${db_properties}" '' schema "${db_schema}"
         crudini --set "${db_properties}" '' password "${db_password}"
+        crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_user' "${db_admin_conn_user}"
+        crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_password' "${db_admin_password}"
     fi
 
     if [ "$skip_migrations" = true ] ; then

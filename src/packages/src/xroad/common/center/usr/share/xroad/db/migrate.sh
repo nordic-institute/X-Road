@@ -18,8 +18,17 @@ get_required_db_prop() {
   echo -n "$prop_value"
 }
 
+get_required_root_prop() {
+  local -r prop_value=$(get_prop "$root_properties" "$1" "")
+  if [ -z "$prop_value" ]; then
+    echo "$3"
+  fi
+  echo -n "$prop_value"
+}
+
 migrate() {
   local db_properties=/etc/xroad/db.properties
+  local root_properties=/etc/xroad.properties
 
   # read parameters from db.properties
   local -r db_user=$(get_required_db_prop 'username')
@@ -27,6 +36,8 @@ migrate() {
   local -r db_host=$(get_required_db_prop 'host')
   local -r db_database=$(get_required_db_prop 'database')
   local -r db_password=$(get_required_db_prop 'password')
+  local -r db_admin_user=$(get_required_root_prop 'centerui.database.admin_user' "$db_user")
+  local -r db_admin_password=$(get_required_root_prop 'centerui.database.admin_password' "$db_password")
 
   if [[ -z "$db_user" || -z "$db_schema" || -z "$db_host" || -z "$db_database" || -z "$db_password" ]]; then
     die "Running database migrations failed, missing some required parameters from ${db_properties}"
@@ -38,8 +49,8 @@ migrate() {
     --classpath=/usr/share/xroad/jlib/postgresql.jar \
     --url="jdbc:postgresql://$db_host/$db_database?currentSchema=${db_schema},public" \
     --changeLogFile=/usr/share/xroad/db/centerui-changelog.xml \
-    --password="${db_password}" \
-    --username="${db_user}" \
+    --password="${db_admin_password}" \
+    --username="${db_admin_user}" \
     --defaultSchemaName="${db_schema}" \
     update ||
     die "Running database migrations failed, please check database availability and configuration in ${db_properties}"
