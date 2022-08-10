@@ -180,7 +180,7 @@ class ManagementRequestsApiControllerTest extends AbstractApiControllerTest {
                 .andExpect(jsonPath("$.items[1].security_server_owner", equalTo("ADMORG")))
                 .andExpect(jsonPath("$.items[1].security_server_id", equalTo("TEST:ORG:111:ADMINSS")))
                 .andExpect(jsonPath("$.items[1].status", equalTo("APPROVED")))
-                .andExpect(jsonPath("$.items[1].created_at", equalTo("2021-03-10T06:24:59.984921Z")));
+                .andExpect(jsonPath("$.items[1].created_at", equalTo("2021-03-10T08:24:59.984921Z")));
 
         verify(managementRequestService).findRequests(any(), any());
     }
