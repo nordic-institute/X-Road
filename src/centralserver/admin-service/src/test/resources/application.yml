@@ -20,7 +20,7 @@ cache:
     ttl: 5
 
 common-module-endpoints:
-  base-path: /api
+  base-path: /api/v1
 
 spring:
   jpa:

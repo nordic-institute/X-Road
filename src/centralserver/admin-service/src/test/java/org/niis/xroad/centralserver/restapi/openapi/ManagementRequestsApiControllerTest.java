@@ -45,14 +45,30 @@ import org.niis.xroad.centralserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
+import org.niis.xroad.centralserver.restapi.service.managementrequest.ManagementRequestService;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class ManagementRequestsApiControllerTest extends AbstractApiControllerTestContext {
+class ManagementRequestsApiControllerTest extends AbstractApiControllerTest {
+    private static final String VIEW_MANAGEMENT_REQUESTS = "VIEW_MANAGEMENT_REQUESTS";
+    private static final String AUTHORITY_WRONG = "AUTHORITY_WRONG";
+
+    @SpyBean
+    private ManagementRequestService managementRequestService;
+
     @Autowired
     private ManagementRequestsApiController controller;
 
@@ -148,5 +164,34 @@ class ManagementRequestsApiControllerTest extends AbstractApiControllerTestConte
         controller.revokeManagementRequest(r1.getBody().getId());
         var r3 = controller.getManagementRequest(r1.getBody().getId());
         assertEquals(ManagementRequestStatus.REVOKED, r3.getBody().getStatus());
+    }
+
+    @Test
+    @WithMockUser(authorities = VIEW_MANAGEMENT_REQUESTS)
+    void listHappyPath() throws Exception {
+       mockMvc.perform(
+                        get(commonModuleEndpointPaths.getBasePath() + "/management-requests"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isArray())
+                .andExpect(jsonPath("$.items", hasSize(2)))
+                .andExpect(jsonPath("$.items[1].id", equalTo(2001)))
+                .andExpect(jsonPath("$.items[1].type", equalTo("AUTH_CERT_REGISTRATION_REQUEST")))
+                .andExpect(jsonPath("$.items[1].origin", equalTo("CENTER")))
+                .andExpect(jsonPath("$.items[1].security_server_owner", equalTo("ADMORG")))
+                .andExpect(jsonPath("$.items[1].security_server_id", equalTo("TEST:ORG:111:ADMINSS")))
+                .andExpect(jsonPath("$.items[1].status", equalTo("APPROVED")))
+                .andExpect(jsonPath("$.items[1].created_at", equalTo("2021-03-10T06:24:59.984921Z")));
+
+        verify(managementRequestService).findRequests(any(), any());
+    }
+
+    @Test
+    @WithMockUser(authorities = AUTHORITY_WRONG)
+    void listThrowsAccessDeniedException() throws Exception {
+        mockMvc.perform(
+                        get(commonModuleEndpointPaths.getBasePath() + "/management-requests"))
+                .andExpect(status().isForbidden());
+
+        verify(managementRequestService, never()).findRequests(any(), any());
     }
 }

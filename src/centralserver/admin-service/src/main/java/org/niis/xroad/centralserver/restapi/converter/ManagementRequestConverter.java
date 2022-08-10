@@ -94,6 +94,7 @@ public class ManagementRequestConverter {
 
     public ManagementRequestViewRepository.Criteria convert(ManagementRequestsFilter filter) {
         return ManagementRequestViewRepository.Criteria.builder()
+                .query(filter.getQuery())
                 .origin(convert(filter.getOrigin()))
                 .types(convert(filter.getTypes()))
                 .status(convert(filter.getStatus()))

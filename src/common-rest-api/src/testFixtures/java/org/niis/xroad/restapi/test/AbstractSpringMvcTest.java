@@ -42,12 +42,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.test.web.servlet.MockMvc;
 
 import javax.transaction.Transactional;
 
 /**
- * Base class for {@link  SpringBootTest} based int. test cases.
+ * Base class for {@link  MockMvc} based test cases.
  */
 @ExtendWith(SpringExtension.class)
 @AutoConfigureTestDatabase
@@ -55,9 +55,9 @@ import javax.transaction.Transactional;
 @Transactional
 @AutoConfigureMockMvc
 @EnableAutoConfiguration
-@SpringBootTest(classes = AbstractSpringIntTest.CommonRestApiTestConfiguration.class,
+@SpringBootTest(classes = AbstractSpringMvcTest.CommonRestApiTestConfiguration.class,
         webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public abstract class AbstractSpringIntTest {
+public abstract class AbstractSpringMvcTest {
 
     @MockBean
     AuditEventLoggingFacade auditEventLoggingFacade;
@@ -70,10 +70,12 @@ public abstract class AbstractSpringIntTest {
     @Autowired
     protected CommonModuleEndpointPaths commonModuleEndpointPaths;
 
-    @EnableWebMvc
+    @Autowired
+    protected MockMvc mockMvc;
+
     @EnableCaching
     @Configuration
     @ComponentScan("org.niis.xroad.restapi")
-    static class CommonRestApiTestConfiguration {
+    public static class CommonRestApiTestConfiguration {
     }
 }
