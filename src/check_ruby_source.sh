@@ -31,7 +31,7 @@ if [ "$#" -eq 0 ]; then
 fi
 
 SUBPROJECT_DIR=$1
-BUILD_DIR=$SUBPROJECT_DIR/.build
+BUILD_DIR=$SUBPROJECT_DIR/build
 REPORT_FILE=$BUILD_DIR/rubocop-result.json
 
 # Create build dir if it does not yet exist.

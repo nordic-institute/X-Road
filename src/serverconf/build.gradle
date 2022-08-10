@@ -38,7 +38,7 @@ task schemaExport () {
     doLast {
         ant.taskdef(name: 'schemaExport', classname: 'org.hibernate.tool.ant.HibernateToolTask', classpath: configurations.schema.asPath)
 
-        ant.schemaExport(destdir: "${buildDirName}") {
+        ant.schemaExport(destdir: "build") {
             configuration(
                 configurationfile: 'src/main/resources/serverconf.hibernate.cfg.xml',
                 propertyFile: 'src/test/resources/hibernate-schema.properties'

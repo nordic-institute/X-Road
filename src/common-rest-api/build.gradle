@@ -7,7 +7,7 @@ plugins {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', "${buildDirName}/generated-sources/openapi/src/main/java"]
+        java.srcDirs = ['src/main/java', "build/generated-sources/openapi/src/main/java"]
     }
 }
 

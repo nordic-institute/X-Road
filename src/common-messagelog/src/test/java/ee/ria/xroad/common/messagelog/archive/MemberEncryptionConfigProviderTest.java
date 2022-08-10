@@ -63,7 +63,7 @@ public class MemberEncryptionConfigProviderTest {
     public void before() {
         System.setProperty(MessageLogProperties.ARCHIVE_DEFAULT_ENCRYPTION_KEY,
                 "B23B8E993AC4632A896D39A27BE94D3451C16D55");
-        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, ".build/gpg/keys.ini");
+        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/gpg/keys.ini");
     }
 
     @After
@@ -139,7 +139,7 @@ public class MemberEncryptionConfigProviderTest {
     @Test
     public void shouldParseMappings() throws IOException {
         final Map<String, Set<String>> mappings = MemberEncryptionConfigProvider.readKeyMappings(
-                Paths.get(".build/gpg/keys.ini"));
+                Paths.get("build/gpg/keys.ini"));
         assertEquals(expected, mappings);
     }
 

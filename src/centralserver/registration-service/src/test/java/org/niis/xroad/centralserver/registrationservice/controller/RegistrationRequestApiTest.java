@@ -72,7 +72,7 @@ public class RegistrationRequestApiTest {
 
     @ClassRule
     public static WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
-            .keystorePath("./.build/resources/test/testconf/ssl/internal.p12")
+            .keystorePath("./build/resources/test/testconf/ssl/internal.p12")
             .keystoreType("PKCS12")
             .keystorePassword("internal")
             .keyManagerPassword("internal")
@@ -84,7 +84,7 @@ public class RegistrationRequestApiTest {
 
     @BeforeClass
     public static void setup() {
-        System.setProperty(SystemProperties.CONF_PATH, ".build/resources/test/testconf");
+        System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/testconf");
         GlobalConf.reload(new TestGlobalConf());
     }
 

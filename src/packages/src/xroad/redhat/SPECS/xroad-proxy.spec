@@ -54,7 +54,7 @@ cp -p %{_sourcedir}/proxy/xroad-initdb.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-add-admin-user.sh %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
 cp -p %{_sourcedir}/proxy/xroad-*.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../proxy/.build/libs/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../proxy/build/libs/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/proxy.ini %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/override-rhel-proxy.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/default-configuration/proxy-logback.xml %{buildroot}/etc/xroad/conf.d

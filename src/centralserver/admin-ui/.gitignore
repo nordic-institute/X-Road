@@ -18,7 +18,7 @@ chromedriver.log*
 
 # Generated type definitions
 src/openapi-types
-.build/
+build/
 
 # Editor directories and files
 .idea

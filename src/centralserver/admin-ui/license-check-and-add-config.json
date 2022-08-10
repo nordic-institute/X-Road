@@ -23,7 +23,7 @@
     "scripts/dtsgen-wrapper.js",
     "tests/e2e/testdata/",
     "build/",
-    ".build/"
+    "build/"
   ],
   "license": "../../LICENSE.txt",
   "licenseFormats": {

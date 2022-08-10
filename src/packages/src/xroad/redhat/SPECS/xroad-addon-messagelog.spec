@@ -36,7 +36,7 @@ mkdir -p %{buildroot}%{_unitdir}
 cp -p %{srcdir}/common/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/messagelog.conf
 cp -p %{_sourcedir}/messagelog/xroad-addon-messagelog.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-addon/.build/libs/messagelog-addon.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+cp -p %{srcdir}/../../../addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/default-configuration/addons/message-log.ini %{buildroot}/etc/xroad/conf.d/addons/
 cp -p %{srcdir}/default-configuration/addons/messagelog-archiver-logback.xml %{buildroot}/etc/xroad/conf.d/addons/
 cp -p %{srcdir}/common/addon/proxy/messagelog-changelog.xml %{buildroot}/usr/share/xroad/db/
@@ -45,12 +45,12 @@ cp -p %{srcdir}/common/addon/proxy/setup_messagelog_db.sh %{buildroot}/usr/share
 cp -p %{srcdir}/common/addon/proxy/xroad-messagelog-archiver %{buildroot}/usr/share/xroad/bin/
 cp -p %{srcdir}/common/addon/proxy/messagelog-archiver.conf %{buildroot}/etc/xroad/services/
 
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/.build/libs/messagelog-archiver.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/build/libs/messagelog-archiver.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/scripts/archive-http-transporter.sh %{buildroot}/usr/share/xroad/scripts
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/scripts/demo-upload.pl %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-server/
 cp -p %{srcdir}/../../../../doc/archive-hashchain-verifier.rb %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
 cp -p %{srcdir}/../../../../doc/archive-hashchain-verifier.README %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
-cp -p %{srcdir}/../../../asicverifier/.build/libs/asicverifier.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../asicverifier/build/libs/asicverifier.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/

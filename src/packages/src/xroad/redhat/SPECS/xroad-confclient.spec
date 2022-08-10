@@ -49,7 +49,7 @@ mkdir -p %{buildroot}/usr/share/xroad/bin
 ln -s /usr/share/xroad/jlib/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/configuration-client.jar
 
 cp -p %{_sourcedir}/confclient/xroad-confclient.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../configuration-client/.build/libs/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../configuration-client/build/libs/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/confclient-logback.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/confclient-logback-service.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/common/confclient/etc/xroad/backup.d/??_xroad-confclient %{buildroot}/etc/xroad/backup.d/

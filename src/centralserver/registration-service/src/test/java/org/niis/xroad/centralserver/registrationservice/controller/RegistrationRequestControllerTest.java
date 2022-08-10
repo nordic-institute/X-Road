@@ -94,7 +94,7 @@ public class RegistrationRequestControllerTest {
         ownerKeyPair = keyPairGenerator.generateKeyPair();
         factory = MessageFactory.newInstance();
 
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, ".build/resources/test/testconf");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH, "build/resources/test/testconf");
         GlobalConf.reload(new TestGlobalConf());
     }
 

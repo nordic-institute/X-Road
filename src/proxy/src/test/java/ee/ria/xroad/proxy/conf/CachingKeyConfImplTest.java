@@ -86,11 +86,11 @@ public class CachingKeyConfImplTest {
     private static final BooleanSupplier VALID_SIGNING_INFO = ALWAYS_TRUE;
     public static final int NO_LOOPING = 1;
     public static final int NO_DELAY = 0;
-    private static final Path KEY_CONF = Paths.get(".build", "tmp", "keyConf.xml");
+    private static final Path KEY_CONF = Paths.get("build", "tmp", "keyConf.xml");
 
     @Before
     public void before() throws IOException {
-        System.setProperty(SystemProperties.CONF_PATH, ".build/tmp/");
+        System.setProperty(SystemProperties.CONF_PATH, "build/tmp/");
         GlobalConf.reload(new EmptyGlobalConf() {
             @Override
             public String getInstanceIdentifier() {
