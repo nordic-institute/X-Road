@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.restapi.test.AbstractSpringIntTest;
+import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 /**
  * Test cases for {@link  ApiKeyService}.
  */
-class ApiKeyServiceIntegrationTest extends AbstractSpringIntTest {
+class ApiKeyServiceIntegrationTest extends AbstractSpringMvcTest {
     private static final int KEYS_CREATED_ELSEWHERE = 1; // one key in data.sql
 
     @Autowired
