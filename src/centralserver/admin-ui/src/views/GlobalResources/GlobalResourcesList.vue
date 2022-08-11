@@ -25,15 +25,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="global-resources-list-view">
+  <div>
     <!-- Title and action -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-view-title align-fix">
         {{ $t('globalResources.globalGroups') }}
       </div>
 
-      <xrd-button
-        data-test="add-certification-service"
+      <xrd-button data-test="add-global-group-button"
         @click="showAddGroupDialog = true"
       >
         <xrd-icon-base class="xrd-large-button-icon"
@@ -54,6 +53,7 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
+      data-test="global-groups-table"
     >
       <template #[`item.code`]="{ item }">
         <div class="server-code xrd-clickable" @click="toDetails(item)">
@@ -102,7 +102,6 @@
     </v-data-table>
 
     <addGroupDialog
-      :id="id"
       :dialog="showAddGroupDialog"
       @cancel="closeAddGroupDialog()"
       @group-added="groupAdded()"
@@ -124,14 +123,9 @@ import { notificationsStore } from '@/store/modules/notifications';
 import AddGroupDialog from '@/views/GlobalResources/AddGroupDialog.vue';
 
 export default Vue.extend({
+  name: 'GlobalResourcesList',
   components: {
     AddGroupDialog,
-  },
-  props: {
-    id: {
-      type: String,
-      required: true,
-    },
   },
   data() {
     return {
