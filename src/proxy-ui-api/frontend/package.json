@@ -28,10 +28,14 @@
     "@niis/shared-ui": "file:../../shared-ui/niis-shared-ui-0.1.0.tgz",
     "@vue/composition-api": "^1.4.6",
     "axios": "^0.26.0",
+    "core-js": "~3.24.1",
     "pinia": "2.0.12",
     "pinia-plugin-persistedstate": "^1.2.1",
     "vee-validate": "3.4.14",
-    "vue-router": "~3.5.1"
+    "vue": "2.6.14",
+    "vue-i18n": "~8.27.2",
+    "vue-router": "~3.5.1",
+    "vuetify": "^2.6.9"
   },
   "devDependencies": {
     "@mdi/font": "~6.5.95",
@@ -60,10 +64,10 @@
     "react-is": "^18.2.0",
     "sass": "~1.54.4",
     "sass-loader": "~13.0.2",
-    "ts-jest": "^27.1.4",
+    "ts-jest": "^27.1.5",
     "typescript": "4.7.4",
-    "vue-cli-plugin-vuetify": "~2.4.1",
+    "vue-cli-plugin-vuetify": "~2.5.1",
     "vue-template-compiler": "2.6.14",
-    "vuetify-loader": "~1.7.1"
+    "vuetify-loader": "~1.7.3"
   }
 }
