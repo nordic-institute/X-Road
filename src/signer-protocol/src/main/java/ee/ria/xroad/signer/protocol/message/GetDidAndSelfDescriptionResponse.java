@@ -39,4 +39,6 @@ public class GetDidAndSelfDescriptionResponse implements Serializable {
 
     private String selfDescriptionPath;
 
+    private String certificateChainPath;
+
 }

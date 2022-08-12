@@ -49,5 +49,7 @@ public class GetDidAndSelfDescription implements Serializable {
 
     private String legalAddressCountryCode;
 
+    private String certificateChainUrl;
+
 }
 

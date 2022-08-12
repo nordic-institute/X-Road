@@ -63,11 +63,20 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.util.Base64;
+import com.nimbusds.jose.util.X509CertUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -96,10 +105,13 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
  */
 @Slf4j
 public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandler<GetDidAndSelfDescription> {
-
+    private static final int CONNECTION_TIMEOUT_MILLISECONDS = 10000;
+    private static final int SOCKET_TIMEOUT_MILLISECONDS = 10000;
+    private String gaiaXApiVersion = "v2204";
     private static final String ISO_8601_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private String didFileLocation = SystemProperties.getTempFilesPath() + "did-web.json";
     private String selfDescriptionFileLocation = SystemProperties.getTempFilesPath() + "self-description.json";
+    private String certChainFileLocation = SystemProperties.getTempFilesPath() + "certificate-chain.pem";
     private String termsAndConditionsHash = "36ba819f30a3c4d4a7f16ee0a77259fc92f2e1ebf739713609f"
             + "1c11eb41499e7aa2cd3a5d2011e073f9ba9c107493e3e8629cc15cd4fc07f67281d7ea9023db0";
     private boolean isDetached = true;
@@ -135,7 +147,7 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
                                 keyInfo.getId());
 
                         // Convert the existing sign key to a JSON Web Key (JWK)
-                        JWK jwk = createJwk(keyInfo, certInfo);
+                        JWK jwk = createJwk(keyInfo, certInfo, message.getCertificateChainUrl());
 
                         // Create a DID document for DID Web identifier
                         JsonObject did = createDidJson(jwk, message.getDidDomain());
@@ -156,7 +168,8 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
                         // Write the Self-Description to file
                         writeToFile(sd.toString().getBytes(), selfDescriptionFileLocation);
 
-                        return new GetDidAndSelfDescriptionResponse(didFileLocation, selfDescriptionFileLocation);
+                        return new GetDidAndSelfDescriptionResponse(
+                                didFileLocation, selfDescriptionFileLocation, certChainFileLocation);
                     }
                 }
             }
@@ -179,9 +192,12 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
      * @throws Exception
      */
     private JWSObject createJws(JsonObject selfDescription, JWK jwk) throws Exception {
-        // The payload is not be encoded and must be passed to
-        // the JWS consumer in a detached manner
-        Payload payload = new Payload(selfDescription.toString());
+        // Canonize the credential
+        String canonizedSd = canonize(selfDescription.toString());
+        // Hash the canonized credential with SHA256
+        String sha256hex = DigestUtils.sha256Hex(canonizedSd);
+        // Use the canonized and hashed credential as payload
+        Payload payload = new Payload(sha256hex);
 
         // Create and sign JWS
         // The JWS signature is created using unencoded payload option and a detached payload
@@ -211,10 +227,11 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
      *
      * @param keyInfo
      * @param certInfo
+     * @param certChainUrl
      * @return
      * @throws Exception
      */
-    private JWK createJwk(KeyInfo keyInfo, CertificateInfo certInfo) throws Exception {
+    private JWK createJwk(KeyInfo keyInfo, CertificateInfo certInfo, String certChainUrl) throws Exception {
         // Use AuthKeyInfo class since it contains all required properties.
         // Consider creating SignKeyInfo class for production level implementation.
         AuthKeyInfo signKeyInfo = signKeyResponse(keyInfo, certInfo);
@@ -239,12 +256,15 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
                 .map(this::base64EncodeCertificate)
                 .collect(Collectors.toList());
 
+        writeCertChainToFile(chain.getAllCerts());
+
         return new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
                 .keyUse(KeyUse.SIGNATURE)
                 .keyIDFromThumbprint()
                 .algorithm(Algorithm.parse("RS256"))
                 .x509CertChain(certs)
+                .x509CertURL(new URI(certChainUrl))
                 .build();
     }
 
@@ -257,6 +277,43 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
     }
 
     /**
+     * Writes the given certificate chain to a file
+     * @param certChain
+     * @throws Exception
+     */
+    private void writeCertChainToFile(List<X509Certificate> certChain) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        certChain.stream().forEach(c -> sb.append(X509CertUtils.toPEMString(c)).append("\n"));
+        writeToFile(sb.toString().getBytes(), this.certChainFileLocation);
+    }
+
+    /**
+     * Normalizes the JSON string using the Universal RDF Dataset Canonicalization Algorithm 2015 (URDNA2015).
+     * Currently, the implementation uses the external Gaia-X Compliance Service API.
+     *
+     * <b>NOTE:</b> A production level implementation shouldn't depend on an external API, but rather implement
+     * the normalization on code level.
+     *
+     * @param json
+     * @return
+     * @throws Exception
+     */
+    private String canonize(String json) throws Exception {
+        HttpPost post = new HttpPost("https://compliance.gaia-x.eu/api/" + gaiaXApiVersion + "/normalize");
+        post.setHeader("Content-Type", "application/json");
+        post.setEntity(new StringEntity(json));
+
+        try (
+                CloseableHttpClient httpClient = HttpClients.createDefault();
+                CloseableHttpResponse response = httpClient.execute(post)
+        ) {
+            String data = EntityUtils.toString(response.getEntity());
+            log.trace(data);
+            return data;
+        }
+    }
+
+    /**
      * Create a DID using the given web domain according to the did:web method spec:
      * https://w3c-ccg.github.io/did-method-web/
      *
@@ -264,9 +321,13 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
      * @return web method DID
      */
     private String createDidWed(String didDomain) {
-        return "did:web:" + didDomain
-                .replace(":", "%3A")
-                .replaceAll("[./]", ":");
+        // Gaia-X Compliance Service API v2204 doesn't encode the identifier
+        // correctly and therefore, encoding the identifier must be skipped.
+        // return "did:web:" + didDomain
+        //        .replace(":", "%3A")
+        //        .replaceAll("[./]", ":");
+        return "did:web:" + didDomain;
+
     }
 
     /**
@@ -283,7 +344,6 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
         JsonObject did = new JsonObject();
         JsonArray context = new JsonArray();
         context.add("https://www.w3.org/ns/did/v1");
-        context.add("https://w3id.org/security/suites/jws-2020/v1");
         did.add("@context", context);
         did.addProperty("id", didWed);
         JsonObject publicKeyJwk = JsonParser.parseString(jwk.toPublicJWK().toJSONString())
@@ -320,17 +380,15 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
                                              String businessId, String headquarterAddressCountryCode,
                                              String legalAddressCountryCode) {
         String didWed = createDidWed(didDomain);
-        String date = getDateISOString();
 
         JsonObject sd = new JsonObject();
         JsonArray context = new JsonArray();
         context.add("https://www.w3.org/2018/credentials/v1");
-        context.add("https://www.w3.org/2018/credentials/examples/v1");
         sd.add("@context", context);
-        sd.addProperty("id", credentialId);
-        sd.addProperty("type", "VerifiableCredential");
-        sd.addProperty("issuer", didWed);
-        sd.addProperty("issuanceDate", date);
+        sd.addProperty("@id", credentialId);
+        JsonArray type = new JsonArray();
+        type.add("VerifiableCredential");
+        sd.add("@type", type);
 
         JsonObject credentialSubject = new JsonObject();
         JsonObject credentialSubjectContext = new JsonObject();
@@ -339,18 +397,27 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
         credentialSubject.addProperty("id", didWed);
 
         JsonObject registrationNumber = new JsonObject();
-        registrationNumber.addProperty("gx:local", businessId);
+        registrationNumber.addProperty("@type", "xsd:string");
+        registrationNumber.addProperty("@value", businessId);
         credentialSubject.add("gx:registrationNumber", registrationNumber);
 
         JsonObject headquarterAddress = new JsonObject();
-        headquarterAddress.addProperty("gx:countryCode", headquarterAddressCountryCode);
+        headquarterAddress.addProperty("@type", "gx:Address");
+        JsonObject headquarterAddressCountry = new JsonObject();
+        headquarterAddressCountry.addProperty("@type", "xsd:string");
+        headquarterAddressCountry.addProperty("@value", headquarterAddressCountryCode);
+        headquarterAddress.add("gx:country", headquarterAddressCountry);
         credentialSubject.add("gx:headquarterAddress", headquarterAddress);
 
         JsonObject legalAddress = new JsonObject();
-        legalAddress.addProperty("gx:countryCode", legalAddressCountryCode);
+        legalAddress.addProperty("@type", "gx:Address");
+        JsonObject legalAddressCountry = new JsonObject();
+        legalAddressCountry.addProperty("@type", "xsd:string");
+        legalAddressCountry.addProperty("@value", legalAddressCountryCode);
+        legalAddress.add("gx:country", legalAddressCountry);
         credentialSubject.add("gx:legalAddress", legalAddress);
 
-        credentialSubject.addProperty("gx:termsAndConditions", termsAndConditionsHash);
+        //credentialSubject.addProperty("gx:termsAndConditions", termsAndConditionsHash);
 
         sd.add("credentialSubject", credentialSubject);
 
@@ -366,10 +433,9 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
      */
     private void addProofToSelfDescription(JsonObject sd, JsonObject did, JWSObject jws) {
         String date = getDateISOString();
-        String verificationMethod = did.getAsJsonArray("verificationMethod")
-                .get(0).getAsJsonObject().get("id").getAsString();
+        String verificationMethod = did.get("id").getAsString();
 
-        sd.getAsJsonArray("@context").add("https://w3id.org/security/suites/jws-2020/v1");
+        //sd.getAsJsonArray("@context").add("https://w3id.org/security/suites/jws-2020/v1");
         JsonObject proof = new JsonObject();
         proof.addProperty("type", "JsonWebSignature2020");
         proof.addProperty("created", date);

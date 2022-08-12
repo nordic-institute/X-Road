@@ -191,11 +191,13 @@ public class SignerCLI {
             @Param(name = "headquarterAddressCountryCode", description = "Headquarter country code")
             String headquarterAddressCountryCode,
             @Param(name = "legalAddressCountryCode", description = "Legal address country code")
-            String legalAddressCountryCode
+            String legalAddressCountryCode,
+            @Param(name = "certificateChainUrl", description = "Certificate chain URL")
+            String certificateChainUrl
         ) throws Exception {
         GetDidAndSelfDescriptionResponse response = SignerClient.execute(new GetDidAndSelfDescription(
                 memberId, didDomain, credentialId, businessId,
-                headquarterAddressCountryCode, legalAddressCountryCode));
+                headquarterAddressCountryCode, legalAddressCountryCode, certificateChainUrl));
 
         System.out.println("Input parameters:");
         System.out.println("\tMember ID: " + memberId);
@@ -204,10 +206,12 @@ public class SignerCLI {
         System.out.println("\tBusiness ID: " + businessId);
         System.out.println("\tHeadquarter address country code: " + headquarterAddressCountryCode);
         System.out.println("\tLegal address country code: " + legalAddressCountryCode);
+        System.out.println("\tCertificate chain URL: " + certificateChainUrl);
 
         System.out.println("\nThe following files were created:");
         System.out.println("\tDID document:\t\t " + response.getDidDocumentPath());
         System.out.println("\tGaia-X Self-Description: " + response.getSelfDescriptionPath());
+        System.out.println("\tCertificate chain:\t " + response.getCertificateChainPath());
     }
 
     /**
