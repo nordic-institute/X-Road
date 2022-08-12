@@ -237,6 +237,7 @@ export default Vue.extend({
     this.$refs.memberCodeVP;
   },
   created() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
     this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
     this.fetchSelectableMembers(that.currentSecurityServer.instance_id);
