@@ -319,7 +319,7 @@ export default (
         const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);
         if (isFieldError(errorInfo)) {
           // backend validation error
-          let fieldErrors = errorInfo.error?.validation_errors;
+          const fieldErrors = errorInfo.error?.validation_errors;
           if (fieldErrors && this.$refs?.serverAddressVP) {
             this.$refs.serverAddressVP.setErrors(
               getTranslatedFieldErrors(

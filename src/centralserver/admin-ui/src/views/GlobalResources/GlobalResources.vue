@@ -48,7 +48,7 @@ export default Vue.extend({
   },
   methods: {
     redirectToFirstAllowedTab(): void {
-      let firstTab = this.settingsTabServiceStore.getAvailableTabs()[0].to;
+      const firstTab = this.settingsTabServiceStore.getAvailableTabs()[0].to;
       if (firstTab.name != RouteName.GlobalResources) {
         this.$router.push(firstTab);
       }
