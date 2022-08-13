@@ -37,7 +37,7 @@ import java.io.Serializable;
 @Value
 public class GetDidAndSelfDescription implements Serializable {
 
-    private final ClientId memberId;
+    private String signCertId;
 
     private String didDomain;
 

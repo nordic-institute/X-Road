@@ -28,10 +28,7 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
@@ -42,13 +39,13 @@ import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.message.GetDidAndSelfDescription;
 import ee.ria.xroad.signer.protocol.message.GetDidAndSelfDescriptionResponse;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
 import ee.ria.xroad.signer.tokenmanager.ServiceLocator;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
 import ee.ria.xroad.signer.util.SignerUtil;
@@ -100,8 +97,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 
 /**
  * Handles requests for DID documents.
@@ -116,70 +112,56 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
 
     @Override
     protected Object handle(GetDidAndSelfDescription message) throws Exception {
-        log.trace("Selecting sign key for member {}",
-                message.getMemberId());
+        CertificateInfo certInfo = TokenManager.findCertificateInfo(message.getSignCertId());
+        String hash =  CryptoUtils.calculateCertHexHash(certInfo.getCertificateBytes());
+        TokenInfoAndKeyId tokenInfoAndKeyId = TokenManager.findTokenAndKeyIdForCertHash(hash);
 
-        validateToken();
+        TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();
+        KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
 
-        for (TokenInfo tokenInfo : TokenManager.listTokens()) {
-            if (!SoftwareModuleType.TYPE.equals(tokenInfo.getType())) {
-                log.trace("Ignoring {} module", tokenInfo.getType());
-                continue;
-            }
-
-            for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
-                if (!keyInfo.isForSigning()) {
-                    log.trace("Ignoring {} key {}", keyInfo.getUsage(),
-                            keyInfo.getId());
-                    continue;
-                }
-
-                if (!keyInfo.isAvailable()) {
-                    log.trace("Ignoring unavailable key {}", keyInfo.getId());
-                    continue;
-                }
-
-                for (CertificateInfo certInfo : keyInfo.getCerts()) {
-                    if (signCertValid(certInfo, message.getMemberId())) {
-                        log.trace("Found suitable sign key {}",
-                                keyInfo.getId());
-
-                        // Convert the existing sign key to a JSON Web Key (JWK)
-                        JWK jwk = createJwk(keyInfo, certInfo, message.getCertificateChainUrl());
-
-                        // Create a DID document for DID Web identifier
-                        JsonObject did = createDidJson(jwk, message.getDidDomain());
-
-                        // Write the DID document to file
-                        writeToFile(did.toString().getBytes(), didFileLocation);
-
-                        // Create a Gaia-X Self-Description
-                        JsonObject sd = createSelfDescription(message.getDidDomain(),
-                                message.getCredentialId(), message.getBusinessId(),
-                                message.getHeadquarterAddressCountryCode(), message.getLegalAddressCountryCode());
-
-                        // Create a JSON Web Signature (JWS) for the Self-Description
-                        String jws = createJws(sd, jwk, tokenInfo.getId(), keyInfo.getId());
-                        // Add the signature and the proof to the Self-Description
-                        addProofToSelfDescription(sd, did, jws);
-
-                        // Write the Self-Description to file
-                        writeToFile(sd.toString().getBytes(), selfDescriptionFileLocation);
-
-                        return new GetDidAndSelfDescriptionResponse(
-                                didFileLocation, selfDescriptionFileLocation, certChainFileLocation);
-                    }
-                }
-            }
+        if (!keyInfo.isForSigning()) {
+            throw new CertificateException("Authentication certificate cannot be used for signing");
         }
+
+        if (!keyInfo.isAvailable()) {
+            throw keyNotAvailable(keyInfo.getId());
+        }
+
+        if (signCertValid(certInfo)) {
+            // Convert the existing sign key to a JSON Web Key (JWK)
+            JWK jwk = createJwk(keyInfo, certInfo, message.getCertificateChainUrl());
+
+            // Create a DID document for DID Web identifier
+            JsonObject did = createDidJson(jwk, message.getDidDomain());
+
+            // Write the DID document to file
+            writeToFile(did.toString().getBytes(), didFileLocation);
+
+            // Create a Gaia-X Self-Description
+            JsonObject sd = createSelfDescription(message.getDidDomain(),
+                    message.getCredentialId(), message.getBusinessId(),
+                    message.getHeadquarterAddressCountryCode(), message.getLegalAddressCountryCode());
+
+            // Create a JSON Web Signature (JWS) for the Self-Description
+            String jws = createJws(sd, jwk, tokenInfo.getId(), keyInfo.getId());
+            // Add the signature and the proof to the Self-Description
+            addProofToSelfDescription(sd, did, jws);
+
+            // Write the Self-Description to file
+            writeToFile(sd.toString().getBytes(), selfDescriptionFileLocation);
+
+            return new GetDidAndSelfDescriptionResponse(
+                    didFileLocation, selfDescriptionFileLocation, certChainFileLocation);
+        }
+
         throw CodedException.tr(X_KEY_NOT_FOUND,
-                "sign_key_not_found_for_member",
-                "Could not find active sign key for "
-                        + "member '%s'", message.getMemberId());
+                "sign_key_not_found",
+                "Could not find active sign key with "
+                        + "certificate ID '%s'", message.getSignCertId());
     }
 
     /**
-     * Returns the given String with base 64 Encoding with URL and Filename Safe Alphabet:
+     * Returns the given String with base64 Encoding with URL and Filename Safe Alphabet:
      * https://www.rfc-editor.org/rfc/rfc4648#page-7
      *
      * @param data
@@ -190,7 +172,7 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
     }
 
     /**
-     * Returns the given byte array with base 64 Encoding with URL and Filename Safe Alphabet:
+     * Returns the given byte array with base64 Encoding with URL and Filename Safe Alphabet:
      * https://www.rfc-editor.org/rfc/rfc4648#page-7
      *
      * @param data
@@ -526,21 +508,6 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
     /**
      * Copied from GetAuthKeyRequestHandler.
      *
-     * @throws CodedException
-     */
-    private void validateToken() throws CodedException {
-        if (!SoftwareTokenUtil.isTokenInitialized()) {
-            throw tokenNotInitialized(SoftwareTokenType.ID);
-        }
-
-        if (!TokenManager.isTokenActive(SoftwareTokenType.ID)) {
-            throw tokenNotActive(SoftwareTokenType.ID);
-        }
-    }
-
-    /**
-     * Copied from GetAuthKeyRequestHandler.
-     *
      * @param keyInfo
      * @param certInfo
      * @return
@@ -556,15 +523,13 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
     }
 
     /**
-     * Copied from GetAuthKeyRequestHandler with some modifications.
+     * Copied from GetAuthKeyRequestHandler with modifications.
      *
      * @param certInfo
-     * @param memberId
      * @return
      * @throws Exception
      */
-    private boolean signCertValid(CertificateInfo certInfo,
-                                  ClientId memberId) throws Exception {
+    private boolean signCertValid(CertificateInfo certInfo) throws Exception {
         X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
 
         if (!certInfo.isActive()) {
@@ -574,29 +539,8 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
             return false;
         }
 
-        ClientId memberIdFromCert = GlobalConf.getSubjectName(
-                new SignCertificateProfileInfoParameters(
-                        ClientId.create(
-                                GlobalConf.getInstanceIdentifier(),
-                                memberId.getMemberClass(),
-                                memberId.getMemberCode()
-                        ),
-                        "Member name"
-                ),
-                cert
-        );
-
         try {
             cert.checkValidity();
-
-            if (memberId.equals(memberIdFromCert)) {
-                verifyOcspResponse(memberId.getXRoadInstance(), cert,
-                        certInfo.getOcspBytes(), new OcspVerifierOptions(
-                                GlobalConfExtensions.getInstance()
-                                        .shouldVerifyOcspNextUpdate()));
-
-                return true;
-            }
         } catch (Exception e) {
             log.warn("Ignoring sign certificate '{}' because: ",
                     cert.getSubjectX500Principal().getName(), e);
@@ -604,15 +548,7 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
             return false;
         }
 
-        log.trace("Ignoring sign certificate {} because it does "
-                + "not belong to member {} "
-                + "(member id from global conf: {})", new Object[] {
-                    CertUtils.identify(cert),
-                    memberId, memberIdFromCert
-                }
-        );
-
-        return false;
+        return true;
     }
 
     /**

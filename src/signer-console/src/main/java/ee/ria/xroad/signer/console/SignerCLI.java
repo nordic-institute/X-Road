@@ -184,7 +184,7 @@ public class SignerCLI {
      */
     @Command(description = "Creates a Gaia-X Self-Description")
     public void createDidAndSelfDescription(
-            @Param(name = "memberId", description = "Member identifier") ClientId memberId,
+            @Param(name = "signCertId", description = "Sign certificate ID") String signCertId,
             @Param(name = "didDomain", description = "DID domain") String didDomain,
             @Param(name = "credentialId", description = "Credential ID") String credentialId,
             @Param(name = "businessId", description = "Member business ID") String businessId,
@@ -196,11 +196,11 @@ public class SignerCLI {
             String certificateChainUrl
         ) throws Exception {
         GetDidAndSelfDescriptionResponse response = SignerClient.execute(new GetDidAndSelfDescription(
-                memberId, didDomain, credentialId, businessId,
+                signCertId, didDomain, credentialId, businessId,
                 headquarterAddressCountryCode, legalAddressCountryCode, certificateChainUrl));
 
         System.out.println("Input parameters:");
-        System.out.println("\tMember ID: " + memberId);
+        System.out.println("\tSign certificate ID: " + signCertId);
         System.out.println("\tDID domain: " + didDomain);
         System.out.println("\tCredential ID: " + credentialId);
         System.out.println("\tBusiness ID: " + businessId);
