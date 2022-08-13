@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
@@ -43,21 +44,22 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.GetDidAndSelfDescription;
 import ee.ria.xroad.signer.protocol.message.GetDidAndSelfDescriptionResponse;
+import ee.ria.xroad.signer.protocol.message.Sign;
+import ee.ria.xroad.signer.protocol.message.SignResponse;
+import ee.ria.xroad.signer.tokenmanager.ServiceLocator;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
+import ee.ria.xroad.signer.util.SignerUtil;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyUse;
@@ -89,12 +91,13 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
@@ -105,16 +108,11 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
  */
 @Slf4j
 public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandler<GetDidAndSelfDescription> {
-    private static final int CONNECTION_TIMEOUT_MILLISECONDS = 10000;
-    private static final int SOCKET_TIMEOUT_MILLISECONDS = 10000;
     private String gaiaXApiVersion = "v2204";
     private static final String ISO_8601_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private String didFileLocation = SystemProperties.getTempFilesPath() + "did-web.json";
     private String selfDescriptionFileLocation = SystemProperties.getTempFilesPath() + "self-description.json";
     private String certChainFileLocation = SystemProperties.getTempFilesPath() + "certificate-chain.pem";
-    private String termsAndConditionsHash = "36ba819f30a3c4d4a7f16ee0a77259fc92f2e1ebf739713609f"
-            + "1c11eb41499e7aa2cd3a5d2011e073f9ba9c107493e3e8629cc15cd4fc07f67281d7ea9023db0";
-    private boolean isDetached = true;
 
     @Override
     protected Object handle(GetDidAndSelfDescription message) throws Exception {
@@ -161,7 +159,7 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
                                 message.getHeadquarterAddressCountryCode(), message.getLegalAddressCountryCode());
 
                         // Create a JSON Web Signature (JWS) for the Self-Description
-                        JWSObject jws = createJws(sd, jwk);
+                        String jws = createJws(sd, jwk, tokenInfo.getId(), keyInfo.getId());
                         // Add the signature and the proof to the Self-Description
                         addProofToSelfDescription(sd, did, jws);
 
@@ -181,45 +179,103 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
     }
 
     /**
-     * Create a JWS signature of the Gaia-X Self-Description using the JWK presentation
+     * Returns the given String with base 64 Encoding with URL and Filename Safe Alphabet:
+     * https://www.rfc-editor.org/rfc/rfc4648#page-7
+     *
+     * @param data
+     * @return
+     */
+    private String base64UrlEncode(String data) {
+        return base64UrlEncode(data.getBytes());
+    }
+
+    /**
+     * Returns the given byte array with base 64 Encoding with URL and Filename Safe Alphabet:
+     * https://www.rfc-editor.org/rfc/rfc4648#page-7
+     *
+     * @param data
+     * @return
+     */
+    private String base64UrlEncode(byte[] data) {
+        return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(data);
+    }
+
+    /**
+     * Copied from GenerateSelfSignedCertRequestHandler with some modifications.
+     *
+     * @param tokenId
+     * @param keyId
+     * @param dataToSign
+     * @return
+     * @throws Exception
+     */
+    private String sign(String tokenId, String keyId, String dataToSign) throws Exception {
+        // SHA256WITHRSA_ID equals to RS256
+        String signAlgoId = CryptoUtils.SHA256WITHRSA_ID;
+        String digAlgoId = getDigestAlgorithmId(signAlgoId);
+        byte[] digest = calculateDigest(digAlgoId, dataToSign.getBytes());
+
+        Sign message = new Sign(keyId, signAlgoId, digest);
+
+        Object response = SignerUtil.ask(ServiceLocator.getTokenSigner(getContext(), tokenId), message);
+
+        if (response instanceof SignResponse) {
+            byte[] data = ((SignResponse) response).getSignature();
+            // Must be returned with base 64 Encoding with URL and Filename Safe Alphabet:
+            // https://www.rfc-editor.org/rfc/rfc4648#page-7
+            return base64UrlEncode(data);
+        } else {
+            throw new RuntimeException("Failed to sign with key " + keyId
+                    + "; response was " + response);
+        }
+    }
+
+    /**
+     * Create a JWS token of the Gaia-X Self-Description using the JWK presentation
      * of an X-Road Member's sign key. The JWS signature is created using unencoded
-     * payload option and a detached payload. The generated JWS is verified and an
+     * payload option and a detached payload. The generated JWS token is verified and an
      * exception is thrown if the verification fails.
      *
      * @param selfDescription
      * @param jwk
+     * @param tokenId
+     * @param keyId
      * @return
      * @throws Exception
      */
-    private JWSObject createJws(JsonObject selfDescription, JWK jwk) throws Exception {
+    private String createJws(JsonObject selfDescription, JWK jwk, String tokenId, String keyId) throws Exception {
         // Canonize the credential
         String canonizedSd = canonize(selfDescription.toString());
         // Hash the canonized credential with SHA256
         String sha256hex = DigestUtils.sha256Hex(canonizedSd);
-        // Use the canonized and hashed credential as payload
-        Payload payload = new Payload(sha256hex);
 
-        // Create and sign JWS
-        // The JWS signature is created using unencoded payload option and a detached payload
-        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
-                .base64URLEncodePayload(false)
-                .criticalParams(Collections.singleton("b64"))
-                .build();
+        // Create the JWS header object
+        JsonObject headerJson = new JsonObject();
+        // The payload must not be base64 URL encoded
+        headerJson.addProperty("b64", false);
+        JsonArray crit = new JsonArray();
+        crit.add("b64");
+        headerJson.add("crit", crit);
+        headerJson.addProperty("alg", "RS256");
 
-        JWSObject jwsObject = new JWSObject(header, payload);
-        jwsObject.sign(new RSASSASigner(jwk.toRSAKey()));
+        // Base64 URL encode the header
+        String header = base64UrlEncode(headerJson.toString());
 
-        // Serialize JWS to String
-        String jws = jwsObject.serialize(isDetached);
+        // Build the string to be signed using the canonized and hashed credential as payload
+        String dataToSign = header + '.' + sha256hex;
+        // Sign the data
+        String signature = sign(tokenId, keyId, dataToSign);
+
+        // Build the JWS token with a detached payload
+        String jws = header + ".." + signature;
 
         // Verify the generated JWS
-        JWSObject parsedJWSObject = JWSObject.parse(jws, payload);
+        JWSObject parsedJWSObject = JWSObject.parse(jws, new Payload(sha256hex));
         JWSVerifier verifier = new RSASSAVerifier(jwk.toPublicJWK().toRSAKey());
         if (!parsedJWSObject.verify(verifier)) {
             throw new Exception("Verifying the JWS failed");
         }
-
-        return jwsObject;
+        return jws;
     }
 
     /**
@@ -431,7 +487,7 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
      * @param did
      * @param jws
      */
-    private void addProofToSelfDescription(JsonObject sd, JsonObject did, JWSObject jws) {
+    private void addProofToSelfDescription(JsonObject sd, JsonObject did, String jws) {
         String date = getDateISOString();
         String verificationMethod = did.get("id").getAsString();
 
@@ -439,7 +495,7 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
         JsonObject proof = new JsonObject();
         proof.addProperty("type", "JsonWebSignature2020");
         proof.addProperty("created", date);
-        proof.addProperty("jws", jws.serialize(isDetached));
+        proof.addProperty("jws", jws);
         proof.addProperty("proofPurpose", "assertionMethod");
         proof.addProperty("verificationMethod", verificationMethod);
 
