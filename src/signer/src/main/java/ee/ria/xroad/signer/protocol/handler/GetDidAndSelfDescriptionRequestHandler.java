@@ -25,17 +25,15 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -46,8 +44,6 @@ import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
 import ee.ria.xroad.signer.tokenmanager.ServiceLocator;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
-import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import com.google.gson.JsonArray;
@@ -73,29 +69,22 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyFactory;
-import java.security.KeyStore;
-import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.X509EncodedKeySpec;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
-import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 
@@ -120,44 +109,41 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
         KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
 
         if (!keyInfo.isForSigning()) {
-            throw new CertificateException("Authentication certificate cannot be used for signing");
+            throw new CertificateException("Authentication key cannot be used for signing");
         }
 
         if (!keyInfo.isAvailable()) {
             throw keyNotAvailable(keyInfo.getId());
         }
 
-        if (signCertValid(certInfo)) {
-            // Convert the existing sign key to a JSON Web Key (JWK)
-            JWK jwk = createJwk(keyInfo, certInfo, message.getCertificateChainUrl());
-
-            // Create a DID document for DID Web identifier
-            JsonObject did = createDidJson(jwk, message.getDidDomain());
-
-            // Write the DID document to file
-            writeToFile(did.toString().getBytes(), didFileLocation);
-
-            // Create a Gaia-X Self-Description
-            JsonObject sd = createSelfDescription(message.getDidDomain(),
-                    message.getCredentialId(), message.getBusinessId(),
-                    message.getHeadquarterAddressCountryCode(), message.getLegalAddressCountryCode());
-
-            // Create a JSON Web Signature (JWS) for the Self-Description
-            String jws = createJws(sd, jwk, tokenInfo.getId(), keyInfo.getId());
-            // Add the signature and the proof to the Self-Description
-            addProofToSelfDescription(sd, did, jws);
-
-            // Write the Self-Description to file
-            writeToFile(sd.toString().getBytes(), selfDescriptionFileLocation);
-
-            return new GetDidAndSelfDescriptionResponse(
-                    didFileLocation, selfDescriptionFileLocation, certChainFileLocation);
+        if (!signCertValid(certInfo)) {
+            throw new CertificateException("Invalid sign certificate: " + message.getSignCertId());
         }
 
-        throw CodedException.tr(X_KEY_NOT_FOUND,
-                "sign_key_not_found",
-                "Could not find active sign key with "
-                        + "certificate ID '%s'", message.getSignCertId());
+        // Convert the existing sign key to a JSON Web Key (JWK)
+        JWK jwk = createJwk(certInfo, message.getCertificateChainUrl());
+
+        // Create a DID document for DID Web identifier
+        JsonObject did = createDidJson(jwk, message.getDidDomain());
+
+        // Write the DID document to file
+        writeToFile(did.toString().getBytes(), didFileLocation);
+
+        // Create a Gaia-X Self-Description
+        JsonObject sd = createSelfDescription(message.getDidDomain(),
+                message.getCredentialId(), message.getBusinessId(),
+                message.getHeadquarterAddressCountryCode(), message.getLegalAddressCountryCode());
+
+        // Create a JSON Web Signature (JWS) for the Self-Description
+        String jws = createJws(sd, jwk, tokenInfo.getId(), keyInfo.getId());
+        // Add the signature and the proof to the Self-Description
+        addProofToSelfDescription(sd, did, jws);
+
+        // Write the Self-Description to file
+        writeToFile(sd.toString().getBytes(), selfDescriptionFileLocation);
+
+        return new GetDidAndSelfDescriptionResponse(
+                didFileLocation, selfDescriptionFileLocation, certChainFileLocation);
     }
 
     /**
@@ -261,49 +247,37 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
     }
 
     /**
-     * Convert an X-Road Member's sign key to a JSON Web Key (JWK).
+     * Convert an X-Road Member's sign key to a JSON Web Key (JWK). The returned JWK
+     * contains the public key only.
      *
-     * @param keyInfo
      * @param certInfo
      * @param certChainUrl
      * @return
      * @throws Exception
      */
-    private JWK createJwk(KeyInfo keyInfo, CertificateInfo certInfo, String certChainUrl) throws Exception {
-        // Use AuthKeyInfo class since it contains all required properties.
-        // Consider creating SignKeyInfo class for production level implementation.
-        AuthKeyInfo signKeyInfo = signKeyResponse(keyInfo, certInfo);
-        PrivateKey privateKey = loadSignPrivateKey(signKeyInfo);
-
-        if (privateKey == null) {
-            throw new CertificateException("Failed to load sign key");
-        }
-
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        X509EncodedKeySpec keySpecX509 = new X509EncodedKeySpec(
-                java.util.Base64.getDecoder().decode(keyInfo.getPublicKey())
-        );
-        RSAPublicKey publicKey = (RSAPublicKey) kf.generatePublic(keySpecX509);
-
+    private JWK createJwk(CertificateInfo certInfo, String certChainUrl) throws Exception {
         X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
+        RSAPublicKey publicKey = (RSAPublicKey) cert.getPublicKey();
 
         CertChain chain = GlobalConf.getCertChain(GlobalConf.getInstanceIdentifier(), cert);
 
+        // Build certificate chain for the x5c attribute
         List<Base64> certs = chain.getAllCerts()
                 .stream()
                 .map(this::base64EncodeCertificate)
                 .collect(Collectors.toList());
 
+        // Build certificate chain for the x5u attribute
         writeCertChainToFile(chain.getAllCerts());
 
         return new RSAKey.Builder(publicKey)
-                .privateKey(privateKey)
                 .keyUse(KeyUse.SIGNATURE)
                 .keyIDFromThumbprint()
                 .algorithm(Algorithm.parse("RS256"))
                 .x509CertChain(certs)
                 .x509CertURL(new URI(certChainUrl))
-                .build();
+                .build()
+                .toPublicJWK();
     }
 
     private Base64 base64EncodeCertificate(X509Certificate cert) {
@@ -506,30 +480,13 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
     }
 
     /**
-     * Copied from GetAuthKeyRequestHandler.
-     *
-     * @param keyInfo
-     * @param certInfo
-     * @return
-     * @throws Exception
-     */
-    private AuthKeyInfo signKeyResponse(KeyInfo keyInfo,
-                                        CertificateInfo certInfo) throws Exception {
-        String alias = keyInfo.getId();
-        String keyStoreFileName = SoftwareTokenUtil.getKeyStoreFileName(alias);
-        char[] password = PasswordStore.getPassword(SoftwareTokenType.ID);
-
-        return new AuthKeyInfo(alias, keyStoreFileName, password, certInfo);
-    }
-
-    /**
      * Copied from GetAuthKeyRequestHandler with modifications.
      *
      * @param certInfo
      * @return
      * @throws Exception
      */
-    private boolean signCertValid(CertificateInfo certInfo) throws Exception {
+    private boolean signCertValid(CertificateInfo certInfo) {
         X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
 
         if (!certInfo.isActive()) {
@@ -541,6 +498,11 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
 
         try {
             cert.checkValidity();
+
+            verifyOcspResponse(GlobalConf.getInstanceIdentifier(), cert,
+                    certInfo.getOcspBytes(), new OcspVerifierOptions(
+                            GlobalConfExtensions.getInstance()
+                                    .shouldVerifyOcspNextUpdate()));
         } catch (Exception e) {
             log.warn("Ignoring sign certificate '{}' because: ",
                     cert.getSubjectX500Principal().getName(), e);
@@ -572,32 +534,5 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
         OcspVerifier verifier =
                 new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false), verifierOptions);
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
-    }
-
-    /**
-     * Copied from GetAuthKeyRequestHandler with minor modifications.
-     *
-     * @param keyInfo
-     * @return
-     * @throws Exception
-     */
-    private PrivateKey loadSignPrivateKey(AuthKeyInfo keyInfo) throws Exception {
-        File keyStoreFile = new File(keyInfo.getKeyStoreFileName());
-        log.trace("Loading sign key from key store '{}'",
-                keyStoreFile);
-
-        KeyStore ks = loadPkcs12KeyStore(keyStoreFile, keyInfo.getPassword());
-
-        PrivateKey privateKey = (PrivateKey) ks.getKey(keyInfo.getAlias(),
-                keyInfo.getPassword());
-        if (privateKey == null) {
-            log.warn("Failed to read sign key");
-        }
-
-        return privateKey;
-    }
-
-    private X509Certificate getCaCert(String instanceIdentifier, X509Certificate subject) throws Exception {
-        return GlobalConf.getCaCert(instanceIdentifier, subject);
     }
 }
