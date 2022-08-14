@@ -43,8 +43,6 @@ public class GetDidAndSelfDescription implements Serializable {
 
     private String credentialId;
 
-    private String businessId;
-
     private String headquarterAddressCountryCode;
 
     private String legalAddressCountryCode;

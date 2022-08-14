@@ -187,7 +187,6 @@ public class SignerCLI {
             @Param(name = "signCertId", description = "Sign certificate ID") String signCertId,
             @Param(name = "didDomain", description = "DID domain") String didDomain,
             @Param(name = "credentialId", description = "Credential ID") String credentialId,
-            @Param(name = "businessId", description = "Member business ID") String businessId,
             @Param(name = "headquarterAddressCountryCode", description = "Headquarter country code")
             String headquarterAddressCountryCode,
             @Param(name = "legalAddressCountryCode", description = "Legal address country code")
@@ -196,14 +195,13 @@ public class SignerCLI {
             String certificateChainUrl
         ) throws Exception {
         GetDidAndSelfDescriptionResponse response = SignerClient.execute(new GetDidAndSelfDescription(
-                signCertId, didDomain, credentialId, businessId,
-                headquarterAddressCountryCode, legalAddressCountryCode, certificateChainUrl));
+                signCertId, didDomain, credentialId, headquarterAddressCountryCode,
+                legalAddressCountryCode, certificateChainUrl));
 
         System.out.println("Input parameters:");
         System.out.println("\tSign certificate ID: " + signCertId);
         System.out.println("\tDID domain: " + didDomain);
         System.out.println("\tCredential ID: " + credentialId);
-        System.out.println("\tBusiness ID: " + businessId);
         System.out.println("\tHeadquarter address country code: " + headquarterAddressCountryCode);
         System.out.println("\tLegal address country code: " + legalAddressCountryCode);
         System.out.println("\tCertificate chain URL: " + certificateChainUrl);

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
@@ -131,7 +132,7 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
 
         // Create a Gaia-X Self-Description
         JsonObject sd = createSelfDescription(message.getDidDomain(),
-                message.getCredentialId(), message.getBusinessId(),
+                message.getCredentialId(), certInfo.getMemberId(),
                 message.getHeadquarterAddressCountryCode(), message.getLegalAddressCountryCode());
 
         // Create a JSON Web Signature (JWS) for the Self-Description
@@ -189,7 +190,7 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
 
         if (response instanceof SignResponse) {
             byte[] data = ((SignResponse) response).getSignature();
-            // Must be returned with base 64 Encoding with URL and Filename Safe Alphabet:
+            // Must be returned with base64 Encoding with URL and Filename Safe Alphabet:
             // https://www.rfc-editor.org/rfc/rfc4648#page-7
             return base64UrlEncode(data);
         } else {
@@ -383,13 +384,13 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
      *
      * @param didDomain
      * @param credentialId
-     * @param businessId
+     * @param clientId
      * @param headquarterAddressCountryCode
      * @param legalAddressCountryCode
      * @return
      */
     private JsonObject createSelfDescription(String didDomain, String credentialId,
-                                             String businessId, String headquarterAddressCountryCode,
+                                             ClientId clientId, String headquarterAddressCountryCode,
                                              String legalAddressCountryCode) {
         String didWed = createDidWed(didDomain);
 
@@ -408,9 +409,14 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
         credentialSubject.add("@context", credentialSubjectContext);
         credentialSubject.addProperty("id", didWed);
 
+        JsonObject name = new JsonObject();
+        name.addProperty("@type", "xsd:string");
+        name.addProperty("@value", GlobalConf.getMemberName(clientId));
+        credentialSubject.add("gx:name", name);
+
         JsonObject registrationNumber = new JsonObject();
         registrationNumber.addProperty("@type", "xsd:string");
-        registrationNumber.addProperty("@value", businessId);
+        registrationNumber.addProperty("@value", clientId.getMemberCode());
         credentialSubject.add("gx:registrationNumber", registrationNumber);
 
         JsonObject headquarterAddress = new JsonObject();
