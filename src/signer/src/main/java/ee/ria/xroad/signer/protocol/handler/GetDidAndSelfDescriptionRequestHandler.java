@@ -334,13 +334,9 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
      * @return web method DID
      */
     private String createDidWed(String didDomain) {
-        // Gaia-X Compliance Service API v2204 doesn't encode the identifier
-        // correctly and therefore, encoding the identifier must be skipped.
-        // return "did:web:" + didDomain
-        //        .replace(":", "%3A")
-        //        .replaceAll("[./]", ":");
-        return "did:web:" + didDomain;
-
+        return "did:web:" + didDomain
+                .replace(":", "%3A")
+                .replaceAll("[/]", ":");
     }
 
     /**
