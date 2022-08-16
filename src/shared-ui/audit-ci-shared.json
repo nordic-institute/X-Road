@@ -2,11 +2,6 @@
   "high": true,
   "skip-dev": false,
   "package-manager": "auto",
-  "allowlist": [
-    "*|@vue/cli-*",
-    "*|@storybook/*",
-    "*|@babel/core*",
-    "*|eslint>*"
-  ],
+  "allowlist": [],
   "registry": "https://registry.npmjs.org"
 }

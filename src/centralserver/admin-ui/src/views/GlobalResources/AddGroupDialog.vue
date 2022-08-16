@@ -40,7 +40,7 @@
           outlined
           :label="$t('globalResources.code')"
           autofocus
-          data-test="add-local-group-code-input"
+          data-test="add-global-group-code-input"
         ></v-text-field>
       </div>
 
@@ -49,7 +49,7 @@
           v-model="description"
           :label="$t('globalResources.description')"
           outlined
-          data-test="add-local-group-description-input"
+          data-test="add-global-group-description-input"
         ></v-text-field>
       </div>
     </template>
@@ -63,11 +63,8 @@ import { useGlobalGroupsStore } from '@/store/modules/global-groups';
 import { notificationsStore } from '@/store/modules/notifications';
 
 export default Vue.extend({
+  name: 'AddGroupDialog',
   props: {
-    id: {
-      type: String,
-      required: true,
-    },
     dialog: {
       type: Boolean,
       required: true,

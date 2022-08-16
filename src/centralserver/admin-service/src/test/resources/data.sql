@@ -102,7 +102,6 @@ VALUES (1000001,   1000001,              1000001),
        (1000704,   1000703,              1000704);
 ALTER SEQUENCE server_clients_id_seq RESTART WITH 1001000;
 
-
 INSERT INTO ca_infos
        (id,  valid_from, valid_to, created_at, updated_at)
 VALUES (100, now(),      now(),    now(),      now());
@@ -120,3 +119,9 @@ INSERT INTO global_group_members
        (id,      global_group_id, group_member_id, created_at, updated_at)
 VALUES (1000001, 1000001,         1000010,         now(),      now()),
        (1000002, 1000002,         1000011,         now(),      now());
+
+INSERT INTO request_processings (id, type, status, created_at, updated_at) VALUES (1000, 'AuthCertRegProcessing', 'APPROVED', '2021-03-10 08:24:59.913689', '2021-03-10 08:25:00.240286');
+INSERT INTO requests (id, request_processing_id, type, security_server_id, sec_serv_user_id, auth_cert, address, origin,
+                        comments, created_at, updated_at) VALUES (2000, 1000, 'AuthCertRegRequest', 1000703, null, null, 'ss1', 'SECURITY_SERVER', null, '2021-03-10 08:24:59.930557', '2021-03-10 08:25:00.250267');
+INSERT INTO requests (id, request_processing_id, type, security_server_id, sec_serv_user_id, auth_cert, address, origin,
+                        comments, created_at, updated_at) VALUES (2001, 1000, 'AuthCertRegRequest', 1000703, null, null, 'ss1', 'CENTER', null, '2021-03-10 08:24:59.984921', '2021-03-10 08:25:00.246212');
