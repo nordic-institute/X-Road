@@ -336,7 +336,7 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
     private String createDidWed(String didDomain) {
         return "did:web:" + didDomain
                 .replace(":", "%3A")
-                .replaceAll("[/]", ":");
+                .replaceAll("/", ":");
     }
 
     /**
