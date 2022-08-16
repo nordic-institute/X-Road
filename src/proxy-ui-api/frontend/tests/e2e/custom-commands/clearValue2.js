@@ -27,12 +27,26 @@ const Events = require('events');
 
 module.exports = class CustomClear2 extends Events {
   command(selector) {
-    const { ARROW_RIGHT, BACK_SPACE } = this.api.Keys;
-    return this.api.getValue(selector, (result) => {
-      const chars = result.value.split('');
-      chars.forEach(() => this.api.setValue(selector, ARROW_RIGHT));
-      chars.forEach(() => this.api.setValue(selector, BACK_SPACE));
-      this.emit('complete');
-    });
+    const {COMMAND, CONTROL, DELETE} = this.api.Keys;
+
+    return this.api
+      .setValue(selector, '')
+      .perform(() => {
+        const actions = this.api.actions({ async: false });
+
+        const commandKey =
+          'mac os x' === this.api.capabilities.platformName.toLowerCase()
+            ? COMMAND
+            : CONTROL;
+
+        return actions
+          .keyDown(commandKey)
+          .keyDown('a')
+          .keyUp(commandKey, 'a')
+          .sendKeys(DELETE);
+      })
+      .perform(() => {
+        this.emit('complete');
+      });
   }
 };

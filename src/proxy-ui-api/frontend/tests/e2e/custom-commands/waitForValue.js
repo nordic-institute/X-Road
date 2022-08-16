@@ -33,7 +33,7 @@ module.exports = class WaitFor extends Events {
     let counter = 0;
     while (counter * interval < timeout) {
       const result = await this.api.getValue(selector);
-      if (result.value === expectedValue) {
+      if (result === expectedValue) {
         const returnValue = {
           status: 1,
         };

@@ -33,7 +33,7 @@ module.exports = class WaitForNonEmpty extends Events {
     let counter = 0;
     while (counter * interval < timeout) {
       const result = await this.api.getValue(selector);
-      if (typeof result.value == 'string' && result.value.length > 0) {
+      if (typeof result == 'string' && result.length > 0) {
         const returnValue = {
           status: 1,
         };

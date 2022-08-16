@@ -50,6 +50,8 @@ module.exports = {
 
     // Verify empty and malformed URL and service code error messages and Add button initial state
     clientServices.openAddREST();
+
+    browser.waitForElementVisible(clientServices.elements.confirmAddServiceButton);
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
       .not.be.enabled;
     clientServices.initServiceUrl('a');
@@ -65,8 +67,11 @@ module.exports = {
     clientServices.initServiceUrl('http://example.com');
     clientServices.initServiceCode('a');
     clientServices.modifyServiceCode('');
+
     // Verify there's an error message, something like 'The Service Code field is required'
-    browser.waitForElementVisible(
+    browser
+      .pause(200)
+      .waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
     clientServices.initServiceCode('s3c1');
