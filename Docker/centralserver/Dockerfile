@@ -20,8 +20,7 @@ ARG COMPONENT=main
 
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
-RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
-  && apt-key add '/tmp/repokey.gpg'
+RUN echo "deb [trusted=yes] http://host.docker.internal:8000/ /" > /etc/apt/sources.list.d/xroad.list
 
 RUN pg_ctlcluster 12 main start \
   && apt-get -qq update \
@@ -64,4 +63,4 @@ COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 
-EXPOSE 80 4000
+EXPOSE 80 4000 2222

@@ -73,7 +73,8 @@ module.exports = {
         addCertificationServiceDialog.elements.saveCertificationServiceButton,
       );
 
-    browser.waitForElementVisible(trustServicesPage.elements.successSnackBar);
+    browser
+      .waitForElementVisible(trustServicesPage.elements.successSnackBar);
     const certificationServices =
       await certificationServicesSection.getCertificationServices();
     browser.assert.ok(

@@ -41,10 +41,13 @@ import javax.persistence.Entity;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
+import static org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateDeletionRequest.DISCRIMINATOR_VALUE;
+
 @Entity
-@DiscriminatorValue("AuthCertDeletionRequest")
+@DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class AuthenticationCertificateDeletionRequest extends Request
         implements Fn.Self<AuthenticationCertificateDeletionRequest> {
+    public static final String DISCRIMINATOR_VALUE = "AuthCertDeletionRequest";
 
     @NotNull
     @Column(name = "auth_cert")
@@ -58,7 +61,7 @@ public class AuthenticationCertificateDeletionRequest extends Request
 
     @Override
     @Transient
-    public ManagementRequestType getType() {
+    public ManagementRequestType getManagementRequestType() {
         return ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
     }
 

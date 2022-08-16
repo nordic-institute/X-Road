@@ -27,7 +27,7 @@
 package org.niis.xroad.centralserver.restapi.repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -45,9 +45,9 @@ public final class CriteriaBuilderUtil { // todo: refactor to a helper service
     /**
      * Create a case-insensite LIKE expression Predicate. Also escape special characters \, % and _
      */
-    public static Predicate caseInsensitiveLike(Root root, CriteriaBuilder builder, String s, Path path) {
+    public static Predicate caseInsensitiveLike(Root root, CriteriaBuilder builder, String s, Expression expression) {
         var predicate = builder.like(
-                builder.lower(path),
+                builder.lower(expression),
                 builder.lower(builder.literal("%" + escapeSpecialChars(s) + "%")),
                 LIKE_EXPRESSION_ESCAPE_CHAR
         );

@@ -45,7 +45,6 @@ import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.ClientTypeDto;
 import org.niis.xroad.centralserver.openapi.model.PagedClientsDto;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
-import org.niis.xroad.centralserver.restapi.converter.MemberSortParameterConverter;
 import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.PagedClientsConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.db.ClientDtoConverter;
@@ -99,8 +98,6 @@ public class ClientsApiControllerTest implements WithInOrder {
     private SecurityServerIdConverter securityServerIdConverter;
     @Mock
     private ClientDtoConverter.Flattened flattenedSecurityServerClientViewDtoConverter;
-    @Mock
-    private MemberSortParameterConverter memberSortParameterConverter;
     @Mock
     private ClientDtoConverter clientDtoConverter;
     @Mock
@@ -263,7 +260,8 @@ public class ClientsApiControllerTest implements WithInOrder {
         @DisplayName("should add client successfully with empty encoded security server id")
         public void shouldFindClientsSuccessfullyWithEmptyEncodedSecurityServerId() {
             encodedSecurityServerId = StringUtils.EMPTY;
-            doReturn(pageRequest).when(pageRequestConverter).convert(pagingSorting, memberSortParameterConverter);
+            doReturn(pageRequest).when(pageRequestConverter).convert(
+                    eq(pagingSorting), any(PageRequestConverter.MappableSortParameterConverter.class));
             doReturn(xRoadObjectType).when(clientTypeDtoConverter).fromDto(clientTypeDto);
             doReturn(flattenedSecurityServerClientViewsPage).when(clientService).find(any(), eq(pageRequest));
             doAnswer(invocation -> {
@@ -289,7 +287,8 @@ public class ClientsApiControllerTest implements WithInOrder {
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(pagedClientsDto, response.getBody());
             inOrder().verify(inOrder -> {
-                inOrder.verify(pageRequestConverter).convert(pagingSorting, memberSortParameterConverter);
+                inOrder.verify(pageRequestConverter).convert(
+                        eq(pagingSorting), any(PageRequestConverter.MappableSortParameterConverter.class));
                 inOrder.verify(clientTypeDtoConverter).fromDto(clientTypeDto);
                 inOrder.verify(clientService).find(paramsCaptor.capture(), eq(pageRequest));
                 inOrder.verify(flattenedSecurityServerClientViewsPage).map(any());
@@ -303,7 +302,8 @@ public class ClientsApiControllerTest implements WithInOrder {
         @DisplayName("should add client successfully with encoded security server id")
         public void shouldFindClientsSuccessfullyWithEncodedSecurityServerId() {
             int securityServedDbId = 1;
-            doReturn(pageRequest).when(pageRequestConverter).convert(pagingSorting, memberSortParameterConverter);
+            doReturn(pageRequest).when(pageRequestConverter).convert(
+                    eq(pagingSorting), any(PageRequestConverter.MappableSortParameterConverter.class));
             doReturn(xRoadObjectType).when(clientTypeDtoConverter).fromDto(clientTypeDto);
             doReturn(securityServerId).when(securityServerIdConverter).convert(encodedSecurityServerId);
             doReturn(Option.of(securityServer)).when(securityServerService).find(securityServerId);
@@ -332,7 +332,8 @@ public class ClientsApiControllerTest implements WithInOrder {
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(pagedClientsDto, response.getBody());
             inOrder().verify(inOrder -> {
-                inOrder.verify(pageRequestConverter).convert(pagingSorting, memberSortParameterConverter);
+                inOrder.verify(pageRequestConverter).convert(
+                        eq(pagingSorting), any(PageRequestConverter.MappableSortParameterConverter.class));
                 inOrder.verify(clientTypeDtoConverter).fromDto(clientTypeDto);
                 inOrder.verify(securityServerIdConverter).convert(encodedSecurityServerId);
                 inOrder.verify(securityServerService).find(securityServerId);
@@ -349,7 +350,8 @@ public class ClientsApiControllerTest implements WithInOrder {
         @DisplayName("should fail finding clients with encoded security server id if security server not present in db")
         public void shouldFailFindingClientsWitnEncodedSecurityServerIdIfSecurityServerNotPresenInDb() {
             int securityServedDbId = 1;
-            doReturn(pageRequest).when(pageRequestConverter).convert(pagingSorting, memberSortParameterConverter);
+            doReturn(pageRequest).when(pageRequestConverter).convert(
+                    eq(pagingSorting), any(PageRequestConverter.MappableSortParameterConverter.class));
             doReturn(xRoadObjectType).when(clientTypeDtoConverter).fromDto(clientTypeDto);
             doReturn(securityServerId).when(securityServerIdConverter).convert(encodedSecurityServerId);
             doReturn(Option.none()).when(securityServerService).find(securityServerId);
@@ -367,7 +369,8 @@ public class ClientsApiControllerTest implements WithInOrder {
             BadRequestException actualThrown = assertThrows(BadRequestException.class, testable);
             assertEquals("Security server does not exist", actualThrown.getMessage());
             inOrder().verify(inOrder -> {
-                inOrder.verify(pageRequestConverter).convert(pagingSorting, memberSortParameterConverter);
+                inOrder.verify(pageRequestConverter).convert(
+                        eq(pagingSorting), any(PageRequestConverter.MappableSortParameterConverter.class));
                 inOrder.verify(clientTypeDtoConverter).fromDto(clientTypeDto);
                 inOrder.verify(securityServerIdConverter).convert(encodedSecurityServerId);
                 inOrder.verify(securityServerService).find(securityServerId);

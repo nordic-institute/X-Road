@@ -39,6 +39,7 @@ import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestKeyConf;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -49,6 +50,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -99,6 +101,8 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
 
     @Test
     public void testWithSender() throws Exception {
+        Assume.assumeTrue("OS not supported.", SystemUtils.IS_OS_LINUX);
+
         createClient();
         int port1 = getFreePort();
         int port2 = getFreePort();

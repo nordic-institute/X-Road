@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,6 +27,7 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,7 @@ import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatusDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.centralserver.openapi.model.SecurityServerIdDto;
 import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
+import org.niis.xroad.centralserver.restapi.dto.converter.model.SecurityServerIdDtoConverter;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
 import org.niis.xroad.centralserver.restapi.entity.MemberId;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
@@ -47,6 +49,7 @@ import org.niis.xroad.centralserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
+import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -69,6 +72,12 @@ class ManagementRequestsApiControllerTest extends AbstractApiControllerTestConte
 
     @Autowired
     private MemberClassRepository memberClasses;
+
+    @Autowired
+    private SecurityServerIdConverter securityServerIdConverter;
+
+    @Autowired
+    private SecurityServerIdDtoConverter securityServerIdDtoConverter;
 
     @BeforeEach
     private void setup() {
@@ -98,7 +107,9 @@ class ManagementRequestsApiControllerTest extends AbstractApiControllerTestConte
         AuthenticationCertificateRegistrationRequestDto req = new AuthenticationCertificateRegistrationRequestDto();
         //redundant, but openapi-generator generates a property for the type
         req.setType(ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST);
-        req.setSecurityServerId(sid);
+        org.niis.xroad.centralserver.restapi.entity.SecurityServerId id = securityServerIdDtoConverter.convert(sid);
+        req.setSecurityServerId(securityServerIdConverter.convertId(id));
+
         req.setAuthenticationCertificate(TestCertUtil.generateAuthCert());
         req.setOrigin(ManagementRequestOriginDto.CENTER);
 
@@ -106,7 +117,8 @@ class ManagementRequestsApiControllerTest extends AbstractApiControllerTestConte
         assertTrue(r1.getStatusCode().is2xxSuccessful());
         assertEquals(ManagementRequestStatusDto.WAITING, r1.getBody().getStatus());
 
-        ResponseEntity<ManagementRequestDto> r2 = controller.getManagementRequest(r1.getBody().getId());
+
+        var r2 = controller.getManagementRequest(r1.getBody().getId());
         assertEquals(r2.getBody().getSecurityServerId(), r1.getBody().getSecurityServerId());
 
         controller.revokeManagementRequest(r1.getBody().getId());
@@ -120,13 +132,9 @@ class ManagementRequestsApiControllerTest extends AbstractApiControllerTestConte
             "VIEW_MANAGEMENT_REQUEST_DETAILS",
             "ADD_CLIENT_REGISTRATION_REQUEST",
             "REVOKE_CLIENT_REGISTRATION_REQUEST"})
-    public void testAddClientRegRequest() {
-        SecurityServerIdDto sid = new SecurityServerIdDto();
-        sid.setType(XRoadIdDto.TypeEnum.SERVER);
-        sid.setInstanceId("TEST");
-        sid.setMemberClass("CLASS");
-        sid.setMemberCode("MEMBER");
-        sid.setServerCode("TESTSERVER");
+    void testAddClientRegRequest() throws Exception {
+        var sid = SecurityServerId.Conf.create("TEST",
+                "CLASS", "MEMBER", "TESTSERVER");
 
         ClientIdDto cid = new ClientIdDto();
         cid.setType(XRoadIdDto.TypeEnum.SUBSYSTEM);
@@ -138,7 +146,7 @@ class ManagementRequestsApiControllerTest extends AbstractApiControllerTestConte
         ClientRegistrationRequestDto req = new ClientRegistrationRequestDto();
         //redundant, but openapi-generator generates a property for the type
         req.setType(ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST);
-        req.setSecurityServerId(sid);
+        req.setSecurityServerId(securityServerIdConverter.convertId(sid));
         req.setClientId(cid);
         req.setOrigin(ManagementRequestOriginDto.CENTER);
 
@@ -147,8 +155,8 @@ class ManagementRequestsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(ManagementRequestStatusDto.WAITING, r1.getBody().getStatus());
 
         controller.revokeManagementRequest(r1.getBody().getId());
-        ResponseEntity<ManagementRequestDto> r3 = controller.getManagementRequest(r1.getBody().getId());
+
+        var r3 = controller.getManagementRequest(r1.getBody().getId());
         assertEquals(ManagementRequestStatusDto.REVOKED, r3.getBody().getStatus());
     }
-
 }

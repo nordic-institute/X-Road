@@ -26,83 +26,89 @@
  */
 package org.niis.xroad.centralserver.restapi.entity;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Subselect;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
+import org.springframework.data.annotation.Immutable;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-@Entity
-@Table(name = Request.TABLE_NAME)
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
-public abstract class Request extends AuditableEntity {
+import java.time.Instant;
 
-    public static final String TABLE_NAME = "requests";
+@Entity
+@Immutable
+@Access(AccessType.FIELD)
+// Subselect prevents table creation: https://stackoverflow.com/a/33689357
+@Subselect("select * from " + ManagementRequestView.TABLE_NAME)
+@Table(name = ManagementRequestView.TABLE_NAME)
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class ManagementRequestView {
+    static final String TABLE_NAME = "management_request_view";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
-    @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
-    @Getter
     private int id;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "security_server_id")
-    @Getter
-    @Setter
-    private SecurityServerId securityServerId;
 
     @Column(name = "origin")
     @Enumerated(EnumType.STRING)
-    @Getter
-    @Setter
     private Origin origin;
 
     @Column(name = "comments")
-    @Getter
-    @Setter
     private String comments;
 
-    protected Request() {
-        //JPA
-    }
+    @Column(name = "type")
+    private String type;
 
-    public Request(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId identifier) {
-        this.origin = origin;
-        this.securityServerId = SecurityServerId.ensure(identifier);
-    }
+    @Column(name = "security_server_id")
+    private Long securityServerIdentifierId;
 
-    /**
-     * Get the type tied to the request.
-     *
-     * @return {@link ManagementRequestType}
-     */
+    @Column(name = "request_processing_id")
+    private Long requestProcessingId;
+
+    @Column(name = "request_processing_status")
+    @Enumerated(EnumType.STRING)
+    private ManagementRequestStatus requestProcessingStatus;
+
+    @Column(name = "security_server_owner_name")
+    private String securityServerOwnerName;
+
+    @Column(name = "xroad_instance")
+    private String xroadInstance;
+
+    @Column(name = "member_code")
+    private String memberCode;
+
+    @Column(name = "member_class")
+    private String memberClass;
+
+    @Column(name = "server_code")
+    private String serverCode;
+
+    @Column(name = "created_at")
+    private Instant createdAt;
+
     @Transient
-    public abstract ManagementRequestType getManagementRequestType();
-
-    @Transient
-    public ManagementRequestStatus getProcessingStatus() {
-        return null; //TODO it is bad practice to return null like that.
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.ofDiscriminatorValue(type);
     }
 
+    @Transient
+    public SecurityServerId getSecurityServerId() {
+        return SecurityServerId.Conf.create(xroadInstance, memberClass, memberCode, serverCode);
+    }
 }

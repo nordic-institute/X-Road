@@ -31,6 +31,7 @@ const {
   dialogSaveButton,
   dialogTitle,
   snackBarCloseButton,
+  successSnackBar,
 } = require('./csCommonObjectsPage');
 const apiKeysCommands = {
   apiKeysViewIsVisible() {
@@ -96,5 +97,6 @@ module.exports = {
     dialogTitle,
     dialogSaveButton,
     snackBarCloseButton,
+    successSnackBar,
   },
 };

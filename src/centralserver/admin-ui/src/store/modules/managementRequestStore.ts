@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,31 +24,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.converter;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClientView_;
-import org.springframework.stereotype.Service;
+import { defineStore } from 'pinia';
+import { DataOptions } from 'vuetify';
+import axios, { AxiosRequestConfig } from 'axios';
+import {
+  ManagementRequest,
+  ManagementRequestsFilter,
+  PagedManagementRequests,
+  PagingMetadata,
+} from '@/openapi-types';
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static ee.ria.xroad.common.util.Fn.self;
-
-@Slf4j
-@Service
-public class MemberSortParameterConverter implements PageRequestConverter.SortParameterConverter {
-    private static final Map<String, String> CONVERSIONS = self(new HashMap<>(), self -> {
-        self.put("id", "id");
-        self.put("member_name", FlattenedSecurityServerClientView_.MEMBER_NAME);
-        self.put("xroad_id.instance_id", FlattenedSecurityServerClientView_.X_ROAD_INSTANCE);
-        self.put("xroad_id.member_class", "memberClass");
-        self.put("xroad_id.member_code", "memberCode");
-        self.put("client_type", "type");
-    });
-
-    @Override
-    public Map<String, String> getConversions() {
-        return CONVERSIONS;
-    }
+export interface State {
+  items: ManagementRequest[];
+  pagingOptions: PagingMetadata;
 }
+
+export const managementRequestsStore = defineStore('managementRequests', {
+  state: (): State => ({
+    items: [],
+    pagingOptions: {
+      total_items: 0,
+      items: 0,
+      limit: 25,
+      offset: 0,
+    },
+  }),
+  getters: {},
+  actions: {
+    async find(dataOptions: DataOptions, filter: ManagementRequestsFilter) {
+      const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
+      const params: unknown = {
+        limit: dataOptions.itemsPerPage,
+        offset: offset,
+        sort: dataOptions.sortBy[0],
+        desc: dataOptions.sortDesc[0],
+        ...filter,
+      };
+
+      const axiosParams: AxiosRequestConfig = { params };
+
+      return axios
+        .get<PagedManagementRequests>('/management-requests/', axiosParams)
+        .then((resp) => {
+          this.items = resp.data.items || [];
+          this.pagingOptions = resp.data.paging_metadata;
+        });
+    },
+  },
+});

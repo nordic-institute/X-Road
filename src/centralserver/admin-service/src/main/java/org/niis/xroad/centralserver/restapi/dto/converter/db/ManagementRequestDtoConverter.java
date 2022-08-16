@@ -35,17 +35,24 @@ import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegis
 import org.niis.xroad.centralserver.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatusDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestsFilterDto;
+import org.niis.xroad.centralserver.restapi.dto.ManagementRequestInfoDto;
 import org.niis.xroad.centralserver.restapi.dto.converter.DtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestOriginDtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestStatusConverter;
-import org.niis.xroad.centralserver.restapi.dto.converter.model.SecurityServerIdDtoConverter;
 import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.centralserver.restapi.entity.ClientDeletionRequest;
 import org.niis.xroad.centralserver.restapi.entity.ClientRegistrationRequest;
 import org.niis.xroad.centralserver.restapi.entity.Request;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerId;
+import org.niis.xroad.centralserver.restapi.repository.ManagementRequestViewRepository;
 import org.niis.xroad.restapi.converter.Converters;
+import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;
@@ -59,7 +66,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
 
     private final ZoneOffset dtoZoneOffset;
 
-    private final SecurityServerIdDtoConverter securityServerIdDtoMapper;
+    private final SecurityServerIdConverter securityServerIdMapper;
     private final ManagementRequestOriginDtoConverter.Service originDtoMapper;
     private final ClientIdDtoConverter clientIdDtoMapper;
     private final ManagementRequestStatusConverter.Service statusMapper;
@@ -93,12 +100,12 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             });
 
         } else {
-            throw new IllegalArgumentException("Unknown request type");
+            throw new BadRequestException("Unknown request type");
         }
 
         return result.id(request.getId())
                 .origin(originDtoMapper.toDto(request.getOrigin()))
-                .securityServerId(securityServerIdDtoMapper.toDto(request.getSecurityServerId()))
+                .securityServerId(securityServerIdMapper.convertId(request.getSecurityServerId()))
                 .status(statusMapper.toDto(request.getProcessingStatus()))
                 .createdAt(request.getCreatedAt().atOffset(dtoZoneOffset))
                 .updatedAt(request.getUpdatedAt().atOffset(dtoZoneOffset));
@@ -110,7 +117,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     (AuthenticationCertificateRegistrationRequestDto) request;
             return new AuthenticationCertificateRegistrationRequest(
                     originDtoMapper.fromDto(req.getOrigin()),
-                    securityServerIdDtoMapper.fromDto(req.getSecurityServerId())
+                    securityServerIdMapper.convertId(req.getSecurityServerId())
             ).self(self -> {
                 self.setAuthCert(req.getAuthenticationCertificate());
                 self.setAddress(req.getServerAddress());
@@ -120,7 +127,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             AuthenticationCertificateDeletionRequestDto req = (AuthenticationCertificateDeletionRequestDto) request;
             return new AuthenticationCertificateDeletionRequest(
                     originDtoMapper.fromDto(req.getOrigin()),
-                    securityServerIdDtoMapper.fromDto(req.getSecurityServerId())
+                    securityServerIdMapper.convertId(req.getSecurityServerId())
             ).self(self -> {
                 self.setAuthCert(req.getAuthenticationCertificate());
             });
@@ -130,18 +137,19 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
 
             return new ClientRegistrationRequest(
                     originDtoMapper.fromDto(req.getOrigin()),
-                    securityServerIdDtoMapper.fromDto(req.getSecurityServerId()),
+
+                    securityServerIdMapper.convertId(req.getSecurityServerId()),
                     clientIdDtoMapper.fromDto(req.getClientId()));
 
         } else if (request instanceof ClientDeletionRequestDto) {
             ClientDeletionRequestDto req = (ClientDeletionRequestDto) request;
             return new ClientDeletionRequest(
                     originDtoMapper.fromDto(req.getOrigin()),
-                    securityServerIdDtoMapper.fromDto(req.getSecurityServerId()),
+                    securityServerIdMapper.convertId(req.getSecurityServerId()),
                     clientIdDtoMapper.fromDto(req.getClientId()));
 
         } else {
-            throw new IllegalArgumentException("Unknown request type");
+            throw new BadRequestException("Unknown request type");
         }
     }
 
@@ -155,4 +163,26 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         }
         return SecurityServerId.create(parts[0], parts[1], parts[2], parts[3]);
     }
+
+    public ManagementRequestViewRepository.Criteria convert(ManagementRequestsFilterDto filter) {
+        return ManagementRequestViewRepository.Criteria.builder()
+                .origin(convert(filter.getOrigin()))
+                .types(convert(filter.getTypes()))
+                .status(convert(filter.getStatus()))
+                .serverId(convert(filter.getServerId()))
+                .build();
+    }
+
+    public ManagementRequestDto convert(ManagementRequestInfoDto dto) {
+        var info = new ManagementRequestDto();
+        info.setId(dto.getId());
+        info.setType(ManagementRequestTypeDto.valueOf(dto.getType().name()));
+        info.setOrigin(ManagementRequestOriginDto.valueOf(dto.getOrigin().name()));
+        info.setStatus(dto.getStatus() == null ? null : ManagementRequestStatusDto.valueOf(dto.getStatus().name()));
+        info.setSecurityServerOwner(dto.getServerOwnerName());
+        info.setSecurityServerId(convert(dto.getServerId()));
+        info.setCreatedAt(dto.getCreatedAt().atOffset(ZoneOffset.UTC));
+        return info;
+    }
+
 }

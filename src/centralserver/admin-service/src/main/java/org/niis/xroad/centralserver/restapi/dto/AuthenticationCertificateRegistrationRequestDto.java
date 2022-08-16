@@ -38,8 +38,9 @@ public class AuthenticationCertificateRegistrationRequestDto extends ManagementR
     private final byte[] authCert;
     private final String address;
 
-    public AuthenticationCertificateRegistrationRequestDto(Integer id, Origin origin,
-            SecurityServerId serverId, ManagementRequestStatus status, byte[] authCert, String address) {
+    public AuthenticationCertificateRegistrationRequestDto(Integer id, Origin origin, SecurityServerId serverId,
+                                                           ManagementRequestStatus status, byte[] authCert,
+                                                           String address) {
         super(id, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST, origin, serverId, status);
         this.authCert = authCert;
         this.address = address;

@@ -96,8 +96,8 @@ public class RegistrationRequestApiTest {
 
         properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.httpsPort())));
         var response = new ManagementRequestDto();
-        response.setType(AUTH_CERT_REGISTRATION_REQUEST);
         response.setId(42);
+        response.setType(AUTH_CERT_REGISTRATION_REQUEST);
 
         wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
                 .willReturn(WireMock.jsonResponse(response, 202)));

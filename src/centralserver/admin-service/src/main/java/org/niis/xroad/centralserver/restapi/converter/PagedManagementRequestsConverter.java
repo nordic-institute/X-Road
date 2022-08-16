@@ -1,21 +1,20 @@
 /**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,25 +23,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.entity.example;
+package org.niis.xroad.centralserver.restapi.converter;
 
-import ee.ria.xroad.common.util.NoCoverage;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
+import org.niis.xroad.centralserver.openapi.model.PagedManagementRequestsDto;
+import org.niis.xroad.centralserver.openapi.model.PagingMetadataDto;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
+import org.niis.xroad.centralserver.restapi.dto.ManagementRequestInfoDto;
+import org.niis.xroad.centralserver.restapi.dto.converter.db.ManagementRequestDtoConverter;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Component
 @RequiredArgsConstructor
-@NoCoverage
-@EqualsAndHashCode
-@ToString
-@Getter
-public class TypedExampleExt<T> implements ExampleExt<T> {
+public class PagedManagementRequestsConverter {
 
-    @NonNull
-    private final T probe;
-    @NonNull
-    private final ExampleMatcherExt matcher;
+    private final PagingMetadataConverter pagingMetadataConverter;
+    private final ManagementRequestDtoConverter managementRequestConverter;
+
+    public PagedManagementRequestsDto convert(Page<ManagementRequestInfoDto> page,
+                                              PagingSortingParametersDto pagingSorting) {
+
+        PagingMetadataDto meta = pagingMetadataConverter.convert(page, pagingSorting);
+
+        List<ManagementRequestDto> items = page.get()
+                .map(managementRequestConverter::convert)
+                .collect(Collectors.toList());
+
+        PagedManagementRequestsDto result = new PagedManagementRequestsDto();
+        result.setItems(items);
+        result.setPagingMetadata(meta);
+        return result;
+    }
 }

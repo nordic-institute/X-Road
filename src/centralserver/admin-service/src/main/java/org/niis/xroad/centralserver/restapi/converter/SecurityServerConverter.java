@@ -47,7 +47,7 @@ public class SecurityServerConverter {
                         .limit(servers.getSize())
                         .offset(servers.getNumber())
                 )
-                .clients(Collections.unmodifiableList(servers.getContent()));
+                .items(Collections.unmodifiableList(servers.getContent()));
     }
 
 }

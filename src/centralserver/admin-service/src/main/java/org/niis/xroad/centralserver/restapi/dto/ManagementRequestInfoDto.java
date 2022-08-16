@@ -24,28 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.converter;
+package org.niis.xroad.centralserver.restapi.dto;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
+import org.niis.xroad.centralserver.restapi.domain.Origin;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.time.Instant;
 
-import static ee.ria.xroad.common.util.Fn.self;
-
-@Slf4j
-@Service
-public class SecurityServerSortParameterConverter implements PageRequestConverter.SortParameterConverter {
-    private static final Map<String, String> CONVERSIONS = self(new HashMap<>(), self -> {
-        self.put("owner_name", "owner.name");
-        self.put("xroad_id.member_class", "owner.memberClass.code");
-        self.put("xroad_id.member_code", "owner.memberCode");
-        self.put("xroad_id.server_code", "serverCode");
-    });
-
-    @Override
-    public Map<String, String> getConversions() {
-        return CONVERSIONS;
-    }
+@Getter
+@RequiredArgsConstructor
+public class ManagementRequestInfoDto {
+    private final int id;
+    private final ManagementRequestType type;
+    private final Origin origin;
+    private final String serverOwnerName;
+    private final SecurityServerId serverId;
+    private final ManagementRequestStatus status;
+    private final Instant createdAt;
 }
