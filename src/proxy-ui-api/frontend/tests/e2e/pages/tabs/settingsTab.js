@@ -95,7 +95,7 @@ const backupAndRestoreCommands = {
     return this;
   },
   addBackupToInput: function (filepath) {
-    this.api.uploadFile('//input[@type="file"]', path.resolve(filepath));
+    this.api.setValue('//input[@type="file"]', path.resolve(filepath));
     return this;
   },
   clickDownloadForBackup: function (backupFilename) {

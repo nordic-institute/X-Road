@@ -75,7 +75,8 @@ const createBackup = async (browser) => {
     'xpath',
     mainPage.elements.snackBarMessage,
   );
-  const createdBackupFileName = createdBackupFileNameTextObject.split(' ')[1];
+  const createdBackupFileName =
+    createdBackupFileNameTextObject.value.split(' ')[1];
 
   console.log('Created backup: ', createdBackupFileName);
   mainPage.closeSnackbar();

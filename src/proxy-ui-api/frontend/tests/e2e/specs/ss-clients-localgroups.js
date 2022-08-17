@@ -312,11 +312,7 @@ module.exports = {
 
     // Change description
     localGroupPopup.modifyDescription('');
-    localGroupPopup.waitForDescription('');
-    browser.perform(() => {
-      return browser.actions({async: false})
-        .sendKeys(browser.Keys.ENTER);
-    }); // Enter keypress needed after data entry to trigger validation
+    browser.keys(browser.Keys.ENTER); // Enter keypress needed after data entry to trigger validation
     browser.assert.containsText(
       mainPage.elements.alertMessage,
       'Validation failure',
@@ -333,10 +329,7 @@ module.exports = {
     localGroupPopup.modifyDescription(
       browser.globals.test_string_300.slice(0, 256),
     );
-    browser.perform(() => {
-      return browser.actions({async: false})
-        .sendKeys(browser.Keys.ENTER);
-    });
+    browser.keys(browser.Keys.ENTER);
     browser.assert.containsText(
       mainPage.elements.alertMessage,
       'Validation failure',
@@ -351,12 +344,7 @@ module.exports = {
     localGroupPopup.waitForDescription('Group4');
     let maxLengthDescription = browser.globals.test_string_300.slice(0, 255);
     localGroupPopup.modifyDescription(maxLengthDescription);
-
-    browser.perform(() => {
-      return browser.actions({async: false})
-        .sendKeys(browser.Keys.ENTER);
-    });
-
+    browser.keys(browser.Keys.ENTER);
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
       'Description saved',
@@ -372,12 +360,7 @@ module.exports = {
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.waitForDescription(maxLengthDescription);
     localGroupPopup.modifyDescription('Group4');
-
-    browser.perform(() => {
-      return browser.actions({async: false})
-        .sendKeys(browser.Keys.ENTER);
-    });
-
+    browser.keys(browser.Keys.ENTER);
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
       'Description saved',

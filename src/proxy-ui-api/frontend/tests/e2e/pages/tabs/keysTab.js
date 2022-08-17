@@ -57,7 +57,7 @@ var signAuthKeysTabCommands = {
     return this;
   },
   importCert: function (certfile) {
-    this.api.uploadFile(
+    this.api.setValue(
       '//input[@type="file"]',
       require('path').resolve(__dirname + certfile),
     );
