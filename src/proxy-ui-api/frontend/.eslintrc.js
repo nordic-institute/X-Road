@@ -1,5 +1,3 @@
-require('@rushstack/eslint-patch/modern-module-resolution');
-
 module.exports = {
   root: true,
   env: {
@@ -9,8 +7,8 @@ module.exports = {
     'plugin:vue/recommended',
     'eslint:recommended',
     '@vue/typescript/recommended',
-    '@vue/eslint-config-prettier',
-    '@vue/eslint-config-typescript',
+    '@vue/prettier',
+    '@vue/prettier/@typescript-eslint',
     'plugin:vue-scoped-css/recommended', // Linter for vue scoped styles (eslint-plugin-vue-scoped-css)
   ],
   ignorePatterns: ['node_modules/'],
@@ -23,7 +21,6 @@ module.exports = {
     '@typescript-eslint/no-var-requires': 0,
     '@typescript-eslint/camelcase': 'off',
     'vue/no-unused-vars': 'warn',
-    'vue/multi-word-component-names': 'warn',
     '@typescript-eslint/no-explicit-any':
       process.env.NODE_ENV === 'production' ? 'error' : 'warn',
   },
