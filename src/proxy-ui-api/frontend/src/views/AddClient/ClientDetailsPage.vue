@@ -241,7 +241,6 @@ export default Vue.extend({
     },
   },
   created() {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
     this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
     this.fetchSelectableClients(that.currentSecurityServer.instance_id);
