@@ -210,7 +210,6 @@ export default Vue.extend({
     },
   },
   created() {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
   },
   methods: {
