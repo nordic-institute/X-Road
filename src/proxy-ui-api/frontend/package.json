@@ -44,11 +44,11 @@
     "@typescript-eslint/eslint-plugin": "~5.33.0",
     "@typescript-eslint/parser": "~5.33.0",
     "@vue/cli-plugin-babel": "~5.0.8",
-    "@vue/cli-plugin-e2e-nightwatch": "~5.0.8",
+    "@vue/cli-plugin-e2e-nightwatch": "~4.5.19",
     "@vue/cli-plugin-eslint": "~5.0.8",
     "@vue/cli-plugin-typescript": "~5.0.8",
     "@vue/cli-plugin-unit-jest": "~5.0.8",
-    "@vue/cli-service": "~5.0.8",
+    "@vue/cli-service": "~4.5.19",
     "@vue/eslint-config-prettier": "^7.0.0",
     "@vue/eslint-config-typescript": "~11.0.0",
     "@vue/test-utils": "~1.2.0",
@@ -72,6 +72,6 @@
     "vuetify-loader": "~1.7.3"
   },
   "overrides": {
-    "nightwatch": "1.7.13"
+
   }
 }
