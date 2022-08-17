@@ -1,7 +1,0 @@
-{
-  "high": true,
-  "skip-dev": false,
-  "package-manager": "auto",
-  "allowlist": [1005154],
-  "registry": "https://registry.npmjs.org"
-}
