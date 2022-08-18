@@ -6,7 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "build-lib": "vue-cli-service build --target lib --formats commonjs --name shared-ui ./src/lib.ts",
-    "npx-check-audit": "npx audit-ci@5.1.2 --config audit-ci-shared.json >build/reports/audit-ci.txt",
+    "npx-check-audit": "npx audit-ci@6.3.0 --config audit-ci-shared.json >build/reports/audit-ci.txt",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
     "storybook": "start-storybook -p 6006",
@@ -55,7 +55,7 @@
     "vee-validate": "3.4.14",
     "vue-cli-plugin-vuetify": "~2.4.0",
     "vue-template-compiler": "2.6.14",
-    "vuetify-loader": "^1.3.0",
+    "vuetify-loader": "~1.7.3",
     "webpack-node-externals": "^3.0.0"
   },
   "peerDependencies": {
@@ -64,5 +64,10 @@
     "vue": "^2.6.11",
     "vue-i18n": "^8.24.3",
     "vuetify": "^2.4.3"
+  },
+  "overrides": {
+    "trim": "1.0.1",
+    "trim-newlines": "4.0.2",
+    "glob-parent": "^5.1.2"
   }
 }

@@ -20,7 +20,7 @@ cache:
     ttl: 5
 
 common-module-endpoints:
-  base-path: /api
+  base-path: /api/v1
 
 spring:
   jpa:
@@ -33,6 +33,10 @@ spring:
     generate-ddl: true
     show-sql: false
     defer-datasource-initialization: true
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
   profiles:
     active: test
   main:
