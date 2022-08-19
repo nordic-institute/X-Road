@@ -117,7 +117,7 @@ REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA public TO "${db_admin_user}";
 EOF
         echo "Creating database plain user"
-        psql_master <<EOF || abort "Creating plain user."
+        psql_master <<EOF || abort "Creating plain user failed."
 DO \$\$
 BEGIN
   CREATE ROLE "${db_plain_user}" LOGIN PASSWORD '${db_password}';
