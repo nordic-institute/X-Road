@@ -38,10 +38,8 @@ import java.util.Map;
 @Getter
 class DownloadResult {
 
-    private final Map<ConfigurationLocation, Exception> exceptions =
-            new HashMap<>();
+    private final Map<ConfigurationLocation, Exception> exceptions = new HashMap<>();
 
-    //private final Set<ConfigurationFile> files = new HashSet<>();
     private Configuration configuration;
 
     private boolean success = false;
@@ -50,15 +48,14 @@ class DownloadResult {
         exceptions.put(location, e);
     }
 
-    DownloadResult success(Configuration configuraton) {
-        success = true;
-
-        this.configuration = configuraton;
+    DownloadResult success(Configuration conf) {
+        this.success = true;
+        this.configuration = conf;
         return this;
     }
 
     DownloadResult failure() {
-        success = false;
+        this.success = false;
         return this;
     }
 }

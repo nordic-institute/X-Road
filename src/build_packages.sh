@@ -51,6 +51,7 @@ esac
 if [ -n "$HAS_DOCKER" ]; then
     docker build -q -t xroad-deb-bionic "$XROAD/packages/docker/deb-bionic" || errorExit "Error building deb-bionic image."
     docker build -q -t xroad-deb-focal "$XROAD/packages/docker/deb-focal" || errorExit "Error building deb-focal image."
+    docker build -q -t xroad-deb-jammy "$XROAD/packages/docker/deb-jammy" || errorExit "Error building deb-jammy image."
     docker build -q -t xroad-rpm "$XROAD/packages/docker/rpm" || errorExit "Error building rpm image."
     docker build -q -t xroad-rpm-el8 "$XROAD/packages/docker/rpm-el8" || errorExit "Error building rpm-el8 image."
 
@@ -61,6 +62,7 @@ if [ -n "$HAS_DOCKER" ]; then
 
     docker run "${OPTS[@]}" xroad-deb-bionic /workspace/src/packages/build-deb.sh bionic || errorExit "Error building deb-bionic packages."
     docker run "${OPTS[@]}" xroad-deb-focal /workspace/src/packages/build-deb.sh focal || errorExit "Error building deb-focal packages."
+    docker run "${OPTS[@]}" xroad-deb-jammy /workspace/src/packages/build-deb.sh jammy || errorExit "Error building deb-jammy packages."
     docker run "${OPTS[@]}" xroad-rpm /workspace/src/packages/build-rpm.sh || errorExit "Error building rpm packages."
     docker run "${OPTS[@]}" xroad-rpm-el8 /workspace/src/packages/build-rpm.sh || errorExit "Error building rpm-el8 packages."
 else

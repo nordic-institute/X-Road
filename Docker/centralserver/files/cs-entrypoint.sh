@@ -25,10 +25,10 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         # Update X-Road configuration on startup, if necessary
         log "Updating configuration from $CONFIG_VERSION to $PACKAGED_VERSION"
         cp -a /root/etc/xroad/* /etc/xroad/
-        pg_ctlcluster 12 main start
+        pg_ctlcluster 14 main start
         wait_db
         dpkg-reconfigure xroad-center
-        pg_ctlcluster 12 main stop
+        pg_ctlcluster 14 main stop
         nginx -s stop
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/version
@@ -52,7 +52,7 @@ if ! crudini --get /etc/xroad/conf.d/local.ini registration-service api-token &>
   log "Creating API token for registration service..."
   TOKEN=$(tr -C -d "[:alnum:]" </dev/urandom | head -c32)
   ENCODED=$(echo -n "$TOKEN" | sha256sum -b | cut -d' ' -f1)
-  pg_ctlcluster 12 main start
+  pg_ctlcluster 14 main start
   wait_db
   su -c "psql -q centerui_production" postgres <<EOF
 SET ROLE centerui;
@@ -67,7 +67,7 @@ END
 \$\$
 ;
 EOF
-  pg_ctlcluster 12 main stop
+  pg_ctlcluster 14 main stop
   crudini --set /etc/xroad/conf.d/local.ini registration-service api-token "$TOKEN"
 fi
 

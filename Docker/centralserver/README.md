@@ -17,7 +17,7 @@ Run init_context.sh -script that will collect the necessary files for building t
 ```shell
 
 # In build-folder
-docker build --build-arg DIST=bionic-current -t centralserver -f ../Dockerfile .
+docker build --build-arg DIST=jammy-current -t centralserver -f ../Dockerfile .
 ```
 
 ## Running
@@ -26,7 +26,7 @@ docker build --build-arg DIST=bionic-current -t centralserver -f ../Dockerfile .
 docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server
 
 # Running exact version instead of the default latest version
-docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server:bionic-6.21.0
+docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server:jammy-6.21.0
 ```
 
 ## Running multiple dockerized x-road (security/central) servers

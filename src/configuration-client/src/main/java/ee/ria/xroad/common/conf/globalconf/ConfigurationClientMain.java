@@ -165,8 +165,13 @@ public final class ConfigurationClientMain {
         ConfigurationDownloader configurationDownloader = new ConfigurationDownloader(configurationPath) {
             @Override
             void handleContent(byte[] content, ConfigurationFile file) throws Exception {
-                paramsValidator.tryMarkValid(file.getContentIdentifier());
+                validateContent(file);
                 super.handleContent(content, file);
+            }
+
+            @Override
+            void validateContent(ConfigurationFile file) {
+                paramsValidator.tryMarkValid(file.getContentIdentifier());
             }
 
             @Override
