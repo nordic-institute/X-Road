@@ -1,6 +1,6 @@
 ---
 - name: Compile xroad modules {{selected_modules}}
-  command: ../src/compile_module.sh {{modules[item].dir}} {{modules[item]build}}
+  command: ../src/compile_module.sh {{modules[item].dir}} {{modules[item].build}}
   args:
     chdir: ../src
   with_items: "{{selected_modules.split(',')}}"

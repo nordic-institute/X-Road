@@ -44,7 +44,7 @@ spring:
       sql.syntax_pgs: true
   liquibase:
     enabled: true
-    change-log: classpath:liquibase/db.changelog-master.yml
+    change-log: classpath:liquibase/centerui-changelog.xml
 
   profiles:
     active: test
