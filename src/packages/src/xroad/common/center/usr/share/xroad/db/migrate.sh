@@ -21,7 +21,7 @@ get_required_db_prop() {
 get_required_root_prop() {
   local -r prop_value=$(get_prop "$root_properties" "$1" "")
   if [ -z "$prop_value" ]; then
-    echo "$3"
+    echo "$2"
   fi
   echo -n "$prop_value"
 }

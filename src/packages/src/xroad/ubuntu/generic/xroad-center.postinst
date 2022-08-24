@@ -49,10 +49,13 @@ setup_database() {
 
     local db_admin_conn_user=$(get_prop ${root_properties} 'centerui.database.admin_user')
     local db_admin_password=$(get_prop ${root_properties} 'centerui.database.admin_password' 'centerui')
-    if [[ -z "$db_admin_conn_user" ]]; then
+    if [[ -z "$db_admin_conn_user" && -n "$db_admin_password" ]]; then
       db_admin_conn_user="${db_user}_admin"
+    else
+      db_admin_conn_user="${db_admin_conn_user:-$db_user}"
+      db_admin_password="${db_admin_password:-$db_password}"
     fi
-    local db_admin_user=${db_admin_conn_user}
+    local db_admin_user="${db_admin_conn_user%%@*}"
 
     export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
 
@@ -81,13 +84,15 @@ setup_database() {
 
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
-
-        if [ "$db_schema" != "public" ]; then
-          if [[ $(psql_adminuser -c "SELECT 1 from public.schema_migrations limit 1;" 2>/dev/null) != "1" ]]; then
-            psql_adminuser -c "CREATE SCHEMA IF NOT EXISTS \"${db_schema}\"" || abort "Creating schema '$db_schema' failed."
-          fi
-        fi
     else
+
+        if [[ $(get_prop ${root_properties} 'centerui.database.admin_user' "") == "" ]]; then
+          db_admin_user="${db_user}_admin"
+        fi
+
+        if [[ $(get_prop ${root_properties} 'centerui.database.admin_password' "") == "" ]]; then
+          db_admin_password=$(gen_pw)
+        fi
 
         if [[ ! -f "$root_properties" ]]; then
           touch ${root_properties}
@@ -95,7 +100,6 @@ setup_database() {
           chmod 600 ${root_properties}
         fi
 
-        db_admin_password=$(gen_pw)
         db_password=$(gen_pw)
         echo "Creating database"
         psql_master <<EOF || abort "Creating database '${db_database}' on '${db_host}' failed."
