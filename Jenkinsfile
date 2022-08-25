@@ -43,6 +43,10 @@ pipeline {
             }
         }
         stage('Ubuntu bionic packaging') {
+            when {
+                beforeAgent true
+                expression { return fileExists('src/packages/docker/deb-bionic/Dockerfile') }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker/deb-bionic'
@@ -57,6 +61,10 @@ pipeline {
             }
         }
         stage('Ubuntu focal packaging') {
+            when {
+                beforeAgent true
+                expression { return fileExists('src/packages/docker/deb-focal/Dockerfile') }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker/deb-focal'
@@ -67,6 +75,24 @@ pipeline {
             steps {
                 script {
                     sh './src/packages/build-deb.sh focal'
+                }
+            }
+        }
+        stage('Ubuntu jammy packaging') {
+            when {
+                beforeAgent true
+                expression { return fileExists('src/packages/docker/deb-jammy/Dockerfile') }
+            }
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/deb-jammy'
+                    args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
+                    reuseNode true
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-deb.sh jammy'
                 }
             }
         }

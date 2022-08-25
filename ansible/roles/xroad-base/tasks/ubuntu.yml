@@ -25,7 +25,7 @@
   apt_key:
     url: "{{ubuntu_apt_key}}"
     state: present
-  when: package_source == "remote" and (ansible_distribution_release == "bionic" or ansible_distribution_release == "focal")
+  when: package_source == "remote" and (ansible_distribution == "Ubuntu")
 
 - name: Remove old repo config
   file:
@@ -38,7 +38,7 @@
     state: present
     filename: xroad
     update_cache: yes
-  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"
+  when: ansible_distribution == "Ubuntu"
 
 - name: enable UTF-8 locales
   locale_gen:
