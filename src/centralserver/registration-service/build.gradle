@@ -17,7 +17,7 @@ sourceSets {
     main {
         java.srcDirs = [
             'src/main/java',
-            'build/generated-sources/openapi/src/main/java',
+            "${buildDir}/generated-sources/openapi/src/main/java",
         ]
     }
 }
@@ -26,9 +26,10 @@ archivesBaseName = 'centralserver-registration-service'
 
 openApiGenerate {
     generatorName = "spring"
-    inputSpec = "$projectDir/../admin-service/src/main/resources/openapi-definition.yaml"
-    outputDir = "$buildDir/generated-sources/openapi"
+    inputSpec = "${projectDir}/../admin-service/src/main/resources/openapi-definition.yaml"
+    outputDir = "${buildDir}/generated-sources/openapi"
     modelPackage = "org.niis.xroad.centralserver.registrationservice.openapi.model"
+    modelNameSuffix = "Dto"
     globalProperties = [
         apiDocs                : "false",
         apiTests               : "false",

@@ -140,8 +140,8 @@ public class GlobalConfTest {
      */
     @Test
     public void getGlobalGroupDescription() {
-        assertEquals("Description", GlobalConf.getGlobalGroupDescription(GlobalGroupId.create("EE", "Test group")));
-        assertNull("Description", GlobalConf.getGlobalGroupDescription(GlobalGroupId.create("EE", "foo")));
+        assertEquals("Description", GlobalConf.getGlobalGroupDescription(GlobalGroupId.Conf.create("EE", "Test group")));
+        assertNull("Description", GlobalConf.getGlobalGroupDescription(GlobalGroupId.Conf.create("EE", "foo")));
     }
 
     /**
@@ -151,8 +151,8 @@ public class GlobalConfTest {
      */
     @Test
     public void getServiceId() {
-        CentralServiceId central1 = CentralServiceId.create("EE", "central1");
-        ServiceId expectedServiceId = ServiceId.create("EE", "BUSINESS", "foobar", null, "bazservice");
+        CentralServiceId central1 = CentralServiceId.Conf.create("EE", "central1");
+        ServiceId expectedServiceId = ServiceId.Conf.create("EE", "BUSINESS", "foobar", null, "bazservice");
         ServiceId actualServiceId = GlobalConf.getServiceId(central1);
 
         assertNotNull(actualServiceId);
@@ -164,7 +164,7 @@ public class GlobalConfTest {
 
         thrown.expectError(ErrorCodes.X_INTERNAL_ERROR);
 
-        GlobalConf.getServiceId(CentralServiceId.create("XX", "yy"));
+        GlobalConf.getServiceId(CentralServiceId.Conf.create("XX", "yy"));
     }
 
     /**
@@ -185,7 +185,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getCentralServices() {
-        assertEquals(Arrays.asList(CentralServiceId.create("EE", "central1")), GlobalConf.getCentralServices("EE"));
+        assertEquals(Arrays.asList(CentralServiceId.Conf.create("EE", "central1")), GlobalConf.getCentralServices("EE"));
     }
 
     /**
@@ -303,7 +303,7 @@ public class GlobalConfTest {
     @Test
     public void getServerId() throws Exception {
         SecurityServerId server =
-                SecurityServerId.create("EE", "BUSINESS", "foo",
+                SecurityServerId.Conf.create("EE", "BUSINESS", "foo",
                         "fooServerCode");
         X509Certificate cert = TestCertUtil.getProducer().certChain[0];
         assertEquals(server, GlobalConf.getServerId(cert));
@@ -316,14 +316,14 @@ public class GlobalConfTest {
      */
     @Test
     public void getServerOwner() throws Exception {
-        SecurityServerId serverId = SecurityServerId.create("EE", "BUSINESS", "producer", "producerServerCode");
+        SecurityServerId serverId = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "producerServerCode");
 
-        ClientId owner = ClientId.create("EE", "BUSINESS", "producer");
+        ClientId owner = ClientId.Conf.create("EE", "BUSINESS", "producer");
         ClientId ownerFromGlobalConf = GlobalConf.getServerOwner(serverId);
 
         assertEquals(owner, ownerFromGlobalConf);
 
-        serverId = SecurityServerId.create("EE", "BUSINESS", "producer", "unknown");
+        serverId = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "unknown");
         ownerFromGlobalConf = GlobalConf.getServerOwner(serverId);
 
         assertNull(ownerFromGlobalConf);
@@ -351,9 +351,9 @@ public class GlobalConfTest {
     public void getSubjectName() throws Exception {
         X509Certificate cert = TestCertUtil.getProducer().certChain[0];
 
-        ClientId expected = ClientId.create("EE", "BUSINESS", "producer");
+        ClientId expected = ClientId.Conf.create("EE", "BUSINESS", "producer");
         ClientId actual = GlobalConf.getSubjectName(
-                new SignCertificateProfileInfoParameters(ClientId.create("EE", "foo", "bar"), "baz"), cert);
+                new SignCertificateProfileInfoParameters(ClientId.Conf.create("EE", "foo", "bar"), "baz"), cert);
 
         assertEquals(expected, actual);
     }
@@ -412,14 +412,14 @@ public class GlobalConfTest {
      */
     @Test
     public void isSecurityServerClient() {
-        ClientId client1 = ClientId.create("EE", "BUSINESS", "consumer");
-        ClientId client2 = ClientId.create("EE", "BUSINESS", "producer");
-        ClientId client3 = ClientId.create("EE", "BUSINESS", "foo", "foosubsystem");
-        ClientId client4 = ClientId.create("EE", "xx", "foo", "foosubsystem");
+        ClientId client1 = ClientId.Conf.create("EE", "BUSINESS", "consumer");
+        ClientId client2 = ClientId.Conf.create("EE", "BUSINESS", "producer");
+        ClientId client3 = ClientId.Conf.create("EE", "BUSINESS", "foo", "foosubsystem");
+        ClientId client4 = ClientId.Conf.create("EE", "xx", "foo", "foosubsystem");
 
-        SecurityServerId server1 = SecurityServerId.create("EE", "BUSINESS", "producer", "producerServerCode");
-        SecurityServerId server2 = SecurityServerId.create("EE", "BUSINESS", "producer", "foo");
-        SecurityServerId server3 = SecurityServerId.create("EE", "BUSINESS", "foo", "FooBarServerCode");
+        SecurityServerId server1 = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "producerServerCode");
+        SecurityServerId server2 = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "foo");
+        SecurityServerId server3 = SecurityServerId.Conf.create("EE", "BUSINESS", "foo", "FooBarServerCode");
 
         assertTrue(GlobalConf.isSecurityServerClient(client1, server1));
         assertTrue(GlobalConf.isSecurityServerClient(client2, server1));
@@ -440,10 +440,10 @@ public class GlobalConfTest {
     public void getSecurityServers() {
         String instanceIdentifier = "EE";
 
-        SecurityServerId server1 = SecurityServerId.create("EE", "BUSINESS", "producer", "producerServerCode");
-        SecurityServerId server2 = SecurityServerId.create("EE", "BUSINESS", "consumer", "consumerServerCode");
-        SecurityServerId server3 = SecurityServerId.create("EE", "BUSINESS", "foo", "fooServerCode");
-        SecurityServerId server4 = SecurityServerId.create("EE", "BUSINESS", "foo", "FooBarServerCode");
+        SecurityServerId server1 = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "producerServerCode");
+        SecurityServerId server2 = SecurityServerId.Conf.create("EE", "BUSINESS", "consumer", "consumerServerCode");
+        SecurityServerId server3 = SecurityServerId.Conf.create("EE", "BUSINESS", "foo", "fooServerCode");
+        SecurityServerId server4 = SecurityServerId.Conf.create("EE", "BUSINESS", "foo", "FooBarServerCode");
 
         List<SecurityServerId> expectedList = new ArrayList<SecurityServerId>();
 
@@ -466,10 +466,10 @@ public class GlobalConfTest {
     }
 
     private static ClientId newClientId(String name) {
-        return ClientId.create("EE", "BUSINESS", name);
+        return ClientId.Conf.create("EE", "BUSINESS", name);
     }
 
     private static ClientId newClientId(String name, String subsystem) {
-        return ClientId.create("EE", "BUSINESS", name, subsystem);
+        return ClientId.Conf.create("EE", "BUSINESS", name, subsystem);
     }
 }

@@ -134,7 +134,7 @@ public class GlobalConfFacade {
      * @return
      * @throws Exception
      */
-    public ClientId getSubjectName(SignCertificateProfileInfoParameters signCertificateProfileInfoParameters,
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfoParameters signCertificateProfileInfoParameters,
             X509Certificate cert) throws Exception {
         return GlobalConf.getSubjectName(signCertificateProfileInfoParameters, cert);
     }
@@ -170,7 +170,7 @@ public class GlobalConfFacade {
     /**
      * {@link GlobalConf#getSecurityServers(String...)}
      */
-    public List<SecurityServerId> getSecurityServers(String... instanceIdentifiers) {
+    public List<SecurityServerId.Conf> getSecurityServers(String... instanceIdentifiers) {
         return GlobalConf.getSecurityServers(instanceIdentifiers);
     }
 

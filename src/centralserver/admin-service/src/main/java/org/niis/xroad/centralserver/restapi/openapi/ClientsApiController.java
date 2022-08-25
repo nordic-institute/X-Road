@@ -27,21 +27,25 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.openapi.ClientsApi;
-import org.niis.xroad.centralserver.openapi.model.Client;
-import org.niis.xroad.centralserver.openapi.model.ClientType;
-import org.niis.xroad.centralserver.openapi.model.MemberName;
-import org.niis.xroad.centralserver.openapi.model.PagedClients;
-import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
-import org.niis.xroad.centralserver.restapi.converter.ClientTypeMapping;
+import org.niis.xroad.centralserver.openapi.model.ClientDto;
+import org.niis.xroad.centralserver.openapi.model.ClientTypeDto;
+import org.niis.xroad.centralserver.openapi.model.MemberNameDto;
+import org.niis.xroad.centralserver.openapi.model.PagedClientsDto;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.PagedClientsConverter;
-import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
+import org.niis.xroad.centralserver.restapi.dto.converter.db.ClientDtoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.model.ClientTypeDtoConverter;
+import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
-import org.niis.xroad.centralserver.restapi.service.ClientSearchService;
+import org.niis.xroad.centralserver.restapi.service.ClientService;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -60,11 +64,15 @@ import static java.util.Map.entry;
 @RequiredArgsConstructor
 public class ClientsApiController implements ClientsApi {
 
-    private final ClientSearchService clientSearchService;
+    private final ClientService clientService;
+    private final AuditDataHelper auditData;
     private final SecurityServerService securityServerService;
     private final PagedClientsConverter pagedClientsConverter;
     private final PageRequestConverter pageRequestConverter;
     private final SecurityServerIdConverter securityServerIdConverter;
+    private final ClientDtoConverter.Flattened flattenedSecurityServerClientViewDtoConverter;
+    private final ClientDtoConverter clientDtoConverter;
+    private final ClientTypeDtoConverter.Service clientTypeDtoConverter;
 
     private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
             new PageRequestConverter.MappableSortParameterConverter(
@@ -77,8 +85,18 @@ public class ClientsApiController implements ClientsApi {
             );
 
     @Override
-    public ResponseEntity<Client> addClient(Client client) {
-        return null;
+    @PreAuthorize("hasAuthority('ADD_NEW_MEMBER')")
+    public ResponseEntity<ClientDto> addClient(ClientDto clientDto) {
+        auditData.put(RestApiAuditProperty.MEMBER_NAME, clientDto.getMemberName());
+        auditData.put(RestApiAuditProperty.DESCRIPTION, clientDto.getId());
+
+        return Try.success(clientDto)
+                .map(clientDtoConverter::fromDto)
+                .map(clientDtoConverter.expectType(XRoadMember.class))
+                .map(clientService::add)
+                .map(clientDtoConverter::toDto)
+                .map(ResponseEntity::ok)
+                .get();
     }
 
     @Override
@@ -88,40 +106,46 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('SEARCH_MEMBERS') or hasAuthority('VIEW_MEMBERS')")
-    public ResponseEntity<PagedClients> findClients(String q,
-                                                    PagingSortingParameters pagingSorting, String name,
-                                                    String instance, String memberClass,
-                                                    String memberCode, String subsystemCode,
-                                                    ClientType clientType, String encodedSecurityServerId) {
+    public ResponseEntity<PagedClientsDto> findClients(String query,
+                                                       PagingSortingParametersDto pagingSorting,
+                                                       String name,
+                                                       String instance,
+                                                       String memberClass,
+                                                       String memberCode,
+                                                       String subsystemCode,
+                                                       ClientTypeDto clientTypeDto,
+                                                       String encodedSecurityServerId) {
         PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
-        var params = new FlattenedSecurityServerClientRepository.SearchParameters()
-                .setMultifieldSearch(q)
-                .setInstanceSearch(instance)
-                .setMemberNameSearch(name)
-                .setMemberClassSearch(memberClass)
-                .setMemberCodeSearch(memberCode)
-                .setSubsystemCodeSearch(subsystemCode)
-                .setClientType(ClientTypeMapping.map(clientType).orElse(null));
+        FlattenedSecurityServerClientRepository.SearchParameters params =
+                new FlattenedSecurityServerClientRepository.SearchParameters()
+                        .setMultifieldSearch(query)
+                        .setMemberNameSearch(name)
+                        .setInstanceSearch(instance)
+                        .setMemberClassSearch(memberClass)
+                        .setMemberCodeSearch(memberCode)
+                        .setSubsystemCodeSearch(subsystemCode)
+                        .setClientType(clientTypeDtoConverter.fromDto(clientTypeDto));
         if (!StringUtils.isEmpty(encodedSecurityServerId)) {
-            SecurityServerId id = securityServerIdConverter.convertId(encodedSecurityServerId);
-            var securityServer = securityServerService.find(id);
-            if (securityServer.isEmpty()) {
-                throw new BadRequestException("Security server does not exist");
-            }
-            params.setSecurityServerId(securityServer.get().getId());
+            SecurityServerId id = securityServerIdConverter.convert(encodedSecurityServerId);
+            securityServerService.find(id)
+                    .onEmpty(() -> {
+                        throw new BadRequestException("Security server does not exist");
+                    })
+                    .map(securityServer -> params.setSecurityServerId(securityServer.getId()));
         }
-        Page<FlattenedSecurityServerClientDto> page = clientSearchService.find(params, pageRequest);
-        PagedClients pagedResults = pagedClientsConverter.convert(page, pagingSorting);
+        Page<ClientDto> page = clientService.find(params, pageRequest)
+                .map(flattenedSecurityServerClientViewDtoConverter::toDto);
+        PagedClientsDto pagedResults = pagedClientsConverter.convert(page, pagingSorting);
         return ResponseEntity.ok(pagedResults);
     }
 
     @Override
-    public ResponseEntity<Client> getClient(String id) {
+    public ResponseEntity<ClientDto> getClient(String id) {
         return null;
     }
 
     @Override
-    public ResponseEntity<Client> updateMemberName(String id, MemberName memberName) {
+    public ResponseEntity<ClientDto> updateMemberName(String id, MemberNameDto memberName) {
         return null;
     }
 }

@@ -50,7 +50,7 @@ public class KeyConverterTest extends AbstractConverterTestContext {
         List<CertificateInfo> certs = new ArrayList<>();
         certs.add(new CertificateTestUtils.CertificateInfoBuilder().build());
         List<CertRequestInfo> csrs = new ArrayList<>();
-        csrs.add(new CertRequestInfo("id", ClientId.create("a", "b", "c"),
+        csrs.add(new CertRequestInfo("id", ClientId.Conf.create("a", "b", "c"),
                 "sujbect-name"));
 
         KeyInfo info = new KeyInfo(true,
@@ -111,7 +111,7 @@ public class KeyConverterTest extends AbstractConverterTestContext {
 
     public static CertRequestInfo createTestCsr() {
         return new CertRequestInfo("id",
-                ClientId.create("a", "b", "c"),
+                ClientId.Conf.create("a", "b", "c"),
                 "sujbect-name");
 
     }

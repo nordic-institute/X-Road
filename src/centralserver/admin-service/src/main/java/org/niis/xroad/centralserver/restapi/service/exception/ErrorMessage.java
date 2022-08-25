@@ -36,6 +36,12 @@ public enum ErrorMessage {
             + " Only classes with no registered members can be deleted."),
     MEMBER_CLASS_NOT_FOUND("No member class with the specified code found."),
     MEMBER_CLASS_EXISTS("Member class with the same code already exists."),
+    MEMBER_NOT_FOUND("No member with the specified code found."),
+    MEMBER_EXISTS("Member with the same code already exists."),
+
+    CLIENT_NOT_FOUND("No client with the specified identifier found."),
+
+    CLIENT_EXISTS("Client with the same identifier already exists."),
     MANAGEMENT_REQUEST_NOT_FOUND("No management request with the specified id found."),
     MANAGEMENT_REQUEST_EXISTS("A pending management request already exists."),
     MANAGEMENT_REQUEST_SECURITY_SERVER_EXISTS("Certificate is already registered."),

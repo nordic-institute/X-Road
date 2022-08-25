@@ -26,7 +26,8 @@
  */
 package org.niis.xroad.centralserver.restapi.entity;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -58,12 +59,29 @@ import java.util.Set;
 @Table(name = SecurityServerClient.TABLE_NAME)
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class SecurityServerClient extends AuditableEntity {
-    static final String TABLE_NAME = "security_server_clients";
+public abstract class SecurityServerClient extends AuditableEntity implements EntityExistsAware.ByIdInt {
 
+    public static final String TABLE_NAME = "security_server_clients";
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
+    @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
+    @Column(name = "id", unique = true, nullable = false)
+    @Access(AccessType.FIELD)
+    @Getter
     private int id;
-    protected ClientId identifier;
 
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "server_client_id", nullable = false, updatable = false)
+    @Access(AccessType.FIELD)
+    @Getter
+    private ClientId identifier;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServerClient", cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    @Access(AccessType.FIELD)
+    @Getter
+    @Setter
     private Set<ServerClient> serverClients = new HashSet<>();
 
     protected SecurityServerClient() {
@@ -72,29 +90,6 @@ public abstract class SecurityServerClient extends AuditableEntity {
 
     public SecurityServerClient(ClientId identifier) {
         this.identifier = identifier;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
-    @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
-    @Column(name = "id", unique = true, nullable = false)
-    @Access(AccessType.FIELD)
-    public int getId() {
-        return this.id;
-    }
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "server_client_id", nullable = false, updatable = false)
-    @Access(AccessType.FIELD)
-    public ClientId getIdentifier() {
-        return this.identifier;
-    }
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServerClient", cascade = CascadeType.ALL,
-            orphanRemoval = true)
-    @Access(AccessType.FIELD)
-    public Set<ServerClient> getServerClients() {
-        return this.serverClients;
     }
 
 }

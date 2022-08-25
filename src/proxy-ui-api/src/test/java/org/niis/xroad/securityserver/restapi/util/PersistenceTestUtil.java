@@ -48,8 +48,13 @@ public class PersistenceTestUtil {
      * Count number of rows in database for specific mapped class
      */
     public long countRows(Class entityClass) {
-        Query query = entityManager.createQuery("SELECT count(*) FROM "
-                + entityClass.getSimpleName());
+        Query query = entityManager.createQuery("SELECT count(*) FROM " + deriveEntityName(entityClass));
         return (long) query.getSingleResult();
+    }
+
+    private String deriveEntityName(Class entityClass) {
+        int entityNameOffset = entityClass.getPackageName().length() + 1;
+        String entityName = entityClass.getName().substring(entityNameOffset);
+        return entityName;
     }
 }

@@ -75,7 +75,7 @@ public abstract class AbstractServiceIntegrationTestContext extends AbstractFaca
     @MockBean
     UrlValidator urlValidator;
 
-    static final ClientId COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
+    static final ClientId.Conf COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
 
     @Before
     public void setupCommonMocks() {
@@ -84,6 +84,6 @@ public abstract class AbstractServiceIntegrationTestContext extends AbstractFaca
         owner.setIdentifier(COMMON_OWNER_ID);
         sct.setOwner(owner);
         sct.setServerCode("SS1");
-        when(currentSecurityServerId.getServerId()).thenReturn(SecurityServerId.create(COMMON_OWNER_ID, "SS1"));
+        when(currentSecurityServerId.getServerId()).thenReturn(SecurityServerId.Conf.create(COMMON_OWNER_ID, "SS1"));
     }
 }

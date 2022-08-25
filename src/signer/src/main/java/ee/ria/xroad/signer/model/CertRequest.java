@@ -38,7 +38,7 @@ public class CertRequest {
 
     private final String id;
 
-    private final ClientId memberId;
+    private final ClientId.Conf memberId;
 
     private final String subjectName;
 

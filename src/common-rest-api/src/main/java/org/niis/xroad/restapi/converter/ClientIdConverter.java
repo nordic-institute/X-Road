@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +39,8 @@ import java.util.stream.Collectors;
 /**
  * Converter for encoded client ids
  */
-public class ClientIdConverter {
+@Service
+public class ClientIdConverter extends AbstractConverter<ClientId, String> {
 
     public static final int INSTANCE_INDEX = 0;
     public static final int MEMBER_CLASS_INDEX = 1;
@@ -82,7 +84,7 @@ public class ClientIdConverter {
      * @return ClientId
      * @throws BadRequestException if encoded id could not be decoded
      */
-    public ClientId convertId(String encodedId) throws BadRequestException {
+    public ClientId.Conf convertId(String encodedId) throws BadRequestException {
         if (!isEncodedClientId(encodedId)) {
             throw new BadRequestException("Invalid client id " + encodedId);
         }
@@ -98,7 +100,7 @@ public class ClientIdConverter {
         if (parts.size() == (SUBSYSTEM_CODE_INDEX + 1)) {
             subsystemCode = parts.get(SUBSYSTEM_CODE_INDEX);
         }
-        return ClientId.create(instance, memberClass, memberCode, subsystemCode);
+        return ClientId.Conf.create(instance, memberClass, memberCode, subsystemCode);
     }
 
     /**
@@ -125,4 +127,13 @@ public class ClientIdConverter {
         return isEncodedMemberId(encodedId) || isEncodedSubsystemId(encodedId);
     }
 
+    @Override
+    protected ClientId convertToA(String source) {
+        return convertId(source);
+    }
+
+    @Override
+    protected String convertToB(ClientId source) {
+        return convertId(source);
+    }
 }

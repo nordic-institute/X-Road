@@ -85,7 +85,7 @@ final class HealthDataMetricsUtil {
      */
     static ServiceId getServiceId(OperationalDataRecord record) {
         try {
-            return ServiceId.create(record.getServiceXRoadInstance(),
+            return ServiceId.Conf.create(record.getServiceXRoadInstance(),
                     record.getServiceMemberClass(),
                     record.getServiceMemberCode(),
                     record.getServiceSubsystemCode(), record.getServiceCode(),

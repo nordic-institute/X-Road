@@ -165,11 +165,11 @@ public class InitializationService {
         verifyInitializationPrerequisites(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
                 isServerCodeInitialized, isServerOwnerInitialized, isSoftwareTokenInitialized);
         String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
-        ClientId ownerClientId = null;
+        ClientId.Conf ownerClientId = null;
         if (isServerOwnerInitialized) {
             ownerClientId = serverConfService.getSecurityServerOwnerId();
         } else {
-            ownerClientId = ClientId.create(instanceIdentifier, ownerMemberClass, ownerMemberCode);
+            ownerClientId = ClientId.Conf.create(instanceIdentifier, ownerMemberClass, ownerMemberCode);
         }
         auditDataHelper.put(OWNER_IDENTIFIER, ownerClientId);
         auditDataHelper.put(SERVER_CODE, securityServerCode);
@@ -298,7 +298,7 @@ public class InitializationService {
      * @param securityServerCode
      * @return ServerConfType
      */
-    private ServerConfType createInitialServerConf(ClientId ownerClientId, String securityServerCode) {
+    private ServerConfType createInitialServerConf(ClientId.Conf ownerClientId, String securityServerCode) {
         ServerConfType serverConf = serverConfService.getOrCreateServerConf();
 
         if (StringUtils.isEmpty(serverConf.getServerCode())) {
@@ -350,7 +350,7 @@ public class InitializationService {
             warnings.add(memberWarning);
         }
         if (!isServerCodeInitialized) {
-            SecurityServerId serverId = SecurityServerId.create(ownerClientId, securityServerCode);
+            SecurityServerId.Conf serverId = SecurityServerId.Conf.create(ownerClientId, securityServerCode);
             if (globalConfFacade.existsSecurityServer(serverId)) {
                 WarningDeviation memberWarning = new WarningDeviation(WARNING_INIT_SERVER_ID_EXISTS,
                         serverId.toShortString());
@@ -368,7 +368,7 @@ public class InitializationService {
      * @param clientId
      * @return
      */
-    private ClientType getInitialClient(ClientId clientId) {
+    private ClientType getInitialClient(ClientId.Conf clientId) {
         ClientType localClient = clientService.getLocalClient(clientId);
         if (localClient == null) {
             localClient = new ClientType();

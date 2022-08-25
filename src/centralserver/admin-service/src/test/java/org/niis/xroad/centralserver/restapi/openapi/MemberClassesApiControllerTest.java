@@ -27,7 +27,7 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.MemberClass;
+import org.niis.xroad.centralserver.openapi.model.MemberClassDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -35,17 +35,17 @@ import org.springframework.security.test.context.support.WithMockUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class MemberClassesApiControllerTest extends AbstractApiControllerTestContext {
+public class MemberClassesApiControllerTest extends AbstractApiControllerTestContext {
     @Autowired
     private MemberClassesApiController memberClassesApiController;
 
     @Test
     @WithMockUser(authorities = {"ADD_MEMBER_CLASS"})
-    void testAddMemberClass() {
-        final MemberClass mc = new MemberClass();
+    public void testAddMemberClass() {
+        final MemberClassDto mc = new MemberClassDto();
         mc.setCode("FOO");
         mc.setDescription("Description");
-        ResponseEntity<MemberClass> response = memberClassesApiController.addMemberClass(mc);
+        ResponseEntity<MemberClassDto> response = memberClassesApiController.addMemberClass(mc);
         assertTrue(response.getStatusCode().is2xxSuccessful());
         assertEquals(mc.getCode(), response.getBody().getCode());
     }

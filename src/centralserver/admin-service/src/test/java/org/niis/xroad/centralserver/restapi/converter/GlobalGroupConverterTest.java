@@ -26,8 +26,8 @@
 package org.niis.xroad.centralserver.restapi.converter;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescription;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroupResource;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescriptionDto;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupResourceDto;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 
 import java.time.ZoneOffset;
@@ -42,7 +42,7 @@ class GlobalGroupConverterTest {
     void convert() {
         GlobalGroup mockEntity = mockEntity();
 
-        GlobalGroupResource result = converter.convert(mockEntity);
+        GlobalGroupResourceDto result = converter.convert(mockEntity);
 
         assertEquals(mockEntity.getId(), result.getId());
         assertEquals(mockEntity.getGroupCode(), result.getCode());
@@ -55,7 +55,7 @@ class GlobalGroupConverterTest {
 
     @Test
     void toEntity() {
-        var globalGroupCodeAndDescription = new GlobalGroupCodeAndDescription()
+        var globalGroupCodeAndDescription = new GlobalGroupCodeAndDescriptionDto()
                 .code("code")
                 .description("description");
 

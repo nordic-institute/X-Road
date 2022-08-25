@@ -47,41 +47,56 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Getter
-@Setter
+@Table(name = ApprovedCa.TABLE_NAME)
 @NoArgsConstructor
-@Table(name = "approved_cas")
 public class ApprovedCa extends AuditableEntity {
-    static final String TABLE_NAME = "approved_cas";
+
+    public static final String TABLE_NAME = "approved_cas";
 
     @Id
     @Column(name = "id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
+    @Getter
     private int id;
 
-    @JoinColumn(name = "top_ca_id")
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "top_ca_id")
+    @Getter
+    @Setter
     private CaInfo caInfo;
 
     @Column(name = "name")
+    @Getter
+    @Setter
     private String name;
 
     @Column(name = "authentication_only")
+    @Getter
+    @Setter
     private Boolean authenticationOnly;
 
     @Column(name = "identifier_decoder_member_class")
+    @Getter
+    @Setter
     private String identifierDecoderMemberClass;
 
     @Column(name = "identifier_decoder_method_name")
+    @Getter
+    @Setter
     private String identifierDecoderMethodName;
 
     @Column(name = "cert_profile_info")
+    @Getter
+    @Setter
     private String certProfileInfo;
 
     //this is the set of intermediate CAs
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "approvedCa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Getter
+    @Setter
     private Set<CaInfo> intermediateCaInfos = new HashSet<>(0);
+
 }
 
 

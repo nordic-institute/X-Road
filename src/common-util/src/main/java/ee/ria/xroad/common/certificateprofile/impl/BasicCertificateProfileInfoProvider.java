@@ -123,7 +123,7 @@ public class BasicCertificateProfileInfoProvider
         }
 
         @Override
-        public ClientId getSubjectIdentifier(X509Certificate cert) {
+        public ClientId.Conf getSubjectIdentifier(X509Certificate cert) {
 
             X500Principal principal = cert.getSubjectX500Principal();
             X500Name x500name = new X500Name(principal.getName());
@@ -140,7 +140,7 @@ public class BasicCertificateProfileInfoProvider
                     "Certificate subject name does not contain serial number");
             }
 
-            return ClientId.create(instanceIdentifier, memberClass, memberCode);
+            return ClientId.Conf.create(instanceIdentifier, memberClass, memberCode);
 
         }
 

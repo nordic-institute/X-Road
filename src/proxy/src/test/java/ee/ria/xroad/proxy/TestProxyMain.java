@@ -146,18 +146,18 @@ public final class TestProxyMain {
         service.setUrl(SERVICE_URL + k);
         service.setTimeout(SERVICE_TIMEOUT);
 
-        service.getRequiredSecurityCategory().add(SecurityCategoryId.create(
+        service.getRequiredSecurityCategory().add(SecurityCategoryId.Conf.create(
                 XROAD_INSTANCE, SECURITY_CATEGORY + k));
 
         return service;
     }
 
-    static ClientId createTestClientId() {
-        return ClientId.create(XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE);
+    static ClientId.Conf createTestClientId() {
+        return ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE);
     }
 
-    static ClientId createTestClientId(String memberCode) {
-        return ClientId.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode);
+    static ClientId.Conf createTestClientId(String memberCode) {
+        return ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode);
     }
 
     static String client(int idx) {

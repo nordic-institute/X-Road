@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
  * Converter for encoded client ids
  */
 @Component
-public class SecurityServerIdConverter {
+public class SecurityServerIdConverter extends AbstractConverter<SecurityServerId, String> {
 
     public static final int SECURITY_SERVER_CODE_INDEX = 3;
 
@@ -56,8 +56,7 @@ public class SecurityServerIdConverter {
         String encodedMemberClientId = encodedId.substring(0, serverCodeSeparatorIndex);
         ClientId memberClientId = clientIdConverter.convertId(encodedMemberClientId);
         String serverCode = encodedId.substring(serverCodeSeparatorIndex + 1);
-
-        return SecurityServerId.create(memberClientId, serverCode);
+        return SecurityServerId.Conf.create(memberClientId, serverCode);
     }
 
     private void validateEncodedString(String encodedId) {
@@ -77,4 +76,13 @@ public class SecurityServerIdConverter {
         return securityServerId.asEncodedId();
     }
 
+    @Override
+    protected SecurityServerId convertToA(String encodedId) {
+        return convertId(encodedId);
+    }
+
+    @Override
+    protected String convertToB(SecurityServerId securityServerId) {
+        return convertId(securityServerId);
+    }
 }

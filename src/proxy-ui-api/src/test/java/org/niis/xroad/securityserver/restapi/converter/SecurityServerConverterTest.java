@@ -53,7 +53,7 @@ public class SecurityServerConverterTest extends AbstractConverterTestContext {
 
     @Test
     public void convertSecurityServerObject() {
-        SecurityServerId securityServerId = SecurityServerId.create(
+        SecurityServerId.Conf securityServerId = SecurityServerId.Conf.create(
                 "XRD2", "GOV", "M4", "server1");
         SecurityServer converted = securityServerConverter.convert(securityServerId);
         assertEquals("XRD2:GOV:M4:server1", converted.getId());

@@ -26,22 +26,19 @@
  */
 package org.niis.xroad.centralserver.restapi.repository;
 
-import ee.ria.xroad.common.identifier.XRoadId;
-
-import org.springframework.data.domain.Example;
+import org.niis.xroad.centralserver.restapi.entity.XRoadId;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface IdentifierRepository<T extends XRoadId> extends JpaRepository<T, Long> {
+import java.util.List;
 
-    /**
-     * Given an X-Road identifier, return or create an equivalent persistent one.
-     *
-     * todo: this should use findOne (old data model does not guarantee unique identifiers)
-     */
-    default T merge(final T id) {
-        return findBy(Example.of(id), FetchableFluentQuery::first).orElseGet(() -> save(id));
-    }
+@Repository
+public interface IdentifierRepository<T extends XRoadId> extends
+        JpaRepository<T, Long>,
+        FindOrCreateAwareRepository<T, Long> {
+
+    @Override
+    @Query("FROM #{#entityName}")
+    List<T> findAll();
 }

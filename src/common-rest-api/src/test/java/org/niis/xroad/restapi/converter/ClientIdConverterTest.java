@@ -100,11 +100,11 @@ public class ClientIdConverterTest {
 
     @Test
     public void convertClientId() throws Exception {
-        ClientId clientId = ClientId.create("XRD2", "GOV", "M4", "SS1");
+        ClientId clientId = ClientId.Conf.create("XRD2", "GOV", "M4", "SS1");
         String encoded = clientIdConverter.convertId(clientId);
         assertEquals("XRD2:GOV:M4:SS1", encoded);
 
-        clientId = ClientId.create("XRD2", "GOV", "M4");
+        clientId = ClientId.Conf.create("XRD2", "GOV", "M4");
         encoded = clientIdConverter.convertId(clientId);
         assertEquals("XRD2:GOV:M4", encoded);
     }

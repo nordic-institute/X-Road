@@ -197,7 +197,7 @@ public final class CertUtils {
      * @param cert certificate from which to construct the client ID
      * @return a fully constructed Client identifier from DN of the certificate.
      */
-    public static ClientId getSubjectClientId(X509Certificate cert) {
+    public static ClientId.Conf getSubjectClientId(X509Certificate cert) {
         X500Principal principal = cert.getSubjectX500Principal();
         X500Name x500name = new X500Name(principal.getName());
 
@@ -222,7 +222,7 @@ public final class CertUtils {
                     "Certificate subject name does not contain common name");
         }
 
-        return ClientId.create(c, o, cn);
+        return ClientId.Conf.create(c, o, cn);
     }
 
     /**

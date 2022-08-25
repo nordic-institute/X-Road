@@ -69,7 +69,7 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
      *
      * @return ClientId
      */
-    public ClientId getClient() {
+    public ClientId.Conf getClient() {
         return getHeader().getClient();
     }
 
@@ -78,7 +78,7 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
      *
      * @return ServiceId
      */
-    public ServiceId getService() {
+    public ServiceId.Conf getService() {
         return getHeader().getService();
     }
 
@@ -87,7 +87,7 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
      *
      * @return CentralServiceId
      */
-    public CentralServiceId getCentralService() {
+    public CentralServiceId.Conf getCentralService() {
         return getHeader().getCentralService();
     }
 
@@ -95,7 +95,7 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
      * Gets the security server ID in the SOAP message header.
      * @return SecurityServerId
      */
-    public SecurityServerId getSecurityServer() {
+    public SecurityServerId.Conf getSecurityServer() {
         return getHeader().getSecurityServer();
     }
 

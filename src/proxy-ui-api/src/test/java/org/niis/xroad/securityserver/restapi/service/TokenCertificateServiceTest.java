@@ -163,7 +163,7 @@ public class TokenCertificateServiceTest {
     @MockBean
     private TokenService tokenService;
 
-    private final ClientId client = ClientId.create(TestUtils.INSTANCE_FI,
+    private final ClientId.Conf client = ClientId.Conf.create(TestUtils.INSTANCE_FI,
             TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1);
     private final CertificateInfo signCert =
             new CertificateTestUtils.CertificateInfoBuilder().id(EXISTING_CERT_IN_SIGN_KEY_HASH).build();

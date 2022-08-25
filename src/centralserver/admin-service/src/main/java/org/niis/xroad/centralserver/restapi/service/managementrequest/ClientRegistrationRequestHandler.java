@@ -27,16 +27,18 @@
 package org.niis.xroad.centralserver.restapi.service.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
-import org.niis.xroad.centralserver.restapi.dto.ClientRegistrationRequestDto;
+import org.niis.xroad.centralserver.restapi.entity.ClientId;
 import org.niis.xroad.centralserver.restapi.entity.ClientRegistrationRequest;
+import org.niis.xroad.centralserver.restapi.entity.MemberId;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerId;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
+import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.ClientRegistrationRequestRepository;
 import org.niis.xroad.centralserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientRepository;
@@ -50,6 +52,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.EnumSet;
+import java.util.List;
 
 import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.WAITING;
@@ -57,8 +60,7 @@ import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatu
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ClientRegistrationRequestHandler
-        implements RequestHandler<ClientRegistrationRequestDto, ClientRegistrationRequest> {
+public class ClientRegistrationRequestHandler implements RequestHandler<ClientRegistrationRequest> {
 
     private final IdentifierRepository<SecurityServerId> serverIds;
     private final IdentifierRepository<ClientId> clientIds;
@@ -73,53 +75,57 @@ public class ClientRegistrationRequestHandler
                 || request.getProcessingStatus().equals(SUBMITTED_FOR_APPROVAL))
                 && request.getOrigin() == Origin.SECURITY_SERVER
                 && servers.count(SecurityServerRepository.serverIdSpec(request.getSecurityServerId())) > 0
-                && members.findMember(request.getClientId()).isPresent();
+                && members.findMember(request.getClientId()).isDefined();
     }
 
     @Override
-    public ClientRegistrationRequest add(ClientRegistrationRequestDto request) {
+    public ClientRegistrationRequest add(ClientRegistrationRequest request) {
+        SecurityServerId serverId = request.getSecurityServerId();
+        ClientId clientId = request.getClientId();
+        Origin origin = request.getOrigin();
 
-        if (request.getServerId().getOwner().equals(request.getClientId())) {
+        MemberId ownerId = serverId.getOwner();
+        if (ownerId.equals(clientId)) {
             throw new ValidationFailureException(ErrorMessage.MANAGEMENT_REQUEST_CANNOT_REGISTER_OWNER);
         }
 
-        if (Origin.CENTER.equals(request.getOrigin())) {
-            var owner = members.findOneBy(request.getServerId().getOwner()).orElseThrow(
+        if (Origin.CENTER.equals(origin)) {
+            XRoadMember owner = members.findOneBy(ownerId).getOrElseThrow(
                     () -> new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_SERVER_NOT_FOUND,
-                            request.getServerId().getOwner().toString()));
+                            ownerId.toString()));
 
-            servers.findByOwnerAndServerCode(owner, request.getServerId().getServerCode()).orElseThrow(
+            servers.findByOwnerAndServerCode(owner, serverId.getServerCode()).getOrElseThrow(
                     () -> new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_SERVER_NOT_FOUND,
-                            request.getServerId().toString()));
+                            serverId.toString()));
 
-            members.findMember(request.getClientId()).orElseThrow(() ->
+            members.findMember(clientId).getOrElseThrow(() ->
                     new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_MEMBER_NOT_FOUND,
                             request.getClientId().toString()));
         }
 
-        servers.findBy(request.getServerId(), request.getClientId()).ifPresent(s -> {
+        servers.findBy(serverId, clientId).map(s -> {
             //fixme wrong error code
             throw new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_ALREADY_REGISTERED);
         });
 
-        var serverId = serverIds.merge(request.getServerId());
-        var clientId = clientIds.merge(request.getClientId());
+        SecurityServerId storedServerId = serverIds.findOrCreate(serverId);
+        ClientId storedClientId = clientIds.findOrCreate(clientId);
 
-        var pending = clientRegRequests.findBy(serverId, clientId,
+        List<ClientRegistrationRequest> pending = clientRegRequests.findBy(storedServerId, storedClientId,
                 EnumSet.of(ManagementRequestStatus.SUBMITTED_FOR_APPROVAL, ManagementRequestStatus.WAITING));
 
         ClientRegistrationRequest req;
         switch (pending.size()) {
             case 0:
-                req = new ClientRegistrationRequest(request.getOrigin(), serverId, clientId);
+                req = new ClientRegistrationRequest(origin, storedServerId, storedClientId);
                 break;
             case 1:
-                var anotherReq = pending.get(0);
+                ClientRegistrationRequest anotherReq = pending.get(0);
                 if (anotherReq.getOrigin().equals(request.getOrigin())) {
                     throw new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_EXISTS,
                             String.valueOf(anotherReq.getId()));
                 }
-                req = new ClientRegistrationRequest(request.getOrigin(), anotherReq);
+                req = new ClientRegistrationRequest(origin, anotherReq);
                 req.setProcessingStatus(ManagementRequestStatus.SUBMITTED_FOR_APPROVAL);
                 break;
             default:
@@ -137,10 +143,10 @@ public class ClientRegistrationRequestHandler
                     String.valueOf(request.getId()));
         }
 
-        var server = servers.findOne(SecurityServerRepository.serverIdSpec(request.getSecurityServerId()))
+        SecurityServer server = servers.findOne(SecurityServerRepository.serverIdSpec(request.getSecurityServerId()))
                 .orElseThrow(() -> new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_SERVER_NOT_FOUND));
 
-        var clientMember = members.findMember(request.getClientId()).orElseThrow(() ->
+        XRoadMember clientMember = members.findMember(request.getClientId()).getOrElseThrow(() ->
                 new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_MEMBER_NOT_FOUND,
                         request.getClientId().toString()));
 
@@ -153,7 +159,7 @@ public class ClientRegistrationRequestHandler
                 // create new subsystem if necessary
                 client = clients
                         .findOneBy(request.getClientId())
-                        .orElseGet(() -> clients.save(new Subsystem(clientMember, request.getClientId())));
+                        .getOrElse(() -> clients.save(new Subsystem(clientMember, request.getClientId())));
                 break;
             default:
                 throw new IllegalArgumentException("Invalid client type");
@@ -166,10 +172,5 @@ public class ClientRegistrationRequestHandler
     @Override
     public Class<ClientRegistrationRequest> requestType() {
         return ClientRegistrationRequest.class;
-    }
-
-    @Override
-    public Class<ClientRegistrationRequestDto> dtoType() {
-        return ClientRegistrationRequestDto.class;
     }
 }

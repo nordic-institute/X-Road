@@ -49,5 +49,5 @@ public class GenerateSelfSignedCert implements Serializable {
 
     private final KeyUsageInfo keyUsage;
 
-    private final ClientId memberId;
+    private final ClientId.Conf memberId;
 }

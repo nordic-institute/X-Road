@@ -35,7 +35,7 @@ public interface AuthCertificateProfileInfo extends CertificateProfileInfo {
     /**
      * Parameters used to provide the instance of AuthCertificateProfileInfo.
      */
-    public interface Parameters {
+    interface Parameters {
 
         /**
          * @return the server identifier

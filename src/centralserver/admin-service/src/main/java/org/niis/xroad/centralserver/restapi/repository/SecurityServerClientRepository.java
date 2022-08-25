@@ -27,34 +27,59 @@
 package org.niis.xroad.centralserver.restapi.repository;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
+import io.vavr.control.Option;
+import org.niis.xroad.centralserver.restapi.entity.ClientId_;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient_;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+
 import java.util.Optional;
 
-public interface SecurityServerClientRepository<T extends SecurityServerClient>
-        extends JpaRepository<T, Integer>, JpaSpecificationExecutor<T> {
+public interface SecurityServerClientRepository<T extends SecurityServerClient> extends
+        JpaRepository<T, Integer>,
+        JpaSpecificationExecutor<T> {
 
-    default Optional<T> findOneBy(ClientId id) {
-        return findOne(clientIdSpec(id));
+    default Option<T> findOneBy(ClientId id) {
+        return findOneBy(id, null);
+    }
+
+    default Option<T> findOneBy(ClientId id, XRoadObjectType explicitType) {
+        return Option.ofOptional(findOne(clientIdSpec(id, explicitType)));
     }
 
     default Specification<T> clientIdSpec(ClientId id) {
+        return clientIdSpec(id, null);
+    }
+    default Specification<T> clientIdSpec(ClientId id, XRoadObjectType explicitType) {
         return (root, query, builder) -> {
-            var cid = root.join(SecurityServerClient_.identifier);
-            var pred = builder.and(
-                    builder.equal(cid.get("type"), id.getObjectType()),
-                    builder.equal(cid.get("xRoadInstance"), id.getXRoadInstance()),
-                    builder.equal(cid.get("memberClass"), id.getMemberClass()),
-                    builder.equal(cid.get("memberCode"), id.getMemberCode()));
-            if (id.getSubsystemCode() != null) {
-                pred = builder.and(pred, builder.equal(cid.get("subsystemCode"), id.getSubsystemCode()));
+            Join<T, org.niis.xroad.centralserver.restapi.entity.ClientId> cid =
+                    root.join(SecurityServerClient_.identifier);
+            XRoadObjectType xroadObjectType = Optional.ofNullable(explicitType).orElseGet(id::getObjectType);
+            Predicate predicate = builder.and(
+                    builder.equal(cid.get(ClientId_.OBJECT_TYPE), xroadObjectType),
+                    builder.equal(cid.get(ClientId_.X_ROAD_INSTANCE), id.getXRoadInstance()),
+                    builder.equal(cid.get(ClientId_.MEMBER_CLASS), id.getMemberClass()),
+                    builder.equal(cid.get(ClientId_.MEMBER_CODE), id.getMemberCode()));
+
+            boolean expectedToBeSubsystemType = xroadObjectType == XRoadObjectType.SUBSYSTEM;
+            if (expectedToBeSubsystemType) {
+                boolean hasNoSubsystemCode = id.getSubsystemCode() == null;
+                if (hasNoSubsystemCode) {
+                    throw new RuntimeException("Subsystem code is null");
+                }
+
+                predicate = builder.and(predicate,
+                        builder.equal(cid.get(ClientId_.SUBSYSTEM_CODE), id.getSubsystemCode()));
             }
-            return pred;
+
+            return predicate;
         };
     }
 }

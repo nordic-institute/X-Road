@@ -26,17 +26,21 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.ManagementRequestsApi;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequest;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatus;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestsFilter;
-import org.niis.xroad.centralserver.openapi.model.PagedManagementRequests;
-import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
-import org.niis.xroad.centralserver.restapi.converter.ManagementRequestConverter;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatusDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestsFilterDto;
+import org.niis.xroad.centralserver.openapi.model.PagedManagementRequestsDto;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.PagedManagementRequestsConverter;
-import org.niis.xroad.centralserver.restapi.dto.ManagementRequestDto;
+import org.niis.xroad.centralserver.restapi.dto.converter.db.ManagementRequestDtoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestDtoTypeConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestOriginDtoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestStatusConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.model.SecurityServerIdDtoConverter;
 import org.niis.xroad.centralserver.restapi.service.managementrequest.ManagementRequestService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -56,7 +60,12 @@ import static java.util.Map.entry;
 @RequiredArgsConstructor
 public class ManagementRequestsApiController implements ManagementRequestsApi {
     private final ManagementRequestService service;
-    private final ManagementRequestConverter converter;
+    private final ManagementRequestDtoConverter managementRequestDtoConverter;
+    private final ManagementRequestOriginDtoConverter.Service originMapper;
+    private final ManagementRequestDtoTypeConverter.Service typeMapper;
+    private final ManagementRequestStatusConverter.Service statusMapper;
+    private final SecurityServerIdDtoConverter securityServerIdDtoMapper;
+    private final ManagementRequestDtoConverter converter;
     private final PageRequestConverter pageRequestConverter;
     private final PagedManagementRequestsConverter pagedManagementRequestsConverter;
     private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
@@ -74,20 +83,24 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
     @PreAuthorize("hasPermission(#request, 'ADD') "
             + "and ((#request.origin.name() == 'SECURITY_SERVER' and hasAuthority('IMPERSONATE_SECURITY_SERVER'))"
             + "or (#request.origin.name() == 'CENTER' and !hasAuthority('IMPERSONATE_SECURITY_SERVER')))")
-    public ResponseEntity<ManagementRequest> addManagementRequest(ManagementRequest request) {
-        ManagementRequestDto dto = converter.convert(request);
-        var response = converter.convert(service.add(dto));
-        var status = HttpStatus.ACCEPTED;
-        if (response.getStatus() == ManagementRequestStatus.APPROVED) {
-            status = HttpStatus.CREATED;
-        }
+    public ResponseEntity<ManagementRequestDto> addManagementRequest(ManagementRequestDto request) {
+        ManagementRequestDto response = Option.of(request)
+                .map(managementRequestDtoConverter::fromDto)
+                .map(service::add)
+                .map(managementRequestDtoConverter::toDto).get();
+        HttpStatus status = response.getStatus() == ManagementRequestStatusDto.APPROVED
+                ? HttpStatus.CREATED
+                : HttpStatus.ACCEPTED;
         return ResponseEntity.status(status).body(response);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MANAGEMENT_REQUEST_DETAILS')")
-    public ResponseEntity<ManagementRequest> getManagementRequest(Integer id) {
-        return ResponseEntity.ok(converter.convert(service.getRequest(id)));
+    public ResponseEntity<ManagementRequestDto> getManagementRequest(Integer id) {
+        return Option.of(id)
+                .map(service::getRequest)
+                .map(managementRequestDtoConverter::toDto)
+                .map(ResponseEntity::ok).get();
     }
 
     @Override
@@ -101,18 +114,18 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.APPROVE_MANAGEMENT_REQUEST)
     @PreAuthorize("hasPermission(#id, 'MANAGEMENT_REQUEST', 'APPROVE')")
-    public ResponseEntity<ManagementRequest> approveManagementRequest(Integer id) {
+    public ResponseEntity<ManagementRequestDto> approveManagementRequest(Integer id) {
         return ResponseEntity.ok(converter.convert(service.approve(id)));
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MANAGEMENT_REQUESTS')")
-    public ResponseEntity<PagedManagementRequests> findManagementRequests(ManagementRequestsFilter filter,
-                                                                          PagingSortingParameters pagingSorting) {
+    public ResponseEntity<PagedManagementRequestsDto> findManagementRequests(ManagementRequestsFilterDto filter,
+                                                                             PagingSortingParametersDto pagingSorting) {
         PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
         var resultPage = service.findRequests(converter.convert(filter), pageRequest);
 
-        PagedManagementRequests pagedResults = pagedManagementRequestsConverter.convert(resultPage, pagingSorting);
+        PagedManagementRequestsDto pagedResults = pagedManagementRequestsConverter.convert(resultPage, pagingSorting);
         return ResponseEntity.ok(pagedResults);
     }
 

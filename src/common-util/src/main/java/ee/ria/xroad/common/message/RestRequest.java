@@ -183,7 +183,7 @@ public class RestRequest extends RestMessage {
             throw new IllegalArgumentException("Invalid protocol version " + parts[1]);
         }
 
-        serviceId = ServiceId.create(
+        serviceId = ServiceId.Conf.create(
                 uriSegmentPercentDecode(parts[2]),
                 uriSegmentPercentDecode(parts[3]),
                 uriSegmentPercentDecode(parts[4]),
@@ -221,7 +221,7 @@ public class RestRequest extends RestMessage {
         if (parts.length != 4) {
             throw new IllegalArgumentException("Invalid SecurityServer Id");
         }
-        return SecurityServerId.create(
+        return SecurityServerId.Conf.create(
                 uriSegmentPercentDecode(parts[0]),
                 uriSegmentPercentDecode(parts[1]),
                 uriSegmentPercentDecode(parts[2]),

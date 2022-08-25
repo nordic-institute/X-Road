@@ -399,12 +399,12 @@ public final class CertificateTestUtils {
      * - subjectName = "subject-name"
      */
     public static class CertRequestInfoBuilder {
-        private ClientId clientId = ClientId.create("a", "b", "c");
+        private ClientId.Conf clientId = ClientId.Conf.create("a", "b", "c");
         private String id = "id";
         public CertRequestInfoBuilder() {
         }
 
-        public CertRequestInfoBuilder clientId(ClientId clientIdParam) {
+        public CertRequestInfoBuilder clientId(ClientId.Conf clientIdParam) {
             clientId = clientIdParam;
             return this;
         }
@@ -441,7 +441,7 @@ public final class CertificateTestUtils {
         private boolean savedToConfiguration = true;
         private boolean active = true;
         private String id = "1";
-        private ClientId clientId = ClientId.create("a", "b", "c");
+        private ClientId.Conf clientId = ClientId.Conf.create("a", "b", "c");
 
 
         public CertificateInfoBuilder() {
@@ -477,7 +477,7 @@ public final class CertificateTestUtils {
             return this;
         }
 
-        public CertificateInfoBuilder clientId(ClientId clientIdParam) {
+        public CertificateInfoBuilder clientId(ClientId.Conf clientIdParam) {
             clientId = clientIdParam;
             return this;
         }

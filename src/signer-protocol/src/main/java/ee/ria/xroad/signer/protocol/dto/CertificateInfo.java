@@ -50,7 +50,7 @@ public class CertificateInfo implements Serializable {
     public static final String OCSP_RESPONSE_UNKNOWN = "unknown";
     public static final String OCSP_RESPONSE_SUSPENDED = "suspended";
 
-    private final ClientId memberId;
+    private final ClientId.Conf memberId;
 
     private final boolean active;
 

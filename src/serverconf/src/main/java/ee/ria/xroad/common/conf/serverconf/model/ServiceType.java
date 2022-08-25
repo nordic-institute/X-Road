@@ -40,7 +40,7 @@ import java.util.List;
 @Setter
 public class ServiceType {
 
-    private final List<SecurityCategoryId> requiredSecurityCategory =
+    private final List<SecurityCategoryId.Conf> requiredSecurityCategory =
             new ArrayList<>();
 
     private Long id;

@@ -53,17 +53,17 @@ final class ManagementRequestBuilder {
     private static final ObjectFactory FACTORY = new ObjectFactory();
     private static final JAXBContext JAXB_CTX = initJaxbContext();
 
-    private final ClientId sender;
-    private final ClientId receiver;
+    private final ClientId.Conf sender;
+    private final ClientId.Conf receiver;
 
     ManagementRequestBuilder(ClientId sender, ClientId receiver) {
-        this.sender = sender;
-        this.receiver = receiver;
+        this.sender = ClientId.Conf.ensure(sender);
+        this.receiver = ClientId.Conf.ensure(receiver);
     }
 
     // -- Public API methods --------------------------------------------------
 
-    SoapMessageImpl buildAuthCertRegRequest(SecurityServerId securityServer, String address, byte[] authCert)
+    SoapMessageImpl buildAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
             throws Exception {
         log.debug("buildAuthCertRegRequest(server: {}, address: {})", securityServer, address);
 
@@ -75,7 +75,8 @@ final class ManagementRequestBuilder {
         return buildMessage(element(AUTH_CERT_REG, AuthCertRegRequestType.class, request));
     }
 
-    SoapMessageImpl buildAuthCertDeletionRequest(SecurityServerId securityServer, byte[] authCert) throws Exception {
+    SoapMessageImpl buildAuthCertDeletionRequest(SecurityServerId.Conf securityServer,
+                                                 byte[] authCert) throws Exception {
         log.debug("buildAuthCertDeletionRequest(server: {})", securityServer);
 
         AuthCertDeletionRequestType request = FACTORY.createAuthCertDeletionRequestType();
@@ -85,7 +86,7 @@ final class ManagementRequestBuilder {
         return buildMessage(element(AUTH_CERT_DELETION, AuthCertDeletionRequestType.class, request));
     }
 
-    SoapMessageImpl buildClientRegRequest(SecurityServerId securityServer, ClientId client) throws Exception {
+    SoapMessageImpl buildClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf client) throws Exception {
         log.debug("buildClientRegRequest(server: {}, client: {})", securityServer, client);
 
         ClientRequestType request = FACTORY.createClientRequestType();
@@ -95,7 +96,8 @@ final class ManagementRequestBuilder {
         return buildMessage(element(CLIENT_REG, ClientRequestType.class, request));
     }
 
-    SoapMessageImpl buildClientDeletionRequest(SecurityServerId securityServer, ClientId client) throws Exception {
+    SoapMessageImpl buildClientDeletionRequest(SecurityServerId.Conf securityServer,
+                                               ClientId.Conf client) throws Exception {
         log.debug("buildClientDeletionRequest(server: {}, client: {})", securityServer, client);
 
         ClientRequestType request = FACTORY.createClientRequestType();
@@ -105,7 +107,8 @@ final class ManagementRequestBuilder {
         return buildMessage(element(CLIENT_DELETION, ClientRequestType.class, request));
     }
 
-    SoapMessageImpl buildOwnerChangeRequest(SecurityServerId securityServer, ClientId client) throws Exception {
+    SoapMessageImpl buildOwnerChangeRequest(SecurityServerId.Conf securityServer,
+                                            ClientId.Conf client) throws Exception {
         log.debug("buildOwnerChangeRequest(server: {}, client: {})", securityServer, client);
 
         ClientRequestType request = FACTORY.createClientRequestType();
@@ -119,7 +122,7 @@ final class ManagementRequestBuilder {
 
     SoapMessageImpl buildMessage(final JAXBElement<?> bodyJaxbElement) throws Exception {
         String serviceCode = bodyJaxbElement.getName().getLocalPart();
-        ServiceId service = ServiceId.create(receiver, serviceCode);
+        ServiceId.Conf service = ServiceId.Conf.create(receiver, serviceCode);
 
         SoapHeader header = new SoapHeader();
         header.setClient(sender);

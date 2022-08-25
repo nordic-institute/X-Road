@@ -60,10 +60,10 @@ public class ServiceClientHelper {
      * was badly formatted
      * @throws ServiceClientNotFoundException if any local group with given ID (PK) does not exist
      */
-    public Set<XRoadId> processServiceClientXRoadIds(ServiceClients serviceClients)
+    public Set<XRoadId.Conf> processServiceClientXRoadIds(ServiceClients serviceClients)
             throws ServiceClientNotFoundException,
             ServiceClientIdentifierConverter.BadServiceClientIdentifierException {
-        Set<XRoadId> ids = new HashSet<>();
+        Set<XRoadId.Conf> ids = new HashSet<>();
         for (ServiceClient serviceClient : serviceClients.getItems()) {
             ids.add(processServiceClientXRoadId(serviceClient.getId()));
         }
@@ -78,7 +78,7 @@ public class ServiceClientHelper {
      * was badly formatted
      * @throws ServiceClientNotFoundException if a local group with given ID (PK) does not exist
      */
-    public XRoadId processServiceClientXRoadId(String encodedServiceClientId)
+    public XRoadId.Conf processServiceClientXRoadId(String encodedServiceClientId)
             throws ServiceClientIdentifierConverter.BadServiceClientIdentifierException,
             ServiceClientNotFoundException {
         ServiceClientIdentifierDto dto = serviceClientIdentifierConverter.convertId(encodedServiceClientId);

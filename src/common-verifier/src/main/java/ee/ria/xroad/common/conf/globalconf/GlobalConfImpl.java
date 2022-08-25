@@ -142,7 +142,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public ServiceId getServiceId(CentralServiceId serviceId) {
+    public ServiceId.Conf getServiceId(CentralServiceId serviceId) {
         SharedParametersV2 p = getSharedParameters(serviceId.getXRoadInstance());
 
         for (CentralServiceType centralServiceType : p.getCentralServices()) {
@@ -162,14 +162,14 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public List<SecurityServerId> getSecurityServers(
+    public List<SecurityServerId.Conf> getSecurityServers(
             String... instanceIdentifiers) {
-        List<SecurityServerId> serverIds = new ArrayList<SecurityServerId>();
+        List<SecurityServerId.Conf> serverIds = new ArrayList<>();
 
         for (SharedParametersV2 p : getSharedParameters(instanceIdentifiers)) {
             for (SecurityServerType s : p.getSecurityServers()) {
                 MemberType owner = SharedParametersV2.getOwner(s);
-                serverIds.add(SecurityServerId.create(
+                serverIds.add(SecurityServerId.Conf.create(
                         p.getInstanceIdentifier(),
                         owner.getMemberClass().getCode(),
                         owner.getMemberCode(), s.getServerCode()));
@@ -215,12 +215,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public List<CentralServiceId> getCentralServices(
+    public List<CentralServiceId.Conf> getCentralServices(
             String instanceIdentifier) {
         return getSharedParameters(instanceIdentifier)
                 .getCentralServices()
                 .stream()
-                .map(c -> CentralServiceId.create(instanceIdentifier,
+                .map(c -> CentralServiceId.Conf.create(instanceIdentifier,
                         c.getServiceCode()))
                 .collect(Collectors.toList());
     }
@@ -443,7 +443,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public SecurityServerId getServerId(X509Certificate cert)
+    public SecurityServerId.Conf getServerId(X509Certificate cert)
             throws Exception {
         String b64 = encodeBase64(certHash(cert));
 
@@ -451,7 +451,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
             SecurityServerType serverType = p.getServerByAuthCert().get(b64);
             if (serverType != null) {
                 MemberType owner = SharedParametersV2.getOwner(serverType);
-                return SecurityServerId.create(p.getInstanceIdentifier(),
+                return SecurityServerId.Conf.create(p.getInstanceIdentifier(),
                         owner.getMemberClass().getCode(),
                         owner.getMemberCode(),
                         serverType.getServerCode());
@@ -462,7 +462,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public ClientId getServerOwner(SecurityServerId serverId) {
+    public ClientId.Conf getServerOwner(SecurityServerId serverId) {
         for (SharedParametersV2 p : getSharedParameters()) {
             SecurityServerType server = p.getSecurityServersById()
                     .get(serverId);
@@ -480,13 +480,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
         byte[] inputCertHash = certHash(cert);
         return getSharedParameters().stream()
                 .map(p -> p.getMemberAuthCerts().get(memberId))
-                .filter(Objects::nonNull).flatMap(h -> h.stream())
-                .filter(h -> Arrays.equals(inputCertHash, h)).findFirst()
-                .isPresent();
+                .filter(Objects::nonNull).flatMap(Collection::stream)
+                .anyMatch(h -> Arrays.equals(inputCertHash, h));
     }
 
     @Override
-    public Set<SecurityCategoryId> getProvidedCategories(
+    public Set<SecurityCategoryId.Conf> getProvidedCategories(
             X509Certificate authCert) throws Exception {
         // Currently not implemented.
         return new HashSet<>();

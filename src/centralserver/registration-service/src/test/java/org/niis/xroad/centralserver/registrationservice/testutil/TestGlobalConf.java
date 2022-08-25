@@ -39,7 +39,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 public class TestGlobalConf extends EmptyGlobalConf {
 
-    private final ClientId managementService = ClientId.create("TEST", "CLASS", "MGMT", "MANAGEMENT");
+    private final ClientId.Conf managementService = ClientId.Conf.create("TEST", "CLASS", "MGMT", "MANAGEMENT");
 
     @Override
     public String getInstanceIdentifier() {

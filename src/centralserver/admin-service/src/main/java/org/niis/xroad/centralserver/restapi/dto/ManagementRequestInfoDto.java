@@ -25,7 +25,6 @@
  * THE SOFTWARE.
  */
 package org.niis.xroad.centralserver.restapi.dto;
-
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Getter;

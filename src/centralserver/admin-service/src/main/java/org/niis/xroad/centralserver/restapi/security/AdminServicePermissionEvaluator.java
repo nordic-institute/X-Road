@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.centralserver.restapi.security;
 
-import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequest;
-import org.niis.xroad.centralserver.openapi.model.ClientDeletionRequest;
-import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequest;
+import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ClientDeletionRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
@@ -37,10 +37,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static ee.ria.xroad.common.util.Fn.self;
 
 @Component
 public class AdminServicePermissionEvaluator implements PermissionEvaluator {
@@ -49,13 +50,12 @@ public class AdminServicePermissionEvaluator implements PermissionEvaluator {
 
     public AdminServicePermissionEvaluator(List<TargetTypeResolver<?>> resolvers) {
         this.resolvers = resolvers;
-
-        var mapping = new IdentityHashMap<Class<?>, Enum<?>>();
-        mapping.put(AuthenticationCertificateRegistrationRequest.class,
-                ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST);
-        mapping.put(ClientRegistrationRequest.class, ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
-        mapping.put(ClientDeletionRequest.class, ManagementRequestType.CLIENT_DELETION_REQUEST);
-        targetMapping = Collections.unmodifiableMap(mapping);
+        this.targetMapping = self(new IdentityHashMap<>(), self -> {
+            self.put(AuthenticationCertificateRegistrationRequestDto.class,
+                    ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST);
+            self.put(ClientRegistrationRequestDto.class, ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
+            self.put(ClientDeletionRequestDto.class, ManagementRequestType.CLIENT_DELETION_REQUEST);
+        });
     }
 
     @Override
@@ -68,7 +68,7 @@ public class AdminServicePermissionEvaluator implements PermissionEvaluator {
             return false;
         }
 
-        final var target = targetMapping.get(targetDomainObject.getClass());
+        final Enum target = targetMapping.get(targetDomainObject.getClass());
         if (target != null) {
             return authentication.getAuthorities().contains(authority(permission.toString(), target));
         }
@@ -77,8 +77,10 @@ public class AdminServicePermissionEvaluator implements PermissionEvaluator {
     }
 
     @Override
-    public boolean hasPermission(Authentication authentication, Serializable targetId, String targetType,
-            Object permission) {
+    public boolean hasPermission(Authentication authentication,
+                                 Serializable targetId,
+                                 String targetType,
+                                 Object permission) {
 
         if (authentication == null
                 || targetId == null

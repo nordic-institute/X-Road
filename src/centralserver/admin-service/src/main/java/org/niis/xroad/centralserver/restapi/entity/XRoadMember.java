@@ -29,6 +29,10 @@ package org.niis.xroad.centralserver.restapi.entity;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import lombok.Getter;
+import lombok.Setter;
+import org.niis.xroad.centralserver.restapi.entity.validation.EntityIdentifier;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
@@ -44,73 +48,63 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static org.niis.xroad.centralserver.restapi.entity.XRoadMember.DISCRIMINATOR_VALUE;
+
 /**
  * Entity representing X-Road Member
  */
 @Entity
-@DiscriminatorValue("XRoadMember")
+@DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class XRoadMember extends SecurityServerClient {
 
+    public static final String DISCRIMINATOR_VALUE = "XRoadMember";
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_class_id")
+    @Access(AccessType.FIELD)
+    @Getter
     private MemberClass memberClass;
+
+    @EntityIdentifier
+    @Column(name = "member_code")
+    @Getter
+    @Access(AccessType.FIELD)
     private String memberCode;
+
+    @EntityIdentifier
+    @Column(name = "name")
+    @Getter
+    @Setter
     private String name;
+
+    @Column(name = "administrative_contact")
+    @Getter
+    @Setter
     private String administrativeContact;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    @Getter
     private Set<SecurityServer> ownedServers = new HashSet<>(0);
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "xroadMember", cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    @Getter
     private Set<Subsystem> subsystems = new HashSet<>(0);
 
     protected XRoadMember() {
         //JPA
     }
 
-    public XRoadMember(ClientId identifier, MemberClass memberClass) {
-        super(identifier);
-        if (!Objects.equals(identifier.getMemberClass(), memberClass.getCode())) {
-            throw new IllegalArgumentException("ClientId and memberClass are not consistent");
+    public XRoadMember(String name, ClientId identifier, MemberClass memberClass) {
+        super(MemberId.ensure(identifier));
+        boolean isMemberClassInconsistent = !Objects.equals(identifier.getMemberClass(), memberClass.getCode());
+        if (isMemberClassInconsistent) {
+            throw new IllegalArgumentException("identifier and memberClass are not consistent");
         }
+        this.name = name;
         this.memberCode = identifier.getMemberCode();
         this.memberClass = memberClass;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_class_id")
-    @Access(AccessType.FIELD)
-    public MemberClass getMemberClass() {
-        return this.memberClass;
-    }
-
-    @Column(name = "member_code")
-    @Access(AccessType.FIELD)
-    public String getMemberCode() {
-        return this.memberCode;
-    }
-
-    @Column(name = "name")
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Column(name = "administrative_contact")
-    public String getAdministrativeContact() {
-        return this.administrativeContact;
-    }
-
-    public void setAdministrativeContact(String administrativeContact) {
-        this.administrativeContact = administrativeContact;
-    }
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
-    public Set<SecurityServer> getOwnedServers() {
-        return this.ownedServers;
-    }
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "xroadMember", cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
-    public Set<Subsystem> getSubsystems() {
-        return this.subsystems;
-    }
 }

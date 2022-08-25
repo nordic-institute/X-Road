@@ -130,7 +130,7 @@ public class ServiceClientConverter {
                 xRoadId = globalGroupConverter.convertId(encodedId);
                 break;
             case LOCALGROUP:
-                xRoadId = LocalGroupId.create(serviceClient.getLocalGroupCode());
+                xRoadId = LocalGroupId.Conf.create(serviceClient.getLocalGroupCode());
                 break;
             default:
                 throw new BadRequestException("Invalid service client type");

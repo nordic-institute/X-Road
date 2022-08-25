@@ -44,7 +44,7 @@ import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
 /**
  * Identifier data access object implementation.
  */
-public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadId> {
+public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadId.Conf> {
 
     /**
      * Returns the identifier.
@@ -66,10 +66,10 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadId> {
     /**
      * Finds a (local) client identifier corresponding the example or null if none exits
      */
-    public ClientId findClientId(Session session, ClientId example) {
+    public ClientId.Conf findClientId(Session session, ClientId example) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<ClientId> query = cb.createQuery(ClientId.class);
-        final Root<ClientId> from = query.from(ClientId.class);
+        final CriteriaQuery<ClientId.Conf> query = cb.createQuery(ClientId.Conf.class);
+        final Root<ClientId.Conf> from = query.from(ClientId.Conf.class);
 
         Predicate pred = cb.and(
                 cb.equal(from.get("xRoadInstance"), example.getXRoadInstance()),
@@ -81,7 +81,7 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadId> {
             pred = cb.and(pred, cb.equal(from.get("subsystemCode"), example.getSubsystemCode()));
         }
 
-        final List<ClientId> list = session.createQuery(query.select(from).where(pred))
+        final List<ClientId.Conf> list = session.createQuery(query.select(from).where(pred))
                 .setMaxResults(1)
                 .setCacheable(true)
                 .getResultList();

@@ -26,8 +26,9 @@
  */
 package org.niis.xroad.centralserver.restapi.entity;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
@@ -55,32 +56,40 @@ import javax.persistence.Transient;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 public abstract class Request extends AuditableEntity {
-    static final String TABLE_NAME = "requests";
 
+    public static final String TABLE_NAME = "requests";
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
+    @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
+    @Column(name = "id", unique = true, nullable = false)
+    @Getter
     private int id;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "security_server_id")
+    @Getter
+    @Setter
     private SecurityServerId securityServerId;
+
+    @Column(name = "origin")
+    @Enumerated(EnumType.STRING)
+    @Getter
+    @Setter
     private Origin origin;
+
+    @Column(name = "comments")
+    @Getter
+    @Setter
     private String comments;
 
     protected Request() {
         //JPA
     }
 
-    public Request(Origin origin, SecurityServerId serverId) {
+    public Request(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId identifier) {
         this.origin = origin;
-        this.securityServerId = serverId;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
-    @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
-    @Column(name = "id", unique = true, nullable = false)
-    public int getId() {
-        return this.id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+        this.securityServerId = SecurityServerId.ensure(identifier);
     }
 
     /**
@@ -91,37 +100,9 @@ public abstract class Request extends AuditableEntity {
     @Transient
     public abstract ManagementRequestType getManagementRequestType();
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "security_server_id")
-    public SecurityServerId getSecurityServerId() {
-        return this.securityServerId;
-    }
-
-    public void setSecurityServerId(SecurityServerId securityServerId) {
-        this.securityServerId = securityServerId;
-    }
-
-    @Column(name = "origin")
-    @Enumerated(EnumType.STRING)
-    public Origin getOrigin() {
-        return this.origin;
-    }
-
-    public void setOrigin(Origin origin) {
-        this.origin = origin;
-    }
-
-    @Column(name = "comments")
-    public String getComments() {
-        return this.comments;
-    }
-
-    public void setComments(String comments) {
-        this.comments = comments;
-    }
-
     @Transient
     public ManagementRequestStatus getProcessingStatus() {
         return null; //TODO it is bad practice to return null like that.
     }
+
 }

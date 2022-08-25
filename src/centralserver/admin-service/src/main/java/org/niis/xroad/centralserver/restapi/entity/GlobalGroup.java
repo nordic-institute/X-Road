@@ -47,30 +47,44 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
 @Table(name = GlobalGroup.TABLE_NAME)
 public class GlobalGroup extends AuditableEntity {
-    static final String TABLE_NAME = "global_groups";
+
+    public static final String TABLE_NAME = "global_groups";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
+    @Getter
+    @Setter
     private int id;
 
     @Column(name = "group_code")
+    @Getter
+    @Setter
     private String groupCode;
 
     @Column(name = "description")
+    @Getter
+    @Setter
     private String description;
 
     @Column(name = "member_count")
     @Access(AccessType.FIELD)
-    private Integer memberCount = 0;
+    private Integer memberCount;
 
-    @Access(AccessType.FIELD)
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "globalGroup", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
+    @Getter
     private Set<GlobalGroupMember> globalGroupMembers = new HashSet<>(0);
+
+    public GlobalGroup(String groupCode) {
+        this.groupCode = groupCode;
+    }
+
+    public int getMemberCount() {
+        return this.memberCount == null ? 0 : this.memberCount;
+    }
 }

@@ -59,7 +59,7 @@ class LogArchiveCache implements Closeable {
     private enum State {
         NEW,
         ADDING,
-        ROTATING;
+        ROTATING
     }
 
     private final LinkingInfoBuilder linkingInfoBuilder;

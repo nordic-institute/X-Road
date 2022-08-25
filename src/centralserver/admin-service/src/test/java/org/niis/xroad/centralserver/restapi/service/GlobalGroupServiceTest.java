@@ -31,8 +31,8 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescription;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroupResource;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescriptionDto;
+import org.niis.xroad.centralserver.openapi.model.GlobalGroupResourceDto;
 import org.niis.xroad.centralserver.restapi.converter.GlobalGroupConverter;
 import org.niis.xroad.centralserver.restapi.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
@@ -74,17 +74,17 @@ class GlobalGroupServiceTest {
 
     @Test
     void addGlobalGroup() {
-        var globalGroupCodeAndDescription = new GlobalGroupCodeAndDescription().code("code");
+        var globalGroupCodeAndDescription = new GlobalGroupCodeAndDescriptionDto().code("code");
         var globalGroupEntity = new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
         when(converter.toEntity(globalGroupCodeAndDescription)).thenReturn(globalGroupEntity);
         var persistedGlobalGroup = new org.niis.xroad.centralserver.restapi.entity.GlobalGroup();
         persistedGlobalGroup.setGroupCode("code");
         persistedGlobalGroup.setDescription("description");
         when(globalGroupRepository.save(globalGroupEntity)).thenReturn(persistedGlobalGroup);
-        GlobalGroupResource globalGroup = new GlobalGroupResource();
+        GlobalGroupResourceDto globalGroup = new GlobalGroupResourceDto();
         when(converter.convert(persistedGlobalGroup)).thenReturn(globalGroup);
 
-        GlobalGroupResource result = service.addGlobalGroup(globalGroupCodeAndDescription);
+        GlobalGroupResourceDto result = service.addGlobalGroup(globalGroupCodeAndDescription);
 
         assertNotNull(result);
         InOrder inOrder = inOrder(globalGroupRepository, converter, auditDataHelper);
@@ -101,10 +101,10 @@ class GlobalGroupServiceTest {
     void findGlobalGroups() {
         GlobalGroup entity = new GlobalGroup();
         when(globalGroupRepository.findAll()).thenReturn(List.of(entity));
-        GlobalGroupResource globalGroup = new GlobalGroupResource();
+        GlobalGroupResourceDto globalGroup = new GlobalGroupResourceDto();
         when(converter.convert(entity)).thenReturn(globalGroup);
 
-        Set<GlobalGroupResource> globalGroups = service.findGlobalGroups(null);
+        Set<GlobalGroupResourceDto> globalGroups = service.findGlobalGroups(null);
 
         assertEquals(1, globalGroups.size());
         assertEquals(globalGroup, globalGroups.iterator().next());
@@ -119,10 +119,10 @@ class GlobalGroupServiceTest {
     void findGlobalGroupsContainsMemberIsEmpty() {
         GlobalGroup entity = new GlobalGroup();
         when(globalGroupRepository.findAll()).thenReturn(List.of(entity));
-        GlobalGroupResource globalGroup = new GlobalGroupResource();
+        GlobalGroupResourceDto globalGroup = new GlobalGroupResourceDto();
         when(converter.convert(entity)).thenReturn(globalGroup);
 
-        Set<GlobalGroupResource> globalGroups = service.findGlobalGroups("");
+        Set<GlobalGroupResourceDto> globalGroups = service.findGlobalGroups("");
 
         assertEquals(1, globalGroups.size());
         assertEquals(globalGroup, globalGroups.iterator().next());
@@ -138,7 +138,7 @@ class GlobalGroupServiceTest {
         GlobalGroup entity = new GlobalGroup();
         when(globalGroupRepository.findAll()).thenReturn(List.of(entity));
 
-        Set<GlobalGroupResource> globalGroups = service.findGlobalGroups("CS:ORG:123");
+        Set<GlobalGroupResourceDto> globalGroups = service.findGlobalGroups("CS:ORG:123");
 
         assertEquals(0, globalGroups.size());
     }

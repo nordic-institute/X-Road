@@ -39,11 +39,11 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
 import org.niis.xroad.centralserver.registrationservice.config.RegistrationServiceProperties;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.AuthenticationCertificateRegistrationRequest;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.ErrorInfo;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequest;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestOrigin;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestType;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.AuthenticationCertificateRegistrationRequestDto;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ErrorInfoDto;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestDto;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestOriginDto;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestTypeDto;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -110,10 +110,10 @@ class AdminApiServiceImpl implements AdminApiService {
 
     @Override
     public int addRegistrationRequest(SecurityServerId serverId, String address, byte[] certificate) {
-        var request = new AuthenticationCertificateRegistrationRequest();
+        var request = new AuthenticationCertificateRegistrationRequestDto();
 
-        request.setType(ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST);
-        request.setOrigin(ManagementRequestOrigin.SECURITY_SERVER);
+        request.setType(ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST);
+        request.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
         request.setServerAddress(address);
         request.setAuthenticationCertificate(certificate);
         request.setSecurityServerId(serverId.asEncodedId());
@@ -121,7 +121,8 @@ class AdminApiServiceImpl implements AdminApiService {
         try {
             var result = restTemplate.exchange(
                     RequestEntity.post("/management-requests").body(request),
-                    ManagementRequest.class);
+                    ManagementRequestDto.class
+            );
 
             if (!result.hasBody()) {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
@@ -131,7 +132,7 @@ class AdminApiServiceImpl implements AdminApiService {
         } catch (RestClientResponseException e) {
             var response = e.getResponseBodyAsByteArray();
             try {
-                var errorInfo = mapper.readValue(response, ErrorInfo.class);
+                var errorInfo = mapper.readValue(response, ErrorInfoDto.class);
                 var detail = errorInfo.getError() != null ? errorInfo.getError().getCode() : REQUEST_FAILED;
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e, "%s", detail);
             } catch (IOException ex) {

@@ -61,7 +61,7 @@ public class TokenCertificateSigningRequestConverterTest extends AbstractConvert
     @Test
     public void convert() {
         CertRequestInfo certRequestInfo = new CertRequestInfo("id",
-                ClientId.create("a", "b", "c"),
+                ClientId.Conf.create("a", "b", "c"),
                 "subject-name");
         TokenCertificateSigningRequest csr = csrConverter.convert(certRequestInfo);
         assertEquals("id", csr.getId());

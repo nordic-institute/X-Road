@@ -27,7 +27,11 @@
 package org.niis.xroad.centralserver.restapi.entity;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.Fn;
 
+
+import lombok.Getter;
+import lombok.Setter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 
@@ -41,9 +45,14 @@ import static org.niis.xroad.centralserver.restapi.entity.AuthenticationCertific
 
 @Entity
 @DiscriminatorValue(DISCRIMINATOR_VALUE)
-public class AuthenticationCertificateDeletionRequest extends Request {
+public class AuthenticationCertificateDeletionRequest extends Request
+        implements Fn.Self<AuthenticationCertificateDeletionRequest> {
     public static final String DISCRIMINATOR_VALUE = "AuthCertDeletionRequest";
 
+    @NotNull
+    @Column(name = "auth_cert")
+    @Getter
+    @Setter
     private byte[] authCert;
 
     protected AuthenticationCertificateDeletionRequest() {
@@ -58,16 +67,6 @@ public class AuthenticationCertificateDeletionRequest extends Request {
 
     public AuthenticationCertificateDeletionRequest(Origin origin, SecurityServerId serverId) {
         super(origin, serverId);
-    }
-
-    @Column(name = "auth_cert", length = 10000)
-    @NotNull
-    public byte[] getAuthCert() {
-        return this.authCert;
-    }
-
-    public void setAuthCert(byte[] authCert) {
-        this.authCert = authCert;
     }
 
 }

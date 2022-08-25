@@ -12,7 +12,7 @@ The installed central server is in uninitialized state.
 Admin UI credentials: xrd/secret
 
 ## Building centralserver image
-Run init_context.sh -script that will collect the necessary files for building the image to build -folder. After that you can create the image inside the newly created build-folder
+Run init_context.sh -script that will collect the necessary files for building the image to `build` folder. After that you can create the image inside the newly created `build` folder
 
 ```shell
 

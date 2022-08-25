@@ -41,10 +41,9 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.centralserver.registrationservice.config.RegistrationServiceProperties;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.CodeWithDetails;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.ErrorInfo;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequest;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestType;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.CodeWithDetailsDto;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ErrorInfoDto;
+import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestDto;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthCertRegRequest;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthRegRequestBuilder;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestGlobalConf;
@@ -61,6 +60,7 @@ import java.security.KeyPairGenerator;
 import java.util.Collections;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @RunWith(SpringRunner.class)
@@ -76,6 +76,7 @@ public class RegistrationRequestApiTest {
             .keystoreType("PKCS12")
             .keystorePassword("internal")
             .keyManagerPassword("internal")
+            .httpDisabled(true)
             .dynamicHttpsPort());
 
     @Autowired
@@ -94,9 +95,9 @@ public class RegistrationRequestApiTest {
     public void shouldRegisterAuthCert() throws Exception {
 
         properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.httpsPort())));
-        var response = new ManagementRequest();
+        var response = new ManagementRequestDto();
         response.setId(42);
-        response.setType(ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
+        response.setType(AUTH_CERT_REGISTRATION_REQUEST);
 
         wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
                 .willReturn(WireMock.jsonResponse(response, 202)));
@@ -117,9 +118,9 @@ public class RegistrationRequestApiTest {
     public void shouldReturnSoapFaultOnApiError() throws Exception {
 
         properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.httpsPort())));
-        var response = new ErrorInfo();
+        var response = new ErrorInfoDto();
         response.setStatus(409);
-        response.setError(new CodeWithDetails().code("error"));
+        response.setError(new CodeWithDetailsDto().code("error"));
 
         wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
                 .willReturn(WireMock.jsonResponse(response, 409)));
@@ -143,7 +144,7 @@ public class RegistrationRequestApiTest {
         var authKeyPair = keyPairGenerator.generateKeyPair();
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
 
-        var serverId = SecurityServerId.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEMBER", "SS1");
+        var serverId = SecurityServerId.Conf.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEMBER", "SS1");
         var receiver = GlobalConf.getManagementRequestService();
         var ownerKeyPair = keyPairGenerator.generateKeyPair();
         var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());

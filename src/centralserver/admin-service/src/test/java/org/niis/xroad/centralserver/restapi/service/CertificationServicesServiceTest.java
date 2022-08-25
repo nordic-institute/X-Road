@@ -31,7 +31,7 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
+import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.converter.CertificationServiceConverter;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
@@ -60,10 +60,10 @@ class CertificationServicesServiceTest {
     void getCertificationServices() {
         ApprovedCa approvedCaMock = new ApprovedCa();
         when(approvedCaRepository.findAll()).thenReturn(List.of(approvedCaMock));
-        ApprovedCertificationService approvedCertificationServiceMock = new ApprovedCertificationService();
+        ApprovedCertificationServiceDto approvedCertificationServiceMock = new ApprovedCertificationServiceDto();
         when(converter.toDomain(approvedCaMock)).thenReturn(approvedCertificationServiceMock);
 
-        Set<ApprovedCertificationService> approvedCertificationServices = service.getCertificationServices();
+        Set<ApprovedCertificationServiceDto> approvedCertificationServices = service.getCertificationServices();
 
         assertEquals(1, approvedCertificationServices.size());
         assertEquals(approvedCertificationServiceMock, approvedCertificationServices.iterator().next());

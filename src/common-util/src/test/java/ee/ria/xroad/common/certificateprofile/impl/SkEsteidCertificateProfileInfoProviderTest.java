@@ -51,7 +51,7 @@ public class SkEsteidCertificateProfileInfoProviderTest {
     @Test
     public void getSubjectIdentifier() throws Exception {
         assertEquals(
-                ClientId.create("XX", "PERSON", "foobar"),
+                ClientId.Conf.create("XX", "PERSON", "foobar"),
                 id("SERIALNUMBER=foobar")
         );
     }
@@ -78,7 +78,7 @@ public class SkEsteidCertificateProfileInfoProviderTest {
                 new SignCertificateProfileInfo.Parameters() {
                     @Override
                     public ClientId getClientId() {
-                        return ClientId.create("XX", "foo", "bar");
+                        return ClientId.Conf.create("XX", "foo", "bar");
                     }
 
                     @Override

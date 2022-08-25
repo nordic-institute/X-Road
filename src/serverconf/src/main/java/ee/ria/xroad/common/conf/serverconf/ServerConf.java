@@ -148,7 +148,7 @@ public class ServerConf {
      * @param serviceProvider the service provider identifier
      * @return all the services offered by a service provider.
      */
-    public static List<ServiceId> getAllServices(ClientId serviceProvider) {
+    public static List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
         log.trace("getAllServices({})", serviceProvider);
 
         return getInstance().getAllServices(serviceProvider);
@@ -158,7 +158,7 @@ public class ServerConf {
      * @param serviceProvider the service provider identifier
      * @return all the services offered by a service provider filtered by description type
      */
-    public static List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider,
+    public static List<ServiceId.Conf> getServicesByDescriptionType(ClientId.Conf serviceProvider,
             DescriptionType descriptionType) {
         log.trace("getServicesByDescriptionType({}, {})", serviceProvider, descriptionType);
 
@@ -190,7 +190,7 @@ public class ServerConf {
      * @return all the services by a service provider that the caller
      * has permission to invoke.
      */
-    public static List<ServiceId> getAllowedServices(ClientId serviceProvider,
+    public static List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider,
             ClientId client) {
         log.trace("getAllowedServices({}, {})", serviceProvider, client);
 
@@ -203,7 +203,7 @@ public class ServerConf {
      * @return all the services by a service provider that the caller
      * has permission to invoke filtered by description type
      */
-    public static List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider,
+    public static List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider,
             ClientId client, DescriptionType descriptionType) {
         log.trace("getAllowedServicesByDescriptionType({}, {}, {})", serviceProvider, client, descriptionType);
 
@@ -214,7 +214,7 @@ public class ServerConf {
      * @param service the service identifier
      * @return set of security category codes required by this service.
      */
-    public static Collection<SecurityCategoryId> getRequiredCategories(
+    public static Collection<SecurityCategoryId.Conf> getRequiredCategories(
             ServiceId service) {
         log.trace("getRequiredCategories({})", service);
 
@@ -225,7 +225,7 @@ public class ServerConf {
      * @return all members.
      * @throws Exception if an error occurs
      */
-    public static List<ClientId> getMembers() throws Exception {
+    public static List<ClientId.Conf> getMembers() throws Exception {
         log.trace("getMembers()");
 
         return getInstance().getMembers();

@@ -405,14 +405,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private void verifySecurityCategory(ServiceId service) throws Exception {
-        Collection<SecurityCategoryId> required = ServerConf.getRequiredCategories(service);
+        Collection<SecurityCategoryId.Conf> required = ServerConf.getRequiredCategories(service);
 
         if (required == null || required.isEmpty()) {
             // Service requires nothing, we are satisfied.
             return;
         }
 
-        Collection<SecurityCategoryId> provided = GlobalConf.getProvidedCategories(getClientAuthCert());
+        Collection<SecurityCategoryId.Conf> provided = GlobalConf.getProvidedCategories(getClientAuthCert());
 
         for (SecurityCategoryId cat : required) {
             if (provided.contains(cat)) {

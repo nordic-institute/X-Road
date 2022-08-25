@@ -26,7 +26,7 @@
 package org.niis.xroad.centralserver.restapi.converter;
 
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -37,15 +37,17 @@ import java.util.Map;
 @Component
 public class PageRequestConverter {
 
-    public PageRequest convert(PagingSortingParameters pagingSorting, SortParameterConverter sortParameterConverter) {
+    public PageRequest convert(PagingSortingParametersDto pagingSorting,
+                               SortParameterConverter sortParameterConverter) {
         return PageRequest.of(
                 pagingSorting.getOffset(),
                 pagingSorting.getLimit(),
                 convertToSort(pagingSorting, sortParameterConverter));
     }
 
-    private Sort convertToSort(PagingSortingParameters pagingSorting, SortParameterConverter sortParameterConverter) {
-        var sort = Sort.unsorted();
+    private Sort convertToSort(PagingSortingParametersDto pagingSorting,
+                               SortParameterConverter sortParameterConverter) {
+        Sort sort = Sort.unsorted();
         if (!StringUtils.isBlank(pagingSorting.getSort())) {
             Sort.Direction direction = Sort.Direction.ASC;
             if (Boolean.TRUE.equals(pagingSorting.getDesc())) {

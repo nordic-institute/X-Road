@@ -26,46 +26,28 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
-import org.niis.xroad.centralserver.openapi.model.PagedSecurityServers;
-import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
-import org.niis.xroad.centralserver.openapi.model.SecurityServerId;
-import org.niis.xroad.centralserver.openapi.model.XRoadId;
-import org.niis.xroad.centralserver.restapi.dto.SecurityServerDto;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.centralserver.openapi.model.PagedSecurityServersDto;
+import org.niis.xroad.centralserver.openapi.model.PagingMetadataDto;
+import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
 import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
 
-import java.time.ZoneOffset;
-import java.util.stream.Collectors;
+import java.util.Collections;
 
+@Slf4j
+@Service
 public class SecurityServerConverter {
 
-    public PagedSecurityServers convert(Page<SecurityServerDto> servers) {
-        return new PagedSecurityServers()
-                .pagingMetadata(new PagingMetadata()
+    public PagedSecurityServersDto convert(Page<SecurityServerDto> servers) {
+        return new PagedSecurityServersDto()
+                .pagingMetadata(new PagingMetadataDto()
                         .totalItems((int) servers.getTotalElements())
                         .items(servers.getNumberOfElements())
                         .limit(servers.getSize())
                         .offset(servers.getNumber())
                 )
-                .items(servers.getContent().stream()
-                        .map(dto -> new org.niis.xroad.centralserver.openapi.model.SecurityServer()
-                                .id(dto.getServerId().toShortString(':'))
-                                .xroadId(getSecurityServerId(dto))
-                                .ownerName(dto.getOwnerName())
-                                .serverAddress(dto.getServerAddress())
-                                .updatedAt(dto.getUpdatedAt().atOffset(ZoneOffset.UTC))
-                                .createdAt(dto.getCreatedAt().atOffset(ZoneOffset.UTC)))
-                        .collect(Collectors.toUnmodifiableList()));
-    }
-
-    //todo should use xroad identifier converter (tbd)
-    private SecurityServerId getSecurityServerId(SecurityServerDto serverDto) {
-        var id = serverDto.getServerId();
-        var result = new SecurityServerId()
-                .memberClass(id.getMemberClass())
-                .memberCode(id.getMemberCode())
-                .serverCode(id.getServerCode());
-        result.instanceId(id.getXRoadInstance()).type(XRoadId.TypeEnum.SERVER);
-        return result;
+                .items(Collections.unmodifiableList(servers.getContent()));
     }
 
 }

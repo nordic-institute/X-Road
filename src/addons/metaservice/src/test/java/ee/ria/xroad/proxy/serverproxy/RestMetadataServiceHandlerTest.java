@@ -92,11 +92,11 @@ public class RestMetadataServiceHandlerTest {
     private static final String SUBSYSTEM_FOR_YAML_FILE = "YAMLSUBSYSTEM";
     private static final String SUBSYSTEM_FOR_JSON_FILE = "JSONSUBSYSTEM";
     private static final String SUBSYSTEM_FOR_UNSUPPORTED_YAML_FILE = "UNSUPPORTEDYAMLFILE";
-    private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+    private static final ClientId.Conf DEFAULT_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", SUBSYSTEM_FOR_YAML_FILE);
-    private static final ClientId SECONDARY_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+    private static final ClientId.Conf SECONDARY_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", SUBSYSTEM_FOR_JSON_FILE);
-    private static final ClientId CLIENT_WITH_UNSUPPORTED_OPENAPI = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+    private static final ClientId.Conf CLIENT_WITH_UNSUPPORTED_OPENAPI = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", SUBSYSTEM_FOR_UNSUPPORTED_YAML_FILE);
     private static final byte[] REQUEST_HASH = "foobar1234".getBytes();
     private static final int MOCK_SERVER_PORT = 9858;
@@ -176,7 +176,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldBeAbleToHandleListMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, LIST_METHODS);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
         when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
@@ -186,7 +186,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldBeAbleToHandleAllowedMethods() {
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, ALLOWED_METHODS);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
         when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
@@ -198,7 +198,7 @@ public class RestMetadataServiceHandlerTest {
     public void shouldHandleListMethods() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, LIST_METHODS);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getServiceId()).thenReturn(serviceId);
@@ -227,7 +227,7 @@ public class RestMetadataServiceHandlerTest {
     public void shouldHandleAllowedMethods() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, ALLOWED_METHODS);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getServiceId()).thenReturn(serviceId);
@@ -256,7 +256,7 @@ public class RestMetadataServiceHandlerTest {
     public void shouldHandleGetOpenApi() throws Exception {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_OPENAPI);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_OPENAPI);
 
         when(mockRequest.getRequestURL()).thenReturn(new StringBuffer("https://securityserver:5500"));
 
@@ -287,7 +287,7 @@ public class RestMetadataServiceHandlerTest {
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
         // Test for petstore.yaml parsing
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_OPENAPI);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_OPENAPI);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getQuery()).thenReturn("serviceCode=yaml");
@@ -326,7 +326,7 @@ public class RestMetadataServiceHandlerTest {
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
         // Test petstore.json parsing
-        ServiceId serviceId = ServiceId.create(SECONDARY_CLIENT, GET_OPENAPI);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(SECONDARY_CLIENT, GET_OPENAPI);
 
         RestRequest secondaryMockRestRequest = mock(RestRequest.class);
         when(secondaryMockRestRequest.getQuery()).thenReturn("serviceCode=json");
@@ -357,7 +357,7 @@ public class RestMetadataServiceHandlerTest {
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
         // Test for petstore.yaml parsing
-        ServiceId serviceId = ServiceId.create(CLIENT_WITH_UNSUPPORTED_OPENAPI, GET_OPENAPI);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(CLIENT_WITH_UNSUPPORTED_OPENAPI, GET_OPENAPI);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getQuery()).thenReturn("serviceCode=yaml");

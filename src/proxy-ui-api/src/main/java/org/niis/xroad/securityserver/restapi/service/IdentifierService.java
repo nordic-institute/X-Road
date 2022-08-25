@@ -67,9 +67,9 @@ public class IdentifierService {
      * @param xRoadIds
      * @return List of XRoadIds
      */
-    public Set<XRoadId> getOrPersistXroadIds(Set<XRoadId> xRoadIds) {
-        Set<XRoadId> idsToPersist = new HashSet<>(xRoadIds);
-        Set<XRoadId> managedEntities = getXroadIds(idsToPersist);
+    public Set<XRoadId.Conf> getOrPersistXroadIds(Set<XRoadId.Conf> xRoadIds) {
+        Set<XRoadId.Conf> idsToPersist = new HashSet<>(xRoadIds);
+        Set<XRoadId.Conf> managedEntities = getXroadIds(idsToPersist);
         idsToPersist.removeAll(managedEntities); // remove the persistent ones
         identifierRepository.saveOrUpdate(idsToPersist); // persist the non-persisted
         managedEntities.addAll(idsToPersist); // add the newly persisted ids into the collection of already existing ids
@@ -81,7 +81,7 @@ public class IdentifierService {
      * @param xRoadId
      * @return managed XRoadId which exists in IDENTIFIER table
      */
-    public XRoadId getOrPersistXroadId(XRoadId xRoadId) {
+    public XRoadId.Conf getOrPersistXroadId(XRoadId.Conf xRoadId) {
         return getOrPersistXroadIds(new HashSet<>(Arrays.asList(xRoadId))).iterator().next();
     }
 
@@ -90,8 +90,8 @@ public class IdentifierService {
      * @param xRoadIds
      * @return List of XRoadIds
      */
-    public Set<XRoadId> getXroadIds(Set<XRoadId> xRoadIds) {
-        Collection<XRoadId> allIdsFromDb = identifierRepository.getIdentifiers();
+    public Set<XRoadId.Conf> getXroadIds(Set<XRoadId.Conf> xRoadIds) {
+        Collection<XRoadId.Conf> allIdsFromDb = identifierRepository.getIdentifiers();
         return allIdsFromDb.stream()
                 .filter(xRoadIds::contains) // this works because of the XRoadId equals and hashCode overrides
                 .collect(Collectors.toSet());
@@ -107,10 +107,10 @@ public class IdentifierService {
      * @param serviceClientIds service client ids to check
      * @throws ServiceClientNotFoundException if some service client objects could not be found
      */
-    public void verifyServiceClientObjectsExist(ClientType clientType, Set<XRoadId> serviceClientIds)
+    public void verifyServiceClientObjectsExist(ClientType clientType, Set<XRoadId.Conf> serviceClientIds)
             throws ServiceClientNotFoundException {
-        Map<XRoadObjectType, List<XRoadId>> idsPerType = serviceClientIds.stream()
-                .collect(groupingBy(XRoadId::getObjectType));
+        Map<XRoadObjectType, List<XRoadId.Conf>> idsPerType = serviceClientIds.stream()
+                .collect(groupingBy(XRoadId.Conf::getObjectType));
         for (XRoadObjectType type: idsPerType.keySet()) {
             if (!isValidServiceClientType(type)) {
                 throw new ServiceClientNotFoundException("Invalid service client subject object type " + type);

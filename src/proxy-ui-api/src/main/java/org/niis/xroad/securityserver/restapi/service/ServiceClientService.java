@@ -213,7 +213,7 @@ public class ServiceClientService {
      * @return
      * @throws ServiceClientNotFoundException if given dto contains local group that is not found
      */
-    public XRoadId convertServiceClientIdentifierDtoToXroadId(ServiceClientIdentifierDto dto)
+    public XRoadId.Conf convertServiceClientIdentifierDtoToXroadId(ServiceClientIdentifierDto dto)
             throws ServiceClientNotFoundException {
 
         if (dto.getXRoadId() == null && dto.getLocalGroupId() == null) {
@@ -222,7 +222,7 @@ public class ServiceClientService {
         }
 
         // Get XRoadId for the given service client
-        XRoadId xRoadId = dto.getXRoadId();
+        XRoadId.Conf xRoadId = dto.getXRoadId();
         if (dto.isLocalGroup()) {
             try {
                 xRoadId = localGroupService.getLocalGroupIdAsXroadId(dto.getLocalGroupId());

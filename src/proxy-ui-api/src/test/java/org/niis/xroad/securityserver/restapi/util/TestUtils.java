@@ -32,7 +32,6 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.XRoadId;
 
 import com.google.common.collect.Ordering;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
@@ -139,14 +138,14 @@ public final class TestUtils {
     public static final String API_KEY_HEADER_VALUE = "X-Road-apikey token=d56e1ca7-4134-4ed4-8030-5f330bdb602a";
 
     // obsolete items
-    public static final XRoadId OBSOLETE_SUBSYSTEM_ID = ClientId.create("FI", "GOV",
+    public static final ClientId.Conf OBSOLETE_SUBSYSTEM_ID = ClientId.Conf.create("FI", "GOV",
             "M2", "OBSOLETE-SUBSYSTEM");
-    public static final GlobalGroupId OBSOLETE_GGROUP_ID = GlobalGroupId.create("FI",
+    public static final GlobalGroupId.Conf OBSOLETE_GGROUP_ID = GlobalGroupId.Conf.create("FI",
             "obsolete-globalgroup");
     public static final long OBSOLETE_SCS_BASE_ENDPOINT_ID = 13L;
     public static final String OBSOLETE_SCS_SERVICE_CODE = "serviceWithObsoleteScs";
     public static final String OBSOLETE_SCS_FULL_SERVICE_CODE = OBSOLETE_SCS_SERVICE_CODE + ".v1";
-    public static final SecurityServerId OWNER_SERVER_ID = SecurityServerId.create(
+    public static final SecurityServerId.Conf OWNER_SERVER_ID = SecurityServerId.Conf.create(
             "XRD2", "GOV", "M4", "owner");
 
     private TestUtils() {
@@ -162,8 +161,8 @@ public final class TestUtils {
      * @param subsystem
      * @return ClientId
      */
-    public static ClientId getClientId(String instance, String memberClass, String memberCode, String subsystem) {
-        return ClientId.create(instance, memberClass, memberCode, subsystem);
+    public static ClientId.Conf getClientId(String instance, String memberClass, String memberCode, String subsystem) {
+        return ClientId.Conf.create(instance, memberClass, memberCode, subsystem);
     }
 
     /**
@@ -171,7 +170,7 @@ public final class TestUtils {
      *
      * @return ClientId
      */
-    public static ClientId getM1Ss1ClientId() {
+    public static ClientId.Conf getM1Ss1ClientId() {
         return getClientId(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM1);
     }
 
@@ -180,7 +179,7 @@ public final class TestUtils {
      *
      * @return ClientId
      */
-    public static ClientId getM1Ss2ClientId() {
+    public static ClientId.Conf getM1Ss2ClientId() {
         return getClientId(INSTANCE_FI, MEMBER_CLASS_GOV, MEMBER_CODE_M1, SUBSYSTEM2);
     }
 
@@ -191,7 +190,7 @@ public final class TestUtils {
      * @param encodedId
      * @return
      */
-    public static ClientId getClientId(String encodedId) {
+    public static ClientId.Conf getClientId(String encodedId) {
         return new ClientIdConverter().convertId(encodedId);
     }
 
@@ -217,7 +216,7 @@ public final class TestUtils {
      * @return
      */
     public static GlobalGroupInfo getGlobalGroupInfo(String instance, String groupCode) {
-        return new GlobalGroupInfo(GlobalGroupId.create(instance, groupCode), groupCode + "-description");
+        return new GlobalGroupInfo(GlobalGroupId.Conf.create(instance, groupCode), groupCode + "-description");
     }
 
     /**

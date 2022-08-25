@@ -51,7 +51,7 @@ public enum GroupingStrategy {
     };
 
     public Grouping forRecord(MessageRecord record) {
-        return forClient(ClientId.create(GlobalConf.getInstanceIdentifier(),
+        return forClient(ClientId.Conf.create(GlobalConf.getInstanceIdentifier(),
                 record.getMemberClass(), record.getMemberCode(), record.getSubsystemCode()));
     }
 

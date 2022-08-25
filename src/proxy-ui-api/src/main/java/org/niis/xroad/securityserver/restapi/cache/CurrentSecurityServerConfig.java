@@ -47,7 +47,7 @@ public class CurrentSecurityServerConfig {
     @Bean
     @Scope(value = SCOPE_REQUEST, proxyMode = TARGET_CLASS)
     public CurrentSecurityServerId securityServerOwner(ServerConfService serverConfService) {
-        SecurityServerId id = serverConfService.getSecurityServerId();
+        SecurityServerId.Conf id = serverConfService.getSecurityServerId();
         return new CurrentSecurityServerId(id);
     }
 

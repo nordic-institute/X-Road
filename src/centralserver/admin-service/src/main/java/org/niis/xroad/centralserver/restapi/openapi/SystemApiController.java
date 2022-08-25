@@ -28,13 +28,12 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SystemApi;
-import org.niis.xroad.centralserver.openapi.model.CentralServerAddress;
-import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
-import org.niis.xroad.centralserver.openapi.model.InstanceIdentifier;
-import org.niis.xroad.centralserver.openapi.model.SystemStatus;
-import org.niis.xroad.centralserver.openapi.model.Version;
+import org.niis.xroad.centralserver.openapi.model.CentralServerAddressDto;
+import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatusDto;
+import org.niis.xroad.centralserver.openapi.model.InstanceIdentifierDto;
+import org.niis.xroad.centralserver.openapi.model.SystemStatusDto;
+import org.niis.xroad.centralserver.openapi.model.VersionDto;
 import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
-import org.niis.xroad.centralserver.restapi.converter.InitializationStatusConverter;
 import org.niis.xroad.centralserver.restapi.service.InitializationService;
 import org.niis.xroad.centralserver.restapi.service.SystemParameterService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -54,24 +53,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class SystemApiController implements SystemApi {
 
     private final InitializationService initializationService;
-    private final InitializationStatusConverter initializationStatusConverter;
     private final SystemParameterService systemParameterService;
     private final AuditDataHelper auditDataHelper;
     private final HAConfigStatus currentHaConfigStatus;
 
 
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
-    public ResponseEntity<SystemStatus> getSystemStatus() {
+    public ResponseEntity<SystemStatusDto> getSystemStatus() {
         return getSystemStatusResponseEntity();
     }
 
     @Override
-    public ResponseEntity<InstanceIdentifier> getInstanceIdentifier() {
+    public ResponseEntity<InstanceIdentifierDto> getInstanceIdentifier() {
         throw new RuntimeException("not implemented yet");
     }
 
     @Override
-    public ResponseEntity<CentralServerAddress> getCentralServerAddress() {
+    public ResponseEntity<CentralServerAddressDto> getCentralServerAddress() {
         throw new RuntimeException("not implemented yet");
     }
 
@@ -89,7 +87,7 @@ public class SystemApiController implements SystemApi {
      */
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CENTRAL_SERVER_ADDRESS)
-    public ResponseEntity<SystemStatus> updateCentralServerAddress(CentralServerAddress centralServerAddress) {
+    public ResponseEntity<SystemStatusDto> updateCentralServerAddress(CentralServerAddressDto centralServerAddress) {
         auditDataHelper.put(RestApiAuditProperty.CENTRAL_SERVER_ADDRESS,
                 centralServerAddress.getCentralServerAddress());
         systemParameterService.updateOrCreateParameter(SystemParameterService.CENTRAL_SERVER_ADDRESS,
@@ -99,16 +97,15 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
-    public ResponseEntity<Version> getSystemVersion() {
-        return ResponseEntity.ok(new Version().info(ee.ria.xroad.common.Version.XROAD_VERSION));
+    public ResponseEntity<VersionDto> getSystemVersion() {
+        return ResponseEntity.ok(new VersionDto().info(ee.ria.xroad.common.Version.XROAD_VERSION));
     }
 
-    private ResponseEntity<SystemStatus> getSystemStatusResponseEntity() {
-        var systemStatus = new SystemStatus();
-        systemStatus.setInitializationStatus(
-                initializationStatusConverter.convert(initializationService.getInitializationStatus()));
+    private ResponseEntity<SystemStatusDto> getSystemStatusResponseEntity() {
+        var systemStatus = new SystemStatusDto();
+        systemStatus.setInitializationStatus(initializationService.getInitializationStatus());
         systemStatus.setHighAvailabilityStatus(
-                new HighAvailabilityStatus()
+                new HighAvailabilityStatusDto()
                         .isHaConfigured(currentHaConfigStatus.isHaConfigured())
                         .nodeName(currentHaConfigStatus.getCurrentHaNodeName()));
         return ResponseEntity.ok(systemStatus);

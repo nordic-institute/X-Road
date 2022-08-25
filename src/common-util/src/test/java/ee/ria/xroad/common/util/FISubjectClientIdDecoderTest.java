@@ -79,13 +79,13 @@ public class FISubjectClientIdDecoderTest {
                 "C=FI, O=ACME, CN=1234567-8, serialNumber=FI-TEST/serverCode/PUB", keyPair);
         ClientId clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
 
-        assertEquals(ClientId.create("FI-TEST", "PUB", "1234567-8"), clientId);
+        assertEquals(ClientId.Conf.create("FI-TEST", "PUB", "1234567-8"), clientId);
 
         cert = generateSelfSignedCertificate("C=FI, O=ACME, CN=1234567-8, serialNumber=FI-TEST/serverCode/PUB",
                 keyPair);
         clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
 
-        assertEquals(ClientId.create("FI-TEST", "PUB", "1234567-8"), clientId);
+        assertEquals(ClientId.Conf.create("FI-TEST", "PUB", "1234567-8"), clientId);
     }
 
     /**
@@ -159,7 +159,7 @@ public class FISubjectClientIdDecoderTest {
         final X509Certificate cert = generateSelfSignedCertificate("C=FI, O=FI-TEST, OU=PUB, CN=1234567-8", keyPair);
         ClientId clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
 
-        assertEquals(ClientId.create("FI-TEST", "PUB", "1234567-8"), clientId);
+        assertEquals(ClientId.Conf.create("FI-TEST", "PUB", "1234567-8"), clientId);
     }
 
     /**
@@ -203,6 +203,6 @@ public class FISubjectClientIdDecoderTest {
         final X509Certificate cert = generateSelfSignedCertificate("C=FI-DEV, O=GOV, CN=0245437-2", keyPair);
         ClientId clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
 
-        assertEquals(ClientId.create("FI-DEV", "GOV", "0245437-2"), clientId);
+        assertEquals(ClientId.Conf.create("FI-DEV", "GOV", "0245437-2"), clientId);
     }
 }

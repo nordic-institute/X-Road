@@ -28,7 +28,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
+import org.niis.xroad.centralserver.openapi.model.InitialServerConfDto;
 import org.niis.xroad.centralserver.restapi.service.TokenPinValidator;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
@@ -67,7 +67,7 @@ class InitializationApiTest extends AbstractApiRestTemplateTestContext {
     void initializationInvalidParamsRespondsCorrectly() {
         // All privileges role api Key added to all TestRestTemplate requests
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-        InitialServerConf invalidConf = new InitialServerConf()
+        InitialServerConfDto invalidConf = new InitialServerConfDto()
                 .centralServerAddress("123.123..invalid..123.x")
                 .instanceIdentifier("INSTANCE::::%INVALID")
                 .softwareTokenPin("1234-VALID");
@@ -86,7 +86,7 @@ class InitializationApiTest extends AbstractApiRestTemplateTestContext {
     void initializationMissingParamsRespondsCorrectly() {
         // All privileges role api Key added to all TestRestTemplate requests
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-        InitialServerConf invalidConf = new InitialServerConf()
+        InitialServerConfDto invalidConf = new InitialServerConfDto()
                 .centralServerAddress("")
                 .instanceIdentifier("INSTANCE_VALID")
                 .softwareTokenPin("");
@@ -108,7 +108,7 @@ class InitializationApiTest extends AbstractApiRestTemplateTestContext {
 
         tokenPinValidator.setTokenPinEnforced(true);
 
-        InitialServerConf tooShortPinConfig = new InitialServerConf()
+        InitialServerConfDto tooShortPinConfig = new InitialServerConfDto()
                 .centralServerAddress("123.123.123.123")
                 .instanceIdentifier("INSTANCE-VALID")
                 .softwareTokenPin("12");
@@ -129,7 +129,7 @@ class InitializationApiTest extends AbstractApiRestTemplateTestContext {
 
     @Test
     void nonAuthorizedInitializationShoudFail() {
-        InitialServerConf validConf = new InitialServerConf()
+        InitialServerConfDto validConf = new InitialServerConfDto()
                 .centralServerAddress("valid.domain.org")
                 .instanceIdentifier("VALIDINSTANCE")
                 .softwareTokenPin("1234-valid");
@@ -145,7 +145,7 @@ class InitializationApiTest extends AbstractApiRestTemplateTestContext {
 
     @Test
     void correctInitializationOK() {
-        InitialServerConf validConf = new InitialServerConf()
+        InitialServerConfDto validConf = new InitialServerConfDto()
                 .centralServerAddress("valid.domain.org")
                 .instanceIdentifier("VALIDINSTANCE")
                 .softwareTokenPin("1234-valid");

@@ -152,7 +152,7 @@ public class ServicesApiController implements ServicesApi {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         try {
-            Set<XRoadId> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
+            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
             accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds));
         } catch (ServiceNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
@@ -173,9 +173,8 @@ public class ServicesApiController implements ServicesApi {
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         List<ServiceClientDto> serviceClientDtos;
         try {
-            Set<XRoadId> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
-            serviceClientDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode,
-                    xRoadIds);
+            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
+            serviceClientDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode, xRoadIds);
         } catch (ClientNotFoundException | ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ServiceClientNotFoundException e) {

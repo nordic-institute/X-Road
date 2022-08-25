@@ -169,14 +169,14 @@ public class MessageTestCase {
      * @param service the service ID
      * @return the security category IDs of the service with the given ID
      */
-    public Set<SecurityCategoryId> getRequiredCategories(ServiceId service) {
+    public Set<SecurityCategoryId.Conf> getRequiredCategories(ServiceId service) {
         return Collections.emptySet();
     }
 
     /**
      * @return the provided security category IDs
      */
-    public Set<SecurityCategoryId> getProvidedCategories() {
+    public Set<SecurityCategoryId.Conf> getProvidedCategories() {
         return Collections.emptySet();
     }
 

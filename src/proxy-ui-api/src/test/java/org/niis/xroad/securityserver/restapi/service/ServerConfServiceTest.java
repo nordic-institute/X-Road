@@ -49,7 +49,7 @@ public class ServerConfServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void getSecurityServerId() {
-        SecurityServerId expected = SecurityServerId.create("FI", "GOV", "M1", "SS1");
+        SecurityServerId.Conf expected = SecurityServerId.Conf.create("FI", "GOV", "M1", "SS1");
         assertEquals(expected, serverConfService.getSecurityServerId());
     }
 

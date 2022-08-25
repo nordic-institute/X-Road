@@ -26,11 +26,12 @@
 package org.niis.xroad.centralserver.restapi.converter;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequest;
-import org.niis.xroad.centralserver.openapi.model.PagedManagementRequests;
-import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
-import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
+import org.niis.xroad.centralserver.openapi.model.PagedManagementRequestsDto;
+import org.niis.xroad.centralserver.openapi.model.PagingMetadataDto;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.centralserver.restapi.dto.ManagementRequestInfoDto;
+import org.niis.xroad.centralserver.restapi.dto.converter.db.ManagementRequestDtoConverter;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
@@ -42,18 +43,18 @@ import java.util.stream.Collectors;
 public class PagedManagementRequestsConverter {
 
     private final PagingMetadataConverter pagingMetadataConverter;
-    private final ManagementRequestConverter managementRequestConverter;
+    private final ManagementRequestDtoConverter managementRequestConverter;
 
-    public PagedManagementRequests convert(Page<ManagementRequestInfoDto> page,
-                                           PagingSortingParameters pagingSorting) {
+    public PagedManagementRequestsDto convert(Page<ManagementRequestInfoDto> page,
+                                              PagingSortingParametersDto pagingSorting) {
 
-        PagingMetadata meta = pagingMetadataConverter.convert(page, pagingSorting);
+        PagingMetadataDto meta = pagingMetadataConverter.convert(page, pagingSorting);
 
-        List<ManagementRequest> items = page.get()
+        List<ManagementRequestDto> items = page.get()
                 .map(managementRequestConverter::convert)
                 .collect(Collectors.toList());
 
-        PagedManagementRequests result = new PagedManagementRequests();
+        PagedManagementRequestsDto result = new PagedManagementRequestsDto();
         result.setItems(items);
         result.setPagingMetadata(meta);
         return result;

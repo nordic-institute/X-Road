@@ -26,10 +26,12 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import io.vavr.control.Option;
+import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.MemberClassesApi;
-import org.niis.xroad.centralserver.openapi.model.MemberClass;
-import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
+import org.niis.xroad.centralserver.openapi.model.MemberClassDto;
+import org.niis.xroad.centralserver.restapi.dto.converter.db.MemberClassDtoConverter;
 import org.niis.xroad.centralserver.restapi.service.MemberClassService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -41,7 +43,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -54,14 +55,21 @@ public class MemberClassesApiController implements MemberClassesApi {
     private final MemberClassService service;
     private final AuditDataHelper auditData;
 
+    private final MemberClassDtoConverter memberClassDtoConverter;
+
     @Override
     @PreAuthorize("hasAuthority('ADD_MEMBER_CLASS')")
     @AuditEventMethod(event = RestApiAuditEvent.ADD_MEMBER_CLASS)
-    public ResponseEntity<MemberClass> addMemberClass(MemberClass memberClass) {
-        auditData.put(RestApiAuditProperty.CODE, memberClass.getCode());
-        auditData.put(RestApiAuditProperty.DESCRIPTION, memberClass.getDescription());
-        var result = service.add(new MemberClassDto(memberClass.getCode(), memberClass.getDescription()));
-        return ResponseEntity.ok(convert(result));
+    public ResponseEntity<MemberClassDto> addMemberClass(MemberClassDto memberClassDto) {
+        auditData.put(RestApiAuditProperty.CODE, memberClassDto.getCode());
+        auditData.put(RestApiAuditProperty.DESCRIPTION, memberClassDto.getDescription());
+
+        return Option.of(memberClassDto)
+                .map(memberClassDtoConverter::fromDto)
+                .map(service::add)
+                .map(memberClassDtoConverter::toDto)
+                .map(ResponseEntity::ok)
+                .get();
     }
 
     @Override
@@ -75,33 +83,28 @@ public class MemberClassesApiController implements MemberClassesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public ResponseEntity<Set<MemberClass>> getMemberClasses() {
-        var memberClasses = service.findAll();
-        return ResponseEntity.ok(convert(memberClasses));
+    public ResponseEntity<Set<MemberClassDto>> getMemberClasses() {
+        return service.findAll()
+                .toTry()
+                .map(memberClassDtoConverter::toDto)
+                .transform(memberClassDtos ->  Try.success(memberClassDtos.toJavaSet(LinkedHashSet::new)))
+                .map(set -> (Set<MemberClassDto>) set)
+                .map(ResponseEntity::ok)
+                .get();
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_MEMBER_CLASS')")
     @AuditEventMethod(event = RestApiAuditEvent.EDIT_MEMBER_CLASS)
-    public ResponseEntity<MemberClass> updateMemberClassDescription(String code, MemberClass memberClass) {
+    public ResponseEntity<MemberClassDto> updateMemberClassDescription(String code, MemberClassDto memberClassDto) {
         auditData.put(RestApiAuditProperty.CODE, code);
-        auditData.put(RestApiAuditProperty.DESCRIPTION, memberClass.getDescription());
-        var result = service.update(new MemberClassDto(code, memberClass.getDescription()));
-        return ResponseEntity.ok(convert(result));
-    }
+        auditData.put(RestApiAuditProperty.DESCRIPTION, memberClassDto.getDescription());
 
-    private static MemberClass convert(MemberClassDto dto) {
-        var result = new MemberClass();
-        result.setCode(dto.getCode());
-        result.setDescription(dto.getDescription());
-        return result;
-    }
-
-    private static Set<MemberClass> convert(Collection<MemberClassDto> dtos) {
-        var result = new LinkedHashSet<MemberClass>(dtos.size());
-        for (var dto : dtos) {
-            result.add(convert(dto));
-        }
-        return result;
+        return Option.of(memberClassDto)
+                .map(memberClassDtoConverter::fromDto)
+                .map(service::update)
+                .map(memberClassDtoConverter::toDto)
+                .map(ResponseEntity::ok)
+                .get();
     }
 }

@@ -800,7 +800,9 @@ public final class TokenManager {
      * @return certificate id
      */
     public static synchronized String addCertRequest(String keyId,
-                                                     ClientId memberId, String subjectName, KeyUsageInfo keyUsage) {
+                                                     ClientId.Conf memberId,
+                                                     String subjectName,
+                                                     KeyUsageInfo keyUsage) {
         log.trace("addCertRequest({}, {})", keyId, memberId);
 
         Key key = findKey(keyId);

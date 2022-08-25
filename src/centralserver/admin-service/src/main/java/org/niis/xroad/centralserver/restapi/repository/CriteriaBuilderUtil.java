@@ -34,7 +34,7 @@ import javax.persistence.criteria.Root;
 /**
  * Utility for working with CriteriaBuilder
  */
-public final class CriteriaBuilderUtil {
+public final class CriteriaBuilderUtil { // todo: refactor to a helper service
 
     public static final char LIKE_EXPRESSION_ESCAPE_CHAR = '\\';
     public static final String LIKE_EXPRESSION_ESCAPE_STRING = String.valueOf(LIKE_EXPRESSION_ESCAPE_CHAR);

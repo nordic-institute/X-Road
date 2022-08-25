@@ -2,9 +2,8 @@ plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
     id 'org.openapi.generator' version "$openApiGeneratorVersion"
+    id 'com.github.hierynomus.license'
 }
-
-apply plugin: 'com.github.hierynomus.license'
 
 archivesBaseName = 'centralserver-admin-service'
 
@@ -13,16 +12,23 @@ configurations {
         canBeConsumed = false
         canBeResolved = true
     }
+    liquibaseLibs {
+        apply plugin: 'base'
+    }
 }
 
 sourceSets {
     main {
         java.srcDirs = [
             'src/main/java',
-            'build/generated-sources/openapi/src/main/java',
-            'build/generated/sources/annotationProcessor/java/main'
+            "${buildDir}/generated-sources/openapi/src/main/java",
+            "${buildDir}/generated/sources/annotationProcessor/java/main"
         ]
     }
+}
+
+test {
+    useJUnitPlatform()
 }
 
 bootRun {
@@ -39,6 +45,7 @@ openApiGenerate {
     outputDir = "$buildDir/generated-sources/openapi"
     apiPackage = "org.niis.xroad.centralserver.openapi"
     modelPackage = "org.niis.xroad.centralserver.openapi.model"
+    modelNameSuffix = "Dto"
     importMappings = [
         User           : "org.niis.xroad.restapi.openapi.model.User",
         ErrorInfo      : "org.niis.xroad.restapi.openapi.model.ErrorInfo",
@@ -80,6 +87,7 @@ dependencies {
     dist(project(path: ':centralserver:admin-ui', configuration: 'dist'))
 
     annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
+    annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
     implementation project(':common-util')
     implementation project(':common-verifier')
     implementation project(':signer-protocol')
@@ -98,27 +106,35 @@ dependencies {
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
     implementation('io.swagger.core.v3:swagger-annotations:2.1.13')
+    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
 
+    implementation("io.vavr:vavr:$vavrVersion")
 
     testImplementation project(':common-test')
     testImplementation(testFixtures(project(":common-rest-api")))
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
-    testImplementation('org.hsqldb:hsqldb')
+    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
+    testImplementation('org.liquibase:liquibase-core:4.9.1')
+    testImplementation('org.yaml:snakeyaml:1.30')
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-    implementation('javax.validation:validation-api')
+
+    liquibaseLibs('org.liquibase:liquibase-core:4.9.1')
+    liquibaseLibs('info.picocli:picocli:4.6.3')
+    liquibaseLibs("org.postgresql:postgresql:$postgresqlVersion")
+    liquibaseLibs('org.yaml:snakeyaml:1.30')
 }
 
 task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
     from configurations.dist
-    into 'build/admin-ui/public'
+    into "${buildDir}/admin-ui/public"
 }
 
 bootJar {
     if (!project.hasProperty('skip-frontend-build')) {
         dependsOn copyUi
-        classpath += file('build/admin-ui')
+        classpath += file("${buildDir}/admin-ui")
     } else {
         println("Warning: Excluding frontend from boot jar")
     }
@@ -130,6 +146,11 @@ bootJar {
     }
 }
 
-test {
-    useJUnitPlatform()
+task downloadLiquibaseLibs(type: Copy) {
+    mkdir "${buildDir}/libs/"
+
+    from configurations.liquibaseLibs
+    into "${buildDir}/libs"
 }
+
+build.dependsOn downloadLiquibaseLibs

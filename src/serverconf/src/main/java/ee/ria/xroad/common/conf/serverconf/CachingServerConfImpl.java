@@ -63,7 +63,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     public static final String TSP_URL = "tsp_url";
 
     private final int expireSeconds;
-    private volatile SecurityServerId serverId;
+    private volatile SecurityServerId.Conf serverId;
     private final Cache<Object, List<String>> tspCache;
     private final Cache<ServiceId, Optional<ServiceType>> serviceCache;
     private final Cache<AclCacheKey, List<EndpointType>> aclCache;
@@ -124,8 +124,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    public SecurityServerId getIdentifier() {
-        SecurityServerId id = serverId;
+    public SecurityServerId.Conf getIdentifier() {
+        SecurityServerId.Conf id = serverId;
         if (id == null) {
             return getAndCacheServerId(null);
         } else {
@@ -139,8 +139,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @SuppressWarnings("checkstyle:innerassignment")
-    private synchronized SecurityServerId getAndCacheServerId(final SecurityServerId current) {
-        SecurityServerId id = serverId;
+    private synchronized SecurityServerId.Conf getAndCacheServerId(final SecurityServerId current) {
+        SecurityServerId.Conf id = serverId;
         if (id == current) { //intentional reference equality test (for double-checked locking)
             serverId = id = super.getIdentifier();
         }
@@ -214,7 +214,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    public List<SecurityCategoryId> getRequiredCategories(ServiceId service) {
+    public List<SecurityCategoryId.Conf> getRequiredCategories(ServiceId service) {
         return getService(service).map(ServiceType::getRequiredSecurityCategory).orElse(Collections.emptyList());
     }
 

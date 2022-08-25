@@ -110,7 +110,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     @Autowired
     ServiceClientSortingComparator serviceClientSortingComparator;
 
-    private static final SecurityServerId OWNER_SERVER_ID = SecurityServerId.create(TestUtils.getM1Ss1ClientId(),
+    private static final SecurityServerId.Conf OWNER_SERVER_ID = SecurityServerId.Conf.create(TestUtils.getM1Ss1ClientId(),
             "owner");
     private List<GlobalGroupInfo> globalGroupInfos = new ArrayList<>(Arrays.asList(
             TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_FI, TestUtils.GLOBALGROUP),
@@ -260,7 +260,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(HttpStatus.OK, certificates.getStatusCode());
         assertEquals(0, certificates.getBody().size());
         CertificateInfo mockCertificate = new CertificateInfo(
-                ClientId.create("FI", "GOV", "M1"),
+                ClientId.Conf.create("FI", "GOV", "M1"),
                 true, true, CertificateInfo.STATUS_REGISTERED,
                 "id", CertificateTestUtils.getMockCertificateBytes(), null);
         doReturn(Collections.singletonList(mockCertificate)).when(tokenService).getSignCertificates(any());
@@ -512,7 +512,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     private List<CertificateInfo> createSimpleSignCertList() {
         List<CertificateInfo> certificateInfos = new ArrayList<>();
         certificateInfos.add(new CertificateTestUtils.CertificateInfoBuilder()
-                .clientId(ClientId.create("FI", "GOV", "M1"))
+                .clientId(ClientId.Conf.create("FI", "GOV", "M1"))
                 .build());
         return certificateInfos;
     }
@@ -1063,7 +1063,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = { "DELETE_CLIENT" })
     public void getOrphans() {
-        ClientId orphanClient = TestUtils.getClientId("FI:GOV:ORPHAN:SS1");
+        ClientId.Conf orphanClient = TestUtils.getClientId("FI:GOV:ORPHAN:SS1");
         KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder()
                 .keyUsageInfo(KeyUsageInfo.SIGNING)
                 .csr(new CertRequestInfoBuilder()
@@ -1089,7 +1089,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = { "DELETE_CLIENT", "DELETE_SIGN_KEY" })
     public void deleteOrphans() throws Exception {
-        ClientId orphanClient = TestUtils.getClientId("FI:GOV:ORPHAN:SS1");
+        ClientId.Conf orphanClient = TestUtils.getClientId("FI:GOV:ORPHAN:SS1");
         String orphanKeyId = "orphan-key";
         KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder()
                 .keyUsageInfo(KeyUsageInfo.SIGNING)

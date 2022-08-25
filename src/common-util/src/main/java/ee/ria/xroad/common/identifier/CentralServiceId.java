@@ -25,39 +25,57 @@
  */
 package ee.ria.xroad.common.identifier;
 
+import io.vavr.control.Option;
+
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import static ee.ria.xroad.common.util.Validation.validateArgument;
 
 /**
  * Central service ID.
  */
-@XmlJavaTypeAdapter(IdentifierTypeConverter.CentralServiceIdAdapter.class)
-public final class CentralServiceId extends ServiceId {
+public interface CentralServiceId extends ServiceId {
 
-    CentralServiceId() { // required by Hibernate
-        this(null, null);
+    default String[] getFieldsForStringFormat() {
+        return new String[]{getServiceCode()};
     }
 
-    private CentralServiceId(String xRoadInstance, String serviceCode) {
-        super(XRoadObjectType.CENTRALSERVICE, xRoadInstance, null, null,
-                null, serviceCode);
-    }
+    // todo: move to a proper location
+    @XmlJavaTypeAdapter(IdentifierTypeConverter.CentralServiceIdAdapter.class)
+    final class Conf extends ServiceId.Conf implements CentralServiceId {
 
-    @Override
-    public String[] getFieldsForStringFormat() {
-        return new String[] {serviceCode};
-    }
+        Conf() { // required by Hibernate
+            this(null, null);
+        }
 
-    /**
-     * Factory method for creating a new CentralServiceId.
-     * @param xRoadInstance instance of the new service
-     * @param serviceCode code if the new service
-     * @return CentralServiceId
-     */
-    public static CentralServiceId create(String xRoadInstance,
-            String serviceCode) {
-        validateField("xRoadInstance", xRoadInstance);
-        validateField("serviceCode", serviceCode);
-        return new CentralServiceId(xRoadInstance, serviceCode);
+        private Conf(String xRoadInstance, String serviceCode) {
+            super(XRoadObjectType.CENTRALSERVICE, xRoadInstance, null, null,
+                    null, serviceCode);
+        }
+
+        /**
+         * Factory method for creating a new CentralServiceId.
+         *
+         * @param xRoadInstance instance of the new service
+         * @param serviceCode   code if the new service
+         * @return CentralServiceId
+         */
+        public static CentralServiceId.Conf create(String xRoadInstance,
+                                                   String serviceCode) {
+            validateArgument("xRoadInstance", xRoadInstance);
+            validateArgument("serviceCode", serviceCode);
+            return new CentralServiceId.Conf(xRoadInstance, serviceCode);
+        }
+
+        public static CentralServiceId.Conf ensure(CentralServiceId identifier) {
+            validateArgument("identifier", identifier);
+            return Option.of(identifier)
+                    .filter(CentralServiceId.Conf.class::isInstance)
+                    .map(CentralServiceId.Conf.class::cast)
+                    .getOrElse(() -> new CentralServiceId.Conf(identifier.getXRoadInstance(),
+                            identifier.getServiceCode()));
+        }
+
     }
 
 }

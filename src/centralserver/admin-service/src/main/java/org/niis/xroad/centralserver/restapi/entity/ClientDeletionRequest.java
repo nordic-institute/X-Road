@@ -26,9 +26,10 @@
  */
 package org.niis.xroad.centralserver.restapi.entity;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 
@@ -46,6 +47,10 @@ import static org.niis.xroad.centralserver.restapi.entity.ClientDeletionRequest.
 public class ClientDeletionRequest extends Request {
     public static final String DISCRIMINATOR_VALUE = "ClientDeletionRequest";
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sec_serv_user_id")
+    @Getter
+    @Setter
     private ClientId clientId;
 
     protected ClientDeletionRequest() {
@@ -58,18 +63,10 @@ public class ClientDeletionRequest extends Request {
         return ManagementRequestType.CLIENT_DELETION_REQUEST;
     }
 
-    public ClientDeletionRequest(Origin origin, SecurityServerId serverId, ClientId clientId) {
+    public ClientDeletionRequest(Origin origin,
+                                 SecurityServerId serverId,
+                                 ee.ria.xroad.common.identifier.ClientId clientId) {
         super(origin, serverId);
-        this.clientId = clientId;
-    }
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sec_serv_user_id")
-    public ClientId getClientId() {
-        return this.clientId;
-    }
-
-    public void setClientId(ClientId clientId) {
-        this.clientId = clientId;
+        this.clientId = ClientId.ensure(clientId);
     }
 }

@@ -26,7 +26,9 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
-import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
+import io.vavr.collection.Seq;
+import io.vavr.control.Try;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
 import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
@@ -37,9 +39,9 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_CLASS_EXISTS;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_CLASS_IS_IN_USE;
@@ -50,53 +52,62 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class MemberClassService {
 
-    private final MemberClassRepository memberClasses;
+    private final MemberClassRepository memberClassRepository;
     private final XRoadMemberRepository members;
-
-    public MemberClassService(MemberClassRepository memberClasses, XRoadMemberRepository members) {
-        this.memberClasses = memberClasses;
-        this.members = members;
-    }
 
     /**
      * List all member classes
      */
-    public List<MemberClassDto> findAll() {
-        return memberClasses.findAllAsDtoBy(Sort.by(Sort.Order.asc("code").ignoreCase()));
+    public Seq<MemberClass> findAll() {
+        Sort sort = Sort.by(Sort.Order.asc("code").ignoreCase());
+        return memberClassRepository.findAllSortedBy(sort);
     }
 
     /**
      * Find a member class corresponding to the code
      * @param code member class code
      */
-    public Optional<MemberClassDto> find(String code) {
-        return memberClasses.findByCode(code).map(m -> new MemberClassDto(m.getCode(), m.getDescription()));
+    public MemberClass find(String code) {
+        return memberClassRepository.findByCode(code)
+                .getOrNull();
     }
 
     /**
      * Add a new member class
-     * @param memberClassDto member class to add
+     * @param memberClass member class to add
      * @throws DataIntegrityException if the member class already exists
      */
-    public MemberClassDto add(final MemberClassDto memberClassDto) {
-        final String code = memberClassDto.getCode().toUpperCase(Locale.ROOT);
-        memberClasses.findByCode(code).ifPresent(m -> {
-            throw new DataIntegrityException(MEMBER_CLASS_EXISTS, code);
-        });
-        return toDto(memberClasses.save(new MemberClass(code, memberClassDto.getDescription())));
+    public MemberClass add(final MemberClass memberClass) {
+        Consumer<org.niis.xroad.centralserver.restapi.entity.MemberClass> ensureNotExists = __ -> {
+            boolean exists = memberClass.exists()
+                    || memberClassRepository.findByCode(memberClass.getCode()).isDefined();
+            if (exists) {
+                throw new DataIntegrityException(MEMBER_CLASS_EXISTS, memberClass.getCode());
+            }
+        };
+
+        return Try.success(memberClass)
+                .andThen(ensureNotExists)
+                .map(memberClassRepository::save)
+                .get();
     }
 
     /**
      * Update member class
      * @throws NotFoundException if the member class does not exist
      */
-    public MemberClassDto update(final MemberClassDto memberClassDto) {
-        return toDto(memberClasses.findByCode(memberClassDto.getCode()).map(m -> {
-            m.setDescription(memberClassDto.getDescription());
-            return memberClasses.save(m);
-        }).orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberClassDto.getCode())));
+    public MemberClass update(final MemberClass memberClass) {
+        return Try.success(memberClass)
+                .filter(MemberClass::exists)
+                .orElse(() -> memberClassRepository.findByCode(memberClass.getCode()).toTry())
+                .filter(Objects::nonNull, () ->
+                        new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberClass.getCode()))
+                .andThen(persistedMemberClass -> persistedMemberClass.setDescription(memberClass.getDescription()))
+                .map(memberClassRepository::save)
+                .get();
     }
 
     /**
@@ -106,16 +117,11 @@ public class MemberClassService {
      * @throws NotFoundException if the member class does not exist
      */
     public void delete(String code) {
-        memberClasses.findByCode(code).ifPresentOrElse(m -> {
-            if (!members.existsByMemberClass(m)) {
-                memberClasses.delete(m);
-            } else throw new DataIntegrityException(MEMBER_CLASS_IS_IN_USE, "code", code);
-        }, () -> {
-            throw new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", code);
-        });
-    }
-
-    private static MemberClassDto toDto(MemberClass memberClass) {
-        return new MemberClassDto(memberClass.getCode(), memberClass.getDescription());
+        memberClassRepository.findByCode(code)
+                .toTry()
+                .filter(Objects::nonNull, () -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", code))
+                .filter(Predicate.not(members::existsByMemberClass), () ->
+                        new DataIntegrityException(MEMBER_CLASS_IS_IN_USE, "code", code))
+                .andThen(memberClassRepository::delete);
     }
 }

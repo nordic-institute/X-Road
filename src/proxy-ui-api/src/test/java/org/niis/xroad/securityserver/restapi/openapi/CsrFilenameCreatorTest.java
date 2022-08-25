@@ -55,8 +55,8 @@ public class CsrFilenameCreatorTest {
 
     @Test
     public void createCsrFilename() {
-        SecurityServerId securityServerId = SecurityServerId.create("I", "MEMCLASS", "MEMCODE", "SERVERCODE");
-        ClientId memberId = ClientId.create("I", "MEMCLASS", "MEMCODE", null);
+        SecurityServerId.Conf securityServerId = SecurityServerId.Conf.create("I", "MEMCLASS", "MEMCODE", "SERVERCODE");
+        ClientId.Conf memberId = ClientId.Conf.create("I", "MEMCLASS", "MEMCODE", null);
         String authFilename = csrFilenameCreator.createCsrFilename(KeyUsageInfo.AUTHENTICATION,
                 CertificateRequestFormat.PEM,
                 memberId, securityServerId);

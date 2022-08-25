@@ -27,17 +27,19 @@
 package org.niis.xroad.centralserver.restapi.service.managementrequest;
 
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
-import org.niis.xroad.centralserver.restapi.dto.AuthenticationCertificateRegistrationRequestDto;
-import org.niis.xroad.centralserver.restapi.dto.ClientRegistrationRequestDto;
+import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateRegistrationRequest;
+import org.niis.xroad.centralserver.restapi.entity.ClientRegistrationRequest;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
+import org.niis.xroad.centralserver.restapi.entity.MemberId;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerId;
+import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.centralserver.restapi.repository.ManagementRequestViewRepository;
@@ -51,7 +53,7 @@ import org.springframework.data.domain.Sort;
 
 import javax.transaction.Transactional;
 
-import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,7 +61,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @Transactional
-class ManagementRequestServiceTest {
+public class ManagementRequestServiceTest {
+
+    private final X509Certificate certificate = TestCertUtil.getProducer().certChain[0];
+    private final SecurityServerId securityServerId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER");
+    private final SubsystemId subsystemId = SubsystemId.create("TEST", "CLASS", "MEMBER", "SUB");
 
     @Autowired
     private ManagementRequestService service;
@@ -68,23 +74,24 @@ class ManagementRequestServiceTest {
     private XRoadMemberRepository members;
 
     @Autowired
-    private IdentifierRepository<ClientId> identifiers;
+    private IdentifierRepository<MemberId> identifiers;
 
     @Autowired
     private MemberClassRepository memberClasses;
 
     @BeforeEach
     public void setup() {
-        var memberClass = memberClasses.findByCode("CLASS")
-                .orElseGet(() -> memberClasses.save(new MemberClass("CLASS", "CLASS")));
-        var member = new XRoadMember(identifiers.merge(ClientId.create("TEST", "CLASS", "MEMBER")), memberClass);
+        MemberClass memberClass = memberClasses.save(new MemberClass("CLASS", "CLASS"));
+        MemberId memberId = MemberId.create("TEST", "CLASS", "MEMBER");
+        memberId = identifiers.findOrCreate(memberId);
+        XRoadMember member = new XRoadMember("MEMBER_NAME", memberId, memberClass);
         members.save(member);
     }
 
     @Test
-    void testAddRequest() {
-        var id = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER");
-        addServer(id);
+    public void testAddRequest() {
+        addServer(securityServerId);
+
 
         var page = PageRequest.of(0, 10, Sort.by("origin", "securityServerIdentifierId"));
         var pagedResponse = service.findRequests(
@@ -98,116 +105,99 @@ class ManagementRequestServiceTest {
     }
 
     @Test
-    void testAddRequestAutoApprove() throws CertificateEncodingException {
-        var certificate = TestCertUtil.getProducer().certChain[0];
-        var id = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER");
-
+    public void testAddRequestAutoApprove() {
         //"pre-approve" request
-        service.add(new AuthenticationCertificateRegistrationRequestDto(
-                Origin.CENTER,
-                id,
-                certificate.getEncoded(),
-                "server.example.org"));
+        service.add(new AuthenticationCertificateRegistrationRequest(Origin.CENTER, securityServerId).self(self -> {
+            self.setAuthCert(certificate.getEncoded());
+            self.setAddress("server.example.org");
+        }));
+        AuthenticationCertificateRegistrationRequest request =
+                new AuthenticationCertificateRegistrationRequest(Origin.SECURITY_SERVER, securityServerId).self(self -> {
+                    self.setAuthCert(certificate.getEncoded());
+                    self.setAddress("server.example.org");
+                });
 
-        var dto = new AuthenticationCertificateRegistrationRequestDto(
-                Origin.SECURITY_SERVER,
-                id,
-                certificate.getEncoded(),
-                "server.example.org");
+        AuthenticationCertificateRegistrationRequest response = service.add(request);
 
-        var response = service.add(dto);
-        assertEquals(ManagementRequestStatus.APPROVED, response.getStatus());
+        assertEquals(ManagementRequestStatus.APPROVED, response.getProcessingStatus());
     }
 
     @Test
-    void testAddClientRegRequest() {
-        var serverId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER");
-        addServer(serverId);
-
+    public void testAddClientRegRequest() {
+        addServer(securityServerId);
         //"Pre-approve"
-        service.add(new ClientRegistrationRequestDto(
+        service.add(new ClientRegistrationRequest(
                 Origin.CENTER,
-                serverId,
-                ClientId.create("TEST", "CLASS", "MEMBER", "SUB")));
-
-        var dto = new ClientRegistrationRequestDto(
+                securityServerId,
+                subsystemId));
+        ClientRegistrationRequest request = new ClientRegistrationRequest(
                 Origin.SECURITY_SERVER,
-                serverId,
-                ClientId.create("TEST", "CLASS", "MEMBER", "SUB"));
+                securityServerId,
+                subsystemId);
 
-        var response = service.add(dto);
-        assertEquals(ManagementRequestStatus.APPROVED, response.getStatus());
+        ClientRegistrationRequest response = service.add(request);
+
+        assertEquals(ManagementRequestStatus.APPROVED, response.getProcessingStatus());
     }
 
     @Test
-    void testAddClientRegRequestShouldFailIfServerDoesNotExist() {
-        var serverId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER_NOT_EXISTS");
-        var dto = new ClientRegistrationRequestDto(
+    public void testAddClientRegRequestShouldFailIfServerDoesNotExist() {
+        ClientRegistrationRequest request = new ClientRegistrationRequest(
                 Origin.CENTER,
-                serverId,
-                ClientId.create("TEST", "CLASS", "MEMBER", "SUB"));
+                securityServerId,
+                subsystemId);
 
-        assertThrows(DataIntegrityException.class, () -> service.add(dto));
+        Executable testable = () -> service.add(request);
+
+        assertThrows(DataIntegrityException.class, testable);
     }
 
     @Test
-    void testShouldFailIfSameOrigin() throws CertificateEncodingException {
-        final var certificate = TestCertUtil.getProducer().certChain[0];
-        var id = SecurityServerId.create("TEST", "CLASS", "MEMBER", "CODE");
-        var dto = new AuthenticationCertificateRegistrationRequestDto(
-                Origin.SECURITY_SERVER,
-                id,
-                certificate.getEncoded(),
-                "server.example.org");
-        service.add(dto);
-        var dto2 = new AuthenticationCertificateRegistrationRequestDto(
-                Origin.SECURITY_SERVER,
-                id,
-                certificate.getEncoded(),
-                "server.example.org");
+    public void testShouldFailIfSameOrigin() {
+        service.add(new AuthenticationCertificateRegistrationRequest(Origin.SECURITY_SERVER, securityServerId).self(self -> {
+            self.setAuthCert(certificate.getEncoded());
+            self.setAddress("server.example.org");
+        }));
+        AuthenticationCertificateRegistrationRequest sameOriginRequest =
+                new AuthenticationCertificateRegistrationRequest(Origin.SECURITY_SERVER, securityServerId).self(self -> {
+                    self.setAuthCert(certificate.getEncoded());
+                    self.setAddress("server.example.org");
+                });
 
-        //the second request should fail
-        assertThrows(DataIntegrityException.class, () -> service.add(dto2));
+        Executable testable = () -> service.add(sameOriginRequest);
+
+        assertThrows(DataIntegrityException.class, testable);
     }
 
     @Test
-    void testShouldFailIfConflictingRequests() throws CertificateEncodingException {
-        final var certificate = TestCertUtil.getProducer().certChain[0];
-        var id = SecurityServerId.create("TEST", "CLASS", "MEMBER1", "CODE");
-        var dto = new AuthenticationCertificateRegistrationRequestDto(
-                Origin.SECURITY_SERVER,
-                id,
-                certificate.getEncoded(),
-                "server.example.org");
-        service.add(dto);
+    @SuppressWarnings("checkstyle:hiddenField")
+    public void testShouldFailIfConflictingRequests() {
+        SecurityServerId securityServerId = SecurityServerId.create("TEST", "CLASS", "MEMBER1", "CODE");
+        SecurityServerId conflictingSecurityServerId = SecurityServerId.create("TEST", "CLASS", "MEMBER2", "CODE");
+        service.add(new AuthenticationCertificateRegistrationRequest(Origin.SECURITY_SERVER, securityServerId).self(self -> {
+            self.setAuthCert(certificate.getEncoded());
+            self.setAddress("server.example.org");
+        }));
+        AuthenticationCertificateRegistrationRequest conflictingRequest =
+                new AuthenticationCertificateRegistrationRequest(Origin.CENTER, conflictingSecurityServerId).self(self -> {
+                    self.setAuthCert(certificate.getEncoded());
+                    self.setAddress("server.example.org");
+                });
 
-        var id2 = SecurityServerId.create("TEST", "CLASS", "MEMBER2", "CODE");
-        var dto2 = new AuthenticationCertificateRegistrationRequestDto(
-                Origin.CENTER,
-                id2,
-                certificate.getEncoded(),
-                "server.example.org");
+        Executable testable = () -> service.add(conflictingRequest);
 
-        //the second request should fail
-        assertThrows(DataIntegrityException.class, () -> service.add(dto2));
+        assertThrows(DataIntegrityException.class, testable);
     }
 
     private void addServer(SecurityServerId serverId) {
-        final byte[] certificate;
-        try {
-            certificate = TestCertUtil.getProducer().certChain[0].getEncoded();
-        } catch (CertificateEncodingException e) {
-            //should not happen
-            throw new AssertionError(e);
-        }
+        AuthenticationCertificateRegistrationRequest response =
+                service.add(new AuthenticationCertificateRegistrationRequest(Origin.SECURITY_SERVER, serverId).self(self -> {
+                    self.setAuthCert(certificate.getEncoded());
+                    self.setAddress("server.example.org");
+                }));
 
-        var response = service.add(new AuthenticationCertificateRegistrationRequestDto(
-                Origin.SECURITY_SERVER,
-                serverId,
-                certificate,
-                "server.example.org"));
+        AuthenticationCertificateRegistrationRequest approved = service.approve(response.getId());
 
-        var approved = service.approve(response.getId());
-        assertEquals(ManagementRequestStatus.APPROVED, approved.getStatus());
+        assertEquals(ManagementRequestStatus.APPROVED, approved.getProcessingStatus());
     }
 }

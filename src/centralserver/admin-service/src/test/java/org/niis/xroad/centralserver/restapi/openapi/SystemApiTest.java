@@ -27,8 +27,8 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.SystemStatus;
-import org.niis.xroad.centralserver.openapi.model.Version;
+import org.niis.xroad.centralserver.openapi.model.SystemStatusDto;
+import org.niis.xroad.centralserver.openapi.model.VersionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
@@ -48,7 +48,7 @@ public class SystemApiTest extends AbstractApiRestTemplateTestContext {
     @Test
     public void testGetVersionSucceeds() {
         addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<Version> response = restTemplate.getForEntity("/api/v1/system/version", Version.class);
+        ResponseEntity<VersionDto> response = restTemplate.getForEntity("/api/v1/system/version", VersionDto.class);
         assertNotNull(response, "System Version response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
         assertNotNull(response.getBody());
@@ -58,15 +58,15 @@ public class SystemApiTest extends AbstractApiRestTemplateTestContext {
     @Test
     public void testGetVersionFailsIfNotAuthorized() {
         restTemplate.getRestTemplate().setInterceptors(Collections.emptyList());
-        var response = restTemplate.getForEntity("/api/v1/system/version", Version.class);
+        var response = restTemplate.getForEntity("/api/v1/system/version", VersionDto.class);
         assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCodeValue());
     }
 
     @Test
     public void testGetSystemStatusSucceeds() {
         addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<SystemStatus> response =
-                restTemplate.getForEntity("/api/v1/system/status", SystemStatus.class);
+        ResponseEntity<SystemStatusDto> response =
+                restTemplate.getForEntity("/api/v1/system/status", SystemStatusDto.class);
         assertNotNull(response, "System status response must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "System status response status code must be 200 ");
         assertNotNull(response.getBody());
@@ -75,7 +75,7 @@ public class SystemApiTest extends AbstractApiRestTemplateTestContext {
     @Test
     public void testGetSystemStatusFailsIfNotAuthorized() {
         restTemplate.getRestTemplate().setInterceptors(Collections.emptyList());
-        var response = restTemplate.getForEntity("/api/v1/system/status", SystemStatus.class);
+        var response = restTemplate.getForEntity("/api/v1/system/status", SystemStatusDto.class);
         assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCodeValue());
     }
 }

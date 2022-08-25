@@ -109,6 +109,6 @@ public class ManagementRequestView {
 
     @Transient
     public SecurityServerId getSecurityServerId() {
-        return SecurityServerId.create(xroadInstance, memberClass, memberCode, serverCode);
+        return SecurityServerId.Conf.create(xroadInstance, memberClass, memberCode, serverCode);
     }
 }

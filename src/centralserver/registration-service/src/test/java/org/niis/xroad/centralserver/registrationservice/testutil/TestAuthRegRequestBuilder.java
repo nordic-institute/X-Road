@@ -61,7 +61,7 @@ public class TestAuthRegRequestBuilder {
 
     // -- Public API methods --------------------------------------------------
 
-    public SoapMessageImpl buildAuthCertRegRequest(SecurityServerId securityServer, String address, byte[] authCert)
+    public SoapMessageImpl buildAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
             throws Exception {
         log.debug("buildAuthCertRegRequest(server: {}, address: {})", securityServer, address);
 
@@ -77,7 +77,7 @@ public class TestAuthRegRequestBuilder {
 
     SoapMessageImpl buildMessage(final JAXBElement<?> bodyJaxbElement) throws Exception {
         String serviceCode = bodyJaxbElement.getName().getLocalPart();
-        ServiceId service = ServiceId.create(receiver, serviceCode);
+        ServiceId.Conf service = ServiceId.Conf.create(receiver, serviceCode);
 
         SoapHeader header = new SoapHeader();
         header.setClient(sender);

@@ -525,7 +525,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('SEND_CLIENT_REG_REQ')")
     @AuditEventMethod(event = REGISTER_CLIENT)
     public ResponseEntity<Void> registerClient(String encodedClientId) {
-        ClientId clientId = clientIdConverter.convertId(encodedClientId);
+        ClientId.Conf clientId = clientIdConverter.convertId(encodedClientId);
         try {
             clientService.registerClient(clientId);
         } catch (ClientService.CannotRegisterOwnerException
@@ -543,7 +543,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('SEND_CLIENT_DEL_REQ')")
     @AuditEventMethod(event = UNREGISTER_CLIENT)
     public ResponseEntity<Void> unregisterClient(String encodedClientId) {
-        ClientId clientId = clientIdConverter.convertId(encodedClientId);
+        ClientId.Conf clientId = clientIdConverter.convertId(encodedClientId);
         try {
             clientService.unregisterClient(clientId);
         } catch (ClientNotFoundException e) {
@@ -631,7 +631,7 @@ public class ClientsApiController implements ClientsApi {
         Set<String> serviceCodes = getServiceCodes(accessRights);
         List<ServiceClientAccessRightDto> accessRightTypes = null;
         try {
-            XRoadId serviceClientId = serviceClientHelper.processServiceClientXRoadId(endcodedServiceClientId);
+            XRoadId.Conf serviceClientId = serviceClientHelper.processServiceClientXRoadId(endcodedServiceClientId);
             accessRightTypes = accessRightService.addServiceClientAccessRights(clientId, serviceCodes, serviceClientId);
         } catch (ServiceClientNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);

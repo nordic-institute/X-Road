@@ -101,19 +101,19 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
     public void localGroupsExist() {
         ClientType ss1 = clientService.getLocalClient(TestUtils.getM1Ss1ClientId());
         ClientType ss2 = clientService.getLocalClient(
-                ClientId.create("FI", "GOV", "M1", "SS2"));
+                ClientId.Conf.create("FI", "GOV", "M1", "SS2"));
         assertTrue(localGroupService.localGroupsExist(ss1,
-                Collections.singletonList(LocalGroupId.create("group2"))));
+                Collections.singletonList(LocalGroupId.Conf.create("group2"))));
         assertTrue(localGroupService.localGroupsExist(ss1,
-                Arrays.asList(LocalGroupId.create("group1"), LocalGroupId.create("group2"))));
+                Arrays.asList(LocalGroupId.Conf.create("group1"), LocalGroupId.Conf.create("group2"))));
         assertTrue(localGroupService.localGroupsExist(ss1,
-                Collections.singletonList(LocalGroupId.create("identifier-less-group"))));
+                Collections.singletonList(LocalGroupId.Conf.create("identifier-less-group"))));
         assertFalse(localGroupService.localGroupsExist(ss1,
-                Collections.singletonList(LocalGroupId.create("nonexistent"))));
+                Collections.singletonList(LocalGroupId.Conf.create("nonexistent"))));
         assertFalse(localGroupService.localGroupsExist(ss2,
-                Collections.singletonList(LocalGroupId.create("group2"))));
+                Collections.singletonList(LocalGroupId.Conf.create("group2"))));
         assertFalse(localGroupService.localGroupsExist(ss1,
-                Arrays.asList(LocalGroupId.create("group2"), LocalGroupId.create("nonexistent"))));
+                Arrays.asList(LocalGroupId.Conf.create("group2"), LocalGroupId.Conf.create("nonexistent"))));
     }
 
     @Test

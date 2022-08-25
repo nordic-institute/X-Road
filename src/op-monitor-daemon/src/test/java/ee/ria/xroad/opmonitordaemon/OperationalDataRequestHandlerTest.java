@@ -67,7 +67,7 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
     @Test
     public void buildOperationalDataResponseWithNotAvailableRecordsTo()
             throws Exception {
-        ClientId client = ClientId.create(
+        ClientId client = ClientId.Conf.create(
                 "XTEE-CI-XM", "00000001", "GOV", "System1");
         OperationalDataRequestHandler handler =
                 new OperationalDataRequestHandler();

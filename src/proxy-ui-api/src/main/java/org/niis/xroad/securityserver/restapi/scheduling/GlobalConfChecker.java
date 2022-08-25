@@ -178,7 +178,7 @@ public class GlobalConfChecker {
     }
 
     private SecurityServerId buildSecurityServerId(ClientId ownerId, String serverCode) {
-        return SecurityServerId.create(
+        return SecurityServerId.Conf.create(
                 ownerId.getXRoadInstance(), ownerId.getMemberClass(),
                 ownerId.getMemberCode(), serverCode);
     }

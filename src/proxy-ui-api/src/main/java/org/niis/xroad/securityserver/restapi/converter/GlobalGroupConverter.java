@@ -74,14 +74,14 @@ public class GlobalGroupConverter {
      * @param encodedId
      * @return {@link GlobalGroupId}
      */
-    public GlobalGroupId convertId(String encodedId) {
+    public GlobalGroupId.Conf convertId(String encodedId) {
         if (!isEncodedGlobalGroupId(encodedId)) {
             throw new BadRequestException("Invalid global group id " + encodedId);
         }
         List<String> parts = Arrays.asList(encodedId.split(String.valueOf(Converters.ENCODED_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
         String groupCode = parts.get(GLOBALGROUP_CODE_INDEX);
-        return GlobalGroupId.create(instance, groupCode);
+        return GlobalGroupId.Conf.create(instance, groupCode);
     }
 
     public boolean isEncodedGlobalGroupId(String encodedId) {

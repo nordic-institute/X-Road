@@ -33,10 +33,10 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.centralserver.openapi.model.InitialServerConfDto;
+import org.niis.xroad.centralserver.openapi.model.InitializationStatusDto;
+import org.niis.xroad.centralserver.openapi.model.TokenInitStatusDto;
 import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
-import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
-import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
-import org.niis.xroad.centralserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
@@ -92,33 +92,32 @@ public class InitializationService {
 
 
     public InitializationStatusDto getInitializationStatus() {
-        TokenInitStatusInfo initStatusInfo;
-        initStatusInfo = getTokenInitStatusInfo();
+        TokenInitStatusDto initStatusInfo = getTokenInitStatusInfo();
         InitializationStatusDto statusDto = new InitializationStatusDto();
 
         statusDto.setInstanceIdentifier(getStoredInstanceIdentifier());
         statusDto.setCentralServerAddress(getStoredCentralServerAddress());
-        statusDto.setTokenInitStatus(initStatusInfo);
+        statusDto.setSoftwareTokenInitStatus(initStatusInfo);
         return statusDto;
     }
 
-    private TokenInitStatusInfo getTokenInitStatusInfo() {
-        TokenInitStatusInfo initStatusInfo;
+    private TokenInitStatusDto getTokenInitStatusInfo() {
+        TokenInitStatusDto initStatusInfo;
         try {
             if (isSWTokenInitialized()) {
-                initStatusInfo = TokenInitStatusInfo.INITIALIZED;
+                initStatusInfo = TokenInitStatusDto.INITIALIZED;
             } else {
-                initStatusInfo = TokenInitStatusInfo.NOT_INITIALIZED;
+                initStatusInfo = TokenInitStatusDto.NOT_INITIALIZED;
             }
         } catch (SignerNotReachableException notReachableException) {
             log.info("getInitializationStatus - signer was not reachable", notReachableException);
-            initStatusInfo = TokenInitStatusInfo.UNKNOWN;
+            initStatusInfo = TokenInitStatusDto.UNKNOWN;
         }
         return initStatusInfo;
     }
 
 
-    public void initialize(InitializationConfigDto configDto)
+    public void initialize(InitialServerConfDto configDto)
             throws ServerAlreadyFullyInitializedException, SoftwareTokenInitException, InvalidCharactersException,
             WeakPinException, InvalidInitParamsException {
 
@@ -142,10 +141,12 @@ public class InitializationService {
             tokenPinValidator.validateSoftwareTokenPin(configDto.getSoftwareTokenPin().toCharArray());
         }
 
-        final boolean isSWTokenInitialized = TokenInitStatusInfo.INITIALIZED == getTokenInitStatusInfo();
+        final boolean isSWTokenInitialized = TokenInitStatusDto.INITIALIZED == getTokenInitStatusInfo();
         final boolean isServerAddressInitialized = !getStoredCentralServerAddress().isEmpty();
         final boolean isInstanceIdentifierInitialized = !getStoredInstanceIdentifier().isEmpty();
-        validateConfigParameters(configDto, isSWTokenInitialized, isServerAddressInitialized,
+        validateConfigParameters(configDto,
+                isSWTokenInitialized,
+                isServerAddressInitialized,
                 isInstanceIdentifierInitialized);
 
         if (!isServerAddressInitialized) {
@@ -185,8 +186,10 @@ public class InitializationService {
         }
     }
 
-    private void validateConfigParameters(InitializationConfigDto configDto, boolean isSWTokenInitialized,
-                                          boolean isServerAddressInitialized, boolean isInstanceIdentifierInitialized)
+    private void validateConfigParameters(InitialServerConfDto configDto,
+                                          boolean isSWTokenInitialized,
+                                          boolean isServerAddressInitialized,
+                                          boolean isInstanceIdentifierInitialized)
             throws ServerAlreadyFullyInitializedException, InvalidInitParamsException {
 
 
@@ -244,8 +247,7 @@ public class InitializationService {
         Optional<GlobalGroup> securityServerOwnersGlobalGroup = globalGroupRepository
                 .getByGroupCode(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
         if (securityServerOwnersGlobalGroup.isEmpty()) {
-            GlobalGroup defaultSsOwnersGlobalGroup = new GlobalGroup();
-            defaultSsOwnersGlobalGroup.setGroupCode(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+            GlobalGroup defaultSsOwnersGlobalGroup = new GlobalGroup(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
             securityServerOwnersGlobalGroup = Optional.of(defaultSsOwnersGlobalGroup);
         }
         securityServerOwnersGlobalGroup.get().setDescription(DEFAULT_SECURITY_SERVER_OWNERS_GROUP_DESC);

@@ -35,6 +35,6 @@ import lombok.Data;
 @Data
 public final class GlobalGroupInfo {
 
-    private final GlobalGroupId id;
+    private final GlobalGroupId.Conf id;
     private final String description;
 }

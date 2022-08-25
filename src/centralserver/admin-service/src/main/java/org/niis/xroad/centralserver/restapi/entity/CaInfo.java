@@ -42,44 +42,51 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
 @Table(name = CaInfo.TABLE_NAME)
 public class CaInfo extends AuditableEntity {
-    static final String TABLE_NAME = "ca_infos";
+
+    public static final String TABLE_NAME = "ca_infos";
 
     @Id
     @Column(name = "id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
+    @Getter
     private int id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "intermediate_ca_id")
+    @Getter
+    @Setter
     private ApprovedCa approvedCa;
 
-    @Column(name = "cert", updatable = false, length = 10000)
+    @Column(name = "cert", updatable = false)
+    @Getter
+    @Setter
     private byte[] cert;
 
     @Column(name = "valid_from")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date validFrom;
+    @Getter
+    @Setter
+    private Instant validFrom;
 
     @Column(name = "valid_to")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date validTo;
+    @Getter
+    @Setter
+    private Instant validTo;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "caInfo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Getter
+    @Setter
     private Set<OcspInfo> ocspInfos = new HashSet<>(0);
+
 }
 
 

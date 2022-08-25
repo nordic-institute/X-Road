@@ -119,8 +119,8 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
         when(globalConfFacade.getApprovedCAs(any())).thenReturn(Arrays.asList(
                 new ApprovedCAInfo(MOCK_CA, false,
                         "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider")));
-        ClientId ownerId = ClientId.create("FI", "GOV", "M1");
-        SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "TEST-INMEM-SS");
+        ClientId.Conf ownerId = ClientId.Conf.create("FI", "GOV", "M1");
+        SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
     }
 
@@ -152,7 +152,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
         HashMap<String, String> dnParams = createCsrDnParams();
         KeyAndCertificateRequestService.KeyAndCertRequestInfo info = keyAndCertificateRequestService
                 .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
-                        ClientId.create("FI", "GOV", "M1"),
+                        ClientId.Conf.create("FI", "GOV", "M1"),
                         KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
                         CertificateRequestFormat.PEM);
         verify(signerProxyFacade, times(1))
@@ -198,7 +198,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
     public void csrGenerateFailureRollsBackKeyCreate() throws Exception {
         HashMap<String, String> dnParams = createCsrDnParams();
         try {
-            ClientId notFoundClient = ClientId.create("not-found", "GOV", "M1");
+            ClientId.Conf notFoundClient = ClientId.Conf.create("not-found", "GOV", "M1");
             keyAndCertificateRequestService
                     .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
                             notFoundClient,
@@ -221,7 +221,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
         doThrow(new CodedException(TokenService.KEY_NOT_FOUND_FAULT_CODE))
                 .when(signerProxyFacade).getTokenForKeyId(any());
         try {
-            ClientId notFoundClient = ClientId.create("not-found", "GOV", "M1");
+            ClientId.Conf notFoundClient = ClientId.Conf.create("not-found", "GOV", "M1");
             keyAndCertificateRequestService
                     .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
                             notFoundClient,

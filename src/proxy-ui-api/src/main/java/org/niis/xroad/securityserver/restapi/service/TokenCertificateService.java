@@ -127,7 +127,7 @@ public class TokenCertificateService {
      * were some extra parameters
      * @throws ActionNotPossibleException if generate csr was not possible for this key
      */
-    public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
+    public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
             String caName, Map<String, String> subjectFieldValues, CertificateRequestFormat format)
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
             WrongKeyUsageException,
@@ -334,7 +334,7 @@ public class TokenCertificateService {
         KeyUsageInfo keyUsageInfo = null;
         try {
             String certificateState;
-            ClientId clientId = null;
+            ClientId.Conf clientId = null;
             boolean isAuthCert = CertUtils.isAuthCert(x509Certificate);
             if (isAuthCert) {
                 keyUsageInfo = KeyUsageInfo.AUTHENTICATION;
@@ -569,12 +569,12 @@ public class TokenCertificateService {
      * @return certificate owner's client ID
      * @throws InvalidCertificateException if any errors occur
      */
-    private ClientId getClientIdForSigningCert(String instanceIdentifier, X509Certificate cert)
+    private ClientId.Conf getClientIdForSigningCert(String instanceIdentifier, X509Certificate cert)
             throws InvalidCertificateException {
-        ClientId dummyClientId = ClientId.create(instanceIdentifier, DUMMY_MEMBER, DUMMY_MEMBER);
+        ClientId.Conf dummyClientId = ClientId.Conf.create(instanceIdentifier, DUMMY_MEMBER, DUMMY_MEMBER);
         SignCertificateProfileInfoParameters signCertificateProfileInfoParameters =
                 new SignCertificateProfileInfoParameters(dummyClientId, DUMMY_MEMBER);
-        ClientId certificateSubject;
+        ClientId.Conf certificateSubject;
         try {
             certificateSubject = globalConfFacade.getSubjectName(signCertificateProfileInfoParameters, cert);
         } catch (Exception e) {

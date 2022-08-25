@@ -136,7 +136,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public Set<SecurityCategoryId> getProvidedCategories(
+    public Set<SecurityCategoryId.Conf> getProvidedCategories(
             X509Certificate authCert) {
         return Collections.emptySet();
     }
@@ -157,7 +157,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public ServiceId getServiceId(CentralServiceId serviceId) {
+    public ServiceId.Conf getServiceId(CentralServiceId serviceId) {
         return null;
     }
 
@@ -184,7 +184,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<CentralServiceId> getCentralServices(
+    public List<CentralServiceId.Conf> getCentralServices(
             String instanceIdentifier) {
         return Collections.emptyList();
     }
@@ -251,12 +251,12 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public SecurityServerId getServerId(X509Certificate cert) throws Exception {
+    public SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception {
         return null;
     }
 
     @Override
-    public ClientId getServerOwner(SecurityServerId serverId) {
+    public ClientId.Conf getServerOwner(SecurityServerId serverId) {
         return null;
     }
 
@@ -271,7 +271,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<SecurityServerId> getSecurityServers(
+    public List<SecurityServerId.Conf> getSecurityServers(
             String... instanceIdentifiers) {
         return Collections.emptyList();
     }

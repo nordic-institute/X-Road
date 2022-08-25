@@ -58,7 +58,7 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
 
     @Test(expected = ClientNotFoundException.class)
     public void getClientServiceClientsFromUnexistingClient() throws Exception {
-        serviceClientService.getServiceClientsByClient(ClientId.create("NO", "SUCH", "CLIENT"));
+        serviceClientService.getServiceClientsByClient(ClientId.Conf.create("NO", "SUCH", "CLIENT"));
     }
 
     // ACL subject identifier.IDs: 3 4 5 9 10 11 (only base endpoint ACLs count)
@@ -128,7 +128,7 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
 
         List<ServiceClientAccessRightDto> accessRightDtos = serviceClientService.getServiceClientAccessRights(
                 serviceOwner,
-                GlobalGroupId.create("FI", "test-globalgroup"));
+                GlobalGroupId.Conf.create("FI", "test-globalgroup"));
         assertTrue(findAccessRightDto(accessRightDtos, "getRandom").isPresent());
         assertTrue(findAccessRightDto(accessRightDtos, "calculatePrime").isPresent());
         assertTrue(findAccessRightDto(accessRightDtos, "openapi-servicecode").isPresent());
@@ -157,9 +157,9 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
 
     @Test(expected = ServiceClientNotFoundException.class)
     public void getClientServiceClientAccessRightsFromUnexistingClient() throws Exception {
-        ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
+        ClientId.Conf serviceOwner = TestUtils.getM1Ss1ClientId();
         // this is not existing, not even obsolete (has no IDENTIFIER)
-        ClientId unexistingClient = ClientId.create("NO", "SUCH", "CLIENT");
+        ClientId.Conf unexistingClient = ClientId.Conf.create("NO", "SUCH", "CLIENT");
 
         serviceClientService.getServiceClientAccessRights(
                 serviceOwner,
@@ -168,7 +168,7 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
 
     @Test
     public void getClientServiceClients() throws Exception {
-        ClientId clientId1 = ClientId.create("FI", "GOV", "M2", "SS6");
+        ClientId.Conf clientId1 = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
         List<ServiceClientDto> serviceClients1 = serviceClientService.getServiceClientsByClient(clientId1);
         assertTrue(serviceClients1.size() == 1);
 
@@ -179,10 +179,10 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
         assertNull(arh1.getLocalGroupId());
         assertTrue(arh1.getSubjectId().getXRoadInstance().equals("FI"));
 
-        ClientId clientId2 = ClientId.create("FI", "GOV", "M1");
+        ClientId.Conf clientId2 = ClientId.Conf.create("FI", "GOV", "M1");
         assertTrue(serviceClientService.getServiceClientsByClient(clientId2).isEmpty());
 
-        ClientId clientId3 = ClientId.create("FI", "GOV", "M1", "SS1");
+        ClientId.Conf clientId3 = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
         List<ServiceClientDto> serviceClients3 = serviceClientService.getServiceClientsByClient(clientId3);
         assertEquals(6, serviceClients3.size());
         assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
@@ -197,9 +197,9 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
 
     @Test
     public void getClientServiceClientsHasCorrectRightsGiven() throws Exception {
-        ClientId clientId = ClientId.create("FI", "GOV", "M1", "SS1");
+        ClientId clientId = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
         List<ServiceClientDto> serviceClients = serviceClientService.getServiceClientsByClient(clientId);
-        XRoadId globalGroupId = GlobalGroupId.create("FI", "test-globalgroup");
+        XRoadId globalGroupId = GlobalGroupId.Conf.create("FI", "test-globalgroup");
         Optional<ServiceClientDto> groupServiceClient = serviceClients.stream()
                 .filter(dto -> dto.getSubjectId().equals(globalGroupId))
                 .findFirst();

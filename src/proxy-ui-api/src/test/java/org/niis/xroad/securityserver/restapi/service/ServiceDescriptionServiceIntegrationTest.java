@@ -110,8 +110,8 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private static final ClientId CLIENT_ID_SS1 = ClientId.create("FI", "GOV", "M1", "SS1");
-    private static final ClientId CLIENT_ID_SS6 = ClientId.create("FI", "GOV", "M2", "SS6");
+    private static final ClientId.Conf CLIENT_ID_SS1 = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
+    private static final ClientId.Conf CLIENT_ID_SS6 = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
 
     @Before
     public void setup() {

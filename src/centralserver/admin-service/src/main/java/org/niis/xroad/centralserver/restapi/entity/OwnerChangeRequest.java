@@ -26,9 +26,10 @@
  */
 package org.niis.xroad.centralserver.restapi.entity;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 
@@ -47,6 +48,10 @@ public class OwnerChangeRequest extends RequestWithProcessing {
     public static final String DISCRIMINATOR_VALUE = "OwnerChangeRequest";
 
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sec_serv_user_id")
+    @Getter
+    @Setter
     private ClientId clientId;
 
     protected OwnerChangeRequest() {
@@ -64,13 +69,4 @@ public class OwnerChangeRequest extends RequestWithProcessing {
         return ManagementRequestType.OWNER_CHANGE_REQUEST;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sec_serv_user_id")
-    public ClientId getClientId() {
-        return this.clientId;
-    }
-
-    public void setClientId(ClientId clientId) {
-        this.clientId = clientId;
-    }
 }

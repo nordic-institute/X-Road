@@ -197,7 +197,7 @@ public class LogArchiveTest {
 
         MessageRecord record = new MessageRecord("qid" + recordNo,
                 "msg" + recordNo, "sig" + recordNo, false,
-                ClientId.create(GlobalConf.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
+                ClientId.Conf.create(GlobalConf.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
                 "92060130-3ba8-4e35-89e2-41b90aac074b");
         record.setId(recordNo);
         record.setTime((long)(Math.random() * 100000L));

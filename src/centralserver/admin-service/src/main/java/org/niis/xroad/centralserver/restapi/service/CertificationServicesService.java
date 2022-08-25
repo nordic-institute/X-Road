@@ -29,9 +29,9 @@ import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
+import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.converter.CertificationServiceConverter;
-import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -57,7 +57,7 @@ public class CertificationServicesService {
 
     private final CertificationServiceConverter certificationServiceConverter;
 
-    public ApprovedCertificationService add(ApprovedCertificationServiceDto approvedCa) {
+    public ApprovedCertificationServiceDto add(AddApprovedCertificationServiceDto approvedCa) {
         CertificateProfileInfoValidator.validate(approvedCa.getCertificateProfileInfo());
 
         ApprovedCa approvedCaEntity = certificationServiceConverter.toEntity(approvedCa);
@@ -66,7 +66,7 @@ public class CertificationServicesService {
         return certificationServiceConverter.toDomain(persistedApprovedCa);
     }
 
-    public Set<ApprovedCertificationService> getCertificationServices() {
+    public Set<ApprovedCertificationServiceDto> getCertificationServices() {
         List<ApprovedCa> approvedCas = approvedCaRepository.findAll();
         return approvedCas.stream()
                 .map(certificationServiceConverter::toDomain)

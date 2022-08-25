@@ -29,8 +29,8 @@ import ee.ria.xroad.common.TestCertUtil;
 
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationService;
-import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.entity.CaInfo;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -49,12 +49,12 @@ class CertificationServiceConverterTest {
     void convertToDomain() {
         ApprovedCa approvedCaMock = mockApprovedCa();
 
-        ApprovedCertificationService result = converter.toDomain(approvedCaMock);
+        ApprovedCertificationServiceDto result = converter.toDomain(approvedCaMock);
 
         assertEquals(approvedCaMock.getName(), result.getCaCertificate().getSubjectCommonName());
-        assertEquals(FormatUtils.fromDateToOffsetDateTime(approvedCaMock.getCaInfo().getValidFrom()),
+        assertEquals(FormatUtils.fromInstantToOffsetDateTime(approvedCaMock.getCaInfo().getValidFrom()),
                 result.getCaCertificate().getNotBefore());
-        assertEquals(FormatUtils.fromDateToOffsetDateTime(approvedCaMock.getCaInfo().getValidTo()),
+        assertEquals(FormatUtils.fromInstantToOffsetDateTime(approvedCaMock.getCaInfo().getValidTo()),
                 result.getCaCertificate().getNotAfter());
     }
 
@@ -64,22 +64,22 @@ class CertificationServiceConverterTest {
         MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "certification.crt",
                 "multipart/form-data", TestCertUtil.generateAuthCert());
         String certProfileInfo = "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider";
-        var approvedCaMock = new ApprovedCertificationServiceDto(mockMultipartFile, certProfileInfo, true);
+        var approvedCaMock = new AddApprovedCertificationServiceDto(mockMultipartFile, certProfileInfo, true);
         ApprovedCa result = converter.toEntity(approvedCaMock);
 
         assertEquals("Subject", result.getName());
         assertEquals(certProfileInfo, result.getCertProfileInfo());
         assertThat(result.getCaInfo().getValidFrom())
-                .isAfter(FormatUtils.fromOffsetDateTimeToDate(OffsetDateTime.now().minusMinutes(1)));
+                .isAfter(FormatUtils.fromOffsetDateTimeToInstant(OffsetDateTime.now().minusMinutes(1)));
         assertThat(result.getCaInfo().getValidTo())
-                .isBefore(FormatUtils.fromOffsetDateTimeToDate(OffsetDateTime.now().plusYears(1)));
+                .isBefore(FormatUtils.fromOffsetDateTimeToInstant(OffsetDateTime.now().plusYears(1)));
     }
 
     @SneakyThrows
     private ApprovedCa mockApprovedCa() {
         CaInfo caInfo = new CaInfo();
-        caInfo.setValidFrom(FormatUtils.fromOffsetDateTimeToDate(OffsetDateTime.now()));
-        caInfo.setValidTo(FormatUtils.fromOffsetDateTimeToDate(OffsetDateTime.now().plusDays(1)));
+        caInfo.setValidFrom(FormatUtils.fromOffsetDateTimeToInstant(OffsetDateTime.now()));
+        caInfo.setValidTo(FormatUtils.fromOffsetDateTimeToInstant(OffsetDateTime.now().plusDays(1)));
         caInfo.setCert(TestCertUtil.generateAuthCert());
         ApprovedCa ca = new ApprovedCa();
         ca.setName("X-Road Test CA CN");

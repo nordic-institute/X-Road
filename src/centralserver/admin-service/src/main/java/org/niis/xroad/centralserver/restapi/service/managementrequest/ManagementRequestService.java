@@ -26,10 +26,11 @@
  */
 package org.niis.xroad.centralserver.restapi.service.managementrequest;
 
+import io.vavr.collection.Stream;
+import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
-import org.niis.xroad.centralserver.restapi.dto.ManagementRequestDto;
 import org.niis.xroad.centralserver.restapi.dto.ManagementRequestInfoDto;
 import org.niis.xroad.centralserver.restapi.entity.Request;
 import org.niis.xroad.centralserver.restapi.entity.RequestWithProcessing;
@@ -48,7 +49,6 @@ import javax.transaction.Transactional;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -60,16 +60,15 @@ import java.util.function.Function;
 public class ManagementRequestService {
     private final RequestRepository<Request> requests;
     private final ManagementRequestViewRepository managementRequestViewRepository;
-    private final List<RequestHandler<? extends ManagementRequestDto, ? extends Request>> handlers;
+    private final List<RequestHandler<? extends Request>> handlers;
 
     /**
      * Get a management request
      *
      * @param id request id
      */
-    public ManagementRequestDto getRequest(int id) {
-        var request = findRequest(id);
-        return ManagementRequests.asDto(request);
+    public Request getRequest(int id) {
+        return findRequest(id);
     }
 
     /**
@@ -86,8 +85,8 @@ public class ManagementRequestService {
     /**
      * Add new management request
      */
-    public ManagementRequestInfoDto add(ManagementRequestDto dto) {
-        return dispatch(handler -> doAdd(handler, dto));
+    public <T extends Request> T add(T request) {
+        return dispatch(handler -> this.doAdd(handler, request));
     }
 
     /**
@@ -95,9 +94,9 @@ public class ManagementRequestService {
      *
      * @param requestId request id to approve
      */
-    public ManagementRequestInfoDto approve(int requestId) {
-        final var request = findRequest(requestId);
-        return dispatch(handler -> doApprove(handler, request));
+    public <T extends Request> T approve(int requestId) {
+        final T request = findRequest(requestId);
+        return dispatch(handler -> this.doApprove(handler, request));
     }
 
     /**
@@ -125,8 +124,8 @@ public class ManagementRequestService {
         }
     }
 
-    private Request findRequest(int requestId) {
-        return requests.findById(requestId)
+    private <T extends Request> T findRequest(int requestId) {
+        return (T) requests.findById(requestId)
                 .orElseThrow(() -> new NotFoundException(ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND));
     }
 
@@ -134,30 +133,31 @@ public class ManagementRequestService {
      * Dispatches request to handlers, returns the response of the first
      * handler that can handle the request.
      */
-    private ManagementRequestInfoDto dispatch(
-            Function<RequestHandler<? extends ManagementRequestDto, ? extends Request>,
-                    Optional<? extends Request>> operation) {
-
-        return ManagementRequests.asInfoDto(handlers.stream()
-                .flatMap(h -> operation.apply(h).stream())
-                .findFirst()
-                .orElseThrow(() -> new UncheckedServiceException(ErrorMessage.MANAGEMENT_REQUEST_NOT_SUPPORTED)));
+    private <T extends Request> T dispatch(Function<RequestHandler<Request>, Option<T>> operation) {
+        return Stream.ofAll(handlers)
+                .map(handler -> (RequestHandler<Request>) handler)
+                .map(operation)
+                .filter(Option::isDefined)
+                .map(Option::get)
+                .headOption()
+                .getOrElseThrow(() -> {
+                    throw new UncheckedServiceException(ErrorMessage.MANAGEMENT_REQUEST_NOT_SUPPORTED);
+                });
     }
 
     /*
      * Some generics wrangling to work around type erasure,
      * and to refine wildcards to type parameters.
      */
-    private <T extends Request> Optional<T> doApprove(RequestHandler<?, T> handler, Request request) {
-        return handler.narrow(request).map(handler::approve);
+    private <T extends Request> Option<T> doApprove(RequestHandler<Request> handler, T request) {
+        return handler.narrow(request).map(handler::approve).map(r -> (T) r);
     }
 
-    private <T extends Request, D extends ManagementRequestDto>
-            Optional<T> doAdd(RequestHandler<D, T> handler, ManagementRequestDto request) {
+    private <T extends Request> Option<T> doAdd(RequestHandler<Request> handler, T request) {
         return handler.narrow(request).map(r -> {
-            var response = handler.add(r);
+            T response = (T) handler.add((T) r);
             if (handler.canAutoApprove(response)) {
-                response = handler.approve(response);
+                response = (T) handler.approve(response);
             }
             return response;
         });

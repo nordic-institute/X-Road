@@ -30,11 +30,13 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
-import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient_;
+import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClientView;
+import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClientView_;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedServerClient_;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass_;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
+import org.niis.xroad.centralserver.restapi.entity.Subsystem;
+import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -55,20 +57,20 @@ import static org.niis.xroad.centralserver.restapi.repository.CriteriaBuilderUti
 
 @Repository
 public interface FlattenedSecurityServerClientRepository extends
-        PagingAndSortingRepository<FlattenedSecurityServerClient, Long>,
-        JpaSpecificationExecutor<FlattenedSecurityServerClient> {
+        PagingAndSortingRepository<FlattenedSecurityServerClientView, Long>,
+        JpaSpecificationExecutor<FlattenedSecurityServerClientView> {
 
-    Page<FlattenedSecurityServerClient> findAll(
-            Specification<FlattenedSecurityServerClient> spec,
+    Page<FlattenedSecurityServerClientView> findAll(
+            Specification<FlattenedSecurityServerClientView> spec,
             Pageable pageable);
 
-    List<FlattenedSecurityServerClient> findAll();
+    List<FlattenedSecurityServerClientView> findAll();
 
-    List<FlattenedSecurityServerClient> findAll(Specification<FlattenedSecurityServerClient> spec);
+    List<FlattenedSecurityServerClientView> findAll(Specification<FlattenedSecurityServerClientView> spec);
 
-    List<FlattenedSecurityServerClient> findAll(Sort sort);
+    List<FlattenedSecurityServerClientView> findAll(Sort sort);
 
-    static Specification<FlattenedSecurityServerClient> multiParameterSearch(SearchParameters params) {
+    default Specification<FlattenedSecurityServerClientView> multiParameterSearch(SearchParameters params) {
         return (root, query, builder) -> {
             var predicates = new ArrayList<Predicate>();
             if (params.getSecurityServerId() != null) {
@@ -118,88 +120,90 @@ public interface FlattenedSecurityServerClientRepository extends
         };
     }
 
-    static Specification<FlattenedSecurityServerClient> instance(String s) {
+    static Specification<FlattenedSecurityServerClientView> instance(String s) {
         return (root, query, builder) -> {
             return instancePredicate(root, builder, s);
         };
     }
 
-    static Specification<FlattenedSecurityServerClient> memberClass(String s) {
+    static Specification<FlattenedSecurityServerClientView> memberClass(String s) {
         return (root, query, builder) -> {
             return memberClassPredicate(root, builder, s);
         };
     }
 
-    static Specification<FlattenedSecurityServerClient> memberCode(String s) {
+    static Specification<FlattenedSecurityServerClientView> memberCode(String s) {
         return (root, query, builder) -> {
             return memberCodePredicate(root, builder, s);
         };
     }
 
-    static Specification<FlattenedSecurityServerClient> memberName(String s) {
+    static Specification<FlattenedSecurityServerClientView> memberName(String s) {
         return (root, query, builder) -> {
             return memberNamePredicate(root, builder, s);
         };
     }
 
-    static Specification<FlattenedSecurityServerClient> subsystemCode(String s) {
+    static Specification<FlattenedSecurityServerClientView> subsystemCode(String s) {
         return (root, query, builder) -> {
             return subsystemCodePredicate(root, builder, s);
         };
     }
 
-    static Specification<FlattenedSecurityServerClient> member() {
+    static Specification<FlattenedSecurityServerClientView> member() {
         return (root, query, builder) -> {
             return memberPredicate(root, builder);
         };
     }
 
-    static Specification<FlattenedSecurityServerClient> subsystem() {
+    static Specification<FlattenedSecurityServerClientView> subsystem() {
         return (root, query, builder) -> {
             return subsystemPredicate(root, builder);
         };
     }
 
-    static Specification<FlattenedSecurityServerClient> securityServerId(int id) {
+    static Specification<FlattenedSecurityServerClientView> securityServerId(int id) {
         return (root, query, builder) -> {
             return clientOfSecurityServerPredicate(root, builder, id);
         };
     }
 
-    static Specification<FlattenedSecurityServerClient> multifieldSearch(String q) {
+    static Specification<FlattenedSecurityServerClientView> multifieldSearch(String q) {
         return (root, query, builder) -> {
             return multifieldTextSearchPredicate(root, builder, q);
         };
     }
 
     private static Predicate memberPredicate(Root root, CriteriaBuilder builder) {
-        return builder.equal(root.get(FlattenedSecurityServerClient_.TYPE), "XRoadMember");
+        return builder.equal(
+                root.get(FlattenedSecurityServerClientView_.TYPE).as(String.class), XRoadMember.DISCRIMINATOR_VALUE);
     }
     private static Predicate subsystemPredicate(Root root, CriteriaBuilder builder) {
-        return builder.equal(root.get(FlattenedSecurityServerClient_.TYPE), "Subsystem");
+        return builder.equal(
+                root.get(FlattenedSecurityServerClientView_.TYPE).as(String.class), Subsystem.DISCRIMINATOR_VALUE);
     }
     private static Predicate memberNamePredicate(Root root, CriteriaBuilder builder, String s) {
-        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClient_.MEMBER_NAME));
+        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientView_.MEMBER_NAME));
     }
     private static Predicate subsystemCodePredicate(Root root, CriteriaBuilder builder, String s) {
-        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClient_.SUBSYSTEM_CODE));
+        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientView_.SUBSYSTEM_CODE));
     }
     private static Predicate memberCodePredicate(Root root, CriteriaBuilder builder, String s) {
-        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClient_.MEMBER_CODE));
+        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientView_.MEMBER_CODE));
     }
     private static Predicate memberClassPredicate(Root root, CriteriaBuilder builder, String s) {
-        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClient_.MEMBER_CLASS)
+        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientView_.MEMBER_CLASS)
                 .get(MemberClass_.CODE));
     }
     private static Predicate instancePredicate(Root root, CriteriaBuilder builder, String s) {
-        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClient_.XROAD_INSTANCE));
+        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientView_.XROAD_INSTANCE));
     }
 
     static Predicate clientOfSecurityServerPredicate(Root root, CriteriaBuilder builder, int id) {
-        Join<FlattenedSecurityServerClient, SecurityServer> securityServer
-                = root.join(FlattenedSecurityServerClient_.FLATTENED_SERVER_CLIENTS)
+        Join<FlattenedSecurityServerClientView, SecurityServer> securityServer
+                = root.join(FlattenedSecurityServerClientView_.FLATTENED_SERVER_CLIENTS)
                       .join(FlattenedServerClient_.SECURITY_SERVER);
-        return builder.equal(securityServer.get(FlattenedSecurityServerClient_.ID), id);
+        return builder.equal(securityServer.get(FlattenedSecurityServerClientView_.ID), id);
     }
     static Predicate multifieldTextSearchPredicate(Root root, CriteriaBuilder builder, String q) {
         return builder.or(

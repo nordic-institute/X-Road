@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
-import org.niis.xroad.centralserver.openapi.model.GroupMember;
+import org.niis.xroad.centralserver.openapi.model.GroupMemberDto;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.springframework.stereotype.Component;
 
@@ -34,8 +34,8 @@ import java.time.ZoneOffset;
 @Component
 public class GroupMemberConverter {
 
-    public GroupMember convert(GlobalGroupMember entity) {
-        return new GroupMember()
+    public GroupMemberDto convert(GlobalGroupMember entity) {
+        return new GroupMemberDto()
                 .id(String.valueOf(entity.getId()))
                 .name(entity.getIdentifier().toShortString(':'))
                 .type(entity.getIdentifier().getObjectType().name())

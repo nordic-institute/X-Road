@@ -134,7 +134,7 @@ public class KeysApiController implements KeysApi {
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since keyUsageInfo is mandatory parameter
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerate.getKeyUsageType()).get();
-        ClientId memberId = null;
+        ClientId.Conf memberId = null;
         if (KeyUsageInfo.SIGNING == keyUsageInfo) {
             // memberId not used for authentication csrs
             memberId = clientIdConverter.convertId(csrGenerate.getMemberId());

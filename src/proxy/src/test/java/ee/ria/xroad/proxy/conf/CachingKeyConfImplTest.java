@@ -99,8 +99,8 @@ public class CachingKeyConfImplTest {
         });
         ServerConf.reload(new EmptyServerConf() {
             @Override
-            public SecurityServerId getIdentifier() {
-                return SecurityServerId.create("TEST", "CLASS", "CODE", "SERVER");
+            public SecurityServerId.Conf getIdentifier() {
+                return SecurityServerId.Conf.create("TEST", "CLASS", "CODE", "SERVER");
             }
         });
         Files.deleteIfExists(KEY_CONF);
@@ -115,9 +115,9 @@ public class CachingKeyConfImplTest {
     @Test(timeout = 5000)
     public void testSigningInfoReads() throws Exception {
         AtomicInteger callsToGetInfo = new AtomicInteger(0);
-        ClientId client1 = ClientId.create("FI", "GOV", "1");
-        ClientId client2 = ClientId.create("FI", "GOV", "1", "SS");
-        ClientId client3 = ClientId.create("FI", "GOV", "2");
+        ClientId client1 = ClientId.Conf.create("FI", "GOV", "1");
+        ClientId client2 = ClientId.Conf.create("FI", "GOV", "1", "SS");
+        ClientId client3 = ClientId.Conf.create("FI", "GOV", "2");
         List<ClientId> clients = Arrays.asList(client1, client2, client3);
         int expectedCacheHits = 0;
         // first read keys from cache with 5 threads, key conf is not changing
@@ -263,8 +263,8 @@ public class CachingKeyConfImplTest {
         // next read key twice, but this time serverId has changed -> one more hit
         ServerConf.reload(new EmptyServerConf() {
             @Override
-            public SecurityServerId getIdentifier() {
-                return SecurityServerId.create("TEST", "CLASS", "CODE2", "SERVER");
+            public SecurityServerId.Conf getIdentifier() {
+                return SecurityServerId.Conf.create("TEST", "CLASS", "CODE2", "SERVER");
             }
         });
         doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,

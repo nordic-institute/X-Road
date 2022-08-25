@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.centralserver.restapi.entity;
 
+import lombok.Getter;
 import org.hibernate.annotations.Subselect;
 import org.springframework.data.annotation.Immutable;
 
@@ -39,54 +40,35 @@ import javax.persistence.Table;
 
 /**
  * Entity that connects FlattenedSecurityServerClient and SecurityServer.
- * Used only for queries though view flattened_security_server_client and {@link FlattenedSecurityServerClient}.
+ * Used only for queries though view flattened_security_server_client and {@link FlattenedSecurityServerClientView}.
  * Same table is also mapped to {@link ServerClient} entity, which used for updates and any other access of this table.
  */
 @Entity
 @Immutable
 @Table(name = FlattenedServerClient.TABLE_NAME)
 // Subselect prevents table creation: https://stackoverflow.com/a/33689357
-@Subselect("select * from server_clients")
+@Subselect("select * from " + FlattenedServerClient.TABLE_NAME)
 public class FlattenedServerClient {
-    static final String TABLE_NAME = "server_clients";
 
-    private int id;
-
-    private FlattenedSecurityServerClient flattenedSecurityServerClient;
-    private SecurityServer securityServer;
-
-    public FlattenedServerClient() {
-        //JPA
-    }
+    public static final String TABLE_NAME = "server_clients";
 
     @Id
     @Column(name = "id", unique = true, nullable = false)
-    public int getId() {
-        return this.id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
+    @Getter
+    private int id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "security_server_client_id", nullable = false)
-    public FlattenedSecurityServerClient getFlattenedSecurityServerClient() {
-        return flattenedSecurityServerClient;
-    }
-
-    public void setFlattenedSecurityServerClient(FlattenedSecurityServerClient flattenedSecurityServerClient) {
-        this.flattenedSecurityServerClient = flattenedSecurityServerClient;
-    }
+    @Getter
+    private FlattenedSecurityServerClientView flattenedSecurityServerClientView;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "security_server_id", nullable = false)
-    public SecurityServer getSecurityServer() {
-        return this.securityServer;
-    }
+    @Getter
+    private SecurityServer securityServer;
 
-    public void setSecurityServer(SecurityServer securityServer) {
-        this.securityServer = securityServer;
+    protected FlattenedServerClient() {
+        //JPA
     }
 
 }

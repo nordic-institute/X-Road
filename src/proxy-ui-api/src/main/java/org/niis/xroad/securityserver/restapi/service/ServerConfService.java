@@ -84,17 +84,17 @@ public class ServerConfService {
      * Get the Security Server's {@link SecurityServerId}
      * @return SecurityServerId
      */
-    public SecurityServerId getSecurityServerId() {
+    public SecurityServerId.Conf getSecurityServerId() {
         ServerConfType serverConf = getServerConf();
         ClientId ownerId = serverConf.getOwner().getIdentifier();
         String serverCode = serverConf.getServerCode();
-        return SecurityServerId.create(ownerId, serverCode);
+        return SecurityServerId.Conf.create(ownerId, serverCode);
     }
 
     /**
      * Returns owner's ClientId of this security server
      */
-    public ClientId getSecurityServerOwnerId() {
+    public ClientId.Conf getSecurityServerOwnerId() {
         ServerConfType serverConfType = serverConfRepository.getServerConf();
         return serverConfType.getOwner().getIdentifier();
     }
