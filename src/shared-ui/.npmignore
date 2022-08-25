@@ -1,4 +1,4 @@
 .gradle/
 build.gradle
-.build/
+build/
 niis-shared-ui-*.tgz

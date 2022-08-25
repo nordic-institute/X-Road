@@ -26,14 +26,16 @@
  -->
 <template>
   <main data-test="security-server-management-requests-view">
-    <ManagementRequests :management-requests="managementRequests" />
+    <ManagementRequests :scope="requestListScope" />
   </main>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { Colors } from '@/global';
-import ManagementRequests from '@/components/managementRequests/ManagementRequests.vue';
+import ManagementRequests, {
+  Scope,
+} from '@/components/managementRequests/ManagementRequestsList.vue';
 
 /**
  * Component for Security server management requests
@@ -48,83 +50,7 @@ export default Vue.extend({
     return {
       colors: Colors,
       loading: false,
-      managementRequests: [
-        {
-          id: 13,
-          type: 'AUTH_CERT_REGISTRATION_REQUEST',
-          origin: 'CENTER',
-          server_owner_name: 'Tartu Kesklinna Perearstikeskus OÜ',
-          security_server_id: {
-            instance_id: 'DEV7X',
-            type: 'SERVER',
-            member_class: 'TST',
-            member_code: 'MEMBER1',
-            server_code: 'RH1',
-          },
-          status: 'APPROVED',
-          created_at: '2021-07-07T10:09:42.10186Z',
-        },
-        {
-          id: 736287,
-          type: 'CLIENT_REGISTRATION_REQUEST',
-          origin: 'CENTER',
-          server_owner_name: 'Eesti Põllumajandusloomade Jõudluskontrolli ASi',
-          security_server_id: {
-            instance_id: 'DEV9X',
-            type: 'SERVER',
-            member_class: 'TST',
-            member_code: 'MEMBER22',
-            server_code: 'RH3',
-          },
-          status: 'REJECTED',
-          created_at: '2021-02-08T10:09:40.10186Z',
-        },
-        {
-          id: 64,
-          type: 'OWNER_CHANGE_REQUEST',
-          origin: 'CENTER',
-          server_owner_name: 'Helsingin kristillisen koulun kannatusyhdistys',
-          security_server_id: {
-            instance_id: 'OPP',
-            type: 'SERVER',
-            member_class: 'RAA',
-            member_code: 'MEMBER7',
-            server_code: 'X1',
-          },
-          status: 'PENDING',
-          created_at: '2021-03-11T10:09:40.10186Z',
-        },
-        {
-          id: 112283,
-          type: 'CLIENT_DELETION_REQUEST',
-          origin: 'CENTER',
-          server_owner_name: 'Siseministeerium',
-          security_server_id: {
-            instance_id: 'WAP',
-            type: 'SERVER',
-            member_class: 'MOP',
-            member_code: 'MEM227',
-            server_code: 'K8',
-          },
-          status: 'APPROVED',
-          created_at: '2020-12-13T10:09:40.10186Z',
-        },
-        {
-          id: 947283,
-          type: 'AUTH_CERT_DELETION_REQUEST',
-          origin: 'CENTER',
-          server_owner_name: 'Turvallisuus- ja kemikaalivirasto',
-          security_server_id: {
-            instance_id: 'NEO',
-            type: 'SERVER',
-            member_class: 'AUS',
-            member_code: 'MEMBER9',
-            server_code: 'SR2',
-          },
-          status: 'PENDING',
-          created_at: '2020-12-13T10:09:40.10186Z',
-        },
-      ],
+      requestListScope: Scope.SECURITY_SERVER,
     };
   },
 });

@@ -108,7 +108,7 @@ public abstract class AbstractProxyIntegrationTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        System.setProperty(SystemProperties.CONF_PATH, ".build/resources/test/etc/");
+        System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
         System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
         System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, String.valueOf(proxyClientPort));
         System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, String.valueOf(getFreePort()));
@@ -121,7 +121,7 @@ public abstract class AbstractProxyIntegrationTest {
         System.setProperty(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
         System.setProperty(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
         System.setProperty(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, ".build/");
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
 
         KeyConf.reload(new TestKeyConf());
         ServerConf.reload(testServerConf);

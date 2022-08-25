@@ -73,7 +73,7 @@ abstract class AbstractMessageLogTest {
     ActorSystem actorSystem;
     LogManager logManager;
 
-    protected final Path archivesPath = Paths.get(".build/archive");
+    protected final Path archivesPath = Paths.get("build/archive");
 
     @Getter
     private TestActorRef<LogManager> logManagerRef;
@@ -116,7 +116,7 @@ abstract class AbstractMessageLogTest {
     }
 
     protected void testSetUp(boolean timestampImmediately) throws Exception {
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, ".build/tmp");
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
 
         jobManager = new JobManager();
         clearDeadLetters();

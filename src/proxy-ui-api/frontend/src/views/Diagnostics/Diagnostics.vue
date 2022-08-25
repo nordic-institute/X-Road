@@ -390,7 +390,7 @@
                         right
                       >
                         <template #activator="{ on }">
-                          <v-icon small class="warning-icon" v-on="on">icon-Error</v-icon>
+                          <v-icon small :class="messageLogEncryptionTooltipIconType(messageLogEnabled)" v-on="on">icon-Error</v-icon>
                         </template>
                         <span>{{ $t('diagnostics.encryption.messageLog.archive.defaultKeyNote') }}</span>
                       </v-tooltip>
@@ -614,6 +614,12 @@ export default Vue.extend({
         default:
           return 'error';
       }
+    },
+
+    messageLogEncryptionTooltipIconType(enabled: boolean): string {
+      return enabled === false
+        ? 'disabled'
+        : 'warning-icon'
     },
   },
 });

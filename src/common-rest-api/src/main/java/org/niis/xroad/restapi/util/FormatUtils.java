@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import java.net.IDN;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Base64;
@@ -69,17 +70,31 @@ public final class FormatUtils {
      * @see ZoneOffset#UTC
      */
     public static OffsetDateTime fromDateToOffsetDateTime(Date date) {
-        return date.toInstant().atOffset(ZoneOffset.UTC);
+        return fromInstantToOffsetDateTime(date.toInstant());
+    }
+
+    /**
+     * Converts Instant to OffsetDateTime with ZoneOffset.UTC
+     * @param instant
+     * @return OffsetDateTime with offset ZoneOffset.UTC
+     * @see ZoneOffset#UTC
+     */
+    public static OffsetDateTime fromInstantToOffsetDateTime(Instant instant) {
+        return instant.atOffset(ZoneOffset.UTC);
     }
 
     /**
      * Converts OffsetDateTime to Date
      */
     public static Date fromOffsetDateTimeToDate(OffsetDateTime offsetDateTime) {
+        return Date.from(fromOffsetDateTimeToInstant(offsetDateTime));
+    }
+
+    public static Instant fromOffsetDateTimeToInstant(OffsetDateTime offsetDateTime) {
         if (offsetDateTime == null) {
             return null;
         } else {
-            return Date.from(offsetDateTime.toInstant());
+            return offsetDateTime.toInstant();
         }
     }
 

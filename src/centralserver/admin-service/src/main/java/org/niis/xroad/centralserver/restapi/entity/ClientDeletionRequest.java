@@ -40,9 +40,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
+import static org.niis.xroad.centralserver.restapi.entity.ClientDeletionRequest.DISCRIMINATOR_VALUE;
+
 @Entity
-@DiscriminatorValue("ClientDeletionRequest")
+@DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class ClientDeletionRequest extends Request {
+    public static final String DISCRIMINATOR_VALUE = "ClientDeletionRequest";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sec_serv_user_id")
@@ -56,7 +59,7 @@ public class ClientDeletionRequest extends Request {
 
     @Override
     @Transient
-    public ManagementRequestType getType() {
+    public ManagementRequestType getManagementRequestType() {
         return ManagementRequestType.CLIENT_DELETION_REQUEST;
     }
 

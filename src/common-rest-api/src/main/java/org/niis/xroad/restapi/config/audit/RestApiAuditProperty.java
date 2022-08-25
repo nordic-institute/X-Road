@@ -113,7 +113,10 @@ public enum RestApiAuditProperty {
     MEMBER_NAME,
 
     CODE,
-    DESCRIPTION;
+    DESCRIPTION,
+
+    AUTHENTICATION_ONLY,
+    CERTIFICATE_PROFILE_INFO;
 
     /**
      * Gets logged property name for the enum value.

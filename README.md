@@ -52,8 +52,8 @@ X-Road central servers, configuration proxies and security servers can be automa
 ## X-Road technical documentation
 
 * [Documentation](https://docs.x-road.global)
-* [Knowledge base](https://confluence.niis.org/display/XRDKB)
-* [Release notes](https://confluence.niis.org/display/XRDKB/Release+Notes)
+* [Knowledge base](https://x-road.global/kb)
+* [Release notes](https://x-road.global/release-notes)
 
 ## Further information about X-Road
 

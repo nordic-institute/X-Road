@@ -54,7 +54,7 @@ cp -p %{_sourcedir}/proxy/xroad-initdb.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-add-admin-user.sh %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
 cp -p %{_sourcedir}/proxy/xroad-*.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../proxy/.build/libs/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../proxy/build/libs/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/proxy.ini %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/override-rhel-proxy.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/default-configuration/proxy-logback.xml %{buildroot}/etc/xroad/conf.d
@@ -133,6 +133,27 @@ if [ $1 -gt 1 ] ; then
 
 fi
 
+%define execute_init_or_update_resources()                                            \
+    echo "Update resources: DB & GPG";                                                \
+    /usr/share/xroad/scripts/setup_serverconf_db.sh;                                  \
+                                                                                      \
+    if [ $1 -gt 1 ]; then                                                             \
+      `# upgrade, generate gpg keypair when needed`                                   \
+      if [ ! -d /etc/xroad/gpghome ] ; then                                           \
+        ID=$(/usr/share/xroad/scripts/get_security_server_id.sh)                      \
+        if [[ -n "${ID}" ]] ; then                                                    \
+          /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}" \
+        fi                                                                            \
+      fi                                                                              \
+      `# always fix gpghome ownership`;                                               \
+      [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome            \
+    fi                                                                                \
+                                                                                      \
+    if [ $1 -eq 1 ] && [ -x %{_bindir}/systemctl ]; then                              \
+        `# initial installation`;                                                     \
+        %{_bindir}/systemctl try-restart rsyslog.service                              \
+    fi
+
 %post -p /bin/bash
 %systemd_post xroad-proxy.service
 
@@ -210,24 +231,10 @@ function migrate_conf_value {
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
-/usr/share/xroad/scripts/setup_serverconf_db.sh
-
-if [ $1 -gt 1 ]; then
-  # upgrade, generate gpg keypair when needed
-  if [ ! -d /etc/xroad/gpghome ] ; then
-    ID=$(/usr/share/xroad/scripts/get_security_server_id.sh)
-    if [[ -n "${ID}" ]] ; then
-      /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
-    fi
-  fi
-  # always fix gpghome ownership
-  [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
-fi
-
-if [ $1 -eq 1 ] && [ -x %{_bindir}/systemctl ]; then
-    # initial installation
-    %{_bindir}/systemctl try-restart rsyslog.service
-fi
+# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+%if 0%{?el7}
+%execute_init_or_update_resources
+%endif
 
 %preun
 %systemd_preun xroad-proxy.service
@@ -235,8 +242,13 @@ fi
 %postun
 %systemd_postun_with_restart xroad-proxy.service xroad-confclient.service rsyslog.service
 
-%posttrans
+%posttrans -p /bin/bash
 # restart (if running) nginx after /etc/xroad/nginx/xroad-proxy.conf has (possibly) been removed, so that port 4000 is freed
 %systemd_try_restart nginx.service
+
+# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8}
+%execute_init_or_update_resources
+%endif
 
 %changelog

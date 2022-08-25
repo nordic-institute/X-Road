@@ -61,7 +61,7 @@ const systemSettingsCommands = {
 };
 
 module.exports = {
-  url: `${process.env.VUE_DEV_SERVER_URL}/#/settings/systemsettings`,
+  url: `${process.env.VUE_DEV_SERVER_URL}/#/settings/system-settings`,
   commands: [systemSettingsCommands],
   elements: {
     systemSettingsView: {

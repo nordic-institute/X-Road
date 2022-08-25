@@ -27,6 +27,7 @@
 package org.niis.xroad.centralserver.restapi.entity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.CascadeType;
@@ -47,14 +48,15 @@ import java.util.Set;
 
 @Entity
 @Table(name = ApprovedCa.TABLE_NAME)
+@NoArgsConstructor
 public class ApprovedCa extends AuditableEntity {
 
     public static final String TABLE_NAME = "approved_cas";
 
     @Id
+    @Column(name = "id", unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
-    @Column(name = "id", unique = true, nullable = false)
     @Getter
     private int id;
 
@@ -94,10 +96,6 @@ public class ApprovedCa extends AuditableEntity {
     @Getter
     @Setter
     private Set<CaInfo> intermediateCaInfos = new HashSet<>(0);
-
-    protected ApprovedCa() {
-        //JPA
-    }
 
 }
 

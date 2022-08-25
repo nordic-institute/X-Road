@@ -627,7 +627,7 @@ paths:
               schema:
                 description: array of global groups
                 items:
-                  $ref: '#/components/schemas/GlobalGroup'
+                  $ref: '#/components/schemas/GlobalGroupResource'
                 type: array
                 uniqueItems: true
           description: list of global groups
@@ -655,7 +655,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GlobalGroup'
+                $ref: '#/components/schemas/GlobalGroupResource'
           description: new global group created
         '400':
           content:
@@ -693,9 +693,9 @@ paths:
           name: group_id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -721,15 +721,15 @@ paths:
           name: group_id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GlobalGroup'
+                $ref: '#/components/schemas/GlobalGroupResource'
           description: global group
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -753,9 +753,9 @@ paths:
           name: group_id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           application/json:
@@ -766,7 +766,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GlobalGroup'
+                $ref: '#/components/schemas/GlobalGroupResource'
           description: global group modified
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -791,9 +791,9 @@ paths:
           name: group_id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           application/json:
@@ -831,9 +831,9 @@ paths:
           name: group_id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           application/json:
@@ -2779,42 +2779,36 @@ paths:
       description: List management requests
       parameters:
         - in: query
-          name: origin
-          description: management request origin
+          name: filter
+          description: >
+            optional filtering parameters. Filtering is possible according to one of the following values:
+            <ul>
+                <li><b>q</b> Free text query</li>
+                <li><b>origin</b> Request origin</li>
+                <li><b>type</b> an array of types</li>
+                <li><b>serverId</b> Security server id</li>
+            </ul>
           required: false
           schema:
-            $ref: '#/components/schemas/ManagementRequestOrigin'
+            $ref: '#/components/schemas/ManagementRequestsFilter'
         - in: query
-          name: type
-          description: management request type
+          name: paging_sorting
+          description: >
+            optional paging and sorting parameters. Sorting possible according to one of the following values:
+            <ul>
+                <li><b>id</b> for id</li>
+                <li><b>created_at</b> Creation date</li>
+            </ul>
           required: false
           schema:
-            $ref: '#/components/schemas/ManagementRequestType'
-        - in: query
-          name: status
-          description: request status
-          required: false
-          schema:
-            $ref: '#/components/schemas/ManagementRequestStatus'
-        - in: query
-          name: serverId
-          description: security server id
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: page
-          description: page number (zero based)
-          required: false
-          schema:
-            type: integer
+            $ref: '#/components/schemas/PagingSortingParameters'
       responses:
         '200':
           description: array of management requests
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequestInfoPage'
+                $ref: '#/components/schemas/PagedManagementRequests'
         '400':
           description: request was invalid
         '401':
@@ -3287,7 +3281,7 @@ components:
           type: string
         tls_auth:
           description: can the CA be used for TLS authentication
-          type: boolean
+          type: string
       required:
         - tls_auth
         - certificate_profile_info
@@ -3385,7 +3379,7 @@ components:
       required:
         - url
       type: object
-    GlobalGroup:
+    GlobalGroupResource:
       allOf:
         - $ref: '#/components/schemas/GlobalGroupCodeAndDescription'
         - $ref: '#/components/schemas/ModificationTimestamps'
@@ -3394,9 +3388,9 @@ components:
         id:
           description: unique identifier
           example: 123
-          format: text
+          format: int32
           readOnly: true
-          type: string
+          type: integer
         code:
           type: string
           format: text
@@ -3475,6 +3469,41 @@ components:
         name:
           description: group member name
           example: Member123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        type:
+          description: group member type
+          example: MEMBER
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        instance:
+          description: group member instance
+          example: FI
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        class:
+          description: group member class
+          example: GOV
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        code:
+          description: group member code
+          example: 123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        subsystem:
+          description: group member subsystem
+          example: SS1
           format: text
           maxLength: 255
           minLength: 1
@@ -3867,10 +3896,24 @@ components:
     PagedSecurityServers:
       description: array of SecurityServers with paging metadata
       properties:
-        clients:
-          description: clients
+        items:
+          description: Security Servers
           items:
             $ref: '#/components/schemas/SecurityServer'
+          type: array
+        paging_metadata:
+          $ref: '#/components/schemas/PagingMetadata'
+      required:
+        - items
+        - paging_metadata
+      type: object
+    PagedManagementRequests:
+      description: an array of ManagementRequests with paging metadata
+      properties:
+        items:
+          description: Management Requests
+          items:
+            $ref: '#/components/schemas/ManagementRequest'
           type: array
         paging_metadata:
           $ref: '#/components/schemas/PagingMetadata'
@@ -4263,14 +4306,22 @@ components:
           $ref: '#/components/schemas/ManagementRequestType'
         origin:
           $ref: '#/components/schemas/ManagementRequestOrigin'
-        securityServerId:
-          $ref: '#/components/schemas/SecurityServerId'
+        security_server_owner:
+          type: string
+          readOnly: true
+        security_server_id:
+          type: string
+          description: Encoded Security Server ID
         status:
           $ref: '#/components/schemas/ManagementRequestStatus'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
       required:
         - type
         - source
-        - securityServerId
+        - securityserverId
     ManagementRequestType:
       type: string
       enum:
@@ -4295,6 +4346,33 @@ components:
       enum:
         - CENTER
         - SECURITY_SERVER
+    ManagementRequestsFilter:
+      description: parameters for filtering management requests search results
+      properties:
+        query:
+          description: Free text query
+          nullable: true
+          type: string
+        origin:
+          description: management request origin
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ManagementRequestOrigin'
+        types:
+          description: management request type
+          nullable: true
+          items:
+           $ref: '#/components/schemas/ManagementRequestType'
+        status:
+          description: request status
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ManagementRequestStatus'
+        serverId:
+          description: security server id
+          nullable: true
+          type: string
+      type: object
     Page:
       type: object
       properties:
@@ -4310,15 +4388,6 @@ components:
         totalElements:
           type: integer
           description: total number of elements (<=size * totalPages)
-    ManagementRequestInfoPage:
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/Page'
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ManagementRequest'
     AuthenticationCertificateRegistrationRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'

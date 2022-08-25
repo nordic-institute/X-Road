@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureTestEntityManager;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @AutoConfigureTestEntityManager
 @Slf4j
@@ -43,7 +43,7 @@ public class DatabaseTest extends AbstractFacadeMockingTestContext {
     private TestEntityManager entityManager;
 
     @Test
-    public void testPersistence() {
+    void testPersistence() {
         MemberClass memberClass = entityManager.persist(new MemberClass("CLASS", "Description for CLASS"));
         MemberId memberId = entityManager.persist(MemberId.create("TEST", "CLASS", "CODE"));
         SubsystemId subsystemId = entityManager.persist(SubsystemId.create("TEST", "CLASS", "CODE", "SUBSYSTEM"));

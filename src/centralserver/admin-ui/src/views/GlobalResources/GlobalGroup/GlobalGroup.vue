@@ -27,27 +27,28 @@
 <template>
   <div data-test="global-group-view">
     <div class="navigation-back" data-test="navigation-back">
-      <router-link to="/settings/globalresources">
+      <router-link to="/settings/global-resources">
         <v-icon :color="colors.Purple100">mdi-chevron-left</v-icon>
         {{ $t('global.navigation.back') }}
       </router-link>
     </div>
     <div class="header-row">
       <div class="title-search">
-        <div class="xrd-view-title">{{ globalGroup.name }}</div>
+        <div class="xrd-view-title">{{ globalGroup.code }}</div>
       </div>
-      <xrd-button data-test="remove-group-button" outlined
+      <xrd-button v-if="allowGroupDelete" data-test="remove-group-button" outlined @click="showDeleteGroupDialog = true"
         ><v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
         {{ $t('globalGroup.deleteGroup') }}</xrd-button
       >
     </div>
 
     <info-card
-      :title-text="$t('globalResources.description')"
-      :info-text="globalGroup.description"
+      :title-text="$t('globalGroup.description')"
+      :info-text="globalGroup.description || ''"
       data-test="global-group-description"
       :action-text="$t('action.edit')"
-      @actionClicked="editDescription"
+      :show-action="allowDescriptionEdit"
+      @actionClicked="showEditDescriptionDialog = true"
     />
 
     <!-- Toolbar buttons -->
@@ -72,11 +73,11 @@
       </div>
     </div>
 
-    <!-- Table - Global Groups -->
+    <!-- Table - Members -->
     <v-data-table
       :loading="loading"
-      :headers="globalGroupsHeaders"
-      :items="globalGroups"
+      :headers="membersHeaders"
+      :items="members"
       :must-sort="true"
       :items-per-page="-1"
       class="elevation-0 data-table"
@@ -84,10 +85,10 @@
       :loader-height="2"
       hide-default-footer
     >
-      <template #[`item.memberName`]="{ item }">
+      <template #[`item.name`]="{ item }">
         <div class="member-name xrd-clickable" @click="toDetails(item)">
           <xrd-icon-base class="mr-4"><XrdIconFolderOutline /></xrd-icon-base>
-          <div>{{ item.memberName }}</div>
+          <div>{{ item.name }}</div>
         </div>
       </template>
 
@@ -108,26 +109,54 @@
     <FilterDialog
       :dialog="showFilterDialog"
       cancel-button-text="action.cancel"
-      title="globalResources.addGlobalGroup"
       @cancel="showFilterDialog = false"
     ></FilterDialog>
+
+    <!-- Edit Description Dialog -->
+    <GlobalGroupEditDescriptionDialog
+      v-if="showEditDescriptionDialog"
+      :show-dialog="showEditDescriptionDialog"
+      :group-code="globalGroup.code"
+      :group-description="globalGroup.description"
+      @edit="editDescription"
+      @cancel="cancelEdit"
+    >
+    </GlobalGroupEditDescriptionDialog>
+
+    <!-- Delete Group Dialog -->
+    <GlobalGroupDeleteDialog
+      v-if="showDeleteGroupDialog"
+      :show-dialog="showDeleteGroupDialog"
+      :group-code="globalGroup.code"
+      @delete="deleteGlobalGroup"
+      @cancel="cancelDelete"
+    >
+    </GlobalGroupDeleteDialog>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 
+import { Colors, Permissions, RouteName } from '@/global';
 import { DataTableHeader } from 'vuetify';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import FilterDialog from '@/views/GlobalResources/GlobalGroup/GroupMembersFilterDialog.vue';
-
-import { Colors } from '@/global';
+import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { mapActions, mapState, mapStores } from 'pinia';
+import { GlobalGroupResource, GroupMember } from '@/openapi-types';
+import { notificationsStore } from '@/store/modules/notifications';
+import { userStore } from '@/store/modules/user';
+import GlobalGroupDeleteDialog from '@/views/GlobalResources/GlobalGroup/GlobalGroupDeleteDialog.vue';
+import GlobalGroupEditDescriptionDialog from '@/views/GlobalResources/GlobalGroup/GlobalGroupEditDescriptionDialog.vue';
 
 /**
  * Global group view
  */
 export default Vue.extend({
   components: {
+    GlobalGroupEditDescriptionDialog,
+    GlobalGroupDeleteDialog,
     InfoCard,
     FilterDialog,
   },
@@ -137,79 +166,75 @@ export default Vue.extend({
       required: true,
     },
   },
-
   data() {
     return {
       colors: Colors,
-      globalGroup: { description: 'uliuli', name: 'Group named X' },
-      showFilterDialog: false,
+      globalGroup: {} as GlobalGroupResource,
+      members: [] as GroupMember[] | undefined,
       search: '',
       loading: false,
+      permissions: Permissions,
       showAddDialog: false,
-      globalGroups: [
-        {
-          memberName: 'Nordic Institute for Interoperability Solutions',
-          type: 'Member',
-          instance: 'DEV',
-          class: 'ORG',
-          code: '111',
-          subsystem: 'subs',
-          added: '2021-07-10 12:00',
-        },
-
-        {
-          memberName: 'Organisaatio',
-          type: 'Member',
-          instance: 'DEV',
-          class: 'COM',
-          code: '222',
-          subsystem: 'heips',
-          added: '2020-01-12 11:00',
-        },
-      ],
+      showFilterDialog: false,
+      showDeleteGroupDialog: false,
+      showEditDescriptionDialog: false,
     };
   },
   computed: {
-    memberCount(): number {
-      return this.globalGroups.length;
+    ...mapStores(useGlobalGroupsStore),
+    ...mapState(userStore, ['hasPermission']),
+    allowDescriptionEdit(): boolean {
+      return this.hasPermission(Permissions.EDIT_GROUP_DESCRIPTION);
     },
-    globalGroupsHeaders(): DataTableHeader[] {
+    allowGroupDelete(): boolean {
+      return this.hasPermission(Permissions.DELETE_GROUP);
+    },
+    memberCount(): number {
+      return this.members === undefined ? 0 : this.members.length;
+    },
+    membersHeaders(): DataTableHeader[] {
       return [
         {
-          text: this.$t('globalResources.code') as string,
+          text: this.$t('globalGroup.memberName') as string,
           align: 'start',
-          value: 'memberName',
-          class: 'xrd-table-header ss-table-header-sercer-code',
+          value: 'name',
+          class: 'xrd-table-header gp-table-header-member-name',
         },
         {
-          text: this.$t('globalResources.description') as string,
+          text: this.$t('globalGroup.type') as string,
           align: 'start',
           value: 'type',
-          class: 'xrd-table-header ss-table-header-owner-name',
+          class: 'xrd-table-header gp-table-header-member-type',
         },
         {
-          text: this.$t('globalResources.memberCount') as string,
+          text: this.$t('globalGroup.instance') as string,
           align: 'start',
           value: 'instance',
-          class: 'xrd-table-header ss-table-header-owner-code',
+          class: 'xrd-table-header gp-table-header-member-instance',
         },
         {
-          text: this.$t('globalResources.updated') as string,
+          text: this.$t('globalGroup.class') as string,
+          align: 'start',
+          value: 'class',
+          class: 'xrd-table-header gp-table-header-member-class',
+        },
+        {
+          text: this.$t('globalGroup.code') as string,
           align: 'start',
           value: 'code',
-          class: 'xrd-table-header ss-table-header-owner-class',
+          class: 'xrd-table-header gp-table-header-member-code',
         },
         {
-          text: this.$t('globalResources.updated') as string,
+          text: this.$t('globalGroup.subsystem') as string,
           align: 'start',
           value: 'subsystem',
-          class: 'xrd-table-header ss-table-header-owner-class',
+          class: 'xrd-table-header gp-table-header-member-subsystem',
         },
         {
-          text: this.$t('globalResources.updated') as string,
+          text: this.$t('globalGroup.added') as string,
           align: 'start',
-          value: 'added',
-          class: 'xrd-table-header ss-table-header-owner-class',
+          value: 'created_at',
+          class: 'xrd-table-header gp-table-header-member-created',
         },
         {
           value: 'button',
@@ -220,12 +245,56 @@ export default Vue.extend({
       ];
     },
   },
+  created() {
+    this.loading = true;
+    this.globalGroupStore.getById(this.groupId)
+      .then((resp) => {
+        this.globalGroup = resp;
+        this.members = resp.members;
+      })
+      .catch((error) => {
+        this.showError(error);
+      })
+      .finally(() => {
+        this.loading = false;
+      });
+  },
   methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     goBack(): void {
       this.$router.go(-1);
     },
-    editDescription(): void {
-      // Implement later
+    cancelDelete(): void {
+      this.showDeleteGroupDialog = false;
+    },
+    cancelEdit(): void {
+      this.showEditDescriptionDialog = false;
+    },
+    deleteGlobalGroup(): void {
+      this.globalGroupStore.deleteById(this.groupId)
+        .then(() => {
+          this.$router.replace({ name: RouteName.GlobalResources });
+          this.showSuccess(this.$t('globalGroup.groupDeletedSuccessfully'));
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.showDeleteGroupDialog = false;
+        });
+    },
+    editDescription(newDescription: string): void {
+      this.globalGroupStore.editGroupDescription(this.groupId, { description: newDescription })
+        .then((resp) => {
+          this.globalGroup = resp.data;
+          this.showSuccess(this.$t('globalGroup.descriptionSaved'));
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.showEditDescriptionDialog = false;
+        });
     },
   },
 });

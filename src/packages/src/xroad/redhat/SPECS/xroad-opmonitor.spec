@@ -46,7 +46,7 @@ mkdir -p %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor.service %{buildroot}%{_unitdir}
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor-initdb.sh %{buildroot}/usr/share/xroad/scripts/
-cp -p %{srcdir}/../../../op-monitor-daemon/.build/libs/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../op-monitor-daemon/build/libs/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/op-monitor.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/default-configuration/op-monitor-logback.xml %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/common/op-monitor/etc/xroad/services/opmonitor.conf %{buildroot}/etc/xroad/services/
@@ -96,15 +96,28 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
+%define init_xroad_opmonitor_db()                       \
+    /usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
+
 %post
-/usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
 %systemd_post xroad-opmonitor.service
+
+# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+%if 0%{?el7}
+%init_xroad_opmonitor_db
+%endif
 
 %preun
 %systemd_preun xroad-opmonitor.service
 
 %postun
 %systemd_postun_with_restart xroad-opmonitor.service
+
+%posttrans
+# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8}
+%init_xroad_opmonitor_db
+%endif
 
 %changelog
 

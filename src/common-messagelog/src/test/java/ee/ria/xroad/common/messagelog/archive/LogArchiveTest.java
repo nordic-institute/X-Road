@@ -98,10 +98,10 @@ public class LogArchiveTest {
         }
         recordNo = 0;
         rotated = false;
-        Files.createDirectory(Paths.get(".build/slog"));
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, ".build/tmp");
-        System.setProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY, ".build/gpg");
-        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, ".build/gpg/keys.ini");
+        Files.createDirectory(Paths.get("build/slog"));
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
+        System.setProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY, "build/gpg");
+        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/gpg/keys.ini");
         System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED, String.valueOf(encrypted));
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, groupingStrategy.name());
     }
@@ -113,7 +113,7 @@ public class LogArchiveTest {
         System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED);
         System.clearProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE);
         System.clearProperty(MessageLogProperties.ARCHIVE_GROUPING);
-        FileUtils.deleteQuietly(Paths.get(".build/slog").toFile());
+        FileUtils.deleteQuietly(Paths.get("build/slog").toFile());
     }
 
     // ------------------------------------------------------------------------
@@ -162,7 +162,7 @@ public class LogArchiveTest {
 
     private LogArchiveWriter getWriter() throws IOException {
         return new LogArchiveWriter(
-                Paths.get(".build/slog"),
+                Paths.get("build/slog"),
                 dummyLogArchiveBase()) {
 
             @Override

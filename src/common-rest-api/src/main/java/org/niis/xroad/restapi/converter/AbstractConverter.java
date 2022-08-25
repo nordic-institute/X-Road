@@ -69,6 +69,9 @@ public abstract class AbstractConverter<A, B> implements GenericConverter {
     }
 
     public <S, T> T convert(S source) {
+        if (source == null) {
+            return null;
+        }
         Class<S> sourceClass = (Class<S>) source.getClass();
         Class<T> targetClass = (Class<T>) (classOfA.isAssignableFrom(sourceClass) ? classOfB : classOfA);
         return (T) convert(source, TypeDescriptor.valueOf(sourceClass), TypeDescriptor.valueOf(targetClass));

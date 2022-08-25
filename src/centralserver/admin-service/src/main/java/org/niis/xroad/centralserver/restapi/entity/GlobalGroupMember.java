@@ -52,6 +52,7 @@ public class GlobalGroupMember extends AuditableEntity {
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
     @Getter
+    @Setter
     private int id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -175,7 +175,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                 clientDto.setId(String.valueOf(source.getId()));
                 clientDto.setMemberName(source.getMemberName());
                 clientDto.setXroadId(self(new ClientIdDto(), clientIdDto -> {
-                    clientIdDto.setInstanceId(source.getXRoadInstance());
+                    clientIdDto.setInstanceId(source.getXroadInstance());
                     MemberClass memberClass = source.getMemberClass();
                     Optional.ofNullable(memberClass)
                             .map(MemberClass::getCode)

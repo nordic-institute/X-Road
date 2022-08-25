@@ -27,7 +27,7 @@ Addon for proxy monitoring
 %install
 mkdir -p %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -a %{srcdir}/common/addon/proxy/proxymonitor-service.conf %{buildroot}/usr/share/xroad/jlib/addon/proxy/
-cp -p %{srcdir}/../../../addons/proxymonitor/metaservice/.build/libs/proxymonitor-metaservice-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+cp -p %{srcdir}/../../../addons/proxymonitor/metaservice/build/libs/proxymonitor-metaservice-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 
 %clean
 rm -rf %{buildroot}

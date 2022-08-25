@@ -38,7 +38,7 @@ import lombok.ToString;
 @NoCoverage
 @EqualsAndHashCode
 @ToString
-@Getter(onMethod_ = @Override)
+@Getter
 public class TypedExampleExt<T> implements ExampleExt<T> {
 
     @NonNull

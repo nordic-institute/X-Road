@@ -36,7 +36,7 @@ mkdir -p %{buildroot}%{_unitdir}
 cp -p %{srcdir}/common/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/messagelog.conf
 cp -p %{_sourcedir}/messagelog/xroad-addon-messagelog.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-addon/.build/libs/messagelog-addon.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+cp -p %{srcdir}/../../../addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/default-configuration/addons/message-log.ini %{buildroot}/etc/xroad/conf.d/addons/
 cp -p %{srcdir}/default-configuration/addons/messagelog-archiver-logback.xml %{buildroot}/etc/xroad/conf.d/addons/
 cp -p %{srcdir}/common/addon/proxy/messagelog-changelog.xml %{buildroot}/usr/share/xroad/db/
@@ -45,12 +45,12 @@ cp -p %{srcdir}/common/addon/proxy/setup_messagelog_db.sh %{buildroot}/usr/share
 cp -p %{srcdir}/common/addon/proxy/xroad-messagelog-archiver %{buildroot}/usr/share/xroad/bin/
 cp -p %{srcdir}/common/addon/proxy/messagelog-archiver.conf %{buildroot}/etc/xroad/services/
 
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/.build/libs/messagelog-archiver.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/build/libs/messagelog-archiver.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/scripts/archive-http-transporter.sh %{buildroot}/usr/share/xroad/scripts
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/scripts/demo-upload.pl %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-server/
 cp -p %{srcdir}/../../../../doc/archive-hashchain-verifier.rb %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
 cp -p %{srcdir}/../../../../doc/archive-hashchain-verifier.README %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
-cp -p %{srcdir}/../../../asicverifier/.build/libs/asicverifier.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../asicverifier/build/libs/asicverifier.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/
@@ -90,14 +90,25 @@ if [ "$1" -gt 1 ] ; then
   rpm -q %{name} --queryformat="%%{version}" &> "%{_localstatedir}/lib/rpm-state/%{name}/prev-version"
 fi
 
+%define manage_messagelog_activation()                                               \\\
+    isMessagelogDisabled=\$(                                                         \\\
+        [[ -e /etc/sysconfig/xroad-addon-messagelog ]]                               \\\
+        && grep -qs "ENABLE_MESSAGELOG=false" /etc/sysconfig/xroad-addon-messagelog  \\\
+        && echo 1 || echo 0                                                          \\\
+    );                                                                               \\\
+    if (( \$isMessagelogDisabled )); then                                            \\\
+      rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf;                       \\\
+    else                                                                             \\\
+      /usr/share/xroad/scripts/setup_messagelog_db.sh;                               \\\
+    fi
+
 %post -p /bin/bash
 %systemd_post xroad-addon-messagelog.service
 
-if [ -e /etc/sysconfig/xroad-addon-messagelog ] && grep -qs "ENABLE_MESSAGELOG=false" /etc/sysconfig/xroad-addon-messagelog; then
-  rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
-else
-  /usr/share/xroad/scripts/setup_messagelog_db.sh
-fi
+# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+%if 0%{?el7}
+%manage_messagelog_activation
+%endif
 
 if [ "$1" -gt 1 ]; then
   prev_version=$(cat %{_localstatedir}/lib/rpm-state/%{name}/prev-version)
@@ -120,5 +131,11 @@ if [ "$1" -eq 0 ]; then
 fi
 
 %systemd_postun_with_restart xroad-proxy.service xroad-addon-messagelog.service
+
+%posttrans -p /bin/bash
+# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8}
+%manage_messagelog_activation
+%endif
 
 %changelog

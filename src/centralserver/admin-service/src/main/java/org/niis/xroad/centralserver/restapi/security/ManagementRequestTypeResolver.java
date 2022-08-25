@@ -53,7 +53,7 @@ class ManagementRequestTypeResolver implements TargetTypeResolver<ManagementRequ
         }
 
         return requests.findById((Integer) id)
-                .map(Request::getType)
+                .map(Request::getManagementRequestType)
                 .orElseThrow(() -> new NotFoundException(ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND));
     }
 }

@@ -1,3 +1,5 @@
+require('@rushstack/eslint-patch/modern-module-resolution');
+
 module.exports = {
   root: true,
   env: {
@@ -7,8 +9,8 @@ module.exports = {
     'plugin:vue/recommended',
     'eslint:recommended',
     '@vue/typescript/recommended',
-    '@vue/prettier',
-    '@vue/prettier/@typescript-eslint',
+    '@vue/eslint-config-prettier',
+    '@vue/eslint-config-typescript',
   ],
   ignorePatterns: ['node_modules/'],
   parserOptions: {
@@ -21,6 +23,7 @@ module.exports = {
     '@typescript-eslint/camelcase': 'off',
     '@typescript-eslint/no-unused-vars': 'off', // Remove this when the "mock" phase is over
     'vue/no-unused-vars': 'warn',
+    'vue/multi-word-component-names': 'warn',
     '@typescript-eslint/no-explicit-any':
       process.env.NODE_ENV === 'production' ? 'error' : 'warn',
     'vue/no-unused-components':

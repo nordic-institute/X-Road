@@ -64,11 +64,11 @@ public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
         assertNotNull(response, "Security server list response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Security server list request status code must be 200 ");
         assertNotNull(response.getBody());
-        assertNotNull(response.getBody().getClients(), "Should return at least an empty list");
-        assertTrue(response.getBody().getClients().stream()
+        assertNotNull(response.getBody().getItems(), "Should return at least an empty list");
+        assertTrue(response.getBody().getItems().stream()
                 .allMatch(client -> client.getXroadId().getType().getValue().equals("SERVER")));
         assertNotNull(response.getBody().getPagingMetadata());
-        int itemCount = response.getBody().getClients().size();
+        int itemCount = response.getBody().getItems().size();
         assertTrue(0 < itemCount, "Should return more than one client");
         assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
                 "Total items must not be less than clients returned in one page");
@@ -82,8 +82,8 @@ public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
         assertNotNull(response, "Security server list response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Security server list request status code must be 200 ");
         assertNotNull(response.getBody());
-        assertNotNull(response.getBody().getClients(), "Should return clients");
-        int itemCount = response.getBody().getClients().size();
+        assertNotNull(response.getBody().getItems(), "Should return clients");
+        int itemCount = response.getBody().getItems().size();
         assertEquals(1, itemCount, "Should return one client");
         assertTrue(itemCount < response.getBody().getPagingMetadata().getTotalItems(),
                 "Total items be more than returned in one page");
@@ -94,10 +94,10 @@ public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
 
         assertEquals(200, response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
-        assertNotNull(response2.getBody().getClients(), "Should return clients");
-        assertEquals(1, response2.getBody().getClients().size());
+        assertNotNull(response2.getBody().getItems(), "Should return clients");
+        assertEquals(1, response2.getBody().getItems().size());
         assertEquals(1, response2.getBody().getPagingMetadata().getOffset());
-        assertNotEquals(response.getBody().getClients().get(0), response2.getBody().getClients().get(0));
+        assertNotEquals(response.getBody().getItems().get(0), response2.getBody().getItems().get(0));
 
 
     }
@@ -113,7 +113,7 @@ public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
         assertEquals(200, response.getStatusCodeValue(),
                 "Security server list request return 200 status");
         assertNotNull(response.getBody());
-        List<SecurityServerDto> securityServers = response.getBody().getClients();
+        List<SecurityServerDto> securityServers = response.getBody().getItems();
         assertNotNull(securityServers);
         final int securityServersMatchingSearchTermAdmin = 1;
         assertEquals(securityServersMatchingSearchTermAdmin, securityServers.size());
@@ -136,10 +136,10 @@ public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
         assertEquals(200, response.getStatusCodeValue(),
                 "Security server list request return 200 status");
         assertNotNull(response.getBody());
-        List<SecurityServerDto> securityServers = response.getBody().getClients();
+        List<SecurityServerDto> securityServers = response.getBody().getItems();
         assertNotNull(securityServers);
         assertNotNull(response.getBody().getPagingMetadata());
-        int itemCount = response.getBody().getClients().size();
+        int itemCount = response.getBody().getItems().size();
         assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
                 "Total items must not be less than clients returned in one page");
         assertTrue(0 < securityServers.get(0).getXroadId().getMemberCode()

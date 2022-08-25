@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -44,7 +44,6 @@ import org.niis.xroad.centralserver.registrationservice.openapi.model.ErrorInfoD
 import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestDto;
 import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestTypeDto;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.XRoadIdDto;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -117,19 +116,13 @@ class AdminApiServiceImpl implements AdminApiService {
         request.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
         request.setServerAddress(address);
         request.setAuthenticationCertificate(certificate);
-
-        var sid = new org.niis.xroad.centralserver.registrationservice.openapi.model.SecurityServerIdDto();
-        sid.setType(XRoadIdDto.TypeEnum.SERVER);
-        sid.setInstanceId(serverId.getXRoadInstance());
-        sid.setMemberClass(serverId.getMemberClass());
-        sid.setMemberCode(serverId.getMemberCode());
-        sid.setServerCode(serverId.getServerCode());
-        request.setSecurityServerId(sid);
+        request.setSecurityServerId(serverId.asEncodedId());
 
         try {
             var result = restTemplate.exchange(
                     RequestEntity.post("/management-requests").body(request),
-                    ManagementRequestDto.class);
+                    ManagementRequestDto.class
+            );
 
             if (!result.hasBody()) {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");

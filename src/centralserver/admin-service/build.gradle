@@ -31,12 +31,6 @@ test {
     useJUnitPlatform()
 }
 
-tasks.withType(JavaCompile) {
-    doFirst {
-        println "AnnotationProcessorPath for $name is ${options.getAnnotationProcessorPath().getFiles()}"
-    }
-}
-
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
     if (project.hasProperty('args')) {
@@ -117,9 +111,10 @@ dependencies {
     implementation("io.vavr:vavr:$vavrVersion")
 
     testImplementation project(':common-test')
+    testImplementation(testFixtures(project(":common-rest-api")))
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
-    testImplementation('org.hsqldb:hsqldb')
+    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
     testImplementation('org.liquibase:liquibase-core:4.9.1')
     testImplementation('org.yaml:snakeyaml:1.30')
 
@@ -127,7 +122,7 @@ dependencies {
 
     liquibaseLibs('org.liquibase:liquibase-core:4.9.1')
     liquibaseLibs('info.picocli:picocli:4.6.3')
-    liquibaseLibs('org.postgresql:postgresql:42.3.4')
+    liquibaseLibs("org.postgresql:postgresql:$postgresqlVersion")
     liquibaseLibs('org.yaml:snakeyaml:1.30')
 }
 

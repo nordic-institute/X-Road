@@ -48,10 +48,8 @@ public final class CertificateProfileInfoValidator {
         try {
             new GetCertificateProfile(className).klass();
         } catch (Exception e) {
-            log.error("Error getting profile info for class '{}'",
-                    className, e);
-            throw new RuntimeException("Certificate profile with name '"
-                    + className + "' does not exist.");
+            log.error("Error getting profile info for class '{}'", className, e);
+            throw new RuntimeException(e.getMessage());
         }
     }
 }

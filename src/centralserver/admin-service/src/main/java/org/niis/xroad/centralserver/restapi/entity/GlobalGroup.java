@@ -27,6 +27,7 @@
 package org.niis.xroad.centralserver.restapi.entity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Access;
@@ -41,12 +42,12 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@NoArgsConstructor
 @Table(name = GlobalGroup.TABLE_NAME)
 public class GlobalGroup extends AuditableEntity {
 
@@ -57,6 +58,7 @@ public class GlobalGroup extends AuditableEntity {
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
     @Getter
+    @Setter
     private int id;
 
     @Column(name = "group_code")
@@ -78,15 +80,10 @@ public class GlobalGroup extends AuditableEntity {
     @Getter
     private Set<GlobalGroupMember> globalGroupMembers = new HashSet<>(0);
 
-    protected GlobalGroup() {
-        //JPA
-    }
-
     public GlobalGroup(String groupCode) {
         this.groupCode = groupCode;
     }
 
-    @Transient
     public int getMemberCount() {
         return this.memberCount == null ? 0 : this.memberCount;
     }

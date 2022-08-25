@@ -196,7 +196,7 @@ public interface FlattenedSecurityServerClientRepository extends
                 .get(MemberClass_.CODE));
     }
     private static Predicate instancePredicate(Root root, CriteriaBuilder builder, String s) {
-        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientView_.X_ROAD_INSTANCE));
+        return caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientView_.XROAD_INSTANCE));
     }
 
     static Predicate clientOfSecurityServerPredicate(Root root, CriteriaBuilder builder, int id) {

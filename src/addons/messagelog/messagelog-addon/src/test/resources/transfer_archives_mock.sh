@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OUTPUT_FILE=.build/transfer_output.txt
+OUTPUT_FILE=build/transfer_output.txt
 
 echo "This one goes to standard output."
 echo "And this one to standard error." >&2

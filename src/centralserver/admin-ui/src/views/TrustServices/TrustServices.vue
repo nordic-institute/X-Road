@@ -26,83 +26,107 @@
  -->
 <template>
   <xrd-sub-view-container>
-    <!-- Title and button -->
-    <div class="table-toolbar align-fix mt-0 pl-0">
-      <div class="xrd-view-title align-fix">
-        {{ $t('trustServices.certificationServices') }}
+    <div data-test="trust-services-view">
+      <div data-test="certification-services">
+        <!-- Title and button -->
+        <div class="table-toolbar align-fix mt-0 pl-0">
+          <div class="xrd-view-title align-fix">
+            {{ $t('trustServices.certificationServices') }}
+          </div>
+
+          <xrd-button
+            v-if="showAddCSButton"
+            data-test="add-certification-service"
+            @click="showAddCSDialog = true"
+          >
+            <xrd-icon-base class="xrd-large-button-icon"
+              ><XrdIconAdd
+            /></xrd-icon-base>
+            {{ $t('trustServices.addCertificationService') }}</xrd-button
+          >
+        </div>
+
+        <!-- Table -->
+        <v-data-table
+          :loading="loading"
+          :headers="headers"
+          :items="certificationServices"
+          :search="search"
+          :must-sort="true"
+          :items-per-page="-1"
+          class="elevation-0 data-table"
+          item-key="id"
+          :loader-height="2"
+          hide-default-footer
+        >
+          <template #[`item.ca_certificate.subject_common_name`]="{ item }">
+            <div class="xrd-clickable">
+              {{ item.ca_certificate.subject_common_name }}
+            </div>
+          </template>
+          <template #[`item.ca_certificate.not_before`]="{ item }">
+            <div>{{ item.ca_certificate.not_before | formatDateTime }}</div>
+          </template>
+          <template #[`item.ca_certificate.not_after`]="{ item }">
+            <div>{{ item.ca_certificate.not_after | formatDateTime }}</div>
+          </template>
+
+          <template #footer>
+            <div class="custom-footer"></div>
+          </template>
+        </v-data-table>
       </div>
 
-      <xrd-button data-test="add-certification-service" @click="() => {}">
-        <xrd-icon-base class="xrd-large-button-icon"
-          ><XrdIconAdd
-        /></xrd-icon-base>
-        {{ $t('trustServices.addCertificationService') }}</xrd-button
-      >
-    </div>
+      <div data-test="timestamping-services">
+        <!-- Title and button -->
+        <div class="table-toolbar align-fix mt-8 pl-0">
+          <div class="xrd-view-title align-fix">
+            {{ $t('trustServices.timestampingServices') }}
+          </div>
 
-    <!-- Table -->
-    <v-data-table
-      :loading="loading"
-      :headers="headers"
-      :items="certificationServices"
-      :search="search"
-      :must-sort="true"
-      :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
-      :loader-height="2"
-      hide-default-footer
-    >
-      <template #[`item.server`]="{ item }">
-        <div class="server-code">
-          <xrd-icon-base class="mr-4"><XrdIconCertificate /></xrd-icon-base>
-          {{ item.server }}
+          <xrd-button data-test="add-timestamping-service" @click="() => {}">
+            <xrd-icon-base class="xrd-large-button-icon"
+              ><XrdIconAdd
+            /></xrd-icon-base>
+            {{ $t('trustServices.addTimestampingService') }}</xrd-button
+          >
         </div>
-      </template>
 
-      <template #footer>
-        <div class="custom-footer"></div>
-      </template>
-    </v-data-table>
+        <!-- Table -->
+        <v-data-table
+          :loading="loading"
+          :headers="headers"
+          :items="certificationServices"
+          :search="search"
+          :must-sort="true"
+          :items-per-page="-1"
+          class="elevation-0 data-table"
+          item-key="id"
+          :loader-height="2"
+          hide-default-footer
+        >
+          <template #[`item.server`]="{ item }">
+            <div class="server-code">
+              <xrd-icon-base class="mr-4"><XrdIconCertificate /></xrd-icon-base
+              >{{ item.server }}
+            </div>
+          </template>
 
-    <!-- Title and button -->
-    <div class="table-toolbar align-fix mt-8 pl-0">
-      <div class="xrd-view-title align-fix">
-        {{ $t('trustServices.timestampingServices') }}
+          <template #footer>
+            <div class="custom-footer"></div>
+          </template>
+        </v-data-table>
       </div>
 
-      <xrd-button data-test="add-timestamping-service" @click="() => {}">
-        <xrd-icon-base class="xrd-large-button-icon"
-          ><XrdIconAdd
-        /></xrd-icon-base>
-        {{ $t('trustServices.addTimestampingService') }}</xrd-button
+      <!-- Dialogs -->
+      <AddApprovedCSDialog
+        v-if="showAddCSDialog"
+        :show-dialog="showAddCSDialog"
+        @save="addCertificationService"
+        @cancel="hideAddCSDialog"
       >
+      </AddApprovedCSDialog>
     </div>
-
-    <!-- Table -->
-    <v-data-table
-      :loading="loading"
-      :headers="headers"
-      :items="certificationServices"
-      :search="search"
-      :must-sort="true"
-      :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
-      :loader-height="2"
-      hide-default-footer
-    >
-      <template #[`item.server`]="{ item }">
-        <div class="server-code">
-          <xrd-icon-base class="mr-4"><XrdIconCertificate /></xrd-icon-base
-          >{{ item.server }}
-        </div>
-      </template>
-
-      <template #footer>
-        <div class="custom-footer"></div>
-      </template>
-    </v-data-table>
   </xrd-sub-view-container>
 </template>
 
@@ -111,63 +135,83 @@
  * View for 'trust services' tab
  */
 import Vue from 'vue';
+import AddApprovedCSDialog from '@/views/TrustServices/AddApprovedCSDialog.vue';
 import { DataTableHeader } from 'vuetify';
+import { mapActions, mapState, mapStores } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
+import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { userStore } from '@/store/modules/user';
+import { Permissions } from '@/global';
+import {
+  ApprovedCertificationService,
+  CertificationServiceFileAndSettings,
+} from '@/openapi-types';
 
 export default Vue.extend({
+  components: {
+    AddApprovedCSDialog,
+  },
   data() {
     return {
       search: '' as string,
       loading: false,
-      showOnlyPending: false,
-      certificationServices: [
-        {
-          server: 'X-Road test CA CN',
-          validFrom: '2021-01-15',
-          validTo: '2024-03-13',
-        },
-        {
-          server: 'X-Road test CA CN 2',
-          validFrom: '2021-03-10',
-          validTo: '2025-03-12',
-        },
-      ],
-      timestampingServices: [
-        {
-          server: 'X-Road test CA CN',
-          validFrom: '2021-01-15',
-          validTo: '2024-03-13',
-        },
-        {
-          server: 'X-Road test CA CN 2',
-          validFrom: '2021-03-10',
-          validTo: '2025-03-12',
-        },
-      ],
+      showAddCSDialog: false,
+      permissions: Permissions,
     };
   },
   computed: {
+    ...mapStores(useCertificationServiceStore, notificationsStore),
+    ...mapState(userStore, ['hasPermission']),
+    certificationServices(): ApprovedCertificationService[] {
+      return this.certificationServiceStore.certificationServices;
+    },
+    showAddCSButton(): boolean {
+      return this.hasPermission(Permissions.ADD_APPROVED_CA);
+    },
     headers(): DataTableHeader[] {
       return [
         {
           text: this.$t('trustServices.approvedCertificationService') as string,
           align: 'start',
-          value: 'server',
+          value: 'ca_certificate.subject_common_name',
           class: 'xrd-table-header ts-table-header-server-code',
         },
         {
           text: this.$t('trustServices.validFrom') as string,
           align: 'start',
-          value: 'validFrom',
+          value: 'ca_certificate.not_before',
           class: 'xrd-table-header ts-table-header-valid-from',
         },
         {
           text: this.$t('trustServices.validTo') as string,
           align: 'start',
-          value: 'validTo',
+          value: 'ca_certificate.not_after',
           class: 'xrd-table-header ts-table-header-valid-to',
         },
       ];
     },
+  },
+  methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    hideAddCSDialog(): void {
+      this.showAddCSDialog = false;
+    },
+    addCertificationService(
+      addCertificationService: CertificationServiceFileAndSettings,
+    ): void {
+      this.hideAddCSDialog();
+      this.certificationServiceStore
+        .add(addCertificationService)
+        .then(() => {
+          this.showSuccess(this.$t('trustServices.certImportedSuccessfully'));
+        })
+        .catch((error) => {
+          this.showError(error);
+        });
+    },
+  },
+  created() {
+    this.certificationServiceStore.fetchAll();
   },
 });
 </script>

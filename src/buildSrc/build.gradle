@@ -2,10 +2,6 @@ plugins {
     id 'java-gradle-plugin'
 }
 
-// Use ".build" instead of "build" as Gradle build path for all projects
-ext.buildDirName = '.build'
-buildDir = "${projectDir}/${buildDirName}"
-
 repositories {
     mavenCentral()
 }

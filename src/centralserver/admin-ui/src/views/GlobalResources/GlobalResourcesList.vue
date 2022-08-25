@@ -25,15 +25,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="global-resources-list-view">
+  <div>
     <!-- Title and action -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-view-title align-fix">
         {{ $t('globalResources.globalGroups') }}
       </div>
 
-      <xrd-button
-        data-test="add-certification-service"
+      <xrd-button data-test="add-global-group-button"
         @click="showAddGroupDialog = true"
       >
         <xrd-icon-base class="xrd-large-button-icon"
@@ -45,7 +44,7 @@
 
     <!-- Table 1 - Global Groups -->
     <v-data-table
-      :loading="loading"
+      :loading="groupsLoading"
       :headers="globalGroupsHeaders"
       :items="globalGroups"
       :must-sort="true"
@@ -54,12 +53,16 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
+      data-test="global-groups-table"
     >
       <template #[`item.code`]="{ item }">
         <div class="server-code xrd-clickable" @click="toDetails(item)">
           <xrd-icon-base class="mr-4"><XrdIconFolder /></xrd-icon-base>
           <div>{{ item.code }}</div>
         </div>
+      </template>
+      <template #[`item.updated_at`]="{ item }">
+        {{ item.updated_at | formatDateTime }}
       </template>
 
       <template #footer>
@@ -98,36 +101,11 @@
       </template>
     </v-data-table>
 
-    <!-- Dialogs -->
-    <xrd-simple-dialog
-      v-if="showAddGroupDialog"
+    <addGroupDialog
       :dialog="showAddGroupDialog"
-      cancel-button-text="action.cancel"
-      title="globalResources.addGlobalGroup"
-      @cancel="showAddGroupDialog = false"
-    >
-      <template #content>
-        <div class="dlg-input-width">
-          <v-text-field
-            v-model="code"
-            outlined
-            :label="$t('globalResources.code')"
-            autofocus
-            data-test="add-local-group-code-input"
-          ></v-text-field>
-        </div>
-
-        <div class="dlg-input-width">
-          <v-text-field
-            v-model="description"
-            hint
-            :label="$t('globalResources.description')"
-            outlined
-            data-test="add-local-group-description-input"
-          ></v-text-field>
-        </div>
-      </template>
-    </xrd-simple-dialog>
+      @cancel="closeAddGroupDialog()"
+      @group-added="groupAdded()"
+    />
   </div>
 </template>
 
@@ -138,35 +116,23 @@
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { RouteName } from '@/global';
+import { GlobalGroupResource } from '@/openapi-types';
+import { mapActions, mapStores } from 'pinia';
+import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { notificationsStore } from '@/store/modules/notifications';
+import AddGroupDialog from '@/views/GlobalResources/AddGroupDialog.vue';
 
 export default Vue.extend({
+  name: 'GlobalResourcesList',
+  components: {
+    AddGroupDialog,
+  },
   data() {
     return {
       search: '',
       loading: false,
       showOnlyPending: false,
       showAddGroupDialog: false,
-      globalGroups: [
-        {
-          code: 'Security-server-owner_1',
-          description: 'Security server owners HKI',
-          memberCount: '11',
-          updated: '2021-07-10 12:00',
-        },
-
-        {
-          code: 'Security-server-owner_2',
-          description: 'Security server owners TRE',
-          memberCount: '3',
-          updated: '2020-11-10 18:00',
-        },
-        {
-          code: 'Security-server-owner_3',
-          description: 'Descriptionish',
-          memberCount: '9',
-          updated: '2021-10-18 14:00',
-        },
-      ],
 
       centralServices: [
         {
@@ -198,6 +164,13 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapStores(useGlobalGroupsStore, notificationsStore),
+    globalGroups(): GlobalGroupResource[] {
+      return this.globalGroupStore.globalGroups;
+    },
+    groupsLoading(): boolean {
+      return this.globalGroupStore.groupsLoading;
+    },
     globalGroupsHeaders(): DataTableHeader[] {
       return [
         {
@@ -215,13 +188,13 @@ export default Vue.extend({
         {
           text: this.$t('globalResources.memberCount') as string,
           align: 'start',
-          value: 'memberCount',
+          value: 'member_count',
           class: 'xrd-table-header ss-table-header-owner-code',
         },
         {
           text: this.$t('globalResources.updated') as string,
           align: 'start',
-          value: 'updated',
+          value: 'updated_at',
           class: 'xrd-table-header ss-table-header-owner-class',
         },
       ];
@@ -268,14 +241,26 @@ export default Vue.extend({
       ];
     },
   },
-
+  created() {
+    this.fetchAllGroups();
+  },
   methods: {
-    // Add the type later when it exists
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    toDetails(globalGroup: any): void {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    closeAddGroupDialog(): void {
+      this.showAddGroupDialog = false;
+    },
+    groupAdded(): void {
+      this.showAddGroupDialog = false;
+    },
+    toDetails(globalGroup: GlobalGroupResource): void {
       this.$router.push({
         name: RouteName.GlobalGroup,
-        params: { groupId: 'foo11' },
+        params: { groupId: String(globalGroup.id) || '' },
+      });
+    },
+    fetchAllGroups(): void {
+      this.globalGroupStore.findAll().catch((error) => {
+        this.showError(error);
       });
     },
   },

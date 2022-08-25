@@ -72,7 +72,7 @@ public class RegistrationRequestApiTest {
 
     @ClassRule
     public static WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
-            .keystorePath("./.build/resources/test/testconf/ssl/internal.p12")
+            .keystorePath("./build/resources/test/testconf/ssl/internal.p12")
             .keystoreType("PKCS12")
             .keystorePassword("internal")
             .keyManagerPassword("internal")
@@ -84,7 +84,7 @@ public class RegistrationRequestApiTest {
 
     @BeforeClass
     public static void setup() {
-        System.setProperty(SystemProperties.CONF_PATH, ".build/resources/test/testconf");
+        System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/testconf");
         GlobalConf.reload(new TestGlobalConf());
     }
 
@@ -96,8 +96,8 @@ public class RegistrationRequestApiTest {
 
         properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.httpsPort())));
         var response = new ManagementRequestDto();
-        response.setType(AUTH_CERT_REGISTRATION_REQUEST);
         response.setId(42);
+        response.setType(AUTH_CERT_REGISTRATION_REQUEST);
 
         wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
                 .willReturn(WireMock.jsonResponse(response, 202)));

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.function.ThrowingRunnable;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
@@ -43,10 +42,10 @@ import javax.validation.ConstraintViolationException;
 import java.util.List;
 
 import static java.util.Locale.ROOT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.util.AssertionErrors.assertTrue;
 
 public class SecurityServerControllerTest extends AbstractApiControllerTestContext {
 
@@ -65,7 +64,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         assertNotNull(response);
         assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
         assertNotNull(response.getBody());
-        List<SecurityServerDto> securityServerList = response.getBody().getClients();
+        List<SecurityServerDto> securityServerList = response.getBody().getItems();
         assertTrue(
                 "In descending sort for server code, the first item have be lexicographically"
                         + " prior server code compared to the second",
@@ -86,7 +85,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         assertNotNull(response2);
         assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
-        List<SecurityServerDto> securityServerList2 = response2.getBody().getClients();
+        List<SecurityServerDto> securityServerList2 = response2.getBody().getItems();
         assertTrue(
                 "In descending sort for owner code, the first item have be lexicographically"
                         + " prior owner code compared to the last",
@@ -108,7 +107,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         assertNotNull(response2);
         assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
-        List<SecurityServerDto> securityServerList2 = response2.getBody().getClients();
+        List<SecurityServerDto> securityServerList2 = response2.getBody().getItems();
         assertTrue(
                 "In descending sort for owner name, the first item have be lexicographically"
                         + " after owner name compared to the last",
@@ -128,7 +127,7 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         assertNotNull(response2);
         assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
-        List<SecurityServerDto> securityServerList2 = response2.getBody().getClients();
+        List<SecurityServerDto> securityServerList2 = response2.getBody().getItems();
         assertTrue(
                 "In descending sort for owner class, the first item have be lexicographically"
                         + " after owner class compared to the last",
@@ -142,33 +141,30 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
     public void testInvalidSortParameterThrowsConstraintViolation() throws ConstraintViolationException {
         PagingSortingParametersDto sortingParameters = new PagingSortingParametersDto().sort("Really invalid&&%&¤&#&&");
-
-        ThrowingRunnable testable = () ->
-                securityServersApiController.findSecurityServers("not_relevant", sortingParameters);
-
-        assertThrows(ConstraintViolationException.class, testable);
+        assertThrows(
+                ConstraintViolationException.class,
+                () -> securityServersApiController.findSecurityServers("not_relevant", sortingParameters)
+        );
     }
 
     @Test
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
     public void testUnknownSortingFieldParameterThrowsConstraintViolation() throws BadRequestException {
         PagingSortingParametersDto sortingParameters = new PagingSortingParametersDto().sort("unknown_field");
-
-        ThrowingRunnable testable = () ->
-                securityServersApiController.findSecurityServers("not_relevant", sortingParameters);
-
-        assertThrows(BadRequestException.class, testable);
+        assertThrows(
+                BadRequestException.class,
+                () -> securityServersApiController.findSecurityServers("not_relevant", sortingParameters)
+        );
     }
 
     @Test
     @WithMockUser(authorities = {"UNKNOWN_AUTHORITY"})
-    public void testUnknownAuthorityThrowsAccessDeniedExceptio() throws AccessDeniedException {
+    public void testUnknownAuthorityThrowsAccessDeniedException() throws AccessDeniedException {
         PagingSortingParametersDto sortingParameters = new PagingSortingParametersDto();
-
-        ThrowingRunnable testable = () ->
-                securityServersApiController.findSecurityServers("not_relevant", sortingParameters);
-
-        assertThrows(AccessDeniedException.class, testable);
+        assertThrows(
+                AccessDeniedException.class,
+                () -> securityServersApiController.findSecurityServers("not_relevant", sortingParameters)
+        );
     }
 
 }

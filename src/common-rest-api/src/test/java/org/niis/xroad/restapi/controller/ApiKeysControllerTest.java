@@ -33,12 +33,10 @@ import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.service.ApiKeyService;
-import org.niis.xroad.restapi.test.AbstractSpringIntTest;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
 import java.util.List;
@@ -58,14 +56,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test ApiKeysController
  */
-class ApiKeysControllerTest extends AbstractSpringIntTest {
+class ApiKeysControllerTest extends AbstractSpringMvcTest {
     @MockBean
     private ApiKeyService apiKeyService;
     @MockBean
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
-
-    @Autowired
-    private MockMvc mockMvc;
 
     private static final String AUTHORITY_WRONG = "AUTHORITY_WRONG";
     private static final String AUTHORITY_CREATE_API_KEY = "CREATE_API_KEY";

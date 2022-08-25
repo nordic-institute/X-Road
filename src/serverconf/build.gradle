@@ -20,7 +20,7 @@ dependencies {
     implementation project(':common-verifier')
 
     // DB layer tests use HSQLDB with in-memory tables
-    testImplementation 'org.hsqldb:hsqldb:2.5.2'
+    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
     testImplementation project(':common-db')
     testImplementation project(':common-test')
     testImplementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"
@@ -31,14 +31,14 @@ dependencies {
     schema "org.hibernate:hibernate-tools:$hibernateVersion"
     schema 'commons-collections:commons-collections:3.2.2'
     schema "ch.qos.logback:logback-classic:${logbackVersion}"
-    schema 'org.hsqldb:hsqldb:2.5.2'
+    schema "org.hsqldb:hsqldb:$hsqldbVersion"
 }
 
 task schemaExport () {
     doLast {
         ant.taskdef(name: 'schemaExport', classname: 'org.hibernate.tool.ant.HibernateToolTask', classpath: configurations.schema.asPath)
 
-        ant.schemaExport(destdir: "${buildDirName}") {
+        ant.schemaExport(destdir: "build") {
             configuration(
                 configurationfile: 'src/main/resources/serverconf.hibernate.cfg.xml',
                 propertyFile: 'src/test/resources/hibernate-schema.properties'

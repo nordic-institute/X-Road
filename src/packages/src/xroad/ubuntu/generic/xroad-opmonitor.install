@@ -1,7 +1,7 @@
 ../../../../src/xroad/common/op-monitor/etc/* etc
 ../../../../src/xroad/common/op-monitor/usr/* usr
 
-../../../../../op-monitor-daemon/.build/libs/op-monitor-daemon-1.0.jar usr/share/xroad/jlib
+../../../../../op-monitor-daemon/build/libs/op-monitor-daemon-1.0.jar usr/share/xroad/jlib
 ../../../../src/xroad/default-configuration/op-monitor.ini etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/op-monitor-logback.xml etc/xroad/conf.d
 ../../../../src/xroad/common/op-monitor/generate-opmonitor-certificate.sh usr/share/xroad/scripts

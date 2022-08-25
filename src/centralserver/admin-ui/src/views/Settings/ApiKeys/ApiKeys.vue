@@ -49,6 +49,7 @@
       :headers="headers"
       :items="apiKeys"
       :search="search"
+      :sort-by="['id']"
       :must-sort="true"
       :items-per-page="-1"
       class="elevation-0 data-table"
@@ -57,14 +58,14 @@
       hide-default-footer
     >
       <template #[`item.id`]="{ item }">
-        <div class="server-code">
+        <div data-test="api-key-id" class="server-code">
           <xrd-icon-base class="mr-4"><XrdIconKey /></xrd-icon-base>
           {{ item.id }}
         </div>
       </template>
 
       <template #[`item.roles`]="{ item }">
-        {{ translateRoles(item.roles) | commaSeparate }}
+        <span :data-test="`api-key-row-${item.id}-roles`">{{ translateRoles(item.roles) | commaSeparate }}</span>
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -128,6 +129,7 @@
               height="10px"
               :value="role"
               :label="$t(`apiKey.role.${role}`)"
+              :data-test="`role-${role}-checkbox`"
             />
           </v-col>
         </v-row>
@@ -176,18 +178,7 @@ export default Vue.extend({
       savingChanges: false,
       removingApiKey: false,
       roles: Roles,
-      apiKeys: [
-        {
-          id: 3897387478,
-          roles: ['XROAD_SECURITY_OFFICER', 'XROAD_SYSTEM_ADMINISTRATOR'],
-          key: 'iugyuidfguiygffg89',
-        },
-        {
-          id: 19383837,
-          roles: ['XROAD_SYSTEM_ADMINISTRATOR'],
-          key: 'jhdfg7jgjkghhj',
-        },
-      ] as ApiKey[],
+      apiKeys: new Array<ApiKey>(),
     };
   },
   computed: {
@@ -232,7 +223,14 @@ export default Vue.extend({
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     loadKeys(): void {
-      // Implement loading later
+      if (this.hasPermission(Permissions.VIEW_API_KEYS)) {
+        this.loading = true;
+        api
+          .get<ApiKey[]>('/api-keys')
+          .then((resp) => (this.apiKeys = resp.data))
+          .catch((error) => this.showError(error))
+          .finally(() => (this.loading = false));
+      }
     },
     editKey(apiKey: ApiKey): void {
       this.selectedKey = apiKey;

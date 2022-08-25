@@ -34,7 +34,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {
+        "org.niis.xroad.centralserver.registrationservice",
+        "org.niis.xroad.restapi"
+})
 @EnableScheduling
 @Slf4j
 public class Main {

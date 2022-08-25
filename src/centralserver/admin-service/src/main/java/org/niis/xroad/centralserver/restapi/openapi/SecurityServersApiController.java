@@ -27,7 +27,6 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.SecurityServersApi;
 import org.niis.xroad.centralserver.openapi.model.CertificateDetailsDto;
@@ -37,9 +36,9 @@ import org.niis.xroad.centralserver.openapi.model.SecurityServerAddressDto;
 import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
 import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.SecurityServerConverter;
-import org.niis.xroad.centralserver.restapi.converter.SecurityServerSortParameterConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.db.SecurityServerDtoConverter;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -55,7 +54,8 @@ import javax.transaction.Transactional;
 
 import java.util.Set;
 
-@Slf4j
+import static java.util.Map.entry;
+
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
@@ -64,8 +64,18 @@ public class SecurityServersApiController implements SecurityServersApi {
 
     private final SecurityServerConverter serverConverter;
     private final SecurityServerDtoConverter securityServerDtoConverter;
+    private final PageRequestConverter pageRequestConverter;
+
     private final SecurityServerService securityServerService;
-    private PageRequestConverter pageRequestConverter = new PageRequestConverter();
+    private final AuditDataHelper auditData;
+
+    private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
+            new PageRequestConverter.MappableSortParameterConverter(
+                    entry("owner_name", "owner.name"),
+                    entry("xroad_id.member_class", "owner.memberClass.code"),
+                    entry("xroad_id.member_code", "owner.memberCode"),
+                    entry("xroad_id.server_code", "serverCode")
+            );
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_SECURITY_SERVER')")
@@ -86,7 +96,8 @@ public class SecurityServersApiController implements SecurityServersApi {
     public ResponseEntity<PagedSecurityServersDto> findSecurityServers(String query,
                                                                        PagingSortingParametersDto pagingSorting) {
         PageRequest pageRequest = pageRequestConverter.convert(
-                pagingSorting, new SecurityServerSortParameterConverter());
+                pagingSorting, findSortParameterConverter);
+
 
         Page<SecurityServerDto> servers = securityServerService.findSecurityServers(query, pageRequest)
                 .map(securityServerDtoConverter::toDto);

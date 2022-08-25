@@ -43,7 +43,7 @@ import static org.junit.Assert.fail;
  * Unit tests for {@link ee.ria.xroad.common.util.AtomicSave}
  */
 public class AtomicSaveTest {
-    private static final String DESTINATION_FILE = ".build/tmp/atomicsavetest.test";
+    private static final String DESTINATION_FILE = "build/tmp/atomicsavetest.test";
 
     /**
      * Ensure that tmp file will be removed after exception occurs.
@@ -66,7 +66,7 @@ public class AtomicSaveTest {
     }
 
     private static boolean tmpFileExists() throws IOException {
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(Paths.get(".build/tmp"),
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(Paths.get("build/tmp"),
                 "AtomicSaveTest*.tmp")) {
             return dirStream.iterator().hasNext();
         }

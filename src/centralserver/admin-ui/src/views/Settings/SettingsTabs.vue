@@ -41,61 +41,19 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
-import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { mapStores } from 'pinia';
+import { availableSettingsTabsStore } from '@/store/modules/settings-tabs';
 
 export default Vue.extend({
   components: {
     SubTabs,
   },
   computed: {
-    ...mapState(userStore, ['getAllowedTabs']),
+    ...mapStores(availableSettingsTabsStore, ['getAvailableTabs']),
     tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'globalresources-tab-button',
-          name: 'tab.settings.globalResources',
-          to: {
-            name: RouteName.GlobalResources,
-          },
-          permissions: [
-            Permissions.VIEW_GLOBAL_GROUPS,
-            Permissions.VIEW_SECURITY_SERVERS,
-          ],
-        },
-        {
-          key: 'systemsettings-tab-button',
-          name: 'tab.settings.systemSettings',
-          to: {
-            name: RouteName.SystemSettings,
-          },
-          permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
-        },
-        {
-          key: 'backupandrestore-tab-button',
-          name: 'tab.settings.backupAndRestore',
-          to: {
-            name: RouteName.BackupAndRestore,
-          },
-          permissions: [Permissions.BACKUP_CONFIGURATION],
-        },
-        {
-          key: 'apikeys-tab-button',
-          name: 'tab.settings.apiKeys',
-          to: {
-            name: RouteName.ApiKeys,
-          },
-          permissions: [
-            Permissions.VIEW_API_KEYS,
-            Permissions.CREATE_API_KEY,
-            Permissions.REVOKE_API_KEY,
-          ],
-        },
-      ];
-      return this.getAllowedTabs(allTabs);
+      return this.settingsTabServiceStore.getAvailableTabs();
     },
   },
 });

@@ -480,9 +480,8 @@ public class GlobalConfImpl implements GlobalConfProvider {
         byte[] inputCertHash = certHash(cert);
         return getSharedParameters().stream()
                 .map(p -> p.getMemberAuthCerts().get(memberId))
-                .filter(Objects::nonNull).flatMap(h -> h.stream())
-                .filter(h -> Arrays.equals(inputCertHash, h)).findFirst()
-                .isPresent();
+                .filter(Objects::nonNull).flatMap(Collection::stream)
+                .anyMatch(h -> Arrays.equals(inputCertHash, h));
     }
 
     @Override

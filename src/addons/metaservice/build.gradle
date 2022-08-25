@@ -19,7 +19,7 @@ dependencies {
     testImplementation 'org.apache.httpcomponents:httpmime:4.5.13'
     testImplementation 'org.xmlunit:xmlunit-core:2.8.2'
     testImplementation 'org.xmlunit:xmlunit-matchers:2.8.2'
-    testImplementation 'org.hsqldb:hsqldb:2.5.2'
+    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 
@@ -30,8 +30,8 @@ task runMetaserviceTest(type: JavaExec) {
                 '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'
     }
 
-    jvmArgs '-Dxroad.proxy.ocspCachePath=.build/ocsp-cache',
-            '-Dxroad.tempFiles.path=.build/attach-tmp',
+    jvmArgs '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
+            '-Dxroad.tempFiles.path=build/attach-tmp',
             '-Dxroad.proxy.configurationFile=../../systemtest/conf/local_test/serverconf_producer.xml',
             '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/resources/serverproxy.xml',
             '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/resources/clientproxy.xml',

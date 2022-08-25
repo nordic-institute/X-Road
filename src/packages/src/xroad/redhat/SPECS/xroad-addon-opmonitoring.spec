@@ -26,7 +26,7 @@ mkdir -p %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 
 cp -p %{srcdir}/common/addon/proxy/opmonitoring.conf %{buildroot}/usr/share/xroad/jlib/addon/proxy/
-cp -p %{srcdir}/../../../addons/op-monitoring/.build/libs/op-monitoring-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+cp -p %{srcdir}/../../../addons/op-monitoring/build/libs/op-monitoring-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/xroad-addon-opmonitoring/
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/xroad-addon-opmonitoring/
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/xroad-addon-opmonitoring/

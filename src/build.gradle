@@ -17,6 +17,7 @@ plugins {
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
     id 'org.springframework.boot' version "${springBootVersion}" apply false
+    //id "com.dorongold.task-tree" version "2.1.0"
 }
 
 repositories {
@@ -30,9 +31,9 @@ sonarqube {
         property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "Data Exchange Layer"
         property "sonar.projectVersion", xroadVersion
-        property "sonar.dependencyCheck.reportPath", "${buildDirName}/reports/owasp-dependency-check/dependency-check-report.xml"
-        property "sonar.dependencyCheck.htmlReportPath", "${buildDirName}/reports/owasp-dependency-check/dependency-check-report.html"
-        property "sonar.exclusions", "**/${buildDirName}/generated-sources/**"
+        property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
+        property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
+        property "sonar.exclusions", "**/build/generated-sources/**"
         property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
     }
 }
@@ -69,10 +70,6 @@ dependencyCheck {
 }
 
 allprojects {
-    // Use ".build" instead of "build" as Gradle build path for all projects
-    ext.buildDirName = '.build'
-    buildDir = "${projectDir}/${buildDirName}"
-
     group = 'org.niis.xroad'
     version = '1.0'
 
@@ -215,11 +212,9 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
         from rootProject.file('LICENSE.txt')
     }
 
-    task buildall(dependsOn: [build]) {
-    }
 }
 
-clean.delete << "${rootDir}/packages/${buildDirName}"
+clean.delete << "${rootDir}/packages/build"
 
 jacocoTestReport {
     def javaProjects = subprojects.findAll{it.plugins.hasPlugin(JavaPlugin)}
@@ -229,5 +224,5 @@ jacocoTestReport {
     }
     classDirectories.setFrom files(javaProjects.sourceSets.main.java.classesDirectory)
     sourceDirectories.setFrom files(javaProjects.sourceSets.main.java.srcDirs)
-    executionData.setFrom fileTree(dir: '.', include: "**/${buildDirName}/jacoco/*.exec")
+    executionData.setFrom fileTree(dir: '.', include: "**/build/jacoco/*.exec")
 }

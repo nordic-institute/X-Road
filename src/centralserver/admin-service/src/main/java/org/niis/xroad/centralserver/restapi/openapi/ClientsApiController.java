@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,7 +36,6 @@ import org.niis.xroad.centralserver.openapi.model.ClientTypeDto;
 import org.niis.xroad.centralserver.openapi.model.MemberNameDto;
 import org.niis.xroad.centralserver.openapi.model.PagedClientsDto;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
-import org.niis.xroad.centralserver.restapi.converter.MemberSortParameterConverter;
 import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.PagedClientsConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.db.ClientDtoConverter;
@@ -57,6 +56,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import static java.util.Map.entry;
+
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
@@ -66,14 +67,22 @@ public class ClientsApiController implements ClientsApi {
     private final ClientService clientService;
     private final AuditDataHelper auditData;
     private final SecurityServerService securityServerService;
-
     private final PagedClientsConverter pagedClientsConverter;
     private final PageRequestConverter pageRequestConverter;
     private final SecurityServerIdConverter securityServerIdConverter;
     private final ClientDtoConverter.Flattened flattenedSecurityServerClientViewDtoConverter;
-    private final MemberSortParameterConverter memberSortParameterConverter;
     private final ClientDtoConverter clientDtoConverter;
     private final ClientTypeDtoConverter.Service clientTypeDtoConverter;
+
+    private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
+            new PageRequestConverter.MappableSortParameterConverter(
+                    entry("id", "id"),
+                    entry("member_name", "memberName"),
+                    entry("xroad_id.instance_id", "xroadInstance"),
+                    entry("xroad_id.member_class", "memberClass"),
+                    entry("xroad_id.member_code", "memberCode"),
+                    entry("client_type", "type")
+            );
 
     @Override
     @PreAuthorize("hasAuthority('ADD_NEW_MEMBER')")
@@ -106,7 +115,7 @@ public class ClientsApiController implements ClientsApi {
                                                        String subsystemCode,
                                                        ClientTypeDto clientTypeDto,
                                                        String encodedSecurityServerId) {
-        PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, memberSortParameterConverter);
+        PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
         FlattenedSecurityServerClientRepository.SearchParameters params =
                 new FlattenedSecurityServerClientRepository.SearchParameters()
                         .setMultifieldSearch(query)

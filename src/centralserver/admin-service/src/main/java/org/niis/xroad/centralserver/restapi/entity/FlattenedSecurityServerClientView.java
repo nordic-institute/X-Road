@@ -53,7 +53,7 @@ import java.util.Set;
 @Immutable
 @Table(name = FlattenedSecurityServerClientView.TABLE_NAME)
 public class FlattenedSecurityServerClientView extends AuditableEntity {
-
+// Subselect prevents table creation: https://stackoverflow.com/a/33689357
     public static final String TABLE_NAME = "flattened_security_server_client";
 
     @Id
@@ -63,7 +63,7 @@ public class FlattenedSecurityServerClientView extends AuditableEntity {
 
     @Column(name = "xroad_instance")
     @Getter
-    private String xRoadInstance;
+    private String xroadInstance;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "member_class_id")

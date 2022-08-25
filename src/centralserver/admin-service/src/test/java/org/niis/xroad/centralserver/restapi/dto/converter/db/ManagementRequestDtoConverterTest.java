@@ -45,13 +45,11 @@ import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatusDto;
-import org.niis.xroad.centralserver.openapi.model.SecurityServerIdDto;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.centralserver.restapi.dto.converter.AbstractDtoConverterTest;
 import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestOriginDtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestStatusConverter;
-import org.niis.xroad.centralserver.restapi.dto.converter.model.SecurityServerIdDtoConverter;
 import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.centralserver.restapi.entity.ClientDeletionRequest;
@@ -59,6 +57,8 @@ import org.niis.xroad.centralserver.restapi.entity.ClientRegistrationRequest;
 import org.niis.xroad.centralserver.restapi.entity.MemberId;
 import org.niis.xroad.centralserver.restapi.entity.Request;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerId;
+import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -81,13 +81,11 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
     private ClientIdDto clientIdDto;
     @Mock
     private SecurityServerId securityServerId;
-    @Mock
-    private SecurityServerIdDto securityServerIdDto;
 
     @Mock
     private ManagementRequestOriginDtoConverter.Service originDtoMapper;
     @Mock
-    private SecurityServerIdDtoConverter securityServerIdDtoMapper;
+    private SecurityServerIdConverter securityServerIdMapper;
     @Mock
     private ManagementRequestStatusConverter.Service statusMapper;
     @Mock
@@ -199,7 +197,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
             Executable testable = () -> converter.toDto(illegalRequest);
 
-            IllegalArgumentException actualThrown = assertThrows(IllegalArgumentException.class, testable);
+            BadRequestException actualThrown = assertThrows(BadRequestException.class, testable);
             assertEquals("Unknown request type", actualThrown.getMessage());
             inOrder(illegalRequest).verifyNoMoreInteractions();
         }
@@ -209,7 +207,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             doReturn(origin).when(request).getOrigin();
             doReturn(originDto).when(originDtoMapper).toDto(origin);
             doReturn(securityServerId).when(request).getSecurityServerId();
-            doReturn(securityServerIdDto).when(securityServerIdDtoMapper).toDto(securityServerId);
+            doReturn("SECURITY_SERVER_ID").when(securityServerIdMapper).convertId(securityServerId);
             doReturn(managementRequestStatus).when(request).getProcessingStatus();
             doReturn(managementRequestStatusDto).when(statusMapper).toDto(managementRequestStatus);
             doReturn(createdAtInstance).when(request).getCreatedAt();
@@ -220,7 +218,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             assertNotNull(requestDto);
             assertEquals(ID, requestDto.getId());
             assertEquals(originDto, requestDto.getOrigin());
-            assertEquals(securityServerIdDto, requestDto.getSecurityServerId());
+            assertEquals("SECURITY_SERVER_ID", requestDto.getSecurityServerId());
             assertEquals(managementRequestStatusDto, requestDto.getStatus());
             assertEquals(createdAtOffsetDateTime, requestDto.getCreatedAt());
             assertEquals(updatedAtOffsetDateTime, requestDto.getUpdatedAt());
@@ -231,7 +229,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             inOrder.verify(request).getOrigin();
             inOrder.verify(originDtoMapper).toDto(origin);
             inOrder.verify(request).getSecurityServerId();
-            inOrder.verify(securityServerIdDtoMapper).toDto(securityServerId);
+            inOrder.verify(securityServerIdMapper).convertId(securityServerId);
             inOrder.verify(request).getProcessingStatus();
             inOrder.verify(statusMapper).toDto(managementRequestStatus);
             inOrder.verify(request).getCreatedAt();
@@ -329,8 +327,8 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
         private void prepareCommonStubs(ManagementRequestDto requestDto) {
             doReturn(originDto).when(requestDto).getOrigin();
             doReturn(origin).when(originDtoMapper).fromDto(originDto);
-            doReturn(securityServerIdDto).when(requestDto).getSecurityServerId();
-            doReturn(securityServerId).when(securityServerIdDtoMapper).fromDto(securityServerIdDto);
+            doReturn("SECURITY_SERVER_ID").when(requestDto).getSecurityServerId();
+            doReturn(securityServerId).when(securityServerIdMapper).convertId("SECURITY_SERVER_ID");
         }
 
         private void assertCommon(Request request) {
@@ -343,7 +341,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             inOrder.verify(requestDto).getOrigin();
             inOrder.verify(originDtoMapper).fromDto(originDto);
             inOrder.verify(requestDto).getSecurityServerId();
-            inOrder.verify(securityServerIdDtoMapper).fromDto(securityServerIdDto);
+            inOrder.verify(securityServerIdMapper).convertId("SECURITY_SERVER_ID");
         }
     }
 

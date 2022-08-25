@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,41 +30,53 @@ import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.ManagementRequestsApi;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestInfoPageDto;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatusDto;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestsFilterDto;
+import org.niis.xroad.centralserver.openapi.model.PagedManagementRequestsDto;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
+import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
+import org.niis.xroad.centralserver.restapi.converter.PagedManagementRequestsConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.db.ManagementRequestDtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestDtoTypeConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestOriginDtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.model.ManagementRequestStatusConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.model.SecurityServerIdDtoConverter;
-import org.niis.xroad.centralserver.restapi.entity.Request;
 import org.niis.xroad.centralserver.restapi.service.managementrequest.ManagementRequestService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static java.util.Map.entry;
+
 @RestController
+@PreAuthorize("denyAll")
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @RequiredArgsConstructor
 public class ManagementRequestsApiController implements ManagementRequestsApi {
-
-    public static final int MAX_PAGE_SIZE = 10;
     private final ManagementRequestService service;
     private final ManagementRequestDtoConverter managementRequestDtoConverter;
     private final ManagementRequestOriginDtoConverter.Service originMapper;
     private final ManagementRequestDtoTypeConverter.Service typeMapper;
     private final ManagementRequestStatusConverter.Service statusMapper;
     private final SecurityServerIdDtoConverter securityServerIdDtoMapper;
+    private final ManagementRequestDtoConverter converter;
+    private final PageRequestConverter pageRequestConverter;
+    private final PagedManagementRequestsConverter pagedManagementRequestsConverter;
+    private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
+            new PageRequestConverter.MappableSortParameterConverter(
+                    entry("id", "id"),
+                    entry("created_at", "createdAt"),
+                    entry("type", "type"),
+                    entry("security_server_owner", "securityServerOwnerName"),
+                    entry("security_server_id", "securityServerIdentifierId"),
+                    entry("status", "requestProcessingStatus")
+            );
 
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.ADD_MANAGEMENT_REQUEST)
@@ -103,39 +115,18 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
     @AuditEventMethod(event = RestApiAuditEvent.APPROVE_MANAGEMENT_REQUEST)
     @PreAuthorize("hasPermission(#id, 'MANAGEMENT_REQUEST', 'APPROVE')")
     public ResponseEntity<ManagementRequestDto> approveManagementRequest(Integer id) {
-        return Option.of(id)
-                .map(service::<Request>approve)
-                .map(managementRequestDtoConverter::toDto)
-                .map(ResponseEntity::ok).get();
+        return ResponseEntity.ok(converter.convert(service.approve(id)));
     }
 
     @Override
-    public ResponseEntity<ManagementRequestInfoPageDto> findManagementRequests(ManagementRequestOriginDto origin,
-                                                                            ManagementRequestTypeDto type,
-                                                                            ManagementRequestStatusDto status,
-                                                                            String serverId,
-                                                                            Integer page) {
-        //todo: sorting, page size handling, free text search
+    @PreAuthorize("hasAuthority('VIEW_MANAGEMENT_REQUESTS')")
+    public ResponseEntity<PagedManagementRequestsDto> findManagementRequests(ManagementRequestsFilterDto filter,
+                                                                             PagingSortingParametersDto pagingSorting) {
+        PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
+        var resultPage = service.findRequests(converter.convert(filter), pageRequest);
 
-        int pageNr = page == null ? 0 : page;
-        Page<ManagementRequestDto> requests =
-                service.findRequests(
-                        originMapper.fromDto(origin),
-                        typeMapper.fromDto(type),
-                        statusMapper.fromDto(status),
-                        managementRequestDtoConverter.parseServerId(serverId),
-                        PageRequest.of(pageNr,
-                                MAX_PAGE_SIZE,
-                                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.by("id"))
-                        )).map(managementRequestDtoConverter::toDto);
-
-        ManagementRequestInfoPageDto response = new ManagementRequestInfoPageDto();
-        response.setNumber(requests.getNumber());
-        response.setSize(requests.getSize());
-        response.setTotalPages(requests.getTotalPages());
-        response.setTotalElements((int) requests.getTotalElements());
-        response.setItems(requests.getContent());
-
-        return ResponseEntity.ok(response);
+        PagedManagementRequestsDto pagedResults = pagedManagementRequestsConverter.convert(resultPage, pagingSorting);
+        return ResponseEntity.ok(pagedResults);
     }
+
 }
