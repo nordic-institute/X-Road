@@ -50,6 +50,8 @@ migrate() {
     context="--contexts=admin"
   fi
 
+  echo "Context was: ${context}"
+
   LIQUIBASE_HOME="$(pwd)" JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
     --classpath=/usr/share/xroad/jlib/postgresql.jar \
     --url="jdbc:postgresql://$db_host/$db_database?currentSchema=${db_schema},public" \
