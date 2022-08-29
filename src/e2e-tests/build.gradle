@@ -16,6 +16,8 @@ task e2eTest(type: Test) {
     classpath = sourceSets.intTest.runtimeClasspath
 
     testLogging.showStackTraces(true)
+    testLogging.showExceptions(true)
+    testLogging.showCauses(true)
     testLogging.showStandardStreams(true)
 
     shouldRunAfter test
