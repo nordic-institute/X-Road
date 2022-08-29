@@ -1,0 +1,33 @@
+#Logging configuration
+logging:
+  level:
+    ROOT: INFO
+    cucumber: TRACE
+    org.springframework: INFO
+
+test-automation:
+  report-name: xroad-ui-test-suite
+  environment: restuitest
+  spring-component-scan: "org.niis.xroad.test"
+  cucumber:
+    execution:
+      parallel:
+        enabled: false # Parallel execution triggers HTTP 429 Too Many Requests
+    glue-append: "org.niis.xroad.test"
+    filter:
+      tags: "not @Skip"
+
+  selenide:
+    browser: CHROME # Options: CHROME, EDGE, FIREFOX, OPERA, SAFARI (works only with Mac)
+    browser-size: "1280x900"
+    driver-manager-enabled: true
+    headless: true
+    timeout: 10000
+    page-load-timeout: 10000
+    screenshots: true
+    proxy-enabled: true # Proxy is required for file downloads.
+    file-download: proxy
+
+  custom:
+    security-server-url: "https://localhost:4040/" # https://restuitest-ss1.i.x-road.rocks:4000
+    central-server-url: "https://restuitest-cs.i.x-road.rocks:4000"

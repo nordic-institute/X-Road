@@ -79,6 +79,7 @@ allprojects {
     }
 
     repositories {
+      mavenLocal()
       mavenCentral()
     }
 
@@ -112,8 +113,18 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
     group = 'ee.ria.xroad'
     version = '1.0'
 
+    sourceSets {
+        intTest {
+            compileClasspath += sourceSets.main.output
+            runtimeClasspath += sourceSets.main.output
+        }
+    }
+
     configurations {
         testArtifacts.extendsFrom testRuntime
+
+        intTestImplementation.extendsFrom implementation
+        intTestRuntimeOnly.extendsFrom runtimeOnly
     }
 
     dependencies {
@@ -121,11 +132,14 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
         testImplementation 'junit:junit:4.13.2'
 
-        compileOnly 'org.projectlombok:lombok:1.18.22'
-        annotationProcessor 'org.projectlombok:lombok:1.18.22'
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
-        testCompileOnly 'org.projectlombok:lombok:1.18.22'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+        intTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+        intTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     }
 
     task testJar(type: Jar) {
