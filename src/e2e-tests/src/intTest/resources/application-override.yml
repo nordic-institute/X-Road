@@ -29,5 +29,5 @@ test-automation:
     file-download: proxy
 
   custom:
-    security-server-url: "https://localhost:4040/" # https://restuitest-ss1.i.x-road.rocks:4000
+    security-server-url: "https://restuitest-ss1.i.x-road.rocks:4000"
     central-server-url: "https://restuitest-cs.i.x-road.rocks:4000"
