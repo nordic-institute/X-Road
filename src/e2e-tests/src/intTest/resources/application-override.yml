@@ -26,6 +26,7 @@ test-automation:
     page-load-timeout: 10000
     screenshots: true
     proxy-enabled: true # Proxy is required for file downloads.
+    proxy-host: 127.0.0.1
     file-download: proxy
 
   custom:

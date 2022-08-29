@@ -17,14 +17,6 @@ task e2eTest(type: Test) {
     classpath = sourceSets.intTest.runtimeClasspath
 
     testLogging {
-        events(TestLogEvent.FAILED,
-            TestLogEvent.PASSED,
-            TestLogEvent.SKIPPED,
-            TestLogEvent.STANDARD_ERROR,
-            TestLogEvent.STANDARD_OUT,
-            TestLogEvent.STARTED)
-
-        exceptionFormat(TestExceptionFormat.FULL)
         showStackTraces(true)
         showExceptions(true)
         showCauses(true)
