@@ -5,7 +5,7 @@ dependencies {
     intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
  }
 
-task integrationTest(type: Test) {
+task e2eTest(type: Test) {
     useJUnitPlatform()
 
     setDescription("Runs integration tests.")
