@@ -130,6 +130,7 @@ BEGIN
     RAISE NOTICE 'User $db_plain_user already exists';
 END
 \$\$;
+\c "${db_database}"
 GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
 GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
 EOF
