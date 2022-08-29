@@ -62,9 +62,9 @@ public class SecurityServerKeysStepDefs extends BaseUiStepDefs {
         $(TAB_TLS_KEYS).click();
     }
 
-    @Then("Token name visible")
+    @Then("Token name is visible")
     public void tokenNameIsVisible() {
-        $(TOKEN_NAME).shouldNotBe(Condition.visible);
+        $(TOKEN_NAME).shouldBe(Condition.visible);
     }
 
     @Then("Generate key button is visible")
