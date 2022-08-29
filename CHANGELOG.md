@@ -2,6 +2,10 @@
 
 ## 7.2.0 - UNRELEASED
 
+## 7.1.1 - 2022-08-18
+- XRDDEV-2095: Operational monitoring database migrations are not executed on RHEL8 during installation
+- XRDDEV-2115: Update dependencies with known vulnerabilities
+
 ## 7.1.0 - 2022-05-26
 - XRDDEV-1788: Show a warning if the deprecated "/etc/xroad/services/local.conf" configuration file exists when generating a backup on the Security Server. The warning is shown in the Security Server UI and on the command line.
 - XRDDEV-1800: Add primary and secondary node information to the Security Server UI for clustered HA setups. Display global alert for read-only state on the secondary node UI.
