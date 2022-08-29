@@ -16,7 +16,7 @@ Feature: Security Server Security Officer permissions
   Scenario: Security officer cannot see API keys.
     Given Keys and certificates tab is selected
     And SIGN and AUTH Keys tab is selected
-    Then Token name visible
+    Then Token name is visible
     And Tab api keys is not visible
     When Security Server TLS Key tab is selected
     Then Generate key button is visible
