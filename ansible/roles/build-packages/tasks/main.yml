@@ -2,8 +2,9 @@
 - name: build docker image for building bionic deb packages
   docker_image:
     name: xroad-deb-bionic
-    path: ../src/packages/docker/deb-bionic
-    force: yes
+    source: build
+    build:
+      path: ../src/packages/docker/deb-bionic
   tags: deb
   when: ubuntu_releasever == "bionic"
 
@@ -56,8 +57,9 @@
 - name: build docker image for building RHEL 7 packages
   docker_image:
     name: xroad-rpm
-    path: ../src/packages/docker/rpm
-    force: yes
+    source: build
+    build:
+      path: ../src/packages/docker/rpm
   tags: rpm
   when: centos_releasever == 7
 
@@ -83,7 +85,9 @@
 - name: build docker image for building RHEL 8 packages
   docker_image:
     name: xroad-rpm-el8
-    path: ../src/packages/docker/rpm-el8
+    source: build
+    build:
+      path: ../src/packages/docker/rpm-el8
     force: yes
   tags: rpm
   when: centos_releasever == 8
