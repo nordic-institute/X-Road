@@ -27,7 +27,6 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.MemberClassesApi;
 import org.niis.xroad.centralserver.openapi.model.MemberClassDto;
@@ -43,8 +42,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
+
+import static java.util.stream.Collectors.toSet;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -84,13 +84,7 @@ public class MemberClassesApiController implements MemberClassesApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public ResponseEntity<Set<MemberClassDto>> getMemberClasses() {
-        return service.findAll()
-                .toTry()
-                .map(memberClassDtoConverter::toDto)
-                .transform(memberClassDtos ->  Try.success(memberClassDtos.toJavaSet(LinkedHashSet::new)))
-                .map(set -> (Set<MemberClassDto>) set)
-                .map(ResponseEntity::ok)
-                .get();
+        return ResponseEntity.ok(service.findAll().map(memberClassDtoConverter::toDto).collect(toSet()));
     }
 
     @Override

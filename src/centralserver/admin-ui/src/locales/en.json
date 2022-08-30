@@ -334,7 +334,8 @@
         "status": "Status",
         "subsystemcode": "Subsystem code"
       }
-    }
+    },
+    "memberSuccessfullyAdded": "Member {memberName} is added to the system configuration."
   },
   "noData": {
     "loading": "Loading... Please wait",
