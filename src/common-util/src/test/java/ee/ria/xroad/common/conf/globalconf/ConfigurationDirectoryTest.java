@@ -30,6 +30,9 @@ import ee.ria.xroad.common.util.ExpectedCodedException;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.nio.file.Path;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -94,5 +97,43 @@ public class ConfigurationDirectoryTest {
 
         assertNull(dir.getPrivate("foo"));
         assertNull(dir.getShared("foo"));
+    }
+
+    /**
+     * Test to ensure that the list of available configuration files excluding metadata and directories
+     * is read properly.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void readConfigurationFilesV2() throws Exception {
+        String rootDir = "src/test/resources/globalconf_good_v2";
+        ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(rootDir);
+
+        List<Path> configurationFiles = dir.getConfigurationFiles();
+
+        assertEquals(false, pathExists(configurationFiles, rootDir + "/instance-identifier"));
+
+        assertEquals(true, pathExists(configurationFiles, rootDir + "/bar/shared-params.xml"));
+        assertEquals(false, pathExists(configurationFiles, rootDir + "/bar/shared-params.xml.metadata"));
+        assertEquals(false, pathExists(configurationFiles, rootDir + "/bar/private-params.xml"));
+        assertEquals(false, pathExists(configurationFiles, rootDir + "/bar/private-params.xml.metadata"));
+
+        assertEquals(true, pathExists(configurationFiles, rootDir + "/EE/shared-params.xml"));
+        assertEquals(false, pathExists(configurationFiles, rootDir + "/EE/shared-params.xml.metadata"));
+        assertEquals(true, pathExists(configurationFiles, rootDir + "/EE/private-params.xml"));
+        assertEquals(false, pathExists(configurationFiles, rootDir + "/EE/private-params.xml.metadata"));
+
+        assertEquals(true, pathExists(configurationFiles, rootDir + "/foo/shared-params.xml"));
+        assertEquals(false, pathExists(configurationFiles, rootDir + "/foo/shared-params.xml.metadata"));
+        assertEquals(true, pathExists(configurationFiles, rootDir + "/foo/private-params.xml"));
+        assertEquals(false, pathExists(configurationFiles, rootDir + "/foo/private-params.xml.metadata"));
+    }
+
+    private boolean pathExists(List<Path> paths, String path) {
+        return null != paths.stream()
+                .filter(p -> (p.getParent() + "/" + p.getFileName()).equals(path))
+                .findAny()
+                .orElse(null);
     }
 }
