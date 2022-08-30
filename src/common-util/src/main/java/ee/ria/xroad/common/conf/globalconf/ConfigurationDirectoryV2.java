@@ -186,7 +186,7 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
         return stream.filter(Files::isRegularFile)
                 .filter(p -> !p.endsWith(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE))
                 .filter(p -> !p.toString().endsWith(ConfigurationDirectory.METADATA_SUFFIX))
-                .filter(p -> p.toString().equals("files"))
+                .filter(p -> !p.getFileName().toString().equals(ConfigurationDirectory.FILES))
                 .collect(Collectors.toList());
     }
 
