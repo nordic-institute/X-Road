@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
 
 /**
@@ -180,17 +179,14 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
     }
 
     protected List<Path> getConfigurationFiles() throws Exception {
-        List<Path> configurationFiles = excludeMetadataAndDirs(Files.walk(path));
-        if (configurationFiles.isEmpty()) {
-            throw new CodedException(X_MALFORMED_GLOBALCONF, "No configuration files found");
-        }
-        return configurationFiles;
+        return excludeMetadataAndDirs(Files.walk(path));
     }
 
     private List<Path> excludeMetadataAndDirs(Stream<Path> stream) {
         return stream.filter(Files::isRegularFile)
                 .filter(p -> !p.endsWith(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE))
                 .filter(p -> !p.toString().endsWith(ConfigurationDirectory.METADATA_SUFFIX))
+                .filter(p -> p.toString().equals("files"))
                 .collect(Collectors.toList());
     }
 
