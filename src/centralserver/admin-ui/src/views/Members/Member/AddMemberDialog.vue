@@ -121,7 +121,6 @@ export default Vue.extend({
       const instanceId: string = this.getSystemStatus?.initialization_status?.instance_identifier as string;
       this.clientStore.add({
         member_name: this.memberName,
-        id: `${instanceId}:${this.memberClass}:${this.memberName}`,
         xroad_id: {
           member_class: this.memberClass,
           member_code: this.memberCode,

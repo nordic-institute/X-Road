@@ -45,6 +45,8 @@ import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerCl
 import org.niis.xroad.centralserver.restapi.service.ClientService;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
@@ -86,9 +88,11 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_NEW_MEMBER')")
+    @AuditEventMethod(event = RestApiAuditEvent.ADD_MEMBER)
     public ResponseEntity<ClientDto> addClient(ClientDto clientDto) {
         auditData.put(RestApiAuditProperty.MEMBER_NAME, clientDto.getMemberName());
-        auditData.put(RestApiAuditProperty.DESCRIPTION, clientDto.getId());
+        auditData.put(RestApiAuditProperty.MEMBER_CLASS, clientDto.getXroadId().getMemberClass());
+        auditData.put(RestApiAuditProperty.MEMBER_CODE, clientDto.getXroadId().getMemberCode());
 
         return Try.success(clientDto)
                 .map(clientDtoConverter::fromDto)

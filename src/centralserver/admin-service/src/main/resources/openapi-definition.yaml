@@ -3696,7 +3696,6 @@ components:
         - $ref: '#/components/schemas/ModificationTimestamps'
       description: x-road member
       required:
-        - id
         - member_name
         - xroad_id
       properties:
@@ -3705,7 +3704,7 @@ components:
           example: FI:GOV:123:ABC
           format: text
           maxLength: 1023
-          minLength: 1
+          minLength: 0
           type: string
           readOnly: true
         xroad_id:

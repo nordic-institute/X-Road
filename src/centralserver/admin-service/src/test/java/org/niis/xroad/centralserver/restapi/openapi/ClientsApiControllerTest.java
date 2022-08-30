@@ -42,6 +42,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
+import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
 import org.niis.xroad.centralserver.openapi.model.ClientTypeDto;
 import org.niis.xroad.centralserver.openapi.model.PagedClientsDto;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
@@ -107,7 +108,8 @@ public class ClientsApiControllerTest implements WithInOrder {
     private ClientsApiController clientsApiController;
 
     private static final String MEMBER_NAME = "MEMBER_NAME";
-    private static final String MEMBER_ID = "ID";
+    private static final String MEMBER_CLASS = "MEMBER_NAME";
+    private static final String MEMBER_CODE = "MEMBER_CODE";
 
     @Nested
     @DisplayName("addClient(ClientDto clientDto)")
@@ -115,6 +117,8 @@ public class ClientsApiControllerTest implements WithInOrder {
 
         @Mock
         private ClientDto newClientDto;
+        @Mock
+        private ClientIdDto clientIdDto;
         @Mock
         private ClientDto persistedClientDto;
         @Mock
@@ -130,8 +134,10 @@ public class ClientsApiControllerTest implements WithInOrder {
         public void shouldAddClientSuccessfully() {
             doReturn(MEMBER_NAME).when(newClientDto).getMemberName();
             doNothing().when(auditData).put(RestApiAuditProperty.MEMBER_NAME, MEMBER_NAME);
-            doReturn(MEMBER_ID).when(newClientDto).getId();
-            doNothing().when(auditData).put(RestApiAuditProperty.DESCRIPTION, MEMBER_ID);
+            doReturn(clientIdDto).when(newClientDto).getXroadId();
+            doReturn(MEMBER_CLASS).when(clientIdDto).getMemberClass();
+            doNothing().when(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+            doReturn(MEMBER_CODE).when(clientIdDto).getMemberCode();
             doReturn(newXRoadMember).when(clientDtoConverter).fromDto(newClientDto);
             doReturn(expectTypeFn).when(clientDtoConverter).expectType(XRoadMember.class);
             doReturn(newXRoadMember).when(expectTypeFn).apply(newXRoadMember);
@@ -146,8 +152,10 @@ public class ClientsApiControllerTest implements WithInOrder {
             inOrder().verify(inOrder -> {
                 inOrder.verify(newClientDto).getMemberName();
                 inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_NAME, MEMBER_NAME);
-                inOrder.verify(newClientDto).getId();
-                inOrder.verify(auditData).put(RestApiAuditProperty.DESCRIPTION, MEMBER_ID);
+                inOrder.verify(clientIdDto).getMemberClass();
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+                inOrder.verify(clientIdDto).getMemberCode();
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CODE, MEMBER_CODE);
                 inOrder.verify(clientDtoConverter).fromDto(newClientDto);
                 inOrder.verify(clientDtoConverter).expectType(XRoadMember.class);
                 inOrder.verify(expectTypeFn).apply(newXRoadMember);
@@ -162,8 +170,11 @@ public class ClientsApiControllerTest implements WithInOrder {
             IllegalArgumentException expectedThrows = mock(IllegalArgumentException.class);
             doReturn(MEMBER_NAME).when(newClientDto).getMemberName();
             doNothing().when(auditData).put(RestApiAuditProperty.MEMBER_NAME, MEMBER_NAME);
-            doReturn(MEMBER_ID).when(newClientDto).getId();
-            doNothing().when(auditData).put(RestApiAuditProperty.DESCRIPTION, MEMBER_ID);
+            doReturn(clientIdDto).when(newClientDto).getXroadId();
+            doReturn(MEMBER_CLASS).when(clientIdDto).getMemberClass();
+            doNothing().when(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+            doReturn(MEMBER_CODE).when(clientIdDto).getMemberCode();
+            doNothing().when(auditData).put(RestApiAuditProperty.MEMBER_CODE, MEMBER_CODE);
             doReturn(newXRoadMember).when(clientDtoConverter).fromDto(newClientDto);
             doReturn(expectTypeFn).when(clientDtoConverter).expectType(XRoadMember.class);
             doThrow(expectedThrows).when(expectTypeFn).apply(newXRoadMember);
@@ -175,8 +186,10 @@ public class ClientsApiControllerTest implements WithInOrder {
             inOrder().verify(inOrder -> {
                 inOrder.verify(newClientDto).getMemberName();
                 inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_NAME, MEMBER_NAME);
-                inOrder.verify(newClientDto).getId();
-                inOrder.verify(auditData).put(RestApiAuditProperty.DESCRIPTION, MEMBER_ID);
+                inOrder.verify(clientIdDto).getMemberClass();
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+                inOrder.verify(clientIdDto).getMemberCode();
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CODE, MEMBER_CODE);
                 inOrder.verify(clientDtoConverter).fromDto(newClientDto);
                 inOrder.verify(clientDtoConverter).expectType(XRoadMember.class);
                 inOrder.verify(expectTypeFn).apply(newXRoadMember);
@@ -189,8 +202,10 @@ public class ClientsApiControllerTest implements WithInOrder {
             EntityExistsException expectedThrows = mock(EntityExistsException.class);
             doReturn(MEMBER_NAME).when(newClientDto).getMemberName();
             doNothing().when(auditData).put(RestApiAuditProperty.MEMBER_NAME, MEMBER_NAME);
-            doReturn(MEMBER_ID).when(newClientDto).getId();
-            doNothing().when(auditData).put(RestApiAuditProperty.DESCRIPTION, MEMBER_ID);
+            doReturn(clientIdDto).when(newClientDto).getXroadId();
+            doReturn(MEMBER_CLASS).when(clientIdDto).getMemberClass();
+            doNothing().when(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+            doReturn(MEMBER_CODE).when(clientIdDto).getMemberCode();
             doReturn(newXRoadMember).when(clientDtoConverter).fromDto(newClientDto);
             doReturn(expectTypeFn).when(clientDtoConverter).expectType(XRoadMember.class);
             doReturn(newXRoadMember).when(expectTypeFn).apply(newXRoadMember);
@@ -203,8 +218,10 @@ public class ClientsApiControllerTest implements WithInOrder {
             inOrder().verify(inOrder -> {
                 inOrder.verify(newClientDto).getMemberName();
                 inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_NAME, MEMBER_NAME);
-                inOrder.verify(newClientDto).getId();
-                inOrder.verify(auditData).put(RestApiAuditProperty.DESCRIPTION, MEMBER_ID);
+                inOrder.verify(clientIdDto).getMemberClass();
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+                inOrder.verify(clientIdDto).getMemberCode();
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CODE, MEMBER_CODE);
                 inOrder.verify(clientDtoConverter).fromDto(newClientDto);
                 inOrder.verify(clientDtoConverter).expectType(XRoadMember.class);
                 inOrder.verify(expectTypeFn).apply(newXRoadMember);
