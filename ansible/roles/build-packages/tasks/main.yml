@@ -30,8 +30,9 @@
 - name: build docker image for building focal deb packages
   docker_image:
     name: xroad-deb-focal
-    path: ../src/packages/docker/deb-focal
-    force: yes
+    source: build
+    build:
+      path: ../src/packages/docker/deb-focal
   tags: deb
   when: ubuntu_releasever == "focal"
 
@@ -88,7 +89,6 @@
     source: build
     build:
       path: ../src/packages/docker/rpm-el8
-    force: yes
   tags: rpm
   when: centos_releasever == 8
 
