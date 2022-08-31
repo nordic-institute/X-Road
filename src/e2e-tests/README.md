@@ -6,7 +6,7 @@ env variables.
 Example:
 
 ```
-./gradlew :e2e-tests:e2eTest -PjvmArgs="-Dtest-automation.custom.security-server-url=https://localhost:4040"
+./gradlew :e2e-tests:e2eTest -Pe2eTestSecurityServerUrl="https://localhost:4040" -Pe2eTestTags="@SecurityServer and not @Skip"
 ```
 
 # Reports
@@ -24,7 +24,7 @@ embedded html server (index.html -> Open In -> Browser)
 
 Allure reporting has embedded web server which can serve latest report. To enable it add this to jvmArgs:
 ``
--Dtest-automation.report.allure.serve-report.enabled=true
+-Pe2eTestServeReport=true
 ``
 
 See the logs for the address.

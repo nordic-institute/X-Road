@@ -13,9 +13,20 @@ task e2eTest(type: Test) {
     testClassesDirs = sourceSets.intTest.output.classesDirs
     classpath = sourceSets.intTest.runtimeClasspath
 
-    if (project.hasProperty('jvmArgs')) {
-        jvmArgs project.jvmArgs.split('\\s+')
+    def e2eTestArgs = []
+    if (project.hasProperty('e2eTestTags')) {
+        e2eTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('e2eTestTags')
     }
+    if (project.hasProperty('e2eTestServeReport')) {
+        e2eTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('e2eTestServeReport')
+    }
+    if (project.hasProperty('e2eTestSecurityServerUrl')) {
+        e2eTestArgs += "-Dtest-automation.custom.security-server-url=" + project.getProperty('e2eTestSecurityServerUrl')
+    }
+    if (project.hasProperty('e2eTestCentralServerUrl')) {
+        e2eTestArgs += "-Dtest-automation.custom.central-server-url=" + project.getProperty('e2eTestCentralServerUrl')
+    }
+    jvmArgs e2eTestArgs
 
     testLogging {
         showStackTraces(true)
