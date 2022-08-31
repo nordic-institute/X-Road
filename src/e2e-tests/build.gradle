@@ -1,6 +1,3 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 dependencies {
     intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}")

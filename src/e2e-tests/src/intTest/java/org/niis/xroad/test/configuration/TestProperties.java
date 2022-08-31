@@ -35,6 +35,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "test-automation.custom")
 public class TestProperties {
-    private  String securityServerUrl;
-    private  String centralServerUrl;
+    /**
+     * Security server admin UI url.
+     */
+    private String securityServerUrl;
+    /**
+     * Central server admin UI url.
+     */
+    private String centralServerUrl;
 }
