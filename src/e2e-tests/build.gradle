@@ -1,0 +1,28 @@
+dependencies {
+    intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
+}
+
+task e2eTest(type: Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs integration tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    if (project.hasProperty('jvmArgs')) {
+        jvmArgs project.jvmArgs.split('\\s+')
+    }
+
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+
+    shouldRunAfter test
+}
