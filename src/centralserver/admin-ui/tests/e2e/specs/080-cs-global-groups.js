@@ -27,7 +27,7 @@
 let login;
 let groupResource;
 module.exports = {
-  tags: ['cs', 'globalResources', 'testThis'],
+  tags: ['cs', 'globalResources'],
   before(browser) {
     login = browser.page.csLoginPage();
     groupResource = browser.page.csGlobalGroupsPage();
