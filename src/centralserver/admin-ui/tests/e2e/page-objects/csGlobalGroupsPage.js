@@ -27,13 +27,19 @@
 
 const { navigateAndMakeTestable } = require('./csCommonObjectsPage');
 const globalResourceCommands = {
+  getGlobalGroups() {
+    return this.api.elements(
+      'xpath',
+      '//div[@data-test="global-groups-table"]//table/tbody/tr[.//td[not(contains(text(), "No data available"))]]',
+    );
+  },
   globalGroupsResourceIsVisible() {
     this.assert.visible('@globalResourcesView');
     return this;
   },
-  verifyGroupListRow: function (row, code) {
+  verifyGroupListContains: function (code) {
     this.api.waitForElementVisible(
-      `(//*[contains(@data-test, "global-groups-table")]//tr)[${row}]//*[contains(text(),"${code}")]`,
+      `//div[@data-test="global-groups-table"]//table/tbody/tr[.//td/div/div[starts-with(.,"${code}")]]`,
     );
     return this;
   },

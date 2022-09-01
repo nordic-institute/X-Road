@@ -41,14 +41,19 @@ module.exports = {
     browser.end();
   },
   'Global group is added and listed': async () => {
+    groupResource.globalGroupsResourceIsVisible();
+    let newGroupName = 'other-security-server-owners';
+    const globalGroups = await groupResource.getGlobalGroups();
+    const index = globalGroups.value.length + 1;
+    newGroupName += index;
+
     await groupResource
-      .globalGroupsResourceIsVisible()
-      .verifyGroupListRow(2, 'security-server-owners')
+      .verifyGroupListContains('security-server-owners')
       .openAddGlobalGroupDialog()
-      .initCode('other-security-server-owners')
+      .initCode(newGroupName)
       .initDescription('Other security server owners')
       .confirmAddDialog()
-      .verifyGroupListRow(2, 'security-server-owners')
-      .verifyGroupListRow(3, 'other-security-server-owners');
+      .verifyGroupListContains('security-server-owners')
+      .verifyGroupListContains(newGroupName);
   },
 };
