@@ -120,6 +120,23 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
+    public void shouldHaveContentLengthHeader() {
+        String body = "{\"value\" : 42}";
+        service.setHandler((target, request, response) -> assertEquals(body.getBytes().length,
+                request.getContentLength()));
+
+        given()
+                .baseUri("http://127.0.0.1")
+                .port(proxyClientPort)
+                .header("Content-Type", "application/json")
+                .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
+                .body(body)
+                .post(PREFIX + "/EE/BUSINESS/producer/sub/echo")
+                .then()
+                .statusCode(200);
+    }
+
+    @Test
     public void requestHashShouldBeUnique() {
         final String qid = "queryid";
         final String requestHash = given()

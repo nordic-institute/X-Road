@@ -556,7 +556,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             }
 
             if (req instanceof HttpEntityEnclosingRequest && requestProxyMessage.hasRestBody()) {
-                ((HttpEntityEnclosingRequest) req).setEntity(new InputStreamEntity(requestProxyMessage.getRestBody()));
+                ((HttpEntityEnclosingRequest) req).setEntity(new InputStreamEntity(requestProxyMessage.getRestBody(),
+                        requestProxyMessage.getRestBody().size()));
             }
 
             final HttpContext ctx = new BasicHttpContext();

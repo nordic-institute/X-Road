@@ -5,15 +5,11 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 ENV DEBIAN_FRONTEND=noninteractive
-ARG NODE_VERSION=14
-COPY nodesource.gpg.key /etc/apt/sources.list.d/
+
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install curl software-properties-common gawk \
   openjdk-11-jdk-headless build-essential git unzip debhelper \
-  && echo "deb https://deb.nodesource.com/node_${NODE_VERSION}.x bionic main" >/etc/apt/sources.list.d/nodesource.list \
-  && apt-key add /etc/apt/sources.list.d/nodesource.gpg.key \
-  && apt-get -qq update && apt-get -qq install nodejs \
   && apt-get -qq autoremove \
 && apt-get -qq clean
 

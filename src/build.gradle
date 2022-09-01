@@ -80,6 +80,7 @@ allprojects {
     }
 
     repositories {
+      mavenLocal()
       mavenCentral()
     }
 
@@ -123,8 +124,18 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
       options.encoding = 'UTF-8'
     }
 
+    sourceSets {
+        intTest {
+            compileClasspath += sourceSets.main.output
+            runtimeClasspath += sourceSets.main.output
+        }
+    }
+
     configurations {
         testArtifacts.extendsFrom testRuntime
+
+        intTestImplementation.extendsFrom implementation
+        intTestRuntimeOnly.extendsFrom runtimeOnly
     }
 
     dependencies {
@@ -132,11 +143,14 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
         testImplementation "junit:junit:$junitVersion"
 
-        compileOnly 'org.projectlombok:lombok:1.18.22'
-        annotationProcessor 'org.projectlombok:lombok:1.18.22'
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
-        testCompileOnly 'org.projectlombok:lombok:1.18.22'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+        intTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+        intTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     }
 
     task testJar(type: Jar) {

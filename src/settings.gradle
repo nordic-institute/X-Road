@@ -43,7 +43,7 @@ include "signer-console"
 
 // Tests
 include "common-test"
-
+include "e2e-tests"
 // Addons
 include "addons:hwtoken"
 include "addons:messagelog:messagelog-addon"
