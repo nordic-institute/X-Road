@@ -25,9 +25,9 @@ Alternatively, it's possible to use the image (`niis/xroad-central-server`) avai
 ## Running
 ```shell
 # Publish the container ports to localhost (loopback address).
-docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server
+docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs centralserver
 
-# Running exact version instead of the default latest version
+# Running an exact version available on Docker Hub
 docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server:focal-7.1.0
 ```
 
