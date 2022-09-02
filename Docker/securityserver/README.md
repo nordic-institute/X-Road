@@ -25,7 +25,7 @@ Running a locally built image:
 docker run -p 127.0.0.1:4000:4000 -p 127.0.0.1:8080:8080 --name my-ss -e XROAD_TOKEN_PIN=1234 xroad-security-server
 ```
 
-Running an image available on Docker Hub:
+Running an image available on [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server):
 ```shell
 # Publish the container ports to localhost (loopback address).
 docker run -p 127.0.0.1:4000:4000 -p 127.0.0.1:8080:8080 --name my-ss -e XROAD_TOKEN_PIN=1234 niis/xroad-security-server:focal-7.1.0

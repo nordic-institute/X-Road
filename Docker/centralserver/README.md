@@ -30,7 +30,7 @@ Running a locally built image:
 docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs centralserver
 ```
 
-Running an image available on Docker Hub:
+Running an image available on [Docker Hub](https://hub.docker.com/r/niis/xroad-central-server/):
 ```shell
 # Publish the container ports to localhost (loopback address).
 docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server:focal-7.1.0
