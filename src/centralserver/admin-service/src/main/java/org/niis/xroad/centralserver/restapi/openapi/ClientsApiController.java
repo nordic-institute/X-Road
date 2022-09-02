@@ -27,6 +27,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -44,8 +45,11 @@ import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.service.ClientService;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
+import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -73,6 +77,7 @@ public class ClientsApiController implements ClientsApi {
     private final ClientDtoConverter.Flattened flattenedSecurityServerClientViewDtoConverter;
     private final ClientDtoConverter clientDtoConverter;
     private final ClientTypeDtoConverter.Service clientTypeDtoConverter;
+    private final ClientIdConverter clientIdConverter;
 
     private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
             new PageRequestConverter.MappableSortParameterConverter(
@@ -140,8 +145,18 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
+    @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
     public ResponseEntity<ClientDto> getClient(String id) {
-        return null;
+        if (!clientIdConverter.isEncodedMemberId(id)) {
+            throw new BadRequestException("Invalid member id");
+        }
+        return Option.of(id)
+                .map(clientIdConverter::convertId)
+                .peek(clientId -> auditData.put(RestApiAuditProperty.CLIENT_IDENTIFIER, clientId))
+                .flatMap(clientService::findMember)
+                .map(clientDtoConverter::toDto)
+                .map(ResponseEntity::ok)
+                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
     }
 
     @Override

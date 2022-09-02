@@ -71,7 +71,7 @@ public class XRoadMemberRepositoryTest {
             Option<XRoadMember> actual = xRoadMemberRepository.findMember(clientIdWithMemberType);
 
             assertEquals(expectedXRoadMember, actual.get());
-            InOrder inOrder = inOrder(expectedXRoadMember, xRoadMemberRepository);
+            InOrder inOrder = inOrder(xRoadMemberRepository);
             inOrder.verify(xRoadMemberRepository).findMember(clientIdWithMemberType);
             inOrder.verify(xRoadMemberRepository).findOneBy(clientIdWithMemberType);
             inOrder.verifyNoMoreInteractions();
@@ -93,7 +93,7 @@ public class XRoadMemberRepositoryTest {
             Option<XRoadMember> actual = xRoadMemberRepository.findMember(clientIdSubsystemTypeArgument);
 
             assertEquals(expectedXRoadMember, actual.get());
-            InOrder inOrder = inOrder(expectedXRoadMember, xRoadMemberRepository);
+            InOrder inOrder = inOrder(xRoadMemberRepository);
             inOrder.verify(xRoadMemberRepository).findMember(clientIdSubsystemTypeArgument);
             inOrder.verify(xRoadMemberRepository).findOneBy(argThat(clientIdObjectTypeAlteredToMemberArgMatcher));
             inOrder.verifyNoMoreInteractions();

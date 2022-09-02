@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import io.vavr.control.Option;
+import org.hibernate.Hibernate;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
 import org.niis.xroad.centralserver.restapi.entity.MemberId;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
@@ -48,6 +49,7 @@ public interface XRoadMemberRepository extends SecurityServerClientRepository<XR
     default Option<XRoadMember> findMember(ClientId clientId) {
         ClientId memberId = clientId.getObjectType().equals(XRoadObjectType.MEMBER) ? clientId
                 : MemberId.create(clientId.getXRoadInstance(), clientId.getMemberClass(), clientId.getMemberCode());
-        return findOneBy(memberId);
+        return findOneBy(memberId)
+                .peek(xRoadMember -> Hibernate.initialize(xRoadMember.getIdentifier()));
     }
 }

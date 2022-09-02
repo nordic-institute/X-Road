@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
@@ -36,10 +37,13 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.ClientTypeDto;
@@ -58,8 +62,10 @@ import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerCl
 import org.niis.xroad.centralserver.restapi.service.ClientService;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.data.domain.Page;
@@ -71,6 +77,7 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -102,6 +109,8 @@ public class ClientsApiControllerTest implements WithInOrder {
     private ClientDtoConverter clientDtoConverter;
     @Mock
     private ClientTypeDtoConverter.Service clientTypeDtoConverter;
+    @Spy
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     @InjectMocks
     private ClientsApiController clientsApiController;
@@ -389,5 +398,63 @@ public class ClientsApiControllerTest implements WithInOrder {
             assertEquals(xRoadObjectType, actualParams.getClientType());
             assertEquals(expectedSecurityServerId, actualParams.getSecurityServerId());
         }
+    }
+
+
+    @Nested
+    public class GetClient implements WithInOrder {
+        @Mock
+        private XRoadMember xRoadMember;
+        @Mock
+        private ClientDto clientDto;
+
+        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "CODE");
+        private final String encodedClientId = "TEST:CLASS:CODE";
+        private final String notExistingEncodedClientId = "TEST:MEMBER:DOES-NOT-EXIST";
+
+        @Test
+        @DisplayName("Should return client with given id")
+        void shouldReturnClient() {
+            doReturn(Option.of(xRoadMember)).when(clientService).findMember(clientId);
+            doReturn(clientDto).when(clientDtoConverter).toDto(xRoadMember);
+
+            var result = clientsApiController.getClient(encodedClientId);
+
+            assertSame(clientDto, result.getBody());
+            inOrder(auditData, clientService).verify(inOrder -> {
+                inOrder.verify(auditData).put(RestApiAuditProperty.CLIENT_IDENTIFIER, clientId);
+                inOrder.verify(clientService).findMember(clientId);
+                inOrder.verify(clientDtoConverter).toDto(xRoadMember);
+            });
+        }
+
+        @Test
+        @DisplayName("Should throw NotFoundException if client with given id is not in database")
+        void shouldThrowNotFoundException() {
+            doReturn(Option.none()).when(clientService).findMember(any());
+            Executable testable = () -> clientsApiController.getClient(notExistingEncodedClientId);
+
+            assertThrows(
+                    NotFoundException.class,
+                    testable);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "INVALID-FORMAT",
+                "TEST:CLASS:CODE:SUBSYSTEM"})
+        @DisplayName("Should throw BadRequest if called with invalid id")
+        void shouldThrowBadRequestException(String id) {
+            Executable testable = () -> clientsApiController.getClient(id);
+
+            var thrown = assertThrows(
+                    BadRequestException.class,
+                    testable,
+                    "Expecting BadRequestException when called with invalid member id");
+
+            assertEquals("Invalid member id", thrown.getMessage());
+        }
+
+
     }
 }
