@@ -1,4 +1,4 @@
-# Central server Docker image
+# Central Server Docker image
 
 ***The Central Server images are strictly meant for testing and development purposes. Do not use it in production environment!***
 
@@ -23,19 +23,19 @@ docker build --build-arg DIST=jammy-current -t centralserver -f ../Dockerfile .
 Alternatively, it's possible to use the image (`niis/xroad-central-server`) available on [Docker Hub](https://hub.docker.com/r/niis/xroad-central-server/).
 
 ## Running
-```
+```shell
 # Publish the container ports to localhost (loopback address).
 docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server
 
 # Running exact version instead of the default latest version
-docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server:jammy-6.21.0
+docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server:focal-7.1.0
 ```
 
 ## Running multiple dockerized X-Road (Security/Central) Servers
 If you are running multiple (more than one) containers and map container ports to localhost, it is recommended that you use a separate loopback address for each container and create a X-Road specific network so that containers can communicate.
 Accessing admin-ui of a server from the same domain will break session on other servers. You can get over this by setting multiple mappings to localhost in hosts-file.
 
-```
+```shell
 # Create a custom network for x-road containers
 docker network create -d bridge x-road-network
 
@@ -47,7 +47,7 @@ docker run -p 4100:4000 -p 4101:80 -p 4102:9998 --network x-road-network --name 
 ## Initializing vanilla Central Server
 After creating a vanilla Central Server, you need to create certificates. You might also find it more convenient to copy the certificates to host machine with the commands below.
 
-```
+```shell
 # Create certificates
 docker exec -it cs su ca -c 'cd /home/ca/CA && ./init.sh'
 
@@ -80,13 +80,13 @@ Inside the container nginx maps the running TSA to port `8899` so the timestampi
 
 ### Autologin
 The `xroad-autologin` add-on is installed, but there is no default PIN set, so the following error at startup is normal:
-```
+```text
 ... INFO exited: xroad-autologin (exit status 0; not expected)
 ... INFO gave up: xroad-autologin entered FATAL state, too many start retries too quickly
 ```
 One can create the autologin file by hand after initializing the Central Server:
 
-```
+```shell
 $ docker exec cs su -c 'echo 1234 >/etc/xroad/autologin' xroad
 $ docker exec cs supervisorctl start xroad-autologin
 ```
