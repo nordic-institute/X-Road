@@ -9,12 +9,16 @@ The installed Security Server is in uninitialized state.
 
 Admin UI credentials: `xrd`/`secret`
 
-## Running
+## Building the Security Server image
 
-Build the image or use the image (`niis/xroad-security-server`)  available on [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server).
+Build the image locally:
 ```shell
 docker build -t xroad-security-server .
 ```
+
+Alternatively, it's possible to use the image (`niis/xroad-security-server`) available on [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server).
+
+## Running
 
 Publish the container ports (`8080` and/or `8443`, `4000`, and optionally `5500` and `5577`) e.g. to localhost (loopback address).
 Also, it's possible to pass the token pin code for autologin using the `XROAD_TOKEN_PIN` environment variable.
