@@ -18,11 +18,16 @@ docker build -t xroad-security-server .
 
 Publish the container ports (`8080` and/or `8443`, `4000`, and optionally `5500` and `5577`) e.g. to localhost (loopback address).
 Also, it's possible to pass the token pin code for autologin using the `XROAD_TOKEN_PIN` environment variable.
+
+Running a locally built image:
 ```shell
 # Publish the container ports to localhost (loopback address).
 docker run -p 127.0.0.1:4000:4000 -p 127.0.0.1:8080:8080 --name my-ss -e XROAD_TOKEN_PIN=1234 xroad-security-server
+```
 
-# Running an exact version available on Docker Hub
+Running an image available on Docker Hub:
+```shell
+# Publish the container ports to localhost (loopback address).
 docker run -p 127.0.0.1:4000:4000 -p 127.0.0.1:8080:8080 --name my-ss -e XROAD_TOKEN_PIN=1234 niis/xroad-security-server:focal-7.1.0
 ```
 
