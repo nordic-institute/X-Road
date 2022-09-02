@@ -35,7 +35,6 @@ import java.time.Duration;
 import static com.codeborne.selenide.Selenide.$;
 
 public class CommonUiStepDefs extends BaseUiStepDefs {
-    public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test=\"close-snackbar\"]");
 
     @Given("User {} logs in to {} with password {}")
     public void doLogin(final String username, final String target, final String password) {
