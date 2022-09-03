@@ -1,4 +1,4 @@
-# Central Server Docker image
+# Central Server Docker Image
 
 ***The Central Server images are strictly meant for testing and development purposes. Do not use it in production environment!***
 
@@ -33,7 +33,7 @@ docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs centralserver
 
 Running an image available on [Docker Hub](https://hub.docker.com/r/niis/xroad-central-server/):
 ```shell
-docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server:focal-7.1.0
+docker run -p 4000:4000 -p 4001:80 -p 4002:9998 --name cs niis/xroad-central-server:bionic-7.1.0
 ```
 
 ## Running multiple dockerized X-Road (Security/Central) Servers

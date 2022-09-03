@@ -1,4 +1,4 @@
-# Security Server Docker image
+# Security Server Docker Image
 
 ***This Security Server image is strictly meant for testing and development purposes. Do not use it in production environment! See [X-Road Security Server Sidecar](https://github.com/nordic-institute/X-Road-Security-Server-Sidecar) for production use.***
 
