@@ -297,11 +297,11 @@ export default (
             const fieldErrors = errorInfo.error?.validation_errors;
             if (fieldErrors) {
               const identifierErrors: string[] = getTranslatedFieldErrors(
-                'initialServerConf.instanceIdentifier',
+                'initialServerConfDto.instanceIdentifier',
                 fieldErrors,
               );
               const addressErrors: string[] = getTranslatedFieldErrors(
-                'initialServerConf.centralServerAddress',
+                'initialServerConfDto.centralServerAddress',
                 fieldErrors,
               );
               this.$refs.initializationForm.setErrors({

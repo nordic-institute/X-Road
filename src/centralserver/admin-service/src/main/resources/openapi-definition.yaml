@@ -3009,7 +3009,7 @@ components:
         error:
           code: validation_failure
           validation_errors:
-            "initialServerConf.instanceIdentifier":
+            "initialServerConfDto.instanceIdentifier":
               - IdentifierChars
         status: 400
   responses:
