@@ -50,6 +50,7 @@
         :label="$t('global.memberClass')"
         item-text="code"
         outlined
+        data-test="add-member-class-input"
       ></v-select>
 
       <div class="dlg-input-width">

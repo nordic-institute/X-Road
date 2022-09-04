@@ -238,31 +238,11 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
         private MemberClass memberClass;
 
         @Test
-        @DisplayName("should retrieve persisted XRoadMember entity if present")
-        public void shouldConvertXRoadMemberEntityIfPresent() {
-            doReturn(clientIdDto).when(clientDto).getXroadId();
-            doReturn(memberClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
-            doReturn(XRoadIdDto.TypeEnum.MEMBER).when(clientIdDto).getType();
-            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findOneBy(memberClientId, XRoadObjectType.MEMBER);
-
-            SecurityServerClient converted = converter.fromDto(clientDto);
-
-            assertEquals(xRoadMember, converted);
-            inOrder().verify(inOrder -> {
-                inOrder.verify(clientDto).getXroadId();
-                inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
-                inOrder.verify(clientIdDto).getType();
-                inOrder.verify(xRoadMemberRepository).findOneBy(memberClientId, XRoadObjectType.MEMBER);
-            });
-        }
-
-        @Test
         @DisplayName("should create new XRoadMember entity if missing")
-        public void shouldCreateNewXRoadMemberEntityIfMissing() {
+        public void shouldCreateNewXRoadMemberEntity() {
             doReturn(clientIdDto).when(clientDto).getXroadId();
             doReturn(memberClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.MEMBER).when(clientIdDto).getType();
-            doReturn(Option.none()).when(xRoadMemberRepository).findOneBy(memberClientId, XRoadObjectType.MEMBER);
             doReturn(MEMBER_CLASS_CODE).when(clientIdDto).getMemberClass();
             doReturn(Option.of(memberClass)).when(memberClassRepository).findByCode(MEMBER_CLASS_CODE);
             doReturn(MEMBER_NAME).when(clientDto).getMemberName();
@@ -283,7 +263,6 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
                 inOrder.verify(clientDto).getXroadId();
                 inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
                 inOrder.verify(clientIdDto).getType();
-                inOrder.verify(xRoadMemberRepository).findOneBy(memberClientId, XRoadObjectType.MEMBER);
                 inOrder.verify(clientIdDto).getMemberClass();
                 inOrder.verify(memberClassRepository).findByCode(MEMBER_CLASS_CODE);
                 inOrder.verify(clientDto).getMemberName();
@@ -299,7 +278,6 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
             doReturn(clientIdDto).when(clientDto).getXroadId();
             doReturn(memberClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.MEMBER).when(clientIdDto).getType();
-            doReturn(Option.none()).when(xRoadMemberRepository).findOneBy(memberClientId, XRoadObjectType.MEMBER);
             doReturn(MEMBER_CLASS_CODE).when(clientIdDto).getMemberClass();
             doReturn(Option.none()).when(memberClassRepository).findByCode(MEMBER_CLASS_CODE);
 
@@ -312,7 +290,6 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
                 inOrder.verify(clientDto).getXroadId();
                 inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
                 inOrder.verify(clientIdDto).getType();
-                inOrder.verify(xRoadMemberRepository).findOneBy(memberClientId, XRoadObjectType.MEMBER);
                 inOrder.verify(clientIdDto).getMemberClass();
                 inOrder.verify(memberClassRepository).findByCode(MEMBER_CLASS_CODE);
             });

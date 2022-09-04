@@ -109,26 +109,19 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
         if (clientType != null) {
             switch (clientType) {
                 case MEMBER:
-                    Supplier<XRoadMember> newXRoadMember = () -> {
-                        String memberClassCode = clientIdDto.getMemberClass();
-                        MemberClass memberClass = memberClassRepository
-                                .findByCode(memberClassCode)
-                                .getOrElseThrow(() -> new NotFoundException(
-                                        MEMBER_CLASS_NOT_FOUND,
-                                        "code",
-                                        memberClassCode
-                                ));
-                        return new XRoadMember(
-                                source.getMemberName(),
-                                clientId,
-                                memberClass
-                        );
-                    };
-
-                    return xRoadMemberRepository
-                            .findOneBy(clientId, XRoadObjectType.MEMBER)
-                            .getOrElse(newXRoadMember);
-
+                    String memberClassCode = clientIdDto.getMemberClass();
+                    MemberClass memberClass = memberClassRepository
+                            .findByCode(memberClassCode)
+                            .getOrElseThrow(() -> new NotFoundException(
+                                    MEMBER_CLASS_NOT_FOUND,
+                                    "code",
+                                    memberClassCode
+                            ));
+                    return new XRoadMember(
+                            source.getMemberName(),
+                            clientId,
+                            memberClass
+                    );
                 case SUBSYSTEM:
                     Supplier<Subsystem> newSubsystem = () -> {
                         XRoadMember xRoadMember = xRoadMemberRepository

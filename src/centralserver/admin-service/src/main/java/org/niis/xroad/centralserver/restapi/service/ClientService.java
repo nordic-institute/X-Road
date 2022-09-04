@@ -67,8 +67,7 @@ public class ClientService {
 
     public XRoadMember add(XRoadMember client) {
         Consumer<XRoadMember> ensureClientNotExists = __ -> {
-            boolean exists = client.exists()
-                    || xRoadMemberRepository.findOneBy(client.getIdentifier()).isDefined();
+            boolean exists = xRoadMemberRepository.findOneBy(client.getIdentifier()).isDefined();
             if (exists) {
                 throw new EntityExistsException(CLIENT_EXISTS, client.getIdentifier().toShortString());
             }
