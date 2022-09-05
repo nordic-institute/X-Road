@@ -494,7 +494,7 @@ Identifier that can be used to identify various objects on X-Road. An identifier
 | Name            | Type                        | Modifiers | Description           |
 |:----------------|:---------------------------:|:--------- |:-----------------:|
 | id [PK]         | integer                     | NOT NULL  | Primary key |
-| type            | character varying(255)      |           | Specifies the type of the object that the identifier identifies. Possible values, defined in enum ee.ria.xroad.common.identifier.XroadObjectType, are 'MEMBER', 'SUBSYSTEM', 'SERVICE', 'CENTRALSERVICE', 'SERVER'. |
+| object_type     | character varying(255)      |           | Specifies the type of the object that the identifier identifies. Possible values, defined in enum ee.ria.xroad.common.identifier.XroadObjectType, are 'MEMBER', 'SUBSYSTEM', 'SERVICE', 'CENTRALSERVICE', 'SERVER'. |
 | xroad_instance  | character varying(255)      |           | X-Road instance identifier. Present (otherwise NULL) in identifiers of all types. |
 | member_class    | character varying(255)      |           | Member class. Present in identifiers of 'MEMBER', 'SUBSYSTEM', 'SERVER' and 'SERVICE' type.  |
 | member_code     | character varying(255)      |           | Member code. Present in identifiers of 'MEMBER', 'SUBSYSTEM, SERVER' and 'SERVICE' type.  |
