@@ -127,13 +127,13 @@ export default Vue.extend({
         };
         this.$emit('save', certService);
       }
-      this.clearDialog();
+      this.clearForm();
     },
     cancel(): void {
       this.$emit('cancel');
-      this.clearDialog();
+      this.clearForm();
     },
-    clearDialog(): void {
+    clearForm(): void {
       this.showCASettingsDialog = false;
       this.certFile = null as File | null;
       this.certProfile = '';

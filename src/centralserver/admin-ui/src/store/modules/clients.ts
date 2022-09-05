@@ -26,9 +26,9 @@
  */
 import axios, {AxiosRequestConfig} from 'axios';
 import {
-    PagedClients,
-    PagingMetadata,
-    Client,
+  PagedClients,
+  PagingMetadata,
+  Client, ClientId,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';
@@ -69,5 +69,9 @@ export const clientStore = defineStore('client', {
                     this.pagingOptions = resp.data.paging_metadata;
                 });
         },
+        async add(client: Client) {
+          return axios
+            .post('/clients', client);
+        }
     },
 });

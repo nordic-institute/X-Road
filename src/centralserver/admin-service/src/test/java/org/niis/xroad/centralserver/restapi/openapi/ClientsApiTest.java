@@ -77,7 +77,6 @@ public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
                     .instanceId("TEST")
                     .type(XRoadIdDto.TypeEnum.MEMBER);
             ClientDto memberDto = new ClientDto()
-                    .id("TEST:GOV:" + memberCode)
                     .memberName("memberName")
                     .xroadId(memberIdDto);
 

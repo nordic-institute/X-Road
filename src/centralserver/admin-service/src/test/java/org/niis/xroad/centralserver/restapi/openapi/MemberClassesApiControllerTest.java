@@ -32,6 +32,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -48,6 +51,14 @@ public class MemberClassesApiControllerTest extends AbstractApiControllerTestCon
         ResponseEntity<MemberClassDto> response = memberClassesApiController.addMemberClass(mc);
         assertTrue(response.getStatusCode().is2xxSuccessful());
         assertEquals(mc.getCode(), response.getBody().getCode());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_MEMBER_CLASSES"})
+    public void testGetMemberClass() {
+        ResponseEntity<Set<MemberClassDto>> response = memberClassesApiController.getMemberClasses();
+        assertTrue(response.getStatusCode().is2xxSuccessful());
+        assertThat(response.getBody()).hasSize(3);
     }
 
 }

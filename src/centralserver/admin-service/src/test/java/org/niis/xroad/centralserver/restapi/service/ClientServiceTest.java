@@ -113,7 +113,6 @@ class ClientServiceTest implements WithInOrder {
         @DisplayName("should create client when not already present")
         void shouldCreateClientWhenNotAlreadyPresent() {
             XRoadMember persistedXRoadMember = mock(XRoadMember.class);
-            doReturn(false).when(xRoadMember).exists();
             doReturn(memberId).when(xRoadMember).getIdentifier();
             doReturn(Option.none()).when(xRoadMemberRepository).findOneBy(memberId);
             doReturn(persistedXRoadMember).when(xRoadMemberRepository).save(xRoadMember);
@@ -122,7 +121,6 @@ class ClientServiceTest implements WithInOrder {
 
             assertEquals(persistedXRoadMember, result);
             inOrder(persistedXRoadMember).verify(inOrder -> {
-                inOrder.verify(xRoadMember).exists();
                 inOrder.verify(xRoadMemberRepository).findOneBy(memberId);
                 inOrder.verify(xRoadMemberRepository).save(xRoadMember);
             });
@@ -132,7 +130,6 @@ class ClientServiceTest implements WithInOrder {
         @DisplayName("should not create client when already present")
         void shouldNotCreateClientWhenAlreadyPresent() {
             SecurityServerClient presentSecurityServerClient = mock(SecurityServerClient.class);
-            doReturn(false).when(xRoadMember).exists();
             doReturn(memberId).when(xRoadMember).getIdentifier();
             doReturn(Option.of(presentSecurityServerClient)).when(xRoadMemberRepository).findOneBy(memberId);
             String clientIdentifier = memberId.toShortString();
@@ -145,7 +142,6 @@ class ClientServiceTest implements WithInOrder {
                     .hasSize(1)
                     .containsExactly(clientIdentifier);
             inOrder(presentSecurityServerClient).verify(inOrder -> {
-                inOrder.verify(xRoadMember).exists();
                 inOrder.verify(xRoadMember).getIdentifier();
                 inOrder.verify(xRoadMemberRepository).findOneBy(memberId);
                 inOrder.verify(xRoadMember).getIdentifier();

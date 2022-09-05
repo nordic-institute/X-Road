@@ -31,7 +31,7 @@
         <div class="xrd-view-title">{{ $t('members.header') }}</div>
         <xrd-search v-model="search" />
       </div>
-      <xrd-button data-test="add-member-button">
+      <xrd-button data-test="add-member-button" v-if="hasPermissionToAddMember" @click="showAddMemberDialog = true">
         <xrd-icon-base class="xrd-large-button-icon"
           ><xrd-icon-add
         /></xrd-icon-base>
@@ -78,12 +78,22 @@
       </template>
 
     </v-data-table>
+
+    <!-- Dialogs -->
+    <AddMemberDialog
+      v-if="showAddMemberDialog"
+      :show-dialog="showAddMemberDialog"
+      @cancel="hideAddMemberDialog"
+      @save="hideAddMemberDialogAndRefetch"
+    >
+    </AddMemberDialog>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { RouteName } from '@/global';
+import AddMemberDialog from '@/views/Members/Member/AddMemberDialog.vue';
 import { DataTableHeader } from 'vuetify';
 import { userStore } from '@/store/modules/user';
 import { clientStore } from '@/store/modules/clients';
@@ -101,12 +111,14 @@ let that: any;
 
 export default Vue.extend({
   name: 'MemberList',
+  components: {AddMemberDialog},
   data() {
     return {
       search: '',
       loading: false,
       showOnlyPending: false,
       pagingSortingOptions: {} as DataOptions,
+      showAddMemberDialog: false,
     };
   },
   watch: {
@@ -142,12 +154,22 @@ export default Vue.extend({
     hasPermissionToMemberDetails(): boolean {
       return this.hasPermission(Permissions.VIEW_MEMBER_DETAILS);
     },
+    hasPermissionToAddMember(): boolean {
+      return this.hasPermission(Permissions.ADD_NEW_MEMBER);
+    },
   },
   created() {
     that = this;
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    hideAddMemberDialog(): void {
+      this.showAddMemberDialog = false;
+    },
+    hideAddMemberDialogAndRefetch(): void {
+      this.hideAddMemberDialog();
+      this.fetchClients(this.pagingSortingOptions);
+    },
     debouncedFetchClients: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.fetchClients(that.pagingSortingOptions);

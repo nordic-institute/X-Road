@@ -111,6 +111,8 @@ public enum RestApiAuditProperty {
     HA_NODE,
 
     MEMBER_NAME,
+    MEMBER_CLASS,
+    MEMBER_CODE,
 
     CODE,
     DESCRIPTION,
