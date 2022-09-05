@@ -1,5 +1,6 @@
-/*
+/**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,48 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.ui.glue;
+package org.niis.xroad.test.ui.glue.constants;
 
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
-import io.cucumber.java.en.Given;
 import org.openqa.selenium.By;
 
-import java.time.Duration;
+import static org.openqa.selenium.By.xpath;
 
-import static com.codeborne.selenide.Selenide.$;
+public final class Constants {
 
-public class CommonUiStepDefs extends BaseUiStepDefs {
+    public static final By BTN_DIALOG_SAVE = xpath("//button[@data-test=\"dialog-save-button\"]");
+    public static final By SNACKBAR_SUCCESS = xpath("//div[@data-test=\"success-snackbar\"]");
+    public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test=\"close-snackbar\"]");
 
-    @Given("User {} logs in to {} with password {}")
-    public void doLogin(final String username, final String target, final String password) {
-
-        $(By.xpath("//div[@id='app']"))
-                .shouldBe(Condition.visible, Duration.ofSeconds(1));
-
-        $(By.id("username"))
-                .shouldBe(Condition.visible)
-                .setValue(username);
-        $(By.id("password"))
-                .shouldBe(Condition.visible)
-                .setValue(password);
-
-        $(By.id("submit-button"))
-                .shouldBe(Condition.visible)
-                .shouldBe(Condition.enabled)
-                .click();
+    private Constants() {
     }
-
-    @Given("Page is prepared to be tested")
-    public void preparePage() {
-        Selenide.executeJavaScript("window.e2eTestingMode = true;\n"
-                + "      const style = `\n"
-                + "      <style>\n"
-                + "        *, ::before, ::after {\n"
-                + "            transition:none !important;\n"
-                + "        }\n"
-                + "      </style>`;\n"
-                + "      document.head.insertAdjacentHTML('beforeend', style);");
-    }
-
 }
