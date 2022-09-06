@@ -45,6 +45,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -202,6 +203,33 @@ public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
                 }
                 previousClientId = clientId;
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("GET" + PATH + "/{id}")
+    @WithMockUser(authorities = {"VIEW_MEMBER_DETAILS"})
+    public class GetClient {
+        private ClientIdDto expectedMemberId = (ClientIdDto) new ClientIdDto()
+                .memberClass("GOV")
+                .memberCode("M1")
+                .instanceId("TEST")
+                .type(XRoadIdDto.TypeEnum.MEMBER);;
+
+        @Test
+        void getClient() {
+            var uriVariables = Map.of("clientId", "TEST:GOV:M1");
+
+            var response = restTemplate.getForEntity(
+                    "/api/v1/clients/{clientId}",
+                    ClientDto.class,
+                    uriVariables);
+
+            assertNotNull(response);
+            assertEquals(200, response.getStatusCodeValue());
+            assertNotNull(response.getBody());
+            assertEquals("Member1", response.getBody().getMemberName());
+            assertEquals(expectedMemberId, response.getBody().getXroadId());
         }
     }
 

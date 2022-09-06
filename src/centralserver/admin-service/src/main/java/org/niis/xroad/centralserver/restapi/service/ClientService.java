@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClientView;
@@ -77,6 +80,10 @@ public class ClientService {
                 .andThen(ensureClientNotExists)
                 .map(xRoadMemberRepository::save)
                 .get();
+    }
+
+    public Option<XRoadMember> findMember(ClientId clientId) {
+        return xRoadMemberRepository.findMember(clientId);
     }
 
 }

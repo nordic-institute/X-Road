@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
 import io.vavr.control.Option;
@@ -51,6 +52,7 @@ import org.springframework.data.jpa.domain.Specification;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CLIENT_EXISTS;
@@ -85,7 +87,6 @@ class ClientServiceTest implements WithInOrder {
 
         @Test
         @DisplayName("should just verify sanity")
-
         void shouldJustVerifySanity() {
             doReturn(spec).when(flattenedSecurityServerClientRepository).multiParameterSearch(params);
             doReturn(modifiedPageable).when(stableSortHelper).addSecondaryIdSort(pageable);
@@ -146,6 +147,26 @@ class ClientServiceTest implements WithInOrder {
                 inOrder.verify(xRoadMemberRepository).findOneBy(memberId);
                 inOrder.verify(xRoadMember).getIdentifier();
             });
+        }
+    }
+
+    @Nested
+    @DisplayName("findMember(ClientId clientId)")
+    class FindMember implements WithInOrder {
+
+        private ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+
+        @Mock
+        private XRoadMember xRoadMember;
+
+        @Test
+        @DisplayName("Should find client from xRoadMemberRepository")
+        void shouldFindClient() {
+            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+
+            var result = clientService.findMember(clientId);
+
+            assertTrue(result.isDefined());
         }
     }
 }
