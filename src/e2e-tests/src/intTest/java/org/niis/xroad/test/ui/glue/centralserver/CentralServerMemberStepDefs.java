@@ -50,8 +50,10 @@ public class CentralServerMemberStepDefs extends BaseUiStepDefs {
         $(TAB_MEMBERS).click();
     }
 
-    @When("A new member with {} memberclass is added")
-    public void memberIsAdded(String memberClass) {
+    @When("A new member with name: {}, code: {} & memberclass: {} is added")
+    public void memberIsAdded(String memberName, String memberCode, String memberClass) {
+        scenarioContext.putStepData("memberName", memberName);
+        scenarioContext.putStepData("memberCode", memberCode);
         scenarioContext.putStepData("memberClass", memberClass);
 
         $(BTN_ADD_MEMBER).click();
@@ -67,9 +69,11 @@ public class CentralServerMemberStepDefs extends BaseUiStepDefs {
 
     @Then("A new member is listed")
     public void newMemberIsListed() {
+        String memberName = scenarioContext.getStepData("memberName");
+        String memberCode = scenarioContext.getStepData("memberCode");
         String memberClass = scenarioContext.getStepData("memberClass");
-        $(xpath("//div[@data-test=\"members-view\"]//table/tbody/tr[(td[1] = 'E2E Test Member') and (td[2] = '"
-                + memberClass + "') and (td[3] = 'e2e-test-member')]")).shouldBe(Condition.visible);
+        $(xpath("//div[@data-test=\"members-view\"]//table/tbody/tr[(td[1] = '" + memberName + "') and (td[2] = '"
+                + memberClass + "') and (td[3] = '" + memberCode + "')]")).shouldBe(Condition.visible);
 
     }
 
