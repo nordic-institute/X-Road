@@ -22,7 +22,7 @@ Feature: Security Server Security Officer permissions
     Then Generate key button is visible
 
   Scenario: Security officer cannot do backups
-    Given Settings tab is selected
+    Given SecurityServer Settings tab is selected
     When System parameters tab is selected
     Then Anchor download button is visible
     And Backup and restore tab is not visible

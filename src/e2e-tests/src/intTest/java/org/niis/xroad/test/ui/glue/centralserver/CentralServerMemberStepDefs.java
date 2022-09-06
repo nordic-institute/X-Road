@@ -52,17 +52,17 @@ public class CentralServerMemberStepDefs extends BaseUiStepDefs {
         $(TAB_MEMBERS).click();
     }
 
-    @When("A new member is added")
-    public void memberIsAdded() {
+    @When("A new member with {} memberclass is added")
+    public void memberIsAdded(String memberClassCode) {
         scenarioContext.putStepData("initialMemberCount", getMemberCount());
 
         $(BTN_ADD_MEMBER).click();
         $(INPUT_MEMBER_NAME).setValue("New test member");
         $(SELECT_MEMBER_CLASS).click();
-        getOption("ORG").click();
+        getOption(memberClassCode).click();
         $(INPUT_MEMBER_CODE).setValue("1234567-8");
         $(Constants.BTN_DIALOG_SAVE).shouldBe(Condition.enabled).click();
-        
+
         $(Constants.SNACKBAR_SUCCESS).shouldBe(Condition.visible);
         $(Constants.BTN_CLOSE_SNACKBAR).click();
     }
@@ -80,7 +80,7 @@ public class CentralServerMemberStepDefs extends BaseUiStepDefs {
     }
 
     private int getMemberCount() {
-        return $$(xpath("//div[@data-test=\"members-view\"]//table/tbody/tr")).size();
+        return $$(xpath("//div[@data-test=\"members-view\"]//table/tbody/tr[.//td[not(contains(text(), \"No data available\"))]]")).size();
     }
 
 }
