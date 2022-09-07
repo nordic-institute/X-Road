@@ -8,6 +8,9 @@ Feature: Central Server Add Member
     And User xrd logs in to CentralServer with password secret
 
   Scenario: Member is created and listed
-    Given Members tab is selected
-    When A new member is added
+    Given CentralServer Settings tab is selected
+    And System settings tab is selected
+    And A new memberclass E2E is added
+    And Members tab is selected
+    When A new member with name: E2E Test Member, code: e2e-test-member & memberclass: E2E is added
     Then A new member is listed

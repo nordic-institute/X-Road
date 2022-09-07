@@ -30,13 +30,11 @@ import com.codeborne.selenide.SelenideElement;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.assertj.core.api.Assertions;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 import org.niis.xroad.test.ui.glue.constants.Constants;
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
 import static org.openqa.selenium.By.xpath;
 
 public class CentralServerMemberStepDefs extends BaseUiStepDefs {
@@ -52,35 +50,36 @@ public class CentralServerMemberStepDefs extends BaseUiStepDefs {
         $(TAB_MEMBERS).click();
     }
 
-    @When("A new member is added")
-    public void memberIsAdded() {
-        scenarioContext.putStepData("initialMemberCount", getMemberCount());
+    @When("A new member with name: {}, code: {} & memberclass: {} is added")
+    public void memberIsAdded(String memberName, String memberCode, String memberClass) {
+        scenarioContext.putStepData("memberName", memberName);
+        scenarioContext.putStepData("memberCode", memberCode);
+        scenarioContext.putStepData("memberClass", memberClass);
 
         $(BTN_ADD_MEMBER).click();
-        $(INPUT_MEMBER_NAME).setValue("New test member");
+        $(INPUT_MEMBER_NAME).setValue("E2E Test Member");
         $(SELECT_MEMBER_CLASS).click();
-        getOption("ORG").click();
-        $(INPUT_MEMBER_CODE).setValue("1234567-8");
+        getOption(memberClass).click();
+        $(INPUT_MEMBER_CODE).setValue("e2e-test-member");
         $(Constants.BTN_DIALOG_SAVE).shouldBe(Condition.enabled).click();
-        
+
         $(Constants.SNACKBAR_SUCCESS).shouldBe(Condition.visible);
         $(Constants.BTN_CLOSE_SNACKBAR).click();
     }
 
     @Then("A new member is listed")
     public void newMemberIsListed() {
-        int initialMemberCount = scenarioContext.getStepData("initialMemberCount");
-        Assertions.assertThat(getMemberCount()).isEqualTo(initialMemberCount + 1);
+        String memberName = scenarioContext.getStepData("memberName");
+        String memberCode = scenarioContext.getStepData("memberCode");
+        String memberClass = scenarioContext.getStepData("memberClass");
+        $(xpath("//div[@data-test=\"members-view\"]//table/tbody/tr[(td[1] = '" + memberName + "') and (td[2] = '"
+                + memberClass + "') and (td[3] = '" + memberCode + "')]")).shouldBe(Condition.visible);
 
     }
 
     private SelenideElement getOption(String option) {
         return $(xpath("//div[@role=\"listbox\"]//div[@role=\"option\" and contains(./descendant-or-self::*/text(),\""
                 + option + "\")]"));
-    }
-
-    private int getMemberCount() {
-        return $$(xpath("//div[@data-test=\"members-view\"]//table/tbody/tr")).size();
     }
 
 }
