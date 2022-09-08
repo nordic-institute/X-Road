@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,6 +24,8 @@
  * THE SOFTWARE.
  */
 package org.niis.xroad.restapi.auth;
+
+import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.domain.Role;
@@ -40,6 +42,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.collect.Sets.newHashSet;
+import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
+
 /**
  * Maps roles to granted authorities
  */
@@ -47,9 +52,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GrantedAuthorityMapper {
 
+    static final String PERMISSION_ACTIVATE_DEACTIVATE_TOKEN = "activate_deactivate_token";
     private static final String YAML_PERMISSIONS_RESOURCE = "permissions.yml";
+    private static final Set<String> SLAVE_NODE_PERMISSION_WHITELIST = newHashSet(PERMISSION_ACTIVATE_DEACTIVATE_TOKEN);
 
-    private Map<Role, Set<String>> rolesToPermissions;
+    private final Map<Role, Set<String>> rolesToPermissions;
 
     /**
      * constructor
@@ -60,6 +67,7 @@ public class GrantedAuthorityMapper {
 
     /**
      * Read yaml permissions
+     *
      * @param res
      */
     private Map<Role, Set<String>> parseYamlPermissions(String res) {
@@ -72,9 +80,9 @@ public class GrantedAuthorityMapper {
 
 
         Map<Role, Set<String>> rolePermissionMappings = new HashMap<>();
-        for (Map<String, Collection<String>> permissionsToRoles: permissionsToRolesList) {
-            for (String permissionName: permissionsToRoles.keySet()) {
-                for (String roleName: permissionsToRoles.get(permissionName)) {
+        for (Map<String, Collection<String>> permissionsToRoles : permissionsToRolesList) {
+            for (String permissionName : permissionsToRoles.keySet()) {
+                for (String roleName : permissionsToRoles.get(permissionName)) {
                     Role role = Role.valueOf(roleName.toUpperCase());
                     if (!rolePermissionMappings.containsKey(role)) {
                         rolePermissionMappings.put(role, new HashSet<>());
@@ -94,23 +102,66 @@ public class GrantedAuthorityMapper {
      * - SimpleGrantedAuthority for each xroad role, named using standard "ROLE_" + rolename
      * convention
      * - SimpleGrantedAuthority for permissions that are granted for the xroad roles
+     *
      * @param roles roles, xroad authentication related or others
      * @return
      */
     public Set<GrantedAuthority> getAuthorities(Collection<Role> roles) {
         Set<GrantedAuthority> auths = new HashSet<>();
-        auths.addAll(getPermissionGrants(roles));
+        auths.addAll(getAdjustedPermissionGrants(roles));
         auths.addAll(getRoleGrants(roles));
         return auths;
     }
 
-    private Set<SimpleGrantedAuthority> getPermissionGrants(Collection<Role> roles) {
-        Set<String> permissions = new HashSet<>();
-        for (Role role: roles) {
-            if (rolesToPermissions.containsKey(role)) {
-                permissions.addAll(rolesToPermissions.get(role));
-            }
+    /**
+     * Adjust the given user permissions to match the node type of the Security Server
+     * If the server is marked as a SECONDARY server in a cluster:
+     * -> if the user has the OBSERVER role, OBSERVER role permissions are allowed
+     * -> if the permissions is whitelisted, it will be allowed
+     * <p>
+     * Otherwise, just returns the given roles in a Set, which means that the user in on a PRIMARY server
+     *
+     * @param roles roles to adjust
+     * @return filtered out roles
+     */
+    private Set<SimpleGrantedAuthority> getAdjustedPermissionGrants(Collection<Role> roles) {
+        final SystemProperties.NodeType nodeType = SystemProperties.getServerNodeType();
+        log.trace("Adjusting permission grants for Node type {}", nodeType);
+
+        Set<SimpleGrantedAuthority> permissions = new HashSet<>();
+        if (SLAVE.equals(nodeType)) {
+            log.debug("This is a secondary node - only observer role and whitelisted permissions are permitted");
+            roles.forEach(role -> {
+                //All observer permissions are allowed
+                if (Role.XROAD_SECURITYSERVER_OBSERVER.equals(role)) {
+                    permissions.addAll(getPermissionGrants(role));
+                } else {
+                    permissions.addAll(getSlaveAllowedPermissions(role));
+                }
+            });
+        } else {
+            roles.forEach(role -> permissions.addAll(getPermissionGrants(role)));
         }
+
+        return permissions;
+    }
+
+    private Set<SimpleGrantedAuthority> getSlaveAllowedPermissions(Role role) {
+        return getPermissionGrants(role).stream()
+                .peek(simpleGrantedAuthority -> log.debug("Checking {}", simpleGrantedAuthority.getAuthority()))
+                .filter(grantedAuthority ->
+                        SLAVE_NODE_PERMISSION_WHITELIST.stream()
+                                .anyMatch(grantedAuthority.getAuthority()::equalsIgnoreCase))
+                .collect(Collectors.toSet());
+    }
+
+    private Set<SimpleGrantedAuthority> getPermissionGrants(Role role) {
+        final Set<String> permissions = new HashSet<>();
+
+        if (rolesToPermissions.containsKey(role)) {
+            permissions.addAll(rolesToPermissions.get(role));
+        }
+
         return permissions
                 .stream()
                 .map(name -> new SimpleGrantedAuthority(name.toUpperCase()))

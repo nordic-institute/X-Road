@@ -5,7 +5,7 @@
 groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer"
 
 #define groups that are allowed on ss-cluster slaves
-slave_groups="xroad-securityserver-observer"
+slave_groups="xroad-security-officer xroad-securityserver-observer"
 
 log () { echo >&2 "$@"; }
 
