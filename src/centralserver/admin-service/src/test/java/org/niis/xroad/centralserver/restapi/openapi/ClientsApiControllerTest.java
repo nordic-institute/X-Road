@@ -507,7 +507,8 @@ public class ClientsApiControllerTest implements WithInOrder {
         @DisplayName("Should throw NotFoundException if client with given id is not in database")
         void shouldThrowNotFoundException() {
             doReturn(Option.none()).when(clientService).updateMemberName(any(), any());
-            Executable testable = () -> clientsApiController.updateMemberName(notExistingEncodedClientId, new MemberNameDto().memberName("new name"));
+            Executable testable = () ->
+                    clientsApiController.updateMemberName(notExistingEncodedClientId, new MemberNameDto().memberName("new name"));
 
             assertThrows(
                     NotFoundException.class,
