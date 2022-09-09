@@ -45,6 +45,8 @@ import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
+import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -55,7 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CLIENT_EXISTS;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_EXISTS;
 
 @ExtendWith(MockitoExtension.class)
 class ClientServiceTest implements WithInOrder {
@@ -138,7 +140,7 @@ class ClientServiceTest implements WithInOrder {
             Executable testable = () -> clientService.add(xRoadMember);
 
             EntityExistsException exception = assertThrows(EntityExistsException.class, testable);
-            assertEquals(CLIENT_EXISTS.getDescription(), exception.getMessage());
+            assertEquals(MEMBER_EXISTS.getDescription(), exception.getMessage());
             assertThat(exception.getErrorDeviation().getMetadata())
                     .hasSize(1)
                     .containsExactly(clientIdentifier);
@@ -167,6 +169,43 @@ class ClientServiceTest implements WithInOrder {
             var result = clientService.findMember(clientId);
 
             assertTrue(result.isDefined());
+        }
+    }
+
+    @Nested
+    @DisplayName("deleteMember(ClientId clientId)")
+    class DeleteMember implements WithInOrder {
+
+        private ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+
+        @Mock
+        private XRoadMember xRoadMember;
+
+        @Test
+        @DisplayName("Should delete client from xRoadMemberRepository")
+        void shouldDeleteClient() {
+            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+
+            clientService.delete(clientId);
+
+            inOrder().verify(inOrder -> {
+                inOrder.verify(xRoadMemberRepository).findMember(clientId);
+                inOrder.verify(xRoadMemberRepository).delete(xRoadMember);
+            });
+        }
+
+        @Test
+        @DisplayName("Should not delete client when it's non-existent")
+        void shouldThrowExceptionWhenClientNotFound() {
+            doReturn(Option.none()).when(xRoadMemberRepository).findMember(clientId);
+
+            Executable testable = () -> clientService.delete(clientId);
+
+            NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
+            assertEquals(ErrorMessage.MEMBER_NOT_FOUND.getDescription(), actualThrown.getMessage());
+            inOrder().verify(inOrder -> {
+                inOrder.verify(xRoadMemberRepository).findMember(clientId);
+            });
         }
     }
 }

@@ -134,7 +134,8 @@ public enum RestApiAuditEvent {
 
     EDIT_GLOBAL_GROUP_DESCRIPTION("Edit global group description"),
 
-    ADD_MEMBER("Add member");
+    ADD_MEMBER("Add member"),
+    DELETE_MEMBER("Delete member");
 
     private final String eventName;
 

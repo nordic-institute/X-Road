@@ -127,7 +127,7 @@
     "member_class_is_in_use": "Cannot delete member class: Found X-Road members belonging to the class. Only classes with no registered members can be deleted.",
     "member_class_not_found": "No member class with the specifier code found.",
     "member_class_exists": "Member class with the same code already exists.",
-    "client_exists": "A client with the same id already exists.",
+    "member_exists": "A member with the same id already exists.",
     "global_group_not_found": "Global group by the given id not found.",
     "owners_global_group_cannot_be_deleted": "Cannot perform delete action on server owners group.",
     "global_group_exists": "Global group with the same code already exists."

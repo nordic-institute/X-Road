@@ -472,6 +472,30 @@ public class ClientsApiControllerTest implements WithInOrder {
             assertEquals("Invalid member id", thrown.getMessage());
         }
 
+    }
+
+    @Nested
+    public class DeleteClient implements WithInOrder {
+        @Mock
+        private XRoadMember xRoadMember;
+
+        private final ClientId clientId = ClientId.Conf.create("INSTANCE", "CLASS", "CODE");
+        private final String encodedClientId = "INSTANCE:CLASS:CODE";
+        private final String notExistingEncodedClientId = "INSTANCE:MEMBER:NON-EXISTENT";
+
+        @Test
+        @DisplayName("Should return client with given id")
+        void shouldReturnClient() {
+            var result = clientsApiController.deleteClient(encodedClientId);
+
+            assertEquals(HttpStatus.OK, result.getStatusCode());
+            inOrder(auditData, clientService).verify(inOrder -> {
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, clientId.getMemberClass());
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CODE, clientId.getMemberCode());
+                inOrder.verify(clientService).delete(clientId);
+            });
+        }
 
     }
+
 }

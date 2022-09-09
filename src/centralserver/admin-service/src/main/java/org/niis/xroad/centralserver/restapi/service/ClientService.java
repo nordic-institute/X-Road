@@ -36,6 +36,7 @@ import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -45,7 +46,8 @@ import javax.transaction.Transactional;
 
 import java.util.function.Consumer;
 
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CLIENT_EXISTS;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_EXISTS;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_NOT_FOUND;
 
 /**
  * Service for searching {@link FlattenedSecurityServerClientView}s
@@ -72,7 +74,7 @@ public class ClientService {
         Consumer<XRoadMember> ensureClientNotExists = __ -> {
             boolean exists = xRoadMemberRepository.findOneBy(client.getIdentifier()).isDefined();
             if (exists) {
-                throw new EntityExistsException(CLIENT_EXISTS, client.getIdentifier().toShortString());
+                throw new EntityExistsException(MEMBER_EXISTS, client.getIdentifier().toShortString());
             }
         };
 
@@ -80,6 +82,12 @@ public class ClientService {
                 .andThen(ensureClientNotExists)
                 .map(xRoadMemberRepository::save)
                 .get();
+    }
+
+    public void delete(ClientId clientId) {
+        XRoadMember member = xRoadMemberRepository.findMember(clientId)
+                .getOrElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
+        xRoadMemberRepository.delete(member);
     }
 
     public Option<XRoadMember> findMember(ClientId clientId) {

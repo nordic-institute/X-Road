@@ -50,6 +50,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
 
@@ -207,7 +208,7 @@ public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
     }
 
     @Nested
-    @DisplayName("GET" + PATH + "/{id}")
+    @DisplayName("GET " + PATH + "/{id}")
     @WithMockUser(authorities = {"VIEW_MEMBER_DETAILS"})
     public class GetClient {
         private ClientIdDto expectedMemberId = (ClientIdDto) new ClientIdDto()
@@ -230,6 +231,36 @@ public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
             assertNotNull(response.getBody());
             assertEquals("Member1", response.getBody().getMemberName());
             assertEquals(expectedMemberId, response.getBody().getXroadId());
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE " + PATH + "/{id}")
+    @WithMockUser(authorities = {"DELETE_MEMBER"})
+    public class DeleteClient {
+
+        @Test
+        void deleteClient() {
+            ClientIdDto memberIdDto =  (ClientIdDto) new ClientIdDto()
+                    .memberClass("GOV")
+                    .memberCode("to-be-deleted")
+                    .instanceId("TEST")
+                    .type(XRoadIdDto.TypeEnum.MEMBER);
+            ClientDto memberDto = new ClientDto()
+                    .memberName("To Be Deleted")
+                    .xroadId(memberIdDto);
+            restTemplate.postForEntity(PATH, memberDto, ClientDto.class);
+            var uriVariables = Map.of("clientId", "TEST:GOV:to-be-deleted");
+
+            restTemplate.delete(
+                    "/api/v1/clients/{clientId}",
+                    uriVariables);
+
+            ResponseEntity<ClientDto> deletedClientResponse =
+                    restTemplate.getForEntity("/api/v1/clients/{clientId}", ClientDto.class, uriVariables);
+
+            assertNotNull(deletedClientResponse.getBody());
+            assertEquals(NOT_FOUND, deletedClientResponse.getStatusCode());
         }
     }
 
