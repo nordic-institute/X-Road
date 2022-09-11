@@ -59,13 +59,13 @@
           <v-row class="filter-dlg-row">
             <v-col class="d-flex" cols="4" sm="4" md="4">
               <v-checkbox
-                v-model="typeMember"
+                v-model="typeMemberModel"
                 :label="$t('filters.groupMembers.member')"
               ></v-checkbox>
             </v-col>
             <v-col class="d-flex" cols="4" sm="4" md="4">
               <v-checkbox
-                v-model="typeSubsystem"
+                v-model="typeSubsystemModel"
                 :label="$t('filters.groupMembers.subsystem')"
               ></v-checkbox>
             </v-col>
@@ -78,6 +78,7 @@
                 {{ $t('filters.groupMembers.byInstance') }}
               </div>
               <v-select
+                v-model="instanceModel"
                 :items="instances"
                 :label="$t('filters.groupMembers.instance')"
                 outlined
@@ -89,7 +90,8 @@
                 {{ $t('filters.groupMembers.byClass') }}
               </div>
               <v-select
-                :items="classes"
+                v-model="memberClassModel"
+                :items="memberClasses"
                 outlined
                 :label="$t('filters.groupMembers.class')"
               ></v-select>
@@ -103,6 +105,7 @@
                 {{ $t('filters.groupMembers.byCode') }}
               </div>
               <v-autocomplete
+                v-model="codesModel"
                 clearable
                 multiple
                 :items="codes"
@@ -115,6 +118,7 @@
                 {{ $t('filters.groupMembers.bySubsystem') }}
               </div>
               <v-autocomplete
+                v-model="subsystemsModel"
                 clearable
                 multiple
                 :items="subsystems"
@@ -149,10 +153,28 @@
 /** Base component for simple dialogs */
 
 import Vue from 'vue';
+import { mapStores } from 'pinia';
+import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+
+const initialState = () => {
+  return {
+    typeMemberModel: false,
+    typeSubsystemModel: false,
+    instanceModel: '',
+    memberClassModel: '',
+    subsystemsModel: [],
+    codesModel: [],
+  };
+};
 
 export default Vue.extend({
+  name: 'GroupMembersFilterDialog',
   components: {},
   props: {
+    groupId: {
+      type: String,
+      required: true,
+    },
     // Dialog visible / hidden
     dialog: {
       type: Boolean,
@@ -176,28 +198,48 @@ export default Vue.extend({
 
   data() {
     return {
-      typeMember: false,
-      typeSubsystem: false,
-      search: '',
-      instances: ['Insstance 1', 'Instance two'],
-      classes: ['First class', 'second class'],
-      subsystems: ['First', 'second', 'third', 'fourth', 'fifth'],
-      codes: ['1111', '2222', '33333', '4455', '4466', '5555'],
+      instances: [] as string[] | null | undefined,
+      memberClasses: [] as string[] | null | undefined,
+      subsystems: [] as string[] | null | undefined,
+      codes: [] as string[] | null | undefined,
+      ...initialState(),
     };
   },
 
-  computed: {},
-
+  computed: {
+    ...mapStores(useGlobalGroupsStore),
+  },
+  created() {
+    this.globalGroupStore.getMembersFilterModel(this.groupId).then((resp) => {
+      this.instances = resp.instances;
+      this.memberClasses = resp.memberClasses;
+      this.subsystems = resp.subsystems;
+      this.codes = resp.codes;
+    });
+  },
   methods: {
     cancel(): void {
       this.$emit('cancel');
     },
     clearFields(): void {
-      this.typeMember = false;
-      this.typeSubsystem = false;
+      Object.assign(this.$data, initialState());
     },
     apply(): void {
-      this.$emit('apply');
+      const typeArray: string[] = [];
+      if (this.typeMemberModel === true) {
+        typeArray.push('MEMBER');
+      }
+      if (this.typeSubsystemModel === true) {
+        typeArray.push('SUBSYSTEM');
+      }
+      this.$emit('apply', {
+        memberClass: this.memberClassModel,
+        instance: this.instanceModel,
+        codes: this.codesModel,
+        subsystems: this.subsystemsModel,
+        types: typeArray,
+      });
+      this.clearFields();
     },
   },
 });

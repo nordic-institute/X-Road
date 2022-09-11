@@ -32,11 +32,10 @@ import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 
 import java.time.ZoneOffset;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class GlobalGroupConverterTest {
-    private final GlobalGroupConverter converter = new GlobalGroupConverter(new GroupMemberConverter());
+    private final GlobalGroupConverter converter = new GlobalGroupConverter();
 
     @Test
     void convert() {
@@ -44,13 +43,12 @@ class GlobalGroupConverterTest {
 
         GlobalGroupResourceDto result = converter.convert(mockEntity);
 
-        assertEquals(mockEntity.getId(), result.getId());
-        assertEquals(mockEntity.getGroupCode(), result.getCode());
-        assertEquals(mockEntity.getDescription(), result.getDescription());
-        assertEquals(mockEntity.getMemberCount(), result.getMemberCount());
-        assertEquals(0, result.getMembers().size());
-        assertEquals(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC), result.getCreatedAt());
-        assertEquals(mockEntity.getUpdatedAt().atOffset(ZoneOffset.UTC), result.getUpdatedAt());
+        assertThat(result.getId()).isEqualTo(mockEntity.getId());
+        assertThat(result.getCode()).isEqualTo(mockEntity.getGroupCode());
+        assertThat(result.getDescription()).isEqualTo(mockEntity.getDescription());
+        assertThat(result.getMemberCount()).isEqualTo(mockEntity.getMemberCount());
+        assertThat(result.getCreatedAt()).isEqualTo(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
+        assertThat(result.getUpdatedAt()).isEqualTo(mockEntity.getUpdatedAt().atOffset(ZoneOffset.UTC));
     }
 
     @Test
@@ -60,12 +58,12 @@ class GlobalGroupConverterTest {
                 .description("description");
 
         var result = converter.toEntity(globalGroupCodeAndDescription);
-        assertEquals(0, result.getId());
-        assertEquals(globalGroupCodeAndDescription.getCode(), result.getGroupCode());
-        assertEquals(globalGroupCodeAndDescription.getDescription(), result.getDescription());
-        assertEquals(0, result.getGlobalGroupMembers().size());
-        assertNotNull(result.getCreatedAt());
-        assertNotNull(result.getUpdatedAt());
+        assertThat(result.getId()).isEqualTo(0);
+        assertThat(result.getGroupCode()).isEqualTo(globalGroupCodeAndDescription.getCode());
+        assertThat(result.getDescription()).isEqualTo(globalGroupCodeAndDescription.getDescription());
+        assertThat(result.getGlobalGroupMembers().size()).isEqualTo(0);
+        assertThat(result.getCreatedAt()).isNotNull();
+        assertThat(result.getUpdatedAt()).isNotNull();
     }
 
     private GlobalGroup mockEntity() {

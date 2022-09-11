@@ -47,9 +47,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -86,7 +85,7 @@ class GlobalGroupServiceTest {
 
         GlobalGroupResourceDto result = service.addGlobalGroup(globalGroupCodeAndDescription);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
         InOrder inOrder = inOrder(globalGroupRepository, converter, auditDataHelper);
         inOrder.verify(globalGroupRepository).getByGroupCode("code");
         inOrder.verify(converter).toEntity(globalGroupCodeAndDescription);
@@ -104,54 +103,26 @@ class GlobalGroupServiceTest {
         GlobalGroupResourceDto globalGroup = new GlobalGroupResourceDto();
         when(converter.convert(entity)).thenReturn(globalGroup);
 
-        Set<GlobalGroupResourceDto> globalGroups = service.findGlobalGroups(null);
+        Set<GlobalGroupResourceDto> globalGroups = service.findGlobalGroups();
 
-        assertEquals(1, globalGroups.size());
-        assertEquals(globalGroup, globalGroups.iterator().next());
-
-        InOrder inOrder = inOrder(globalGroupRepository, converter);
-        inOrder.verify(globalGroupRepository).findAll();
-        inOrder.verify(converter).convert(entity);
-        verifyNoMoreInteractions(globalGroupRepository, converter);
-    }
-
-    @Test
-    void findGlobalGroupsContainsMemberIsEmpty() {
-        GlobalGroup entity = new GlobalGroup();
-        when(globalGroupRepository.findAll()).thenReturn(List.of(entity));
-        GlobalGroupResourceDto globalGroup = new GlobalGroupResourceDto();
-        when(converter.convert(entity)).thenReturn(globalGroup);
-
-        Set<GlobalGroupResourceDto> globalGroups = service.findGlobalGroups("");
-
-        assertEquals(1, globalGroups.size());
-        assertEquals(globalGroup, globalGroups.iterator().next());
+        assertThat(1).isEqualTo(globalGroups.size());
+        assertThat(globalGroup).isEqualTo(globalGroups.iterator().next());
 
         InOrder inOrder = inOrder(globalGroupRepository, converter);
         inOrder.verify(globalGroupRepository).findAll();
         inOrder.verify(converter).convert(entity);
         verifyNoMoreInteractions(globalGroupRepository, converter);
-    }
-
-    @Test
-    void findGlobalGroupsContainsMemberNotExistsInGlobalGroup() {
-        GlobalGroup entity = new GlobalGroup();
-        when(globalGroupRepository.findAll()).thenReturn(List.of(entity));
-
-        Set<GlobalGroupResourceDto> globalGroups = service.findGlobalGroups("CS:ORG:123");
-
-        assertEquals(0, globalGroups.size());
     }
 
     @Test
     void getGlobalGroupResultsInException() {
-        assertThrowsExactly(NotFoundException.class, () -> service.getGlobalGroup(1));
+        assertThrows(NotFoundException.class, () -> service.getGlobalGroup(1));
     }
 
     @Test
     void updateGlobalGroupDescriptionResultsInException() {
         GlobalGroupUpdateDto updateDto = new GlobalGroupUpdateDto(1, "New description");
-        assertThrowsExactly(NotFoundException.class, () -> service.updateGlobalGroupDescription(updateDto));
+        assertThrows(NotFoundException.class, () -> service.updateGlobalGroupDescription(updateDto));
     }
 
     @Test
@@ -163,6 +134,6 @@ class GlobalGroupServiceTest {
         systemParameter.setValue(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
         when(systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP)).thenReturn(List.of(systemParameter));
 
-        assertThrowsExactly(ValidationFailureException.class, () -> service.deleteGlobalGroup(1));
+        assertThrows(ValidationFailureException.class, () -> service.deleteGlobalGroup(1));
     }
 }

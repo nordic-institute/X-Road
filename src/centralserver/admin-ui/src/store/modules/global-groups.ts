@@ -27,20 +27,35 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import {
+  GlobalGroupCodeAndDescription,
   GlobalGroupDescription,
   GlobalGroupResource,
-  GlobalGroupCodeAndDescription,
+  GroupMember,
+  GroupMembersFilter,
+  GroupMembersFilterModel,
+  PagedGroupMember,
+  PagingMetadata,
 } from '@/openapi-types';
+import { DataOptions } from 'vuetify';
 
 export interface State {
   globalGroups: GlobalGroupResource[];
   groupsLoading: boolean;
+  members: GroupMember[];
+  pagingOptions: PagingMetadata;
 }
 
 export const useGlobalGroupsStore = defineStore('globalGroup', {
   state: (): State => ({
     globalGroups: [],
     groupsLoading: false,
+    members: [],
+    pagingOptions: {
+      total_items: 0,
+      items: 0,
+      limit: 25,
+      offset: 0,
+    },
   }),
   actions: {
     findAll() {
@@ -61,6 +76,36 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
         .then((resp) => resp.data)
         .catch((error) => {
           throw error;
+        });
+    },
+    getMembersFilterModel(groupId: string) {
+      return axios
+        .get<GroupMembersFilterModel>(
+          `/global-groups/${groupId}/members/filter-model`,
+        )
+        .then((resp) => resp.data)
+        .catch((error) => {
+          throw error;
+        });
+    },
+    async findMembers(
+      groupId: string,
+      dataOptions: DataOptions,
+      filter: GroupMembersFilter,
+    ) {
+      const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
+      filter.pagingSorting = {
+        limit: dataOptions.itemsPerPage,
+        offset: offset,
+        sort: dataOptions.sortBy[0],
+        desc: dataOptions.sortDesc[0],
+      };
+
+      return axios
+        .post<PagedGroupMember>(`/global-groups/${groupId}/members/`, filter)
+        .then((resp) => {
+          this.members = resp.data.items || [];
+          this.pagingOptions = resp.data.paging_metadata;
         });
     },
     add(codeAndDescription: GlobalGroupCodeAndDescription) {

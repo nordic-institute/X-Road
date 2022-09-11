@@ -57,7 +57,7 @@
         <div class="xrd-view-title align-fix">
           {{ $t('globalGroup.groupMembers') }} ({{ memberCount }})
         </div>
-        <xrd-search v-model="search" class="margin-fix" />
+        <xrd-search v-model="filter.query" class="margin-fix" />
         <v-icon
           color="primary"
           class="ml-4 mt-1"
@@ -77,13 +77,17 @@
     <v-data-table
       :loading="loading"
       :headers="membersHeaders"
-      :items="members"
+      :items="this.globalGroupStore.members"
+      :search="filter.query"
       :must-sort="true"
-      :items-per-page="-1"
+      :items-per-page="10"
+      :options.sync="pagingSortingOptions"
+      :server-items-length="this.globalGroupStore.pagingOptions.total_items"
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
-      hide-default-footer
+      :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
+      @update:options="changeOptions"
     >
       <template #[`item.name`]="{ item }">
         <div class="member-name xrd-clickable" @click="toDetails(item)">
@@ -106,11 +110,13 @@
     </v-data-table>
 
     <!-- Dialogs -->
-    <FilterDialog
+    <GroupMembersFilterDialog
+      :group-id="groupId"
       :dialog="showFilterDialog"
       cancel-button-text="action.cancel"
-      @cancel="showFilterDialog = false"
-    ></FilterDialog>
+      @cancel="cancelFilter"
+      @apply="applyFilter"
+    ></GroupMembersFilterDialog>
 
     <!-- Edit Description Dialog -->
     <GlobalGroupEditDescriptionDialog
@@ -139,16 +145,21 @@
 import Vue from 'vue';
 
 import { Colors, Permissions, RouteName } from '@/global';
-import { DataTableHeader } from 'vuetify';
+import { DataOptions, DataTableHeader } from 'vuetify';
 import InfoCard from '@/components/ui/InfoCard.vue';
-import FilterDialog from '@/views/GlobalResources/GlobalGroup/GroupMembersFilterDialog.vue';
 import { useGlobalGroupsStore } from '@/store/modules/global-groups';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { GlobalGroupResource, GroupMember } from '@/openapi-types';
+import { GroupMembersFilter, GlobalGroupResource } from '@/openapi-types';
 import { notificationsStore } from '@/store/modules/notifications';
 import { userStore } from '@/store/modules/user';
 import GlobalGroupDeleteDialog from '@/views/GlobalResources/GlobalGroup/GlobalGroupDeleteDialog.vue';
 import GlobalGroupEditDescriptionDialog from '@/views/GlobalResources/GlobalGroup/GlobalGroupEditDescriptionDialog.vue';
+import GroupMembersFilterDialog from '@/views/GlobalResources/GlobalGroup/GroupMembersFilterDialog.vue';
+import { debounce } from '@/util/helpers';
+
+// To provide the Vue instance to debounce
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let that: any;
 
 /**
  * Global group view
@@ -158,7 +169,7 @@ export default Vue.extend({
     GlobalGroupEditDescriptionDialog,
     GlobalGroupDeleteDialog,
     InfoCard,
-    FilterDialog,
+    GroupMembersFilterDialog,
   },
   props: {
     groupId: {
@@ -170,8 +181,8 @@ export default Vue.extend({
     return {
       colors: Colors,
       globalGroup: {} as GlobalGroupResource,
-      members: [] as GroupMember[] | undefined,
-      search: '',
+      pagingSortingOptions: {} as DataOptions,
+      filter: {} as GroupMembersFilter,
       loading: false,
       permissions: Permissions,
       showAddDialog: false,
@@ -190,7 +201,9 @@ export default Vue.extend({
       return this.hasPermission(Permissions.DELETE_GROUP);
     },
     memberCount(): number {
-      return this.members === undefined ? 0 : this.members.length;
+      return this.globalGroupStore.members === undefined
+        ? 0
+        : this.globalGroupStore.members.length;
     },
     membersHeaders(): DataTableHeader[] {
       return [
@@ -245,12 +258,21 @@ export default Vue.extend({
       ];
     },
   },
+  watch: {
+    filter: {
+      handler() {
+        this.debouncedFetchItems();
+      },
+      deep: true,
+    },
+  },
   created() {
+    that = this;
     this.loading = true;
-    this.globalGroupStore.getById(this.groupId)
+    this.globalGroupStore
+      .getById(this.groupId)
       .then((resp) => {
         this.globalGroup = resp;
-        this.members = resp.members;
       })
       .catch((error) => {
         this.showError(error);
@@ -261,6 +283,10 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    debouncedFetchItems: debounce(() => {
+      // Debounce is used to reduce unnecessary api calls
+      that.fetchItems(that.pagingSortingOptions, that.filter);
+    }, 600),
     goBack(): void {
       this.$router.go(-1);
     },
@@ -271,7 +297,8 @@ export default Vue.extend({
       this.showEditDescriptionDialog = false;
     },
     deleteGlobalGroup(): void {
-      this.globalGroupStore.deleteById(this.groupId)
+      this.globalGroupStore
+        .deleteById(this.groupId)
         .then(() => {
           this.$router.replace({ name: RouteName.GlobalResources });
           this.showSuccess(this.$t('globalGroup.groupDeletedSuccessfully'));
@@ -284,7 +311,8 @@ export default Vue.extend({
         });
     },
     editDescription(newDescription: string): void {
-      this.globalGroupStore.editGroupDescription(this.groupId, { description: newDescription })
+      this.globalGroupStore
+        .editGroupDescription(this.groupId, { description: newDescription })
         .then((resp) => {
           this.globalGroup = resp.data;
           this.showSuccess(this.$t('globalGroup.descriptionSaved'));
@@ -295,6 +323,30 @@ export default Vue.extend({
         .finally(() => {
           this.showEditDescriptionDialog = false;
         });
+    },
+    changeOptions: async function () {
+      await this.fetchItems(this.pagingSortingOptions, this.filter);
+    },
+    fetchItems: async function (
+      options: DataOptions,
+      filter: GroupMembersFilter,
+    ) {
+      this.loading = true;
+      try {
+        await this.globalGroupStore.findMembers(this.groupId, options, filter);
+      } catch (error: unknown) {
+        this.showError(error);
+      } finally {
+        this.loading = false;
+      }
+    },
+    cancelFilter(): void {
+      this.showFilterDialog = false;
+    },
+    applyFilter(filter: GroupMembersFilter): void {
+      this.filter.query = '';
+      this.fetchItems(this.pagingSortingOptions, filter);
+      this.showFilterDialog = false;
     },
   },
 });

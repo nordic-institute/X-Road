@@ -61,7 +61,7 @@ public class GlobalGroupMember extends AuditableEntity {
     @Setter
     private GlobalGroup globalGroup;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "group_member_id")
     @Getter
     @Setter

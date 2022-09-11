@@ -26,20 +26,24 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
-import org.eclipse.jetty.util.StringUtil;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescriptionDto;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupResourceDto;
+import org.niis.xroad.centralserver.openapi.model.GroupMembersFilterModelDto;
 import org.niis.xroad.centralserver.restapi.converter.GlobalGroupConverter;
+import org.niis.xroad.centralserver.restapi.converter.GroupMemberFilterModelConverter;
 import org.niis.xroad.centralserver.restapi.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
+import org.niis.xroad.centralserver.restapi.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
 import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,15 +63,16 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DESCRIPTI
 @Transactional
 @RequiredArgsConstructor
 public class GlobalGroupService {
-
     private final AuditDataHelper auditDataHelper;
+    private final StableSortHelper stableSortHelper;
     private final GlobalGroupRepository globalGroupRepository;
     private final GlobalGroupConverter globalGroupConverter;
+    private final GroupMemberFilterModelConverter groupMemberFilterModelConverter;
     private final SystemParameterRepository systemParameterRepository;
+    private final GlobalGroupMemberRepository globalGroupMemberRepository;
 
-    public Set<GlobalGroupResourceDto> findGlobalGroups(String containsMember) {
+    public Set<GlobalGroupResourceDto> findGlobalGroups() {
         return globalGroupRepository.findAll().stream()
-                .filter(globalGroup -> isMemberExistsInGlobalGroup(containsMember, globalGroup.getGlobalGroupMembers()))
                 .map(globalGroupConverter::convert)
                 .collect(Collectors.toSet());
     }
@@ -95,14 +100,18 @@ public class GlobalGroupService {
         return globalGroupConverter.convert(updatedGlobalGroup);
     }
 
+    public GroupMembersFilterModelDto getGroupMembersFilterModel(Integer groupId) {
+        return groupMemberFilterModelConverter.convert(globalGroupMemberRepository.findByGroupId(groupId));
+    }
+
+    public Page<GlobalGroupMember> findGroupMembers(GlobalGroupMemberRepository.Criteria criteria, Pageable pageable) {
+        return globalGroupMemberRepository.findAll(GlobalGroupMemberRepository.findSpecification(criteria),
+                stableSortHelper.addSecondaryIdSort(pageable));
+    }
+
     private GlobalGroup findGlobalGroupOrThrowException(Integer groupId) {
         return globalGroupRepository.findById(groupId)
                 .orElseThrow(() -> new NotFoundException(GLOBAL_GROUP_NOT_FOUND));
-    }
-    private boolean isMemberExistsInGlobalGroup(String memberId, Set<GlobalGroupMember> members) {
-        return StringUtil.isEmpty(memberId)
-                || members.stream()
-                .anyMatch(member -> memberId.equals(member.getIdentifier().toShortString(':')));
     }
 
     private void assertGlobalGroupExists(String code) {
