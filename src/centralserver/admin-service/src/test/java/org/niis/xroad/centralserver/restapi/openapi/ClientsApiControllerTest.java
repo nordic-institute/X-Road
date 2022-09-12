@@ -418,7 +418,6 @@ public class ClientsApiControllerTest implements WithInOrder {
         }
     }
 
-
     @Nested
     public class GetClient implements WithInOrder {
         @Mock
@@ -475,6 +474,29 @@ public class ClientsApiControllerTest implements WithInOrder {
     }
 
     @Nested
+    public class DeleteClient implements WithInOrder {
+        @Mock
+        private XRoadMember xRoadMember;
+
+        private final ClientId clientId = ClientId.Conf.create("INSTANCE", "CLASS", "CODE");
+        private final String encodedClientId = "INSTANCE:CLASS:CODE";
+        private final String notExistingEncodedClientId = "INSTANCE:MEMBER:NON-EXISTENT";
+
+        @Test
+        @DisplayName("Should delete client with given id")
+        void shouldReturnClient() {
+            var result = clientsApiController.deleteClient(encodedClientId);
+
+            assertEquals(HttpStatus.OK, result.getStatusCode());
+            inOrder(auditData, clientService).verify(inOrder -> {
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, clientId.getMemberClass());
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CODE, clientId.getMemberCode());
+                inOrder.verify(clientService).delete(clientId);
+            });
+        }
+    }
+
+    @Nested
     public class UpdateMemberName implements WithInOrder {
         @Mock
         private XRoadMember xRoadMember;
@@ -485,7 +507,6 @@ public class ClientsApiControllerTest implements WithInOrder {
         private final String encodedClientId = "TEST:CLASS:CODE";
         private final String notExistingEncodedClientId = "TEST:MEMBER:DOES-NOT-EXIST";
         private final String newName = "NEW NAME";
-
 
         @Test
         @DisplayName("Should return client with updated name")
@@ -531,4 +552,5 @@ public class ClientsApiControllerTest implements WithInOrder {
             assertEquals("Invalid member id", thrown.getMessage());
         }
     }
+
 }

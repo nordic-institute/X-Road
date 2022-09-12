@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import io.vavr.control.Option;
@@ -109,8 +110,15 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('DELETE_MEMBER')")
+    @AuditEventMethod(event = RestApiAuditEvent.DELETE_MEMBER)
     public ResponseEntity<Void> deleteClient(String id) {
-        return null;
+        verifyMemberId(id);
+        ClientId clientId = clientIdConverter.convertId(id);
+        auditData.put(RestApiAuditProperty.MEMBER_CLASS, clientId.getMemberClass());
+        auditData.put(RestApiAuditProperty.MEMBER_CODE, clientId.getMemberCode());
+        clientService.delete(clientId);
+        return ResponseEntity.ok().build();
     }
 
     @Override
@@ -151,9 +159,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
     public ResponseEntity<ClientDto> getClient(String id) {
-        if (!clientIdConverter.isEncodedMemberId(id)) {
-            throw new BadRequestException("Invalid member id");
-        }
+        verifyMemberId(id);
         return Option.of(id)
                 .map(clientIdConverter::convertId)
                 .peek(clientId -> auditData.put(RestApiAuditProperty.CLIENT_IDENTIFIER, clientId))
@@ -166,9 +172,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAnyAuthority('EDIT_MEMBER_NAME_AND_ADMIN_CONTACT')")
     public ResponseEntity<ClientDto> updateMemberName(String id, MemberNameDto memberName) {
-        if (!clientIdConverter.isEncodedMemberId(id)) {
-            throw new BadRequestException("Invalid member id");
-        }
+        verifyMemberId(id);
         return Option.of(id)
                 .map(clientIdConverter::convertId)
                 .peek(clientId -> auditData.put(RestApiAuditProperty.CLIENT_IDENTIFIER, clientId))
@@ -176,5 +180,11 @@ public class ClientsApiController implements ClientsApi {
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity::ok)
                 .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
+    }
+
+    private void verifyMemberId(String id) {
+        if (!clientIdConverter.isEncodedMemberId(id)) {
+            throw new BadRequestException("Invalid member id");
+        }
     }
 }
