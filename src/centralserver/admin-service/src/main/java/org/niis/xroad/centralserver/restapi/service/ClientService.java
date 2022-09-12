@@ -32,8 +32,10 @@ import io.vavr.control.Option;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClientView;
+import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
+import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
@@ -44,6 +46,8 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_EXISTS;
@@ -58,6 +62,7 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 public class ClientService {
     private final FlattenedSecurityServerClientRepository flattenedClientRepository;
     private final XRoadMemberRepository xRoadMemberRepository;
+    private final SecurityServerClientNameRepository securityServerClientNameRepository;
 
     private final StableSortHelper stableSortHelper;
 
@@ -93,5 +98,28 @@ public class ClientService {
     public Option<XRoadMember> findMember(ClientId clientId) {
         return xRoadMemberRepository.findMember(clientId);
     }
+
+
+    public Option<XRoadMember> updateMemberName(ClientId clientId, String newName) {
+        return xRoadMemberRepository.findMember(clientId)
+                .peek(xRoadMember -> updateName(xRoadMember, newName));
+    }
+
+    private void updateName(XRoadMember xRoadMember, String newName) {
+        xRoadMember.setName(newName);
+
+        Set<ClientId> identifiers = new HashSet<>();
+        identifiers.add(xRoadMember.getIdentifier());
+        xRoadMember.getSubsystems().stream()
+                .map(Subsystem::getIdentifier)
+                .forEach(identifiers::add);
+
+        securityServerClientNameRepository.findByIdentifierIn(identifiers)
+                .forEach(x -> x.setName(newName));
+
+    }
+
+
+
 
 }

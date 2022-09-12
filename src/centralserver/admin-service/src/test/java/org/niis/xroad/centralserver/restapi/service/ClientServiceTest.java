@@ -41,8 +41,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClientView;
 import org.niis.xroad.centralserver.restapi.entity.MemberId;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
+import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
@@ -51,12 +53,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_EXISTS;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,6 +74,8 @@ class ClientServiceTest implements WithInOrder {
     private XRoadMemberRepository xRoadMemberRepository;
     @Mock
     private FlattenedSecurityServerClientRepository flattenedSecurityServerClientRepository;
+    @Mock
+    private SecurityServerClientNameRepository securityServerClientNameRepository;
 
     @InjectMocks
     private ClientService clientService;
@@ -175,7 +183,6 @@ class ClientServiceTest implements WithInOrder {
     @Nested
     @DisplayName("deleteMember(ClientId clientId)")
     class DeleteMember implements WithInOrder {
-
         private ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
 
         @Mock
@@ -206,6 +213,31 @@ class ClientServiceTest implements WithInOrder {
             inOrder().verify(inOrder -> {
                 inOrder.verify(xRoadMemberRepository).findMember(clientId);
             });
+        }
+    }
+
+    @Nested
+    @DisplayName("updateMemberName(clientId, newName)")
+    class UpdateName implements WithInOrder {
+
+        private ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+
+        @Mock
+        private XRoadMember xRoadMember;
+        @Mock
+        private SecurityServerClientName securityServerClientName;
+
+        @Test
+        @DisplayName("Should set new name")
+        void shouldUpdateName() {
+            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(Set.of(securityServerClientName)).when(securityServerClientNameRepository).findByIdentifierIn(any());
+
+            var result = clientService.updateMemberName(clientId, "new name");
+
+            assertTrue(result.isDefined());
+            verify(xRoadMember).setName("new name");
+            verify(securityServerClientName).setName("new name");
         }
     }
 }

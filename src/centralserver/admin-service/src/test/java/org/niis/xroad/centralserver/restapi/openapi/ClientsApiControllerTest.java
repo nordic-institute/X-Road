@@ -48,6 +48,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
 import org.niis.xroad.centralserver.openapi.model.ClientTypeDto;
+import org.niis.xroad.centralserver.openapi.model.MemberNameDto;
 import org.niis.xroad.centralserver.openapi.model.PagedClientsDto;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
@@ -417,7 +418,6 @@ public class ClientsApiControllerTest implements WithInOrder {
         }
     }
 
-
     @Nested
     public class GetClient implements WithInOrder {
         @Mock
@@ -471,7 +471,6 @@ public class ClientsApiControllerTest implements WithInOrder {
 
             assertEquals("Invalid member id", thrown.getMessage());
         }
-
     }
 
     @Nested
@@ -484,7 +483,7 @@ public class ClientsApiControllerTest implements WithInOrder {
         private final String notExistingEncodedClientId = "INSTANCE:MEMBER:NON-EXISTENT";
 
         @Test
-        @DisplayName("Should return client with given id")
+        @DisplayName("Should delete client with given id")
         void shouldReturnClient() {
             var result = clientsApiController.deleteClient(encodedClientId);
 
@@ -495,7 +494,63 @@ public class ClientsApiControllerTest implements WithInOrder {
                 inOrder.verify(clientService).delete(clientId);
             });
         }
+    }
 
+    @Nested
+    public class UpdateMemberName implements WithInOrder {
+        @Mock
+        private XRoadMember xRoadMember;
+        @Mock
+        private ClientDto clientDto;
+
+        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "CODE");
+        private final String encodedClientId = "TEST:CLASS:CODE";
+        private final String notExistingEncodedClientId = "TEST:MEMBER:DOES-NOT-EXIST";
+        private final String newName = "NEW NAME";
+
+        @Test
+        @DisplayName("Should return client with updated name")
+        void shouldReturnClient() {
+            doReturn(Option.of(xRoadMember)).when(clientService).updateMemberName(clientId, newName);
+            doReturn(clientDto).when(clientDtoConverter).toDto(xRoadMember);
+
+            var result = clientsApiController.updateMemberName(encodedClientId, new MemberNameDto().memberName(newName));
+
+            assertSame(clientDto, result.getBody());
+            inOrder(auditData, clientService).verify(inOrder -> {
+                inOrder.verify(auditData).put(RestApiAuditProperty.CLIENT_IDENTIFIER, clientId);
+                inOrder.verify(clientService).updateMemberName(clientId, newName);
+                inOrder.verify(clientDtoConverter).toDto(xRoadMember);
+            });
+        }
+
+        @Test
+        @DisplayName("Should throw NotFoundException if client with given id is not in database")
+        void shouldThrowNotFoundException() {
+            doReturn(Option.none()).when(clientService).updateMemberName(any(), any());
+            Executable testable = () ->
+                    clientsApiController.updateMemberName(notExistingEncodedClientId, new MemberNameDto().memberName("new name"));
+
+            assertThrows(
+                    NotFoundException.class,
+                    testable);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "INVALID-FORMAT",
+                "TEST:CLASS:CODE:SUBSYSTEM"})
+        @DisplayName("Should throw BadRequest if called with invalid id")
+        void shouldThrowBadRequestException(String id) {
+            Executable testable = () -> clientsApiController.updateMemberName(id, new MemberNameDto().memberName("new name"));
+
+            var thrown = assertThrows(
+                    BadRequestException.class,
+                    testable,
+                    "Expecting BadRequestException when called with invalid member id");
+
+            assertEquals("Invalid member id", thrown.getMessage());
+        }
     }
 
 }

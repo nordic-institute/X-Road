@@ -170,8 +170,16 @@ public class ClientsApiController implements ClientsApi {
     }
 
     @Override
+    @PreAuthorize("hasAnyAuthority('EDIT_MEMBER_NAME_AND_ADMIN_CONTACT')")
     public ResponseEntity<ClientDto> updateMemberName(String id, MemberNameDto memberName) {
-        return null;
+        verifyMemberId(id);
+        return Option.of(id)
+                .map(clientIdConverter::convertId)
+                .peek(clientId -> auditData.put(RestApiAuditProperty.CLIENT_IDENTIFIER, clientId))
+                .flatMap(clientId -> clientService.updateMemberName(clientId, memberName.getMemberName()))
+                .map(clientDtoConverter::toDto)
+                .map(ResponseEntity::ok)
+                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
     }
 
     private void verifyMemberId(String id) {
