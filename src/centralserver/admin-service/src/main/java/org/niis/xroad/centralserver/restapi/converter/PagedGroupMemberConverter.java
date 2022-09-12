@@ -51,7 +51,7 @@ public class PagedGroupMemberConverter {
                 .map(groupMemberConverter::convert)
                 .collect(Collectors.toList());
 
-        PagedGroupMemberDto result = new PagedGroupMemberDto();
+        var result = new PagedGroupMemberDto();
         result.setItems(items);
         result.setPagingMetadata(meta);
         return result;

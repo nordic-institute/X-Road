@@ -39,7 +39,7 @@ public class GroupMemberFilterModelConverter {
 
     public GroupMembersFilterModelDto convert(List<GlobalGroupMember> members) {
 
-        GroupMembersFilterModelDto result = new GroupMembersFilterModelDto();
+        var result = new GroupMembersFilterModelDto();
         result.setInstances(members.stream()
                 .map(m -> m.getIdentifier().getXRoadInstance())
                 .distinct()

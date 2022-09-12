@@ -32,11 +32,11 @@ import lombok.Builder;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.restapi.entity.ClientId;
-import org.niis.xroad.centralserver.restapi.entity.ClientId_;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember_;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup_;
+import org.niis.xroad.centralserver.restapi.entity.XRoadId_;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -82,19 +82,19 @@ public interface GlobalGroupMemberRepository
             pred = builder.and(pred, searchPredicate(root, member, builder, criteria));
         }
         if (StringUtils.isNotBlank(criteria.getMemberClass())) {
-            pred = builder.and(pred, builder.equal(member.get(ClientId_.memberClass), criteria.getMemberClass()));
+            pred = builder.and(pred, builder.equal(member.get(XRoadId_.memberClass), criteria.getMemberClass()));
         }
         if (StringUtils.isNotBlank(criteria.getInstance())) {
-            pred = builder.and(pred, builder.equal(member.get(ClientId_.xRoadInstance), criteria.getInstance()));
+            pred = builder.and(pred, builder.equal(member.get(XRoadId_.xRoadInstance), criteria.getInstance()));
         }
         if (!CollectionUtils.isEmpty(criteria.getCodes())) {
-            pred = builder.and(pred, member.get(ClientId_.memberCode).in(criteria.getCodes()));
+            pred = builder.and(pred, member.get(XRoadId_.memberCode).in(criteria.getCodes()));
         }
         if (!CollectionUtils.isEmpty(criteria.getSubsystems())) {
-            pred = builder.and(pred, member.get(ClientId_.subsystemCode).in(criteria.getSubsystems()));
+            pred = builder.and(pred, member.get(XRoadId_.subsystemCode).in(criteria.getSubsystems()));
         }
         if (!CollectionUtils.isEmpty(criteria.getTypes())) {
-            pred = builder.and(pred, member.get(ClientId_.objectType).in(criteria.getTypes()));
+            pred = builder.and(pred, member.get(XRoadId_.objectType).in(criteria.getTypes()));
         }
         return pred;
     }
@@ -103,11 +103,11 @@ public interface GlobalGroupMemberRepository
                                              CriteriaBuilder builder,
                                              Criteria criteria) {
         return builder.or(
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(ClientId_.MEMBER_CODE)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(ClientId_.MEMBER_CLASS)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(ClientId_.SUBSYSTEM_CODE)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(ClientId_.X_ROAD_INSTANCE)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(ClientId_.OBJECT_TYPE))
+                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadId_.MEMBER_CODE)),
+                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadId_.MEMBER_CLASS)),
+                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadId_.SUBSYSTEM_CODE)),
+                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadId_.X_ROAD_INSTANCE)),
+                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadId_.OBJECT_TYPE))
         );
     }
 
