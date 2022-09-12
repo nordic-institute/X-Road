@@ -203,7 +203,7 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
         GlobalGroupResourceDto updatedGlobalGroup = restTemplate.patchForObject("/api/v1/global-groups/1000002",
                 Collections.singletonMap("description", "New description"), GlobalGroupResourceDto.class);
-        assertThat("New description").isEqualTo(updatedGlobalGroup.getDescription());
+        assertThat(updatedGlobalGroup.getDescription()).isEqualTo("New description");
     }
 
     private HttpEntity<GlobalGroupCodeAndDescriptionDto> prepareAddGlobalGroupRequest(String code) {
@@ -216,7 +216,7 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
     }
 
     private void assertPagedGroupMember(PagedGroupMemberDto pagedGroupMember) {
-        assertThat(1).isEqualTo(pagedGroupMember.getItems().size());
+        assertThat(pagedGroupMember.getItems().size()).isEqualTo(1);
         var member = pagedGroupMember.getItems().get(0);
         assertThat(member.getId()).isEqualTo("1000001");
         assertThat(member.getCode()).isEqualTo("M1");
@@ -235,7 +235,7 @@ class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
     private void assertGlobalGroup(GlobalGroupResourceDto globalGroup) {
         assertThat(globalGroup.getId()).isEqualTo(1000001);
         assertThat(globalGroup.getCode()).isEqualTo("CODE_1");
-        assertThat("First global group").isEqualTo(globalGroup.getDescription());
+        assertThat(globalGroup.getDescription()).isEqualTo("First global group");
         assertThat(globalGroup.getMemberCount()).isEqualTo(1);
         assertThat(globalGroup.getCreatedAt()).isNotNull();
         assertThat(globalGroup.getUpdatedAt()).isNotNull();

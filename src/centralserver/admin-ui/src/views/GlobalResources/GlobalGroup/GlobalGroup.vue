@@ -66,7 +66,7 @@
         >
       </div>
       <div class="only-pending mt-0">
-        <xrd-button data-test="add-member-button" @click="showAddDialog = true"
+        <xrd-button v-if="allowAddAndRemoveGroupMembers" data-test="add-member-button" @click="showAddDialog = true"
           ><v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon>
           {{ $t('globalGroup.addMembers') }}</xrd-button
         >
@@ -98,7 +98,7 @@
 
       <template #[`item.button`]>
         <div class="cs-table-actions-wrap">
-          <xrd-button text :outlined="false">{{
+          <xrd-button v-if="allowAddAndRemoveGroupMembers" text :outlined="false">{{
             $t('action.remove')
           }}</xrd-button>
         </div>
@@ -199,6 +199,9 @@ export default Vue.extend({
     },
     allowGroupDelete(): boolean {
       return this.hasPermission(Permissions.DELETE_GROUP);
+    },
+    allowAddAndRemoveGroupMembers(): boolean {
+      return this.hasPermission(Permissions.ADD_AND_REMOVE_GROUP_MEMBERS);
     },
     memberCount(): number {
       return this.globalGroupStore.members === undefined
