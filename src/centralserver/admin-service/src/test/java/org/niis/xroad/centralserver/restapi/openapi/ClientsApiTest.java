@@ -26,6 +26,7 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
+import org.niis.xroad.centralserver.openapi.model.MemberNameDto;
 import org.niis.xroad.centralserver.openapi.model.PagedClientsDto;
 import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientViewRepositoryTest;
@@ -43,6 +45,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,21 +54,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
+class ClientsApiTest extends AbstractApiRestTemplateTestContext {
 
     private static final String PATH = "/api/v1/clients";
+    public static final String MEMBER_M1_CLIENT_ID = "TEST:GOV:M1";
+    public static final String MEMBER_M1_NAME = "Member1";
 
     @Autowired
     TestRestTemplate restTemplate;
 
     @BeforeEach
-    public void addApiKeyAuthorizationHeader() {
+    void addApiKeyAuthorizationHeader() {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
     }
 
     @Nested
     @DisplayName("POST " + PATH)
-    public class AddClient {
+    class AddClient {
 
         @Test
         @WithMockUser(authorities = {"ADD_NEW_MEMBER"})
@@ -93,10 +98,10 @@ public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
 
     @Nested
     @DisplayName("GET " + PATH)
-    public class FindClients {
+    class FindClients {
 
         @Test
-        public void searchUsingSecurityServerId() {
+        void searchUsingSecurityServerId() {
             var uriVariables = new HashMap<String, String>();
             uriVariables.put("securityServerId", "TEST:GOV:M1:server1");
 
@@ -112,7 +117,7 @@ public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
         }
 
         @Test
-        public void searchAll() {
+        void searchAll() {
             ResponseEntity<PagedClientsDto> response = restTemplate.getForEntity(
                     "/api/v1/clients", PagedClientsDto.class);
 
@@ -124,7 +129,7 @@ public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
         }
 
         @Test
-        public void sortByInstanceId() {
+        void sortByInstanceId() {
             var uriVariables = new HashMap<String, String>();
             uriVariables.put("sort", "xroad_id.instance_id");
             uriVariables.put("desc", "false");
@@ -139,7 +144,7 @@ public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
         }
 
         @Test
-        public void stableSort() {
+        void stableSort() {
             // check that we always have secondary sort by id, to guarantee e.g. stable paging
             String clientSearchUrl = "/api/v1/clients?sort={sort}&desc={desc}&instance={instance}";
             var uriVariables = new HashMap<String, String>();
@@ -209,8 +214,8 @@ public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
     @Nested
     @DisplayName("GET" + PATH + "/{id}")
     @WithMockUser(authorities = {"VIEW_MEMBER_DETAILS"})
-    public class GetClient {
-        private ClientIdDto expectedMemberId = (ClientIdDto) new ClientIdDto()
+    class GetClient {
+        private final ClientIdDto expectedMemberId = (ClientIdDto) new ClientIdDto()
                 .memberClass("GOV")
                 .memberCode("M1")
                 .instanceId("TEST")
@@ -218,7 +223,7 @@ public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
 
         @Test
         void getClient() {
-            var uriVariables = Map.of("clientId", "TEST:GOV:M1");
+            var uriVariables = Map.of("clientId", MEMBER_M1_CLIENT_ID);
 
             var response = restTemplate.getForEntity(
                     "/api/v1/clients/{clientId}",
@@ -228,8 +233,40 @@ public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
             assertNotNull(response);
             assertEquals(200, response.getStatusCodeValue());
             assertNotNull(response.getBody());
-            assertEquals("Member1", response.getBody().getMemberName());
+            assertEquals(MEMBER_M1_NAME, response.getBody().getMemberName());
             assertEquals(expectedMemberId, response.getBody().getXroadId());
+        }
+    }
+
+    @Nested
+    @DisplayName("PATCH" + PATH + "/{id}")
+    @WithMockUser(authorities = {"EDIT_MEMBER_NAME_AND_ADMIN_CONTACT"})
+    class UpdateMemberName {
+
+        @Test
+        void updateMemberName() {
+            var timeBeforeUpdate = OffsetDateTime.now();
+
+            ClientDto response = doUpdateName("new name");
+
+            assertNotNull(response);
+            assertEquals("new name", response.getMemberName());
+            assertTrue(response.getUpdatedAt().isAfter(timeBeforeUpdate), "Expecting updatedAt to be updated");
+        }
+
+        private ClientDto doUpdateName(String newName) {
+            var uriVariables = Map.of("clientId", MEMBER_M1_CLIENT_ID);
+
+            return restTemplate.patchForObject(
+                    "/api/v1/clients/{clientId}",
+                    new MemberNameDto().memberName(newName),
+                    ClientDto.class,
+                    uriVariables);
+        }
+
+        @AfterEach
+        void revertNameUpdate() {
+            doUpdateName(MEMBER_M1_NAME);
         }
     }
 
