@@ -239,6 +239,7 @@ class ClientsApiTest extends AbstractApiRestTemplateTestContext {
         }
     }
 
+    @Nested
     @DisplayName("DELETE " + PATH + "/{id}")
     @WithMockUser(authorities = {"DELETE_MEMBER"})
     class DeleteClient {
