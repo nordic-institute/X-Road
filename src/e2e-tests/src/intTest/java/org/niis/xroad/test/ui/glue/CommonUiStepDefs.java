@@ -61,6 +61,46 @@ public class CommonUiStepDefs extends BaseUiStepDefs {
                 .click();
     }
 
+    @Given("Error message for incorrect credentials is shown")
+    public void errorMessageIsShown() {
+
+        $(By.xpath("//div[text()[contains(.,'Wrong username or password')]]"))
+                .shouldBe(Condition.visible, Duration.ofSeconds(20));
+    }
+
+     @Given("logout button is being clicked")
+        public void logoutButtonIsClicked() {
+         $(By.xpath("//button[@data-test='username-button']"))
+                        .shouldBe(Condition.visible)
+                        .shouldBe(Condition.enabled)
+                        .click();
+        }
+
+     @Given("{int} seconds of inactivity is passed")
+        public void seconds_of_inactivity_is_passed(Integer int1) {
+        try
+        {
+            Thread.sleep(int1 * 1000);
+        }
+        catch(InterruptedException e) {}
+        }
+
+
+    @Given("Error message about timeout appears")
+    public void error_message_about_timeout_appears() {
+        $(By.xpath("//button[@data-test='session-expired-ok-button']"))
+            .shouldBe(Condition.visible);
+
+    }
+
+     @Given("OK is clicked on timeout notification popup")
+    public void ok_is_clicked_on_timeout_notification_popup() {
+      $(By.xpath("//button[@data-test='session-expired-ok-button']"))
+            .shouldBe(Condition.visible)
+            .shouldBe(Condition.enabled)
+            .click();
+    }
+
     @Given("Page is prepared to be tested")
     public void preparePage() {
         Selenide.executeJavaScript("window.e2eTestingMode = true;\n"
