@@ -101,7 +101,7 @@ public class GlobalGroupService {
     }
 
     public GroupMembersFilterModelDto getGroupMembersFilterModel(Integer groupId) {
-        return groupMemberFilterModelConverter.convert(globalGroupMemberRepository.findByGroupId(groupId));
+        return groupMemberFilterModelConverter.convert(globalGroupMemberRepository.findByGlobalGroupId(groupId));
     }
 
     public Page<GlobalGroupMember> findGroupMembers(GlobalGroupMemberRepository.Criteria criteria, Pageable pageable) {

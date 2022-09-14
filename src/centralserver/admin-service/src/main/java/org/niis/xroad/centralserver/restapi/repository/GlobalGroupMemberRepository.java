@@ -40,7 +40,6 @@ import org.niis.xroad.centralserver.restapi.entity.XRoadId_;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
@@ -111,7 +110,5 @@ public interface GlobalGroupMemberRepository
         );
     }
 
-    @Query("SELECT m FROM #{#entityName} m JOIN m.globalGroup g "
-            + "WHERE g.id = :groupId")
-    List<GlobalGroupMember> findByGroupId(Integer groupId);
+    List<GlobalGroupMember> findByGlobalGroupId(Integer groupId);
 }
