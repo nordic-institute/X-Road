@@ -609,17 +609,6 @@ paths:
     get:
       description: <h3>CS administrator searches for global groups.</h3>
       operationId: findGlobalGroups
-      parameters:
-        - description: a member id – only global groups that contain this member will be returned
-          in: query
-          name: contains_member
-          required: false
-          schema:
-            example: 'CS:ORG:123'
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
       responses:
         '200':
           content:
@@ -781,7 +770,38 @@ paths:
       summary: update global group description
       tags:
         - global-groups
-  /global-groups/{group_id}/members:
+  /global-groups/{group_id}/members/filter-model:
+    get:
+      description: <h3>CS administrator filter model to search global group members.</h3>
+      operationId: getGroupMembersFilterModel
+      parameters:
+        - description: id of the global group
+          in: path
+          name: group_id
+          required: true
+          schema:
+            format: int32
+            minLength: 1
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMembersFilterModel'
+          description: global group
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get filter model to search global group members
+      tags:
+        - global-groups
+  /global-groups/{group_id}/members/add:
     post:
       description: <h3>CS administrator adds an X-Road member or a member's subsystem to a global group.</h3>
       operationId: addGlobalGroupMembers
@@ -819,6 +839,44 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
       summary: add new members for the global group
+      tags:
+        - global-groups
+  /global-groups/{group_id}/members:
+    post:
+      description: <h3>CS administrator view of global group members.</h3>
+      operationId: findGlobalGroupMembers
+      parameters:
+        - description: id of the global group
+          in: path
+          name: group_id
+          required: true
+          schema:
+            format: int32
+            minLength: 1
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupMembersFilter'
+      responses:
+        '200':
+          description: paged array of global group members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedGroupMember'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: find global group members
       tags:
         - global-groups
   /global-groups/{group_id}/members/delete:
@@ -3405,12 +3463,6 @@ components:
           maximum: 1000000
           minimum: 0
           type: integer
-        members:
-          description: group members
-          items:
-            $ref: '#/components/schemas/GroupMember'
-          type: array
-          uniqueItems: true
       required:
         - code
         - description
@@ -3920,6 +3972,20 @@ components:
         - items
         - paging_metadata
       type: object
+    PagedGroupMember:
+      description: an array of GroupMember with paging metadata
+      properties:
+        items:
+          description: Global group members
+          items:
+            $ref: '#/components/schemas/GroupMember'
+          type: array
+        paging_metadata:
+          $ref: '#/components/schemas/PagingMetadata'
+      required:
+        - items
+        - paging_metadata
+      type: object
     PagingMetadata:
       description: metadata about paged results
       properties:
@@ -4371,6 +4437,72 @@ components:
           description: security server id
           nullable: true
           type: string
+      type: object
+    GroupMembersFilterModel:
+      description: Filter model to search global group members
+      properties:
+        instances:
+          description: X-Road instance
+          nullable: true
+          items:
+            type: string
+          type: array
+        memberClasses:
+          description: member classes
+          nullable: true
+          items:
+            type: string
+          type: array
+        codes:
+          description: member codes
+          nullable: true
+          items:
+            type: string
+          type: array
+        subsystems:
+          description: subsystem codes
+          nullable: true
+          items:
+            type: string
+          type: array
+      type: object
+    GroupMembersFilter:
+      description: parameters for filtering global group members search results
+      properties:
+        query:
+          description: free text query
+          nullable: true
+          type: string
+        memberClass:
+          description: member class
+          nullable: true
+          type: string
+        instance:
+          description: X-Road instance
+          nullable: true
+          type: string
+        codes:
+          description: member code
+          nullable: true
+          items:
+            type: string
+          type: array
+        subsystems:
+          description: subsystem code
+          nullable: true
+          items:
+            type: string
+          type: array
+        types:
+          description: client type
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ClientType'
+        pagingSorting:
+          description: paging sorting parameters
+          nullable: false
+          allOf:
+            - $ref: '#/components/schemas/PagingSortingParameters'
       type: object
     Page:
       type: object

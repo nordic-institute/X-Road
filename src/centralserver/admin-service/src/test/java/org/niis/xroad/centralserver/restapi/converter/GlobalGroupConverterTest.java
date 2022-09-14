@@ -1,20 +1,21 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,11 +33,10 @@ import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 
 import java.time.ZoneOffset;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class GlobalGroupConverterTest {
-    private final GlobalGroupConverter converter = new GlobalGroupConverter(new GroupMemberConverter());
+    private final GlobalGroupConverter converter = new GlobalGroupConverter();
 
     @Test
     void convert() {
@@ -44,13 +44,12 @@ class GlobalGroupConverterTest {
 
         GlobalGroupResourceDto result = converter.convert(mockEntity);
 
-        assertEquals(mockEntity.getId(), result.getId());
-        assertEquals(mockEntity.getGroupCode(), result.getCode());
-        assertEquals(mockEntity.getDescription(), result.getDescription());
-        assertEquals(mockEntity.getMemberCount(), result.getMemberCount());
-        assertEquals(0, result.getMembers().size());
-        assertEquals(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC), result.getCreatedAt());
-        assertEquals(mockEntity.getUpdatedAt().atOffset(ZoneOffset.UTC), result.getUpdatedAt());
+        assertThat(result.getId()).isEqualTo(mockEntity.getId());
+        assertThat(result.getCode()).isEqualTo(mockEntity.getGroupCode());
+        assertThat(result.getDescription()).isEqualTo(mockEntity.getDescription());
+        assertThat(result.getMemberCount()).isEqualTo(mockEntity.getMemberCount());
+        assertThat(result.getCreatedAt()).isEqualTo(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
+        assertThat(result.getUpdatedAt()).isEqualTo(mockEntity.getUpdatedAt().atOffset(ZoneOffset.UTC));
     }
 
     @Test
@@ -60,12 +59,12 @@ class GlobalGroupConverterTest {
                 .description("description");
 
         var result = converter.toEntity(globalGroupCodeAndDescription);
-        assertEquals(0, result.getId());
-        assertEquals(globalGroupCodeAndDescription.getCode(), result.getGroupCode());
-        assertEquals(globalGroupCodeAndDescription.getDescription(), result.getDescription());
-        assertEquals(0, result.getGlobalGroupMembers().size());
-        assertNotNull(result.getCreatedAt());
-        assertNotNull(result.getUpdatedAt());
+        assertThat(result.getId()).isZero();
+        assertThat(result.getGroupCode()).isEqualTo(globalGroupCodeAndDescription.getCode());
+        assertThat(result.getDescription()).isEqualTo(globalGroupCodeAndDescription.getDescription());
+        assertThat(result.getGlobalGroupMembers().size()).isZero();
+        assertThat(result.getCreatedAt()).isNotNull();
+        assertThat(result.getUpdatedAt()).isNotNull();
     }
 
     private GlobalGroup mockEntity() {
