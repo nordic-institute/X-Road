@@ -25,34 +25,22 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import io.vavr.control.Option;
-import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.openapi.ClientsApi;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.ClientTypeDto;
-import org.niis.xroad.centralserver.openapi.model.MemberNameDto;
 import org.niis.xroad.centralserver.openapi.model.PagedClientsDto;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.PagedClientsConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.db.ClientDtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.model.ClientTypeDtoConverter;
-import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.service.ClientService;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
-import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
-import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
-import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -72,15 +60,12 @@ import static java.util.Map.entry;
 public class ClientsApiController implements ClientsApi {
 
     private final ClientService clientService;
-    private final AuditDataHelper auditData;
     private final SecurityServerService securityServerService;
     private final PagedClientsConverter pagedClientsConverter;
     private final PageRequestConverter pageRequestConverter;
     private final SecurityServerIdConverter securityServerIdConverter;
     private final ClientDtoConverter.Flattened flattenedSecurityServerClientViewDtoConverter;
-    private final ClientDtoConverter clientDtoConverter;
     private final ClientTypeDtoConverter.Service clientTypeDtoConverter;
-    private final ClientIdConverter clientIdConverter;
 
     private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
             new PageRequestConverter.MappableSortParameterConverter(
@@ -92,36 +77,6 @@ public class ClientsApiController implements ClientsApi {
                     entry("client_type", "type")
             );
 
-    @Override
-    @PreAuthorize("hasAuthority('ADD_NEW_MEMBER')")
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_MEMBER)
-    public ResponseEntity<ClientDto> addClient(ClientDto clientDto) {
-        auditData.put(RestApiAuditProperty.MEMBER_NAME, clientDto.getMemberName());
-        auditData.put(RestApiAuditProperty.MEMBER_CLASS, clientDto.getXroadId().getMemberClass());
-        auditData.put(RestApiAuditProperty.MEMBER_CODE, clientDto.getXroadId().getMemberCode());
-
-        return Try.success(clientDto)
-                .map(clientDtoConverter::fromDto)
-                .map(clientDtoConverter.expectType(XRoadMember.class))
-                .map(clientService::add)
-                .map(clientDtoConverter::toDto)
-                .map(ResponseEntity::ok)
-                .get();
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('DELETE_MEMBER')")
-    @AuditEventMethod(event = RestApiAuditEvent.DELETE_MEMBER)
-    public ResponseEntity<Void> deleteClient(String id) {
-        verifyMemberId(id);
-        ClientId clientId = clientIdConverter.convertId(id);
-        auditData.put(RestApiAuditProperty.MEMBER_CLASS, clientId.getMemberClass());
-        auditData.put(RestApiAuditProperty.MEMBER_CODE, clientId.getMemberCode());
-        clientService.delete(clientId);
-        return ResponseEntity.ok().build();
-    }
-
-    @Override
     @PreAuthorize("hasAuthority('SEARCH_MEMBERS') or hasAuthority('VIEW_MEMBERS')")
     public ResponseEntity<PagedClientsDto> findClients(String query,
                                                        PagingSortingParametersDto pagingSorting,
@@ -156,35 +111,4 @@ public class ClientsApiController implements ClientsApi {
         return ResponseEntity.ok(pagedResults);
     }
 
-    @Override
-    @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
-    public ResponseEntity<ClientDto> getClient(String id) {
-        verifyMemberId(id);
-        return Option.of(id)
-                .map(clientIdConverter::convertId)
-                .peek(clientId -> auditData.put(RestApiAuditProperty.CLIENT_IDENTIFIER, clientId))
-                .flatMap(clientService::findMember)
-                .map(clientDtoConverter::toDto)
-                .map(ResponseEntity::ok)
-                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
-    }
-
-    @Override
-    @PreAuthorize("hasAnyAuthority('EDIT_MEMBER_NAME_AND_ADMIN_CONTACT')")
-    public ResponseEntity<ClientDto> updateMemberName(String id, MemberNameDto memberName) {
-        verifyMemberId(id);
-        return Option.of(id)
-                .map(clientIdConverter::convertId)
-                .peek(clientId -> auditData.put(RestApiAuditProperty.CLIENT_IDENTIFIER, clientId))
-                .flatMap(clientId -> clientService.updateMemberName(clientId, memberName.getMemberName()))
-                .map(clientDtoConverter::toDto)
-                .map(ResponseEntity::ok)
-                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
-    }
-
-    private void verifyMemberId(String id) {
-        if (!clientIdConverter.isEncodedMemberId(id)) {
-            throw new BadRequestException("Invalid member id");
-        }
-    }
 }
