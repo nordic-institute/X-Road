@@ -90,7 +90,7 @@ class MembersApiTest extends AbstractApiRestTemplateTestContext {
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals("memberName", response.getBody().getMemberName());
-            assertEquals(memberIdDto, response.getBody().getXroadId()); // fixme: XRDDEV-
+            assertEquals(memberIdDto, response.getBody().getXroadId());
         }
     }
 

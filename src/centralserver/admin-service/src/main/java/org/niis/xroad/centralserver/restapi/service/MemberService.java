@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClientView;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
@@ -49,9 +48,6 @@ import java.util.function.Consumer;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_EXISTS;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_NOT_FOUND;
 
-/**
- * Service for searching {@link FlattenedSecurityServerClientView}s
- */
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -60,15 +56,15 @@ public class MemberService {
     private final XRoadMemberRepository xRoadMemberRepository;
     private final SecurityServerClientNameRepository securityServerClientNameRepository;
 
-    public XRoadMember add(XRoadMember client) {
+    public XRoadMember add(XRoadMember member) {
         Consumer<XRoadMember> ensureClientNotExists = __ -> {
-            boolean exists = xRoadMemberRepository.findOneBy(client.getIdentifier()).isDefined();
+            boolean exists = xRoadMemberRepository.findOneBy(member.getIdentifier()).isDefined();
             if (exists) {
-                throw new EntityExistsException(MEMBER_EXISTS, client.getIdentifier().toShortString());
+                throw new EntityExistsException(MEMBER_EXISTS, member.getIdentifier().toShortString());
             }
         };
 
-        return Try.success(client)
+        return Try.success(member)
                 .andThen(ensureClientNotExists)
                 .map(xRoadMemberRepository::save)
                 .get();

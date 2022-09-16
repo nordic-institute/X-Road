@@ -42,7 +42,6 @@ import org.niis.xroad.centralserver.restapi.entity.MemberId;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
-import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
@@ -66,8 +65,6 @@ class MemberServiceTest implements WithInOrder {
 
     @Mock
     private XRoadMemberRepository xRoadMemberRepository;
-    @Mock
-    private FlattenedSecurityServerClientRepository flattenedSecurityServerClientRepository;
     @Mock
     private SecurityServerClientNameRepository securityServerClientNameRepository;
 

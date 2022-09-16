@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.centralserver.restapi.dto.converter.db;
 
-import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
 import io.vavr.control.Option;
@@ -49,7 +48,6 @@ import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
-import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -81,8 +79,6 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
     private XRoadMemberRepository xRoadMemberRepository;
     @Mock
     private MemberClassRepository memberClassRepository;
-    @Mock
-    private SubsystemRepository subsystemRepository;
 
     @Mock
     private ClientIdDtoConverter clientIdDtoConverter;
@@ -296,33 +292,13 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
         }
 
         @Test
-        @DisplayName("should retrieve persisted Subsystem entity if present")
-        public void shouldConvertSubsystemEntityIfPresent() {
-            doReturn(clientIdDto).when(clientDto).getXroadId();
-            doReturn(subsystemClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
-            doReturn(XRoadIdDto.TypeEnum.SUBSYSTEM).when(clientIdDto).getType();
-            doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId, XRoadObjectType.SUBSYSTEM);
-
-            SecurityServerClient converted = converter.fromDto(clientDto);
-
-            assertEquals(subsystem, converted);
-            inOrder().verify(inOrder -> {
-                inOrder.verify(clientDto).getXroadId();
-                inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
-                inOrder.verify(clientIdDto).getType();
-                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId, XRoadObjectType.SUBSYSTEM);
-            });
-        }
-
-        @Test
         @DisplayName("should create new Subsystem entity if missing")
         public void shouldCreateNewSubsystemEntityIfMissing() {
             doReturn(clientIdDto).when(clientDto).getXroadId();
             doReturn(subsystemClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.SUBSYSTEM).when(clientIdDto).getType();
-            doReturn(Option.none()).when(subsystemRepository).findOneBy(subsystemClientId, XRoadObjectType.SUBSYSTEM);
             doReturn(memberClientId).when(subsystemClientId).getMemberId();
-            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findOneBy(memberClientId, XRoadObjectType.MEMBER);
+            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(memberClientId);
             doReturn(INSTANCE_ID).when(subsystemClientId).getXRoadInstance();
             doReturn(MEMBER_CLASS_CODE).when(subsystemClientId).getMemberClass();
             doReturn(MEMBER_CODE).when(subsystemClientId).getMemberCode();
@@ -346,9 +322,8 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
                 inOrder.verify(clientDto).getXroadId();
                 inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
                 inOrder.verify(clientIdDto).getType();
-                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId, XRoadObjectType.SUBSYSTEM);
                 inOrder.verify(subsystemClientId).getMemberId();
-                inOrder.verify(xRoadMemberRepository).findOneBy(memberClientId, XRoadObjectType.MEMBER);
+                inOrder.verify(xRoadMemberRepository).findMember(memberClientId);
                 inOrder.verify(subsystemClientId).getXRoadInstance();
                 inOrder.verify(subsystemClientId).getMemberClass();
                 inOrder.verify(subsystemClientId).getMemberCode();
@@ -365,9 +340,8 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
             doReturn(clientIdDto).when(clientDto).getXroadId();
             doReturn(subsystemClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.SUBSYSTEM).when(clientIdDto).getType();
-            doReturn(Option.none()).when(subsystemRepository).findOneBy(subsystemClientId, XRoadObjectType.SUBSYSTEM);
             doReturn(memberClientId).when(subsystemClientId).getMemberId();
-            doReturn(Option.none()).when(xRoadMemberRepository).findOneBy(memberClientId, XRoadObjectType.MEMBER);
+            doReturn(Option.none()).when(xRoadMemberRepository).findMember(memberClientId);
             doReturn(MEMBER_CODE).when(clientIdDto).getMemberCode();
 
             ThrowingCallable testable = () -> converter.fromDto(clientDto);
@@ -379,9 +353,8 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
                 inOrder.verify(clientDto).getXroadId();
                 inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
                 inOrder.verify(clientIdDto).getType();
-                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId, XRoadObjectType.SUBSYSTEM);
                 inOrder.verify(subsystemClientId).getMemberId();
-                inOrder.verify(xRoadMemberRepository).findOneBy(memberClientId, XRoadObjectType.MEMBER);
+                inOrder.verify(xRoadMemberRepository).findMember(memberClientId);
                 inOrder.verify(clientIdDto).getMemberCode();
             });
         }

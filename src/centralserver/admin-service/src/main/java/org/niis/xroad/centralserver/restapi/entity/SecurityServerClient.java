@@ -71,7 +71,7 @@ public abstract class SecurityServerClient extends AuditableEntity implements En
     @Getter
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "server_client_id", nullable = false, updatable = false)
     @Access(AccessType.FIELD)
     @Getter

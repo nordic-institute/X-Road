@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.centralserver.restapi.dto.converter.db;
 
-import ee.ria.xroad.common.identifier.XRoadObjectType;
-
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +40,6 @@ import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
-import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.springframework.stereotype.Service;
@@ -50,7 +47,6 @@ import org.springframework.stereotype.Service;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.util.Fn.self;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
@@ -65,7 +61,6 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
 
     private final XRoadMemberRepository xRoadMemberRepository;
     private final MemberClassRepository memberClassRepository;
-    private final SubsystemRepository subsystemRepository;
 
     private final ClientIdDtoConverter clientIdDtoConverter;
 
@@ -123,23 +118,17 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                             memberClass
                     );
                 case SUBSYSTEM:
-                    Supplier<Subsystem> newSubsystem = () -> {
-                        XRoadMember xRoadMember = xRoadMemberRepository
-                                .findOneBy(clientId.getMemberId(), XRoadObjectType.MEMBER)
-                                .getOrElseThrow(() -> new NotFoundException(
-                                        MEMBER_NOT_FOUND,
-                                        "code",
-                                        clientIdDto.getMemberCode()
-                                ));
-                        return new Subsystem(
-                                xRoadMember,
-                                clientId
-                        );
-                    };
-
-                    return subsystemRepository
-                            .findOneBy(clientId, XRoadObjectType.SUBSYSTEM)
-                            .getOrElse(newSubsystem);
+                    XRoadMember xRoadMember = xRoadMemberRepository
+                            .findMember(clientId.getMemberId())
+                            .getOrElseThrow(() -> new NotFoundException(
+                                    MEMBER_NOT_FOUND,
+                                    "code",
+                                    clientIdDto.getMemberCode()
+                            ));
+                    return new Subsystem(
+                            xRoadMember,
+                            clientId
+                    );
             }
         }
 
