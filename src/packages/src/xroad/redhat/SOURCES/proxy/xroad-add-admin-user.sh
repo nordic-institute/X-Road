@@ -3,7 +3,7 @@ set -e
 # all groups
 XG="xroad-security-officer,xroad-registration-officer,xroad-service-administrator,xroad-system-administrator,xroad-securityserver-observer"
 # cluster slave node compatible groups
-SG="xroad-securityserver-observer"
+SG="xroad-security-officer,xroad-securityserver-observer"
 
 node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
 
