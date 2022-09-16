@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
@@ -67,6 +68,7 @@ public class MemberService {
         return Try.success(member)
                 .andThen(ensureClientNotExists)
                 .map(xRoadMemberRepository::save)
+                .peek(this::saveSecurityServerClientName)
                 .get();
     }
 
@@ -98,6 +100,11 @@ public class MemberService {
         securityServerClientNameRepository.findByIdentifierIn(identifiers)
                 .forEach(x -> x.setName(newName));
 
+    }
+
+    private void saveSecurityServerClientName(XRoadMember xRoadMember) {
+        var ssClientName = new SecurityServerClientName(xRoadMember, xRoadMember.getIdentifier());
+        securityServerClientNameRepository.save(ssClientName);
     }
 
 }

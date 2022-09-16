@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -83,17 +84,24 @@ class MemberServiceTest implements WithInOrder {
         @DisplayName("should create client when not already present")
         void shouldCreateClientWhenNotAlreadyPresent() {
             XRoadMember persistedXRoadMember = mock(XRoadMember.class);
+            String memberName = "member name";
+            doReturn(memberName).when(persistedXRoadMember).getName();
             doReturn(memberId).when(xRoadMember).getIdentifier();
+            doReturn(memberId).when(persistedXRoadMember).getIdentifier();
             doReturn(Option.none()).when(xRoadMemberRepository).findOneBy(memberId);
             doReturn(persistedXRoadMember).when(xRoadMemberRepository).save(xRoadMember);
 
             SecurityServerClient result = memberService.add(xRoadMember);
 
             assertEquals(persistedXRoadMember, result);
+            ArgumentCaptor<SecurityServerClientName> captor = ArgumentCaptor.forClass(SecurityServerClientName.class);
             inOrder(persistedXRoadMember).verify(inOrder -> {
                 inOrder.verify(xRoadMemberRepository).findOneBy(memberId);
                 inOrder.verify(xRoadMemberRepository).save(xRoadMember);
+                inOrder.verify(securityServerClientNameRepository).save(captor.capture());
             });
+            assertThat(captor.getValue().getName()).isEqualTo(memberName);
+            assertThat(captor.getValue().getIdentifier()).isEqualTo(memberId);
         }
 
         @Test

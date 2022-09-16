@@ -34,12 +34,16 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
+import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
+import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
 
@@ -55,6 +59,9 @@ public class SubsystemServiceTest implements WithInOrder {
 
     @Mock
     private SubsystemRepository subsystemRepository;
+
+    @Mock
+    private SecurityServerClientNameRepository securityServerClientNameRepository;
 
     @InjectMocks
     private SubsystemService subsystemService;
@@ -73,17 +80,25 @@ public class SubsystemServiceTest implements WithInOrder {
         @DisplayName("should create client when not already present")
         void shouldCreateClientWhenNotAlreadyPresent() {
             Subsystem persistedSubsystem = mock(Subsystem.class);
+            XRoadMember member = mock(XRoadMember.class);
+            String memberName = "subsystem's member name";
+            doReturn(member).when(persistedSubsystem).getXroadMember();
+            doReturn(memberName).when(member).getName();
             doReturn(subsystemId).when(subsystem).getIdentifier();
+            doReturn(subsystemId).when(persistedSubsystem).getIdentifier();
             doReturn(Option.none()).when(subsystemRepository).findOneBy(subsystemId);
             doReturn(persistedSubsystem).when(subsystemRepository).save(subsystem);
-
             SecurityServerClient result = subsystemService.add(subsystem);
 
             assertEquals(persistedSubsystem, result);
+            ArgumentCaptor<SecurityServerClientName> captor = ArgumentCaptor.forClass(SecurityServerClientName.class);
             inOrder(persistedSubsystem).verify(inOrder -> {
                 inOrder.verify(subsystemRepository).findOneBy(subsystemId);
                 inOrder.verify(subsystemRepository).save(subsystem);
+                inOrder.verify(securityServerClientNameRepository).save(captor.capture());
             });
+            assertThat(captor.getValue().getName()).isEqualTo(memberName);
+            assertThat(captor.getValue().getIdentifier()).isEqualTo(subsystemId);
         }
 
         @Test

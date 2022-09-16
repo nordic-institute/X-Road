@@ -68,6 +68,11 @@ public class SecurityServerClientName extends AuditableEntity {
         //JPA
     }
 
+    public SecurityServerClientName(XRoadMember member, ClientId identifier) {
+        this.name = member.getName();
+        this.identifier = identifier;
+    }
+
 }
 
 

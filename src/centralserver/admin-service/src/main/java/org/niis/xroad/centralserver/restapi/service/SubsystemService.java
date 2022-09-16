@@ -27,7 +27,9 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
+import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
 import org.springframework.stereotype.Service;
@@ -42,13 +44,21 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 public class SubsystemService {
 
     private final SubsystemRepository subsystemRepository;
+    private final SecurityServerClientNameRepository securityServerClientNameRepository;
 
     public Subsystem add(Subsystem subsystem) {
         boolean exists = subsystemRepository.findOneBy(subsystem.getIdentifier()).isDefined();
         if (exists) {
             throw new EntityExistsException(SUBSYSTEM_EXISTS, subsystem.getIdentifier().toShortString());
         }
-        return subsystemRepository.save(subsystem);
+        Subsystem saved = subsystemRepository.save(subsystem);
+        saveSecurityServerClientName(saved);
+        return saved;
+    }
+
+    private void saveSecurityServerClientName(Subsystem subsystem) {
+        var ssClientName = new SecurityServerClientName(subsystem.getXroadMember(), subsystem.getIdentifier());
+        securityServerClientNameRepository.save(ssClientName);
     }
 
 }
