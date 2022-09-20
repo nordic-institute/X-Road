@@ -22,9 +22,6 @@ dependencies {
     implementation project(':signer-protocol')
     implementation project(':serverconf')
 
-    //Enforce transient dependency snakeyaml 1.32 version as the previous ones have a vulnerability
-    implementation('org.yaml:snakeyaml:1.32')
-
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')

@@ -73,6 +73,7 @@ dependencyCheck {
 }
 
 allprojects {
+    ext['snakeyaml.version'] = '1.31'
     buildscript {
       repositories {
         mavenCentral()
