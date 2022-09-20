@@ -7,10 +7,9 @@
       <cve>CVE-2021-41033</cve>
     </suppress>
     <suppress>
-      <notes><![CDATA[
-        file name: apache-mime4j-core-0.8.6.jar
-        ]]></notes>
+      <notes><![CDATA[file name: apache-mime4j-core-0.8.7.jar]]></notes>
       <packageUrl regex="true">^pkg:maven/org\.apache\.james/apache\-mime4j\-core@.*$</packageUrl>
+      <cve>CVE-2022-28220</cve>
       <cve>CVE-2021-38542</cve>
       <cve>CVE-2021-40110</cve>
       <cve>CVE-2021-40111</cve>
