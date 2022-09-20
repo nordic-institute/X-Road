@@ -27,33 +27,38 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClientView;
-import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
+import org.niis.xroad.centralserver.restapi.entity.Subsystem;
+import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
+import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
+import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-/**
- * Service for searching {@link FlattenedSecurityServerClientView}s
- */
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SUBSYSTEM_EXISTS;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ClientService {
+public class SubsystemService {
 
-    private final FlattenedSecurityServerClientRepository flattenedClientRepository;
+    private final SubsystemRepository subsystemRepository;
+    private final SecurityServerClientNameRepository securityServerClientNameRepository;
 
-    private final StableSortHelper stableSortHelper;
+    public Subsystem add(Subsystem subsystem) {
+        boolean exists = subsystemRepository.findOneBy(subsystem.getIdentifier()).isDefined();
+        if (exists) {
+            throw new EntityExistsException(SUBSYSTEM_EXISTS, subsystem.getIdentifier().toShortString());
+        }
+        Subsystem saved = subsystemRepository.save(subsystem);
+        saveSecurityServerClientName(saved);
+        return saved;
+    }
 
-    public Page<FlattenedSecurityServerClientView> find(
-            FlattenedSecurityServerClientRepository.SearchParameters params,
-            Pageable pageable) {
-        Specification<FlattenedSecurityServerClientView> spec = flattenedClientRepository.multiParameterSearch(params);
-        pageable = stableSortHelper.addSecondaryIdSort(pageable);
-        return flattenedClientRepository.findAll(spec, pageable);
+    private void saveSecurityServerClientName(Subsystem subsystem) {
+        var ssClientName = new SecurityServerClientName(subsystem.getXroadMember(), subsystem.getIdentifier());
+        securityServerClientNameRepository.save(ssClientName);
     }
 
 }

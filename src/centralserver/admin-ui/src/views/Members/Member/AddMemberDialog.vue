@@ -70,6 +70,7 @@ import Vue from 'vue';
 import {mapActions, mapState, mapStores} from 'pinia';
 import {MemberClass, XRoadId} from "@/openapi-types";
 import {clientStore} from "@/store/modules/clients";
+import {memberStore} from "@/store/modules/members";
 import {systemStore} from "@/store/modules/system";
 import {notificationsStore} from "@/store/modules/notifications";
 import {useMemberClassStore} from "@/store/modules/member-class";
@@ -91,7 +92,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(clientStore, useMemberClassStore),
+    ...mapStores(clientStore, memberStore, useMemberClassStore),
     ...mapState(systemStore, ['getSystemStatus']),
     memberClasses(): MemberClass[] {
       return this.memberClassStore.memberClasses;
@@ -120,7 +121,7 @@ export default Vue.extend({
     },
     add(): void {
       const instanceId: string = this.getSystemStatus?.initialization_status?.instance_identifier as string;
-      this.clientStore.add({
+      this.memberStore.add({
         member_name: this.memberName,
         xroad_id: {
           member_class: this.memberClass,

@@ -18,6 +18,10 @@ tags:
     description: resources related to Backups and Backup Restoration
   - name: certification-services
     description: resources related to Certification Services
+  - name: members
+    description: resources related to Members
+  - name: subsystems
+    description: resources related to Subsystems
   - name: clients
     description: resources related to Clients (Members and Subsystems)
   - name: configuration-sources
@@ -1860,15 +1864,211 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /members:
+    post:
+      description:
+        <h3>CS administrator creates a new member.</h3>
+        <p>The member id will be validated and if the validation fails a validation error is returned.</p>
+        <p>Member's association with security servers is created through management requests.</p>
+      operationId: addMember
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
+        description: Member details
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: new member created
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: there are errors in the request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add new member to the central server
+      tags:
+        - members
+  /members/{id}:
+    delete:
+      description: <h3>CS administrator deletes a member</h3>
+      operationId: deleteMember
+      parameters:
+        - description: the encoded string representation of the x-road member id
+          example: FI:GOV:123:ABC
+          in: path
+          name: id
+          required: true
+          schema:
+            format: text
+            maxLength: 1023
+            minLength: 1
+            type: string
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a member
+      tags:
+        - members
+    get:
+      description: <h3>CS administrator views a members's details.</h3>
+      operationId: getMember
+      parameters:
+        - description: the encoded string representation of the x-road member or subsystem id
+          example: FI:GOV:123:ABC
+          in: path
+          name: id
+          required: true
+          schema:
+            format: text
+            maxLength: 1023
+            minLength: 1
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: a member
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a member by its id
+      tags:
+        - members
+    patch:
+      description:
+        <h3>CS administrator edits the name of an X-Road member.</h3>
+        <p>Attempting to edit name with subsystem id results in http 400</p>
+      operationId: updateMemberName
+      parameters:
+        - description: the encoded string representation of the x-road member
+          example: FI:GOV:123
+          in: path
+          name: id
+          required: true
+          schema:
+            format: text
+            maxLength: 1023
+            minLength: 1
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberName'
+        description: member name
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: the updated member
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update the name of a member
+      tags:
+        - members
+  /subsystems:
+    post:
+      description:
+        <h3>CS administrator creates a new subsystem.</h3>
+        <p>The subsystem id will be validated and if the validation fails a validation error is returned.</p>
+        <p>Subsystem's association with security servers is created through management requests.</p>
+      operationId: addSubsystem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
+        description: Subsystem details
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: new subsystem created
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: there are errors in the request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add new subsystem to the central server
+      tags:
+        - subsystems
   /clients:
     get:
       description: <h3>CS administrator searches for X-Road clients.</h3>
       operationId: findClients
       parameters:
         - description: >
-                An optional generic filtering query parameter selects only items that contain parameter
-                value in properties (member name, member_class, member_code, subsystem_code) . Needs to be properly encoded for the
-                special characters, too. Empty value means the parameter is ignored.
+            An optional generic filtering query parameter selects only items that contain parameter
+            value in properties (member name, member_class, member_code, subsystem_code) . Needs to be properly encoded for the
+            special characters, too. Empty value means the parameter is ignored.
           in: query
           name: q
           required: false
@@ -1966,158 +2166,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
       summary: find clients
-      tags:
-        - clients
-    post:
-      description:
-        <h3>CS administrator creates a new client (member or subsystem).</h3>
-        <p>The member id will be validated and if the validation fails a validation error is returned.</p>
-        <p>Client's association with security servers is created through management requests.</p>
-      operationId: addClient
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Client'
-        description: client details
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Client'
-          description: new client created
-        '400':
-          content:
-            application/json:
-              examples:
-                error_response:
-                  $ref: '#/components/examples/ErrorExample'
-                validation_errors_response:
-                  $ref: '#/components/examples/ValidationErrorsExample'
-              schema:
-                $ref: '#/components/schemas/ErrorInfo'
-          description: there are errors in the request
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: add new client to the central server
-      tags:
-        - clients
-  /clients/{id}:
-    delete:
-      description: <h3>CS administrator deletes a client</h3>
-      operationId: deleteClient
-      parameters:
-        - description: the encoded string representation of the x-road member or subsystem id
-          example: FI:GOV:123:ABC
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
-      responses:
-        '204':
-          $ref: '#/components/responses/NoContent'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: delete a client
-      tags:
-        - clients
-    get:
-      description: <h3>CS administrator views a client's details.</h3>
-      operationId: getClient
-      parameters:
-        - description: the encoded string representation of the x-road member or subsystem id
-          example: FI:GOV:123:ABC
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Client'
-          description: a client
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: get a client by its id
-      tags:
-        - clients
-    patch:
-      description:
-        <h3>CS administrator edits the name of an X-Road member.</h3>
-        <p>Attempting to edit name with subsystem id results in http 400</p>
-      operationId: updateMemberName
-      parameters:
-        - description: the encoded string representation of the x-road member
-          example: FI:GOV:123
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MemberName'
-        description: member name
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Client'
-          description: the updated member
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: update the name of a member
       tags:
         - clients
   /ocsp-responders/{id}:
@@ -3748,7 +3796,6 @@ components:
         - $ref: '#/components/schemas/ModificationTimestamps'
       description: x-road member
       required:
-        - member_name
         - xroad_id
       properties:
         id:
@@ -3803,8 +3850,6 @@ components:
           minLength: 1
           pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           type: string
-      required:
-        - member_name
       type: object
     MemberCode:
       description: x-road member code
