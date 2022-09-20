@@ -46,6 +46,7 @@ dependencyCheck {
     outputDirectory = "${project.buildDir}/reports/owasp-dependency-check"
     suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
     format = "ALL"
+    skipProjects = [":e2e-tests"]
     analyzers {
         experimentalEnabled = false
         archiveEnabled = false
@@ -72,6 +73,7 @@ dependencyCheck {
 }
 
 allprojects {
+    ext['snakeyaml.version'] = '1.31'
     buildscript {
       repositories {
         mavenCentral()
