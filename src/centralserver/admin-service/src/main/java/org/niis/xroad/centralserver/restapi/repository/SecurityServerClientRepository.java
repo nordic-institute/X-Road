@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import io.vavr.control.Option;
-import org.niis.xroad.centralserver.restapi.entity.ClientId_;
+import org.niis.xroad.centralserver.restapi.entity.XRoadId_;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient_;
 import org.springframework.data.jpa.domain.Specification;
@@ -63,10 +63,10 @@ public interface SecurityServerClientRepository<T extends SecurityServerClient> 
                     root.join(SecurityServerClient_.identifier);
             XRoadObjectType xroadObjectType = Optional.ofNullable(explicitType).orElseGet(id::getObjectType);
             Predicate predicate = builder.and(
-                    builder.equal(cid.get(ClientId_.OBJECT_TYPE), xroadObjectType),
-                    builder.equal(cid.get(ClientId_.X_ROAD_INSTANCE), id.getXRoadInstance()),
-                    builder.equal(cid.get(ClientId_.MEMBER_CLASS), id.getMemberClass()),
-                    builder.equal(cid.get(ClientId_.MEMBER_CODE), id.getMemberCode()));
+                    builder.equal(cid.get(XRoadId_.OBJECT_TYPE), xroadObjectType),
+                    builder.equal(cid.get(XRoadId_.X_ROAD_INSTANCE), id.getXRoadInstance()),
+                    builder.equal(cid.get(XRoadId_.MEMBER_CLASS), id.getMemberClass()),
+                    builder.equal(cid.get(XRoadId_.MEMBER_CODE), id.getMemberCode()));
 
             boolean expectedToBeSubsystemType = xroadObjectType == XRoadObjectType.SUBSYSTEM;
             if (expectedToBeSubsystemType) {
@@ -76,7 +76,7 @@ public interface SecurityServerClientRepository<T extends SecurityServerClient> 
                 }
 
                 predicate = builder.and(predicate,
-                        builder.equal(cid.get(ClientId_.SUBSYSTEM_CODE), id.getSubsystemCode()));
+                        builder.equal(cid.get(XRoadId_.SUBSYSTEM_CODE), id.getSubsystemCode()));
             }
 
             return predicate;

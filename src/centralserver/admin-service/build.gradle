@@ -123,7 +123,7 @@ dependencies {
     liquibaseLibs('org.liquibase:liquibase-core:4.9.1')
     liquibaseLibs('info.picocli:picocli:4.6.3')
     liquibaseLibs("org.postgresql:postgresql:$postgresqlVersion")
-    liquibaseLibs('org.yaml:snakeyaml:1.30')
+    liquibaseLibs('org.yaml:snakeyaml:1.31')
 }
 
 task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
