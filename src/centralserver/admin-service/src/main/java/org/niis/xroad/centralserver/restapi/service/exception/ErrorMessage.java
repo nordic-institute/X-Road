@@ -39,7 +39,7 @@ public enum ErrorMessage {
     MEMBER_NOT_FOUND("No member with the specified code found."),
     MEMBER_EXISTS("Member with the same code already exists."),
 
-    SUBSYSTEM_EXISTS("Member with the same code already exists."),
+    SUBSYSTEM_EXISTS("Subsystem with the same code already exists."),
 
     MANAGEMENT_REQUEST_NOT_FOUND("No management request with the specified id found."),
     MANAGEMENT_REQUEST_EXISTS("A pending management request already exists."),
