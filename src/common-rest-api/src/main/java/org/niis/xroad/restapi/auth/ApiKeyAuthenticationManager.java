@@ -90,11 +90,10 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
                 throw new BadCredentialsException("Unknown problem when getting API key", e);
             }
             Set<Role> roles = key.getRoles();
-            Set<Role> adjustedRoles = securityHelper.getNodeTypeAdjustedUserRoles(roles);
             PreAuthenticatedAuthenticationToken authenticationWithGrants =
                     new PreAuthenticatedAuthenticationToken(createPrincipal(key),
                             authentication.getCredentials(),
-                            permissionMapper.getAuthorities(adjustedRoles));
+                            permissionMapper.getAuthorities(roles));
             return authenticationWithGrants;
         } catch (Exception e) {
             auditEventLoggingFacade.auditLogFail(RestApiAuditEvent.API_KEY_AUTHENTICATION, e);

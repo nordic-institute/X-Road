@@ -136,8 +136,7 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
             Collection<Role> xroadRoles = matchingGroups.stream()
                     .map(groupName -> Role.getForGroupName(groupName).get())
                     .collect(Collectors.toSet());
-            Set<Role> adjustedRoles = securityHelper.getNodeTypeAdjustedUserRoles(xroadRoles);
-            Set<GrantedAuthority> grants = grantedAuthorityMapper.getAuthorities(adjustedRoles);
+            Set<GrantedAuthority> grants = grantedAuthorityMapper.getAuthorities(xroadRoles);
             return new UsernamePasswordAuthenticationToken(user.getUserName(), authentication.getCredentials(), grants);
         } catch (PAMException e) {
             throw new BadCredentialsException("PAM authentication failed.", e);

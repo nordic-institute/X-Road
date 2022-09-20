@@ -308,10 +308,11 @@ In order to properly set up the data replication, the secondary nodes must be ab
 8. Start the X-Road services.
 9. If you wish to use the secondary security server's admin user interface, you need to implement additional user group restrictions. As noted in step 1, changes to the secondary node security server configuration must not be made through its admin user interface, as any such changes would be overwritten by the replication. To disable UI editing privileges for all users, remove the following user groups from the secondary security server:
 
-   * `xroad-security-officer`
    * `xroad-registration-officer`
    * `xroad-service-administrator`
    * `xroad-system-administrator`
+   
+   Note: `xroad-security-officer` should remain, otherwise you will not be able to enter token PIN codes.
 
    After removing these groups, the super user created during the security server installation is a member of only one UI privilege group: `xroad-securityserver-observer`. This group allows read-only access to the admin user interface and provides a safe way to use the UI for checking the configuration status of the secondary security server. Since admin UI users are UNIX users that are members of specific privilege groups, more users can be added to the read-only group as necessary. Security server installation scripts detect the node type of existing installations and modify user group creation accordingly so as to not overwrite this configuration step during security server updates.
 
