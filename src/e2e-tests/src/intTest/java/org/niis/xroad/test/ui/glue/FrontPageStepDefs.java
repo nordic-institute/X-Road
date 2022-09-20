@@ -34,50 +34,37 @@ import java.time.Duration;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class CommonUiStepDefs extends BaseUiStepDefs {
+public class FrontPageStepDefs extends BaseUiStepDefs {
     public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test=\"close-snackbar\"]");
 
-     @Given("logout button is being clicked")
-        public void logoutButtonIsClicked() {
-         $(By.xpath("//button[@data-test='username-button']"))
-                        .shouldBe(Condition.visible)
-                        .shouldBe(Condition.enabled)
-                        .click();
-        }
-
-     @Given("{int} seconds of inactivity is passed")
-        public void seconds_of_inactivity_is_passed(Integer int1) {
-
-            Selenide.sleep(int1 * 1000);
-
-        }
-
-
-    @Given("Error message about timeout appears")
-    public void error_message_about_timeout_appears() {
-        $(By.xpath("//button[@data-test='session-expired-ok-button']"))
-            .shouldBe(Condition.visible);
-
+    @Given("SecurityServer login page is open")
+    public void openPage() {
+        Selenide.open(testProperties.getSecurityServerUrl());
     }
 
-     @Given("OK is clicked on timeout notification popup")
-    public void ok_is_clicked_on_timeout_notification_popup() {
-      $(By.xpath("//button[@data-test='session-expired-ok-button']"))
-            .shouldBe(Condition.visible)
-            .shouldBe(Condition.enabled)
-            .click();
+    @Given("User {} logs in to SecurityServer with password {}")
+    public void doLogin(final String username, final String password) {
+
+        $(By.xpath("//div[@id='app']"))
+                .shouldBe(Condition.visible, Duration.ofSeconds(1));
+
+        $(By.id("username"))
+                .shouldBe(Condition.visible)
+                .setValue(username);
+        $(By.id("password"))
+                .shouldBe(Condition.visible)
+                .setValue(password);
+
+        $(By.id("submit-button"))
+                .shouldBe(Condition.visible)
+                .shouldBe(Condition.enabled)
+                .click();
     }
 
-    @Given("Page is prepared to be tested")
-    public void preparePage() {
-        Selenide.executeJavaScript("window.e2eTestingMode = true;\n"
-                + "      const style = `\n"
-                + "      <style>\n"
-                + "        *, ::before, ::after {\n"
-                + "            transition:none !important;\n"
-                + "        }\n"
-                + "      </style>`;\n"
-                + "      document.head.insertAdjacentHTML('beforeend', style);");
+    @Given("Error message for incorrect credentials is shown")
+    public void errorMessageIsShown() {
+        $(By.xpath("//div[text()[contains(.,'Wrong username or password')]]"))
+                .shouldBe(Condition.visible, Duration.ofSeconds(20));
     }
 
 }
