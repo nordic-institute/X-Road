@@ -1,17 +1,17 @@
 ---
-- name: setup sync service (Ubuntu)
-  block:
-    - template:
-        src: "xroad-sync.service.j2"
-        dest: "/etc/systemd/system/xroad-sync.service"
-    - copy:
-        src: "xroad-sync.timer"
-        dest: "/etc/systemd/system/xroad-sync.timer"
-    - service:
-        name: "{{ item }}"
-        enabled: yes
-        state: started
-      with_items:
-        - xroad-sync.service
-        - xroad-sync.timer
-  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"
+#- name: setup sync service (Ubuntu)
+#  block:
+#    - template:
+#        src: "xroad-sync.service.j2"
+#        dest: "/etc/systemd/system/xroad-sync.service"
+#    - copy:
+#        src: "xroad-sync.timer"
+#        dest: "/etc/systemd/system/xroad-sync.timer"
+#    - supervisorctl:
+#        name: "{{ item }}"
+#        #enabled: yes
+#        state: started
+#      with_items:
+#        - xroad-sync.service
+#        - xroad-sync.timer
+#  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal" or ansible_distribution_release == "jammy"

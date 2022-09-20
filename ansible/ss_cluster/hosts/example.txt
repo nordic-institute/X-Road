@@ -1,0 +1,9 @@
+[master]
+ss0 nodename=master ansible_connection=docker
+
+[slaves]
+ss0-slave1 nodename=slave1 ansible_connection=docker
+ss0-slave2 nodename=slave2 ansible_connection=docker
+
+[slaves:vars]
+master_host=ss0

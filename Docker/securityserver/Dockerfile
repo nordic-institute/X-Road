@@ -6,7 +6,7 @@ RUN apt-get -qq update \
     && apt-get -qq install \
         ca-certificates gnupg supervisor net-tools iproute2 locales \
         openjdk-11-jre-headless rlwrap ca-certificates-java \
-        crudini adduser expect curl rsyslog \
+        crudini adduser expect curl rsyslog openssh-server \
     && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
     && locale-gen en_US.UTF-8 \
     && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -16,7 +16,16 @@ RUN apt-get -qq update \
     && apt-get -qq install postgresql postgresql-contrib \
     && apt-get -qq clean
 
-ARG DIST=jammy-current
+#Install SSHD
+RUN mkdir /var/run/sshd
+RUN echo 'root:ubuntu' | chpasswd
+
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+
+ARG DIST=jammy
 ARG REPO=https://artifactory.niis.org/xroad-release-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
@@ -46,6 +55,8 @@ RUN mkdir -p /root/etc/xroad \
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
+
+CMD ["/usr/sbin/sshd","-D"]
 CMD ["/root/entrypoint.sh"]
 
-EXPOSE 8080 8443 4000 5500 5577
+EXPOSE 8080 8443 4000 5500 5577 5433 22

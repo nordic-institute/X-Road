@@ -11,7 +11,7 @@
           ubuntu: ssh
           redhat: sshd
           centos: sshd              
-  service: 
+  supervisorctl:
       name: "{{ ssh_server[ansible_distribution|lower] }}"
       state: started
 

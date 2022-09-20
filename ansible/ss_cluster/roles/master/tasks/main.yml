@@ -13,7 +13,7 @@
             group=xroad
 
 - name: start services
-  service:
+  supervisorctl:
       name: "{{ item }}"
       state: started
   with_items:

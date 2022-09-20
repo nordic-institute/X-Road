@@ -13,7 +13,7 @@
       - { option: 'listen_addresses', value: "'*'" }
       - { option: 'wal_level', value: "'hot_standby'" }
       - { option: 'max_wal_senders', value: '10' }
-      - { option: 'wal_keep_segments', value: '8' }
+      - { option: 'wal_keep_size', value: '8' }
 
 - name: enable replication connections
   lineinfile:
@@ -22,9 +22,9 @@
       line: "hostssl replication +slavenode samenet cert"
 
 - name: enable postgresql service
-  service:
+  supervisorctl:
       name: "{{ postgresql_serverconf_service }}"
-      enabled: yes
+      #enabled: yes
       state: started
 
 - name: check if serverconf user exists

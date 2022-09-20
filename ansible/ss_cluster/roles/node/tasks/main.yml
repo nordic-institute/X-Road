@@ -3,6 +3,12 @@
       that:
           - "{{ ( ansible_distribution | lower ) in ['ubuntu','redhat','centos'] }}"
 
+- name: ensure that acl utilities is installed
+  # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user
+  package:
+    name: acl
+    state: present
+
 - name: test postgres version
   become_user: postgres
   become: yes
@@ -14,18 +20,14 @@
     postgresql_version_num_full: "{{ (postgres_version.stdout) | int }}"
     postgresql_major_version: "{{ (postgres_version.stdout[:-4]) | int }}"
 
-- name: ensure that acl utilities is installed
-  # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user 
-  package:
-      name: acl
-      state: present
+
 
 - name: check node.ini
   stat: path=/etc/xroad/conf.d/node.ini
   register: node_ini
 
 - name: stop services
-  service:
+  supervisorctl:
       name: "{{ item }}"
       state: stopped
   with_items:
