@@ -67,7 +67,7 @@ public class SubsystemService {
     }
 
     public void deleteSubsystem(ClientId subsystemClientId) {
-        Subsystem subsystem = subsystemRepository.findOneBy(subsystemClientId)
+        var subsystem = subsystemRepository.findOneBy(subsystemClientId)
                 .getOrElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_FOUND));
 
         if (isRegistered(subsystem)) {
@@ -78,7 +78,7 @@ public class SubsystemService {
     }
 
     private boolean isRegistered(Subsystem subsystem) {
-        return subsystem.getServerClients().size() > 0;
+        return !subsystem.getServerClients().isEmpty();
     }
 
 }
