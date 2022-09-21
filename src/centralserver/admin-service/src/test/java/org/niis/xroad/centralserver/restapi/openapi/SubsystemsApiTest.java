@@ -36,14 +36,18 @@ import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class SubsystemsApiTest extends AbstractApiRestTemplateTestContext {
+class SubsystemsApiTest extends AbstractApiRestTemplateTestContext {
 
     private static final String PATH = "/api/v1/subsystems";
 
@@ -63,7 +67,7 @@ public class SubsystemsApiTest extends AbstractApiRestTemplateTestContext {
         @WithMockUser(authorities = {"ADD_NEW_MEMBER"})
         @DisplayName("should add subsystem")
         public void addSubsystem() {
-            ClientIdDto subsystemIdDto =  (ClientIdDto) new ClientIdDto()
+            ClientIdDto subsystemIdDto = (ClientIdDto) new ClientIdDto()
                     .memberClass("GOV")
                     .memberCode("M1")
                     .subsystemCode("MANAGEMENT")
@@ -78,6 +82,33 @@ public class SubsystemsApiTest extends AbstractApiRestTemplateTestContext {
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals(subsystemIdDto, response.getBody().getXroadId());
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE " + PATH + "/{id}")
+    @WithMockUser(authorities = {"REMOVE_MEMBER_SUBSYSTEM"})
+    class DeleteSubsystem {
+
+        @Test
+        void deleteSubsystem() {
+            final String subsystemCode = UUID.randomUUID().toString();
+            ClientIdDto subsystemIdDto = (ClientIdDto) new ClientIdDto()
+                    .subsystemCode(subsystemCode)
+                    .memberClass("GOV")
+                    .memberCode("M1")
+                    .instanceId("TEST")
+                    .type(XRoadIdDto.TypeEnum.SUBSYSTEM);
+            ClientDto subsystemDto = new ClientDto()
+                    .xroadId(subsystemIdDto);
+
+            var createResponse = restTemplate.postForEntity(PATH, subsystemDto, ClientDto.class);
+            assertEquals(HttpStatus.CREATED, createResponse.getStatusCode(), "Failed to create susbsystem");
+
+            var resp = restTemplate.exchange(PATH + "/{id}", HttpMethod.DELETE, HttpEntity.EMPTY, Void.class,
+                    "TEST:GOV:M1:" + subsystemCode);
+
+            assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
         }
     }
 

@@ -33,18 +33,25 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
 import org.niis.xroad.centralserver.restapi.dto.converter.db.ClientDtoConverter;
+import org.niis.xroad.centralserver.restapi.entity.ClientId;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
+import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
 import org.niis.xroad.centralserver.restapi.service.SubsystemService;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -68,6 +75,9 @@ public class SubsystemsApiControllerTest implements WithInOrder {
     private AuditDataHelper auditData;
     @Mock
     private ClientDtoConverter clientDtoConverter;
+
+    @Spy
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     @InjectMocks
     private SubsystemsApiController subsystemsApiController;
@@ -197,5 +207,42 @@ public class SubsystemsApiControllerTest implements WithInOrder {
         }
     }
 
+    @Nested
+    @DisplayName("deleteSubsystem(String id)")
+    class DeleteSubsystem implements WithInOrder {
 
+        private final ClientId subsystemClientId = SubsystemId.create("TEST", "CLASS", "MEMBER", "SUBSYSTEM");
+        private final String encodedSubsystemId = "TEST:CLASS:MEMBER:SUBSYSTEM";
+
+        @Test
+        @DisplayName("Should delete subsystem")
+        void shouldDeleteSubsystem() {
+            var result = subsystemsApiController.deleteSubsystem(encodedSubsystemId);
+
+            assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
+            inOrder().verify(inOrder -> {
+                inOrder.verify(clientIdConverter).convertId(encodedSubsystemId);
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, subsystemClientId.getMemberClass());
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CODE, subsystemClientId.getMemberCode());
+                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE, subsystemClientId.getSubsystemCode());
+                inOrder.verify(subsystemService).deleteSubsystem(subsystemClientId);
+            });
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "INVALID-FORMAT",
+                "TEST:CLASS",
+                "TEST:CLASS:CODE"
+        })
+        @DisplayName("Should throw BadRequest if called with invalid id")
+        void shouldThrowBadRequestException(String id) {
+            Executable testable = () -> subsystemsApiController.deleteSubsystem(id);
+
+            var thrown = assertThrows(BadRequestException.class, testable,
+                    "Expecting BadRequestException when called with invalid subsystem id");
+
+            assertEquals("Invalid subsystem id", thrown.getMessage());
+        }
+    }
 }

@@ -137,7 +137,8 @@ public enum RestApiAuditEvent {
     ADD_MEMBER("Add member"),
     DELETE_MEMBER("Delete member"),
 
-    ADD_SUBSYSTEM("Add subsystem");
+    ADD_SUBSYSTEM("Add subsystem"),
+    DELETE_SUBSYSTEM("Delete subsystem");
 
     private final String eventName;
 
