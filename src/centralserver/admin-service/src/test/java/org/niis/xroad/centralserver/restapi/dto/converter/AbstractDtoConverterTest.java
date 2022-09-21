@@ -47,6 +47,7 @@ public abstract class AbstractDtoConverterTest {
 
     protected static final String SERVER_CODE = "SERVER_ADDRESS";
 
+    protected static final String APPROVED_STATUS = "APPROVED";
     protected final ZoneOffset dtoZoneOffset = ZoneOffset.UTC;
     protected final Instant createdAtInstance = Instant.parse("2022-06-15T20:00:00Z");
     protected final Instant updatedAtInstance = createdAtInstance.plus(1, ChronoUnit.HOURS);

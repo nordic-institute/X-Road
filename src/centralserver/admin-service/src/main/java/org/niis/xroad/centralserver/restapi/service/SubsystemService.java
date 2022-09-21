@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
+import io.vavr.collection.Seq;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
@@ -61,4 +62,7 @@ public class SubsystemService {
         securityServerClientNameRepository.save(ssClientName);
     }
 
+    public Seq<Subsystem> findByMemberCode(String memberCode) {
+        return subsystemRepository.findAllByXroadMemberMemberCode(memberCode);
+    }
 }

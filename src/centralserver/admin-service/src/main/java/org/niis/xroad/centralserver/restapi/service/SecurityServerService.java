@@ -30,13 +30,23 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
+import org.niis.xroad.centralserver.restapi.repository.ManagementRequestViewRepository;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
+import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.centralserver.restapi.service.managementrequest.ManagementRequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+
+import java.util.List;
+
+import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
 
 @Service
 @Transactional
@@ -46,6 +56,8 @@ public class SecurityServerService {
     private final StableSortHelper stableSortHelper;
     private final SecurityServerRepository securityServerRepository;
 
+    private final ManagementRequestService managementRequestService;
+
     public Page<SecurityServer> findSecurityServers(String q, Pageable pageable) {
         return securityServerRepository
                 .findAll(SecurityServerRepository.multifieldSearch(q), stableSortHelper.addSecondaryIdSort(pageable));
@@ -53,5 +65,18 @@ public class SecurityServerService {
 
     public Option<SecurityServer> find(SecurityServerId id) {
         return securityServerRepository.findBy(id);
+    }
+
+    public ManagementRequestStatus findSecurityServerRegistrationStatus(SecurityServerId serverId) {
+        return managementRequestService.findRequests(
+                        ManagementRequestViewRepository.Criteria.builder()
+                                .origin(Origin.SECURITY_SERVER)
+                                .serverId(serverId)
+                                .types(List.of(CLIENT_REGISTRATION_REQUEST))
+                                .build(), Pageable.unpaged())
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND))
+                .getStatus();
     }
 }

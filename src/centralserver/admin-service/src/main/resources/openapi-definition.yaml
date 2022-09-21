@@ -2060,6 +2060,40 @@ paths:
       summary: add new subsystem to the central server
       tags:
         - subsystems
+  /members/{id}/subsystems:
+    get:
+      description: <h3>CS Administrator lists subsystems.</h3>
+      operationId: getSubsystems
+      parameters:
+        - description: member code of X-Road member
+          in: path
+          name: id
+          required: true
+          schema:
+            format: text
+            maxLength: 255
+            minLength: 1
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of subsystems
+                items:
+                  $ref: '#/components/schemas/Subsystem'
+                type: array
+                uniqueItems: true
+          description: array of subsystems
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: List subsystems
+      tags:
+        - subsystems
   /clients:
     get:
       description: <h3>CS administrator searches for X-Road clients.</h3>
@@ -3825,6 +3859,27 @@ components:
           type: string
       required:
         - code
+      type: object
+    Subsystem:
+      properties:
+        subsystemCode:
+          description: subsystem code
+          type: string
+        usedSecurityServers:
+          items:
+            $ref: '#/components/schemas/UsedSecurityServers'
+      type: object
+    UsedSecurityServers:
+      properties:
+        serverCode:
+          description: security server code
+          type: string
+        serverOwner:
+          description: security server owner
+          type: string
+        status:
+          description: security server status
+          type: string
       type: object
     MemberClassDescription:
       description: Central server's member class description
