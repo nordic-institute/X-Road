@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SubsystemsApi;
@@ -36,6 +38,8 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +56,7 @@ public class SubsystemsApiController implements SubsystemsApi {
     private final SubsystemService subsystemService;
     private final AuditDataHelper auditData;
     private final ClientDtoConverter clientDtoConverter;
+    private final ClientIdConverter clientIdConverter;
 
     @Override
     @PreAuthorize("hasAuthority('ADD_MEMBER_SUBSYSTEM')")
@@ -68,6 +73,27 @@ public class SubsystemsApiController implements SubsystemsApi {
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity.status(HttpStatus.CREATED)::body)
                 .get();
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('REMOVE_MEMBER_SUBSYSTEM')")
+    @AuditEventMethod(event = RestApiAuditEvent.DELETE_SUBSYSTEM)
+    public ResponseEntity<Void> deleteSubsystem(String id) {
+        verifySubsystemId(id);
+        ClientId clientId = clientIdConverter.convertId(id);
+
+        auditData.put(RestApiAuditProperty.MEMBER_CLASS, clientId.getMemberClass());
+        auditData.put(RestApiAuditProperty.MEMBER_CODE, clientId.getMemberCode());
+        auditData.put(RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE, clientId.getSubsystemCode());
+
+        subsystemService.deleteSubsystem(clientId);
+        return ResponseEntity.noContent().build();
+    }
+
+    private void verifySubsystemId(String clientId) {
+        if (!clientIdConverter.isEncodedSubsystemId(clientId)) {
+            throw new BadRequestException("Invalid subsystem id");
+        }
     }
 
 }

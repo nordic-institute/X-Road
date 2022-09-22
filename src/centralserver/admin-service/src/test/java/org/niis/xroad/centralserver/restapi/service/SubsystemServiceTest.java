@@ -38,14 +38,21 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.centralserver.restapi.entity.ClientId;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
+import org.niis.xroad.centralserver.restapi.entity.ServerClient;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
+import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
+
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -124,4 +131,60 @@ public class SubsystemServiceTest implements WithInOrder {
         }
     }
 
+    @Nested
+    @DisplayName("deleteSubsystem(ClientId subsystemClientId)")
+    class DeleteSubsystem implements WithInOrder {
+
+        @Mock
+        private Subsystem subsystem;
+
+        private final ClientId subsystemClientId = SubsystemId.create(
+                "TEST", "CLASS", "MEMBER", "SUBSYSTEM");
+
+        @Test
+        @DisplayName("Should delete subsystem")
+        void shouldDeleteSubsystem() {
+            doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
+            doReturn(Set.of()).when(subsystem).getServerClients();
+
+            subsystemService.deleteSubsystem(subsystemClientId);
+
+            inOrder().verify(inOrder -> {
+                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
+                inOrder.verify(subsystem).getServerClients();
+                inOrder.verify(subsystemRepository).delete(subsystem);
+            });
+        }
+
+        @Test
+        @DisplayName("Should not delete subsystem if it does not exist")
+        void shouldThrowNotFoundExceptionWhenSubsystemNotFound() {
+            doReturn(Option.none()).when(subsystemRepository).findOneBy(subsystemClientId);
+
+            Executable testable = () -> subsystemService.deleteSubsystem(subsystemClientId);
+
+            NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
+            assertEquals(ErrorMessage.SUBSYSTEM_NOT_FOUND.getDescription(), actualThrown.getMessage());
+            inOrder().verify(inOrder -> {
+                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
+            });
+        }
+
+        @Test
+        @DisplayName("Should not delete subsystem if it is already registered")
+        void shouldThrowValidationExceptionWhenSubsystemRegistered() {
+            doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
+            doReturn(Set.of(mock(ServerClient.class))).when(subsystem).getServerClients();
+
+            Executable testable = () -> subsystemService.deleteSubsystem(subsystemClientId);
+
+            ValidationFailureException actualThrown = assertThrows(ValidationFailureException.class, testable);
+            assertEquals(ErrorMessage.SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED.getDescription(), actualThrown.getMessage());
+            inOrder().verify(inOrder -> {
+                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
+                inOrder.verify(subsystem).getServerClients();
+            });
+        }
+
+    }
 }
