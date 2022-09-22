@@ -106,6 +106,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private static final String TIMESTAMPING_FAILED_FAULT_MESSAGE = "Could not create missing timestamp!";
 
+    private static final String CONTENT_DISPOSITION_FILENAME_PREFIX = "attachment; filename=\"";
+
     private final String target;
 
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
@@ -243,7 +245,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                     + (response == null ? "" : (response ? "-response" : "-request")) + ".zip";
             final CheckedSupplier<OutputStream> supplier = () -> {
                 servletResponse.setContentType(MimeTypes.ZIP);
-                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                        CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
                 return servletResponse.getOutputStream();
             };
 
@@ -270,7 +273,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         try {
             final CheckedSupplier<OutputStream> supplier = () -> {
                 servletResponse.setContentType(MimeTypes.BINARY);
-                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                        CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
                 return new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
                         encryptionConfig.getEncryptionKeys());
             };
@@ -371,7 +375,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 } else {
                     servletResponse.setContentType(MimeTypes.ASIC_ZIP);
                 }
-                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                        CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
 
                 if (encryptionEnabled) {
                     encryptContainer(encryptionConfig, asicContainer);

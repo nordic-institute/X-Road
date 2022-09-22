@@ -31,13 +31,13 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import io.vavr.control.Option;
-import org.niis.xroad.centralserver.restapi.entity.ClientId_;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient_;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer_;
 import org.niis.xroad.centralserver.restapi.entity.ServerClient_;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem_;
+import org.niis.xroad.centralserver.restapi.entity.XRoadId_;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember_;
 import org.springframework.data.jpa.domain.Specification;
@@ -79,10 +79,10 @@ public interface SecurityServerRepository extends
                     .join(SecurityServerClient_.identifier);
 
             Predicate pred = builder.and(
-                    builder.equal(cid.get(ClientId_.OBJECT_TYPE), clientId.getObjectType()),
-                    builder.equal(cid.get(ClientId_.X_ROAD_INSTANCE), clientId.getXRoadInstance()),
-                    builder.equal(cid.get(ClientId_.MEMBER_CLASS), clientId.getMemberClass()),
-                    builder.equal(cid.get(ClientId_.MEMBER_CODE), clientId.getMemberCode()));
+                    builder.equal(cid.get(XRoadId_.OBJECT_TYPE), clientId.getObjectType()),
+                    builder.equal(cid.get(XRoadId_.X_ROAD_INSTANCE), clientId.getXRoadInstance()),
+                    builder.equal(cid.get(XRoadId_.MEMBER_CLASS), clientId.getMemberClass()),
+                    builder.equal(cid.get(XRoadId_.MEMBER_CODE), clientId.getMemberCode()));
 
             if (clientId.getSubsystemCode() != null) {
                 pred = builder.and(pred,
@@ -102,10 +102,10 @@ public interface SecurityServerRepository extends
                     root.join(SecurityServer_.owner).join(SecurityServerClient_.identifier);
 
             pred = builder.and(pred,
-                    builder.equal(oid.get(ClientId_.OBJECT_TYPE), XRoadObjectType.MEMBER),
-                    builder.equal(oid.get(ClientId_.X_ROAD_INSTANCE), serverId.getXRoadInstance()),
-                    builder.equal(oid.get(ClientId_.MEMBER_CLASS), serverId.getMemberClass()),
-                    builder.equal(oid.get(ClientId_.MEMBER_CODE), serverId.getMemberCode()));
+                    builder.equal(oid.get(XRoadId_.OBJECT_TYPE), XRoadObjectType.MEMBER),
+                    builder.equal(oid.get(XRoadId_.X_ROAD_INSTANCE), serverId.getXRoadInstance()),
+                    builder.equal(oid.get(XRoadId_.MEMBER_CLASS), serverId.getMemberClass()),
+                    builder.equal(oid.get(XRoadId_.MEMBER_CODE), serverId.getMemberCode()));
             return pred;
         };
     }

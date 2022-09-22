@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import io.vavr.collection.Seq;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
@@ -33,7 +35,11 @@ import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
+import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
 
@@ -64,5 +70,20 @@ public class SubsystemService {
 
     public Seq<Subsystem> findByMemberCode(String memberCode) {
         return subsystemRepository.findAllByXroadMemberMemberCode(memberCode);
+    }
+
+    public void deleteSubsystem(ClientId subsystemClientId) {
+        var subsystem = subsystemRepository.findOneBy(subsystemClientId)
+                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_FOUND));
+
+        if (isRegistered(subsystem)) {
+            throw new ValidationFailureException(ErrorMessage.SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED);
+        }
+
+        subsystemRepository.delete(subsystem);
+    }
+
+    private boolean isRegistered(Subsystem subsystem) {
+        return !CollectionUtils.isEmpty(subsystem.getServerClients());
     }
 }
