@@ -37,7 +37,7 @@ export const memberStore = defineStore('member', {
   actions: {
     async add(client: Client) {
       return axios
-        .post('/clients', client);
+        .post('/members', client);
     }
   },
 });

@@ -69,9 +69,5 @@ export const clientStore = defineStore('client', {
                     this.pagingOptions = resp.data.paging_metadata;
                 });
         },
-        async add(client: Client) {
-          return axios
-            .post('/clients', client);
-        }
     },
 });

@@ -273,10 +273,10 @@ public class MembersApiControllerTest implements WithInOrder {
 
         @Test
         @DisplayName("Should delete client with given id")
-        void shouldReturnMember() {
+        void  shouldReturnMember() {
             var result = membersApiController.deleteMember(encodedClientId);
 
-            assertEquals(HttpStatus.OK, result.getStatusCode());
+            assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
             inOrder(auditData, memberService).verify(inOrder -> {
                 inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, clientId.getMemberClass());
                 inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CODE, clientId.getMemberCode());

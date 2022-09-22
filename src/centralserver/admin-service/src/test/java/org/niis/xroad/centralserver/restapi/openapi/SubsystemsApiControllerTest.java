@@ -44,6 +44,7 @@ import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
 import org.niis.xroad.centralserver.restapi.dto.converter.db.ClientDtoConverter;
 import org.niis.xroad.centralserver.restapi.entity.ClientId;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerId;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
 import org.niis.xroad.centralserver.restapi.service.SubsystemService;
@@ -51,6 +52,7 @@ import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsExcept
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,9 +77,10 @@ public class SubsystemsApiControllerTest implements WithInOrder {
     private AuditDataHelper auditData;
     @Mock
     private ClientDtoConverter clientDtoConverter;
-
     @Spy
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
+    @Spy
+    private SecurityServerIdConverter securityServerIdConverter = new SecurityServerIdConverter();
 
     @InjectMocks
     private SubsystemsApiController subsystemsApiController;
@@ -105,8 +108,8 @@ public class SubsystemsApiControllerTest implements WithInOrder {
         Function<SecurityServerClient, ? extends SecurityServerClient> expectTypeFn;
 
         @Test
-        @DisplayName("should add member successfully")
-        public void shouldAddMemberSuccessfully() {
+        @DisplayName("should add subsystem successfully")
+        public void shouldAddSubsystemSuccessfully() {
             doReturn(clientIdDto).when(newClientDto).getXroadId();
             doReturn(MEMBER_CLASS).when(clientIdDto).getMemberClass();
             doNothing().when(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
@@ -209,14 +212,77 @@ public class SubsystemsApiControllerTest implements WithInOrder {
 
     @Nested
     @DisplayName("deleteSubsystem(String id)")
+    class UnregisterSubsystem implements WithInOrder {
+
+        private final ClientId subsystemId = SubsystemId.create("TEST", "CLASS", "MEMBER", "SUBSYSTEM");
+        private final String encodedSubsystemId = subsystemId.toShortString(':');
+
+        private final SecurityServerId securityServerId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER");
+        private final String encodedSecurityServerId = securityServerId.toShortString(':');
+
+        @Test
+        @DisplayName("Should unregister subsystem")
+        void shouldUnregisterSubsystem() {
+            var result = subsystemsApiController.unregisterSubsystem(encodedSubsystemId, encodedSecurityServerId);
+
+            assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
+            inOrder().verify(inOrder -> {
+                inOrder.verify(clientIdConverter).isEncodedSubsystemId(encodedSubsystemId);
+                inOrder.verify(clientIdConverter).convertId(encodedSubsystemId);
+                inOrder.verify(securityServerIdConverter).convertId(encodedSecurityServerId);
+                inOrder.verify(auditData).put(RestApiAuditProperty.SERVER_CODE, securityServerId.getServerCode());
+                inOrder.verify(auditData).put(RestApiAuditProperty.OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+                inOrder.verify(auditData).put(RestApiAuditProperty.OWNER_CODE, securityServerId.getOwner().getMemberCode());
+                inOrder.verify(auditData).put(RestApiAuditProperty.CLIENT_IDENTIFIER, subsystemId);
+                inOrder.verify(subsystemService).unregisterSubsystem(subsystemId, securityServerId);
+            });
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "INVALID-FORMAT",
+                "TEST:CLASS",
+                "TEST:CLASS:CODE"
+        })
+        @DisplayName("Should throw BadRequest if called with invalid subsystem id")
+        void shouldThrowBadRequestExceptionWhenInvalidSubsystemId(String invalidSubsystemId) {
+            Executable testable =
+                    () -> subsystemsApiController.unregisterSubsystem(invalidSubsystemId, encodedSecurityServerId);
+
+            var thrown = assertThrows(BadRequestException.class, testable,
+                    "Expecting BadRequestException when called with invalid subsystem id");
+
+            assertEquals("Invalid subsystem id", thrown.getMessage());
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "INVALID-FORMAT",
+                "TEST:CLASS",
+                "TEST:CLASS:CODE"
+        })
+        @DisplayName("Should throw BadRequest if called with invalid security server id")
+        void shouldThrowBadRequestExceptionWhenInvalidSecurityServerId(String invalidSecurityServerId) {
+            Executable testable =
+                    () -> subsystemsApiController.unregisterSubsystem(encodedSubsystemId, invalidSecurityServerId);
+
+            var thrown = assertThrows(BadRequestException.class, testable,
+                    "Expecting BadRequestException when called with invalid subsystem id");
+
+            assertEquals("Invalid security server id " + invalidSecurityServerId, thrown.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName("deleteSubsystem(String id)")
     class DeleteSubsystem implements WithInOrder {
 
         private final ClientId subsystemClientId = SubsystemId.create("TEST", "CLASS", "MEMBER", "SUBSYSTEM");
-        private final String encodedSubsystemId = "TEST:CLASS:MEMBER:SUBSYSTEM";
+        private final String encodedSubsystemId = subsystemClientId.toShortString(':');
 
         @Test
         @DisplayName("Should delete subsystem")
-        void shouldDeleteSubsystem() {
+        void shouldUnregisterSubsystem() {
             var result = subsystemsApiController.deleteSubsystem(encodedSubsystemId);
 
             assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());

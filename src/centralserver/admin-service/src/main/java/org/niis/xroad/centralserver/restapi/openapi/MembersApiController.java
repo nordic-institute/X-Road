@@ -88,7 +88,7 @@ public class MembersApiController implements MembersApi {
         auditData.put(RestApiAuditProperty.MEMBER_CLASS, clientId.getMemberClass());
         auditData.put(RestApiAuditProperty.MEMBER_CODE, clientId.getMemberCode());
         memberService.delete(clientId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @Override

@@ -138,6 +138,7 @@ public enum RestApiAuditEvent {
     DELETE_MEMBER("Delete member"),
 
     ADD_SUBSYSTEM("Add subsystem"),
+    UNREGISTER_SUBSYSTEM("Unregister subsystem as security server client"),
     DELETE_SUBSYSTEM("Delete subsystem");
 
     private final String eventName;

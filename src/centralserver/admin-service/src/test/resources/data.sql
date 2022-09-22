@@ -49,7 +49,7 @@ INSERT INTO identifiers
 VALUES (1000701, 'MEMBER',    'TEST',         'ORG',        '111',       null,           null,         null,        null,              now(),        now()),
        (1000702, 'SUBSYSTEM', 'TEST',         'ORG',        '111',       'MANAGEMENT',   null,         null,        null,              now(),        now()),
        (1000703, 'SERVER',    'TEST',         'ORG',        '111',       null,           null,         'ADMINSS',   null,              now(),        now()),
-       (1000704, 'SUBSYSTEM', 'TEST',         'ORG',        '222',       null,           null,         'SERVICESS', null,              now(),        now()),
+       (1000704, 'SUBSYSTEM', 'TEST',         'ORG',        '222',       'TEST',           null,         'SERVICESS', null,              now(),        now()),
        (1000705, 'MEMBER',    'TEST',         'GOV',        '333',       null,           null,         null,        null,              now(),        now()),
        (1000706, 'MEMBER',    'TEST',         'ORG',        '000',       null,           null,         null,        null,              now(),        now()),
        (1000707, 'MEMBER',    'TEST',         'GOV',        '321',       null,           null,         null,        null,              now(),        now());
