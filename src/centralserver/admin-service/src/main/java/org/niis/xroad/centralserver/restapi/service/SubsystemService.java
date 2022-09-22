@@ -38,6 +38,7 @@ import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
 
@@ -78,7 +79,7 @@ public class SubsystemService {
     }
 
     private boolean isRegistered(Subsystem subsystem) {
-        return !subsystem.getServerClients().isEmpty();
+        return !CollectionUtils.isEmpty(subsystem.getServerClients());
     }
 
 }
