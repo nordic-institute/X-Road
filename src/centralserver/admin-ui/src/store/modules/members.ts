@@ -25,13 +25,36 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { Client } from '@/openapi-types';
+import {
+  Client,
+  MemberName,
+} from '@/openapi-types';
 import { defineStore } from 'pinia';
 
 export const memberStore = defineStore('member', {
   actions: {
     async add(client: Client) {
-      return axios.post('/members', client);
+      return axios
+        .post('/members', client);
     },
+    getById(memberId: string) {
+      return axios
+        .get<Client>(`/members/${memberId}`)
+        .then((resp) => resp.data)
+        .catch((error) => {
+          throw error;
+        });
+    },
+    deleteById(memberId: string) {
+      return axios
+        .delete(`/members/${memberId}`, {})
+    },
+    editMemberName(memberId: string, memberName: MemberName) {
+      return axios
+        .patch<Client>(`/members/${memberId}`, memberName)
+        .catch((error) => {
+          throw error;
+        });
+    }
   },
 });
