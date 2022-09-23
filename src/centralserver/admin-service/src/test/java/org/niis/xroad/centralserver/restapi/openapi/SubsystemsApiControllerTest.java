@@ -211,7 +211,7 @@ public class SubsystemsApiControllerTest implements WithInOrder {
     }
 
     @Nested
-    @DisplayName("deleteSubsystem(String id)")
+    @DisplayName("unregisterSubsystem(ClientId subsystemId, SecurityServerId securityServerId)")
     class UnregisterSubsystem implements WithInOrder {
 
         private final ClientId subsystemId = SubsystemId.create("TEST", "CLASS", "MEMBER", "SUBSYSTEM");
@@ -282,7 +282,7 @@ public class SubsystemsApiControllerTest implements WithInOrder {
 
         @Test
         @DisplayName("Should delete subsystem")
-        void shouldUnregisterSubsystem() {
+        void shouldDeleteSubsystem() {
             var result = subsystemsApiController.deleteSubsystem(encodedSubsystemId);
 
             assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());

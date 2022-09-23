@@ -136,7 +136,7 @@ public class SubsystemServiceTest implements WithInOrder {
     }
 
     @Nested
-    @DisplayName("deleteSubsystem(ClientId subsystemClientId)")
+    @DisplayName("unregisterSubsystem(String subsystemId, String serverId)")
     class UnregisterSubsystem implements WithInOrder {
 
         @Mock

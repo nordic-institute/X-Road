@@ -25,11 +25,7 @@
  * THE SOFTWARE.
  */
 import axios, {AxiosRequestConfig} from 'axios';
-import {
-  PagedClients,
-  PagingMetadata,
-  Client, ClientId,
-} from '@/openapi-types';
+import { PagedClients, PagingMetadata, Client } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';
 

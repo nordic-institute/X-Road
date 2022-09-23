@@ -24,20 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import axios, {AxiosRequestConfig} from 'axios';
-import {
-  PagedClients,
-  PagingMetadata,
-  Client, ClientId,
-} from '@/openapi-types';
+import axios from 'axios';
+import { Client } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import { DataOptions } from 'vuetify';
 
 export const memberStore = defineStore('member', {
   actions: {
     async add(client: Client) {
-      return axios
-        .post('/members', client);
-    }
+      return axios.post('/members', client);
+    },
   },
 });
