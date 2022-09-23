@@ -30,42 +30,41 @@ import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Given;
 import org.openqa.selenium.By;
 
-import java.time.Duration;
-
 import static com.codeborne.selenide.Selenide.$;
 
 public class CommonUiStepDefs extends BaseUiStepDefs {
     public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test=\"close-snackbar\"]");
+    public static final int MILLISECONDS_IN_SECOND = 1000;
 
-     @Given("logout button is being clicked")
-        public void logoutButtonIsClicked() {
-         $(By.xpath("//button[@data-test='username-button']"))
-                        .shouldBe(Condition.visible)
-                        .shouldBe(Condition.enabled)
-                        .click();
-        }
+    @Given("logout button is being clicked")
+    public void logoutButtonIsClicked() {
+        $(By.xpath("//button[@data-test='username-button']"))
+                .shouldBe(Condition.visible)
+                .shouldBe(Condition.enabled)
+                .click();
+    }
 
-     @Given("{int} seconds of inactivity is passed")
-        public void seconds_of_inactivity_is_passed(Integer int1) {
+    @Given("{int} seconds of inactivity is passed")
+    public void secondsOfInactivityIsPassed(Integer int1) {
 
-            Selenide.sleep(int1 * 1000);
-
-        }
-
-
-    @Given("Error message about timeout appears")
-    public void error_message_about_timeout_appears() {
-        $(By.xpath("//button[@data-test='session-expired-ok-button']"))
-            .shouldBe(Condition.visible);
+        Selenide.sleep(int1 * MILLISECONDS_IN_SECOND);
 
     }
 
-     @Given("OK is clicked on timeout notification popup")
-    public void ok_is_clicked_on_timeout_notification_popup() {
-      $(By.xpath("//button[@data-test='session-expired-ok-button']"))
-            .shouldBe(Condition.visible)
-            .shouldBe(Condition.enabled)
-            .click();
+
+    @Given("Error message about timeout appears")
+    public void errorMessageAboutTimeoutAppears() {
+        $(By.xpath("//button[@data-test='session-expired-ok-button']"))
+                .shouldBe(Condition.visible);
+
+    }
+
+    @Given("OK is clicked on timeout notification popup")
+    public void okIsClickedOnTimeoutNotificationPopup() {
+        $(By.xpath("//button[@data-test='session-expired-ok-button']"))
+                .shouldBe(Condition.visible)
+                .shouldBe(Condition.enabled)
+                .click();
     }
 
     @Given("Page is prepared to be tested")

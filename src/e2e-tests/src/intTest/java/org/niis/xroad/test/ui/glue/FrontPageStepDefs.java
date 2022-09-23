@@ -36,6 +36,7 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class FrontPageStepDefs extends BaseUiStepDefs {
     public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test=\"close-snackbar\"]");
+    public static final int WAIT_DURATION = 20;
 
     @Given("SecurityServer login page is open")
     public void openPage() {
@@ -64,7 +65,7 @@ public class FrontPageStepDefs extends BaseUiStepDefs {
     @Given("Error message for incorrect credentials is shown")
     public void errorMessageIsShown() {
         $(By.xpath("//div[text()[contains(.,'Wrong username or password')]]"))
-                .shouldBe(Condition.visible, Duration.ofSeconds(20));
+                .shouldBe(Condition.visible, Duration.ofSeconds(WAIT_DURATION));
     }
 
 }
