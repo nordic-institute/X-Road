@@ -27,10 +27,12 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import io.vavr.collection.Seq;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
+import org.niis.xroad.centralserver.restapi.entity.ServerClient;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
@@ -70,6 +72,16 @@ public class SubsystemService {
 
     public Seq<Subsystem> findByMemberCode(String memberCode) {
         return subsystemRepository.findAllByXroadMemberMemberCode(memberCode);
+    }
+
+    public void unregisterSubsystem(ClientId subsystemId, SecurityServerId securityServerId) {
+        Subsystem subsystem = subsystemRepository.findOneBy(subsystemId)
+                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_FOUND));
+        ServerClient serverClient = subsystem.getServerClients().stream()
+                .filter(sc -> securityServerId.equals(sc.getSecurityServer().getServerId()))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER));
+        subsystem.getServerClients().remove(serverClient);
     }
 
     public void deleteSubsystem(ClientId subsystemClientId) {

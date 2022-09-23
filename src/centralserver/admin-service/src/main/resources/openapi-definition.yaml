@@ -2125,6 +2125,47 @@ paths:
       summary: List subsystems
       tags:
         - subsystems
+  /subsystems/{subsystemId}/servers/{serverId}:
+    delete:
+      description: <h3>CS administrator unregisters a subsystem from a Security Server</h3>
+      operationId: unregisterSubsystem
+      parameters:
+        - description: the encoded string representation of the subsystem id
+          example: FI:GOV:123:SUBSYSTEM1
+          in: path
+          name: subsystemId
+          required: true
+          schema:
+            format: text
+            maxLength: 1023
+            minLength: 1
+            type: string
+        - description: the encoded string representation of the Security Server id
+          example: FI:GOV:123:sserver1
+          in: path
+          name: serverId
+          required: true
+          schema:
+            format: text
+            maxLength: 1023
+            minLength: 1
+            type: string
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a subsystem
+      tags:
+        - subsystems
   /clients:
     get:
       description: <h3>CS administrator searches for X-Road clients.</h3>

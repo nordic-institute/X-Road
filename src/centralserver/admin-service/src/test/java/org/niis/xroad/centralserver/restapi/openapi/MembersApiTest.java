@@ -40,6 +40,8 @@ import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -139,9 +141,10 @@ class MembersApiTest extends AbstractApiRestTemplateTestContext {
             restTemplate.postForEntity(PATH, memberDto, ClientDto.class);
             var uriVariables = Map.of("clientId", "TEST:GOV:to-be-deleted");
 
-            restTemplate.delete(
-                    "/api/v1/clients/{clientId}",
-                    uriVariables);
+            var resp = restTemplate.exchange(
+                    PATH + "/{clientId}", HttpMethod.DELETE, HttpEntity.EMPTY, Void.class, uriVariables
+            );
+            assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
 
             ResponseEntity<ClientDto> deletedClientResponse =
                     restTemplate.getForEntity("/api/v1/clients/{clientId}", ClientDto.class, uriVariables);

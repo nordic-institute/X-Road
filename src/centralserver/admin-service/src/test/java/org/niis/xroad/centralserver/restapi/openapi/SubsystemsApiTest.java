@@ -42,6 +42,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,7 +65,7 @@ class SubsystemsApiTest extends AbstractApiRestTemplateTestContext {
     class AddSubsystem {
 
         @Test
-        @WithMockUser(authorities = {"ADD_NEW_MEMBER"})
+        @WithMockUser(authorities = {"ADD_MEMBER_SUBSYSTEM"})
         @DisplayName("should add subsystem")
         public void addSubsystem() {
             ClientIdDto subsystemIdDto = (ClientIdDto) new ClientIdDto()
@@ -82,6 +83,24 @@ class SubsystemsApiTest extends AbstractApiRestTemplateTestContext {
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals(subsystemIdDto, response.getBody().getXroadId());
+        }
+    }
+
+    @Nested
+    @DisplayName("POST " + PATH)
+    class UnregisterSubsystem {
+
+        @Test
+        @WithMockUser(authorities = {"ADD_SECURITY_SERVER_CLIENT_REG_REQUEST"})
+        @DisplayName("Should unregister subsystem from security server")
+        void unregisterSubsystem() {
+            var uriVariables = Map.of(
+                    "subsystemId", "TEST:ORG:222:TEST",
+                    "serverId", "TEST:ORG:000:SERVICESS2_CODE"
+            );
+            var resp = restTemplate.exchange(PATH + "/{subsystemId}/servers/{serverId}",
+                    HttpMethod.DELETE, HttpEntity.EMPTY, Void.class, uriVariables);
+            assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
         }
     }
 
