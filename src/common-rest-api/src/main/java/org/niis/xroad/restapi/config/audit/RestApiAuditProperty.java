@@ -101,6 +101,8 @@ public enum RestApiAuditProperty {
     TSP_URL,
 
     OWNER_IDENTIFIER,
+    OWNER_CLASS,
+    OWNER_CODE,
     SERVER_CODE,
 
     API_KEY_ID,

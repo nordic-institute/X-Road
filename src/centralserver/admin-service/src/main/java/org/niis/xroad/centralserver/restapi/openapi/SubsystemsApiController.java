@@ -26,6 +26,7 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.HttpStatus;
@@ -57,6 +59,7 @@ public class SubsystemsApiController implements SubsystemsApi {
     private final AuditDataHelper auditData;
     private final ClientDtoConverter clientDtoConverter;
     private final ClientIdConverter clientIdConverter;
+    private final SecurityServerIdConverter securityServerIdConverter;
 
     @Override
     @PreAuthorize("hasAuthority('ADD_MEMBER_SUBSYSTEM')")
@@ -73,6 +76,22 @@ public class SubsystemsApiController implements SubsystemsApi {
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity.status(HttpStatus.CREATED)::body)
                 .get();
+    }
+    @Override
+    @PreAuthorize("hasAuthority('ADD_SECURITY_SERVER_CLIENT_REG_REQUEST')")
+    @AuditEventMethod(event = RestApiAuditEvent.UNREGISTER_SUBSYSTEM)
+    public ResponseEntity<Void> unregisterSubsystem(String subsystemId, String serverId) {
+        verifySubsystemId(subsystemId);
+        ClientId clientId = clientIdConverter.convertId(subsystemId);
+        SecurityServerId securityServerId = securityServerIdConverter.convertId(serverId);
+
+        auditData.put(RestApiAuditProperty.SERVER_CODE, securityServerId.getServerCode());
+        auditData.put(RestApiAuditProperty.OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+        auditData.put(RestApiAuditProperty.OWNER_CODE, securityServerId.getOwner().getMemberCode());
+        auditData.put(RestApiAuditProperty.CLIENT_IDENTIFIER, clientId);
+
+        subsystemService.unregisterSubsystem(clientId, securityServerId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override

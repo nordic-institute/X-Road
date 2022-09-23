@@ -39,8 +39,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.entity.ClientId;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerId;
 import org.niis.xroad.centralserver.restapi.entity.ServerClient;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
@@ -53,6 +55,8 @@ import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -129,6 +133,78 @@ public class SubsystemServiceTest implements WithInOrder {
                 inOrder.verify(subsystem).getIdentifier();
             });
         }
+    }
+
+    @Nested
+    @DisplayName("unregisterSubsystem(String subsystemId, String serverId)")
+    class UnregisterSubsystem implements WithInOrder {
+
+        @Mock
+        private Subsystem subsystem;
+        @Mock
+        private ServerClient serverClient;
+        @Mock
+        private SecurityServer securityServer;
+
+        private final ClientId subsystemClientId = SubsystemId.create(
+                "TEST", "CLASS", "MEMBER", "SUBSYSTEM");
+
+        private final SecurityServerId securityServerId = SecurityServerId.create(
+                "TEST", "CLASS", "MEMBER", "SERVER");
+
+        @Test
+        @DisplayName("Should unregister subsystem")
+        void shouldUnregisterSubsystem() {
+            Set<ServerClient> serverClients = Stream.of(serverClient).collect(Collectors.toSet());
+            doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
+            doReturn(serverClients).when(subsystem).getServerClients();
+            doReturn(securityServer).when(serverClient).getSecurityServer();
+            doReturn(securityServerId).when(securityServer).getServerId();
+
+            subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
+            assertThat(serverClients).isEmpty();
+
+            inOrder().verify(inOrder -> {
+                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
+                inOrder.verify(subsystem).getServerClients();
+                inOrder.verify(serverClient).getSecurityServer();
+                inOrder.verify(securityServer).getServerId();
+                inOrder.verify(subsystem).getServerClients();
+            });
+        }
+
+        @Test
+        @DisplayName("Should not unregister subsystem if it does not exist")
+        void shouldThrowNotFoundExceptionWhenSubsystemNotFound() {
+            doReturn(Option.none()).when(subsystemRepository).findOneBy(subsystemClientId);
+
+            Executable testable = () -> subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
+
+            NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
+            assertEquals(ErrorMessage.SUBSYSTEM_NOT_FOUND.getDescription(), actualThrown.getMessage());
+            inOrder().verify(inOrder -> {
+                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
+            });
+        }
+
+        @Test
+        @DisplayName("Should not unregister subsystem from server if not already registered")
+        void shouldThrowNotFoundExceptionWhenSubsystemNotRegisteredToGivenServer() {
+            doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
+            doReturn(Set.of()).when(subsystem).getServerClients();
+
+            Executable testable = () -> subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
+
+            NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
+            assertEquals(
+                    ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER.getDescription(), actualThrown.getMessage()
+            );
+            inOrder().verify(inOrder -> {
+                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
+                inOrder.verify(subsystem).getServerClients();
+            });
+        }
+
     }
 
     @Nested

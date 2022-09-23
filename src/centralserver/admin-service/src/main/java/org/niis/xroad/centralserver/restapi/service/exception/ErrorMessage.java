@@ -42,6 +42,7 @@ public enum ErrorMessage {
     SUBSYSTEM_EXISTS("Subsystem with the same code already exists."),
     SUBSYSTEM_NOT_FOUND("Subsystem with specified code not found."),
     SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED("Cannot delete already registered subsystem."),
+    SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER("Subsystem is not registered to the given security server."),
 
     MANAGEMENT_REQUEST_NOT_FOUND("No management request with the specified id found."),
     MANAGEMENT_REQUEST_EXISTS("A pending management request already exists."),
