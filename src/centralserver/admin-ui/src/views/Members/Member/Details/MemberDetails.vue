@@ -34,6 +34,7 @@
       <info-card
         :title-text="$t('global.memberName')"
         :action-text="$t('action.edit')"
+        :show-action="allowMemberRename"
         :info-text="member.member_name || ''"
         @actionClicked="editMemberName"
       />
@@ -111,7 +112,7 @@
         </v-data-table>
       </v-card>
 
-      <div class="delete-action" @click="showDialog = true">
+      <div class="delete-action" @click="showDialog = true" v-if="allowMemberDelete">
         <div>
           <v-icon class="xrd-large-button-icon" :color="colors.Purple100">mdi-close-circle</v-icon>
         </div>
@@ -146,14 +147,13 @@
       <ValidationObserver ref="initializationForm" v-slot="{ invalid }">
         <v-card class="xrd-card">
           <v-card-title>
-            <span class="headline">{{
-              $t('members.member.details.deleteMember')
-            }}</span>
+            <span class="headline">
+              {{ $t('members.member.details.deleteMember') }}</span>
           </v-card-title>
           <v-card-text class="pt-4">
             {{
               $t('members.member.details.areYouSure1', {
-                member: 'NIIS',
+                member: member.member_name,
               })
             }}
             <div class="dlg-input-width pt-4">
@@ -177,12 +177,12 @@
           </v-card-text>
           <v-card-actions class="xrd-card-actions">
             <v-spacer></v-spacer>
-            <xrd-button outlined @click="cancelDelete()">{{
-              $t('action.cancel')
-            }}</xrd-button>
-            <xrd-button :disabled="invalid" @click="deleteMember()">{{
-              $t('action.delete')
-            }}</xrd-button>
+            <xrd-button outlined @click="cancelDelete()">
+              {{ $t('action.cancel') }}
+            </xrd-button>
+            <xrd-button :disabled="invalid" @click="deleteMember()">
+              {{ $t('action.delete') }}
+            </xrd-button>
           </v-card-actions>
         </v-card>
       </ValidationObserver>
@@ -193,14 +193,14 @@
 <script lang="ts">
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
-import {Colors, RouteName} from '@/global';
+import { Colors, Permissions, RouteName } from '@/global';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import InfoCard from "@/components/ui/InfoCard.vue";
-import {mapActions, mapStores} from "pinia";
-import {useGlobalGroupsStore} from "@/store/modules/global-groups";
-import {memberStore} from "@/store/modules/members";
-import {Client, ClientId} from "@/openapi-types";
-import {notificationsStore} from "@/store/modules/notifications";
+import { mapActions, mapState, mapStores } from "pinia";
+import { memberStore } from "@/store/modules/members";
+import { Client, ClientId } from "@/openapi-types";
+import { notificationsStore } from "@/store/modules/notifications";
+import { userStore } from "@/store/modules/user";
 
 let that: any;
 
@@ -238,7 +238,6 @@ export default Vue.extend({
       newMemberName: '',
       showDialog: false,
       offeredCode: '',
-      wrongCode: false,
       servers: [
         {
           name: 'SS1',
@@ -262,7 +261,14 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(userStore, ['hasPermission']),
     ...mapStores(memberStore),
+    allowMemberDelete(): boolean {
+      return this.hasPermission(Permissions.DELETE_MEMBER);
+    },
+    allowMemberRename() : boolean {
+      return this.hasPermission(Permissions.EDIT_MEMBER_NAME_AND_ADMIN_CONTACT);
+    },
     serversHeaders(): DataTableHeader[] {
       return [
         {
@@ -334,7 +340,6 @@ export default Vue.extend({
           this.showEditNameDialog = false;
         });
     },
-
     deleteMember() {
       this.memberStore
         .deleteById(this.memberid)
@@ -349,9 +354,7 @@ export default Vue.extend({
           this.showDialog = false;
           this.offeredCode = '';
         });
-
     },
-
     cancelDelete() {
       this.showDialog = false;
       this.offeredCode = '';
