@@ -12,8 +12,8 @@ Feature: It is possible to login to secure site via frontpage
     Then SecurityServer login page is open
 
   Scenario: Automatic logout happens when timeout passes
-    When 120 seconds of inactivity is passed
-    Then Error message about timeout appears
+    When User becomes idle
+    Then after 120 seconds, session timeout popup appears
     When OK is clicked on timeout notification popup
     Then  SecurityServer login page is open
 

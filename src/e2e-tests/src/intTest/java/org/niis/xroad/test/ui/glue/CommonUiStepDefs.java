@@ -30,11 +30,13 @@ import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Given;
 import org.openqa.selenium.By;
 
+import java.time.Duration;
+
 import static com.codeborne.selenide.Selenide.$;
 
 public class CommonUiStepDefs extends BaseUiStepDefs {
     public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test=\"close-snackbar\"]");
-    public static final int MILLISECONDS_IN_SECOND = 1000;
+    public static final int MAX_WAIT_IN_SECONDS = 120;
 
     @Given("logout button is being clicked")
     public void logoutButtonIsClicked() {
@@ -44,18 +46,16 @@ public class CommonUiStepDefs extends BaseUiStepDefs {
                 .click();
     }
 
-    @Given("{int} seconds of inactivity is passed")
-    public void secondsOfInactivityIsPassed(Integer int1) {
-
-        Selenide.sleep(int1 * MILLISECONDS_IN_SECOND);
-
+    @Given("User becomes idle")
+    public void userBecomesIdle() {
+        Selenide.sleep(1);
     }
 
 
-    @Given("Error message about timeout appears")
+    @Given("after 120 seconds, session timeout popup appears")
     public void errorMessageAboutTimeoutAppears() {
         $(By.xpath("//button[@data-test='session-expired-ok-button']"))
-                .shouldBe(Condition.visible);
+                .shouldBe(Condition.visible, Duration.ofSeconds(MAX_WAIT_IN_SECONDS));
 
     }
 
