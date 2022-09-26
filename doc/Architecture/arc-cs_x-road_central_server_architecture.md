@@ -56,7 +56,7 @@ Doc. ID: ARC-CS
     - [2.8 SSCD](#28-sscd)
   - [3 Interfaces](#3-interfaces)
     - [3.1 Management Services](#31-management-services)
-      - [3.1.1 Member management web service](#311-member-management-web-services)
+      - [3.1.1 Member Management Web Service](#311-member-management-web-services)
       - [3.1.2 Registration Web Service](#312-registration-web-service)
     - [3.2 Download Configuration](#32-download-configuration)
   - [4 Configuration Creation Workflow](#4-configuration-creation-workflow)
@@ -203,7 +203,7 @@ The SSCD needs to be a PKCS \#11 (see \[[PKCS11](#Ref_PKCS11)\]) compliant hardw
 ### 3.1 Management Services
 
 
-### 3.1.1 Member management web service
+### 3.1.1 Member Management Web Service
 
 Member management web service is called by security servers to perform management tasks such as registering a security server client or deleting an authentication certificate.
 
