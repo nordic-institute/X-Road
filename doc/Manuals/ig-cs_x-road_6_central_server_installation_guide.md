@@ -50,6 +50,7 @@ Doc. ID: IG-CS
 | 24.08.2021 | 2.26    | Add instructions for running the database migrations manually. | Ilkka Seppälä
 | 25.08.2021 | 2.27    | Update X-Road references from version 6 to 7 | Caro Hautamäki
 | 23.09.2022 | 2.28    | Added new Registration Web Service | Eneli Reimets
+
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -341,9 +342,10 @@ The central monitoring client may be configured as specified in the [UG-CS](#Ref
 
 The optional configuration for registration web service is installed by package xroad-centralserver-registration-service. The package is included in the central server installation by default.
 
-Additional registration web service configured are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section „Registration service parameters“.
+Additional registration web service configured are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section „Registration service parameters“ and can be defined e.g. in local.ini.
 
-**Note 1:** With new registration service are set max size (MAX_REQUEST_SIZE = 100 KB) of SOAP message body.
+**Note 1:** The installer does not currently generate the API token, it must be manually configured.
+**Note 2:** With new registration service, a maximum size limit (MAX_REQUEST_SIZE = 100 KB) is set for the authentication certificate SOAP message.
 
 ### 2.11 Post-Installation Checks
 

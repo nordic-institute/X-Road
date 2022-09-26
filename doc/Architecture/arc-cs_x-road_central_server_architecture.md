@@ -219,8 +219,7 @@ The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-GCON
 
 ### 3.3 Registration Web Service
 
-Registration Web Service component provides management service SOAP interface for authentication certificate registration requests from security servers. It validates the requests and calls the central server admin service API
-_authCertReg_ (Security Server authentication certificate registration) on behalf of the security servers.
+Registration Web Service component provides management service SOAP interface for authentication certificate registration requests from security servers. It validates the requests and calls the central server admin service API _authCertReg_ (Security Server authentication certificate registration) on behalf of the security servers.
 
 When deployed, the component depends on the global configuration (configuration client) and network access to the central server admin service API.
 
