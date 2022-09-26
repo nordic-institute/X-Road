@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
+import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.centralserver.openapi.model.MemberNameDto;
 import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
@@ -47,7 +49,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -104,7 +109,7 @@ class MembersApiTest extends AbstractApiRestTemplateTestContext {
                 .memberClass("GOV")
                 .memberCode("M1")
                 .instanceId("TEST")
-                .type(XRoadIdDto.TypeEnum.MEMBER);;
+                .type(XRoadIdDto.TypeEnum.MEMBER);
 
         @Test
         void getMember() {
@@ -183,6 +188,42 @@ class MembersApiTest extends AbstractApiRestTemplateTestContext {
         @AfterEach
         void revertNameUpdate() {
             doUpdateName(MEMBER_M1_NAME);
+        }
+    }
+
+    @Nested
+    @DisplayName("GET" + PATH + "/{id}/global-groups")
+    @WithMockUser(authorities = {"VIEW_MEMBER_DETAILS"})
+    class GetMemberGlobalGroups {
+
+        @Test
+        void shouldReturnMemberGlobalGroups() {
+            var response = restTemplate.getForEntity(
+                    PATH + "/{clientId}/global-groups",
+                    MemberGlobalGroupDto[].class,
+                    MEMBER_M1_CLIENT_ID);
+
+            final MemberGlobalGroupDto[] result = response.getBody();
+            assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
+            assertTrue(ArrayUtils.isNotEmpty(result));
+            assertEquals(2, ArrayUtils.getLength(result));
+
+            final Map<String, MemberGlobalGroupDto> resultMap = Arrays.stream(result)
+                    .collect(Collectors.toMap(MemberGlobalGroupDto::getGroupCode, Function.identity()));
+
+            assertEquals("SS1", resultMap.get("CODE_1").getSubsystem());
+            assertTrue(resultMap.containsKey("CODE_2"));
+        }
+
+        @Test
+        void shouldReturnNoResultsForNotExistingMember() {
+            var response = restTemplate.getForEntity(
+                    PATH + "/{clientId}/global-groups",
+                    MemberGlobalGroupDto[].class,
+                    "not:existing:member");
+            final MemberGlobalGroupDto[] result = response.getBody();
+            assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
+            assertTrue(ArrayUtils.isEmpty(result));
         }
     }
 

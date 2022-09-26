@@ -32,6 +32,7 @@ import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.MembersApi;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
+import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.centralserver.openapi.model.MemberNameDto;
 import org.niis.xroad.centralserver.restapi.dto.converter.db.ClientDtoConverter;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
@@ -50,6 +51,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.Set;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -102,6 +105,15 @@ public class MembersApiController implements MembersApi {
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity::ok)
                 .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
+    public ResponseEntity<Set<MemberGlobalGroupDto>> getMemberGlobalGroups(final String memberId) {
+        verifyMemberId(memberId);
+
+        var memberGlobalGroups = memberService.findMemberGlobalGroups(clientIdConverter.convertId(memberId));
+        return ResponseEntity.ok(memberGlobalGroups);
     }
 
     @Override

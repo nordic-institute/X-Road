@@ -38,17 +38,24 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
+import org.niis.xroad.centralserver.restapi.converter.GroupMemberConverter;
+import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
+import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.niis.xroad.centralserver.restapi.entity.MemberId;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
+import org.niis.xroad.centralserver.restapi.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,6 +75,11 @@ class MemberServiceTest implements WithInOrder {
     private XRoadMemberRepository xRoadMemberRepository;
     @Mock
     private SecurityServerClientNameRepository securityServerClientNameRepository;
+    @Mock
+    private GlobalGroupMemberRepository globalGroupMemberRepository;
+
+    @Spy
+    private GroupMemberConverter groupMemberConverter;
 
     @InjectMocks
     private MemberService memberService;
@@ -205,6 +217,27 @@ class MemberServiceTest implements WithInOrder {
             assertTrue(result.isDefined());
             verify(xRoadMember).setName("new name");
             verify(securityServerClientName).setName("new name");
+        }
+    }
+
+    @Nested
+    @DisplayName("findMemberGlobalGroups(ClientId memberId)")
+    class FindMemberGlobalGroups implements WithInOrder {
+
+        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+
+        @Test
+        void findMemberGroups() {
+            final GlobalGroupMember memberGroup = new GlobalGroupMember(new GlobalGroup("groupCode"), clientId);
+            doReturn(List.of(memberGroup)).when(globalGroupMemberRepository).findMemberGroups(clientId);
+
+            final Set<MemberGlobalGroupDto> result = memberService.findMemberGlobalGroups(clientId);
+
+            inOrder().verify(inOrder -> {
+                inOrder.verify(globalGroupMemberRepository).findMemberGroups(clientId);
+                inOrder.verify(groupMemberConverter).convertMemberGlobalGroups(List.of(memberGroup));
+            });
+            assertEquals(1, result.size());
         }
     }
 }
