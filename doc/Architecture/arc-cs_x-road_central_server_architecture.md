@@ -58,7 +58,7 @@ Doc. ID: ARC-CS
     - [3.1 Management Services](#31-management-services)
       - [3.1.1 Member management web service](#311-member-management-web-services)
       - [3.1.2 Registration Web Service](#312-registration-web-service)
-  - [3.2 Download Configuration](#32-download-configuration)
+    - [3.2 Download Configuration](#32-download-configuration)
   - [4 Configuration Creation Workflow](#4-configuration-creation-workflow)
   - [5 Deployment View](#5-deployment-view)
     - [5.1 Simple Deployment](#51-simple-deployment)
