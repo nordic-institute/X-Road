@@ -6,7 +6,7 @@
 # X-Road: Central Server Architecture
 **Technical Specification**
 
-Version: 2.5  
+Version: 2.6  
 Doc. ID: ARC-CS
 
 
@@ -31,6 +31,7 @@ Doc. ID: ARC-CS
  19.01.2018 | 2.3     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
  02.03.2018 | 2.4     | Moved terms and abbreviations into the terms document           | Tatu Repo
  11.08.2021 | 2.5     | Update chapter 5.2 about high-availability setup                | Ilkka Seppälä
+ 23.09.2022 | 2.6     | Added new Registration Web Service                              | Eneli Reimets
 
 ## Table of Contents
 
@@ -56,6 +57,7 @@ Doc. ID: ARC-CS
   - [3 Interfaces](#3-interfaces)
     - [3.1 Management Services](#31-management-services)
     - [3.2 Download Configuration](#32-download-configuration)
+    - [3.3 Registration Web Service](#33-registration-web-service)
   - [4 Configuration Creation Workflow](#4-configuration-creation-workflow)
   - [5 Deployment View](#5-deployment-view)
     - [5.1 Simple Deployment](#51-simple-deployment)
@@ -213,6 +215,16 @@ Configuration clients download the generated global configuration files from the
 The configuration download interface is a synchronous interface provided by the central server. It is used by configuration clients such as security servers and configuration proxies.
 
 The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-GCONF](#Ref_PR-GCONF)\].
+
+
+### 3.3 Registration Web Service
+
+Registration Web Service component provides management service SOAP interface for authentication certificate registration requests from security servers. It validates the requests and calls the central server admin service API
+_authCertReg_ (Security Server authentication certificate registration) on behalf of the security servers.
+
+When deployed, the component depends on the global configuration (configuration client) and network access to the central server admin service API.
+
+The _authCertReg_ protocol is described in more detail in \[[PR-MSERV](#Ref_PR-MSERV)\].
 
 
 ## 4 Configuration Creation Workflow

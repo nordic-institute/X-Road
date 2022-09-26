@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 0.6  
+Version: 0.7  
 07.09.2021
 
 Doc. ID: ARC-SEC
@@ -11,14 +11,15 @@ Doc. ID: ARC-SEC
 
 ## Version history
 
- Date       | Version | Description                                                 | Author
- ---------- | ------- | ----------------------------------------------------------- | --------------------
- 20.06.2019 | 0.1     | Initial version                                             | Niall O’Donoghue
- 27.06.2019 | 0.2     | Converted to Github flavoured Markdown                      | Petteri Kivimäki
+ Date       | Version | Description                                    | Author
+ ---------- | ------- |------------------------------------------------| --------------------
+ 20.06.2019 | 0.1     | Initial version                                | Niall O’Donoghue
+ 27.06.2019 | 0.2     | Converted to Github flavoured Markdown         | Petteri Kivimäki
  29.06.2019 | 0.3     | Editorial changes, updated chapters 5-7, 14-18 | Petteri Kivimäki
- 28.02.2021 | 0.4     | Update X-Road security architecture diagram | Petteri Kivimäki
- 25.08.2021 | 0.5     | Update X-Road references from version 6 to 7 | Caro Hautamäki
- 07.09.2021 | 0.6     | Update with the new message log features | Ilkka Seppälä
+ 28.02.2021 | 0.4     | Update X-Road security architecture diagram    | Petteri Kivimäki
+ 25.08.2021 | 0.5     | Update X-Road references from version 6 to 7   | Caro Hautamäki
+ 07.09.2021 | 0.6     | Update with the new message log features       | Ilkka Seppälä
+ 23.09.2022 | 0.7     | Added new Registration Web Service             | Eneli Reimets
   
 ## Table of Contents
 
@@ -230,7 +231,7 @@ For compliance with security principle of economy of mechanism, X-Road member or
   * Configuration Download Protocol is a synchronous protocol that is offered by the Central Server. Configuration clients download the generated global configuration files from the Central Server. It is used by configuration clients such as Security Servers and configuration proxies.
   * Service Metadata Protocol may be used by the service client information systems to gather information about the X-Road instance and may be used to find X-Road members.
   * Download Signed Document Protocol may be used by the information systems to download signed containers from the Security Server's message log. In addition, the service provides a convenience method for downloading global configuration that may be used to verify the signed containers.
-  * Management Services Protocol is used by Security Servers to perform management tasks such as registering a Security Server client or deleting an authentication certificate. The management services are implemented as standard X-Road services that are offered by the organization managing the X-Road instance. The exception is the authentication certificate registration service that is implemented directly by the Central Server. 
+  * Management Services Protocol is used by Security Servers to perform management tasks such as registering a Security Server client or deleting an authentication certificate. The management services are implemented as standard X-Road services that are offered by the organization managing the X-Road instance. 
   * Online Certificate Status Protocol (OCSP) is used by the Security Servers to query the validity information about the signing and authentication certificates. OCSP protocol is a synchronous protocol that is offered by the OCSP responder belonging to a certification authority. In X-Road, each Security Server is responsible for downloading and caching the validity information about its certificates. The OCSP responses are sent to the other Security Servers as part of the message transport protocol to ensure that the Security Servers do not need to discover the OCSP service used by the other party. 
   * Time-Stamping Protocol is used by Security Servers to ensure long-term proof value of  exchanged messages. The Security Servers log all messages and their signatures. These logs are periodically time-stamped to create long-term proof. Time-stamping is used in an asynchronous manner, so temporary unavailability of the time-stamping service does not directly affect the X-Road message exchange.
 

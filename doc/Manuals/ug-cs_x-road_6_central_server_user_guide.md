@@ -4,51 +4,52 @@
 
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.19  
+Version: 2.20  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
 
-| Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------|
-| 28.08.2014 | 0.1     | Initial version ||
-| 28.09.2014 | 0.2     | Translation to English  ||
-| 09.10.2014 | 0.3     | Minor updates and corrections. Security Categories removed. ||
-| 09.10.2014 | 0.4     | Add service CA OCSP responder changed to Add top CA OCSP responder ||
-| 14.10.2014 | 0.5     | Title page, header, footer modified ||
-| 28.11.2014 | 0.6     | Logback information added (Chapter 17). Introduction added (Chapter 1). Security Officer user role added (Section 2.1). System Settings added (Chapter 4). Configuration Management added (Chapter 5). Database Management Chapter deleted. ||
-| 1.12.2014  | 1.0     | Minor corrections  ||
-| 23.01.2015 | 1.1     | License information. Certification services management and time stamping services management chapters updated (Chapters 11 and 12). ||
-| 30.04.2015 | 1.2     | “sdsb” changed to “xroad” ||
-| 30.06.2015 | 1.3     | Minor corrections done ||
-| 3.07.2015  | 1.4     | Audit Log chapter added (Chapter 14) ||
-| 31.08.2015 | 1.5     | Information about high availability added (Chapter 3) ||
-| 15.09.2015 | 1.6     | Reference to the audit log events added         ||
-| 17.09.2015 | 1.7     | Corrections related to high availability added ||
-| 18.09.2015 | 1.8     | Minor corrections done ||
-| 21.09.2015 | 1.9     | References fixed ||
-| 22.10.2015 | 1.10    | Corrections in Chapter 17 ||
-| 04.11.2015 | 1.11    | Updates related to backup and restore (Chapter 13) ||
+| Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                                                                                             | Author           |
+|------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
+| 28.08.2014 | 0.1     | Initial version                                                                                                                                                                                                                                                                                                                                                                                                                         ||
+| 28.09.2014 | 0.2     | Translation to English                                                                                                                                                                                                                                                                                                                                                                                                                  ||
+| 09.10.2014 | 0.3     | Minor updates and corrections. Security Categories removed.                                                                                                                                                                                                                                                                                                                                                                             ||
+| 09.10.2014 | 0.4     | Add service CA OCSP responder changed to Add top CA OCSP responder                                                                                                                                                                                                                                                                                                                                                                      ||
+| 14.10.2014 | 0.5     | Title page, header, footer modified                                                                                                                                                                                                                                                                                                                                                                                                     ||
+| 28.11.2014 | 0.6     | Logback information added (Chapter 17). Introduction added (Chapter 1). Security Officer user role added (Section 2.1). System Settings added (Chapter 4). Configuration Management added (Chapter 5). Database Management Chapter deleted.                                                                                                                                                                                             ||
+| 1.12.2014  | 1.0     | Minor corrections                                                                                                                                                                                                                                                                                                                                                                                                                       ||
+| 23.01.2015 | 1.1     | License information. Certification services management and time stamping services management chapters updated (Chapters 11 and 12).                                                                                                                                                                                                                                                                                                     ||
+| 30.04.2015 | 1.2     | “sdsb” changed to “xroad”                                                                                                                                                                                                                                                                                                                                                                                                               ||
+| 30.06.2015 | 1.3     | Minor corrections done                                                                                                                                                                                                                                                                                                                                                                                                                  ||
+| 3.07.2015  | 1.4     | Audit Log chapter added (Chapter 14)                                                                                                                                                                                                                                                                                                                                                                                                    ||
+| 31.08.2015 | 1.5     | Information about high availability added (Chapter 3)                                                                                                                                                                                                                                                                                                                                                                                   ||
+| 15.09.2015 | 1.6     | Reference to the audit log events added                                                                                                                                                                                                                                                                                                                                                                                                 ||
+| 17.09.2015 | 1.7     | Corrections related to high availability added                                                                                                                                                                                                                                                                                                                                                                                          ||
+| 18.09.2015 | 1.8     | Minor corrections done                                                                                                                                                                                                                                                                                                                                                                                                                  ||
+| 21.09.2015 | 1.9     | References fixed                                                                                                                                                                                                                                                                                                                                                                                                                        ||
+| 22.10.2015 | 1.10    | Corrections in Chapter 17                                                                                                                                                                                                                                                                                                                                                                                                               ||
+| 04.11.2015 | 1.11    | Updates related to backup and restore (Chapter 13)                                                                                                                                                                                                                                                                                                                                                                                      ||
 | 30.11.2015 | 2.0     | Management service provider configuration updated (Section 4.2); management requests system updated (Chapter 6); key label added to configuration signing key generation (Section 5.4.1); section about adding a subsystem to an X-Road member added (Section 7.3); only subsystems can be registered as security server clients or be members of global groups; certification service settings updated (11.1). Editorial changes made. ||
-| 17.12.2015 | 2.1     | Added user instructions for monitoring. ||
-| 14.4.2016  | 2.2     | Added chapter for additional configuration options. ||
-| 5.9.2016   | 2.3     | Added instructions for configuring OCSP fetch interval. ||
-| 20.01.2017 | 2.4     | Added license text and version history | Sami Kallio |
-| 05.03.2018 | 2.5     | Added terms and abbreviations reference and document links | Tatu Repo |
-| 18.08.2018 | 2.6     | Corrected `ocspFetchInterval` default value (Chapter 16.2) | Petteri Kivimäki |
-| 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18 | Jarkko Hyöty |
-| 23.01.2019 | 2.8     | Information about automatic approval of auth cert registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
-| 06.02.2019 | 2.9     | Information about automatic approval of security server client registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
-| 02.07.2019 | 2.10    | Security Server owner change added (Chapter 7.10) | Petteri Kivimäki |
-| 14.08.2019 | 2.11    | Added automatic backups | Ilkka Seppälä |
-| 11.09.2019 | 2.12    | Remove Ubuntu 14.04 support | Jarkko Hyöty |
-| 26.11.2019 | 2.13    | Update Chapter 3 with remote database support possiblity | Ilkka Seppälä |
-| 03.12.2019 | 2.14    | Remove HA setup dependency on BDR | Jarkko Hyöty |
-| 13.03.2020 | 2.15    | Add instructions for migrating to remote database | Ilkka Seppälä |
-| 30.03.2020 | 2.16    | Added description of pre-restore backups | Ilkka Seppälä |
-| 04.08.2021 | 2.17    | Add more details about restoring configuration from the command line | Ilkka Seppälä |
-| 11.08.2021 | 2.18    | Update chapter 3.2 about checking the cluster status. | Ilkka Seppälä |
-| 25.08.2021 | 2.19    | Update X-Road references from version 6 to 7 | Caro Hautamäki |
+| 17.12.2015 | 2.1     | Added user instructions for monitoring.                                                                                                                                                                                                                                                                                                                                                                                                 ||
+| 14.4.2016  | 2.2     | Added chapter for additional configuration options.                                                                                                                                                                                                                                                                                                                                                                                     ||
+| 5.9.2016   | 2.3     | Added instructions for configuring OCSP fetch interval.                                                                                                                                                                                                                                                                                                                                                                                 ||
+| 20.01.2017 | 2.4     | Added license text and version history                                                                                                                                                                                                                                                                                                                                                                                                  | Sami Kallio      |
+| 05.03.2018 | 2.5     | Added terms and abbreviations reference and document links                                                                                                                                                                                                                                                                                                                                                                              | Tatu Repo        |
+| 18.08.2018 | 2.6     | Corrected `ocspFetchInterval` default value (Chapter 16.2)                                                                                                                                                                                                                                                                                                                                                                              | Petteri Kivimäki |
+| 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18                                                                                                                                                                                                                                                                                                                                                                                                         | Jarkko Hyöty     |
+| 23.01.2019 | 2.8     | Information about automatic approval of auth cert registration requests added. Updates in Chapters 6-8.                                                                                                                                                                                                                                                                                                                                 | Petteri Kivimäki |
+| 06.02.2019 | 2.9     | Information about automatic approval of security server client registration requests added. Updates in Chapters 6-8.                                                                                                                                                                                                                                                                                                                    | Petteri Kivimäki |
+| 02.07.2019 | 2.10    | Security Server owner change added (Chapter 7.10)                                                                                                                                                                                                                                                                                                                                                                                       | Petteri Kivimäki |
+| 14.08.2019 | 2.11    | Added automatic backups                                                                                                                                                                                                                                                                                                                                                                                                                 | Ilkka Seppälä    |
+| 11.09.2019 | 2.12    | Remove Ubuntu 14.04 support                                                                                                                                                                                                                                                                                                                                                                                                             | Jarkko Hyöty     |
+| 26.11.2019 | 2.13    | Update Chapter 3 with remote database support possiblity                                                                                                                                                                                                                                                                                                                                                                                | Ilkka Seppälä    |
+| 03.12.2019 | 2.14    | Remove HA setup dependency on BDR                                                                                                                                                                                                                                                                                                                                                                                                       | Jarkko Hyöty     |
+| 13.03.2020 | 2.15    | Add instructions for migrating to remote database                                                                                                                                                                                                                                                                                                                                                                                       | Ilkka Seppälä    |
+| 30.03.2020 | 2.16    | Added description of pre-restore backups                                                                                                                                                                                                                                                                                                                                                                                                | Ilkka Seppälä    |
+| 04.08.2021 | 2.17    | Add more details about restoring configuration from the command line                                                                                                                                                                                                                                                                                                                                                                    | Ilkka Seppälä    |
+| 11.08.2021 | 2.18    | Update chapter 3.2 about checking the cluster status.                                                                                                                                                                                                                                                                                                                                                                                   | Ilkka Seppälä    |
+| 25.08.2021 | 2.19    | Update X-Road references from version 6 to 7                                                                                                                                                                                                                                                                                                                                                                                            | Caro Hautamäki   |
+| 23.09.2022 | 2.20    | Added new Registration Web Service                                                                                                                                                                                                                                                                                                                                                                                          | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -181,6 +182,7 @@ The central server supports the following user roles:
 - Registration Officer (xroad-registration-officer) is responsible for handling the information about X-Road members.
 - System Administrator (xroad-system-administrator) is responsible for the installation, configuration, and maintenance of the central server.
 - Security Officer (xroad-security-officer) is responsible for the application of the security policy and security requirements.
+- Management service role (xroad-management-service) is responsible for member management and authentication certificate registration.
 
 One user can have multiple roles, and multiple users can fulfill the same role. Each role has a corresponding system group, created upon the installation of the system. The system user names are used for logging in to the user interface of the central server.
 
@@ -482,10 +484,7 @@ To delete an anchor file, follow these steps.
 
 As the registration of associations in the X-Road governing authority is security-critical, the following measures are applied to increase security by default:
 
-- The registration request must be submitted to the X-Road governing authority over two channels, or in other words, the registration wish must be expressed through two complementary requests:
-one request is submitted to the X-Road central server through the security server,
-the other request is submitted to the X-Road governing authority through means independent of the X-Road (for example, over a digitally signed e-mail). This request must be formalized in the central server by the central server administrator. 
-  - Security server owner change request is an exception - it is enough to submit one request through security server and the complementary request is generated automatically. Manual approval is still required by default.
+- The registration request must be submitted to the X-Road central server through the security server. Manual approval is still required by default.
 - The association must be approved by the X-Road governing authority.
 
 There are three types of registration requests:
@@ -631,8 +630,7 @@ When automatic approval of authentication certificate registration requests is e
 
 Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register an X-Road member's security server, the following actions must be taken.
 - An authentication certificate registration request must be sent from the security server to the central server by the security server administrator;
-- The complementary authentication certificate registration request must be formalized in the central server by the central server administrator, on the appeal of the security server's owner.
-- The complimentary requests must be approved by the central server administrator.
+- The requests must be approved by the central server administrator.
 
 To formalize the central server-side request to register a security server, follow these steps.
 1. On the Configuration menu, select Members, select a member whose security server you wish to register and click Details.
@@ -849,8 +847,7 @@ When automatic approval of authentication certificate registration requests is e
 
 Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register a security server's authentication certificate, the following actions must be taken.
 - An authentication certificate registration request must be sent from the security server to the central server by the security server administrator;
-- The complementary authentication certificate registration request must be formalized in the central server by the central server administrator, on the appeal of the security server's owner.
-- The complimentary requests must be approved by the central server administrator.
+- The requests must be approved by the central server administrator.
 
 To formalize the registration request of an authentication certificate in the central server, follow these steps.
 1. On the Configuration menu, select Security servers, select the security server whose authentication certificate you wish to register and click Details.
@@ -1242,11 +1239,13 @@ The value is the fetch interval in seconds for new OCSP responses.
 
 Most significant central server services are the following:
 
-| Service        | Purpose           | Log  |
-| ------------- |:-------------:| -----:|
-| xroad-jetty     | The application server providing the user interface and the request acceptance service. | `/var/log/xroad/jetty/` |
-| xroad-signer      | The service that manages key settings.      |   `/var/log/xroad/signer.log` |
-| nginx | The Web server that distributes configuration and implements the TLS protocol in the user interface.      |    `/var/log/nginx/` |
+| Service                           |                                               Purpose                                                |                                                    Log  |
+|-----------------------------------|------------------------------------------------------------------------------------------------------|--------------------------------------------------------:|
+| xroad-center                      |                                                 X-Road Central Server                                                     |        `/var/log/xroad/centralserver-admin-service.log` |
+| xroad-center-registration-service |                              X-Road Central Server Registration Service                              | `/var/log/xroad/centralserver-registration-service.log` |
+| xroad-jetty                       |       The application server providing the user interface and the request acceptance service.        |                                 `/var/log/xroad/jetty/` |
+| xroad-signer                      |                                The service that manages key settings.                                |                             `/var/log/xroad/signer.log` |
+| nginx                             | The Web server that distributes configuration and implements the TLS protocol in the user interface. |                                       `/var/log/nginx/` |
 
 System services can be managed using the systemd facility.
 To start a service, issue the following command as a root user:
