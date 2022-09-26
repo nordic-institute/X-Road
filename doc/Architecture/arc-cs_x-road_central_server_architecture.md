@@ -56,8 +56,9 @@ Doc. ID: ARC-CS
     - [2.8 SSCD](#28-sscd)
   - [3 Interfaces](#3-interfaces)
     - [3.1 Management Services](#31-management-services)
-    - [3.2 Download Configuration](#32-download-configuration)
-    - [3.3 Registration Web Service](#33-registration-web-service)
+      - [3.1.1 Member management web service](#311-member-management-web-services)
+      - [3.1.2 Registration Web Service](#312-registration-web-service)
+  - [3.2 Download Configuration](#32-download-configuration)
   - [4 Configuration Creation Workflow](#4-configuration-creation-workflow)
   - [5 Deployment View](#5-deployment-view)
     - [5.1 Simple Deployment](#51-simple-deployment)
@@ -201,9 +202,21 @@ The SSCD needs to be a PKCS \#11 (see \[[PKCS11](#Ref_PKCS11)\]) compliant hardw
 
 ### 3.1 Management Services
 
-Management services are called by security servers to perform management tasks such as registering a security server client or deleting an authentication certificate.
 
-The management service interface is a synchronous RPC-style interface provided by the central server. The service is called by security servers.
+### 3.1.1 Member management web service
+
+Member management web service is called by security servers to perform management tasks such as registering a security server client or deleting an authentication certificate.
+
+The member management web service interface is a synchronous RPC-style interface provided by the member management web service component. It validates the requests and forwards them to the central server management REST API. The service is called by security servers.
+
+The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-MSERV](#Ref_PR-MSERV)\].
+
+
+### 3.1.2 Registration Web Service
+
+Registration web service is called by security servers to register an authentication certificate.
+
+The registration web service interface is a synchronous RPC-style interface provided by the registration web service component. It validates the requests and forwards them to the central server management REST API. The service is called by security servers.
 
 The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-MSERV](#Ref_PR-MSERV)\].
 
@@ -215,15 +228,6 @@ Configuration clients download the generated global configuration files from the
 The configuration download interface is a synchronous interface provided by the central server. It is used by configuration clients such as security servers and configuration proxies.
 
 The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-GCONF](#Ref_PR-GCONF)\].
-
-
-### 3.3 Registration Web Service
-
-Registration Web Service component provides management service SOAP interface for authentication certificate registration requests from security servers. It validates the requests and calls the central server admin service API _authCertReg_ (Security Server authentication certificate registration) on behalf of the security servers.
-
-When deployed, the component depends on the global configuration (configuration client) and network access to the central server admin service API.
-
-The _authCertReg_ protocol is described in more detail in \[[PR-MSERV](#Ref_PR-MSERV)\].
 
 
 ## 4 Configuration Creation Workflow
