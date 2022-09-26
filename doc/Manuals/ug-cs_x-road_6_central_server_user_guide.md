@@ -9,21 +9,21 @@ Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
 
-| Date       | Version | Description                                                   | Author         |
-|------------|---------|---------------------------------------------------------------|----------------|
+| Date       | Version | Description | Author |
+|------------|---------|-------------|--------|
 | 28.08.2014 | 0.1     | Initial version ||
-| 28.09.2014 | 0.2     | Translation to English  ||
+| 28.09.2014 | 0.2     | Translation to English ||
 | 09.10.2014 | 0.3     | Minor updates and corrections. Security Categories removed. ||
 | 09.10.2014 | 0.4     | Add service CA OCSP responder changed to Add top CA OCSP responder ||
 | 14.10.2014 | 0.5     | Title page, header, footer modified ||
 | 28.11.2014 | 0.6     | Logback information added (Chapter 17). Introduction added (Chapter 1). Security Officer user role added (Section 2.1). System Settings added (Chapter 4). Configuration Management added (Chapter 5). Database Management Chapter deleted. ||
-| 1.12.2014  | 1.0     | Minor corrections  ||
+| 1.12.2014  | 1.0     | Minor corrections ||
 | 23.01.2015 | 1.1     | License information. Certification services management and time stamping services management chapters updated (Chapters 11 and 12). ||
 | 30.04.2015 | 1.2     | “sdsb” changed to “xroad” ||
 | 30.06.2015 | 1.3     | Minor corrections done ||
 | 3.07.2015  | 1.4     | Audit Log chapter added (Chapter 14) ||
 | 31.08.2015 | 1.5     | Information about high availability added (Chapter 3) ||
-| 15.09.2015 | 1.6     | Reference to the audit log events added         ||
+| 15.09.2015 | 1.6     | Reference to the audit log events added ||
 | 17.09.2015 | 1.7     | Corrections related to high availability added ||
 | 18.09.2015 | 1.8     | Minor corrections done ||
 | 21.09.2015 | 1.9     | References fixed ||
@@ -33,23 +33,23 @@ Doc. ID: UG-CS
 | 17.12.2015 | 2.1     | Added user instructions for monitoring. ||
 | 14.4.2016  | 2.2     | Added chapter for additional configuration options. ||
 | 5.9.2016   | 2.3     | Added instructions for configuring OCSP fetch interval. ||
-| 20.01.2017 | 2.4     | Added license text and version history | Sami Kallio    |
-| 05.03.2018 | 2.5     | Added terms and abbreviations reference and document links | Tatu Repo      |
+| 20.01.2017 | 2.4     | Added license text and version history | Sami Kallio |
+| 05.03.2018 | 2.5     | Added terms and abbreviations reference and document links | Tatu Repo |
 | 18.08.2018 | 2.6     | Corrected `ocspFetchInterval` default value (Chapter 16.2) | Petteri Kivimäki |
-| 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18 | Jarkko Hyöty   |
+| 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18 | Jarkko Hyöty |
 | 23.01.2019 | 2.8     | Information about automatic approval of auth cert registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
 | 06.02.2019 | 2.9     | Information about automatic approval of security server client registration requests added. Updates in Chapters 6-8. | Petteri Kivimäki |
 | 02.07.2019 | 2.10    | Security Server owner change added (Chapter 7.10) | Petteri Kivimäki |
-| 14.08.2019 | 2.11    | Added automatic backups | Ilkka Seppälä  |
-| 11.09.2019 | 2.12    | Remove Ubuntu 14.04 support | Jarkko Hyöty   |
-| 26.11.2019 | 2.13    | Update Chapter 3 with remote database support possiblity | Ilkka Seppälä  |
-| 03.12.2019 | 2.14    | Remove HA setup dependency on BDR | Jarkko Hyöty   |
-| 13.03.2020 | 2.15    | Add instructions for migrating to remote database | Ilkka Seppälä  |
-| 30.03.2020 | 2.16    | Added description of pre-restore backups | Ilkka Seppälä  |
-| 04.08.2021 | 2.17    | Add more details about restoring configuration from the command line | Ilkka Seppälä  |
-| 11.08.2021 | 2.18    | Update chapter 3.2 about checking the cluster status. | Ilkka Seppälä  |
+| 14.08.2019 | 2.11    | Added automatic backups | Ilkka Seppälä |
+| 11.09.2019 | 2.12    | Remove Ubuntu 14.04 support | Jarkko Hyöty |
+| 26.11.2019 | 2.13    | Update Chapter 3 with remote database support possiblity | Ilkka Seppälä |
+| 03.12.2019 | 2.14    | Remove HA setup dependency on BDR | Jarkko Hyöty |
+| 13.03.2020 | 2.15    | Add instructions for migrating to remote database | Ilkka Seppälä |
+| 30.03.2020 | 2.16    | Added description of pre-restore backups | Ilkka Seppälä |
+| 04.08.2021 | 2.17    | Add more details about restoring configuration from the command line | Ilkka Seppälä |
+| 11.08.2021 | 2.18    | Update chapter 3.2 about checking the cluster status. | Ilkka Seppälä |
 | 25.08.2021 | 2.19    | Update X-Road references from version 6 to 7 | Caro Hautamäki |
-| 23.09.2022 | 2.20    | Added new Registration Web Service                            | Eneli Reimes   |
+| 23.09.2022 | 2.20    | Added new Registration Web Service | Eneli Reimets |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
