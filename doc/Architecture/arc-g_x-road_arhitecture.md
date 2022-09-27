@@ -7,7 +7,7 @@
 **X-Road Architecture**
 
 Version: 1.12  
-07.09.2021
+23.09.2022
 <!-- 16 pages -->
 Doc. ID: ARC-G
 

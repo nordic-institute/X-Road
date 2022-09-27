@@ -4,7 +4,7 @@
 
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.28 
+Version: 2.28  
 Doc. ID: IG-CS
 
 ---
