@@ -344,7 +344,7 @@ The registration web service is installed by package xroad-centralserver-registr
 
 Configuration parameters for registration web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section „Registration service parameters“.
 
-**Note 1:** The installer does not currently generate the API token, it must be manually configured.
+**Note 1:** The installer does not currently generate the API token, it must be manually configured.  
 **Note 2:** With new registration service, a maximum size limit (MAX_REQUEST_SIZE = 100 KB) is set for the authentication certificate SOAP message.
 
 ### 2.11 Post-Installation Checks
