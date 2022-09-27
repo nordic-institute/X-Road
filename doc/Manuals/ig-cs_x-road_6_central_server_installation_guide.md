@@ -340,9 +340,9 @@ The central monitoring client may be configured as specified in the [UG-CS](#Ref
 
 ### 2.10 Pre-configuration for Registration Web Service
 
-The optional configuration for registration web service is installed by package xroad-centralserver-registration-service. The package is included in the central server installation by default.
+The registration web service is installed by package xroad-centralserver-registration-service. The registration web service can be installed on the same host with the central server or on a separate host. The package is included in the central server installation by default.
 
-Additional registration web service configured are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section „Registration service parameters“ and can be defined e.g. in local.ini.
+Configuration parameters for registration web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section „Registration service parameters“.
 
 **Note 1:** The installer does not currently generate the API token, it must be manually configured.
 **Note 2:** With new registration service, a maximum size limit (MAX_REQUEST_SIZE = 100 KB) is set for the authentication certificate SOAP message.
