@@ -41,10 +41,13 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
+import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
 import org.niis.xroad.centralserver.restapi.converter.GroupMemberConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.db.SecurityServerDtoConverter;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.niis.xroad.centralserver.restapi.entity.MemberId;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
@@ -54,6 +57,7 @@ import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -63,8 +67,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_EXISTS;
 
@@ -78,6 +84,8 @@ class MemberServiceTest implements WithInOrder {
     @Mock
     private GlobalGroupMemberRepository globalGroupMemberRepository;
 
+    @Mock
+    private SecurityServerDtoConverter securityServerDtoConverter;
     @Spy
     private GroupMemberConverter groupMemberConverter;
 
@@ -227,17 +235,57 @@ class MemberServiceTest implements WithInOrder {
         private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
 
         @Test
-        void findMemberGroups() {
+        void shouldReturnMemberGlobalGroups() {
             final GlobalGroupMember memberGroup = new GlobalGroupMember(new GlobalGroup("groupCode"), clientId);
             doReturn(List.of(memberGroup)).when(globalGroupMemberRepository).findMemberGroups(clientId);
 
-            final Set<MemberGlobalGroupDto> result = memberService.findMemberGlobalGroups(clientId);
+            final Set<MemberGlobalGroupDto> result = memberService.getMemberGlobalGroups(clientId);
 
             inOrder().verify(inOrder -> {
                 inOrder.verify(globalGroupMemberRepository).findMemberGroups(clientId);
                 inOrder.verify(groupMemberConverter).convertMemberGlobalGroups(List.of(memberGroup));
             });
             assertEquals(1, result.size());
+        }
+    }
+
+    @Nested
+    @DisplayName("getMemberOwnedServers(ClientId memberId)")
+    class GetMemberOwnedServers implements WithInOrder {
+        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+
+        @Mock
+        private XRoadMember xRoadMember;
+
+        @Test
+        void shouldReturnMemberOwnedServers() {
+            var securityServersMock = Set.of(mock(SecurityServer.class), mock(SecurityServer.class));
+
+            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(securityServersMock).when(xRoadMember).getOwnedServers();
+            doReturn(mock(SecurityServerDto.class), mock(SecurityServerDto.class))
+                    .when(securityServerDtoConverter).toDto(isA(SecurityServer.class));
+
+            final Set<SecurityServerDto> result = memberService.getMemberOwnedServers(clientId);
+
+            inOrder().verify(inOrder -> {
+                inOrder.verify(xRoadMemberRepository).findMember(clientId);
+                inOrder.verify(xRoadMember).getOwnedServers();
+                inOrder.verify(securityServerDtoConverter, times(securityServersMock.size())).toDto(isA(SecurityServer.class));
+            });
+            assertEquals(securityServersMock.size(), result.size());
+        }
+
+        @Test
+        void shouldReturnEmptySetWhenMemberNotFound() {
+            doReturn(Option.none()).when(xRoadMemberRepository).findMember(clientId);
+
+            final Set<SecurityServerDto> result = memberService.getMemberOwnedServers(clientId);
+
+            inOrder().verify(inOrder -> {
+                inOrder.verify(xRoadMemberRepository).findMember(clientId);
+            });
+            assertTrue(CollectionUtils.isEmpty(result));
         }
     }
 }

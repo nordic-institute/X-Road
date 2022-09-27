@@ -2054,6 +2054,43 @@ paths:
       tags:
         - members
         - global-groups
+  /members/{id}/owned-servers:
+    get:
+      description: <h3>CS administrator views a members' owned servers.</h3>
+      operationId: getOwnedServers
+      parameters:
+        - description: the encoded string representation of the x-road member or subsystem id
+          example: FI:GOV:123
+          in: path
+          name: id
+          required: true
+          schema:
+            format: text
+            maxLength: 1023
+            minLength: 1
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of member security servers
+                items:
+                  $ref: '#/components/schemas/SecurityServer'
+                type: array
+                uniqueItems: true
+          description: List of member's global groups
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - members
+        - security-servers
   /subsystems:
     post:
       description:

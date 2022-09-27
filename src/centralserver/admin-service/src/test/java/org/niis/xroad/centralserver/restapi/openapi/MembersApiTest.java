@@ -38,6 +38,7 @@ import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
 import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.centralserver.openapi.model.MemberNameDto;
+import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
 import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -205,7 +206,6 @@ class MembersApiTest extends AbstractApiRestTemplateTestContext {
 
             final MemberGlobalGroupDto[] result = response.getBody();
             assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
-            assertTrue(ArrayUtils.isNotEmpty(result));
             assertEquals(2, ArrayUtils.getLength(result));
 
             final Map<String, MemberGlobalGroupDto> resultMap = Arrays.stream(result)
@@ -219,6 +219,36 @@ class MembersApiTest extends AbstractApiRestTemplateTestContext {
         void shouldReturnNoResultsForNotExistingMember() {
             var response = restTemplate.getForEntity(
                     PATH + "/{clientId}/global-groups",
+                    MemberGlobalGroupDto[].class,
+                    "not:existing:member");
+            final MemberGlobalGroupDto[] result = response.getBody();
+            assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
+            assertTrue(ArrayUtils.isEmpty(result));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET" + PATH + "/{id}/owned-servers")
+    @WithMockUser(authorities = {"VIEW_MEMBER_DETAILS"})
+    class GetMemberOwnedServers {
+
+        @Test
+        void shouldReturnMemberOwnedServers() {
+            var response = restTemplate.getForEntity(
+                    PATH + "/{clientId}/owned-servers",
+                    SecurityServerDto[].class,
+                    MEMBER_M1_CLIENT_ID);
+
+            final SecurityServerDto[] result = response.getBody();
+            assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
+            assertEquals(1, ArrayUtils.getLength(result));
+            assertEquals("server1", result[0].getXroadId().getServerCode());
+        }
+
+        @Test
+        void shouldReturnNoResultsForNotExistingMember() {
+            var response = restTemplate.getForEntity(
+                    PATH + "/{clientId}/owned-servers",
                     MemberGlobalGroupDto[].class,
                     "not:existing:member");
             final MemberGlobalGroupDto[] result = response.getBody();

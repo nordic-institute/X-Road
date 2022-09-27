@@ -34,6 +34,7 @@ import org.niis.xroad.centralserver.openapi.MembersApi;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.centralserver.openapi.model.MemberNameDto;
+import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
 import org.niis.xroad.centralserver.restapi.dto.converter.db.ClientDtoConverter;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.service.MemberService;
@@ -112,8 +113,23 @@ public class MembersApiController implements MembersApi {
     public ResponseEntity<Set<MemberGlobalGroupDto>> getMemberGlobalGroups(final String memberId) {
         verifyMemberId(memberId);
 
-        var memberGlobalGroups = memberService.findMemberGlobalGroups(clientIdConverter.convertId(memberId));
-        return ResponseEntity.ok(memberGlobalGroups);
+        return Try.success(memberId)
+                .map(clientIdConverter::convertId)
+                .map(memberService::getMemberGlobalGroups)
+                .map(ResponseEntity::ok)
+                .get();
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
+    public ResponseEntity<Set<SecurityServerDto>> getOwnedServers(final String memberId) {
+        verifyMemberId(memberId);
+
+        return Try.success(memberId)
+                .map(clientIdConverter::convertId)
+                .map(memberService::getMemberOwnedServers)
+                .map(ResponseEntity::ok)
+                .get();
     }
 
     @Override

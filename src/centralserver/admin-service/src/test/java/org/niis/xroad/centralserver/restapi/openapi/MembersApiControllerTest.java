@@ -43,7 +43,9 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
+import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.centralserver.openapi.model.MemberNameDto;
+import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
 import org.niis.xroad.centralserver.restapi.dto.converter.db.ClientDtoConverter;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
@@ -57,6 +59,7 @@ import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Set;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -90,7 +93,7 @@ public class MembersApiControllerTest implements WithInOrder {
 
     @Nested
     @DisplayName("addMember(ClientDto clientDto)")
-    public class AddClientMethod implements WithInOrder {
+    class AddClientMethod implements WithInOrder {
 
         @Mock
         private ClientDto newClientDto;
@@ -208,7 +211,7 @@ public class MembersApiControllerTest implements WithInOrder {
     }
 
     @Nested
-    public class GetMember implements WithInOrder {
+    class GetMember implements WithInOrder {
         @Mock
         private XRoadMember xRoadMember;
         @Mock
@@ -263,7 +266,7 @@ public class MembersApiControllerTest implements WithInOrder {
     }
 
     @Nested
-    public class DeleteMember implements WithInOrder {
+    class DeleteMember implements WithInOrder {
         @Mock
         private XRoadMember xRoadMember;
 
@@ -286,7 +289,7 @@ public class MembersApiControllerTest implements WithInOrder {
     }
 
     @Nested
-    public class UpdateMemberName implements WithInOrder {
+    class UpdateMemberName implements WithInOrder {
         @Mock
         private XRoadMember xRoadMember;
         @Mock
@@ -339,6 +342,53 @@ public class MembersApiControllerTest implements WithInOrder {
                     "Expecting BadRequestException when called with invalid member id");
 
             assertEquals("Invalid member id", thrown.getMessage());
+        }
+    }
+
+    @Nested
+    class GetMemberGlobalGroups implements WithInOrder {
+
+        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "CODE");
+        private final String encodedClientId = "TEST:CLASS:CODE";
+
+        @Test
+        @DisplayName("Should return members global groups")
+        void shouldReturnGlobalGroups() {
+            var memberGlobalGroupsMock = Set.of(mock(MemberGlobalGroupDto.class), mock(MemberGlobalGroupDto.class));
+            doReturn(memberGlobalGroupsMock).when(memberService).getMemberGlobalGroups(clientId);
+
+            var memberGlobalGroupsResponse = membersApiController.getMemberGlobalGroups(encodedClientId);
+
+            assertEquals(HttpStatus.OK, memberGlobalGroupsResponse.getStatusCode());
+            assertEquals(memberGlobalGroupsMock.size(), memberGlobalGroupsResponse.getBody().size());
+
+            inOrder().verify(inOrder -> {
+                inOrder.verify(clientIdConverter).convertId(encodedClientId);
+                inOrder.verify(memberService).getMemberGlobalGroups(clientId);
+            });
+        }
+    }
+
+    @Nested
+    class GetMemberOwnedServers implements WithInOrder {
+        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "CODE");
+        private final String encodedClientId = "TEST:CLASS:CODE";
+
+        @Test
+        @DisplayName("Should return members owned servers")
+        void shouldReturnOwnedServers() {
+            var memberOwnedServersMock = Set.of(mock(SecurityServerDto.class), mock(SecurityServerDto.class));
+            doReturn(memberOwnedServersMock).when(memberService).getMemberOwnedServers(clientId);
+
+            var memberOwnedServers = membersApiController.getOwnedServers(encodedClientId);
+
+            assertEquals(HttpStatus.OK, memberOwnedServers.getStatusCode());
+            assertEquals(memberOwnedServersMock.size(), memberOwnedServers.getBody().size());
+
+            inOrder().verify(inOrder -> {
+                inOrder.verify(clientIdConverter).convertId(encodedClientId);
+                inOrder.verify(memberService).getMemberOwnedServers(clientId);
+            });
         }
     }
 
