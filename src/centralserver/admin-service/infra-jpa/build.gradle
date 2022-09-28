@@ -1,0 +1,4 @@
+
+dependencies {
+    //TODO JPA related dependencies should be moved here
+}

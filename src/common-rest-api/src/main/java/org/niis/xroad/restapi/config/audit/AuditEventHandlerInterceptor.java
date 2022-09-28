@@ -40,7 +40,7 @@ import java.lang.reflect.Method;
  * {@link HandlerInterceptor} that figures out (possible) {@link org.springframework.boot.actuate.audit.AuditEvent}
  * associated with this request, and audit logs event success after request has been handled successfully
  */
-@Component
+@Component("auditEventHandlerInterceptor")
 @Slf4j
 public class AuditEventHandlerInterceptor implements HandlerInterceptor {
 

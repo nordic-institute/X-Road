@@ -1,0 +1,74 @@
+group 'ee.ria.xroad'
+version '1.0'
+
+archivesBaseName = 'centralserver-admin-service'
+
+configurations {
+    dist {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+    liquibaseLibs {
+        apply plugin: 'base'
+    }
+}
+dependencies {
+    dist(project(path: ':centralserver:admin-ui', configuration: 'dist'))
+
+    implementation project(':centralserver:admin-service:core')
+    implementation project(':centralserver:admin-service:infra-api-rest')
+    implementation project(':centralserver:admin-service:infra-jpa')
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootRun {
+    jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
+    if (project.hasProperty('args')) {
+        def params = project.args.tokenize(',')
+        args = params
+    }
+}
+
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
+    from configurations.dist
+    into "${buildDir}/admin-ui/public"
+}
+
+jar {
+    enabled = false
+}
+bootJar {
+    enabled = true
+
+    if (!project.hasProperty('skip-frontend-build')) {
+        dependsOn copyUi
+        classpath += file("${buildDir}/admin-ui")
+    } else {
+        println("Warning: Excluding frontend from boot jar")
+    }
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Central Server Admin Service',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType"
+        )
+    }
+}
+
+task downloadLiquibaseLibs(type: Copy) {
+    mkdir "${buildDir}/libs/"
+
+    from configurations.liquibaseLibs
+    into "${buildDir}/libs"
+}
+
+build.dependsOn downloadLiquibaseLibs

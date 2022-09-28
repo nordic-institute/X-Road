@@ -192,7 +192,7 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
     }
 
     checkstyle {
-        toolVersion = "8.44"
+        toolVersion = "8.45.1"
         configDirectory = file("${project.rootDir}/config/checkstyle")
         ignoreFailures = false
         showViolations = false
