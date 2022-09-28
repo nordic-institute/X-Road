@@ -26,12 +26,16 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
+import org.niis.xroad.centralserver.openapi.model.SubsystemDto;
 import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +46,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -83,6 +88,46 @@ class SubsystemsApiTest extends AbstractApiRestTemplateTestContext {
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals(subsystemIdDto, response.getBody().getXroadId());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET " + "/api/v1/members/{id}/subsystems")
+    @WithMockUser(authorities = {"VIEW_MEMBER_DETAILS"})
+    class GetSubsystems {
+
+        @Test
+        public void getSubsystems() throws JsonProcessingException {
+            final String subsystemCode = UUID.randomUUID().toString();
+            ClientIdDto subsystemIdDto = (ClientIdDto) new ClientIdDto()
+                    .memberClass("GOV")
+                    .memberCode("M2")
+                    .subsystemCode(subsystemCode)
+                    .instanceId("TEST")
+                    .type(XRoadIdDto.TypeEnum.SUBSYSTEM);
+            ClientDto subsystemDto = new ClientDto()
+                    .xroadId(subsystemIdDto);
+
+            var createResponse = restTemplate.postForEntity(PATH, subsystemDto, ClientDto.class);
+            assertEquals(HttpStatus.CREATED, createResponse.getStatusCode(), "Failed to create susbsystem");
+
+            var response = restTemplate.getForEntity(
+                    "/api/v1/members/M2/subsystems",
+                    String.class);
+
+            assertNotNull(response);
+            assertEquals(200, response.getStatusCodeValue());
+
+            ObjectMapper mapper = new ObjectMapper();
+            List<SubsystemDto> subsystemDtos = mapper.readValue(response.getBody(),
+                    new TypeReference<List<SubsystemDto>>() {
+                    });
+            assertNotNull(subsystemDtos);
+
+            assertEquals(1, subsystemDtos.size());
+            assertEquals(subsystemCode, subsystemDtos.get(0).getSubsystemCode());
+            assertEquals(0,
+                    subsystemDtos.get(0).getUsedSecurityServers().size());
         }
     }
 

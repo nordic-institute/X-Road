@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.openapi.model.SubsystemDto;
 import org.niis.xroad.centralserver.openapi.model.UsedSecurityServersDto;
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.dto.converter.DtoConverter;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
@@ -57,10 +58,10 @@ public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto>
                 UsedSecurityServersDto usedSecurityServersDto = new UsedSecurityServersDto();
                 usedSecurityServersDto.setServerCode(serverClient.getSecurityServer().getServerCode());
                 usedSecurityServersDto.setServerOwner(serverClient.getSecurityServer().getOwner().getName());
-                usedSecurityServersDto.setStatus(securityServerService
-                        .findSecurityServerRegistrationStatus(
-                                serverClient.getSecurityServer().getServerId())
-                        .name());
+                ManagementRequestStatus securityServerRegStatus = securityServerService
+                        .findSecurityServerRegistrationStatus(serverClient.getSecurityServer().getServerId());
+                usedSecurityServersDto.setStatus(securityServerRegStatus != null
+                        ? securityServerRegStatus.name() : null);
                 return usedSecurityServersDto;
             }).collect(Collectors.toList()));
         });

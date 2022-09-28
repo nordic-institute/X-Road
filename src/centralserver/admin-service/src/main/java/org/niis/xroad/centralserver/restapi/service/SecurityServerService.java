@@ -32,11 +32,10 @@ import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
+import org.niis.xroad.centralserver.restapi.dto.ManagementRequestInfoDto;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.repository.ManagementRequestViewRepository;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
-import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
-import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.managementrequest.ManagementRequestService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -75,8 +74,8 @@ public class SecurityServerService {
                                 .types(List.of(CLIENT_REGISTRATION_REQUEST))
                                 .build(), Pageable.unpaged())
                 .stream()
+                .map(ManagementRequestInfoDto::getStatus)
                 .findFirst()
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND))
-                .getStatus();
+                .orElse(null);
     }
 }
