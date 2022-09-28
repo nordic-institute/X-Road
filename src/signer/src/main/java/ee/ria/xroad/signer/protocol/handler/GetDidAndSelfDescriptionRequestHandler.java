@@ -446,7 +446,7 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
 
         //sd.getAsJsonArray("@context").add("https://w3id.org/security/suites/jws-2020/v1");
         JsonObject proof = new JsonObject();
-        proof.addProperty("type", "JsonWebKey2020");
+        proof.addProperty("type", "JsonWebSignature2020");
         proof.addProperty("created", date);
         proof.addProperty("jws", jws);
         proof.addProperty("proofPurpose", "assertionMethod");
