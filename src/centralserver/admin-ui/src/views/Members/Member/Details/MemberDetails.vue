@@ -101,18 +101,20 @@
           :must-sort="true"
           :items-per-page="-1"
           class="elevation-0 data-table"
-          item-key="id"
+          item-key="group_code"
           :loader-height="2"
           hide-default-footer
         >
-
+          <template #[`item.added_to_group`]="{ item }">
+            {{ item.added_to_group | formatDateTimeWithSeconds }}
+          </template>
           <template #footer>
             <div class="cs-table-custom-footer"></div>
           </template>
         </v-data-table>
       </v-card>
 
-      <div class="delete-action" @click="showDialog = true" v-if="allowMemberDelete">
+      <div class="delete-action" @click="showDeleteDialog = true" v-if="allowMemberDelete">
         <div>
           <v-icon class="xrd-large-button-icon" :color="colors.Purple100">mdi-close-circle</v-icon>
         </div>
@@ -143,7 +145,7 @@
     </xrd-simple-dialog>
 
     <!-- Delete member - Check member code dialog -->
-    <v-dialog v-if="showDialog" v-model="showDialog" width="500" persistent>
+    <v-dialog v-if="showDeleteDialog" v-model="showDialog" width="500" persistent>
       <ValidationObserver ref="initializationForm" v-slot="{ invalid }">
         <v-card class="xrd-card">
           <v-card-title>
@@ -198,7 +200,7 @@ import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import InfoCard from "@/components/ui/InfoCard.vue";
 import { mapActions, mapState, mapStores } from "pinia";
 import { memberStore } from "@/store/modules/members";
-import { Client, ClientId } from "@/openapi-types";
+import { Client, ClientId, MemberGlobalGroup, SecurityServer } from "@/openapi-types";
 import { notificationsStore } from "@/store/modules/notifications";
 import { userStore } from "@/store/modules/user";
 
@@ -222,42 +224,26 @@ export default Vue.extend({
   },
   data() {
     return {
+      colors: Colors,
+
+      loading: false,
       member: {
         xroad_id: {} as ClientId
       } as Client,
-      showEditNameDialog: false,
-      loading: false,
 
+      showEditNameDialog: false,
+      newMemberName: '',
+
+      showDeleteDialog: false,
+      offeredCode: '',
+
+      loadingServers: false,
       searchServers: '',
-      searchGroups: '',
+      servers: [] as SecurityServer[],
 
       loadingGroups: false,
-      showOnlyPending: false,
-      colors: Colors,
-
-      newMemberName: '',
-      showDialog: false,
-      offeredCode: '',
-      servers: [
-        {
-          name: 'SS1',
-        },
-        {
-          name: 'SS2',
-        },
-      ],
-      globalGroups: [
-        {
-          group: 'security-server-owners',
-          subsystem: 'test',
-          added: '2020-11-10 18:00',
-        },
-        {
-          group: 'test data',
-          subsystem: 'subsystem',
-          added: '2021-02-05 17:00',
-        },
-      ],
+      searchGroups: '',
+      globalGroups: [] as MemberGlobalGroup[],
     };
   },
   computed: {
@@ -274,7 +260,7 @@ export default Vue.extend({
         {
           text: this.$t('global.server') as string,
           align: 'start',
-          value: 'name',
+          value: 'xroad_id.server_code',
           class: 'xrd-table-header servers-table-header-server',
         },
       ];
@@ -282,7 +268,7 @@ export default Vue.extend({
     groupsHeaders(): DataTableHeader[] {
       return [
         {
-          value: 'group',
+          value: 'group_code',
           text: this.$t('members.member.details.group') as string,
           align: 'start',
           class: 'xrd-table-header groups-table-header-group',
@@ -294,7 +280,7 @@ export default Vue.extend({
           class: 'xrd-table-header groups-table-header-subsystem',
         },
         {
-          value: 'added',
+          value: 'added_to_group',
           text: this.$t('members.member.details.addedToGroup') as string,
           align: 'start',
           class: 'xrd-table-header groups-table-header-added',
@@ -315,6 +301,32 @@ export default Vue.extend({
       })
       .finally(() => {
         this.loading = false;
+      });
+
+    this.loadingGroups = true;
+    this.memberStore
+      .getMemberGlobalGroups(this.memberid)
+      .then((resp) => {
+        this.globalGroups = resp;
+      })
+      .catch((error) => {
+        this.showError(error);
+      })
+      .finally(() => {
+        this.loadingGroups = false;
+      });
+
+    this.loadingServers= true;
+    this.memberStore
+      .getMemberOwnedServers(this.memberid)
+      .then((resp) => {
+        this.servers = resp;
+      })
+      .catch((error) => {
+        this.showError(error);
+      })
+      .finally(() => {
+        this.loadingServers = false;
       });
   },
   methods: {
@@ -351,12 +363,12 @@ export default Vue.extend({
           this.showError(error);
         })
         .finally(() => {
-          this.showDialog = false;
+          this.showDeleteDialog = false;
           this.offeredCode = '';
         });
     },
     cancelDelete() {
-      this.showDialog = false;
+      this.showDeleteDialog = false;
       this.offeredCode = '';
     },
   },

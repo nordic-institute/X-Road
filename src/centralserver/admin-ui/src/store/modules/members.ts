@@ -26,8 +26,8 @@
  */
 import axios from 'axios';
 import {
-  Client,
-  MemberName,
+  Client, MemberGlobalGroup,
+  MemberName, SecurityServer,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 
@@ -52,6 +52,22 @@ export const memberStore = defineStore('member', {
     editMemberName(memberId: string, memberName: MemberName) {
       return axios
         .patch<Client>(`/members/${memberId}`, memberName)
+        .catch((error) => {
+          throw error;
+        });
+    },
+    getMemberOwnedServers(memberId: string) {
+      return axios
+        .get<SecurityServer[]>(`/members/${memberId}/owned-servers`)
+        .then((resp) => resp.data)
+        .catch((error) => {
+          throw error;
+        });
+    },
+    getMemberGlobalGroups(memberId: string) {
+      return axios
+        .get<MemberGlobalGroup[]>(`/members/${memberId}/global-groups`)
+        .then((resp) => resp.data)
         .catch((error) => {
           throw error;
         });
