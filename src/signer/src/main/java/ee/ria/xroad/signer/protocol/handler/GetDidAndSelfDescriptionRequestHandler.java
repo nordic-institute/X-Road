@@ -94,11 +94,13 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
  */
 @Slf4j
 public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandler<GetDidAndSelfDescription> {
-    private String gaiaXApiVersion = "v2204";
+    private String gaiaXApiVersion = "v2206";
     private static final String ISO_8601_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private String didFileLocation = SystemProperties.getTempFilesPath() + "did-web.json";
     private String selfDescriptionFileLocation = SystemProperties.getTempFilesPath() + "self-description.json";
     private String certChainFileLocation = SystemProperties.getTempFilesPath() + "certificate-chain.pem";
+    private static final String TERMS_AND_CONDITIONS_HASH =
+            "70c1d713215f95191a11d38fe2341faed27d19e083917bc8732ca4fea4976700";
 
     @Override
     protected Object handle(GetDidAndSelfDescription message) throws Exception {
@@ -312,7 +314,7 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
      * @throws Exception
      */
     private String canonize(String json) throws Exception {
-        HttpPost post = new HttpPost("https://compliance.gaia-x.eu/api/" + gaiaXApiVersion + "/normalize");
+        HttpPost post = new HttpPost("https://compliance.gaia-x.eu/" + gaiaXApiVersion + "/api/normalize");
         post.setHeader("Content-Type", "application/json");
         post.setEntity(new StringEntity(json));
 
@@ -393,46 +395,38 @@ public class GetDidAndSelfDescriptionRequestHandler extends AbstractRequestHandl
         JsonObject sd = new JsonObject();
         JsonArray context = new JsonArray();
         context.add("https://www.w3.org/2018/credentials/v1");
+        context.add("https://registry.gaia-x.eu/v2206/api/shape");
         sd.add("@context", context);
-        sd.addProperty("@id", credentialId);
         JsonArray type = new JsonArray();
         type.add("VerifiableCredential");
         type.add("LegalPerson");
-        sd.add("@type", type);
+        sd.add("type", type);
+        sd.addProperty("id", credentialId);
+        sd.addProperty("issuer", didWed);
+        sd.addProperty("issuanceDate", getDateISOString());
 
         JsonObject credentialSubject = new JsonObject();
-        JsonObject credentialSubjectContext = new JsonObject();
-        credentialSubjectContext.addProperty("gx-participant", "https://registry.gaia-x.eu/22.04/schema/gaia-x");
-        credentialSubject.add("@context", credentialSubjectContext);
         credentialSubject.addProperty("id", didWed);
-
-        JsonObject name = new JsonObject();
-        name.addProperty("@type", "xsd:string");
-        name.addProperty("@value", GlobalConf.getMemberName(clientId));
-        credentialSubject.add("gx-participant:name", name);
+        credentialSubject.addProperty("gx-participant:name", GlobalConf.getMemberName(clientId));
 
         JsonObject registrationNumber = new JsonObject();
-        registrationNumber.addProperty("@type", "xsd:string");
-        registrationNumber.addProperty("@value", clientId.getMemberCode());
+        registrationNumber.addProperty("gx-participant:registrationNumberType", "local");
+        registrationNumber.addProperty("gx-participant:registrationNumberNumber", clientId.getMemberCode());
         credentialSubject.add("gx-participant:registrationNumber", registrationNumber);
 
         JsonObject headquarterAddress = new JsonObject();
-        headquarterAddress.addProperty("@type", "gx-participant:Address");
-        JsonObject headquarterAddressCountry = new JsonObject();
-        headquarterAddressCountry.addProperty("@type", "xsd:string");
-        headquarterAddressCountry.addProperty("@value", headquarterAddressCountryCode);
-        headquarterAddress.add("gx-participant:country", headquarterAddressCountry);
+        headquarterAddress.addProperty("gx-participant:addressCountryCode",
+                headquarterAddressCountryCode.split("-")[0]);
+        headquarterAddress.addProperty("gx-participant:addressCode", headquarterAddressCountryCode);
         credentialSubject.add("gx-participant:headquarterAddress", headquarterAddress);
 
         JsonObject legalAddress = new JsonObject();
-        legalAddress.addProperty("@type", "gx-participant:Address");
-        JsonObject legalAddressCountry = new JsonObject();
-        legalAddressCountry.addProperty("@type", "xsd:string");
-        legalAddressCountry.addProperty("@value", legalAddressCountryCode);
-        legalAddress.add("gx-participant:country", legalAddressCountry);
+        legalAddress.addProperty("gx-participant:addressCountryCode",
+                legalAddressCountryCode.split("-")[0]);
+        legalAddress.addProperty("gx-participant:addressCode", legalAddressCountryCode);
         credentialSubject.add("gx-participant:legalAddress", legalAddress);
 
-        //credentialSubject.addProperty("gx:termsAndConditions", termsAndConditionsHash);
+        credentialSubject.addProperty("gx-participant:termsAndConditions", TERMS_AND_CONDITIONS_HASH);
 
         sd.add("credentialSubject", credentialSubject);
 
