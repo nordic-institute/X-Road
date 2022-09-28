@@ -98,12 +98,14 @@ Before submitting a bug:
 - Make sure that you are using the latest version.
 - Check the [Knowledge Base](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB) for a list of common questions and problems.
 - Ask the community on the [X-Road community Slack](https://jointxroad.slack.com/) if the problem is a known issue or a feature. Also, check the Slack history for previous questions on the same topic.
-- Perform a [cursory search](https://nordic-institute.atlassian.net/browse/XRDDEV) to see if the problem has already been reported. If it has and the issue is still open, add a comment to the existing issue instead of opening a new one.
+- Perform a cursory search on the [X-Road](https://nordic-institute.atlassian.net/browse/XRDDEV),
+  [X-Road Metrics](https://nordic-institute.atlassian.net/browse/OPMONDEV) or [MISP2](https://nordic-institute.atlassian.net/browse/MISPDEV) backlogs depending on the software, 
+  to see if the problem has already been reported. If it has and the issue is still open, add a comment to the existing issue instead of opening a new one.
 
 When submitting a bug, explain the problem and include additional details to help maintainers reproduce the problem:
 
 - Summary of the problem.
-- X-Road software version.
+- Software version.
 - Host OS and version.
 - More detailed description of the problem that includes:
   - Steps to reproduce the issue.
@@ -116,8 +118,10 @@ When submitting a bug, explain the problem and include additional details to hel
 Before submitting an enhancement request:
 
 - Make sure that you are using the latest version.
-- Read the [documentation](https://docs.x-road.global) carefully and find out if the functionality is already covered, maybe by an individual configuration.
-- Perform a [search](https://nordic-institute.atlassian.net/browse/XRDDEV) to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
+- Read the software specific documentation for [X-Road](https://docs.x-road.global), [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/tree/master/docs)
+  or [MISP2](https://github.com/nordic-institute/misp2/tree/develop/docs) carefully and find out if the functionality is already covered, maybe by an individual configuration.
+- Perform a search on the [X-Road](https://nordic-institute.atlassian.net/browse/XRDDEV), [X-Road Metrics](https://nordic-institute.atlassian.net/browse/OPMONDEV) or
+  [MISP2](https://nordic-institute.atlassian.net/browse/MISPDEV) backlogs to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
 - Find out whether your idea fits with the scope and aims of the project. It's up to you to make a strong case to convince the project's developers of the merits of this feature. Keep in mind that we want features that will be useful to the majority of our users and not just a small subset. If you're just targeting a minority of users, consider writing an add-on or an extension.
 
 The evaluation process of the enhancement requests is described [here](https://github.com/nordic-institute/X-Road-development/blob/master/DEVELOPMENT_MODEL.md#3-change-management).
@@ -134,10 +138,12 @@ Another alternative to report security issues and vulnerabilities is the X-Road 
 
 ### Your First Code Contribution
 
-Unsure where to begin contributing to X-Road? You can start by looking through these `beginner` and `help-wanted` issues:
+Unsure where to begin contributing to X-Road? You can start by looking through these `good first issue` and `help wanted` issues:
 
-- [Beginner issues](https://nordic-institute.atlassian.net/jira/software/c/projects/XRDDEV/issues/?jql=project%20%3D%20XRDDEV%20AND%20status%20%3D%20%22To%20Do%22%20AND%20labels%20%3D%20beginner%20ORDER%20BY%20key%20DESC) - issues which should only require a few lines of code, and a test or two.
-- [Help wanted issues](https://nordic-institute.atlassian.net/jira/software/c/projects/XRDDEV/issues/?jql=project%20%3D%20XRDDEV%20AND%20status%20%3D%20%22To%20Do%22%20AND%20labels%20%3D%20help-wanted%20ORDER%20BY%20key%20DESC) - issues which should be a bit more involved than beginner issues.
+- [Good first issues for X-Road](https://github.com/nordic-institute/X-Road/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+- [Help wanted issues for X-Road](https://github.com/nordic-institute/X-Road/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+- [Good first issues for X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+- [Help wanted issues for X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 
 X-Road can be developed locally. For instructions on how to do this, see the [build instructions](src/BUILD.md). Also,
 completing the X-Road Academy [Core Developer training](https://academy.x-road.global/courses/x-road-core-developer) is
@@ -184,7 +190,8 @@ Two long-running, perpetual branches – `master` and `develop` – together wit
 - `master` branch is used to release X-Road software into production.
 - `develop` branch is used to accumulate features for the next big release.
 - `feature` branches are used to work on features (or closely related sets of features) to enhance X-Road core software.
-  - `feature` branches are named using the id of the feature's backlog item, e.g., `XRDDEV-123`.
+  - `feature` branches are named using the id of the feature's backlog item, e.g., `XRDDEV-123` for JIRA tickets or
+    `ISSUE123` for GitHub issues.
 - `beta` branches are used to prepare new production releases.
 - `released minor version` branches are used to track all patch versions released related to a specific minor version.
   - for example, `release-7.0` branch contains version `7.0.0` and all its bugfix releases (e.g., `7.0.1`, `7.0.2`, ..., `7.0.5`, etc.).
@@ -197,7 +204,9 @@ The latest development version is always available in the `develop` branch and t
 Pull requests made against the `X-Road/develop` branch MUST follow these conventions:
 
 - Pull request name format is `<ISSUE_ID> <SHORT_DESCRIPTION>`, for example: `XRDDEV-1669 Allow overriding startup parameters`
-  - `ISSUE_ID` = id of the feature's / bug's backlog item. If the pull request is not related to any backlog item, `ISSUE_ID` can be omitted.
+  - `ISSUE_ID` = id of the feature's / bug's backlog item. If the pull request is not related to any backlog item,
+    `ISSUE_ID` can be omitted. If the issue is a GitHub issue, it can be `ISSUE1669 Allow overriding startup parameters`
+    instead.
   - `SHORT_DESCRIPTION` = short description of the changes included in the pull request.
 - The pull request's description field must contain more detailed information about the changes. Any relevant additional information should also be provided here.
 
