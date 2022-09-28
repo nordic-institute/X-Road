@@ -6,7 +6,7 @@
 # X-Road: Central Server Architecture
 **Technical Specification**
 
-Version: 2.5  
+Version: 2.6  
 Doc. ID: ARC-CS
 
 
@@ -31,6 +31,7 @@ Doc. ID: ARC-CS
  19.01.2018 | 2.3     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
  02.03.2018 | 2.4     | Moved terms and abbreviations into the terms document           | Tatu Repo
  11.08.2021 | 2.5     | Update chapter 5.2 about high-availability setup                | Ilkka Seppälä
+ 23.09.2022 | 2.6     | Added new Registration Web Service                              | Eneli Reimets
 
 ## Table of Contents
 
@@ -55,6 +56,8 @@ Doc. ID: ARC-CS
     - [2.8 SSCD](#28-sscd)
   - [3 Interfaces](#3-interfaces)
     - [3.1 Management Services](#31-management-services)
+      - [3.1.1 Member Management Web Service](#311-member-management-web-service)
+      - [3.1.2 Registration Web Service](#312-registration-web-service)
     - [3.2 Download Configuration](#32-download-configuration)
   - [4 Configuration Creation Workflow](#4-configuration-creation-workflow)
   - [5 Deployment View](#5-deployment-view)
@@ -199,9 +202,21 @@ The SSCD needs to be a PKCS \#11 (see \[[PKCS11](#Ref_PKCS11)\]) compliant hardw
 
 ### 3.1 Management Services
 
-Management services are called by security servers to perform management tasks such as registering a security server client or deleting an authentication certificate.
 
-The management service interface is a synchronous RPC-style interface provided by the central server. The service is called by security servers.
+### 3.1.1 Member Management Web Service
+
+Member management web service is called by security servers to perform management tasks such as registering a security server client or deleting an authentication certificate.
+
+The member management web service interface is a synchronous RPC-style interface provided by the member management web service component. It validates the requests and forwards them to the central server management REST API. The service is called by security servers.
+
+The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-MSERV](#Ref_PR-MSERV)\].
+
+
+### 3.1.2 Registration Web Service
+
+Registration web service is called by security servers to register an authentication certificate.
+
+The registration web service interface is a synchronous RPC-style interface provided by the registration web service component. It validates the requests and forwards them to the central server management REST API. The service is called by security servers.
 
 The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-MSERV](#Ref_PR-MSERV)\].
 

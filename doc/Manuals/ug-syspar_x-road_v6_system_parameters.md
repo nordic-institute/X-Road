@@ -1,7 +1,8 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.66  
+Version: 2.67  
 Doc. ID: UG-SYSPAR
+
 
 | Date       | Version  | Description                                                                  | Author             |
 |------------|----------|------------------------------------------------------------------------------|--------------------|
@@ -76,6 +77,7 @@ Doc. ID: UG-SYSPAR
 | 05.10.2021 | 2.64     | Added a new chapter about custom command line arguments [6](#6-adding-command-line-arguments) | Caro Hautamäki
 | 13.04.2022 | 2.65     | Corrected message logging max body size parameter name | Raido Kaju
 | 28.04.2022 | 2.66     | Updated *max-loggable-message-body-size* property EE-package value. | Ričardas Bučiūnas
+| 23.09.2022 | 2.67     | Added new Registration Web Service | Eneli Reimets
 
 ## Table of Contents
 
@@ -107,6 +109,7 @@ Doc. ID: UG-SYSPAR
       - [4.1.1 Common parameters: `[common]`](#411-common-parameters-common)
       - [4.1.2 Center parameters: `[center]`](#412-center-parameters-center)
       - [4.1.3 Signer parameters: `[signer]`](#413-signer-parameters-signer)
+      - [4.1.4 Registration service parameters: `[registration-service]`](#414-registration-service-parameters-registration-service)
     - [4.2 System Parameters in the Database](#42-system-parameters-in-the-database)
     - [4.3 Global Configuration Generation Interval Parameter](#43-global-configuration-generation-interval-parameter)
   - [5 Configuration Proxy System Parameters](#5-configuration-proxy-system-parameters)
@@ -471,6 +474,18 @@ For instructions on how to change the parameter values, see section [Changing th
 | ocsp-response-retrieval-active | false <br/> _(see Description for more information)_ | This property is used as an override to deactivate periodic OCSP-response retrieval for components that don't need that functionality, but still use signer. <br/><br/> Values: <br/> `false` - OCSP-response retrieval jobs are never scheduled <br/> `true` - periodic OCSP-response retrieval is active based on ocspFetchInterval. **Note that if the entire property is missing, it is interpreted as true.** <br/><br/>  This property is delivered as an override and only for the components where the OCSP-response retrieval jobs need to be deactivated. The property is missing for components that require OCSP-response retrieval to be activated. |
 | ocsp-cache-path                | /var/cache/xroad                | Absolute path to the directory where the cached OCSP responses are stored. |
 | enforce-token-pin-policy       | false                           | Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7) |
+
+#### 4.1.4 Registration service parameters: `[registration-service]`
+
+| **Name**                       | **Vanilla value**                                   | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+|--------------------------------|-----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| rate-limit-enabled             | true <br/> _(see Description for more information)_ | Controls whether the built-in rate limiting is enabled. <br/> Note. If the service is behind a reverse proxy (default), the proxy needs to forward the real IP address for the rate-limiting to work correctly. Therefore, by default, using forward headers is enabled. <br/> If the service is exposed directly, it must not use forwarded (e.g. X-Forwarded-For) headers (can be spoofed by clients), and the corresponding configuration (server.forward-headers-strategy) needs to be disabled. |
+| rate-limit-requests-per-minute | 10                                                  | Controls how many requests from an IP address are allowed per minute. Normally security servers should have a unique address and send just one registration request, so this value can be low.                                                                                                                                                                                                                                                                                                       |
+| rate-limit-cache-size          | 10000                                               | Controls how many IP addresses can be remembered in the rate-limit cache Tradeoff between memory usage and protection from a large attack.                                                                                                                                                                                                                                                                                                                                                           |
+| api-trust-store                | /etc/xroad/ssl/internal.p12                         | Path to a trust store containing certificates for the central server admin API.                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| api-trust-store-password       | internal                                            | Password for the trust store.                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| api-base-url                   | https://127.0.0.1:4000/api/v1                       | Central server management API base URL.                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| api-token                      | <a token with MANAGEMENT_SERVICE role>              | API token for the central server management API (required). The token needs to have the MANAGEMENT_SERVICE role (and for security, no other roles).                                                                                                                                                                                                                                                                                                                                                  |
 
 ### 4.2 System Parameters in the Database
 
