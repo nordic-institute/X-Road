@@ -35,18 +35,18 @@
         :title-text="$t('global.memberName')"
         :action-text="$t('action.edit')"
         :show-action="allowMemberRename"
-        :info-text="member.member_name || ''"
-        @actionClicked="editMemberName"
+        :info-text="memberStore.currentMember.member_name || ''"
+        @actionClicked="showEditNameDialog = true"
       />
 
       <info-card
         :title-text="$t('global.memberClass')"
-        :info-text="member.xroad_id.member_class || ''"
+        :info-text="memberStore.currentMember.xroad_id.member_class || ''"
       />
 
       <info-card
         :title-text="$t('global.memberCode')"
-        :info-text="member.xroad_id.member_code || ''"
+        :info-text="memberStore.currentMember.xroad_id.member_code || ''"
       />
     </div>
 
@@ -60,10 +60,9 @@
       </div>
 
       <v-card flat>
-
         <!-- Table -->
         <v-data-table
-          :loading="loading"
+          :loading="loadingServers"
           :headers="serversHeaders"
           :items="servers"
           :search="searchServers"
@@ -91,7 +90,6 @@
       </div>
 
       <v-card flat>
-
         <!-- Table -->
         <v-data-table
           :loading="loadingGroups"
@@ -106,7 +104,7 @@
           hide-default-footer
         >
           <template #[`item.added_to_group`]="{ item }">
-            {{ item.added_to_group | formatDateTimeWithSeconds }}
+            {{ item.added_to_group | formatDateTime }}
           </template>
           <template #footer>
             <div class="cs-table-custom-footer"></div>
@@ -114,81 +112,31 @@
         </v-data-table>
       </v-card>
 
-      <div class="delete-action" @click="showDeleteDialog = true" v-if="allowMemberDelete">
+      <div v-if="allowMemberDelete" class="delete-action"  @click="showDeleteDialog = true" >
         <div>
           <v-icon class="xrd-large-button-icon" :color="colors.Purple100">mdi-close-circle</v-icon>
         </div>
         <div class="action-text">
-          {{ $t('members.member.details.deleteMember') }} "{{ member.member_name || '' }}"
+          {{ $t('members.member.details.deleteMember') }} "{{ memberStore.currentMember.member_name || '' }}"
         </div>
       </div>
     </div>
 
     <!-- Edit member name dialog -->
-    <xrd-simple-dialog
-      :dialog="showEditNameDialog"
-      title="members.member.details.editMemberName"
-      save-button-text="action.save"
-      cancel-button-text="action.cancel"
-      :disable-save="newMemberName === '' || newMemberName === this.member.member_name"
+    <EditMemberNameDialog
+      v-if="showEditNameDialog"
+      :member="memberStore.currentMember"
       @cancel="cancelEditMemberName"
-      @save="saveNewMemberName">
-
-      <template #content>
-        <div class="dlg-input-width">
-          <v-text-field
-            v-model="newMemberName"
-            outlined
-          ></v-text-field>
-        </div>
-      </template>
-    </xrd-simple-dialog>
+      @nameChanged="memberNameChanged"
+    ></EditMemberNameDialog>
 
     <!-- Delete member - Check member code dialog -->
-    <v-dialog v-if="showDeleteDialog" v-model="showDialog" width="500" persistent>
-      <ValidationObserver ref="initializationForm" v-slot="{ invalid }">
-        <v-card class="xrd-card">
-          <v-card-title>
-            <span class="headline">
-              {{ $t('members.member.details.deleteMember') }}</span>
-          </v-card-title>
-          <v-card-text class="pt-4">
-            {{
-              $t('members.member.details.areYouSure1', {
-                member: member.member_name,
-              })
-            }}
-            <div class="dlg-input-width pt-4">
-              <ValidationProvider
-                v-slot="{ errors }"
-                ref="initializationParamsVP"
-                name="init.identifier"
-                :rules="{ required: true, is: member.xroad_id.member_code }"
-                data-test="instance-identifier--validation"
-              >
-                <v-text-field
-                  v-model="offeredCode"
-                  outlined
-                  :label="$t('members.member.details.enterCode')"
-                  autofocus
-                  data-test="add-local-group-code-input"
-                  :error-messages="errors"
-                ></v-text-field>
-              </ValidationProvider>
-            </div>
-          </v-card-text>
-          <v-card-actions class="xrd-card-actions">
-            <v-spacer></v-spacer>
-            <xrd-button outlined @click="cancelDelete()">
-              {{ $t('action.cancel') }}
-            </xrd-button>
-            <xrd-button :disabled="invalid" @click="deleteMember()">
-              {{ $t('action.delete') }}
-            </xrd-button>
-          </v-card-actions>
-        </v-card>
-      </ValidationObserver>
-    </v-dialog>
+    <MemberDeleteDialog
+      v-if="showDeleteDialog"
+      :member="memberStore.currentMember"
+      @cancel="cancelDelete"
+      @deleted="memberDeleted"
+    ></MemberDeleteDialog>
   </main>
 </template>
 
@@ -196,14 +144,17 @@
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { Colors, Permissions, RouteName } from '@/global';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
-import InfoCard from "@/components/ui/InfoCard.vue";
-import { mapActions, mapState, mapStores } from "pinia";
-import { memberStore } from "@/store/modules/members";
-import { Client, ClientId, MemberGlobalGroup, SecurityServer } from "@/openapi-types";
-import { notificationsStore } from "@/store/modules/notifications";
-import { userStore } from "@/store/modules/user";
+import InfoCard from '@/components/ui/InfoCard.vue';
+import { mapActions, mapState, mapStores } from 'pinia';
+import { memberStore } from '@/store/modules/members';
+import { MemberGlobalGroup, SecurityServer } from '@/openapi-types';
+import { notificationsStore } from '@/store/modules/notifications';
+import { userStore } from '@/store/modules/user';
+import MemberDeleteDialog from '@/views/Members/Member/Details/DeleteMemberDialog.vue';
+import EditMemberNameDialog from '@/views/Members/Member/Details/EditMemberNameDialog.vue';
 
+// To provide the Vue instance to debounce
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
 /**
@@ -212,9 +163,9 @@ let that: any;
 export default Vue.extend({
   name: 'MemberDetails',
   components: {
+    EditMemberNameDialog,
+    MemberDeleteDialog,
     InfoCard,
-    ValidationObserver,
-    ValidationProvider,
   },
   props: {
     memberid: {
@@ -226,16 +177,8 @@ export default Vue.extend({
     return {
       colors: Colors,
 
-      loading: false,
-      member: {
-        xroad_id: {} as ClientId
-      } as Client,
-
       showEditNameDialog: false,
-      newMemberName: '',
-
       showDeleteDialog: false,
-      offeredCode: '',
 
       loadingServers: false,
       searchServers: '',
@@ -252,7 +195,7 @@ export default Vue.extend({
     allowMemberDelete(): boolean {
       return this.hasPermission(Permissions.DELETE_MEMBER);
     },
-    allowMemberRename() : boolean {
+    allowMemberRename(): boolean {
       return this.hasPermission(Permissions.EDIT_MEMBER_NAME_AND_ADMIN_CONTACT);
     },
     serversHeaders(): DataTableHeader[] {
@@ -290,18 +233,6 @@ export default Vue.extend({
   },
   created() {
     that = this;
-    this.loading = true;
-    this.memberStore
-      .getById(this.memberid)
-      .then((resp) => {
-        this.member = resp;
-      })
-      .catch((error) => {
-        this.showError(error);
-      })
-      .finally(() => {
-        this.loading = false;
-      });
 
     this.loadingGroups = true;
     this.memberStore
@@ -316,7 +247,7 @@ export default Vue.extend({
         this.loadingGroups = false;
       });
 
-    this.loadingServers= true;
+    this.loadingServers = true;
     this.memberStore
       .getMemberOwnedServers(this.memberid)
       .then((resp) => {
@@ -331,48 +262,21 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    editMemberName() {
-      this.newMemberName = this.member.member_name || '';
-      this.showEditNameDialog = true;
-    },
     cancelEditMemberName() {
       this.showEditNameDialog = false;
     },
-    saveNewMemberName() {
-      this.memberStore
-        .editMemberName(this.memberid, { member_name: this.newMemberName})
-        .then((resp) => {
-          this.member = resp.data;
-          this.showSuccess(this.$t('members.member.details.memberNameSaved'));
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.showEditNameDialog = false;
-        });
+    memberNameChanged() {
+      this.showEditNameDialog = false;
     },
-    deleteMember() {
-      this.memberStore
-        .deleteById(this.memberid)
-        .then(() => {
-          this.$router.replace({ name: RouteName.Members });
-          this.showSuccess(this.$t('members.member.details.memberDeleted'));
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.showDeleteDialog = false;
-          this.offeredCode = '';
-        });
+    memberDeleted() {
+      this.showDeleteDialog = false;
+      this.$router.replace({ name: RouteName.Members });
+      this.showSuccess(this.$t('members.member.details.memberDeleted'));
     },
     cancelDelete() {
       this.showDeleteDialog = false;
-      this.offeredCode = '';
     },
   },
-
 });
 </script>
 

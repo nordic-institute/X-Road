@@ -26,32 +26,48 @@
  */
 import axios from 'axios';
 import {
-  Client, MemberGlobalGroup,
-  MemberName, SecurityServer,
+  Client,
+  ClientId,
+  MemberGlobalGroup,
+  MemberName,
+  SecurityServer,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 
+export interface State {
+  currentMember: Client;
+}
+
 export const memberStore = defineStore('member', {
+  state: (): State => ({
+    currentMember: {
+      xroad_id: {} as ClientId,
+    } as Client,
+  }),
+
   actions: {
     async add(client: Client) {
-      return axios
-        .post('/members', client);
+      return axios.post('/members', client);
     },
-    getById(memberId: string) {
+    loadById(memberId: string) {
       return axios
         .get<Client>(`/members/${memberId}`)
-        .then((resp) => resp.data)
+        .then((resp) => {
+          this.currentMember = resp.data;
+        })
         .catch((error) => {
           throw error;
         });
     },
     deleteById(memberId: string) {
-      return axios
-        .delete(`/members/${memberId}`, {})
+      return axios.delete(`/members/${memberId}`);
     },
     editMemberName(memberId: string, memberName: MemberName) {
       return axios
         .patch<Client>(`/members/${memberId}`, memberName)
+        .then((resp) => {
+          this.currentMember = resp.data;
+        })
         .catch((error) => {
           throw error;
         });
@@ -71,6 +87,6 @@ export const memberStore = defineStore('member', {
         .catch((error) => {
           throw error;
         });
-    }
+    },
   },
 });
