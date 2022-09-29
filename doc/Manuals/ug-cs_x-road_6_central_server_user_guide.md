@@ -4,26 +4,26 @@
 
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.19  
+Version: 2.20  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
 
-| Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------|
+| Date       | Version | Description | Author |
+|------------|---------|-------------|--------|
 | 28.08.2014 | 0.1     | Initial version ||
-| 28.09.2014 | 0.2     | Translation to English  ||
+| 28.09.2014 | 0.2     | Translation to English ||
 | 09.10.2014 | 0.3     | Minor updates and corrections. Security Categories removed. ||
 | 09.10.2014 | 0.4     | Add service CA OCSP responder changed to Add top CA OCSP responder ||
 | 14.10.2014 | 0.5     | Title page, header, footer modified ||
 | 28.11.2014 | 0.6     | Logback information added (Chapter 17). Introduction added (Chapter 1). Security Officer user role added (Section 2.1). System Settings added (Chapter 4). Configuration Management added (Chapter 5). Database Management Chapter deleted. ||
-| 1.12.2014  | 1.0     | Minor corrections  ||
+| 1.12.2014  | 1.0     | Minor corrections ||
 | 23.01.2015 | 1.1     | License information. Certification services management and time stamping services management chapters updated (Chapters 11 and 12). ||
 | 30.04.2015 | 1.2     | “sdsb” changed to “xroad” ||
 | 30.06.2015 | 1.3     | Minor corrections done ||
 | 3.07.2015  | 1.4     | Audit Log chapter added (Chapter 14) ||
 | 31.08.2015 | 1.5     | Information about high availability added (Chapter 3) ||
-| 15.09.2015 | 1.6     | Reference to the audit log events added         ||
+| 15.09.2015 | 1.6     | Reference to the audit log events added ||
 | 17.09.2015 | 1.7     | Corrections related to high availability added ||
 | 18.09.2015 | 1.8     | Minor corrections done ||
 | 21.09.2015 | 1.9     | References fixed ||
@@ -49,6 +49,7 @@ Doc. ID: UG-CS
 | 04.08.2021 | 2.17    | Add more details about restoring configuration from the command line | Ilkka Seppälä |
 | 11.08.2021 | 2.18    | Update chapter 3.2 about checking the cluster status. | Ilkka Seppälä |
 | 25.08.2021 | 2.19    | Update X-Road references from version 6 to 7 | Caro Hautamäki |
+| 23.09.2022 | 2.20    | Added new Registration Web Service | Eneli Reimets |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -482,10 +483,7 @@ To delete an anchor file, follow these steps.
 
 As the registration of associations in the X-Road governing authority is security-critical, the following measures are applied to increase security by default:
 
-- The registration request must be submitted to the X-Road governing authority over two channels, or in other words, the registration wish must be expressed through two complementary requests:
-one request is submitted to the X-Road central server through the security server,
-the other request is submitted to the X-Road governing authority through means independent of the X-Road (for example, over a digitally signed e-mail). This request must be formalized in the central server by the central server administrator. 
-  - Security server owner change request is an exception - it is enough to submit one request through security server and the complementary request is generated automatically. Manual approval is still required by default.
+- The registration request must be submitted to the X-Road central server through the security server. Manual approval is still required by default.
 - The association must be approved by the X-Road governing authority.
 
 There are three types of registration requests:
@@ -631,8 +629,7 @@ When automatic approval of authentication certificate registration requests is e
 
 Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register an X-Road member's security server, the following actions must be taken.
 - An authentication certificate registration request must be sent from the security server to the central server by the security server administrator;
-- The complementary authentication certificate registration request must be formalized in the central server by the central server administrator, on the appeal of the security server's owner.
-- The complimentary requests must be approved by the central server administrator.
+- The requests must be approved by the central server administrator.
 
 To formalize the central server-side request to register a security server, follow these steps.
 1. On the Configuration menu, select Members, select a member whose security server you wish to register and click Details.
@@ -849,8 +846,7 @@ When automatic approval of authentication certificate registration requests is e
 
 Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register a security server's authentication certificate, the following actions must be taken.
 - An authentication certificate registration request must be sent from the security server to the central server by the security server administrator;
-- The complementary authentication certificate registration request must be formalized in the central server by the central server administrator, on the appeal of the security server's owner.
-- The complimentary requests must be approved by the central server administrator.
+- The requests must be approved by the central server administrator.
 
 To formalize the registration request of an authentication certificate in the central server, follow these steps.
 1. On the Configuration menu, select Security servers, select the security server whose authentication certificate you wish to register and click Details.
@@ -1242,11 +1238,13 @@ The value is the fetch interval in seconds for new OCSP responses.
 
 Most significant central server services are the following:
 
-| Service        | Purpose           | Log  |
-| ------------- |:-------------:| -----:|
-| xroad-jetty     | The application server providing the user interface and the request acceptance service. | `/var/log/xroad/jetty/` |
-| xroad-signer      | The service that manages key settings.      |   `/var/log/xroad/signer.log` |
-| nginx | The Web server that distributes configuration and implements the TLS protocol in the user interface.      |    `/var/log/nginx/` |
+| Service                           |                                               Purpose                                                |                                                    Log  |
+|-----------------------------------|------------------------------------------------------------------------------------------------------|--------------------------------------------------------:|
+| xroad-center                      |                                                 X-Road Central Server                                                     |        `/var/log/xroad/centralserver-admin-service.log` |
+| xroad-center-registration-service |                              X-Road Central Server Registration Service                              | `/var/log/xroad/centralserver-registration-service.log` |
+| xroad-jetty                       |       The application server providing the user interface and the request acceptance service.        |                                 `/var/log/xroad/jetty/` |
+| xroad-signer                      |                                The service that manages key settings.                                |                             `/var/log/xroad/signer.log` |
+| nginx                             | The Web server that distributes configuration and implements the TLS protocol in the user interface. |                                       `/var/log/nginx/` |
 
 System services can be managed using the systemd facility.
 To start a service, issue the following command as a root user:

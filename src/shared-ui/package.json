@@ -23,7 +23,7 @@
     "@fontsource/open-sans": "~4.5.0",
     "vue": "2.6.14",
     "vue-i18n": "~8.26.1",
-    "vuetify": "~2.6.0"
+    "vuetify": "~2.6.10"
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",
