@@ -28,12 +28,13 @@ package org.niis.xroad.centralserver.restapi.repository;
 
 import io.vavr.collection.Seq;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
+import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SubsystemRepository extends SecurityServerClientRepository<Subsystem> {
 
-    Seq<Subsystem> findAllByXroadMemberMemberCode(String memberCode);
+    Seq<Subsystem> findAllByXroadMember(XRoadMember xRoadMember);
 
     Subsystem findBySubsystemCode(String subsystemCode);
 }

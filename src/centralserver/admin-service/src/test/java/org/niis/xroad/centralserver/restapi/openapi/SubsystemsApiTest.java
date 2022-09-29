@@ -26,9 +26,6 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -46,7 +43,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -97,7 +93,7 @@ class SubsystemsApiTest extends AbstractApiRestTemplateTestContext {
     class GetSubsystems {
 
         @Test
-        public void getSubsystems() throws JsonProcessingException {
+        public void getSubsystems() {
             final String subsystemCode = UUID.randomUUID().toString();
             ClientIdDto subsystemIdDto = (ClientIdDto) new ClientIdDto()
                     .memberClass("GOV")
@@ -112,22 +108,20 @@ class SubsystemsApiTest extends AbstractApiRestTemplateTestContext {
             assertEquals(HttpStatus.CREATED, createResponse.getStatusCode(), "Failed to create susbsystem");
 
             var response = restTemplate.getForEntity(
-                    "/api/v1/members/M2/subsystems",
-                    String.class);
+                    "/api/v1/members/{id}/subsystems",
+                    SubsystemDto[].class,
+                    "TEST:GOV:M2");
 
             assertNotNull(response);
             assertEquals(200, response.getStatusCodeValue());
 
-            ObjectMapper mapper = new ObjectMapper();
-            List<SubsystemDto> subsystemDtos = mapper.readValue(response.getBody(),
-                    new TypeReference<List<SubsystemDto>>() {
-                    });
-            assertNotNull(subsystemDtos);
+            SubsystemDto[] subsystemDtos = response.getBody();
 
-            assertEquals(1, subsystemDtos.size());
-            assertEquals(subsystemCode, subsystemDtos.get(0).getSubsystemCode());
+            assertNotNull(subsystemDtos);
+            assertEquals(1, subsystemDtos.length);
+            assertEquals(subsystemCode, subsystemDtos[0].getSubsystemCode());
             assertEquals(0,
-                    subsystemDtos.get(0).getUsedSecurityServers().size());
+                    subsystemDtos[0].getUsedSecurityServers().size());
         }
     }
 

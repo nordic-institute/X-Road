@@ -2096,13 +2096,14 @@ paths:
       description: <h3>CS Administrator lists subsystems.</h3>
       operationId: getSubsystems
       parameters:
-        - description: member code of X-Road member
+        - description: the encoded string representation of the x-road member
+          example: FI:GOV:123:ABC
           in: path
           name: id
           required: true
           schema:
             format: text
-            maxLength: 255
+            maxLength: 1023
             minLength: 1
             type: string
       responses:

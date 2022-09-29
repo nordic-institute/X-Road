@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.ServerClient;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
+import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
@@ -53,6 +54,7 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 public class SubsystemService {
 
     private final SubsystemRepository subsystemRepository;
+    private final MemberService memberService;
     private final SecurityServerClientNameRepository securityServerClientNameRepository;
 
     public Subsystem add(Subsystem subsystem) {
@@ -70,8 +72,10 @@ public class SubsystemService {
         securityServerClientNameRepository.save(ssClientName);
     }
 
-    public Seq<Subsystem> findByMemberCode(String memberCode) {
-        return subsystemRepository.findAllByXroadMemberMemberCode(memberCode);
+    public Seq<Subsystem> findByMemberIdentifier(ClientId id) {
+        XRoadMember xRoadMember = memberService.findMember(id)
+                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
+        return subsystemRepository.findAllByXroadMember(xRoadMember);
     }
 
     public void unregisterSubsystem(ClientId subsystemId, SecurityServerId securityServerId) {

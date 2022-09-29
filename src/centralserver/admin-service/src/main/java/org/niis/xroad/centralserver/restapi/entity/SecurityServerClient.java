@@ -77,7 +77,7 @@ public abstract class SecurityServerClient extends AuditableEntity implements En
     @Getter
     private ClientId identifier;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServerClient", cascade = CascadeType.ALL,
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "securityServerClient", cascade = CascadeType.ALL,
             orphanRemoval = true)
     @Access(AccessType.FIELD)
     @Getter

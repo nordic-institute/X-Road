@@ -49,7 +49,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Set;
@@ -104,9 +103,10 @@ public class SubsystemsApiController implements SubsystemsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_DETAILS')")
-    @Transactional
     public ResponseEntity<Set<SubsystemDto>> getSubsystems(String id) {
-        return ResponseEntity.ok(subsystemService.findByMemberCode(id)
+        verifyMemberId(id);
+        return ResponseEntity.ok(subsystemService.findByMemberIdentifier(
+                        clientIdConverter.convertId(id))
                 .map(subsystemDtoConverter::toDto)
                 .collect(toSet()));
     }
@@ -128,6 +128,11 @@ public class SubsystemsApiController implements SubsystemsApi {
     private void verifySubsystemId(String clientId) {
         if (!clientIdConverter.isEncodedSubsystemId(clientId)) {
             throw new BadRequestException("Invalid subsystem id");
+        }
+    }
+    private void verifyMemberId(String id) {
+        if (!clientIdConverter.isEncodedMemberId(id)) {
+            throw new BadRequestException("Invalid member id");
         }
     }
 }
