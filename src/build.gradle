@@ -15,7 +15,7 @@ plugins {
     id 'jacoco'
     id 'java'
     id 'idea'
-    id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
+    id "io.spring.dependency-management" version "1.0.14.RELEASE" apply false
     id 'org.springframework.boot' version "${springBootVersion}" apply false
     //id "com.dorongold.task-tree" version "2.1.0"
 }
@@ -74,7 +74,7 @@ allprojects {
     group = 'org.niis.xroad'
     version = '1.0'
 
-    ext['snakeyaml.version'] = '1.32'
+    ext['snakeyaml.version'] = '1.33'
 
     buildscript {
       repositories {

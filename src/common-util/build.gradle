@@ -32,6 +32,7 @@ dependencies {
     api 'org.apache.httpcomponents:httpclient:4.5.13'
     api 'org.apache.httpcomponents:httpasyncclient:4.1.4'
 
+    api "org.scala-lang:scala-library:2.13.9"
     api "com.typesafe.akka:akka-actor_$akkaVersion"
     api "com.typesafe.akka:akka-remote_$akkaVersion"
     api "com.typesafe.akka:akka-slf4j_$akkaVersion"
