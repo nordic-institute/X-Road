@@ -32,6 +32,7 @@ import io.vavr.CheckedConsumer;
 import io.vavr.collection.HashSet;
 import io.vavr.control.Option;
 import lombok.SneakyThrows;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
 import org.mockito.verification.VerificationMode;
@@ -67,6 +68,16 @@ public interface WithInOrder {
             return inOrder.verify(t, verificationMode);
         }
 
+        @Override
+        public void verify(MockedStatic<?> mockedStatic, MockedStatic.Verification verification) {
+            inOrder.verify(mockedStatic, verification);
+        }
+
+        @Override
+        public void verify(MockedStatic<?> mockedStatic, MockedStatic.Verification verification,
+                           VerificationMode mode) {
+            inOrder.verify(mockedStatic, verification, mode);
+        }
         @Override
         public void verifyNoMoreInteractions() {
             inOrder.verifyNoMoreInteractions();
