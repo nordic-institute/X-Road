@@ -116,14 +116,14 @@ dependencies {
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
     testImplementation('org.liquibase:liquibase-core:4.9.1')
-    testImplementation('org.yaml:snakeyaml:1.32')
+    testImplementation('org.yaml:snakeyaml:1.33')
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
 
     liquibaseLibs('org.liquibase:liquibase-core:4.9.1')
     liquibaseLibs('info.picocli:picocli:4.6.3')
     liquibaseLibs("org.postgresql:postgresql:$postgresqlVersion")
-    liquibaseLibs('org.yaml:snakeyaml:1.32')
+    liquibaseLibs('org.yaml:snakeyaml:1.33')
 }
 
 task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
