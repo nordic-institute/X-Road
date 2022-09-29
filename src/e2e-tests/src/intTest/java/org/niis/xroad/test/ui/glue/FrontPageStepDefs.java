@@ -26,7 +26,6 @@
 package org.niis.xroad.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Given;
 import org.openqa.selenium.By;
 
