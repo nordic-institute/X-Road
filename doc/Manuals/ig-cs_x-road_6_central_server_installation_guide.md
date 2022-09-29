@@ -4,7 +4,7 @@
 
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.27  
+Version: 2.28  
 Doc. ID: IG-CS
 
 ---
@@ -49,6 +49,7 @@ Doc. ID: IG-CS
 | 18.08.2021 | 2.25    | Minor updates to Annex D | Ilkka Seppälä
 | 24.08.2021 | 2.26    | Add instructions for running the database migrations manually. | Ilkka Seppälä
 | 25.08.2021 | 2.27    | Update X-Road references from version 6 to 7 | Caro Hautamäki
+| 23.09.2022 | 2.28    | Added new Registration Web Service | Eneli Reimets
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -70,7 +71,8 @@ Doc. ID: IG-CS
   - [2.7 Package Installation](#27-package-installation)
   - [2.8 Installing the Support for Hardware Tokens](#28-installing-the-support-for-hardware-tokens)
   - [2.9 Installing the Support for Monitoring](#29-installing-the-support-for-monitoring)
-  - [2.10 Post-Installation Checks](#210-post-installation-checks)
+  - [2.10 Pre-configuration for Registration Web Service](#210-pre-configuration-for-registration-web-service)
+  - [2.11 Post-Installation Checks](#211-post-installation-checks)
 - [3 Initial Configuration](#3-initial-configuration)
   - [3.1 Reference Data](#31-reference-data)
   - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
@@ -121,6 +123,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 3. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 4. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] Cybernetica AS. X-Road 7. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
 5. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+6. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md).
 
 ## 2. Installation
 
@@ -335,7 +338,16 @@ The optional configuration for monitoring parameters is installed by package xr
 
 The central monitoring client may be configured as specified in the [UG-CS](#Ref_UG-CS).
 
-### 2.10 Post-Installation Checks
+### 2.10 Pre-configuration for Registration Web Service
+
+The registration web service is installed by package xroad-centralserver-registration-service. The registration web service can be installed on the same host with the central server or on a separate host. The package is included in the central server installation by default.
+
+Configuration parameters for registration web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section „Registration service parameters“.
+
+**Note 1:** The installer does not currently generate the API token, it must be manually configured.  
+**Note 2:** With new registration service, a maximum size limit (MAX_REQUEST_SIZE = 100 KB) is set for the authentication certificate SOAP message.
+
+### 2.11 Post-Installation Checks
 
 The installation is successful if the system services are started and the user interface is responding.
 
@@ -675,4 +687,4 @@ systemctl stop xroad-jetty
 systemctl start xroad-signer nginx xroad-jetty
 ```
 
-5. Verify that everything is working by performing the steps described in [2.10 Post-Installation Checks](#210-post-installation-checks).
+5. Verify that everything is working by performing the steps described in [2.11 Post-Installation Checks](#211-post-installation-checks).
