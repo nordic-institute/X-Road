@@ -34,48 +34,32 @@ import java.time.Duration;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class CommonUiStepDefs extends BaseUiStepDefs {
-    public static final int MAX_WAIT_IN_SECONDS = 120;
+public class FrontPageStepDefs extends BaseUiStepDefs {
+    public static final int WAIT_DURATION = 20;
 
-    @Given("logout button is being clicked")
-    public void logoutButtonIsClicked() {
-        $(By.xpath("//button[@data-test='username-button']"))
+    @Given("User {} logs in to {} with password {}")
+    public void doLogin(final String username, final String target, final String password) {
+
+        $(By.xpath("//div[@id='app']"))
+                .shouldBe(Condition.visible, Duration.ofSeconds(1));
+
+        $(By.id("username"))
+                .shouldBe(Condition.visible)
+                .setValue(username);
+        $(By.id("password"))
+                .shouldBe(Condition.visible)
+                .setValue(password);
+
+        $(By.id("submit-button"))
                 .shouldBe(Condition.visible)
                 .shouldBe(Condition.enabled)
                 .click();
     }
 
-    @Given("User becomes idle")
-    public void userBecomesIdle() {
-        Selenide.sleep(1);
-    }
-
-
-    @Given("after 120 seconds, session timeout popup appears")
-    public void errorMessageAboutTimeoutAppears() {
-        $(By.xpath("//button[@data-test='session-expired-ok-button']"))
-                .shouldBe(Condition.visible, Duration.ofSeconds(MAX_WAIT_IN_SECONDS));
-
-    }
-
-    @Given("OK is clicked on timeout notification popup")
-    public void okIsClickedOnTimeoutNotificationPopup() {
-        $(By.xpath("//button[@data-test='session-expired-ok-button']"))
-                .shouldBe(Condition.visible)
-                .shouldBe(Condition.enabled)
-                .click();
-    }
-
-    @Given("Page is prepared to be tested")
-    public void preparePage() {
-        Selenide.executeJavaScript("window.e2eTestingMode = true;\n"
-                + "      const style = `\n"
-                + "      <style>\n"
-                + "        *, ::before, ::after {\n"
-                + "            transition:none !important;\n"
-                + "        }\n"
-                + "      </style>`;\n"
-                + "      document.head.insertAdjacentHTML('beforeend', style);");
+    @Given("Error message for incorrect credentials is shown")
+    public void errorMessageIsShown() {
+        $(By.xpath("//div[text()[contains(.,'Wrong username or password')]]"))
+                .shouldBe(Condition.visible, Duration.ofSeconds(WAIT_DURATION));
     }
 
 }
