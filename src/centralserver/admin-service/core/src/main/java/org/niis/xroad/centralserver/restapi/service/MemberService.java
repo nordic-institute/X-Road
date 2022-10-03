@@ -31,9 +31,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
+import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
+import org.niis.xroad.centralserver.restapi.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
@@ -43,6 +47,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -56,6 +61,7 @@ public class MemberService {
 
     private final XRoadMemberRepository xRoadMemberRepository;
     private final SecurityServerClientNameRepository securityServerClientNameRepository;
+    private final GlobalGroupMemberRepository globalGroupMemberRepository;
 
     public XRoadMember add(XRoadMember member) {
         Consumer<XRoadMember> ensureClientNotExists = __ -> {
@@ -82,6 +88,21 @@ public class MemberService {
         return xRoadMemberRepository.findMember(clientId);
     }
 
+    public List<GlobalGroupMember> getMemberGlobalGroups(ClientId memberId) {
+        final List<GlobalGroupMember> memberGroups = globalGroupMemberRepository.findMemberGroups(memberId);
+        memberGroups.forEach(m -> {
+            Hibernate.initialize(m.getGlobalGroup());
+            Hibernate.initialize(m.getIdentifier());
+        });
+        return memberGroups;
+    }
+
+    public Set<SecurityServer> getMemberOwnedServers(ClientId memberId) {
+        return findMember(memberId)
+                .map(XRoadMember::getOwnedServers)
+                .peek(Hibernate::initialize)
+                .getOrElse(Set.of());
+    }
 
     public Option<XRoadMember> updateMemberName(ClientId clientId, String newName) {
         return xRoadMemberRepository.findMember(clientId)

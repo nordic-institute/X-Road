@@ -33,7 +33,7 @@
       <!-- Use action prop & emit for one button. Use "actions" slot if more customisation is needed. -->
       <slot name="actions">
         <xrd-button
-          v-if="actionText"
+          v-if="actionText && showAction"
           text
           :outlined="false"
           class="btn-adjust"
@@ -68,6 +68,11 @@ export default Vue.extend({
       required: false,
       default: undefined,
     },
+    showAction: {
+      type: Boolean,
+      required: false,
+      default: true,
+    }
   },
   methods: {
     emitActionClick(): void {

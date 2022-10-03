@@ -302,9 +302,6 @@
     "header": "Members",
     "member": {
       "details": {
-        "addMemberToGroup": "Add member to group",
-        "addServer": "Add server",
-        "addToGroup": "Add member to group",
         "addedToGroup": "Added to the group",
         "globalGroups": "Global Groups",
         "group": "Group",
@@ -312,9 +309,10 @@
         "server": "Server",
         "enterCode": "Enter Member Code",
         "deleteMember": "Delete member",
-        "deleteMemberFromGroup": "Delete memmer from Global group",
         "areYouSure1": "Are you sure you want to delete the Member {member} from the system configuration? Enter the member code to confirm.",
-        "areYouSure2": "Are you sure you want to delete the member {member} from the {group}?"
+        "editMemberName": "Edit Member's name",
+        "memberNameSaved": "Member name successfully saved",
+        "memberDeleted": "Member deleted successfully"
       },
       "managementRequests": {
         "created": "Created",

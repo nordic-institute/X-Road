@@ -39,16 +39,22 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
+import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.niis.xroad.centralserver.restapi.entity.MemberId;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
+import org.niis.xroad.centralserver.restapi.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.springframework.util.CollectionUtils;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,6 +74,8 @@ class MemberServiceTest implements WithInOrder {
     private XRoadMemberRepository xRoadMemberRepository;
     @Mock
     private SecurityServerClientNameRepository securityServerClientNameRepository;
+    @Mock
+    private GlobalGroupMemberRepository globalGroupMemberRepository;
 
     @InjectMocks
     private MemberService memberService;
@@ -205,6 +213,63 @@ class MemberServiceTest implements WithInOrder {
             assertTrue(result.isDefined());
             verify(xRoadMember).setName("new name");
             verify(securityServerClientName).setName("new name");
+        }
+    }
+
+    @Nested
+    @DisplayName("findMemberGlobalGroups(ClientId memberId)")
+    class FindMemberGlobalGroups implements WithInOrder {
+
+        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+
+        @Test
+        void shouldReturnMemberGlobalGroups() {
+            final GlobalGroupMember memberGroup = new GlobalGroupMember(new GlobalGroup("groupCode"), clientId);
+            doReturn(List.of(memberGroup)).when(globalGroupMemberRepository).findMemberGroups(clientId);
+
+            final List<GlobalGroupMember> result = memberService.getMemberGlobalGroups(clientId);
+
+            assertEquals(1, result.size());
+            assertEquals(result, List.of(memberGroup));
+        }
+    }
+
+    @Nested
+    @DisplayName("getMemberOwnedServers(ClientId memberId)")
+    class GetMemberOwnedServers implements WithInOrder {
+        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+
+        @Mock
+        private XRoadMember xRoadMember;
+
+        @Test
+        void shouldReturnMemberOwnedServers() {
+            var securityServersMock = Set.of(mock(SecurityServer.class), mock(SecurityServer.class));
+
+            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(securityServersMock).when(xRoadMember).getOwnedServers();
+
+
+            final Set<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
+
+            inOrder().verify(inOrder -> {
+                inOrder.verify(xRoadMemberRepository).findMember(clientId);
+                inOrder.verify(xRoadMember).getOwnedServers();
+            });
+            assertEquals(securityServersMock.size(), result.size());
+            assertEquals(securityServersMock, result);
+        }
+
+        @Test
+        void shouldReturnEmptySetWhenMemberNotFound() {
+            doReturn(Option.none()).when(xRoadMemberRepository).findMember(clientId);
+
+            final Set<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
+
+            inOrder().verify(inOrder -> {
+                inOrder.verify(xRoadMemberRepository).findMember(clientId);
+            });
+            assertTrue(CollectionUtils.isEmpty(result));
         }
     }
 }

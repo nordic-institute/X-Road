@@ -48,6 +48,7 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.niis.xroad.centralserver.restapi.repository.CriteriaBuilderUtil.caseInsensitiveLike;
@@ -76,26 +77,30 @@ public interface GlobalGroupMemberRepository
         final Join<GlobalGroupMember, ClientId> member = root.join(GlobalGroupMember_.identifier);
         final Join<GlobalGroupMember, GlobalGroup> globalGroup = root.join(GlobalGroupMember_.globalGroup);
 
-        var pred = builder.equal(globalGroup.get(GlobalGroup_.id), criteria.getGroupId());
+        final List<Predicate> predicates = new ArrayList<>();
+
+        if (criteria.getGroupId() != null) {
+            predicates.add(builder.equal(globalGroup.get(GlobalGroup_.id), criteria.getGroupId()));
+        }
         if (StringUtils.isNotBlank(criteria.getQuery())) {
-            pred = builder.and(pred, searchPredicate(root, member, builder, criteria));
+            predicates.add(searchPredicate(root, member, builder, criteria));
         }
         if (StringUtils.isNotBlank(criteria.getMemberClass())) {
-            pred = builder.and(pred, builder.equal(member.get(XRoadId_.memberClass), criteria.getMemberClass()));
+            predicates.add(builder.equal(member.get(XRoadId_.memberClass), criteria.getMemberClass()));
         }
         if (StringUtils.isNotBlank(criteria.getInstance())) {
-            pred = builder.and(pred, builder.equal(member.get(XRoadId_.xRoadInstance), criteria.getInstance()));
+            predicates.add(builder.equal(member.get(XRoadId_.xRoadInstance), criteria.getInstance()));
         }
         if (!CollectionUtils.isEmpty(criteria.getCodes())) {
-            pred = builder.and(pred, member.get(XRoadId_.memberCode).in(criteria.getCodes()));
+            predicates.add(member.get(XRoadId_.memberCode).in(criteria.getCodes()));
         }
         if (!CollectionUtils.isEmpty(criteria.getSubsystems())) {
-            pred = builder.and(pred, member.get(XRoadId_.subsystemCode).in(criteria.getSubsystems()));
+            predicates.add(member.get(XRoadId_.subsystemCode).in(criteria.getSubsystems()));
         }
         if (!CollectionUtils.isEmpty(criteria.getTypes())) {
-            pred = builder.and(pred, member.get(XRoadId_.objectType).in(criteria.getTypes()));
+            predicates.add(member.get(XRoadId_.objectType).in(criteria.getTypes()));
         }
-        return pred;
+        return builder.and(predicates.toArray(new Predicate[0]));
     }
 
     private static Predicate searchPredicate(Root<GlobalGroupMember> root, Join<GlobalGroupMember, ClientId> member,
@@ -111,4 +116,12 @@ public interface GlobalGroupMemberRepository
     }
 
     List<GlobalGroupMember> findByGlobalGroupId(Integer groupId);
+
+    default List<GlobalGroupMember> findMemberGroups(ee.ria.xroad.common.identifier.ClientId memberId) {
+        return findAll(findSpecification(Criteria.builder()
+                .instance(memberId.getXRoadInstance())
+                .memberClass(memberId.getMemberClass())
+                .codes(List.of(memberId.getMemberCode()))
+                .build()));
+    }
 }
