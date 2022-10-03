@@ -9,6 +9,6 @@
 ../../../../src/xroad/default-configuration/ocsp-fetchinterval.ini /etc/xroad/configuration-parts/
 ../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-center
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-center
-../../../../../centralserver/admin-service/build/libs/centralserver-admin-service-1.0.jar /usr/share/xroad/jlib/
-../../../../../centralserver/admin-service/src/main/resources/liquibase/* /usr/share/xroad/db/
+../../../../../centralserver/admin-service/application/build/libs/centralserver-admin-service-1.0.jar /usr/share/xroad/jlib/
+../../../../../centralserver/admin-service/infra-jpa/src/main/resources/liquibase/* /usr/share/xroad/db/
 

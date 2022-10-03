@@ -11,7 +11,7 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '3.3'
-    id 'org.owasp.dependencycheck' version '6.5.3'
+    id 'org.owasp.dependencycheck' version '7.2.1'
     id 'jacoco'
     id 'java'
     id 'idea'
@@ -192,7 +192,7 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
     }
 
     checkstyle {
-        toolVersion = "8.44"
+        toolVersion = "8.45.1"
         configDirectory = file("${project.rootDir}/config/checkstyle")
         ignoreFailures = false
         showViolations = false

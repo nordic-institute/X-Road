@@ -1,0 +1,39 @@
+plugins {
+    id 'java-library'
+}
+
+
+configurations {
+    liquibaseLibs {
+        apply plugin: 'base'
+    }
+}
+
+dependencies {
+    annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
+    annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
+
+    implementation project(':centralserver:admin-service:infra-jpa') //TODO should not depend. Temporary
+
+    implementation project(':common-util')
+    implementation project(':common-verifier')
+    implementation project(':signer-protocol')
+    implementation project(':common-ui')
+    implementation project(':common-rest-api')
+
+    api('org.springframework.boot:spring-boot-starter-web')
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+
+    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
+    implementation("io.vavr:vavr:$vavrVersion")
+
+    testImplementation project(':common-test')
+    testImplementation(testFixtures(project(":common-rest-api")))
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.springframework.security:spring-security-test')
+    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
+    testImplementation('org.liquibase:liquibase-core')
+}
