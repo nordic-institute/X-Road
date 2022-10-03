@@ -27,7 +27,6 @@
 package org.niis.xroad.centralserver.restapi.converter.db;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.openapi.model.SubsystemDto;
 import org.niis.xroad.centralserver.openapi.model.UsedSecurityServersDto;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
@@ -41,7 +40,6 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.Fn.self;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto> {
