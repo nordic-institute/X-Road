@@ -94,7 +94,6 @@ public class SubsystemsApiController implements SubsystemsApi {
         return ResponseEntity.noContent().build();
     }
 
-    @Override
     @PreAuthorize("hasAuthority('REMOVE_MEMBER_SUBSYSTEM')")
     @AuditEventMethod(event = RestApiAuditEvent.DELETE_SUBSYSTEM)
     public ResponseEntity<Void> deleteSubsystem(String id) {
@@ -114,5 +113,9 @@ public class SubsystemsApiController implements SubsystemsApi {
             throw new BadRequestException("Invalid subsystem id");
         }
     }
-
+    private void verifyMemberId(String id) {
+        if (!clientIdConverter.isEncodedMemberId(id)) {
+            throw new BadRequestException("Invalid member id");
+        }
+    }
 }

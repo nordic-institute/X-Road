@@ -26,8 +26,13 @@
  */
 package org.niis.xroad.centralserver.restapi.repository;
 
+import org.niis.xroad.centralserver.restapi.entity.ClientId;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SubsystemRepository extends SecurityServerClientRepository<Subsystem> { }
+public interface SubsystemRepository extends SecurityServerClientRepository<Subsystem> {
+
+    Subsystem findByIdentifier(ClientId id);
+}
+

@@ -1913,7 +1913,7 @@ paths:
       operationId: deleteMember
       parameters:
         - description: the encoded string representation of the x-road member id
-          example: FI:GOV:123:ABC
+          example: FI:GOV:123
           in: path
           name: id
           required: true
@@ -2015,6 +2015,45 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
       summary: update the name of a member
+      tags:
+        - members
+  /members/{id}/subsystems:
+    get:
+      description: <h3>CS Administrator lists subsystems.</h3>
+      operationId: getSubsystems
+      parameters:
+        - description: the encoded string representation of the x-road member
+          example: FI:GOV:123
+          in: path
+          name: id
+          required: true
+          schema:
+            format: text
+            maxLength: 1023
+            minLength: 1
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of subsystems
+                items:
+                  $ref: '#/components/schemas/Subsystem'
+                type: array
+                uniqueItems: true
+          description: array of subsystems
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: List subsystems
       tags:
         - members
   /members/{id}/global-groups:
@@ -3973,6 +4012,26 @@ components:
           type: string
       required:
         - code
+      type: object
+    Subsystem:
+      properties:
+        subsystem_id:
+          $ref: '#/components/schemas/ClientId'
+        usedSecurityServers:
+          items:
+            $ref: '#/components/schemas/UsedSecurityServers'
+      type: object
+    UsedSecurityServers:
+      properties:
+        serverCode:
+          description: security server code
+          type: string
+        serverOwner:
+          description: security server owner
+          type: string
+        status:
+          description: security server status
+          type: string
       type: object
     MemberClassDescription:
       description: Central server's member class description

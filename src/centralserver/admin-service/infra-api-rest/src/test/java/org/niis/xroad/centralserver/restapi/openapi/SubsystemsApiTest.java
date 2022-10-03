@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
+import org.niis.xroad.centralserver.openapi.model.SubsystemDto;
 import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +84,44 @@ class SubsystemsApiTest extends AbstractApiRestTemplateTestContext {
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals(subsystemIdDto, response.getBody().getXroadId());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET " + "/api/v1/members/{id}/subsystems")
+    @WithMockUser(authorities = {"VIEW_MEMBER_DETAILS"})
+    class GetSubsystems {
+
+        @Test
+        public void getSubsystems() {
+            final String subsystemCode = UUID.randomUUID().toString();
+            ClientIdDto subsystemIdDto = (ClientIdDto) new ClientIdDto()
+                    .memberClass("GOV")
+                    .memberCode("M2")
+                    .subsystemCode(subsystemCode)
+                    .instanceId("TEST")
+                    .type(XRoadIdDto.TypeEnum.SUBSYSTEM);
+            ClientDto subsystemDto = new ClientDto()
+                    .xroadId(subsystemIdDto);
+
+            var createResponse = restTemplate.postForEntity(PATH, subsystemDto, ClientDto.class);
+            assertEquals(HttpStatus.CREATED, createResponse.getStatusCode(), "Failed to create susbsystem");
+
+            var response = restTemplate.getForEntity(
+                    "/api/v1/members/{id}/subsystems",
+                    SubsystemDto[].class,
+                    "TEST:GOV:M2");
+
+            assertNotNull(response);
+            assertEquals(200, response.getStatusCodeValue());
+
+            SubsystemDto[] subsystemDtos = response.getBody();
+
+            assertNotNull(subsystemDtos);
+            assertEquals(1, subsystemDtos.length);
+            assertEquals(subsystemCode, subsystemDtos[0].getSubsystemId().getSubsystemCode());
+            assertEquals(0,
+                    subsystemDtos[0].getUsedSecurityServers().size());
         }
     }
 

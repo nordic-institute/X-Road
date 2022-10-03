@@ -60,7 +60,7 @@ public class ServerClient {
     @Setter
     private SecurityServerClient securityServerClient;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinColumn(name = "security_server_id", nullable = false)
     @Getter
     @Setter

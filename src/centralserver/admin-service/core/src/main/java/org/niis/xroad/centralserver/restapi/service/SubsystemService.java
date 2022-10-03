@@ -44,6 +44,8 @@ import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
 
+import java.util.Set;
+
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SUBSYSTEM_EXISTS;
 
 @Service
@@ -52,6 +54,7 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 public class SubsystemService {
 
     private final SubsystemRepository subsystemRepository;
+    private final MemberService memberService;
     private final SecurityServerClientNameRepository securityServerClientNameRepository;
 
     public Subsystem add(Subsystem subsystem) {
@@ -67,6 +70,12 @@ public class SubsystemService {
     private void saveSecurityServerClientName(Subsystem subsystem) {
         var ssClientName = new SecurityServerClientName(subsystem.getXroadMember(), subsystem.getIdentifier());
         securityServerClientNameRepository.save(ssClientName);
+    }
+
+    public Set<Subsystem> findByMemberIdentifier(ClientId id) {
+        return memberService.findMember(id)
+                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND))
+                .getSubsystems();
     }
 
     public void unregisterSubsystem(ClientId subsystemId, SecurityServerId securityServerId) {
@@ -93,5 +102,4 @@ public class SubsystemService {
     private boolean isRegistered(Subsystem subsystem) {
         return !CollectionUtils.isEmpty(subsystem.getServerClients());
     }
-
 }
