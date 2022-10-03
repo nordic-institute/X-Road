@@ -24,70 +24,72 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
-  <div id="memberview">
-    <div class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">
-          {{ memberStore.currentMember.member_name }}
+  <xrd-sub-view-container>
+    <xrd-simple-dialog
+      :dialog="true"
+      title="members.member.details.editMemberName"
+      save-button-text="action.save"
+      cancel-button-text="action.cancel"
+      :disable-save="newMemberName === '' || newMemberName === oldMemberName"
+      @cancel="cancelEdit"
+      @save="saveNewMemberName"
+    >
+      <template #content>
+        <div class="dlg-input-width">
+          <v-text-field v-model="newMemberName" outlined></v-text-field>
         </div>
-      </div>
-    </div>
-    <PageNavigation :items="memberNavigationItems"></PageNavigation>
-    <router-view />
-  </div>
+      </template>
+    </xrd-simple-dialog>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import PageNavigation, {
-  NavigationItem,
-} from '@/components/layout/PageNavigation.vue';
-import { Colors } from '@/global';
-import { mapStores } from 'pinia';
+import { mapActions, mapStores } from 'pinia';
 import { memberStore } from '@/store/modules/members';
+import { Client } from '@/openapi-types';
+import { notificationsStore } from '@/store/modules/notifications';
+import { toIdentifier } from '@/util/helpers';
 
-/**
- * Wrapper component for a member view
- */
 export default Vue.extend({
-  name: 'Member',
-  components: { PageNavigation },
+  name: 'EditMemberNameDialog',
   props: {
-    memberid: {
-      type: String,
+    member: {
+      type: Object as () => Client,
       required: true,
     },
   },
   data() {
     return {
-      colors: Colors,
+      newMemberName: this.member.member_name,
+      oldMemberName: this.member.member_name,
     };
   },
   computed: {
     ...mapStores(memberStore),
-    memberNavigationItems(): NavigationItem[] {
-      return [
-        {
-          url: `/members/${this.memberid}/details`,
-          label: this.$t('members.member.pagenavigation.details') as string,
-        },
-        {
-          url: `/members/${this.memberid}/managementrequests`,
-          label: this.$t(
-            'members.member.pagenavigation.managementRequests',
-          ) as string,
-          showAttention: true,
-        },
-        {
-          url: `/members/${this.memberid}/subsystems`,
-          label: this.$t('members.member.pagenavigation.subsystems') as string,
-        },
-      ];
-    },
   },
-  created() {
-    this.memberStore.loadById(this.memberid);
+  methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    cancelEdit(): void {
+      this.$emit('cancel');
+    },
+    saveNewMemberName(): void {
+      this.memberStore
+        .editMemberName(toIdentifier(this.member.xroad_id), {
+          member_name: this.newMemberName,
+        })
+        .then(() => {
+          this.showSuccess(this.$t('members.member.details.memberNameSaved'));
+          this.$emit('nameChanged');
+        })
+        .catch((error) => {
+          this.showError(error);
+        });
+    },
   },
 });
 </script>
+
+<style lang="scss" scoped></style>

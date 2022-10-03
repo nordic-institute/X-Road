@@ -2056,6 +2056,80 @@ paths:
       summary: List subsystems
       tags:
         - members
+  /members/{id}/global-groups:
+    get:
+      description: <h3>CS administrator views a members' global groups.</h3>
+      operationId: getMemberGlobalGroups
+      parameters:
+        - description: the encoded string representation of the x-road member or subsystem id
+          example: FI:GOV:123
+          in: path
+          name: id
+          required: true
+          schema:
+            format: text
+            maxLength: 1023
+            minLength: 1
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of member global groups
+                items:
+                  $ref: '#/components/schemas/MemberGlobalGroup'
+                type: array
+                uniqueItems: true
+          description: List of member's global groups
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - members
+        - global-groups
+  /members/{id}/owned-servers:
+    get:
+      description: <h3>CS administrator views a members' owned servers.</h3>
+      operationId: getOwnedServers
+      parameters:
+        - description: the encoded string representation of the x-road member or subsystem id
+          example: FI:GOV:123
+          in: path
+          name: id
+          required: true
+          schema:
+            format: text
+            maxLength: 1023
+            minLength: 1
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of member security servers
+                items:
+                  $ref: '#/components/schemas/SecurityServer'
+                type: array
+                uniqueItems: true
+          description: List of member's global groups
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - members
+        - security-servers
   /subsystems:
     post:
       description:
@@ -2099,6 +2173,7 @@ paths:
       summary: add new subsystem to the central server
       tags:
         - subsystems
+
   /subsystems/{id}:
     delete:
       description: <h3>CS administrator deletes a subsystem</h3>
@@ -2171,6 +2246,7 @@ paths:
       summary: delete a subsystem
       tags:
         - subsystems
+
   /clients:
     get:
       description: <h3>CS administrator searches for X-Road clients.</h3>
@@ -4017,6 +4093,28 @@ components:
             type: string
           type: array
       type: object
+    MemberGlobalGroup:
+      description: Member's global group
+      properties:
+        group_code:
+          type: string
+          format: text
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+        subsystem:
+          type: string
+          format: text
+          minLength: 0
+          maxLength: 255
+          readOnly: true
+        added_to_group:
+          example: '2022-01-22T07:30:00.001Z'
+          type: string
+          format: date-time
+          readOnly: true
+      type: object
+
     ModificationTimestamps:
       description: created_at and updated_at timestamps
       properties:

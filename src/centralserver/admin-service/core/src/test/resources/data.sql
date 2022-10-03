@@ -113,12 +113,13 @@ VALUES (100, 100,       'X-Road Test CA CN', now(),     now());
 INSERT INTO global_groups
        (id,      group_code, description,           member_count, created_at, updated_at)
 VALUES (1000001, 'CODE_1',   'First global group',  1,            now(),      now()),
-       (1000002, 'CODE_2',   'Second global group', 1,            now(),      now());
+       (1000002, 'CODE_2',   'Second global group', 2,            now(),      now());
 
 INSERT INTO global_group_members
        (id,      global_group_id, group_member_id, created_at, updated_at)
 VALUES (1000001, 1000001,         1000010,         now(),      now()),
-       (1000002, 1000002,         1000011,         now(),      now());
+       (1000002, 1000002,         1000011,         now(),      now()),
+       (1000003, 1000002,         1000010,         now(),      now());
 
 INSERT INTO request_processings (id, type, status, created_at, updated_at) VALUES (1000, 'AuthCertRegProcessing', 'APPROVED', '2021-03-10 08:24:59.913689', '2021-03-10 08:25:00.240286');
 INSERT INTO requests (id, request_processing_id, type, security_server_id, sec_serv_user_id, auth_cert, address, origin,

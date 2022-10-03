@@ -31,34 +31,23 @@
   <main id="member-details-content">
     <!-- Member Details -->
     <div id="member-details">
-      <v-card class="details-card" data-test="member-name-card" flat>
-        <v-card-title class="card-title">{{
-          $t('global.memberName')
-        }}</v-card-title>
-        <v-divider></v-divider>
-        <v-card-text data-test="member-name-value">Netum</v-card-text>
-        <v-divider class="pb-4"></v-divider>
-      </v-card>
+      <info-card
+        :title-text="$t('global.memberName')"
+        :action-text="$t('action.edit')"
+        :show-action="allowMemberRename"
+        :info-text="memberStore.currentMember.member_name || ''"
+        @actionClicked="showEditNameDialog = true"
+      />
 
-      <v-card class="details-card" data-test="member-class-card" flat>
-        <v-card-title class="card-title">{{
-          $t('global.memberClass')
-        }}</v-card-title>
-        <v-divider></v-divider>
-        <v-card-text data-test="member-class-value">COM</v-card-text>
-        <v-divider class="pb-4"></v-divider>
-      </v-card>
+      <info-card
+        :title-text="$t('global.memberClass')"
+        :info-text="memberStore.currentMember.xroad_id.member_class || ''"
+      />
 
-      <v-card class="details-card" data-test="member-code-card" flat>
-        <v-card-title class="card-title">{{
-          $t('global.memberCode')
-        }}</v-card-title>
-        <v-divider></v-divider>
-        <v-card-text data-test="member-code-value">{{
-          memberCode
-        }}</v-card-text>
-        <v-divider class="pb-4"></v-divider>
-      </v-card>
+      <info-card
+        :title-text="$t('global.memberCode')"
+        :info-text="memberStore.currentMember.xroad_id.member_code || ''"
+      />
     </div>
 
     <!-- Owned Servers -->
@@ -71,17 +60,9 @@
       </div>
 
       <v-card flat>
-        <div class="card-corner-button pt-4 pr-4">
-          <xrd-button outlined>
-            <xrd-icon-base class="xrd-large-button-icon"
-              ><xrd-icon-add /></xrd-icon-base
-            >{{ $t('members.member.details.addServer') }}
-          </xrd-button>
-        </div>
-
         <!-- Table -->
         <v-data-table
-          :loading="loading"
+          :loading="loadingServers"
           :headers="serversHeaders"
           :items="servers"
           :search="searchServers"
@@ -109,14 +90,6 @@
       </div>
 
       <v-card flat>
-        <div class="card-corner-button pt-4 pr-4">
-          <xrd-button outlined data-test="add-member-to-group">
-            <xrd-icon-base class="xrd-large-button-icon"
-              ><xrd-icon-add /></xrd-icon-base
-            >{{ $t('members.member.details.addMemberToGroup') }}
-          </xrd-button>
-        </div>
-
         <!-- Table -->
         <v-data-table
           :loading="loadingGroups"
@@ -126,127 +99,63 @@
           :must-sort="true"
           :items-per-page="-1"
           class="elevation-0 data-table"
-          item-key="id"
+          item-key="group_code"
           :loader-height="2"
           hide-default-footer
         >
-          <template #[`item.button`]>
-            <div class="cs-table-actions-wrap">
-              <xrd-button
-                text
-                :outlined="false"
-                @click="showDeleteFromGroupDialog = true"
-                >{{ $t('action.delete') }}</xrd-button
-              >
-            </div>
+          <template #[`item.added_to_group`]="{ item }">
+            {{ item.added_to_group | formatDateTime }}
           </template>
-
           <template #footer>
             <div class="cs-table-custom-footer"></div>
           </template>
         </v-data-table>
       </v-card>
 
-      <div class="delete-action" @click="showDialog = true">
+      <div v-if="allowMemberDelete" class="delete-action"  @click="showDeleteDialog = true" >
         <div>
-          <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
-            >mdi-close-circle</v-icon
-          >
+          <v-icon class="xrd-large-button-icon" :color="colors.Purple100">mdi-close-circle</v-icon>
         </div>
         <div class="action-text">
-          {{ $t('members.member.details.deleteMember') }} "{{ memberName }}"
+          {{ $t('members.member.details.deleteMember') }} "{{ memberStore.currentMember.member_name || '' }}"
         </div>
       </div>
     </div>
 
+    <!-- Edit member name dialog -->
+    <EditMemberNameDialog
+      v-if="showEditNameDialog"
+      :member="memberStore.currentMember"
+      @cancel="cancelEditMemberName"
+      @nameChanged="memberNameChanged"
+    ></EditMemberNameDialog>
+
     <!-- Delete member - Check member code dialog -->
-
-    <v-dialog v-if="showDialog" v-model="showDialog" width="500" persistent>
-      <ValidationObserver ref="initializationForm" v-slot="{ invalid }">
-        <v-card class="xrd-card">
-          <v-card-title>
-            <span class="headline">{{
-              $t('members.member.details.deleteMember')
-            }}</span>
-          </v-card-title>
-          <v-card-text class="pt-4">
-            {{
-              $t('members.member.details.areYouSure1', {
-                member: 'NIIS',
-              })
-            }}
-            <div class="dlg-input-width pt-4">
-              <ValidationProvider
-                v-slot="{ errors }"
-                ref="initializationParamsVP"
-                name="init.identifier"
-                :rules="{ required: true, is: memberCode }"
-                data-test="instance-identifier--validation"
-              >
-                <v-text-field
-                  v-model="offeredCode"
-                  outlined
-                  :label="$t('members.member.details.enterCode')"
-                  autofocus
-                  data-test="add-local-group-code-input"
-                  :error-messages="errors"
-                ></v-text-field>
-              </ValidationProvider>
-            </div>
-          </v-card-text>
-          <v-card-actions class="xrd-card-actions">
-            <v-spacer></v-spacer>
-            <xrd-button outlined @click="cancelDelete()">{{
-              $t('action.cancel')
-            }}</xrd-button>
-            <xrd-button :disabled="invalid" @click="deleteMember()">{{
-              $t('action.delete')
-            }}</xrd-button>
-          </v-card-actions>
-        </v-card>
-      </ValidationObserver>
-    </v-dialog>
-
-    <!-- Delete member from a group -->
-    <v-dialog
-      v-if="showDeleteFromGroupDialog"
-      v-model="showDeleteFromGroupDialog"
-      width="500"
-      persistent
-    >
-      <v-card class="xrd-card">
-        <v-card-title>
-          <span class="headline">{{
-            $t('members.member.details.deleteMember')
-          }}</span>
-        </v-card-title>
-        <v-card-text class="pt-4">
-          {{
-            $t('members.member.details.areYouSure2', {
-              member: memberName,
-              group: 'opendata-providers',
-            })
-          }}
-        </v-card-text>
-        <v-card-actions class="xrd-card-actions">
-          <v-spacer></v-spacer>
-          <xrd-button outlined @click="cancelDelete()">{{
-            $t('action.cancel')
-          }}</xrd-button>
-          <xrd-button @click="deleteMemberFromGroup()">{{
-            $t('action.delete')
-          }}</xrd-button>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <MemberDeleteDialog
+      v-if="showDeleteDialog"
+      :member="memberStore.currentMember"
+      @cancel="cancelDelete"
+      @deleted="memberDeleted"
+    ></MemberDeleteDialog>
   </main>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
-import { Colors } from '@/global';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
+import { Colors, Permissions, RouteName } from '@/global';
+import InfoCard from '@/components/ui/InfoCard.vue';
+import { mapActions, mapState, mapStores } from 'pinia';
+import { memberStore } from '@/store/modules/members';
+import { MemberGlobalGroup, SecurityServer } from '@/openapi-types';
+import { notificationsStore } from '@/store/modules/notifications';
+import { userStore } from '@/store/modules/user';
+import MemberDeleteDialog from '@/views/Members/Member/Details/DeleteMemberDialog.vue';
+import EditMemberNameDialog from '@/views/Members/Member/Details/EditMemberNameDialog.vue';
+
+// To provide the Vue instance to debounce
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let that: any;
 
 /**
  * Component for a Members details view
@@ -254,52 +163,47 @@ import { ValidationObserver, ValidationProvider } from 'vee-validate';
 export default Vue.extend({
   name: 'MemberDetails',
   components: {
-    ValidationObserver,
-    ValidationProvider,
+    EditMemberNameDialog,
+    MemberDeleteDialog,
+    InfoCard,
+  },
+  props: {
+    memberid: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
-      searchServers: '',
-      searchGroups: '',
-      memberName: 'Netum',
-      loading: false,
-      loadingGroups: false,
-      showOnlyPending: false,
       colors: Colors,
-      showDialog: false,
-      offeredCode: '',
-      memberCode: '12345', // Mock. This will come from a backend with member data
-      wrongCode: false,
-      showDeleteFromGroupDialog: false,
-      servers: [
-        {
-          name: 'SS1',
-        },
-        {
-          name: 'SS2',
-        },
-      ],
-      globalGroups: [
-        {
-          group: 'security-server-owners',
-          subsystem: 'test',
-          added: '2020-11-10 18:00',
-        },
-        {
-          group: 'test data',
-          subsystem: 'subsystem',
-          added: '2021-02-05 17:00',
-        },
-      ],
+
+      showEditNameDialog: false,
+      showDeleteDialog: false,
+
+      loadingServers: false,
+      searchServers: '',
+      servers: [] as SecurityServer[],
+
+      loadingGroups: false,
+      searchGroups: '',
+      globalGroups: [] as MemberGlobalGroup[],
     };
   },
   computed: {
+    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(memberStore),
+    allowMemberDelete(): boolean {
+      return this.hasPermission(Permissions.DELETE_MEMBER);
+    },
+    allowMemberRename(): boolean {
+      return this.hasPermission(Permissions.EDIT_MEMBER_NAME_AND_ADMIN_CONTACT);
+    },
     serversHeaders(): DataTableHeader[] {
       return [
         {
           text: this.$t('global.server') as string,
           align: 'start',
-          value: 'name',
+          value: 'xroad_id.server_code',
           class: 'xrd-table-header servers-table-header-server',
         },
       ];
@@ -307,7 +211,7 @@ export default Vue.extend({
     groupsHeaders(): DataTableHeader[] {
       return [
         {
-          value: 'group',
+          value: 'group_code',
           text: this.$t('members.member.details.group') as string,
           align: 'start',
           class: 'xrd-table-header groups-table-header-group',
@@ -319,34 +223,58 @@ export default Vue.extend({
           class: 'xrd-table-header groups-table-header-subsystem',
         },
         {
-          value: 'added',
+          value: 'added_to_group',
           text: this.$t('members.member.details.addedToGroup') as string,
           align: 'start',
           class: 'xrd-table-header groups-table-header-added',
         },
-        {
-          value: 'button',
-          text: '',
-          sortable: false,
-          class: 'xrd-table-header groups-table-header-buttons',
-        },
       ];
     },
   },
-  methods: {
-    deleteMember() {
-      // Delete action
-      this.showDialog = false;
-      this.offeredCode = '';
-    },
+  created() {
+    that = this;
 
-    deleteMemberFromGroup() {
-      this.showDeleteFromGroupDialog = false;
+    this.loadingGroups = true;
+    this.memberStore
+      .getMemberGlobalGroups(this.memberid)
+      .then((resp) => {
+        this.globalGroups = resp;
+      })
+      .catch((error) => {
+        this.showError(error);
+      })
+      .finally(() => {
+        this.loadingGroups = false;
+      });
+
+    this.loadingServers = true;
+    this.memberStore
+      .getMemberOwnedServers(this.memberid)
+      .then((resp) => {
+        this.servers = resp;
+      })
+      .catch((error) => {
+        this.showError(error);
+      })
+      .finally(() => {
+        this.loadingServers = false;
+      });
+  },
+  methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    cancelEditMemberName() {
+      this.showEditNameDialog = false;
+    },
+    memberNameChanged() {
+      this.showEditNameDialog = false;
+    },
+    memberDeleted() {
+      this.showDeleteDialog = false;
+      this.$router.replace({ name: RouteName.Members });
+      this.showSuccess(this.$t('members.member.details.memberDeleted'));
     },
     cancelDelete() {
-      this.showDialog = false;
-      this.showDeleteFromGroupDialog = false;
-      this.offeredCode = '';
+      this.showDeleteDialog = false;
     },
   },
 });

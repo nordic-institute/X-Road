@@ -27,7 +27,7 @@
 
 // Filters an array of objects excluding specified object key
 import { NavigationFailure } from 'vue-router';
-import { ErrorInfo } from '@/openapi-types';
+import { ClientId, ErrorInfo } from '@/openapi-types';
 import i18n from '@/i18n';
 import { AxiosError } from 'axios';
 
@@ -166,5 +166,14 @@ export const debounce = <F extends (...args: any[]) => any>(
 // Check if a string or array is empty, null or undefined
 export function isEmpty(str: string | []): boolean {
   return !str || 0 === str.length;
+}
+
+// Get identifier in format CS:ORG:MEMBER[:SUBSYSTEM]
+export function toIdentifier(client: ClientId): string {
+  let identifier = client.instance_id + ':' + client.member_class + ':' + client.member_code;
+  if (client.subsystem_code) {
+    identifier += ':' + client.subsystem_code
+  }
+  return identifier;
 }
 

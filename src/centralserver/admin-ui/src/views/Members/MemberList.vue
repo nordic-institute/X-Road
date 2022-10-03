@@ -31,12 +31,16 @@
         <div class="xrd-view-title">{{ $t('members.header') }}</div>
         <xrd-search v-model="search" />
       </div>
-      <xrd-button data-test="add-member-button" v-if="hasPermissionToAddMember" @click="showAddMemberDialog = true">
-        <xrd-icon-base class="xrd-large-button-icon"
-          ><xrd-icon-add
-        /></xrd-icon-base>
-        {{ $t('members.addMember') }}</xrd-button
+      <xrd-button
+        v-if="hasPermissionToAddMember"
+        data-test="add-member-button"
+        @click="showAddMemberDialog = true"
       >
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-add></xrd-icon-add>
+        </xrd-icon-base>
+        {{ $t('members.addMember') }}
+      </xrd-button>
     </div>
 
     <!-- Table -->
@@ -55,17 +59,17 @@
       :footer-props="{ itemsPerPageOptions: [10, 25] }"
       @update:options="changeOptions"
     >
-      <template #[`item.name`]="{ item }">
+      <template #[`item.member_name`]="{ item }">
         <div
           v-if="hasPermissionToMemberDetails"
           class="members-table-cell-name-action"
-          @click="toDetails()"
+          @click="toDetails(item)"
         >
           <xrd-icon-base class="xrd-clickable mr-4"
             ><xrd-icon-folder-outline
           /></xrd-icon-base>
 
-          {{ item.name }}
+          {{ item.member_name }}
         </div>
 
         <div v-else class="members-table-cell-name">
@@ -73,10 +77,9 @@
             ><xrd-icon-folder-outline
           /></xrd-icon-base>
 
-          {{ item.name }}
+          {{ item.member_name }}
         </div>
       </template>
-
     </v-data-table>
 
     <!-- Dialogs -->
@@ -101,17 +104,19 @@ import { mapState } from 'pinia';
 import { Permissions } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { DataOptions } from 'vuetify';
-import { debounce } from '@/util/helpers';
+import { debounce, toIdentifier } from '@/util/helpers';
 import { notificationsStore } from '@/store/modules/notifications';
+import { Client } from '@/openapi-types';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
-
 export default Vue.extend({
   name: 'MemberList',
-  components: {AddMemberDialog},
+  components: {
+    AddMemberDialog,
+  },
   data() {
     return {
       search: '',
@@ -121,18 +126,13 @@ export default Vue.extend({
       showAddMemberDialog: false,
     };
   },
-  watch: {
-    search: function (newSearch, oldSearch) {
-      this.debouncedFetchClients();
-    },
-  },
   computed: {
     ...mapStores(clientStore),
     ...mapState(userStore, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
         {
-          text: (this.$t('global.memberName') as string) + ' (8)',
+          text: (this.$t('global.memberName') as string) + ' (' + this.clientStore.clients?.length + ')',
           align: 'start',
           value: 'member_name',
           class: 'xrd-table-header members-table-header-name',
@@ -158,6 +158,11 @@ export default Vue.extend({
       return this.hasPermission(Permissions.ADD_NEW_MEMBER);
     },
   },
+  watch: {
+    search: function (newSearch, oldSearch) {
+      this.debouncedFetchClients();
+    },
+  },
   created() {
     that = this;
   },
@@ -174,10 +179,10 @@ export default Vue.extend({
       // Debounce is used to reduce unnecessary api calls
       that.fetchClients(that.pagingSortingOptions);
     }, 600),
-    toDetails(): void {
+    toDetails(member: Client): void {
       this.$router.push({
         name: RouteName.MemberDetails,
-        params: { memberid: 'unknown-member-id' },
+        params: { memberid: toIdentifier(member.xroad_id) },
       });
     },
     changeOptions: async function () {

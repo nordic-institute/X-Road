@@ -187,7 +187,7 @@ const routes: RouteConfig[] = [
                 path: 'details',
                 component: MemberDetails,
                 meta: { permissions: [Permissions.VIEW_MEMBER_DETAILS] },
-                props: { default: true },
+                props: true,
               },
               {
                 name: RouteName.MemberManagementRequests,

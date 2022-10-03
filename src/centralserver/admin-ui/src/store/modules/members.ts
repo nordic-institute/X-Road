@@ -25,13 +25,68 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { Client } from '@/openapi-types';
+import {
+  Client,
+  ClientId,
+  MemberGlobalGroup,
+  MemberName,
+  SecurityServer,
+} from '@/openapi-types';
 import { defineStore } from 'pinia';
 
+export interface State {
+  currentMember: Client;
+}
+
 export const memberStore = defineStore('member', {
+  state: (): State => ({
+    currentMember: {
+      xroad_id: {} as ClientId,
+    } as Client,
+  }),
+
   actions: {
     async add(client: Client) {
       return axios.post('/members', client);
+    },
+    loadById(memberId: string) {
+      return axios
+        .get<Client>(`/members/${memberId}`)
+        .then((resp) => {
+          this.currentMember = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    deleteById(memberId: string) {
+      return axios.delete(`/members/${memberId}`);
+    },
+    editMemberName(memberId: string, memberName: MemberName) {
+      return axios
+        .patch<Client>(`/members/${memberId}`, memberName)
+        .then((resp) => {
+          this.currentMember = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    getMemberOwnedServers(memberId: string) {
+      return axios
+        .get<SecurityServer[]>(`/members/${memberId}/owned-servers`)
+        .then((resp) => resp.data)
+        .catch((error) => {
+          throw error;
+        });
+    },
+    getMemberGlobalGroups(memberId: string) {
+      return axios
+        .get<MemberGlobalGroup[]>(`/members/${memberId}/global-groups`)
+        .then((resp) => resp.data)
+        .catch((error) => {
+          throw error;
+        });
     },
   },
 });
