@@ -38,6 +38,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
 import org.niis.xroad.centralserver.openapi.model.SubsystemDto;
 import org.niis.xroad.centralserver.openapi.model.UsedSecurityServersDto;
+import org.niis.xroad.centralserver.restapi.converter.db.ClientIdDtoConverter;
+import org.niis.xroad.centralserver.restapi.converter.db.SubsystemDtoConverter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.dto.converter.AbstractDtoConverterTest;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
