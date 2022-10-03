@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.67  
+Version: 2.68  
 Doc. ID: UG-SYSPAR
 
 
@@ -17,9 +17,9 @@ Doc. ID: UG-SYSPAR
 | 24.09.2015 | 2.4      | Note added about setting the *timeStampingIntervalSeconds* system parameter                                                        | Siim Annuk                 |
 | 07.10.2015 | 2.5      | Default value of the parameter *acceptable-timestamp-failure-period* set to 14400                                                  | Kristo Heero               |
 | 8.12.2015  | 2.6      | New parameters for configuring signature algorithms and key length, proxy client-side TLS protocols, and software token pin policy | Jarkko Hyöty               |
-| 8.12.2015  | 2.7      | Added parameters for toggling SOAP body logging on/off                                                                             | Janne Mattila              |
-| 17.12.2015 | 2.8      | Added monitoring parameters                                                                                                        | Ilkka Seppälä              |
-| 28.1.2016  | 2.9      | Added configuration client admin port                                                                                              | Ilkka Seppälä              |
+| 8.12.2015  | 2.7      | Added parameters for toggling SOAP body logging on/off                                                                           | Janne Mattila              |
+| 17.12.2015 | 2.8      | Added monitoring parameters                                                                                                      | Ilkka Seppälä              |
+| 28.1.2016  | 2.9      | Added configuration client admin port                                                                                            | Ilkka Seppälä              |
 | 04.10.2016 | 2.10     | Converted to markdown format | Sami Kallio |
 | 05.10.2016 | 2.11     | Added options for proxy client and server connections. Clarified client-timeout option. | Olli Lindgren |
 | 02.11.2016 | 2.12     | Fix ocspFreshnessSeconds description in system parameters document. | Ilkka Seppälä |
@@ -27,7 +27,7 @@ Doc. ID: UG-SYSPAR
 | 20.01.2017 | 2.14     | Added license text and version history | Sami Kallio |
 | 08.02.2017 | 2.15     | Updated documentation with new environmental monitoring parameters describing sensor intervals | Sami Kallio |
 | 23.02.2017 | 2.16     | Added documentation for OCSP-response retrieval deactivation parameter | Tatu Repo |
-| 03.03.2017 | 2.17     | Added new parameter *jetty-ocsp-responder-configuration-file*                 | Kristo Heero       |
+| 03.03.2017 | 2.17     | Added new parameter *jetty-ocsp-responder-configuration-file*               | Kristo Heero       |
 | 07.03.2017 | 2.18     | Added new parameters *ocsp-responder-client-connect-timeout* and *ocsp-responder-client-read-timeout* | Kristo Heero |
 | 11.04.2017 | 2.19     | Changed default values of the proxy parameter *client-timeout* to *30000*, *client-use-fastest-connecting-ssl-socket-autoclose* and *client-use-idle-connection-monitor* to *true*. Added new messagelog parameters *timestamper-client-connect-timeout* and *timestamper-client-read-timeout*. Changed default value of the proxy parameter *pool-validate-connections-after-inactivity-of-millis* to *2000*. | Kristo Heero |
 | 06.06.2017 | 2.20     | Removed parameter *default-signature-algorithm*, replaced parameters *csr-signature-algorithm* with *csr-signature-digest-algorithm*, *signature-algorithm-id* with *signature-digest-algorithm-id*, and *confSignAlgoId* with *confSignDigestAlgoId*. Added new proxy-ui parameter *auth-cert-reg-signature-digest-algorithm-id*. | Kristo Heero |
@@ -78,6 +78,7 @@ Doc. ID: UG-SYSPAR
 | 13.04.2022 | 2.65     | Corrected message logging max body size parameter name | Raido Kaju
 | 28.04.2022 | 2.66     | Updated *max-loggable-message-body-size* property EE-package value. | Ričardas Bučiūnas
 | 23.09.2022 | 2.67     | Added new Registration Web Service | Eneli Reimets
+| 30.09.2022 | 2.68     | Updated *key-length* property EE- and FI-package values. | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -305,17 +306,17 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 ### 3.4 Signer parameters: `[signer]`
 
 | **Parameter**                                    | **Vanilla value**                          | **FI-package value** | **EE-package value** | **Description** |
-|--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
-| ocsp-cache-path                                  | /var/cache/xroad                           |   |   | Absolute path to the directory where the cached OCSP responses are stored. |
+|--------------------------------------------------|--------------------------------------------|---------------------|---------------------|-----------------|
+| ocsp-cache-path                                  | /var/cache/xroad                           |   |  | Absolute path to the directory where the cached OCSP responses are stored. |
 | enforce-token-pin-policy                         | false                                      | true |  true | Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7) |
-| client-timeout                                   | 60000                                      |   |   | Signing timeout in milliseconds. |
-| device-configuration-file                        | /etc/xroad/signer/devices.ini              |   |   | Absolute filename of the configuration file of the signature creation devices. |
-| key-configuration-file                           | /etc/xroad/signer/keyconf.xml              |   |   | Absolute filename of the configuration file containing signature and authentication keys and certificates. |
-| port                                             | 5556                                       |   |   | TCP port on which the signer process listens. |
-| key-length                                       | 2048                                       |   |   | Key length for generating authentication and signing keys (since version 6.7) |
-| csr-signature-digest-algorithm                   | SHA-256                                    |   |   | Certificate Signing Request signature digest algorithm.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
-| ocsp-retry-delay                                 | 60                                         |   |   | OCSP retry delay for signer when fetching OCSP responses fail. After failing to fetch OCSP responses signer waits for the time period defined by "ocsp-retry-delay" before trying again. This is repeated until fetching OCSP responses succeeds. After successfully fetching OCSP responses signer returns to normal OCSP refresh schedule defined by "ocspFetchInterval". If the value of "ocsp-retry-delay" is higher than "ocspFetchInterval", the value of "ocspFetchInterval" is used as OCSP retry delay. |
-| module-manager-update-interval                   | 60                                         |   |   | HSM module manager update interval in seconds. |          
+| client-timeout                                   | 60000                                      |   |  | Signing timeout in milliseconds. |
+| device-configuration-file                        | /etc/xroad/signer/devices.ini              |   |  | Absolute filename of the configuration file of the signature creation devices. |
+| key-configuration-file                           | /etc/xroad/signer/keyconf.xml              |   |  | Absolute filename of the configuration file containing signature and authentication keys and certificates. |
+| port                                             | 5556                                       |   |  | TCP port on which the signer process listens. |
+| key-length                                       | 2048                                       | 3072 | 3072 | Key length for generating authentication and signing keys (since version 6.7) |
+| csr-signature-digest-algorithm                   | SHA-256                                    |   |  | Certificate Signing Request signature digest algorithm.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
+| ocsp-retry-delay                                 | 60                                         |   |  | OCSP retry delay for signer when fetching OCSP responses fail. After failing to fetch OCSP responses signer waits for the time period defined by "ocsp-retry-delay" before trying again. This is repeated until fetching OCSP responses succeeds. After successfully fetching OCSP responses signer returns to normal OCSP refresh schedule defined by "ocspFetchInterval". If the value of "ocsp-retry-delay" is higher than "ocspFetchInterval", the value of "ocspFetchInterval" is used as OCSP retry delay. |
+| module-manager-update-interval                   | 60                                         |   |  | HSM module manager update interval in seconds. |          
 
 ### 3.5 Anti-DOS parameters: `[anti-dos]`
 
