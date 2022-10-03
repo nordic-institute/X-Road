@@ -32,9 +32,7 @@ import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SubsystemsApi;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
-import org.niis.xroad.centralserver.openapi.model.SubsystemDto;
 import org.niis.xroad.centralserver.restapi.dto.converter.db.ClientDtoConverter;
-import org.niis.xroad.centralserver.restapi.dto.converter.db.SubsystemDtoConverter;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.service.SubsystemService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -51,10 +49,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
-
 @Controller
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
@@ -65,7 +59,6 @@ public class SubsystemsApiController implements SubsystemsApi {
     private final AuditDataHelper auditData;
     private final ClientDtoConverter clientDtoConverter;
     private final ClientIdConverter clientIdConverter;
-    private final SubsystemDtoConverter subsystemDtoConverter;
     private final SecurityServerIdConverter securityServerIdConverter;
 
     @Override
@@ -99,16 +92,6 @@ public class SubsystemsApiController implements SubsystemsApi {
 
         subsystemService.unregisterSubsystem(clientId, securityServerId);
         return ResponseEntity.noContent().build();
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('VIEW_MEMBER_DETAILS')")
-    public ResponseEntity<Set<SubsystemDto>> getSubsystems(String id) {
-        verifyMemberId(id);
-        return ResponseEntity.ok(subsystemService.findByMemberIdentifier(
-                        clientIdConverter.convertId(id))
-                .map(subsystemDtoConverter::toDto)
-                .collect(toSet()));
     }
 
     @PreAuthorize("hasAuthority('REMOVE_MEMBER_SUBSYSTEM')")

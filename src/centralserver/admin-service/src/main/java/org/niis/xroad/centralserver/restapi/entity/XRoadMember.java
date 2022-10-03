@@ -87,7 +87,7 @@ public class XRoadMember extends SecurityServerClient {
     @Getter
     private Set<SecurityServer> ownedServers = new HashSet<>(0);
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "xroadMember", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "xroadMember", cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     @Getter
     private Set<Subsystem> subsystems = new HashSet<>(0);

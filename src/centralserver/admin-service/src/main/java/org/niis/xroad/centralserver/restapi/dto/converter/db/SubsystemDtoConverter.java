@@ -50,10 +50,12 @@ public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto>
 
     private final SecurityServerService securityServerService;
 
+    private final ClientIdDtoConverter clientIdDtoConverter;
+
     @Override
     public SubsystemDto toDto(Subsystem source) {
         return self(new SubsystemDto(), self -> {
-            self.setSubsystemCode(source.getSubsystemCode());
+            self.setSubsystemId(clientIdDtoConverter.toDto(source.getIdentifier()));
             self.setUsedSecurityServers(source.getServerClients().stream().map(serverClient -> {
                 UsedSecurityServersDto usedSecurityServersDto = new UsedSecurityServersDto();
                 usedSecurityServersDto.setServerCode(serverClient.getSecurityServer().getServerCode());
@@ -70,6 +72,7 @@ public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto>
     @Override
     public Subsystem fromDto(SubsystemDto source) {
         return subSystems
-                .findBySubsystemCode(source.getSubsystemCode());
+                .findByIdentifier(clientIdDtoConverter
+                        .fromDto(source.getSubsystemId()));
     }
 }

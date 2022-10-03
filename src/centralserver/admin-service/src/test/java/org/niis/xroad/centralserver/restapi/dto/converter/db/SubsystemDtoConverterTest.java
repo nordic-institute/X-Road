@@ -35,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
 import org.niis.xroad.centralserver.openapi.model.SubsystemDto;
 import org.niis.xroad.centralserver.openapi.model.UsedSecurityServersDto;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
@@ -42,6 +43,7 @@ import org.niis.xroad.centralserver.restapi.dto.converter.AbstractDtoConverterTe
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.ServerClient;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
+import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
@@ -76,6 +78,9 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
     @Mock
     private SubsystemRepository subsystemRepository;
 
+    @Mock
+    private ClientIdDtoConverter clientIdDtoConverter;
+
     @InjectMocks
     private SubsystemDtoConverter converter;
 
@@ -87,7 +92,11 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
         @DisplayName("should check for sanity")
         public void shouldCheckForSanity() {
             Set<ServerClient> serverClients = Set.of(serverClient);
-            doReturn(SUBSYSTEM_CODE).when(subsystem).getSubsystemCode();
+            SubsystemId clientId = SubsystemId.create(INSTANCE_ID, MEMBER_CLASS_CODE,
+                    MEMBER_CODE, SUBSYSTEM_CODE);
+            ClientIdDto clientIdDto = new ClientIdDto().subsystemCode(SUBSYSTEM_CODE);
+            doReturn(clientId).when(subsystem).getIdentifier();
+            doReturn(clientIdDto).when(clientIdDtoConverter).toDto(clientId);
             doReturn(serverClients).when(subsystem).getServerClients();
             doReturn(securityServer).when(serverClient).getSecurityServer();
             doReturn(SERVER_CODE).when(securityServer).getServerCode();
@@ -99,7 +108,7 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
             SubsystemDto converted = converter.toDto(subsystem);
 
             assertNotNull(converted);
-            assertEquals(SUBSYSTEM_CODE, converted.getSubsystemCode());
+            assertEquals(SUBSYSTEM_CODE, converted.getSubsystemId().getSubsystemCode());
             assertEquals(1, converted.getUsedSecurityServers().size());
             UsedSecurityServersDto convertedServerClient = converted.getUsedSecurityServers().get(0);
             assertEquals(SERVER_CODE, convertedServerClient.getServerCode());
@@ -114,16 +123,16 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
         @Test
         @DisplayName("should use persisted entity if present")
         public void shouldUsePersistedEntityIfPresent() {
-            doReturn(SUBSYSTEM_CODE).when(subsystemDto).getSubsystemCode();
-            doReturn(subsystem).when(subsystemRepository).findBySubsystemCode(SUBSYSTEM_CODE);
+            ClientIdDto clientIdDto = new ClientIdDto();
+            SubsystemId clientId = SubsystemId.create(INSTANCE_ID, MEMBER_CLASS_CODE,
+                    MEMBER_CODE, SUBSYSTEM_CODE);
+            doReturn(clientIdDto).when(subsystemDto).getSubsystemId();
+            doReturn(clientId).when(clientIdDtoConverter).fromDto(clientIdDto);
+            doReturn(subsystem).when(subsystemRepository).findByIdentifier(any());
 
             Subsystem converted = converter.fromDto(subsystemDto);
 
             assertEquals(subsystem, converted);
-            inOrder().verify(inOrder -> {
-                inOrder.verify(subsystemDto).getSubsystemCode();
-                inOrder.verify(subsystemRepository).findBySubsystemCode(SUBSYSTEM_CODE);
-            });
         }
     }
 }

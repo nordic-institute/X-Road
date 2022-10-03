@@ -29,12 +29,10 @@ package org.niis.xroad.centralserver.restapi.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import io.vavr.collection.Seq;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.ServerClient;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
-import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
@@ -45,6 +43,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
+
+import java.util.Set;
 
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SUBSYSTEM_EXISTS;
 
@@ -72,10 +72,10 @@ public class SubsystemService {
         securityServerClientNameRepository.save(ssClientName);
     }
 
-    public Seq<Subsystem> findByMemberIdentifier(ClientId id) {
-        XRoadMember xRoadMember = memberService.findMember(id)
-                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
-        return subsystemRepository.findAllByXroadMember(xRoadMember);
+    public Set<Subsystem> findByMemberIdentifier(ClientId id) {
+        return memberService.findMember(id)
+                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND))
+                .getSubsystems();
     }
 
     public void unregisterSubsystem(ClientId subsystemId, SecurityServerId securityServerId) {

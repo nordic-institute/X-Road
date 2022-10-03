@@ -119,7 +119,7 @@ class SubsystemsApiTest extends AbstractApiRestTemplateTestContext {
 
             assertNotNull(subsystemDtos);
             assertEquals(1, subsystemDtos.length);
-            assertEquals(subsystemCode, subsystemDtos[0].getSubsystemCode());
+            assertEquals(subsystemCode, subsystemDtos[0].getSubsystemId().getSubsystemCode());
             assertEquals(0,
                     subsystemDtos[0].getUsedSecurityServers().size());
         }
