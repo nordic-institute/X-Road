@@ -1,156 +1,22 @@
-plugins {
-    id 'io.spring.dependency-management'
-    id 'org.springframework.boot'
-    id 'org.openapi.generator' version "$openApiGeneratorVersion"
-    id 'com.github.hierynomus.license'
-}
+subprojects {
+    apply {
+        plugin 'io.spring.dependency-management'
+        plugin 'org.springframework.boot'
+        plugin 'com.github.hierynomus.license'
 
-archivesBaseName = 'centralserver-admin-service'
-
-configurations {
-    dist {
-        canBeConsumed = false
-        canBeResolved = true
     }
-    liquibaseLibs {
-        apply plugin: 'base'
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        }
     }
-}
 
-sourceSets {
-    main {
-        java.srcDirs = [
-            'src/main/java',
-            "${buildDir}/generated-sources/openapi/src/main/java",
-            "${buildDir}/generated/sources/annotationProcessor/java/main"
-        ]
+    bootJar {
+        enabled = false
     }
-}
 
-test {
-    useJUnitPlatform()
-}
-
-bootRun {
-    jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
-    if (project.hasProperty('args')) {
-        def params = project.args.tokenize(',')
-        args = params
+    test {
+        useJUnitPlatform()
     }
+
 }
-
-openApiGenerate {
-    generatorName = "spring"
-    inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml"
-    outputDir = "$buildDir/generated-sources/openapi"
-    apiPackage = "org.niis.xroad.centralserver.openapi"
-    modelPackage = "org.niis.xroad.centralserver.openapi.model"
-    modelNameSuffix = "Dto"
-    importMappings = [
-        User           : "org.niis.xroad.restapi.openapi.model.User",
-        ErrorInfo      : "org.niis.xroad.restapi.openapi.model.ErrorInfo",
-        CodeWithDetails: "org.niis.xroad.restapi.openapi.model.CodeWithDetails"
-    ]
-    globalProperties = [
-        modelDocs              : "false",
-        apis                   : "", // must use empty strings instead of "true":
-        // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-        models                 : "",
-        generateSupportingFiles: "false",
-        skipDefaultInterface   : "true",
-        supportingFiles        : 'ApiUtil.java'
-    ]
-    configOptions = [
-        interfaceOnly       : "true",
-        useTags             : "true",
-        documentationProvider  : "none",
-        skipDefaultInterface   : "true",
-        openApiNullable: "false"
-    ]
-}
-
-// Fix up to date check
-tasks.openApiGenerate {
-    inputs.files(openApiGenerate.inputSpec)
-    outputs.dir(openApiGenerate.outputDir)
-}
-
-compileJava.dependsOn tasks.openApiGenerate
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
-}
-
-dependencies {
-    dist(project(path: ':centralserver:admin-ui', configuration: 'dist'))
-
-    annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
-    annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
-    implementation project(':common-util')
-    implementation project(':common-verifier')
-    implementation project(':signer-protocol')
-    implementation project(':common-ui')
-    implementation project(':common-rest-api')
-
-    implementation('org.springframework.boot:spring-boot-starter-security')
-    implementation('org.springframework.boot:spring-boot-starter-web:2.5.0')
-    implementation('org.springframework.data:spring-data-commons')
-    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
-    implementation("org.springframework.boot:spring-boot-starter-cache")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation('org.kohsuke:libpam4j:1.11')
-    implementation('org.apache.commons:commons-compress:1.21')
-    implementation('wsdl4j:wsdl4j:1.6.3')
-    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
-    implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
-    implementation('io.swagger.core.v3:swagger-annotations:2.1.13')
-    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
-
-    implementation("io.vavr:vavr:$vavrVersion")
-
-    testImplementation project(':common-test')
-    testImplementation(testFixtures(project(":common-rest-api")))
-    testImplementation('org.springframework.boot:spring-boot-starter-test')
-    testImplementation('org.springframework.security:spring-security-test')
-    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
-    testImplementation('org.liquibase:liquibase-core:4.9.1')
-    testImplementation('org.yaml:snakeyaml:1.33')
-
-    implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-
-    liquibaseLibs('org.liquibase:liquibase-core:4.9.1')
-    liquibaseLibs('info.picocli:picocli:4.6.3')
-    liquibaseLibs("org.postgresql:postgresql:$postgresqlVersion")
-    liquibaseLibs('org.yaml:snakeyaml:1.33')
-}
-
-task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
-    from configurations.dist
-    into "${buildDir}/admin-ui/public"
-}
-
-bootJar {
-    if (!project.hasProperty('skip-frontend-build')) {
-        dependsOn copyUi
-        classpath += file("${buildDir}/admin-ui")
-    } else {
-        println("Warning: Excluding frontend from boot jar")
-    }
-    manifest {
-        attributes(
-            'Implementation-Title': 'X-Road Central Server Admin Service',
-            'Implementation-Version': "$xroadVersion-$xroadBuildType"
-        )
-    }
-}
-
-task downloadLiquibaseLibs(type: Copy) {
-    mkdir "${buildDir}/libs/"
-
-    from configurations.liquibaseLibs
-    into "${buildDir}/libs"
-}
-
-build.dependsOn downloadLiquibaseLibs
