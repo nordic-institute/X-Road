@@ -38,12 +38,7 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
-import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
-import org.niis.xroad.centralserver.restapi.converter.GroupMemberConverter;
-import org.niis.xroad.centralserver.restapi.dto.converter.db.SecurityServerDtoConverter;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
 import org.niis.xroad.centralserver.restapi.entity.MemberId;
@@ -67,10 +62,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_EXISTS;
 
@@ -83,11 +76,6 @@ class MemberServiceTest implements WithInOrder {
     private SecurityServerClientNameRepository securityServerClientNameRepository;
     @Mock
     private GlobalGroupMemberRepository globalGroupMemberRepository;
-
-    @Mock
-    private SecurityServerDtoConverter securityServerDtoConverter;
-    @Spy
-    private GroupMemberConverter groupMemberConverter;
 
     @InjectMocks
     private MemberService memberService;
@@ -239,13 +227,10 @@ class MemberServiceTest implements WithInOrder {
             final GlobalGroupMember memberGroup = new GlobalGroupMember(new GlobalGroup("groupCode"), clientId);
             doReturn(List.of(memberGroup)).when(globalGroupMemberRepository).findMemberGroups(clientId);
 
-            final Set<MemberGlobalGroupDto> result = memberService.getMemberGlobalGroups(clientId);
+            final List<GlobalGroupMember> result = memberService.getMemberGlobalGroups(clientId);
 
-            inOrder().verify(inOrder -> {
-                inOrder.verify(globalGroupMemberRepository).findMemberGroups(clientId);
-                inOrder.verify(groupMemberConverter).convertMemberGlobalGroups(List.of(memberGroup));
-            });
             assertEquals(1, result.size());
+            assertEquals(result, List.of(memberGroup));
         }
     }
 
@@ -263,24 +248,23 @@ class MemberServiceTest implements WithInOrder {
 
             doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
             doReturn(securityServersMock).when(xRoadMember).getOwnedServers();
-            doReturn(mock(SecurityServerDto.class), mock(SecurityServerDto.class))
-                    .when(securityServerDtoConverter).toDto(isA(SecurityServer.class));
 
-            final Set<SecurityServerDto> result = memberService.getMemberOwnedServers(clientId);
+
+            final Set<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
 
             inOrder().verify(inOrder -> {
                 inOrder.verify(xRoadMemberRepository).findMember(clientId);
                 inOrder.verify(xRoadMember).getOwnedServers();
-                inOrder.verify(securityServerDtoConverter, times(securityServersMock.size())).toDto(isA(SecurityServer.class));
             });
             assertEquals(securityServersMock.size(), result.size());
+            assertEquals(securityServersMock, result);
         }
 
         @Test
         void shouldReturnEmptySetWhenMemberNotFound() {
             doReturn(Option.none()).when(xRoadMemberRepository).findMember(clientId);
 
-            final Set<SecurityServerDto> result = memberService.getMemberOwnedServers(clientId);
+            final Set<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
 
             inOrder().verify(inOrder -> {
                 inOrder.verify(xRoadMemberRepository).findMember(clientId);

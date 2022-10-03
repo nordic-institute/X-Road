@@ -31,11 +31,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
-import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
-import org.niis.xroad.centralserver.restapi.converter.GroupMemberConverter;
-import org.niis.xroad.centralserver.restapi.dto.converter.db.SecurityServerDtoConverter;
+import org.hibernate.Hibernate;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClientName;
 import org.niis.xroad.centralserver.restapi.entity.Subsystem;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
@@ -52,7 +50,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_EXISTS;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_NOT_FOUND;
@@ -65,9 +62,6 @@ public class MemberService {
     private final XRoadMemberRepository xRoadMemberRepository;
     private final SecurityServerClientNameRepository securityServerClientNameRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
-
-    private final GroupMemberConverter groupMemberConverter;
-    private final SecurityServerDtoConverter securityServerDtoConverter;
 
     public XRoadMember add(XRoadMember member) {
         Consumer<XRoadMember> ensureClientNotExists = __ -> {
@@ -94,15 +88,19 @@ public class MemberService {
         return xRoadMemberRepository.findMember(clientId);
     }
 
-    public Set<MemberGlobalGroupDto> getMemberGlobalGroups(ClientId memberId) {
+    public List<GlobalGroupMember> getMemberGlobalGroups(ClientId memberId) {
         final List<GlobalGroupMember> memberGroups = globalGroupMemberRepository.findMemberGroups(memberId);
-        return groupMemberConverter.convertMemberGlobalGroups(memberGroups);
+        memberGroups.forEach(m -> {
+            Hibernate.initialize(m.getGlobalGroup());
+            Hibernate.initialize(m.getIdentifier());
+        });
+        return memberGroups;
     }
 
-    public Set<SecurityServerDto> getMemberOwnedServers(ClientId memberId) {
+    public Set<SecurityServer> getMemberOwnedServers(ClientId memberId) {
         return findMember(memberId)
                 .map(XRoadMember::getOwnedServers)
-                .map(servers -> servers.stream().map(securityServerDtoConverter::toDto).collect(Collectors.toSet()))
+                .peek(Hibernate::initialize)
                 .getOrElse(Set.of());
     }
 
