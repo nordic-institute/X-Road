@@ -72,7 +72,7 @@ public class CentralServerMemberStepDefs extends BaseUiStepDefs {
         String memberName = scenarioContext.getStepData("memberName");
         String memberCode = scenarioContext.getStepData("memberCode");
         String memberClass = scenarioContext.getStepData("memberClass");
-        $(xpath("//div[@data-test=\"members-view\"]//table/tbody/tr[(td[1] = '" + memberName + "') and (td[2] = '"
+        $(xpath("//div[@data-test=\"members-view\"]//table/tbody/tr[(normalize-space(td[1]/div/text()) = '" + memberName + "') and (td[2] = '"
                 + memberClass + "') and (td[3] = '" + memberCode + "')]")).shouldBe(Condition.visible);
 
     }
