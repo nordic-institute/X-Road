@@ -70,11 +70,6 @@ else
 fi
 
 case "$1" in
-    bionic)
-        prepare ubuntu18.04
-        builddeb build/xroad/ubuntu bionic ubuntu18.04 "$PACKAGE_VERSION"
-        builddeb build/xroad-jetty9/ubuntu bionic ubuntu18.04 "$PACKAGE_VERSION"
-        ;;
     focal)
         prepare ubuntu20.04
         builddeb build/xroad/ubuntu focal ubuntu20.04 "$PACKAGE_VERSION"
