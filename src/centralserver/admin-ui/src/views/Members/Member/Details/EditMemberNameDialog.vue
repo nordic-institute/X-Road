@@ -38,7 +38,11 @@
     >
       <template #content>
         <div class="dlg-input-width">
-          <v-text-field v-model="newMemberName" outlined></v-text-field>
+          <v-text-field
+            v-model="newMemberName"
+            outlined
+            data-test="edit-member-name"
+          ></v-text-field>
         </div>
       </template>
     </xrd-simple-dialog>

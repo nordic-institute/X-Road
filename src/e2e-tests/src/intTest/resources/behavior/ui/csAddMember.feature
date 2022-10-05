@@ -10,7 +10,7 @@ Feature: Central Server Add Member
   Scenario: Member is created and listed
     Given CentralServer Settings tab is selected
     And System settings tab is selected
-    And A new memberclass E2E is added
+    And A new member class E2E is added
     And Members tab is selected
-    When A new member with name: E2E Test Member, code: e2e-test-member & memberclass: E2E is added
+    When A new member with name: E2E Test Member, code: e2e-test-member & member class: E2E is added
     Then A new member is listed

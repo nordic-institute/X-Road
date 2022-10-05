@@ -36,17 +36,20 @@
         :action-text="$t('action.edit')"
         :show-action="allowMemberRename"
         :info-text="memberStore.currentMember.member_name || ''"
+        data-test="member-name-card"
         @actionClicked="showEditNameDialog = true"
       />
 
       <info-card
         :title-text="$t('global.memberClass')"
         :info-text="memberStore.currentMember.xroad_id.member_class || ''"
+        data-test="member-class-card"
       />
 
       <info-card
         :title-text="$t('global.memberCode')"
         :info-text="memberStore.currentMember.xroad_id.member_code || ''"
+        data-test="member-code-card"
       />
     </div>
 
@@ -72,6 +75,7 @@
           item-key="id"
           :loader-height="2"
           hide-default-footer
+          data-test="owned-servers-table"
         >
           <template #footer>
             <div class="cs-table-custom-footer"></div>
@@ -102,6 +106,7 @@
           item-key="group_code"
           :loader-height="2"
           hide-default-footer
+          data-test="global-groups-table"
         >
           <template #[`item.added_to_group`]="{ item }">
             {{ item.added_to_group | formatDateTime }}
@@ -112,7 +117,12 @@
         </v-data-table>
       </v-card>
 
-      <div v-if="allowMemberDelete" class="delete-action"  @click="showDeleteDialog = true" >
+      <div
+        v-if="allowMemberDelete"
+        class="delete-action"
+        data-test="delete-member"
+        @click="showDeleteDialog = true"
+      >
         <div>
           <v-icon class="xrd-large-button-icon" :color="colors.Purple100">mdi-close-circle</v-icon>
         </div>
