@@ -36,11 +36,9 @@
             </span>
           </v-card-title>
           <v-card-text class="pt-4" data-test="delete-member">
-            {{
-              $t('members.member.details.areYouSure1', {
-                member: member.member_name,
-              })
-            }}
+            {{ $t('members.member.details.confirmDelete1') }}
+            <b>{{ member.member_name }}</b>
+            {{ $t('members.member.details.confirmDelete2') }}
             <div class="dlg-input-width pt-4">
               <ValidationProvider
                 v-slot="{ errors }"

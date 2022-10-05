@@ -309,7 +309,8 @@
         "server": "Server",
         "enterCode": "Enter Member Code",
         "deleteMember": "Delete member",
-        "areYouSure1": "Are you sure you want to delete the Member {member} from the system configuration? Enter the member code to confirm.",
+        "confirmDelete1": "Are you sure you want to delete the Member",
+        "confirmDelete2": "from the system configuration? Enter the member code to confirm.",
         "editMemberName": "Edit Member's name",
         "memberNameSaved": "Member name successfully saved",
         "memberDeleted": "Member deleted successfully"
