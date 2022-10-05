@@ -37,6 +37,7 @@
           text
           :outlined="false"
           class="btn-adjust"
+          data-test="info-card-edit-button"
           @click="emitActionClick"
           >{{ actionText }}</xrd-button
         ></slot

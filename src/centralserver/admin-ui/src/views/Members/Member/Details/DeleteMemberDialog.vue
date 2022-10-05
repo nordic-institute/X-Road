@@ -35,7 +35,7 @@
               {{ $t('members.member.details.deleteMember') }}
             </span>
           </v-card-title>
-          <v-card-text class="pt-4">
+          <v-card-text class="pt-4" data-test="delete-member">
             {{
               $t('members.member.details.areYouSure1', {
                 member: member.member_name,
@@ -54,7 +54,7 @@
                   outlined
                   :label="$t('members.member.details.enterCode')"
                   autofocus
-                  data-test="add-local-group-code-input"
+                  data-test="member-code"
                   :error-messages="errors"
                 ></v-text-field>
               </ValidationProvider>
@@ -62,10 +62,18 @@
           </v-card-text>
           <v-card-actions class="xrd-card-actions">
             <v-spacer></v-spacer>
-            <xrd-button outlined @click="cancelDelete()">
+            <xrd-button
+              outlined
+              data-test="dialog-cancel-button"
+              @click="cancelDelete()"
+            >
               {{ $t('action.cancel') }}
             </xrd-button>
-            <xrd-button :disabled="invalid" @click="proceedDelete()">
+            <xrd-button
+              :disabled="invalid"
+              data-test="dialog-delete-button"
+              @click="proceedDelete()"
+            >
               {{ $t('action.delete') }}
             </xrd-button>
           </v-card-actions>

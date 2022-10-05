@@ -33,9 +33,11 @@ import static org.openqa.selenium.By.xpath;
 public final class Constants {
 
     public static final By BTN_DIALOG_SAVE = xpath("//button[@data-test=\"dialog-save-button\"]");
+    public static final By BTN_DIALOG_CANCEL = xpath("//button[@data-test=\"dialog-cancel-button\"]");
+    public static final By BTN_DIALOG_DELETE = xpath("//button[@data-test=\"dialog-delete-button\"]");
     public static final By SNACKBAR_SUCCESS = xpath("//div[@data-test=\"success-snackbar\"]");
     public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test=\"close-snackbar\"]");
-
+    public static final By BTN_INFO_CARD_EDIT = By.xpath("//button[@data-test=\"info-card-edit-button\"]");
     private Constants() {
     }
 }

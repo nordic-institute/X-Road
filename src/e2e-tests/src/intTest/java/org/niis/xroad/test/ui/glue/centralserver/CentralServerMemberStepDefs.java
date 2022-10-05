@@ -50,17 +50,17 @@ public class CentralServerMemberStepDefs extends BaseUiStepDefs {
         $(TAB_MEMBERS).click();
     }
 
-    @When("A new member with name: {}, code: {} & memberclass: {} is added")
+    @When("A new member with name: {}, code: {} & member class: {} is added")
     public void memberIsAdded(String memberName, String memberCode, String memberClass) {
         scenarioContext.putStepData("memberName", memberName);
         scenarioContext.putStepData("memberCode", memberCode);
         scenarioContext.putStepData("memberClass", memberClass);
 
         $(BTN_ADD_MEMBER).click();
-        $(INPUT_MEMBER_NAME).setValue("E2E Test Member");
+        $(INPUT_MEMBER_NAME).setValue(memberName);
         $(SELECT_MEMBER_CLASS).click();
         getOption(memberClass).click();
-        $(INPUT_MEMBER_CODE).setValue("e2e-test-member");
+        $(INPUT_MEMBER_CODE).setValue(memberCode);
         $(Constants.BTN_DIALOG_SAVE).shouldBe(Condition.enabled).click();
 
         $(Constants.SNACKBAR_SUCCESS).shouldBe(Condition.visible);

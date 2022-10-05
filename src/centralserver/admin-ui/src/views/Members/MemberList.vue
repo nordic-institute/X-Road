@@ -57,6 +57,7 @@
       item-key="id"
       :loader-height="2"
       :footer-props="{ itemsPerPageOptions: [10, 25] }"
+      data-test="members-table"
       @update:options="changeOptions"
     >
       <template #[`item.member_name`]="{ item }">
