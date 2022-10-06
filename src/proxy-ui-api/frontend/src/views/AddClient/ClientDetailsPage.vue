@@ -121,7 +121,7 @@
           </ValidationProvider>
         </div>
         <div v-if="duplicateClient" class="wizard-duplicate-warning">
-          {{ $t('wizard.client.memberExists') }}
+          {{ $t('wizard.client.clientExists') }}
         </div>
       </div>
       <div class="button-footer">

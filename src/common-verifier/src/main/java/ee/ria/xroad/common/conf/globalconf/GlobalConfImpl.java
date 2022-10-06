@@ -118,7 +118,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 return false;
             }
             if (now.isAfter(checkDir.getShared(mainInstance).getExpiresOn())) {
-                log.warn("Main sharedParameters expired at {}", checkDir.getPrivate(mainInstance).getExpiresOn());
+                log.warn("Main sharedParameters expired at {}", checkDir.getShared(mainInstance).getExpiresOn());
                 return false;
             }
             return true;
