@@ -1,15 +1,16 @@
 # X-Road: Autologin User Guide
 
-Version: 1.3  
+Version: 1.4
 Doc. ID: UG-AUTOLOGIN
 
 
-| Date        | Version     | Description                                                                                             
-|-------------|-------------|---------------------------------------------------------------------------------------------------------
-| 23.08.2017  | 1.0         | Initial version             
-| 06.03.2018  | 1.1         | Added chapter and section structure, terms and refs sections and term doc reference and link, toc                   
-| 15.11.2018  | 1.2         | Ubuntu 18.04 updates
-| 11.09.2019  | 1.3         | Remove Ubuntu 14.04 support
+| Date       | Version | Description                                                                                       |
+|------------|---------|---------------------------------------------------------------------------------------------------|
+| 23.08.2017 | 1.0     | Initial version                                                                                   |
+| 06.03.2018 | 1.1     | Added chapter and section structure, terms and refs sections and term doc reference and link, toc |
+| 15.11.2018 | 1.2     | Ubuntu 18.04 updates                                                                              |
+| 11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                                                                       |
+| 26.09.2022 | 1.4     | Remove Ubuntu 18.04 support                                                                       |
 
 ## Table of Contents
 
@@ -65,7 +66,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 * Creates a new service `xroad-autologin`
 * Service is started after `xroad-signer` has started
-* On RHEL/Ubuntu 18.04, service calls wrapper script `/usr/share/xroad/autologin/xroad-autologin-retry.sh` which in turn calls `autologin.expect`
+* On RHEL/Ubuntu 20.04, service calls wrapper script `/usr/share/xroad/autologin/xroad-autologin-retry.sh` which in turn calls `autologin.expect`
   * Wrapper script handles retries in error situations.
 * Service tries to enter the PIN code using script `signer-console`
   * If the PIN was correct or incorrect, it exits

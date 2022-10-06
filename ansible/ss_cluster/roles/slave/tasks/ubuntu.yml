@@ -14,4 +14,4 @@
       with_items:
         - xroad-sync.service
         - xroad-sync.timer
-  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"
+  when: ansible_distribution_release == "focal" or ansible_distribution_release == "jammy"
