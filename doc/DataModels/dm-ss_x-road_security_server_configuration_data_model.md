@@ -1,23 +1,23 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.6
+Version: 1.7
 Doc. ID: DM-SS
 
 ## Version history
 
-| Date       | Version | Description                                             | Author             |
-|------------|---------|---------------------------------------------------------|--------------------|
-| 11.06.2015 | 0.1     | Initial version                                         | Mait Märdin, Margus Freudenthal        |
-| 21.08.2015 | 0.4     | Added sections related to saving database history       | Mait Märdin        |
-| 31.08.2015 | 0.5     | Removed backend URL that was removed from code          | Margus Freudenthal |
-| 20.09.2015 | 1.0     | Editorial changes made                                  | Imbi Nõgisto       |
-| 19.10.2015 | 1.1     | Indexes added                                           | Martin Lind        |
-| 11.12.2015 | 1.2     | Small fixes                                             | Siim Annuk         |
-| 28.01.2019 | 1.3     | Wsdl changes to servicedescription. Document converted to Markdown.  | Ilkka Seppälä      |
-| 26.03.2019 | 1.4     | Added tables for API keys                                            | Janne Mattila      |
-| 04.07.2019 | 1.5     | REST access rights                                      | Jarkko Hyöty |
-| 16.09.2019 | 1.6     | Remove Ubuntu 14.04 support                             | Jarkko Hyöty |
-
+| Date       | Version | Description                                                         | Author                          |
+|------------|---------|---------------------------------------------------------------------|---------------------------------|
+| 11.06.2015 | 0.1     | Initial version                                                     | Mait Märdin, Margus Freudenthal |
+| 21.08.2015 | 0.4     | Added sections related to saving database history                   | Mait Märdin                     |
+| 31.08.2015 | 0.5     | Removed backend URL that was removed from code                      | Margus Freudenthal              |
+| 20.09.2015 | 1.0     | Editorial changes made                                              | Imbi Nõgisto                    |
+| 19.10.2015 | 1.1     | Indexes added                                                       | Martin Lind                     |
+| 11.12.2015 | 1.2     | Small fixes                                                         | Siim Annuk                      |
+| 28.01.2019 | 1.3     | Wsdl changes to servicedescription. Document converted to Markdown. | Ilkka Seppälä                   |
+| 26.03.2019 | 1.4     | Added tables for API keys                                           | Janne Mattila                   |
+| 04.07.2019 | 1.5     | REST access rights                                                  | Jarkko Hyöty                    |
+| 16.09.2019 | 1.6     | Remove Ubuntu 14.04 support                                         | Jarkko Hyöty                    |
+| 26.09.2022 | 1.7     | Remove Ubuntu 18.04 support                                         | Andres Rosenthal                |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -94,7 +94,7 @@ This document describes database model of X-Road security server.
 
 ### 1.2 Database Version
 
-This database assumes PostgreSQL version 9.2 or later. Ubuntu 18.04 and RHEL7 default settings are used.
+This database assumes PostgreSQL version 9.2 or later.
 
 ### 1.3 Creating, Backing Up and Restoring the Database
 

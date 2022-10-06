@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 RUN apt-get clean && apt-get -y update && apt-get install -y locales && locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
@@ -11,7 +11,7 @@ RUN apt-get -qq update \
   && apt-get -qq install curl software-properties-common gawk \
   openjdk-11-jdk-headless build-essential git unzip debhelper \
   && apt-get -qq autoremove \
-&& apt-get -qq clean
+  && apt-get -qq clean
 
 ARG uid=1000
 ARG gid=1000
