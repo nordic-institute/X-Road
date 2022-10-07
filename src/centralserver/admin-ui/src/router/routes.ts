@@ -201,7 +201,7 @@ const routes: RouteConfig[] = [
                 path: 'subsystems',
                 component: MemberSubsystems,
                 meta: { permissions: [Permissions.VIEW_MEMBER_DETAILS] },
-                props: { default: true },
+                props: true,
               },
             ],
           },
