@@ -74,6 +74,7 @@ import { systemStore } from '@/store/modules/system';
 import { notificationsStore } from '@/store/modules/notifications';
 import { subsystemStore } from '@/store/modules/subsystems';
 import { Client } from '@/openapi-types';
+import { toIdentifier } from '@/util/helpers';
 
 export default Vue.extend({
   name: 'DeleteMemberSubsystemDialog',
@@ -107,13 +108,7 @@ export default Vue.extend({
     deleteSubsystem(): void {
       this.subsystemStore
         .deleteById(
-          this.currentMember.xroad_id.instance_id +
-            ':' +
-            this.currentMember.xroad_id.member_class +
-            ':' +
-            this.currentMember.xroad_id.member_code +
-            ':' +
-            this.subsystemCode,
+          toIdentifier(this.currentMember.xroad_id) + ':' + this.subsystemCode,
         )
         .then(() => {
           this.showSuccess(

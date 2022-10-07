@@ -70,6 +70,7 @@ import { systemStore } from '@/store/modules/system';
 import { notificationsStore } from '@/store/modules/notifications';
 import { subsystemStore } from '@/store/modules/subsystems';
 import { memberStore } from '@/store/modules/members';
+import { toIdentifier } from '@/util/helpers';
 
 export default Vue.extend({
   name: 'UnregisterMemberSubsystemDialog',
@@ -101,20 +102,8 @@ export default Vue.extend({
       const currentMember = this.memberStore.$state.currentMember;
       this.subsystemStore
         .unregisterById(
-          currentMember.xroad_id.instance_id +
-            ':' +
-            currentMember.xroad_id.member_class +
-            ':' +
-            currentMember.xroad_id.member_code +
-            ':' +
-            this.subsystemCode,
-          currentMember.xroad_id.instance_id +
-            ':' +
-            currentMember.xroad_id.member_class +
-            ':' +
-            currentMember.xroad_id.member_code +
-            ':' +
-            this.serverCode,
+          toIdentifier(currentMember.xroad_id) + ':' + this.subsystemCode,
+          toIdentifier(currentMember.xroad_id) + ':' + this.serverCode,
         )
         .then(() => {
           this.showSuccess(
