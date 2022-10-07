@@ -32,4 +32,9 @@
         <cve>CVE-2022-22976</cve>
         <cve>CVE-2022-22978</cve>
     </suppress>
+    <suppress until="2022-10-31Z">
+        <notes><![CDATA[Time-limited suppression as there is no proper release with a fix available (only rc). The vulnerable feature UNWRAP_SINGLE_VALUE_ARRAYS is not enabled.]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
+        <cve>CVE-2022-42003</cve>
+    </suppress>
 </suppressions>
