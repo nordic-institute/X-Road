@@ -24,6 +24,6 @@ if [ ! -e "$NODE/server.key" ]; then
     echo $PW | openssl req -new -passout stdin -keyout $NODE/server.key.tmp -out $NODE/server.csr -subj "$BASEDN/CN=$NODE"
     echo $PW | openssl rsa -passin stdin -in "$NODE/server.key.tmp" | ansible-vault encrypt --output $NODE/server.key
     rm "$NODE/server.key.tmp"
-    openssl x509 -req -in $NODE/server.csr -CAcreateserial -CA ca.crt -CAkey ca.key -days $DAYS -out $NODE/server.crt
+    openssl x509 -req -in $NODE/server.csr -CAcreateserial -CA ca.crt -CAkey ca.key -days $DAYS -sha256 -out $NODE/server.crt
 fi
 
