@@ -102,7 +102,7 @@
           </ValidationProvider>
         </div>
         <div v-if="duplicateClient" class="wizard-duplicate-warning">
-          {{ $t('wizard.client.memberExists') }}
+          {{ $t('wizard.subsystem.subsystemExists') }}
         </div>
 
         <div class="wizard-row-wrap">
