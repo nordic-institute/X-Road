@@ -8,7 +8,7 @@
         </preConditions>
 
         <createTable tableName="APIKEY">
-            <column name="ID" type="BIGINT">
+            <column name="ID" type="BIGINT" autoIncrement="true">
                 <constraints nullable="false"/>
             </column>
             <column name="ENCODEDKEY" type="VARCHAR(255)">

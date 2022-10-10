@@ -18,11 +18,57 @@ dependencies {
     implementation project(':centralserver:admin-service:core')
     implementation project(':centralserver:admin-service:infra-api-rest')
     implementation project(':centralserver:admin-service:infra-jpa')
+
+    implementation('org.liquibase:liquibase-core') //TODO enabling runtime liquibase
+
+    intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-feign:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
+
+    //TODO test automation should release BOM module
+    intTestImplementation("org.testcontainers:postgresql:1.17.5")
 }
 
 test {
     useJUnitPlatform()
 }
+
+task intTest(type: Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs integration tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    def e2eTestArgs = []
+    if (project.hasProperty('e2eTestTags')) {
+        e2eTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('e2eTestTags')
+    }
+    if (project.hasProperty('e2eTestServeReport')) {
+        e2eTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('e2eTestServeReport')
+    }
+    if (project.hasProperty('e2eTestSecurityServerUrl')) {
+        e2eTestArgs += "-Dtest-automation.custom.security-server-url=" + project.getProperty('e2eTestSecurityServerUrl')
+    }
+    if (project.hasProperty('e2eTestCentralServerUrl')) {
+        e2eTestArgs += "-Dtest-automation.custom.central-server-url=" + project.getProperty('e2eTestCentralServerUrl')
+    }
+    jvmArgs e2eTestArgs
+
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+
+    shouldRunAfter test
+}
+
+test.finalizedBy(intTest)
 
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]

@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -22,34 +23,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.config.audit;
+package org.niis.xroad.cs.test.api.configuration;
 
-import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.AuditEventHelper;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
+import com.nortal.test.feign.interceptor.FeignClientInterceptor;
+import okhttp3.Interceptor;
+import okhttp3.Response;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
 
-import static org.mockito.Mockito.mock;
+import java.io.IOException;
 
-/**
- * We probably need common-rest-api-test dependency for these
- */
-@Configuration
-@Profile("!audit-test")
-public class AuditLogMockingConfiguration {
+@Component
+public class AuthenticationFeignClientInterceptor implements FeignClientInterceptor {
+    private static final int EXECUTION_ORDER = 50;
 
-    @Bean
-    @Primary
-    public AuditDataHelper mockAuditDataHelper() {
-        return mock(AuditDataHelper.class);
+    @Override
+    public int getOrder() {
+        return EXECUTION_ORDER;
     }
 
-    @Bean
-    @Primary
-    public AuditEventHelper mockAuditEventHelper() {
-        return mock(AuditEventHelper.class);
+    @NotNull
+    @Override
+    public Response intercept(@NotNull Interceptor.Chain chain) throws IOException {
+        var request = chain.request().newBuilder()
+                .addHeader("Authorization", "X-ROAD-APIKEY TOKEN=d56e1ca7-4134-4ed4-8030-5f330bdb602a");
+        return chain.proceed(request.build());
     }
-
 }

@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
  * Also adjusts to non-request aware context.
  */
 @Component
-@Profile({ "nontest"})
+@Profile({ "nontest", "audit-test"})
 public class AuditEventLoggingFacade {
 
     private final UsernameHelper usernameHelper;
