@@ -327,11 +327,17 @@
         "subsystems": "Subsystems"
       },
       "subsystems": {
-        "addClient": "Add Client",
+        "addClient": "Add new subsystem to database",
+        "deleteSubsystem": "Delete Subsystem",
         "serverOwner": "Server owner",
         "servercode": "Server code",
         "status": "Status",
-        "subsystemcode": "Subsystem code"
+        "subsystemcode": "Subsystem code",
+        "subsystemSuccessfullyAdded": "Subsystem {subsystemCode} is added to the system configuration",
+        "areYouSureDelete": "Are you sure you want to delete the Subsystem {subsystemCode} from the X-Road member {memberId} from the system configuration?",
+        "subsystemSuccessfullyDeleted": "Subsystem {subsystemCode} has been deleted from the system configuration",
+        "areYouSureUnregister": "Are you sure you want to delete the Subsystem {subsystemCode} from server {serverCode} from the system configuration?",
+        "subsystemSuccessfullyUnregistered": "Subsystem {subsystemCode} from server {serverCode} has been deleted"
       }
     },
     "memberSuccessfullyAdded": "Member {memberName} is added to the system configuration."
@@ -354,6 +360,8 @@
     "ownerCode": "Owner Code",
     "ownerName": "Owner Name",
     "registered": "Registered",
+    "unregistered": "Unregistered",
+    "pending": "Pending approval",
     "securityServer": {
       "certificationAuthority": "Certification Authority",
       "deleteServer": "Delete server",
