@@ -28,6 +28,7 @@ import org.niis.xroad.restapi.util.RequestHelper;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +37,7 @@ import java.util.Map;
 /**
  * We probably need common-rest-api-test dependency for these
  */
+@Primary
 @Component
 @Profile({ "test"})
 public class MockableAuditEventLoggingFacade extends AuditEventLoggingFacade {
