@@ -34,12 +34,14 @@
           </span>
         </v-card-title>
         <v-card-text class="pt-4" data-test="unregister-subsystem">
-          {{
-            $t('members.member.subsystems.areYouSureUnregister', {
-              subsystemCode: subsystemCode,
-              serverCode: serverCode,
-            })
-          }}
+          <i18n path="members.member.subsystems.areYouSureUnregister">
+            <template #subsystemCode>
+              <b>{{ subsystemCode }}</b>
+            </template>
+            <template #serverCode>
+              <b>{{ serverCode }}</b>
+            </template>
+          </i18n>
         </v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>

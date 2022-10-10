@@ -34,15 +34,16 @@
           </span>
         </v-card-title>
         <v-card-text class="pt-4" data-test="delete-subsystem">
-          {{
-            $t('members.member.subsystems.areYouSureDelete', {
-              subsystemCode: subsystemCode,
-              memberId:
-                currentMember.xroad_id.member_class +
-                '/' +
-                currentMember.xroad_id.member_code,
-            })
-          }}
+          <i18n path="members.member.subsystems.areYouSureDelete">
+            <template #subsystemCode>
+              <b>{{ subsystemCode }}</b>
+            </template>
+            <template #memberId>
+              <b>{{ currentMember.xroad_id.member_class +
+              '/' +
+              currentMember.xroad_id.member_code }}</b>
+            </template>
+          </i18n>
         </v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
