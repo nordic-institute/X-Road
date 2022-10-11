@@ -31,12 +31,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.centralserver.restapi.dto.CertificationService;
+import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -44,15 +49,22 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CertificationServicesServiceTest {
 
+    private static final Integer ID = 123;
+
     @Mock
     private ApprovedCaRepository approvedCaRepository;
+    @Mock
+    private ApprovedCaConverter approvedCaConverter;
+    @Mock
+    private ApprovedCa approvedCaMock;
+    @Mock
+    private CertificationService certificationServiceMock;
 
     @InjectMocks
     private CertificationServicesService service;
 
     @Test
     void getCertificationServices() {
-        ApprovedCa approvedCaMock = new ApprovedCa();
         when(approvedCaRepository.findAll()).thenReturn(List.of(approvedCaMock));
 
         List<ApprovedCa> approvedCertificationServices = service.getCertificationServices();
@@ -62,6 +74,23 @@ class CertificationServicesServiceTest {
 
         verify(approvedCaRepository).findAll();
         verifyNoMoreInteractions(approvedCaRepository);
+    }
+
+    @Test
+    void get() {
+        when(approvedCaRepository.findById(ID)).thenReturn(Optional.of(approvedCaMock));
+        when(approvedCaConverter.convert(approvedCaMock)).thenReturn(certificationServiceMock);
+
+        final CertificationService certificationService = service.get(ID);
+
+        assertEquals(certificationServiceMock, certificationService);
+    }
+
+    @Test
+    void getShouldThrowNotFoundException() {
+        when(approvedCaRepository.findById(ID)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> service.get(ID));
     }
 
 }

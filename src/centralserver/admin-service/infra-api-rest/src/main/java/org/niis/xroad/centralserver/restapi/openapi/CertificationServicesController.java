@@ -34,6 +34,7 @@ import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDt
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
+import org.niis.xroad.centralserver.restapi.converter.ApprovedCertificationServiceDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.CertificationServiceConverter;
 import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
@@ -63,6 +64,7 @@ public class CertificationServicesController implements CertificationServicesApi
 
     private final CertificationServicesService certificationServicesService;
     private final CertificationServiceConverter certificationServiceConverter;
+    private final ApprovedCertificationServiceDtoConverter approvedCertificationServiceDtoConverter;
 
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE)
@@ -98,8 +100,9 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
-    public ResponseEntity<ApprovedCertificationServiceDto> getCertificationService(String id) {
-        throw new NotImplementedException("getCertificationService not implemented yet");
+    @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
+    public ResponseEntity<ApprovedCertificationServiceDto> getCertificationService(Integer id) {
+        return ok(approvedCertificationServiceDtoConverter.convert(certificationServicesService.get(id)));
     }
 
     @Override

@@ -27,14 +27,19 @@ package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.centralserver.restapi.dto.CertificationService;
+import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -43,12 +48,19 @@ import java.util.List;
 public class CertificationServicesService {
     private final ApprovedCaRepository approvedCaRepository;
     private final AuditDataHelper auditDataHelper;
+    private final ApprovedCaConverter approvedCaConverter;
 
     public ApprovedCa add(ApprovedCa approvedCaEntity) {
         final ApprovedCa persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
         addAuditData(persistedApprovedCa);
 
         return persistedApprovedCa;
+    }
+
+    public CertificationService get(Integer id) {
+        return approvedCaRepository.findById(id)
+                .map(approvedCaConverter::convert)
+                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
     }
 
     public List<ApprovedCa> getCertificationServices() {
