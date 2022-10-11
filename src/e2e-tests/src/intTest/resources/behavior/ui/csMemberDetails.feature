@@ -9,7 +9,7 @@ Feature: Central Server Member Details View
 
     When CentralServer Settings tab is selected
     And System settings tab is selected
-    Then A new member class E2E is added
+    And A new member class E2E is added
 
   Scenario: Member detail info is correctly shown
     Given Members tab is selected
