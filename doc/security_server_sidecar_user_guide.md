@@ -345,7 +345,8 @@ Notes:
 * If the old container was ephemeral, it is necessary to manually map the volumes (can not use --volumes-from)
 * Admin user needs to be created every time since it is not part of the persistent configuration
 * If `xroad.properties` file containing the database administrator credentials will be missing during the upgrade, 
-then credentials from `db.properties` will be used, which might cause issues if those credentials won't have enough permissions to execute database updates
+then non admin user credentials from `db.properties` will be used, which might cause issues if those credentials won't have enough 
+permissions to execute database updates
 
 ### 4.1 Upgrading from version 6.26.0 to 7.0.0
 

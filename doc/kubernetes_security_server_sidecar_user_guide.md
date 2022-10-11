@@ -658,7 +658,7 @@ Upgrading to a new Sidecar container image is supported, provided that:
   As an exception, upgrading from 6.26.0 to 7.0.x is supported despite the major version change.
 * A volume is used for `/etc/xroad`.
 * An external database is used (or a volume is mapped to `/var/lib/postgresql/12/data`).
-* The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`
+* The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`.
 * The same image type (slim or full) and variant (ee, fi, ...) are used for the new container.
 
 To update the version of the Security Server Sidecar, re-deploy the Pod with a newer version of the Sidecar container image. In case of the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer), it is possible to do a rolling upgrade if there are no changes to the database schema. In the case of database schema changes, one needs to take the cluster off-line (scale the secondary replica set to zero), upgrade the primary, and then upgrade (and scale up) the secondaries.

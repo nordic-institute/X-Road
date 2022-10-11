@@ -7,7 +7,7 @@
  25.01.2021 | 1.0     | Initial version                              | Alberto Fernandez Lorenzo
  09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices | Alberto Fernandez Lorenzo
  28.11.2021 | 1.2     | Add license info                             | Petteri Kivimäki
- 11.10.2022 | 1.3     | Updating links                               | Petteri Kivimäki
+ 11.10.2022 | 1.3     | Updating links                               | Monika Liutkute
 
 ## License
 
