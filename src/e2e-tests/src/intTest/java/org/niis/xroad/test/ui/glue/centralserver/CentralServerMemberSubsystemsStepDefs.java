@@ -25,17 +25,16 @@
  */
 package org.niis.xroad.test.ui.glue.centralserver;
 
-
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
-import org.niis.xroad.test.ui.glue.constants.Constants;
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
 import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_CLOSE_SNACKBAR;
 import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_DIALOG_CANCEL;
+import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_DIALOG_DELETE;
 import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_DIALOG_SAVE;
 import static org.niis.xroad.test.ui.glue.constants.Constants.SNACKBAR_SUCCESS;
 import static org.openqa.selenium.By.xpath;
@@ -81,11 +80,11 @@ public class CentralServerMemberSubsystemsStepDefs extends BaseUiStepDefs {
     public void subsystemIsDeleted() {
         $(BTN_DELETE_SUBSYSTEM).click();
 
-        $(Constants.BTN_DIALOG_CANCEL).shouldBe(Condition.enabled);
-        $(Constants.BTN_DIALOG_DELETE).shouldBe(Condition.enabled).click();
+        $(BTN_DIALOG_CANCEL).shouldBe(Condition.enabled);
+        $(BTN_DIALOG_DELETE).shouldBe(Condition.enabled).click();
 
-        $(Constants.SNACKBAR_SUCCESS).shouldBe(Condition.visible);
-        $(Constants.BTN_CLOSE_SNACKBAR).click();
+        $(SNACKBAR_SUCCESS).shouldBe(Condition.visible);
+        $(BTN_CLOSE_SNACKBAR).click();
     }
 
     @Then("Subsystem with code: {} and status: {} not listed any more")
