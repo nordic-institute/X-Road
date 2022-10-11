@@ -2,17 +2,18 @@
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 13.11.2020 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
- 24.12.2020 | 1.1     | Add description of features of different image versions         | Petteri Kivimäki
- 21.01.2021 | 1.2     | Removal of kubernetes related sections                          | Alberto Fernandez Lorenzo
- 10.02.2021 | 1.3     | Modify description of different supported platforms             | Raul Martinez Lopez
- 06.05.2021 | 1.4     | Updated X-Road version                                          | Raul Martinez Lopez
- 12.07.2021 | 1.5     | Added 6.25.0 to 6.26.0 upgrade steps                            | Raul Martinez Lopez
- 15.10.2021 | 1.6     | Minor documentation updates                                     | Janne Mattila
- 02.11.2021 | 1.7     | Updates for Sidecar 7.0.0                                       | Jarkko Hyöty
- 28.11.2021 | 1.8     | Add license info                                                | Petteri Kivimäki
+ Date       | Version | Description                                             | Author
+ ---------- |---------|---------------------------------------------------------| --------------------
+ 13.11.2020 | 1.0     | Initial version                                         | Alberto Fernandez Lorenzo
+ 24.12.2020 | 1.1     | Add description of features of different image versions | Petteri Kivimäki
+ 21.01.2021 | 1.2     | Removal of kubernetes related sections                  | Alberto Fernandez Lorenzo
+ 10.02.2021 | 1.3     | Modify description of different supported platforms     | Raul Martinez Lopez
+ 06.05.2021 | 1.4     | Updated X-Road version                                  | Raul Martinez Lopez
+ 12.07.2021 | 1.5     | Added 6.25.0 to 6.26.0 upgrade steps                    | Raul Martinez Lopez
+ 15.10.2021 | 1.6     | Minor documentation updates                             | Janne Mattila
+ 02.11.2021 | 1.7     | Updates for Sidecar 7.0.0                               | Jarkko Hyöty
+ 28.11.2021 | 1.8     | Add license info                                        | Petteri Kivimäki
+ 11.10.2022 | 1.9     | Minor documentation updates regarding upgrade process   | Monika Liutkute
 
 ## License
 
@@ -72,9 +73,11 @@ Operational monitoring           | Yes         | No               |
 
 ### 1.2 References
 
-<a id="Ref_IG-SS">[IG-SS]</a> [X-Road: Security Server Installation Guide](https://github.com/nordic-institute/X-Road/blob/beta-7.0.0/doc/Manuals/ig-ss_x-road_v6_security_server_installation_guide.md)
+<a id="Ref_IG-SS">[IG-SS]</a> [X-Road: Security Server Installation Guide](https://github.com/nordic-institute/X-Road/blob/master/doc/Manuals/ig-ss_x-road_v6_security_server_installation_guide.md)
 
-<a id="Ref_UG-SS">[UG-SS]</a> [X-Road: Security Server User Guide](https://github.com/nordic-institute/X-Road/blob/beta-7.0.0/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md)
+<a id="Ref_IG-SS-Annex-D">[IG-SS-Annex-D]</a> [X-Road: Security Server Installation Guide](https://github.com/nordic-institute/X-Road/blob/master/doc/Manuals/ig-ss_x-road_v6_security_server_installation_guide.md#annex-d-create-database-structure-manually)
+
+<a id="Ref_UG-SS">[UG-SS]</a> [X-Road: Security Server User Guide](https://github.com/nordic-institute/X-Road/blob/master/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md)
 
 ## 2 Installation
 
@@ -93,9 +96,10 @@ Minimum container resource limits for running the Security Server Sidecar contai
 The following parameters are used in example commands:
 
 | **Value**                           | **Explanation**
-| ------------------------------------| ----------------------------------------------------------
+|-------------------------------------| ----------------------------------------------------------
 | \<container name>                   | Name of the Security Server Sidecar container
 | \<admin port>                       | Port for admin user interface (default 4000)
+| \<healthcheck port>                 | Port for service health check (default 5588)
 | \<consumer information system port> | Consumer information system port (default 8080 (http), 8443 (https))
 | \<token pin>                        | Software token PIN code
 | \<admin user>                       | Admin username
@@ -312,11 +316,11 @@ See [IG-SS](#Ref_IG-SS) for configuration details.
 
 Upgrading to a new image is supported, provided that:
 
-* The new container image has the the same or subsequent minor version of the X-Road Security Server
+* The new container image has the same or subsequent minor version of the X-Road Security Server
   * As an exception, upgrading from 6.26.0 to 7.0.x is supported despite the major version change.
 * A volume is used for `/etc/xroad`
 * A remote database is used, or a volume is mapped to `/var/lib/postgresql/12/data`
-* The `xroad.properties` file with `serverconf_admin` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`
+* The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`
 * The same image type (slim or full) and variant (ee, fi, ...) are used for the new container
 
 If the prerequisites are met, upgrading is straightforward:
@@ -340,11 +344,14 @@ If the prerequisites are met, upgrading is straightforward:
 Notes:
 * If the old container was ephemeral, it is necessary to manually map the volumes (can not use --volumes-from)
 * Admin user needs to be created every time since it is not part of the persistent configuration
+* If `xroad.properties` file containing the database administrator credentials will be missing during the upgrade, 
+then credentials from `db.properties` will be used, which might cause issues if those credentials won't have enough permissions to execute database updates
 
 ### 4.1 Upgrading from version 6.26.0 to 7.0.0
 
 Upgrading from 6.26.0 to 7.0.0 is supported, if the above prerequisites are met. However, due to a problem in installer scripts, 
-it is necessary to verify that the `/etc/xroad.properties` file has been correctly populated (see [IG-SS, Annex D](#Ref_IG-SS) for details).
+it is necessary to verify that the `/etc/xroad.properties` file has been correctly populated.
+(see [IG-SS, Annex D](#Ref_IG-SS-Annex-D) for details describing expected file content and manual creation instructions).
 Backups are not compatible between 6.26.0 and 7.0.0, so upgrading using a backup is not possible.
 
 In case the prerequisites are not fully met, it is possible to manually prepare an intermediate container for the upgrade:
@@ -359,7 +366,7 @@ In case the prerequisites are not fully met, it is possible to manually prepare 
   ```
   docker run -v sidecar-config:/etc/xroad -v sidecar-db:/var/lib/postgresql/12/data ... -n <container-name-temp> sidecar-temp-image
   ```
-  Copy `/etc/xroad.properties` into the volume unless it is a bind mounted file. If `/etc/xroad.properties` is a bind mounted file, verity that the `serverconf_admin` etc. credentials exist and are correct.
+  Copy `/etc/xroad.properties` into the volume unless it is a bind mounted file. If `/etc/xroad.properties` is a bind mounted file, verify that the `serverconf.database.admin_user` etc. credentials exist and are correct.
   ```
   docker exec sidecar-temp-image cp /etc/xroad.properties /etc/xroad/xroad.properties
   docker stop <container-name-temp>
