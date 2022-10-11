@@ -28,6 +28,7 @@ pipeline {
             agent {
                 dockerfile {
                     dir 'src/packages/docker-compile'
+                    args '-v $PWD:$PWD -w $PWD -v /var/run/docker.sock:/var/run/docker.sock'
                     additionalBuildArgs '--build-arg uid=$(id -u) --build-arg gid=$(id -g)'
                     reuseNode true
                 }
@@ -35,7 +36,6 @@ pipeline {
             environment {
                 GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dsonar.host.url=https://sonarqube.niis.org'
                 JAVA_HOME = '/usr/lib/jvm/java-11-openjdk-amd64'
-                DOCKER_HOST = 'unix:///var/run/docker.sock'
             }
             steps {
                 withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
