@@ -28,7 +28,7 @@ pipeline {
             agent {
                 dockerfile {
                     dir 'src/packages/docker-compile'
-                    args '-v $PWD:$PWD -w $PWD -v /var/run/docker.sock:/var/run/docker.sock'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
                     additionalBuildArgs '--build-arg uid=$(id -u) --build-arg gid=$(id -g)'
                     reuseNode true
                 }
