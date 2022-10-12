@@ -25,18 +25,20 @@ pipeline {
             }
         }
         stage('Compile Code') {
+            environment {
+                        GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dsonar.host.url=https://sonarqube.niis.org'
+                        JAVA_HOME = '/usr/lib/jvm/java-11-openjdk-amd64'
+                        DOCKER_GID = """${sh(returnStdout: true, script: 'getent group docker | cut -d: -f3')}""".trim()
+                    }
             agent {
                 dockerfile {
                     dir 'src/packages/docker-jenkins-compile'
                     additionalBuildArgs  '--build-arg JENKINSUID=`id -u jenkins` --build-arg JENKINSGID=`id -g jenkins` --build-arg DOCKERGID=`stat -c %g /var/run/docker.sock`'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock --group-add $(getent group docker | cut -d: -f3)'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock --group-add ${DOCKER_GID}'
                     reuseNode true
                 }
             }
-            environment {
-                GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dsonar.host.url=https://sonarqube.niis.org'
-                JAVA_HOME = '/usr/lib/jvm/java-11-openjdk-amd64'
-            }
+
             steps {
                 sh 'whoami'
                 sh 'ls -ltra /var/run/'
