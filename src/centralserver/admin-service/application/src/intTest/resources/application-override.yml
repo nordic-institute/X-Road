@@ -22,6 +22,7 @@ test-automation:
       debug-port: 9000
       jacoco:
         enabled: true
+        host: host.docker.internal
       reuse-between-runs: false
       jar-build-dir: build/libs/
       spring-profiles-to-activate: test,audit-test
