@@ -41,5 +41,4 @@ public class CertificationServiceListItem {
     private Instant notAfter;
     private Instant notBefore;
 
-
 }
