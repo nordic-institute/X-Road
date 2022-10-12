@@ -29,6 +29,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceListItemDto;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -61,9 +62,9 @@ class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
     void getCertificationServices() {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
 
-        ResponseEntity<ApprovedCertificationServiceDto[]> response = restTemplate.getForEntity(
+        var response = restTemplate.getForEntity(
                 "/api/v1/certification-services",
-                ApprovedCertificationServiceDto[].class);
+                ApprovedCertificationServiceListItemDto[].class);
 
         assertNotNull(response);
         assertEquals(OK, response.getStatusCode());
@@ -92,14 +93,14 @@ class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
         assertFalse(cert.getTlsAuth());
 
         assertEquals(OffsetDateTime.of(2019, 3, 26, 13, 35, 42, 0, ZoneOffset.UTC),
-                cert.getCaCertificate().getNotBefore());
+                cert.getNotBefore());
         assertEquals(OffsetDateTime.of(2019, 6, 18, 13, 24, 0, 0, ZoneOffset.UTC),
-                cert.getCaCertificate().getNotAfter());
+                cert.getNotAfter());
         assertEquals("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US",
-                cert.getCaCertificate().getSubjectDistinguishedName());
+                cert.getSubjectDistinguishedName());
         assertEquals("CN=Google Internet Authority G3, O=Google Trust Services, C=US",
-                cert.getCaCertificate().getIssuerDistinguishedName());
-        assertEquals("*.google.com", cert.getCaCertificate().getSubjectCommonName());
+                cert.getIssuerDistinguishedName());
+        assertEquals("*.google.com", cert.getName());
     }
 
     @Test
@@ -114,9 +115,9 @@ class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
 
         assertNotNull(response);
         assertEquals(OK, response.getStatusCode());
-        assertEquals("*.google.com", response.getBody().getCaCertificate().getSubjectCommonName());
-        assertNotNull(response.getBody().getCaCertificate().getNotBefore());
-        assertNotNull(response.getBody().getCaCertificate().getNotAfter());
+        assertEquals("*.google.com", response.getBody().getName());
+        assertNotNull(response.getBody().getNotBefore());
+        assertNotNull(response.getBody().getNotAfter());
     }
 
     private HttpEntity<MultiValueMap> prepareAddCertificationServiceRequest() {

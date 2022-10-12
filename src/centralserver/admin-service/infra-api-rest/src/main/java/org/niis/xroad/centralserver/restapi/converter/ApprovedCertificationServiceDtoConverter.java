@@ -27,14 +27,21 @@
 package org.niis.xroad.centralserver.restapi.converter;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceListItemDto;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
+import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
+
+import java.util.Collection;
+import java.util.Set;
 
 @Mapper(componentModel = "spring")
 public interface ApprovedCertificationServiceDtoConverter extends BaseConverter {
 
-    @Mapping(source = "certificateDetails", target = "caCertificate")
     ApprovedCertificationServiceDto convert(CertificationService certificationService);
+
+    ApprovedCertificationServiceListItemDto convertListItem(CertificationServiceListItem listItem);
+
+    Set<ApprovedCertificationServiceListItemDto> convertListItems(Collection<CertificationServiceListItem> items);
 
 }

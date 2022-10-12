@@ -30,76 +30,50 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
-import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
+import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
-import org.niis.xroad.centralserver.restapi.entity.CaInfo;
-import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class ApprovedCaConverter {
 
+    @SneakyThrows
     public CertificationService convert(ApprovedCa entity) {
+        final X509Certificate[] certificates = CertUtils.readCertificateChain(entity.getCaInfo().getCert());
+        final X509Certificate certificate = certificates[0];
+
         return new CertificationService()
                 .setId(entity.getId())
+                .setName(entity.getName())
                 .setCertificateProfileInfo(entity.getCertProfileInfo())
                 .setTlsAuth(entity.getAuthenticationOnly())
-                .setCreatedAt(entity.getCreatedAt())
-                .setUpdatedAt(entity.getUpdatedAt())
-                .setCertificateDetails(convertDetails(entity.getCaInfo()))
-                .setOcspResponders(convertOcspResponders(entity.getCaInfo().getOcspInfos()))
-                .setIntermediateCas(convertIntermediateCaInfos(entity.getIntermediateCaInfos()));
-    }
-
-    @SneakyThrows
-    private CertificateDetails convertDetails(CaInfo caInfo) {
-        final X509Certificate[] certificates = CertUtils.readCertificateChain(caInfo.getCert());
-        final X509Certificate certificate = certificates[0];
-        return new CertificateDetails()
                 .setIssuerDistinguishedName(certificate.getIssuerDN().getName())
                 .setSubjectDistinguishedName(certificate.getSubjectDN().getName())
-                .setSubjectCommonName(CertUtils.getSubjectCommonName(certificate))
-                .setNotAfter(caInfo.getValidTo())
-                .setNotBefore(caInfo.getValidFrom());
+                .setNotBefore(entity.getCaInfo().getValidFrom())
+                .setNotAfter(entity.getCaInfo().getValidTo())
+                .setCreatedAt(entity.getCreatedAt())
+                .setUpdatedAt(entity.getUpdatedAt());
     }
 
-    private List<CertificateAuthority> convertIntermediateCaInfos(final Set<CaInfo> intermediateCaInfos) {
-        if (intermediateCaInfos == null) {
-            return null;
-        }
-        return intermediateCaInfos.stream()
-                .map(this::convertIntermediateCaInfo)
-                .collect(Collectors.toList());
-    }
-
-    private CertificateAuthority convertIntermediateCaInfo(final CaInfo intermediateCa) {
-        return new CertificateAuthority()
-                .setId(intermediateCa.getId())
-                .setCaCertificate(new CertificateDetails()
-                        .setNotBefore(intermediateCa.getValidFrom())
-                        .setNotBefore(intermediateCa.getValidTo())
-                );
-    }
-
-    private List<OcspResponder> convertOcspResponders(Collection<OcspInfo> entities) {
-        if (entities == null) {
-            return null;
-        }
+    public List<CertificationServiceListItem> toListItems(Collection<ApprovedCa> entities) {
         return entities.stream()
-                .map(entity -> new OcspResponder()
-                        .setId(entity.getId())
-                        .setUrl(entity.getUrl()))
+                .map(this::toListItem)
                 .collect(Collectors.toList());
+    }
+
+    private CertificationServiceListItem toListItem(final ApprovedCa approvedCa) {
+        return new CertificationServiceListItem()
+                .setId(approvedCa.getId())
+                .setName(approvedCa.getName())
+                .setNotBefore(approvedCa.getCaInfo().getValidFrom())
+                .setNotAfter(approvedCa.getCaInfo().getValidTo());
     }
 
 }

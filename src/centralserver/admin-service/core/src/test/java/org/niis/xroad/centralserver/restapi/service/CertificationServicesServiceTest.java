@@ -32,6 +32,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
+import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
 import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
@@ -42,8 +43,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,6 +57,8 @@ class CertificationServicesServiceTest {
     @Mock
     private ApprovedCa approvedCaMock;
     @Mock
+    private CertificationServiceListItem mockListItem;
+    @Mock
     private CertificationService certificationServiceMock;
 
     @InjectMocks
@@ -66,14 +67,12 @@ class CertificationServicesServiceTest {
     @Test
     void getCertificationServices() {
         when(approvedCaRepository.findAll()).thenReturn(List.of(approvedCaMock));
+        when(approvedCaConverter.toListItems(List.of(approvedCaMock))).thenReturn(List.of(mockListItem));
 
-        List<ApprovedCa> approvedCertificationServices = service.getCertificationServices();
+        List<CertificationServiceListItem> approvedCertificationServices = service.getCertificationServices();
 
         assertEquals(1, approvedCertificationServices.size());
-        Assertions.assertEquals(approvedCaMock, approvedCertificationServices.iterator().next());
-
-        verify(approvedCaRepository).findAll();
-        verifyNoMoreInteractions(approvedCaRepository);
+        Assertions.assertEquals(mockListItem, approvedCertificationServices.iterator().next());
     }
 
     @Test

@@ -59,16 +59,16 @@
           :loader-height="2"
           hide-default-footer
         >
-          <template #[`item.ca_certificate.subject_common_name`]="{ item }">
+          <template #[`item.name`]="{ item }">
             <div class="xrd-clickable">
-              {{ item.ca_certificate.subject_common_name }}
+              {{ item.name }}
             </div>
           </template>
-          <template #[`item.ca_certificate.not_before`]="{ item }">
-            <div>{{ item.ca_certificate.not_before | formatDateTime }}</div>
+          <template #[`item.not_before`]="{ item }">
+            <div>{{ item.not_before | formatDateTime }}</div>
           </template>
-          <template #[`item.ca_certificate.not_after`]="{ item }">
-            <div>{{ item.ca_certificate.not_after | formatDateTime }}</div>
+          <template #[`item.not_after`]="{ item }">
+            <div>{{ item.not_after | formatDateTime }}</div>
           </template>
 
           <template #footer>
@@ -143,7 +143,7 @@ import { useCertificationServiceStore } from '@/store/modules/trust-services';
 import { userStore } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import {
-  ApprovedCertificationService,
+  ApprovedCertificationServiceListItem,
   CertificationServiceFileAndSettings,
 } from '@/openapi-types';
 
@@ -162,7 +162,7 @@ export default Vue.extend({
   computed: {
     ...mapStores(useCertificationServiceStore, notificationsStore),
     ...mapState(userStore, ['hasPermission']),
-    certificationServices(): ApprovedCertificationService[] {
+    certificationServices(): ApprovedCertificationServiceListItem[] {
       return this.certificationServiceStore.certificationServices;
     },
     showAddCSButton(): boolean {
@@ -173,23 +173,26 @@ export default Vue.extend({
         {
           text: this.$t('trustServices.approvedCertificationService') as string,
           align: 'start',
-          value: 'ca_certificate.subject_common_name',
+          value: 'name',
           class: 'xrd-table-header ts-table-header-server-code',
         },
         {
           text: this.$t('trustServices.validFrom') as string,
           align: 'start',
-          value: 'ca_certificate.not_before',
+          value: 'not_before',
           class: 'xrd-table-header ts-table-header-valid-from',
         },
         {
           text: this.$t('trustServices.validTo') as string,
           align: 'start',
-          value: 'ca_certificate.not_after',
+          value: 'not_after',
           class: 'xrd-table-header ts-table-header-valid-to',
         },
       ];
     },
+  },
+  created() {
+    this.certificationServiceStore.fetchAll();
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
@@ -209,9 +212,6 @@ export default Vue.extend({
           this.showError(error);
         });
     },
-  },
-  created() {
-    this.certificationServiceStore.fetchAll();
   },
 });
 </script>

@@ -30,21 +30,23 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
 @Accessors(chain = true)
 public class CertificationService {
 
     private Integer id;
-    private CertificateDetails certificateDetails;
-    private String certificateProfileInfo;
 
+    private String name;
+    private String issuerDistinguishedName;
+    private String subjectDistinguishedName;
+    private Instant notAfter;
+    private Instant notBefore;
+    private String certificateProfileInfo;
     private Boolean tlsAuth;
+
     private Instant createdAt;
     private Instant updatedAt;
 
-    private List<OcspResponder> ocspResponders;
-    private List<CertificateAuthority> intermediateCas;
 
 }

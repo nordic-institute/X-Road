@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,15 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.converter;
 
-import org.mapstruct.Mapper;
-import org.niis.xroad.centralserver.openapi.model.CertificateDetailsDto;
-import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
+package org.niis.xroad.centralserver.restapi.dto;
 
-@Mapper(componentModel = "spring")
-public interface CertificateDetailsDtoConverter extends BaseConverter {
+import lombok.Data;
+import lombok.experimental.Accessors;
 
-    CertificateDetailsDto convert(CertificateDetails certificateDetails);
+import java.time.Instant;
+
+@Data
+@Accessors(chain = true)
+public class CertificationServiceListItem {
+
+    private Integer id;
+    private String name;
+    private Instant notAfter;
+    private Instant notBefore;
+
 
 }

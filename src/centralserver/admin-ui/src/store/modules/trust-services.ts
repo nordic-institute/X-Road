@@ -25,14 +25,14 @@
  * THE SOFTWARE.
  */
 import {
-  ApprovedCertificationService,
+  ApprovedCertificationServiceListItem,
   CertificationServiceFileAndSettings,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
 export interface State {
-  certificationServices: ApprovedCertificationService[];
+  certificationServices: ApprovedCertificationServiceListItem[];
 }
 
 export const useCertificationServiceStore = defineStore(
@@ -45,7 +45,7 @@ export const useCertificationServiceStore = defineStore(
     actions: {
       fetchAll() {
         return axios
-          .get<ApprovedCertificationService[]>('/certification-services')
+          .get<ApprovedCertificationServiceListItem[]>('/certification-services')
           .then((resp) => (this.certificationServices = resp.data));
       },
       add(newCas: CertificationServiceFileAndSettings) {

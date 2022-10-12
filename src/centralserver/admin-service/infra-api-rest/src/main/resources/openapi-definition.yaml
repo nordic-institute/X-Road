@@ -311,7 +311,7 @@ paths:
               schema:
                 description: array of certification service objects
                 items:
-                  $ref: '#/components/schemas/ApprovedCertificationService'
+                  $ref: '#/components/schemas/ApprovedCertificationServiceListItem'
                 type: array
                 uniqueItems: true
           description: list of certification services
@@ -3321,41 +3321,99 @@ components:
     Unauthorized:
       description: authentication credentials are missing
   schemas:
+    ApprovedCertificationServiceListItem:
+      description: certification service list item
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        name:
+          description: certification service name
+          example: Name
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        not_after:
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        not_before:
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+      required:
+        - id
+        - name
+        - not_before
+        - not_after
+      type: object
     ApprovedCertificationService:
       allOf:
         - $ref: '#/components/schemas/ModificationTimestamps'
       description: certification service
       properties:
-        ca_certificate:
-          $ref: '#/components/schemas/CertificateDetails'
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        name:
+          description: certification service name
+          example: Name
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        issuer_distinguished_name:
+          description: certificate issuer distinguished name
+          example: issuer123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        subject_distinguished_name:
+          description: certificate subject distinguished name
+          example: subject123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        not_after:
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        not_before:
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
         certificate_profile_info:
           description: fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface
           example: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
           format: text
           minLength: 1
           type: string
-        id:
-          description: unique identifier
-          example: 123
-          format: text
-          readOnly: true
-          type: string
-        intermediate_cas:
-          description: array containing intermediate CAs
-          items:
-            $ref: '#/components/schemas/CertificateAuthority'
-          type: array
-        ocsp_responders:
-          description: array containing ocsp responders
-          items:
-            $ref: '#/components/schemas/OcspResponder'
-          type: array
         tls_auth:
           description: can the CA be used for TLS authentication
           type: boolean
       required:
         - id
-        - ca_certificate
         - tls_auth
         - certificate_profile_info
       type: object
