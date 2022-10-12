@@ -6,19 +6,35 @@ ENV LC_ALL en_US.UTF-8
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get -qq install curl
+RUN apt-get -y update && \
+ apt-get -y install \
+   apt-transport-https \
+   ca-certificates \
+   curl \
+   gnupg \
+   lsb-release \
+   software-properties-common
 
-ARG uid=1000
-ARG gid=1000
-ARG HOST_GID=990
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+RUN add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/debian \
+   $(lsb_release -cs) \
+   stable"
 
-RUN groupadd -o -g $gid jenkins && useradd -m -u $uid -g $gid jenkins \
-  && mkdir -p /mnt/gradle-cache && chown -R jenkins:jenkins /mnt/gradle-cache
+RUN apt-get -y update && \
+ apt-get -y install \
+   docker-ce \
+   docker-ce-cli \
+   containerd.io
 
-RUN groupadd -o -g $HOST_GID docker
-RUN usermod -aG docker jenkins
+ARG JENKINSUID
+ARG JENKINSGID
+ARG DOCKERGID
 
-USER jenkins
+# Setup users and groups
+RUN groupadd -g ${JENKINSGID} jenkins
+RUN groupmod -g ${DOCKERGID} docker
+RUN useradd -c "Jenkins user" -g ${JENKINSGID} -G ${DOCKERGID} -M -N -u ${JENKINSUID} jenkins
 
 WORKDIR /mnt
 
