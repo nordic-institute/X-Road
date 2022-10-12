@@ -202,6 +202,11 @@ extract_to_tmp_restore_dir () {
       mv ${RESTORE_DIR}/etc/xroad/db.properties ${RESTORE_DIR}/etc/xroad/db.properties.restored
       cp /etc/xroad/db.properties ${RESTORE_DIR}/etc/xroad/db.properties
   fi
+  # keep existing xroad.properties
+  if [ -f /etc/xroad/xroad.properties ]
+  then
+      cp /etc/xroad/xroad.properties ${RESTORE_DIR}/etc/xroad/xroad.properties
+  fi
   chown -R xroad:xroad ${RESTORE_DIR}/*
   # reset permissions of all files to fixed, "safe" values
   chmod -R a-x,o=,u=rwX,g=rX "$RESTORE_DIR"
