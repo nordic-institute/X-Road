@@ -40,7 +40,7 @@
           :label="$t('members.member.subsystems.subsystemcode')"
           outlined
           autofocus
-          data-test="add-member-to-group"
+          data-test="add-subsystem-input"
         ></v-text-field>
       </div>
     </template>

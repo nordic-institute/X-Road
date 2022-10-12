@@ -31,7 +31,7 @@
         <xrd-button
           v-if="allowMemberSubsystemAdd"
           outlined
-          data-test="add-member-to-group"
+          data-test="add-subsystem"
           @click="showAddSubsystemDialog = true"
         >
           <xrd-icon-base class="xrd-large-button-icon">
@@ -52,6 +52,7 @@
         item-key="id"
         :loader-height="2"
         hide-default-footer
+        data-test="subsystems-table"
       >
         <template #[`item`]="{ item }">
           <tr v-if="item.usedSecurityServers.length === 0">
@@ -72,6 +73,7 @@
                   v-if="allowMemberSubsystemDelete"
                   text
                   :outlined="false"
+                  data-test="delete-subsystem"
                   @click="deleteClicked(item)"
                 >
                   {{ $t('action.delete') }}
