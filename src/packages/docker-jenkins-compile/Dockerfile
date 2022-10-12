@@ -36,6 +36,7 @@ ARG DOCKERGID
 RUN groupadd -g ${JENKINSGID} jenkins
 RUN groupmod -g ${DOCKERGID} docker
 RUN useradd -c "Jenkins user" -g ${JENKINSGID} -G ${DOCKERGID} -M -N -u ${JENKINSUID} jenkins
+RUN mkdir -p /mnt/gradle-cache && chown -R jenkins:jenkins /mnt/gradle-cache
 
 WORKDIR /mnt
 
