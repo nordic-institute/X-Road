@@ -29,7 +29,7 @@ pipeline {
                 dockerfile {
                     dir 'src/packages/docker-jenkins-compile'
                     additionalBuildArgs  '--build-arg JENKINSUID=`id -u jenkins` --build-arg JENKINSGID=`id -g jenkins` --build-arg DOCKERGID=`stat -c %g /var/run/docker.sock`'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock -u jenkins:docker'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock --group-add $(getent group docker | cut -d: -f3)'
                     reuseNode true
                 }
             }
