@@ -10,7 +10,7 @@ pipeline {
             steps {
                 checkout([
                         $class                           : 'GitSCM',
-                        branches                         : [[name: ghprbSourceBranch]],
+                        branches                         : [[name: 'new-cs-intTests-poc']],
                         doGenerateSubmoduleConfigurations: false,
                         extensions                       : [[$class: 'CleanBeforeCheckout']],
                         gitTool                          : 'Default',
