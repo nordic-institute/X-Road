@@ -15,7 +15,7 @@ ARG HOST_GID=990
 RUN groupadd -o -g $gid jenkins && useradd -m -u $uid -g $gid jenkins \
   && mkdir -p /mnt/gradle-cache && chown -R jenkins:jenkins /mnt/gradle-cache
 
-RUN groupadd -g $HOST_GID docker
+RUN groupadd -g -o $HOST_GID docker
 RUN usermod -aG docker jenkins
 
 USER jenkins
