@@ -35,9 +35,10 @@ ARG DOCKERGID
 # Setup users and groups
 RUN groupadd -g ${JENKINSGID} jenkins
 RUN groupmod -g ${DOCKERGID} docker
-RUN useradd -c "Jenkins user" -g ${JENKINSGID} -G ${DOCKERGID} -M -N -u ${JENKINSUID} jenkins
-RUN mkdir -p /mnt/gradle-cache && chown -R jenkins:jenkins /mnt/gradle-cache
+RUN useradd -c "Builder user" -g ${JENKINSGID} -G ${DOCKERGID} -M -N -u ${JENKINSUID} builder
+RUN mkdir -p /mnt/gradle-cache && chown -R builder:builder /mnt/gradle-cache
 
+USER builder
 WORKDIR /mnt
 
 ENV GRADLE_USER_HOME /mnt/gradle-cache
