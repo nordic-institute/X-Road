@@ -13,7 +13,8 @@ RUN apt-get -y update && \
    curl \
    gnupg \
    lsb-release \
-   software-properties-common
+   software-properties-common \
+   gawk openjdk-11-jdk-headless build-essential git unzip debhelper
 
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
 RUN add-apt-repository \
