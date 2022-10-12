@@ -6,15 +6,12 @@ ENV LC_ALL en_US.UTF-8
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get -y update && \
- apt-get -y install \
-   apt-transport-https \
-   ca-certificates \
-   curl \
-   gnupg \
-   lsb-release \
-   software-properties-common \
-   gawk openjdk-11-jdk-headless build-essential git unzip debhelper
+RUN apt-get -qq update \
+  && apt-get -qq upgrade \
+  && apt-get -qq install curl software-properties-common gawk \
+  openjdk-11-jdk-headless build-essential git unzip debhelper \
+  && apt-get -qq autoremove \
+  && apt-get -qq clean
 
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
 RUN add-apt-repository \
@@ -33,10 +30,9 @@ ARG JENKINSGID
 ARG DOCKERGID
 
 # Setup users and groups
-RUN groupadd -g ${JENKINSGID} jenkins
 RUN groupmod -g ${DOCKERGID} docker
-RUN useradd -c "Builder user" -g ${JENKINSGID} -G ${DOCKERGID} -M -N -u ${JENKINSUID} builder
-RUN mkdir -p /mnt/gradle-cache && chown -R builder:jenkins /mnt/gradle-cache
+RUN groupadd -o -g ${JENKINSGID} builder && useradd -m -u ${JENKINSUID} -g ${JENKINSGID} -G ${DOCKERGID} builder \
+  && mkdir -p /mnt/gradle-cache && chown -R builder:builder /mnt/gradle-cache \
 
 USER builder
 WORKDIR /mnt
