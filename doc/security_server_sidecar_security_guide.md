@@ -2,10 +2,11 @@
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 05.02.2021 | 1.0     | Initial version                                                 | Raul Martinez Lopez
- 28.11.2021 | 1.1     | Add license info                                                | Petteri Kivimäki
+ Date       | Version | Description      | Author
+ ---------- |---------|------------------| --------------------
+ 05.02.2021 | 1.0     | Initial version  | Raul Martinez Lopez
+ 28.11.2021 | 1.1     | Add license info | Petteri Kivimäki
+ 11.10.2022 | 1.2     | Updating links   | Monika Liutkute
 
 ## License
 
@@ -302,7 +303,7 @@ Additionally, if the Security Server Sidecar is configured to use a remote datab
 
 The software token PIN code set up during the initial configuration of the Security Server is stored on `/etc/xroad/autologin` file.
 
-The above mentioned files should not be stored inside the Security Server Sidecar container. More information can be found on the Security Server Sidecar User Guide for [configuring volumes to store sensitive files outside the container](./security_server_sidecar_user_guide.md#291-store-sensitive-information-in-volumes).
+The above-mentioned files should not be stored inside the Security Server Sidecar container. More information can be found on the Security Server Sidecar User Guide for [using volumes to store files outside the container](./security_server_sidecar_user_guide.md#27-using-volumes).
 
 #### 3.1.3 Secure credentials on environment variables
 
