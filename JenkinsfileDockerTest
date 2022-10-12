@@ -38,6 +38,8 @@ pipeline {
                 JAVA_HOME = '/usr/lib/jvm/java-11-openjdk-amd64'
             }
             steps {
+                sh 'whoami'
+                sh 'ls -ltra /var/run/'
                 sh 'curl --unix-socket /var/run/docker.sock http://localhost/version'
             }
         }
