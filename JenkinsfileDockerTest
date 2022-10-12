@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+    stages {
+        stage('Output build parameters') {
+            steps {
+                sh 'env'
+            }
+        }        
+        stage('Clean and clone repository') {
+            steps {
+                checkout([
+                        $class                           : 'GitSCM',
+                        branches                         : [[name: ghprbSourceBranch]],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions                       : [[$class: 'CleanBeforeCheckout']],
+                        gitTool                          : 'Default',
+                        submoduleCfg                     : [],
+                        userRemoteConfigs                : [
+                            [
+                                url: 'https://github.com/nordic-institute/X-Road.git',
+                                refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pull/*'
+                            ]
+                        ]
+                ])
+            }
+        }
+        stage('Compile Code') {
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker-jenkins-compile'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                    additionalBuildArgs '--build-arg uid=$(id -u) --build-arg gid=$(id -g)'
+                    reuseNode true
+                }
+            }
+            environment {
+                GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dsonar.host.url=https://sonarqube.niis.org'
+                JAVA_HOME = '/usr/lib/jvm/java-11-openjdk-amd64'
+            }
+            steps {
+                sh 'curl --unix-socket /var/run/docker.sock http://localhost/version'
+            }
+        }
+
+
+    }
+}
