@@ -23,23 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.test.glue;
+package org.niis.xroad.cs.test.api;
 
-import io.cucumber.java.en.Then;
-import org.niis.xroad.cs.test.api.FeignSystemApi;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.niis.xroad.centralserver.openapi.SecurityServersApi;
+import org.springframework.cloud.openfeign.FeignClient;
 
-public class SystemApiStepDefs extends BaseStepDefs {
-    @Autowired
-    private FeignSystemApi feignSystemApi;
-
-    @Then("System status is requested")
-    public void systemStatusIsRequested() {
-        feignSystemApi.getSystemStatus();
-    }
-
-    @Then("System status is validated")
-    public void systemStatusIsValidated() {
-
-    }
+@FeignClient(name = "securityServerApi", path = "/api/v1")
+public interface FeignSecurityServersApi extends SecurityServersApi {
 }

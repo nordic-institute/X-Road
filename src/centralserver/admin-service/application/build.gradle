@@ -22,6 +22,7 @@ dependencies {
     implementation('org.liquibase:liquibase-core') //TODO enabling runtime liquibase
 
     intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-assert:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-feign:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")

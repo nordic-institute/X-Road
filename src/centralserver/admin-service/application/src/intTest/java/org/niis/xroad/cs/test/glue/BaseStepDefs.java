@@ -25,21 +25,16 @@
  */
 package org.niis.xroad.cs.test.glue;
 
-import io.cucumber.java.en.Then;
-import org.niis.xroad.cs.test.api.FeignSystemApi;
+import com.nortal.test.asserts.ValidationService;
+import com.nortal.test.core.services.ScenarioContext;
+import com.nortal.test.core.services.ScenarioExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class SystemApiStepDefs extends BaseStepDefs {
+public abstract class BaseStepDefs {
     @Autowired
-    private FeignSystemApi feignSystemApi;
-
-    @Then("System status is requested")
-    public void systemStatusIsRequested() {
-        feignSystemApi.getSystemStatus();
-    }
-
-    @Then("System status is validated")
-    public void systemStatusIsValidated() {
-
-    }
+    protected ScenarioExecutionContext scenarioExecutionContext;
+    @Autowired
+    protected ScenarioContext scenarioContext;
+    @Autowired
+    protected ValidationService validationService;
 }

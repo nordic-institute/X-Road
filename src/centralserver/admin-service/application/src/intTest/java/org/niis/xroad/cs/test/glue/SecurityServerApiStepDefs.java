@@ -25,21 +25,45 @@
  */
 package org.niis.xroad.cs.test.glue;
 
+import com.nortal.test.asserts.Assertion;
+import com.nortal.test.asserts.Validation;
+import feign.FeignException;
 import io.cucumber.java.en.Then;
-import org.niis.xroad.cs.test.api.FeignSystemApi;
+import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class SystemApiStepDefs extends BaseStepDefs {
+public class SecurityServerApiStepDefs extends BaseStepDefs {
     @Autowired
-    private FeignSystemApi feignSystemApi;
+    private FeignSecurityServersApi securityServersApi;
 
-    @Then("System status is requested")
-    public void systemStatusIsRequested() {
-        feignSystemApi.getSystemStatus();
+    @Then("Security server auth certs for {string} is requested")
+    public void systemStatusIsRequested(String id) {
+        try {
+            var response = securityServersApi.getSecurityServerAuthCerts(id);
+            scenarioContext.putStepData("responseCode", response.getStatusCodeValue());
+        } catch (FeignException feignException) {
+
+            scenarioContext.putStepData("responseCode", feignException.status());
+        }
     }
 
-    @Then("System status is validated")
-    public void systemStatusIsValidated() {
+    @Then("Response is of status code {int}")
+    public void systemStatusIsValidated(int statusCode) {
+        int responseCode = scenarioContext.getStepData("responseCode");
 
+        final Validation.Builder validationBuilder = new Validation.Builder()
+                .context(responseCode)
+                .title("Validate response")
+                .assertion(
+                        new Assertion.Builder()
+                                .message("Verify status code")
+                                .expression("=")
+                                .actualValue(responseCode)
+//                                .expressionType(ExpressionType.ABSOLUTE)
+                                .expectedValue(statusCode)
+                                .build());
+
+
+        validationService.validate(validationBuilder.build());
     }
 }

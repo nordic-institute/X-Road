@@ -25,11 +25,12 @@
  */
 package org.niis.xroad.cs.test;
 
+import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.niis.xroad.cs.test.api.FeignSystemApi;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableFeignClients(clients = {FeignSystemApi.class})
+@EnableFeignClients(clients = {FeignSystemApi.class, FeignSecurityServersApi.class})
 public class CsAdminServiceTestConfiguration {
 }
