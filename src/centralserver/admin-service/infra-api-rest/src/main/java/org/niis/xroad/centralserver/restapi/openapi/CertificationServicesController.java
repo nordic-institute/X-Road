@@ -28,6 +28,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.CertificationServicesApi;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
@@ -36,7 +37,6 @@ import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.converter.ApprovedCertificationServiceDtoConverter;
-import org.niis.xroad.centralserver.restapi.converter.CertificationServiceConverter;
 import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
 import org.niis.xroad.centralserver.restapi.service.CertificationServicesService;
@@ -61,21 +61,21 @@ import static org.springframework.http.ResponseEntity.ok;
 public class CertificationServicesController implements CertificationServicesApi {
 
     private final CertificationServicesService certificationServicesService;
-    private final CertificationServiceConverter certificationServiceConverter;
     private final ApprovedCertificationServiceDtoConverter approvedCertificationServiceDtoConverter;
 
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE)
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
+    @SneakyThrows
     public ResponseEntity<ApprovedCertificationServiceDto> addCertificationService(MultipartFile certificate,
                                                                                    String certificateProfileInfo,
                                                                                    String tlsAuth) {
-        var isForTlsAuth = parseBoolean(tlsAuth);
-        var approvedCaDto = new AddApprovedCertificationServiceDto(certificate, certificateProfileInfo, isForTlsAuth);
-        CertificateProfileInfoValidator.validate(approvedCaDto.getCertificateProfileInfo());
+        CertificateProfileInfoValidator.validate(certificateProfileInfo);
 
-        CertificationService persistedApprovedCa = certificationServicesService
-                .add(certificationServiceConverter.toEntity(approvedCaDto));
+        var isForTlsAuth = parseBoolean(tlsAuth);
+        var approvedCaDto = new AddApprovedCertificationServiceDto(certificate.getBytes(), certificateProfileInfo, isForTlsAuth);
+
+        CertificationService persistedApprovedCa = certificationServicesService.add(approvedCaDto);
 
         return ResponseEntity.ok(approvedCertificationServiceDtoConverter.convert(persistedApprovedCa));
     }

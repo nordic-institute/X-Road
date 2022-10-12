@@ -27,6 +27,7 @@ package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
 import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
@@ -51,7 +52,8 @@ public class CertificationServicesService {
     private final AuditDataHelper auditDataHelper;
     private final ApprovedCaConverter approvedCaConverter;
 
-    public CertificationService add(ApprovedCa approvedCaEntity) {
+    public CertificationService add(AddApprovedCertificationServiceDto certificationServiceDto) {
+        final ApprovedCa approvedCaEntity = approvedCaConverter.toEntity(certificationServiceDto);
         final ApprovedCa persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
         addAuditData(persistedApprovedCa);
 
