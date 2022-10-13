@@ -40,7 +40,7 @@ import static org.niis.xroad.test.ui.glue.constants.Constants.SNACKBAR_SUCCESS;
 import static org.openqa.selenium.By.xpath;
 
 public class CentralServerMemberSubsystemsStepDefs extends BaseUiStepDefs {
-    private static final By TAB_SUBSYSTEMS = xpath("//a[@href=\"#/members/CS:E2E:e2e-test-member-subsystem/subsystems\"]");
+    private static final By TAB_SUBSYSTEMS = xpath("//div//div//div//a[contains(text(), \"Subsystems\")]");
     private static final String SUBSYSTEMS_TABLE = "//div[@data-test=\"subsystems-table\"]";
     private static final By BTN_ADD_SUBSYSTEM = xpath("//button[@data-test=\"add-subsystem\"]");
     private static final By INPUT_MEMBER_CODE = xpath("//input[@data-test=\"add-subsystem-input\"]");
