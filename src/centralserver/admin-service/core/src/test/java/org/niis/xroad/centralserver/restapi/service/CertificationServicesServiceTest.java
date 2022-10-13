@@ -25,64 +25,74 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
-import org.junit.jupiter.api.Assertions;
+import ee.ria.xroad.common.TestCertUtil;
+
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
 import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
+import org.niis.xroad.centralserver.restapi.entity.CaInfo;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static java.time.temporal.ChronoUnit.DAYS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CertificationServicesServiceTest {
 
     private static final Integer ID = 123;
+    private static final Instant VALID_FROM = Instant.now().minus(1, DAYS);
+    private static final Instant VALID_TO = Instant.now().plus(1, DAYS);
+    private static final String CA_NAME = "X-Road Test CA";
+    private static final String CERT_PROFILE = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";
 
     @Mock
     private ApprovedCaRepository approvedCaRepository;
-    @Mock
-    private ApprovedCaConverter approvedCaConverter;
-    @Mock
-    private ApprovedCa approvedCaMock;
-    @Mock
-    private CertificationServiceListItem mockListItem;
-    @Mock
-    private CertificationService certificationServiceMock;
+    @Spy
+    private ApprovedCaConverter approvedCaConverter = new ApprovedCaConverter();
 
     @InjectMocks
     private CertificationServicesService service;
 
     @Test
     void getCertificationServices() {
-        when(approvedCaRepository.findAll()).thenReturn(List.of(approvedCaMock));
-        when(approvedCaConverter.toListItems(List.of(approvedCaMock))).thenReturn(List.of(mockListItem));
+        when(approvedCaRepository.findAll()).thenReturn(List.of(approvedCa()));
 
         List<CertificationServiceListItem> approvedCertificationServices = service.getCertificationServices();
 
         assertEquals(1, approvedCertificationServices.size());
-        Assertions.assertEquals(mockListItem, approvedCertificationServices.iterator().next());
+        var ca = approvedCertificationServices.iterator().next();
+        assertEquals(CA_NAME, ca.getName());
+        assertEquals(VALID_FROM, ca.getNotBefore());
+        assertEquals(VALID_TO, ca.getNotAfter());
     }
 
     @Test
     void get() {
-        when(approvedCaRepository.findById(ID)).thenReturn(Optional.of(approvedCaMock));
-        when(approvedCaConverter.convert(approvedCaMock)).thenReturn(certificationServiceMock);
+        when(approvedCaRepository.findById(ID)).thenReturn(Optional.of(approvedCa()));
 
         final CertificationService certificationService = service.get(ID);
 
-        assertEquals(certificationServiceMock, certificationService);
+        assertEquals(CERT_PROFILE, certificationService.getCertificateProfileInfo());
+        assertEquals(CA_NAME, certificationService.getName());
+        assertEquals(VALID_FROM, certificationService.getNotBefore());
+        assertEquals(VALID_TO, certificationService.getNotAfter());
+        assertTrue(certificationService.getTlsAuth());
     }
 
     @Test
@@ -90,6 +100,20 @@ class CertificationServicesServiceTest {
         when(approvedCaRepository.findById(ID)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.get(ID));
+    }
+
+    @SneakyThrows
+    private ApprovedCa approvedCa() {
+        CaInfo caInfo = new CaInfo();
+        caInfo.setValidFrom(VALID_FROM);
+        caInfo.setValidTo(VALID_TO);
+        caInfo.setCert(TestCertUtil.generateAuthCert());
+        ApprovedCa ca = new ApprovedCa();
+        ca.setName(CA_NAME);
+        ca.setAuthenticationOnly(true);
+        ca.setCertProfileInfo(CERT_PROFILE);
+        ca.setCaInfo(caInfo);
+        return ca;
     }
 
 }

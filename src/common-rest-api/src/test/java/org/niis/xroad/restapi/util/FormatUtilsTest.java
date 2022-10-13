@@ -29,20 +29,22 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 
+import static java.lang.System.currentTimeMillis;
+import static java.time.Instant.ofEpochMilli;
+import static java.time.ZoneOffset.UTC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class FormatUtilsTest {
 
     @Test
-    void fromInstantToOffsetDateTime() {
-        final Instant instant = Instant.ofEpochMilli(System.currentTimeMillis());
+    void testFromInstantToOffsetDateTime() {
+        final Instant instant = ofEpochMilli(currentTimeMillis());
 
         final OffsetDateTime offsetDateTime = FormatUtils.fromInstantToOffsetDateTime(instant);
 
-        assertEquals(ZoneOffset.UTC, offsetDateTime.getOffset());
+        assertEquals(UTC, offsetDateTime.getOffset());
         assertEquals(instant, offsetDateTime.toInstant());
 
         assertNull(FormatUtils.fromInstantToOffsetDateTime(null));
