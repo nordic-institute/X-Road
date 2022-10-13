@@ -1,21 +1,20 @@
-/*
+/**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,42 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import {
-  ApprovedCertificationServiceListItem,
-  CertificationServiceFileAndSettings,
-} from '@/openapi-types';
-import { defineStore } from 'pinia';
-import axios from 'axios';
+package org.niis.xroad.centralserver.restapi.converter;
 
-export interface State {
-  certificationServices: ApprovedCertificationServiceListItem[];
+import org.niis.xroad.restapi.util.FormatUtils;
+
+import java.time.Instant;
+import java.time.OffsetDateTime;
+
+public interface BaseConverter {
+
+    default OffsetDateTime fromInstant(Instant instant) {
+        return FormatUtils.fromInstantToOffsetDateTime(instant);
+    }
+
 }
-
-export const useCertificationServiceStore = defineStore(
-  'certificationService',
-  {
-    state: (): State => ({
-      certificationServices: [],
-    }),
-    persist: true,
-    actions: {
-      fetchAll() {
-        return axios
-          .get<ApprovedCertificationServiceListItem[]>('/certification-services')
-          .then((resp) => (this.certificationServices = resp.data));
-      },
-      add(newCas: CertificationServiceFileAndSettings) {
-        const formData = new FormData();
-        formData.append(
-          'certificate_profile_info',
-          newCas.certificate_profile_info,
-        );
-        formData.append('tls_auth', newCas.tls_auth);
-        formData.append('certificate', newCas.certificate);
-        return axios
-          .post('/certification-services', formData)
-          .finally(() => this.fetchAll());
-      },
-    },
-  },
-);

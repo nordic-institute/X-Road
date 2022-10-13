@@ -30,6 +30,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ApprovedCaRepository extends JpaRepository<ApprovedCa, Long> {
+public interface ApprovedCaRepository extends JpaRepository<ApprovedCa, Integer> {
 
 }

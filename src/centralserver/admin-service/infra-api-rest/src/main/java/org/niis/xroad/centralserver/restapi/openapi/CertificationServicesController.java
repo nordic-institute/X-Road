@@ -28,15 +28,17 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.CertificationServicesApi;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceListItemDto;
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
-import org.niis.xroad.centralserver.restapi.converter.CertificationServiceConverter;
+import org.niis.xroad.centralserver.restapi.converter.ApprovedCertificationServiceDtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
-import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
+import org.niis.xroad.centralserver.restapi.dto.CertificationService;
 import org.niis.xroad.centralserver.restapi.service.CertificationServicesService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -47,12 +49,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.transaction.Transactional;
-
 import java.util.Set;
 
 import static java.lang.Boolean.parseBoolean;
-import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
@@ -62,22 +61,23 @@ import static org.springframework.http.ResponseEntity.ok;
 public class CertificationServicesController implements CertificationServicesApi {
 
     private final CertificationServicesService certificationServicesService;
-    private final CertificationServiceConverter certificationServiceConverter;
+    private final ApprovedCertificationServiceDtoConverter approvedCertificationServiceDtoConverter;
 
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE)
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
+    @SneakyThrows
     public ResponseEntity<ApprovedCertificationServiceDto> addCertificationService(MultipartFile certificate,
                                                                                    String certificateProfileInfo,
                                                                                    String tlsAuth) {
+        CertificateProfileInfoValidator.validate(certificateProfileInfo);
+
         var isForTlsAuth = parseBoolean(tlsAuth);
-        var approvedCaDto = new AddApprovedCertificationServiceDto(certificate, certificateProfileInfo, isForTlsAuth);
-        CertificateProfileInfoValidator.validate(approvedCaDto.getCertificateProfileInfo());
+        var approvedCaDto = new AddApprovedCertificationServiceDto(certificate.getBytes(), certificateProfileInfo, isForTlsAuth);
 
-        ApprovedCa persistedApprovedCa = certificationServicesService
-                .add(certificationServiceConverter.toEntity(approvedCaDto));
+        CertificationService persistedApprovedCa = certificationServicesService.add(approvedCaDto);
 
-        return ResponseEntity.ok(certificationServiceConverter.toDomain(persistedApprovedCa));
+        return ResponseEntity.ok(approvedCertificationServiceDtoConverter.convert(persistedApprovedCa));
     }
 
     @Override
@@ -98,8 +98,9 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
-    public ResponseEntity<ApprovedCertificationServiceDto> getCertificationService(String id) {
-        throw new NotImplementedException("getCertificationService not implemented yet");
+    @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
+    public ResponseEntity<ApprovedCertificationServiceDto> getCertificationService(Integer id) {
+        return ok(approvedCertificationServiceDtoConverter.convert(certificationServicesService.get(id)));
     }
 
     @Override
@@ -113,12 +114,10 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
-    @Transactional //TODO caused by returning jpa entity, should not happen.
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CAS')")
-    public ResponseEntity<Set<ApprovedCertificationServiceDto>> getCertificationServices() {
-        return ok(certificationServicesService.getCertificationServices().stream()
-                .map(certificationServiceConverter::toDomain)
-                .collect(toSet()));
+    public ResponseEntity<Set<ApprovedCertificationServiceListItemDto>> getCertificationServices() {
+        return ok(approvedCertificationServiceDtoConverter
+                .convertListItems(certificationServicesService.getCertificationServices()));
     }
 
     @Override
