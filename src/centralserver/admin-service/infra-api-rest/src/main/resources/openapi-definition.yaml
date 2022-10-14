@@ -3628,14 +3628,10 @@ components:
           description: fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface
           example: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
           format: text
-          minLength: 1
           type: string
         tls_auth:
           description: can the CA be used for TLS authentication
           type: string
-      required:
-        - tls_auth
-        - certificate_profile_info
       type: object
     CodeWithDetails:
       $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
