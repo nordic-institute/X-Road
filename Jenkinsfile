@@ -31,7 +31,7 @@ pipeline {
             agent {
                 dockerfile {
                     dir 'src/packages/docker-jenkins-compile'
-                    additionalBuildArgs  '--build-arg JENKINSUID=`id -u jenkins` --build-arg JENKINSGID=`id -g jenkins` --build-arg DOCKERGID=`stat -c %g /var/run/docker.sock`'
+                    additionalBuildArgs  '--build-arg JENKINSUID=`id -u jenkins` --build-arg JENKINSGID=`id -g jenkins` --build-arg DOCKERGID=${DOCKER_GID}'
                     args '-v /var/run/docker.sock:/var/run/docker.sock --group-add ${DOCKER_GID} --add-host=host.docker.internal:host-gateway'
                     reuseNode true
                 }
@@ -42,7 +42,6 @@ pipeline {
             }
             steps {
                 withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
-                    sh 'whoami'
                     sh 'cd src && ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${ghprbPullId} -Dsonar.pullrequest.branch=${ghprbSourceBranch} -Dsonar.pullrequest.base=${ghprbTargetBranch} --stacktrace --no-daemon build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate sonarqube -Pfrontend-unit-tests -Pfrontend-npm-audit'
                 }
             }
