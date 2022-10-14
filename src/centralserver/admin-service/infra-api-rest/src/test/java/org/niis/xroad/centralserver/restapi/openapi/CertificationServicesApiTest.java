@@ -53,6 +53,8 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
             = "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider";
     private static final String FIVRK_CERT_PROFILE_INFO_PROVIDER
             = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";
+    private static final String ISSUER_NAME = "CN=Google Internet Authority G3, O=Google Trust Services, C=US";
+    private static final String SUBJECT_NAME = "CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -86,8 +88,8 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("name", equalTo("*.google.com")))
                 .andExpect(jsonPath("tls_auth", equalTo(false)))
-                .andExpect(jsonPath("issuer_distinguished_name", equalTo("CN=Google Internet Authority G3, O=Google Trust Services, C=US")))
-                .andExpect(jsonPath("subject_distinguished_name", equalTo("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US")))
+                .andExpect(jsonPath("issuer_distinguished_name", equalTo(ISSUER_NAME)))
+                .andExpect(jsonPath("subject_distinguished_name", equalTo(SUBJECT_NAME)))
                 .andExpect(jsonPath("certificate_profile_info", equalTo(BASIC_CERT_PROFILE_INFO_PROVIDER)));
     }
 
