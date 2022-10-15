@@ -28,6 +28,7 @@ package org.niis.xroad.centralserver.restapi.entity;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,6 +49,13 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import java.time.Instant;
+import java.util.Map;
+
+import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
+import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
+import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.CLIENT_DELETION_REQUEST;
+import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
+import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.OWNER_CHANGE_REQUEST;
 
 @Entity
 @Immutable
@@ -104,11 +112,33 @@ public class ManagementRequestView {
 
     @Transient
     public ManagementRequestType getManagementRequestType() {
-        return ManagementRequestType.ofDiscriminatorValue(type);
+        return ManagementRequestTypeDiscriminatorMapping.getManagementRequestType(type);
     }
 
     @Transient
     public SecurityServerId getSecurityServerId() {
         return SecurityServerId.Conf.create(xroadInstance, memberClass, memberCode, serverCode);
     }
+
+    public static class ManagementRequestTypeDiscriminatorMapping {
+        private static final Map<ManagementRequestType, String> MAPPING = ImmutableMap.of(
+                AUTH_CERT_REGISTRATION_REQUEST, AuthenticationCertificateRegistrationRequest.DISCRIMINATOR_VALUE,
+                CLIENT_REGISTRATION_REQUEST, ClientRegistrationRequest.DISCRIMINATOR_VALUE,
+                OWNER_CHANGE_REQUEST, OwnerChangeRequest.DISCRIMINATOR_VALUE,
+                CLIENT_DELETION_REQUEST, ClientDeletionRequest.DISCRIMINATOR_VALUE,
+                AUTH_CERT_DELETION_REQUEST, AuthenticationCertificateDeletionRequest.DISCRIMINATOR_VALUE
+        );
+
+        public static ManagementRequestType getManagementRequestType(String discriminator) {
+            return MAPPING.entrySet().stream()
+                    .filter(entry -> entry.getValue().equalsIgnoreCase(discriminator))
+                    .map(Map.Entry::getKey)
+                    .findFirst().orElse(null);
+        }
+
+        public static String getDiscriminator(ManagementRequestType managementRequestType) {
+            return MAPPING.get(managementRequestType);
+        }
+    }
+
 }

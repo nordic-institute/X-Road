@@ -10,11 +10,10 @@ configurations {
 }
 
 dependencies {
-    annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
     annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
 
-    implementation project(':centralserver:admin-service:infra-jpa') //TODO should not depend. Temporary
-
+//    implementation project(':centralserver:admin-service:infra-jpa') //TODO should not depend. Temporary
+    implementation project(':centralserver:admin-service:core-api')
     implementation project(':common-util')
     implementation project(':common-verifier')
     implementation project(':signer-protocol')

@@ -1,4 +1,16 @@
+plugins {
+    id 'java-library'
+}
 
 dependencies {
-    //TODO JPA related dependencies should be moved here
+    annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
+    annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
+
+    implementation project(':centralserver:admin-service:core-api')
+    implementation project(':common-util')
+
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    implementation("org.hibernate.validator:hibernate-validator")
+
+    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
 }

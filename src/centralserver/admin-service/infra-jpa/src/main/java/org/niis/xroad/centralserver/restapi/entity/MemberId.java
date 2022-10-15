@@ -34,7 +34,6 @@ import javax.persistence.Entity;
 
 import java.util.Optional;
 
-import static ee.ria.xroad.common.util.Validation.validateArgument;
 import static org.niis.xroad.centralserver.restapi.entity.MemberId.DISCRIMINATOR_VALUE;
 
 @Entity
@@ -60,9 +59,9 @@ public class MemberId extends ClientId {
     }
 
     public static MemberId create(String xRoadInstance, String memberClass, String memberCode) {
-        validateArgument("xRoadInstance", xRoadInstance);
-        validateArgument("memberClass", memberClass);
-        validateArgument("memberCode", memberCode);
+        Validation.validateArgument("xRoadInstance", xRoadInstance);
+        Validation.validateArgument("memberClass", memberClass);
+        Validation.validateArgument("memberCode", memberCode);
 
         return new MemberId(xRoadInstance, memberClass, memberCode);
     }
@@ -73,7 +72,7 @@ public class MemberId extends ClientId {
     }
 
     public static MemberId ensure(ee.ria.xroad.common.identifier.ClientId identifier) {
-        return Optional.of(validateArgument("identifier", identifier))
+        return Optional.of(Validation.validateArgument("identifier", identifier))
                 .filter(MemberId.class::isInstance)
                 .map(MemberId.class::cast)
                 .orElseGet(() -> MemberId.create(identifier));

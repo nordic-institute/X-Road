@@ -26,42 +26,13 @@
  */
 package org.niis.xroad.centralserver.restapi.domain;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateDeletionRequest;
-import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateRegistrationRequest;
-import org.niis.xroad.centralserver.restapi.entity.ClientDeletionRequest;
-import org.niis.xroad.centralserver.restapi.entity.ClientRegistrationRequest;
-import org.niis.xroad.centralserver.restapi.entity.OwnerChangeRequest;
 
 @RequiredArgsConstructor
 public enum ManagementRequestType {
-    AUTH_CERT_REGISTRATION_REQUEST(AuthenticationCertificateRegistrationRequest.DISCRIMINATOR_VALUE),
-    CLIENT_REGISTRATION_REQUEST(ClientRegistrationRequest.DISCRIMINATOR_VALUE),
-    OWNER_CHANGE_REQUEST(OwnerChangeRequest.DISCRIMINATOR_VALUE),
-    CLIENT_DELETION_REQUEST(ClientDeletionRequest.DISCRIMINATOR_VALUE),
-    AUTH_CERT_DELETION_REQUEST(AuthenticationCertificateDeletionRequest.DISCRIMINATOR_VALUE);
-
-
-    /**
-     * JPA discriminator value.
-     */
-    @Getter
-    private final String requestDiscriminatorValue;
-
-    /**
-     * Get enum of specified discriminator value.
-     *
-     * @param value discriminator value
-     * @return resolved {@link  ManagementRequestType}
-     * @throws IllegalArgumentException if value is not defined.
-     */
-    public static ManagementRequestType ofDiscriminatorValue(final String value) {
-        for (ManagementRequestType requestType : values()) {
-            if (requestType.getRequestDiscriminatorValue().equalsIgnoreCase(value)) {
-                return requestType;
-            }
-        }
-        throw new IllegalArgumentException("Enum with requestDiscriminatorValue [" + value + "] was not found");
-    }
+    AUTH_CERT_REGISTRATION_REQUEST,
+    CLIENT_REGISTRATION_REQUEST,
+    OWNER_CHANGE_REQUEST,
+    CLIENT_DELETION_REQUEST,
+    AUTH_CERT_DELETION_REQUEST
 }

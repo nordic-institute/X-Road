@@ -63,7 +63,7 @@ public interface ManagementRequestViewRepository extends JpaRepository<Managemen
     static Specification<ManagementRequestView> findSpec(final Criteria criteria) {
         final List<String> entityTypes = ofNullable(criteria.getTypes())
                 .map(managementRequestTypes -> criteria.getTypes().stream()
-                        .map(ManagementRequestType::getRequestDiscriminatorValue)
+                        .map(ManagementRequestView.ManagementRequestTypeDiscriminatorMapping::getDiscriminator)
                         .collect(Collectors.toList()))
                 .orElseGet(Collections::emptyList);
 
