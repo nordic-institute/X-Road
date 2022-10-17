@@ -57,19 +57,19 @@ import static java.lang.Boolean.parseBoolean;
 import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
-@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 public class CertificationServicesController implements CertificationServicesApi {
 
     private final CertificationServicesService certificationServicesService;
-    private final ApprovedCertificationServiceDtoConverter approvedCertificationServiceDtoConverter;
+    private final ApprovedCertificationServiceDtoConverter dtoConverter;
     private final CertificateDetailsDtoConverter certificateDetailsDtoConverter;
 
     @Override
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE)
-    @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     @SneakyThrows
+    @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
+    @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE)
     public ResponseEntity<ApprovedCertificationServiceDto> addCertificationService(MultipartFile certificate,
                                                                                    String certificateProfileInfo,
                                                                                    String tlsAuth) {
@@ -80,18 +80,16 @@ public class CertificationServicesController implements CertificationServicesApi
 
         CertificationService persistedApprovedCa = certificationServicesService.add(approvedCaDto);
 
-        return ResponseEntity.ok(approvedCertificationServiceDtoConverter.convert(persistedApprovedCa));
+        return ok(dtoConverter.convert(persistedApprovedCa));
     }
 
     @Override
-    public ResponseEntity<CertificateAuthorityDto> addCertificationServiceIntermediateCa(
-            String id, MultipartFile certificate) {
+    public ResponseEntity<CertificateAuthorityDto> addCertificationServiceIntermediateCa(String id, MultipartFile certificate) {
         throw new NotImplementedException("addCertificationServiceIntermediateCa not implemented yet");
     }
 
     @Override
-    public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(
-            String id, String url, MultipartFile certificate) {
+    public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(String id, String url, MultipartFile certificate) {
         throw new NotImplementedException("addCertificationServiceOcspResponder not implemented yet");
     }
 
@@ -103,13 +101,13 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
     public ResponseEntity<ApprovedCertificationServiceDto> getCertificationService(Integer id) {
-        return ok(approvedCertificationServiceDtoConverter.convert(certificationServicesService.get(id)));
+        return ok(dtoConverter.convert(certificationServicesService.get(id)));
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
     public ResponseEntity<CertificateDetailsDto> getCertificationServiceCertificate(Integer id) {
-        return ok(certificateDetailsDtoConverter.convert(certificationServicesService.getCertificateDetails(id)));
+        return ok(dtoConverter.convert(certificationServicesService.getCertificateDetails(id)));
     }
 
     @Override
@@ -125,13 +123,18 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CAS')")
     public ResponseEntity<Set<ApprovedCertificationServiceListItemDto>> getCertificationServices() {
-        return ok(approvedCertificationServiceDtoConverter
-                .convertListItems(certificationServicesService.getCertificationServices()));
+        return ok(dtoConverter.convertListItems(certificationServicesService.getCertificationServices()));
     }
 
     @Override
-    public ResponseEntity<ApprovedCertificationServiceDto> updateCertificationService(
-            String id, CertificationServiceSettingsDto certificationServiceSettings) {
-        throw new NotImplementedException("updateCertificationService not implemented yet");
+    @PreAuthorize("hasAuthority('EDIT_APPROVED_CA')")
+    @AuditEventMethod(event = RestApiAuditEvent.EDIT_CERTIFICATION_SERVICE_SETTINGS)
+    public ResponseEntity<ApprovedCertificationServiceDto> updateCertificationService(String id, CertificationServiceSettingsDto settings) {
+        CertificationService approvedCa = new CertificationService()
+                .setId(Integer.valueOf(id))
+                .setCertificateProfileInfo(settings.getCertificateProfileInfo())
+                .setTlsAuth(parseBoolean(settings.getTlsAuth()));
+
+        return ok(dtoConverter.convert(certificationServicesService.update(approvedCa)));
     }
 }

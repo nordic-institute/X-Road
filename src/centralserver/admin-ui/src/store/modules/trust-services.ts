@@ -52,9 +52,9 @@ export const useCertificationServiceStore = defineStore(
         const formData = new FormData();
         formData.append(
           'certificate_profile_info',
-          newCas.certificate_profile_info,
+          newCas.certificate_profile_info || '',
         );
-        formData.append('tls_auth', newCas.tls_auth);
+        formData.append('tls_auth', newCas.tls_auth || '');
         formData.append('certificate', newCas.certificate);
         return axios
           .post('/certification-services', formData)
