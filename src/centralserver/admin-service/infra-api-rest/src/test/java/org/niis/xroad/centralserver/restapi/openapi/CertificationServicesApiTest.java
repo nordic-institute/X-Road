@@ -25,120 +25,105 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceListItemDto;
-import org.niis.xroad.centralserver.restapi.util.TestUtils;
+import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.springframework.mock.web.MockPart;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.ResultActions;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import static org.apache.commons.lang3.BooleanUtils.FALSE;
+import static org.apache.commons.lang3.BooleanUtils.TRUE;
+import static org.hamcrest.Matchers.equalTo;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.http.HttpStatus.OK;
 
-class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
+class CertificationServicesApiTest extends AbstractApiControllerTest {
 
-    private static final String CERT_PROFILE_INFO_PROVIDER
+    private static final String BASIC_CERT_PROFILE_INFO_PROVIDER
             = "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider";
+    private static final String FIVRK_CERT_PROFILE_INFO_PROVIDER
+            = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";
+    private static final String ISSUER_NAME = "CN=Google Internet Authority G3, O=Google Trust Services, C=US";
+    private static final String SUBJECT_NAME = "CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US";
 
     @Autowired
-    TestRestTemplate restTemplate;
+    private ObjectMapper objectMapper;
 
     @Test
-    void getCertificationServices() {
-        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+    @WithMockUser(authorities = { "VIEW_APPROVED_CAS"})
+    void getCertificationServices() throws Exception {
 
-        var response = restTemplate.getForEntity(
-                "/api/v1/certification-services",
-                ApprovedCertificationServiceListItemDto[].class);
-
-        assertNotNull(response);
-        assertEquals(OK, response.getStatusCode());
-        assertThat(response.getBody().length).isGreaterThanOrEqualTo(1);
+        mockMvc.perform(
+                get(commonModuleEndpointPaths.getBasePath() + "/certification-services"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id", equalTo(100)))
+                .andExpect(jsonPath("$[0].name", equalTo("X-Road Test CA CN")));
     }
 
     @Test
-    void getCertificateDetails() {
-        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-
-        final var savedCertificateId = restTemplate.postForEntity(
-                        "/api/v1/certification-services",
-                        prepareAddCertificationServiceRequest(),
-                        ApprovedCertificationServiceDto.class)
-                .getBody()
-                .getId();
-
-        final var certificateDetailsResponse =
-                restTemplate.getForEntity("/api/v1/certification-services/{id}", ApprovedCertificationServiceDto.class, savedCertificateId);
-
-        assertEquals(OK, certificateDetailsResponse.getStatusCode());
-
-        final var cert = certificateDetailsResponse.getBody();
-
-        assertEquals(CERT_PROFILE_INFO_PROVIDER, cert.getCertificateProfileInfo());
-        assertFalse(cert.getTlsAuth());
-
-        assertEquals(OffsetDateTime.of(2019, 3, 26, 13, 35, 42, 0, ZoneOffset.UTC),
-                cert.getNotBefore());
-        assertEquals(OffsetDateTime.of(2019, 6, 18, 13, 24, 0, 0, ZoneOffset.UTC),
-                cert.getNotAfter());
-        assertEquals("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US",
-                cert.getSubjectDistinguishedName());
-        assertEquals("CN=Google Internet Authority G3, O=Google Trust Services, C=US",
-                cert.getIssuerDistinguishedName());
-        assertEquals("*.google.com", cert.getName());
+    @WithMockUser(authorities = "ADD_APPROVED_CA")
+    void addCertificationService() throws Exception {
+        callAddCertificationService();
     }
 
     @Test
-    void addCertificationService() {
-        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-        var entity = prepareAddCertificationServiceRequest();
+    @WithMockUser(authorities = {"ADD_APPROVED_CA", "VIEW_APPROVED_CA_DETAILS"})
+    void getCertificateDetails() throws Exception {
+        String newApprovedCa = callAddCertificationService().andReturn().getResponse().getContentAsString();
+        Integer id = objectMapper.readValue(newApprovedCa, ApprovedCertificationServiceDto.class).getId();
 
-        ResponseEntity<ApprovedCertificationServiceDto> response = restTemplate.postForEntity(
-                "/api/v1/certification-services",
-                entity,
-                ApprovedCertificationServiceDto.class);
-
-        assertNotNull(response);
-        assertEquals(OK, response.getStatusCode());
-        assertEquals("*.google.com", response.getBody().getName());
-        assertNotNull(response.getBody().getNotBefore());
-        assertNotNull(response.getBody().getNotAfter());
+        mockMvc.perform(
+                get(commonModuleEndpointPaths.getBasePath() + "/certification-services/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("name", equalTo("*.google.com")))
+                .andExpect(jsonPath("tls_auth", equalTo(false)))
+                .andExpect(jsonPath("issuer_distinguished_name", equalTo(ISSUER_NAME)))
+                .andExpect(jsonPath("subject_distinguished_name", equalTo(SUBJECT_NAME)))
+                .andExpect(jsonPath("certificate_profile_info", equalTo(BASIC_CERT_PROFILE_INFO_PROVIDER)));
     }
 
-    private HttpEntity<MultiValueMap> prepareAddCertificationServiceRequest() {
-        MultiValueMap<String, Object> request = new LinkedMultiValueMap<>();
-        request.add("certificate", generateMockCertFile());
-        request.add("tls_auth", Boolean.FALSE);
-        request.add("certificate_profile_info", CERT_PROFILE_INFO_PROVIDER);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        return new HttpEntity<>(request, headers);
+    @Test
+    @WithMockUser(authorities = {"ADD_APPROVED_CA", "EDIT_APPROVED_CA"})
+    void editCertificationServiceSettings() throws Exception {
+        String newApprovedCa = callAddCertificationService().andReturn().getResponse().getContentAsString();
+        Integer id = objectMapper.readValue(newApprovedCa, ApprovedCertificationServiceDto.class).getId();
+        CertificationServiceSettingsDto newSettings = new CertificationServiceSettingsDto()
+                .tlsAuth(TRUE)
+                .certificateProfileInfo(FIVRK_CERT_PROFILE_INFO_PROVIDER);
+
+        mockMvc.perform(
+                        patch(commonModuleEndpointPaths.getBasePath() + "/certification-services/{id}", id)
+                                .contentType(APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(newSettings)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("tls_auth", equalTo(true)))
+                .andExpect(jsonPath("certificate_profile_info", equalTo(FIVRK_CERT_PROFILE_INFO_PROVIDER)));
+    }
+
+    private ResultActions callAddCertificationService() throws Exception {
+        return mockMvc.perform(
+                        multipart(commonModuleEndpointPaths.getBasePath() + "/certification-services")
+                                .part(new MockPart("certificate_profile_info", BASIC_CERT_PROFILE_INFO_PROVIDER.getBytes()))
+                                .part(new MockPart("tls_auth", FALSE.getBytes()))
+                                .part(new MockPart("certificate", "*.google.com", generateMockCertFile())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("name").value("*.google.com"));
     }
 
     @SneakyThrows
-    private ByteArrayResource generateMockCertFile() {
-        return new ByteArrayResource(
-                IOUtils.toByteArray(this.getClass().getClassLoader().getResourceAsStream("google-cert.der"))) {
-            @Override
-            public String getFilename() {
-                return "google-cert.der";
-            }
-        };
+    private byte[] generateMockCertFile() {
+        return IOUtils.toByteArray(this.getClass().getClassLoader().getResourceAsStream("google-cert.der"));
     }
 
 }

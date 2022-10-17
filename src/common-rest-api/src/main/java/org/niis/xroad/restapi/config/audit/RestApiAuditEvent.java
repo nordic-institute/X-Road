@@ -128,6 +128,7 @@ public enum RestApiAuditEvent {
     UPDATE_SECURITY_SERVER_ADDRESS("Update security server address"),
 
     ADD_CERTIFICATION_SERVICE("Add certification service"),
+    EDIT_CERTIFICATION_SERVICE_SETTINGS("Edit certification service settings"),
 
     ADD_GLOBAL_GROUP("Add global group"),
     DELETE_GLOBAL_GROUP("Delete global group"),

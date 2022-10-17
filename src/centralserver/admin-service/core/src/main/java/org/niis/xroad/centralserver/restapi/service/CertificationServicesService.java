@@ -40,6 +40,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
 
@@ -61,8 +62,21 @@ public class CertificationServicesService {
     }
 
     public CertificationService get(Integer id) {
+        return approvedCaConverter.convert(getById(id));
+    }
+
+    public CertificationService update(CertificationService approvedCa) {
+        ApprovedCa persistedApprovedCa = getById(approvedCa.getId());
+        Optional.ofNullable(approvedCa.getCertificateProfileInfo()).ifPresent(persistedApprovedCa::setCertProfileInfo);
+        Optional.ofNullable(approvedCa.getTlsAuth()).ifPresent(persistedApprovedCa::setAuthenticationOnly);
+        final ApprovedCa updatedApprovedCa = approvedCaRepository.save(persistedApprovedCa);
+        addAuditData(updatedApprovedCa);
+
+        return approvedCaConverter.convert(updatedApprovedCa);
+    }
+
+    private ApprovedCa getById(Integer id) {
         return approvedCaRepository.findById(id)
-                .map(approvedCaConverter::convert)
                 .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
     }
 
