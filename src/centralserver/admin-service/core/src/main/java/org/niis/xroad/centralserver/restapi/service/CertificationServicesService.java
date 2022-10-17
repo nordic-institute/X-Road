@@ -28,9 +28,11 @@ package org.niis.xroad.centralserver.restapi.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
 import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
@@ -51,6 +53,7 @@ public class CertificationServicesService {
     private final ApprovedCaRepository approvedCaRepository;
     private final AuditDataHelper auditDataHelper;
     private final ApprovedCaConverter approvedCaConverter;
+    private final CaInfoConverter caInfoConverter;
 
     public CertificationService add(AddApprovedCertificationServiceDto certificationServiceDto) {
         final ApprovedCa approvedCaEntity = approvedCaConverter.toEntity(certificationServiceDto);
@@ -63,6 +66,13 @@ public class CertificationServicesService {
     public CertificationService get(Integer id) {
         return approvedCaRepository.findById(id)
                 .map(approvedCaConverter::convert)
+                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
+    }
+
+    public CertificateDetails getCertificateDetails(Integer id) {
+        return approvedCaRepository.findById(id)
+                .map(ApprovedCa::getCaInfo)
+                .map(caInfoConverter::convert)
                 .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
     }
 

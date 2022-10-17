@@ -458,6 +458,39 @@ paths:
       summary: update the certification service
       tags:
         - certification-services
+  /certification-services/{id}/certificate:
+    get:
+      description: <h3>CS administrator views the details of an approved certification service cetificate.</h3>
+      operationId: getCertificationServiceCertificate
+      parameters:
+        - description: unique identifier of the certification service
+          in: path
+          name: id
+          required: true
+          schema:
+            format: int32
+            minLength: 1
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+          description: a certification service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a certification service
+      tags:
+        - certification-services
   /certification-services/{id}/intermediate-cas:
     get:
       description: <h3>CS administrator views the intermediate CAs configured for a certification service.</h3>
