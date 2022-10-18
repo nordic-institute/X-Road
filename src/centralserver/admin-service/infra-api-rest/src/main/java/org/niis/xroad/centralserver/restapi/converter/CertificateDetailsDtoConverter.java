@@ -28,10 +28,11 @@
 package org.niis.xroad.centralserver.restapi.converter;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
 import org.niis.xroad.centralserver.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CertificateDetailsDtoConverter extends BaseConverter {
 
     CertificateDetailsDto convert(CertificateDetails certificateDetails);
