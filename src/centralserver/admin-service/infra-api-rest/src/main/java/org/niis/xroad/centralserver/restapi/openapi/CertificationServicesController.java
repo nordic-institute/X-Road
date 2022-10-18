@@ -107,7 +107,7 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
     public ResponseEntity<CertificateDetailsDto> getCertificationServiceCertificate(Integer id) {
-        return ok(dtoConverter.convert(certificationServicesService.getCertificateDetails(id)));
+        return ok(certificateDetailsDtoConverter.convert(certificationServicesService.getCertificateDetails(id)));
     }
 
     @Override
