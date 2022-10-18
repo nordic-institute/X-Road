@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,25 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.converter;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceListItemDto;
-import org.niis.xroad.centralserver.restapi.dto.CertificationService;
-import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
+package org.niis.xroad.centralserver.restapi.dto.converter;
 
-import java.util.Collection;
+import org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum;
+import org.springframework.stereotype.Component;
+
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ApprovedCertificationServiceDtoConverter extends BaseConverter {
+@Component
+public class KeyUsageConverter {
 
-    ApprovedCertificationServiceDto convert(CertificationService certificationService);
+    private static final Map<Integer, KeyUsageEnum> MAPPING = Map.of(
+            0, KeyUsageEnum.DIGITAL_SIGNATURE,
+            1, KeyUsageEnum.NON_REPUDIATION,
+            2, KeyUsageEnum.KEY_ENCIPHERMENT,
+            3, KeyUsageEnum.DATA_ENCIPHERMENT,
+            4, KeyUsageEnum.KEY_AGREEMENT,
+            5, KeyUsageEnum.KEY_CERT_SIGN,
+            6, KeyUsageEnum.CRL_SIGN,
+            7, KeyUsageEnum.ENCIPHER_ONLY,
+            8, KeyUsageEnum.DECIPHER_ONLY
+    );
 
-    ApprovedCertificationServiceListItemDto convertListItem(CertificationServiceListItem listItem);
-
-    Set<ApprovedCertificationServiceListItemDto> convertListItems(Collection<CertificationServiceListItem> items);
+    public Set<KeyUsageEnum> convert(boolean[] keyUsage) {
+        if (keyUsage == null) {
+            return null;
+        }
+        final Set<KeyUsageEnum> keyUsages = new HashSet<>();
+        for (int i = 0; i < Math.min(keyUsage.length, MAPPING.size()); i++) {
+            if (keyUsage[i]) {
+                keyUsages.add(MAPPING.get(i));
+            }
+        }
+        return keyUsages;
+    }
 
 }

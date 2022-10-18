@@ -28,7 +28,6 @@ package org.niis.xroad.centralserver.restapi.dto.converter;
 
 import ee.ria.xroad.common.util.CertUtils;
 
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
@@ -46,7 +45,6 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.INVALID_CERTIFICATE;
 
 @Component
-@RequiredArgsConstructor
 public class ApprovedCaConverter {
 
     public ApprovedCa toEntity(ApprovedCertificationService certificationService) {

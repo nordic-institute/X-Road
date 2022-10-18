@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,25 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.centralserver.restapi.converter;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceListItemDto;
-import org.niis.xroad.centralserver.restapi.dto.CertificationService;
-import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
-
-import java.util.Collection;
-import java.util.Set;
+import org.niis.xroad.centralserver.openapi.model.CertificateDetailsDto;
+import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ApprovedCertificationServiceDtoConverter extends BaseConverter {
+public interface CertificateDetailsDtoConverter extends BaseConverter {
 
-    ApprovedCertificationServiceDto convert(CertificationService certificationService);
-
-    ApprovedCertificationServiceListItemDto convertListItem(CertificationServiceListItem listItem);
-
-    Set<ApprovedCertificationServiceListItemDto> convertListItems(Collection<CertificationServiceListItem> items);
+    CertificateDetailsDto convert(CertificateDetails certificateDetails);
 
 }

@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,25 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.converter;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
-import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceListItemDto;
-import org.niis.xroad.centralserver.restapi.dto.CertificationService;
-import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
+package org.niis.xroad.centralserver.restapi.dto;
 
-import java.util.Collection;
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import java.math.BigInteger;
+import java.time.Instant;
 import java.util.Set;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ApprovedCertificationServiceDtoConverter extends BaseConverter {
+@Data
+@Accessors(chain = true)
+public class CertificateDetails {
 
-    ApprovedCertificationServiceDto convert(CertificationService certificationService);
-
-    ApprovedCertificationServiceListItemDto convertListItem(CertificationServiceListItem listItem);
-
-    Set<ApprovedCertificationServiceListItemDto> convertListItems(Collection<CertificationServiceListItem> items);
+    private String hash;
+    private String issuerCommonName;
+    private String issuerDistinguishedName;
+    private Set<KeyUsageEnum> keyUsages;
+    private Instant notAfter;
+    private Instant notBefore;
+    private String publicKeyAlgorithm;
+    private BigInteger rsaPublicKeyExponent;
+    private String rsaPublicKeyModulus;
+    private String serial;
+    private String signature;
+    private String signatureAlgorithm;
+    private String subjectAlternativeNames;
+    private String subjectCommonName;
+    private String subjectDistinguishedName;
+    private Integer version;
 
 }

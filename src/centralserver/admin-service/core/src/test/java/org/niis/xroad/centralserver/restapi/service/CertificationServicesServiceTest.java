@@ -35,10 +35,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
 import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
 import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.KeyUsageConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.entity.CaInfo;
@@ -55,12 +58,14 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
 
 @ExtendWith(MockitoExtension.class)
 class CertificationServicesServiceTest {
@@ -81,6 +86,8 @@ class CertificationServicesServiceTest {
     private OcspResponderConverter ocspResponderConverter;
     @Mock
     private AuditDataHelper auditDataHelper;
+    @Spy
+    private CaInfoConverter caInfoConverter = new CaInfoConverter(new KeyUsageConverter());
 
     @InjectMocks
     private CertificationServicesService service;
@@ -136,8 +143,24 @@ class CertificationServicesServiceTest {
         verify(auditDataHelper).put(RestApiAuditProperty.OCSP_ID, mockOcspInfo.getId());
         verify(auditDataHelper).put(RestApiAuditProperty.OCSP_URL, mockOcspInfo.getUrl());
         verify(auditDataHelper).put(RestApiAuditProperty.OCSP_CERT_HASH, "F5:1B:1F:9C:07:23:4C:DA:E6:4C:99:CB:FC:D8:EE:0E:C5:5F:A4:AF");
-        verify(auditDataHelper)
-                .put(RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM, CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID);
+        verify(auditDataHelper).put(RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM, CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID);
+    }
+
+    @Test
+    void getCertificateDetails() {
+        when(approvedCaRepository.findById(ID)).thenReturn(Optional.of(approvedCa()));
+
+        final CertificateDetails certificateDetails = service.getCertificateDetails(ID);
+
+        assertNotNull(certificateDetails);
+        assertThat(certificateDetails.getKeyUsages()).contains(DIGITAL_SIGNATURE);
+        assertEquals("Subject", certificateDetails.getSubjectCommonName());
+        assertEquals("CN=Subject", certificateDetails.getSubjectDistinguishedName());
+        assertEquals("Cyber", certificateDetails.getIssuerCommonName());
+        assertEquals("1", certificateDetails.getSerial());
+        assertEquals("SHA256withRSA", certificateDetails.getSignatureAlgorithm());
+        assertEquals("EMAILADDRESS=aaa@bbb.ccc, CN=Cyber, OU=ITO, O=Cybernetica, C=EE",
+                certificateDetails.getIssuerDistinguishedName());
     }
 
     @SneakyThrows
