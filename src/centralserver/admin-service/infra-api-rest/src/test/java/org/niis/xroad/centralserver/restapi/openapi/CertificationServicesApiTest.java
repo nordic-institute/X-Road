@@ -30,6 +30,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceListItemDto;
+import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -48,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
@@ -114,10 +116,27 @@ class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
                 ApprovedCertificationServiceDto.class);
 
         assertNotNull(response);
-        assertEquals(OK, response.getStatusCode());
+        assertEquals(CREATED, response.getStatusCode());
         assertEquals("*.google.com", response.getBody().getName());
         assertNotNull(response.getBody().getNotBefore());
         assertNotNull(response.getBody().getNotAfter());
+    }
+
+    @Test
+    void addCertificationServiceOcspResponder() {
+        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+        var entity = prepareAddCertificationServiceOcspResponderRequest();
+
+        ResponseEntity<OcspResponderDto> response = restTemplate.postForEntity(
+                "/api/v1/certification-services/100/ocsp-responders",
+                entity,
+                OcspResponderDto.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(CREATED);
+        assertThat(response.getBody().getId()).isNotNull();
+        assertThat(response.getBody().getUrl()).isEqualTo("http://localhost:1234");
+        assertThat(response.getBody().getCreatedAt()).isBefore(OffsetDateTime.now());
+        assertThat(response.getBody().getUpdatedAt()).isBefore(OffsetDateTime.now());
     }
 
     private HttpEntity<MultiValueMap> prepareAddCertificationServiceRequest() {
@@ -129,6 +148,17 @@ class CertificationServicesApiTest extends AbstractApiRestTemplateTestContext {
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         return new HttpEntity<>(request, headers);
     }
+
+    private HttpEntity<MultiValueMap> prepareAddCertificationServiceOcspResponderRequest() {
+        MultiValueMap<String, Object> request = new LinkedMultiValueMap<>();
+        request.add("certificate", generateMockCertFile());
+        request.add("url", "http://localhost:1234");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        return new HttpEntity<>(request, headers);
+    }
+
+
 
     @SneakyThrows
     private ByteArrayResource generateMockCertFile() {

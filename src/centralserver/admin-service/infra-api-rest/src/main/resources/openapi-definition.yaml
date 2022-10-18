@@ -575,9 +575,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -4199,9 +4199,9 @@ components:
         id:
           description: unique identifier
           example: 123
-          format: text
+          format: int32
           readOnly: true
-          type: string
+          type: integer
       required:
         - id
     OcspResponderCertificate:

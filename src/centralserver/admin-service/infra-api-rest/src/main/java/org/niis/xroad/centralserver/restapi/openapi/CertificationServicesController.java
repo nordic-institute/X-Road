@@ -37,12 +37,15 @@ import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.converter.ApprovedCertificationServiceDtoConverter;
-import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.restapi.converter.OcspResponderDtoConverter;
+import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
+import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
 import org.niis.xroad.centralserver.restapi.service.CertificationServicesService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -62,6 +65,7 @@ public class CertificationServicesController implements CertificationServicesApi
 
     private final CertificationServicesService certificationServicesService;
     private final ApprovedCertificationServiceDtoConverter approvedCertificationServiceDtoConverter;
+    private final OcspResponderDtoConverter ocspResponderDtoConverter;
 
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE)
@@ -73,11 +77,11 @@ public class CertificationServicesController implements CertificationServicesApi
         CertificateProfileInfoValidator.validate(certificateProfileInfo);
 
         var isForTlsAuth = parseBoolean(tlsAuth);
-        var approvedCaDto = new AddApprovedCertificationServiceDto(certificate.getBytes(), certificateProfileInfo, isForTlsAuth);
+        var approvedCa = new ApprovedCertificationService(certificate.getBytes(), certificateProfileInfo, isForTlsAuth);
 
-        CertificationService persistedApprovedCa = certificationServicesService.add(approvedCaDto);
+        CertificationService persistedApprovedCa = certificationServicesService.add(approvedCa);
 
-        return ResponseEntity.ok(approvedCertificationServiceDtoConverter.convert(persistedApprovedCa));
+        return ResponseEntity.status(HttpStatus.CREATED).body(approvedCertificationServiceDtoConverter.convert(persistedApprovedCa));
     }
 
     @Override
@@ -87,9 +91,14 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
-    public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(
-            String id, String url, MultipartFile certificate) {
-        throw new NotImplementedException("addCertificationServiceOcspResponder not implemented yet");
+    @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE_OCSP_RESPONDER)
+    @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
+    @SneakyThrows
+    public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(Integer caId, String url, MultipartFile certificate) {
+        var ocspResponder = certificationServicesService.addOcspResponder(
+                new OcspResponder().setCaId(caId).setUrl(url).setCertificate(certificate.getBytes())
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(ocspResponderDtoConverter.toDto(ocspResponder));
     }
 
     @Override

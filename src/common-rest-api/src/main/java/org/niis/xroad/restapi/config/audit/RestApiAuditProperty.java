@@ -87,6 +87,11 @@ public enum RestApiAuditProperty {
     CSR_FORMAT,
     CERT_ID,
     CSR_ID,
+    CA_ID,
+    OCSP_ID,
+    OCSP_URL,
+    OCSP_CERT_HASH,
+    OCSP_CERT_HASH_ALGORITHM,
 
     CERT_FILE_NAME,
     ADDRESS,
