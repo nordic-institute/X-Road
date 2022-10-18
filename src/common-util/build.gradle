@@ -50,7 +50,10 @@ dependencies {
         exclude module: 'c3p0'
     }
 
-    api 'org.apache.commons:commons-configuration2:2.8.0'
+    api ('org.apache.commons:commons-configuration2:2.8.0') {
+        exclude group: 'org.apache.commons', module: 'commons-text'
+    }
+    api 'org.apache.commons:commons-text:1.10.0'
 
     implementation "ch.qos.logback:logback-classic:${logbackVersion}"
 
