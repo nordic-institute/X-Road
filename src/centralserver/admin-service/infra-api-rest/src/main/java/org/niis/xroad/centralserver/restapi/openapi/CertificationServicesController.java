@@ -34,9 +34,11 @@ import org.niis.xroad.centralserver.openapi.CertificationServicesApi;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceListItemDto;
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
+import org.niis.xroad.centralserver.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.converter.ApprovedCertificationServiceDtoConverter;
+import org.niis.xroad.centralserver.restapi.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
 import org.niis.xroad.centralserver.restapi.service.CertificationServicesService;
@@ -62,6 +64,7 @@ public class CertificationServicesController implements CertificationServicesApi
 
     private final CertificationServicesService certificationServicesService;
     private final ApprovedCertificationServiceDtoConverter dtoConverter;
+    private final CertificateDetailsDtoConverter certificateDetailsDtoConverter;
 
     @Override
     @SneakyThrows
@@ -99,6 +102,12 @@ public class CertificationServicesController implements CertificationServicesApi
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
     public ResponseEntity<ApprovedCertificationServiceDto> getCertificationService(Integer id) {
         return ok(dtoConverter.convert(certificationServicesService.get(id)));
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
+    public ResponseEntity<CertificateDetailsDto> getCertificationServiceCertificate(Integer id) {
+        return ok(certificateDetailsDtoConverter.convert(certificationServicesService.getCertificateDetails(id)));
     }
 
     @Override
