@@ -54,8 +54,8 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
             = "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider";
     private static final String FIVRK_CERT_PROFILE_INFO_PROVIDER
             = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";
-    private static final String ISSUER_NAME = "CN=Google Internet Authority G3, O=Google Trust Services, C=US";
-    private static final String SUBJECT_NAME = "CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US";
+    private static final String ISSUER_DISTINGUISHED_NAME = "CN=R3, O=Let's Encrypt, C=US";
+    private static final String SUBJECT_DISTINGUISHED_NAME = "CN=x-road.global";
 
     private static final String PUBLIC_KEY_MODULUS = "2151337145236360089905485986239099550408653247848020894166069752"
             + "0416378609304765007780222461167023921306298709865053553264571232520963553301724989345282355757634100081"
@@ -70,7 +70,6 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
             + "44dee80854f8ce34cbacfc1bb4b8961b47ebbe0af22c0288d97fb20cb671e46643c98ad376e1323605025637468abdbf1db84ed"
             + "aca29fde58ca16d1c073661af7da2b9bd54352979fab2e8c1d6f7ba54b35cb6b1a360ddff7c49589ab4a1d774c3ab00ba176028"
             + "6149d0bc98d77c57d46d57644f6";
-
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -90,30 +89,30 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
     @Test
     @WithMockUser(authorities = "ADD_APPROVED_CA")
     void addCertificationService() throws Exception {
-        callAddCertificationService("google-cert.der");
+        callAddCertificationService();
     }
 
     @Test
     @WithMockUser(authorities = {"ADD_APPROVED_CA", "VIEW_APPROVED_CA_DETAILS"})
     void getCertificationService() throws Exception {
-        String newApprovedCa = callAddCertificationService("google-cert.der").andReturn()
+        String newApprovedCa = callAddCertificationService().andReturn()
                 .getResponse().getContentAsString();
         Integer id = objectMapper.readValue(newApprovedCa, ApprovedCertificationServiceDto.class).getId();
 
         mockMvc.perform(
                         get(commonModuleEndpointPaths.getBasePath() + "/certification-services/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("name", equalTo("*.google.com")))
+                .andExpect(jsonPath("name", equalTo("x-road.global")))
                 .andExpect(jsonPath("tls_auth", equalTo(false)))
-                .andExpect(jsonPath("issuer_distinguished_name", equalTo(ISSUER_NAME)))
-                .andExpect(jsonPath("subject_distinguished_name", equalTo(SUBJECT_NAME)))
+                .andExpect(jsonPath("issuer_distinguished_name", equalTo(ISSUER_DISTINGUISHED_NAME)))
+                .andExpect(jsonPath("subject_distinguished_name", equalTo(SUBJECT_DISTINGUISHED_NAME)))
                 .andExpect(jsonPath("certificate_profile_info", equalTo(BASIC_CERT_PROFILE_INFO_PROVIDER)));
     }
 
     @Test
     @WithMockUser(authorities = {"ADD_APPROVED_CA", "EDIT_APPROVED_CA"})
     void editCertificationServiceSettings() throws Exception {
-        String newApprovedCa = callAddCertificationService("google-cert.der").andReturn()
+        String newApprovedCa = callAddCertificationService().andReturn()
                 .getResponse().getContentAsString();
         Integer id = objectMapper.readValue(newApprovedCa, ApprovedCertificationServiceDto.class).getId();
         CertificationServiceSettingsDto newSettings = new CertificationServiceSettingsDto()
@@ -132,7 +131,7 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
     @Test
     @WithMockUser(authorities = {"ADD_APPROVED_CA", "VIEW_APPROVED_CA_DETAILS"})
     void getCertificationServiceCertificate() throws Exception {
-        String newApprovedCa = callAddCertificationService("x-road.global.der").andReturn()
+        String newApprovedCa = callAddCertificationService().andReturn()
                 .getResponse().getContentAsString();
         Integer id = objectMapper.readValue(newApprovedCa, ApprovedCertificationServiceDto.class).getId();
 
@@ -141,7 +140,7 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("hash", equalTo("A12B13AA70A5249D583708B29DEF0ED1B2385281")))
                 .andExpect(jsonPath("issuer_common_name", equalTo("R3")))
-                .andExpect(jsonPath("issuer_distinguished_name", equalTo("CN=R3, O=Let's Encrypt, C=US")))
+                .andExpect(jsonPath("issuer_distinguished_name", equalTo(ISSUER_DISTINGUISHED_NAME)))
                 .andExpect(jsonPath("key_usages", containsInAnyOrder("DIGITAL_SIGNATURE", "KEY_ENCIPHERMENT")))
                 .andExpect(jsonPath("not_after", equalTo("2022-12-08T05:06:10Z")))
                 .andExpect(jsonPath("not_before", equalTo("2022-09-09T05:06:11Z")))
@@ -153,11 +152,12 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
                 .andExpect(jsonPath("signature_algorithm", equalTo("SHA256withRSA")))
                 .andExpect(jsonPath("subject_alternative_names", equalTo("DNS:x-road.global")))
                 .andExpect(jsonPath("subject_common_name", equalTo("x-road.global")))
-                .andExpect(jsonPath("subject_distinguished_name", equalTo("CN=x-road.global")))
+                .andExpect(jsonPath("subject_distinguished_name", equalTo(SUBJECT_DISTINGUISHED_NAME)))
                 .andExpect(jsonPath("version", equalTo(3)));
     }
 
-    private ResultActions callAddCertificationService(String filename) throws Exception {
+    private ResultActions callAddCertificationService() throws Exception {
+        final String filename = "x-road.global.der";
         return mockMvc.perform(
                         multipart(commonModuleEndpointPaths.getBasePath() + "/certification-services")
                                 .part(new MockPart("certificate_profile_info", BASIC_CERT_PROFILE_INFO_PROVIDER.getBytes()))
