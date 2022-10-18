@@ -60,10 +60,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static ee.ria.xroad.common.SystemProperties.NODE_TYPE;
+import static ee.ria.xroad.common.SystemProperties.NodeType.MASTER;
+import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -162,7 +167,6 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         when(signerProxyFacade.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
         when(signerProxyFacade.execute(new GetAuthKey(any()))).thenReturn(new AuthKeyInfo(
                 KEY_AUTH_ID, null, null, certificateInfo));
-        when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
     }
 
     @Test
@@ -177,7 +181,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         assertEquals(ClientType.STATUS_REGISTERED, subsystem.getClientStatus());
 
         // Update serverconf
-        globalConfChecker.updateServerConf();
+        globalConfChecker.checkGlobalConf();
         assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
         assertEquals(ClientType.STATUS_REGISTERED, owner.getClientStatus());
         // Subsystem status is changed to "GLOBALERR" since it's not recognized as a Security Server client
@@ -186,13 +190,15 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         // Global conf starts to recognize the subsystem as a Security Server client
         when(globalConfFacade.isSecurityServerClient(SUBSYSTEM, SS_ID)).thenReturn(true);
         // Update serverconf
-        globalConfChecker.updateServerConf();
+        globalConfChecker.checkGlobalConf();
         // Subsystem status is changed back to "REGISTERED"
         assertEquals(ClientType.STATUS_REGISTERED, subsystem.getClientStatus());
     }
 
     @Test
     public void registerMemberAndChangeSecurityServerOwner() throws Exception {
+        when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
+
         assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
 
         // Add new member locally
@@ -207,7 +213,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         when(globalConfFacade.isSecurityServerClient(any(), any())).thenReturn(true);
 
         // Update serverconf
-        globalConfChecker.updateServerConf();
+        globalConfChecker.checkGlobalConf();
         assertEquals(ClientType.STATUS_REGISTERED, clientType.getClientStatus());
         assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
 
@@ -217,7 +223,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         when(globalConfFacade.getServerId(any())).thenReturn(NEW_SS_ID);
 
         // Update serverconf => owner is changed
-        globalConfChecker.updateServerConf();
+        globalConfChecker.checkGlobalConf();
         assertEquals(NEW_OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
     }
 
@@ -274,5 +280,18 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         assertEquals(approvedTSATypes2.get(1).getUrl(), tspTypes2.get(1).getUrl());
         assertEquals(approvedTSATypes2.get(2).getName(), tspTypes2.get(2).getName());
         assertEquals(approvedTSATypes2.get(2).getUrl(), tspTypes2.get(2).getUrl());
+    }
+
+    @Test
+    public void doNotUpdateServerConfOnSlave() {
+        System.setProperty(NODE_TYPE, SLAVE.toString());
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(globalConfFacade).reload();
+        verify(globalConfFacade).verifyValidity();
+        verifyNoMoreInteractions(globalConfFacade);
+
+        System.setProperty(NODE_TYPE, MASTER.toString());
     }
 }
