@@ -47,7 +47,7 @@ import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.entity.CaInfo;
 import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
-import org.niis.xroad.centralserver.restapi.repository.OcspInfoRepository;
+import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
@@ -79,7 +79,7 @@ class CertificationServicesServiceTest {
     @Mock
     private ApprovedCaRepository approvedCaRepository;
     @Mock
-    private OcspInfoRepository ocspInfoRepository;
+    private OcspInfoJpaRepository ocspInfoRepository;
     @Spy
     private ApprovedCaConverter approvedCaConverter = new ApprovedCaConverter();
     @Mock
@@ -136,9 +136,6 @@ class CertificationServicesServiceTest {
         var result = service.addOcspResponder(mockOcspResponder);
 
         assertThat(result).isEqualTo(mockOcspResponder);
-        verify(ocspResponderConverter).toEntity(mockOcspResponder);
-        verify(ocspInfoRepository).save(mockOcspInfo);
-        verify(ocspResponderConverter).toModel(mockOcspInfo);
         verify(auditDataHelper).put(RestApiAuditProperty.CA_ID, mockOcspInfo.getCaInfo().getId());
         verify(auditDataHelper).put(RestApiAuditProperty.OCSP_ID, mockOcspInfo.getId());
         verify(auditDataHelper).put(RestApiAuditProperty.OCSP_URL, mockOcspInfo.getUrl());

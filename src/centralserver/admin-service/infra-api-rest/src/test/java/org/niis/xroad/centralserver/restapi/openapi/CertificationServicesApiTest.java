@@ -134,16 +134,22 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
                 .andExpect(jsonPath("certificate_profile_info", equalTo(FIVRK_CERT_PROFILE_INFO_PROVIDER)));
     }
 
+    @SuppressWarnings("checkstyle:OperatorWrap")
     @Test
     @WithMockUser(authorities = "ADD_APPROVED_CA")
     void addCertificationServiceOcspResponder() throws Exception {
+        var certificationService = objectMapper.readValue(
+                callAddCertificationService().andReturn().getResponse().getContentAsString(), ApprovedCertificationServiceDto.class
+        );
+
         var result = mockMvc.perform(
-                        multipart(commonModuleEndpointPaths.getBasePath() + "/certification-services/100/ocsp-responders")
+                        multipart(commonModuleEndpointPaths.getBasePath() + "/certification-services/" +
+                                certificationService.getId() + "/ocsp-responders")
                                 .part(new MockPart("url", "http://localhost:1234".getBytes()))
-                                .part(new MockPart("certificate", "ocsp.crt",
-                                        TestCertUtil.getOcspSigner().certChain[0].getEncoded())))
+                                .part(new MockPart("certificate", "ocsp.crt", TestCertUtil.getOcspSigner().certChain[0].getEncoded())))
                 .andExpect(status().isCreated())
                 .andReturn();
+
         OcspResponderDto created =
                 objectMapper.readValue(result.getResponse().getContentAsString(), OcspResponderDto.class);
         assertThat(created.getId()).isNotNull();

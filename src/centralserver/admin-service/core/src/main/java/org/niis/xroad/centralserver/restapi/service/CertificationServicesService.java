@@ -40,7 +40,7 @@ import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
-import org.niis.xroad.centralserver.restapi.repository.OcspInfoRepository;
+import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
@@ -58,7 +58,7 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 @RequiredArgsConstructor
 public class CertificationServicesService {
     private final ApprovedCaRepository approvedCaRepository;
-    private final OcspInfoRepository ocspInfoRepository;
+    private final OcspInfoJpaRepository ocspInfoRepository;
     private final AuditDataHelper auditDataHelper;
     private final ApprovedCaConverter approvedCaConverter;
     private final OcspResponderConverter ocspResponderConverter;

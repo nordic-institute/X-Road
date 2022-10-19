@@ -47,7 +47,6 @@ import org.niis.xroad.centralserver.restapi.service.CertificationServicesService
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -57,6 +56,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Set;
 
 import static java.lang.Boolean.parseBoolean;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
@@ -83,7 +83,7 @@ public class CertificationServicesController implements CertificationServicesApi
         var approvedCa = new ApprovedCertificationService(certificate.getBytes(), certificateProfileInfo, isForTlsAuth);
 
         CertificationService persistedApprovedCa = certificationServicesService.add(approvedCa);
-        return ResponseEntity.status(HttpStatus.CREATED).body(approvedCertificationServiceDtoConverter.convert(persistedApprovedCa));
+        return ResponseEntity.status(CREATED).body(approvedCertificationServiceDtoConverter.convert(persistedApprovedCa));
     }
 
     @Override
@@ -99,7 +99,7 @@ public class CertificationServicesController implements CertificationServicesApi
         var ocspResponder = certificationServicesService.addOcspResponder(
                 new OcspResponder().setCaId(caId).setUrl(url).setCertificate(certificate.getBytes())
         );
-        return ResponseEntity.status(HttpStatus.CREATED).body(ocspResponderDtoConverter.toDto(ocspResponder));
+        return ResponseEntity.status(CREATED).body(ocspResponderDtoConverter.toDto(ocspResponder));
     }
 
     @Override
