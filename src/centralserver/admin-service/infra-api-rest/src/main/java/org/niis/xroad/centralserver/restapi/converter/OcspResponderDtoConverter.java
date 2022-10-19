@@ -24,15 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
+package org.niis.xroad.centralserver.restapi.converter;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
+import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
+import org.springframework.stereotype.Component;
 
-@Getter
+import java.time.ZoneOffset;
+
+@Component
 @RequiredArgsConstructor
-public class AddApprovedCertificationServiceDto {
-    private final byte[] certificate;
-    private final String certificateProfileInfo;
-    private final Boolean tlsAuth;
+public class OcspResponderDtoConverter {
+
+    private final ZoneOffset dtoZoneOffset;
+
+    public OcspResponderDto toDto(OcspResponder ocspResponder) {
+        var dto = new OcspResponderDto();
+        dto.setId(ocspResponder.getId());
+        dto.setUrl(ocspResponder.getUrl());
+        dto.setCreatedAt(ocspResponder.getCreatedAt().atOffset(dtoZoneOffset));
+        dto.setUpdatedAt(ocspResponder.getUpdatedAt().atOffset(dtoZoneOffset));
+        //TODO OcspResponderDto's CertificateDetails to be imlemented during query API's implementation
+        return dto;
+    }
+
 }

@@ -129,6 +129,7 @@ public enum RestApiAuditEvent {
 
     ADD_CERTIFICATION_SERVICE("Add certification service"),
     EDIT_CERTIFICATION_SERVICE_SETTINGS("Edit certification service settings"),
+    ADD_CERTIFICATION_SERVICE_OCSP_RESPONDER("Add OCSP responder of certification service"),
 
     ADD_GLOBAL_GROUP("Add global group"),
     DELETE_GLOBAL_GROUP("Delete global group"),

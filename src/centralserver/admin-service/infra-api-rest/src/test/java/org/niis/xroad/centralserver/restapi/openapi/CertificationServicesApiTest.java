@@ -25,19 +25,25 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import ee.ria.xroad.common.TestCertUtil;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDto;
+import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockPart;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.OffsetDateTime;
+
 import static org.apache.commons.lang3.BooleanUtils.FALSE;
 import static org.apache.commons.lang3.BooleanUtils.TRUE;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -128,6 +134,30 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
                 .andExpect(jsonPath("certificate_profile_info", equalTo(FIVRK_CERT_PROFILE_INFO_PROVIDER)));
     }
 
+    @SuppressWarnings("checkstyle:OperatorWrap")
+    @Test
+    @WithMockUser(authorities = "ADD_APPROVED_CA")
+    void addCertificationServiceOcspResponder() throws Exception {
+        var certificationService = objectMapper.readValue(
+                callAddCertificationService().andReturn().getResponse().getContentAsString(), ApprovedCertificationServiceDto.class
+        );
+
+        var result = mockMvc.perform(
+                        multipart(commonModuleEndpointPaths.getBasePath() + "/certification-services/" +
+                                certificationService.getId() + "/ocsp-responders")
+                                .part(new MockPart("url", "http://localhost:1234".getBytes()))
+                                .part(new MockPart("certificate", "ocsp.crt", TestCertUtil.getOcspSigner().certChain[0].getEncoded())))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        OcspResponderDto created =
+                objectMapper.readValue(result.getResponse().getContentAsString(), OcspResponderDto.class);
+        assertThat(created.getId()).isNotNull();
+        assertThat(created.getUrl()).isEqualTo("http://localhost:1234");
+        assertThat(created.getCreatedAt()).isBefore(OffsetDateTime.now());
+        assertThat(created.getUpdatedAt()).isBefore(OffsetDateTime.now());
+    }
+
     @Test
     @WithMockUser(authorities = {"ADD_APPROVED_CA", "VIEW_APPROVED_CA_DETAILS"})
     void getCertificationServiceCertificate() throws Exception {
@@ -163,7 +193,7 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
                                 .part(new MockPart("certificate_profile_info", BASIC_CERT_PROFILE_INFO_PROVIDER.getBytes()))
                                 .part(new MockPart("tls_auth", FALSE.getBytes()))
                                 .part(new MockPart("certificate", filename, generateMockCertFile(filename))))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @SneakyThrows

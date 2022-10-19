@@ -29,7 +29,7 @@ package org.niis.xroad.centralserver.restapi.dto.converter;
 import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.SneakyThrows;
-import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
@@ -47,15 +47,15 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 @Component
 public class ApprovedCaConverter {
 
-    public ApprovedCa toEntity(AddApprovedCertificationServiceDto certificationServiceDto) {
+    public ApprovedCa toEntity(ApprovedCertificationService certificationService) {
         var caEntity = new ApprovedCa();
-        caEntity.setCertProfileInfo(certificationServiceDto.getCertificateProfileInfo());
-        caEntity.setAuthenticationOnly(certificationServiceDto.getTlsAuth());
-        X509Certificate certificate = handledCertificationChainRead(certificationServiceDto.getCertificate());
+        caEntity.setCertProfileInfo(certificationService.getCertificateProfileInfo());
+        caEntity.setAuthenticationOnly(certificationService.getTlsAuth());
+        X509Certificate certificate = handledCertificationChainRead(certificationService.getCertificate());
         caEntity.setName(CertUtils.getSubjectCommonName(certificate));
 
         var caInfo = new CaInfo();
-        caInfo.setCert(certificationServiceDto.getCertificate());
+        caInfo.setCert(certificationService.getCertificate());
         caInfo.setValidFrom(certificate.getNotBefore().toInstant());
         caInfo.setValidTo(certificate.getNotAfter().toInstant());
         caEntity.setCaInfo(caInfo);

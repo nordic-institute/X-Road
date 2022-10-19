@@ -39,8 +39,10 @@ import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDt
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.converter.ApprovedCertificationServiceDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.CertificateDetailsDtoConverter;
-import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
+import org.niis.xroad.centralserver.restapi.converter.OcspResponderDtoConverter;
+import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
+import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
 import org.niis.xroad.centralserver.restapi.service.CertificationServicesService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -54,6 +56,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Set;
 
 import static java.lang.Boolean.parseBoolean;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
@@ -63,7 +66,8 @@ import static org.springframework.http.ResponseEntity.ok;
 public class CertificationServicesController implements CertificationServicesApi {
 
     private final CertificationServicesService certificationServicesService;
-    private final ApprovedCertificationServiceDtoConverter dtoConverter;
+    private final ApprovedCertificationServiceDtoConverter approvedCertificationServiceDtoConverter;
+    private final OcspResponderDtoConverter ocspResponderDtoConverter;
     private final CertificateDetailsDtoConverter certificateDetailsDtoConverter;
 
     @Override
@@ -76,11 +80,10 @@ public class CertificationServicesController implements CertificationServicesApi
         CertificateProfileInfoValidator.validate(certificateProfileInfo);
 
         var isForTlsAuth = parseBoolean(tlsAuth);
-        var approvedCaDto = new AddApprovedCertificationServiceDto(certificate.getBytes(), certificateProfileInfo, isForTlsAuth);
+        var approvedCa = new ApprovedCertificationService(certificate.getBytes(), certificateProfileInfo, isForTlsAuth);
 
-        CertificationService persistedApprovedCa = certificationServicesService.add(approvedCaDto);
-
-        return ok(dtoConverter.convert(persistedApprovedCa));
+        CertificationService persistedApprovedCa = certificationServicesService.add(approvedCa);
+        return ResponseEntity.status(CREATED).body(approvedCertificationServiceDtoConverter.convert(persistedApprovedCa));
     }
 
     @Override
@@ -89,8 +92,14 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
-    public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(String id, String url, MultipartFile certificate) {
-        throw new NotImplementedException("addCertificationServiceOcspResponder not implemented yet");
+    @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE_OCSP_RESPONDER)
+    @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
+    @SneakyThrows
+    public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(Integer caId, String url, MultipartFile certificate) {
+        var ocspResponder = certificationServicesService.addOcspResponder(
+                new OcspResponder().setCaId(caId).setUrl(url).setCertificate(certificate.getBytes())
+        );
+        return ResponseEntity.status(CREATED).body(ocspResponderDtoConverter.toDto(ocspResponder));
     }
 
     @Override
@@ -101,7 +110,7 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
     public ResponseEntity<ApprovedCertificationServiceDto> getCertificationService(Integer id) {
-        return ok(dtoConverter.convert(certificationServicesService.get(id)));
+        return ok(approvedCertificationServiceDtoConverter.convert(certificationServicesService.get(id)));
     }
 
     @Override
@@ -123,7 +132,7 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CAS')")
     public ResponseEntity<Set<ApprovedCertificationServiceListItemDto>> getCertificationServices() {
-        return ok(dtoConverter.convertListItems(certificationServicesService.getCertificationServices()));
+        return ok(approvedCertificationServiceDtoConverter.convertListItems(certificationServicesService.getCertificationServices()));
     }
 
     @Override
@@ -135,6 +144,6 @@ public class CertificationServicesController implements CertificationServicesApi
                 .setCertificateProfileInfo(settings.getCertificateProfileInfo())
                 .setTlsAuth(parseBoolean(settings.getTlsAuth()));
 
-        return ok(dtoConverter.convert(certificationServicesService.update(approvedCa)));
+        return ok(approvedCertificationServiceDtoConverter.convert(certificationServicesService.update(approvedCa)));
     }
 }
