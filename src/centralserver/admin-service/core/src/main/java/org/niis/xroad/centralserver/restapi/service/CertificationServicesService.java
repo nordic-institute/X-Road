@@ -46,7 +46,6 @@ import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
 import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,10 +54,16 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTICATION_ONLY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CA_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERTIFICATE_PROFILE_INFO;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
 @Slf4j
 @Service
@@ -132,19 +137,18 @@ public class CertificationServicesService {
         return ocspResponderConverter.toModel(persistedOcspInfo);
     }
 
-
     private void addAuditData(ApprovedCa approvedCa) {
         auditDataHelper.putCertificateData(Integer.toString(approvedCa.getId()), approvedCa.getCaInfo().getCert());
-        auditDataHelper.put(RestApiAuditProperty.AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());
-        auditDataHelper.put(RestApiAuditProperty.CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
+        auditDataHelper.put(AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());
+        auditDataHelper.put(CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
     }
 
     private void addAuditData(OcspInfo ocspInfo) {
         auditDataHelper.put(CA_ID, ocspInfo.getCaInfo().getId());
-        auditDataHelper.put(RestApiAuditProperty.OCSP_ID, ocspInfo.getId());
-        auditDataHelper.put(RestApiAuditProperty.OCSP_URL, ocspInfo.getUrl());
-        auditDataHelper.put(RestApiAuditProperty.OCSP_CERT_HASH, calculateCertHash(ocspInfo.getCert()));
-        auditDataHelper.put(RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+        auditDataHelper.put(OCSP_ID, ocspInfo.getId());
+        auditDataHelper.put(OCSP_URL, ocspInfo.getUrl());
+        auditDataHelper.put(OCSP_CERT_HASH, calculateCertHash(ocspInfo.getCert()));
+        auditDataHelper.put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
     @SneakyThrows
