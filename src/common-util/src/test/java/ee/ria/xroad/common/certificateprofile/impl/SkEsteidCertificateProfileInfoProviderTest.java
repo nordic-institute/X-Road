@@ -40,7 +40,12 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the implementation of SkEsteidCertificateProfileInfoProvider.
+ *
+ * @deprecated
+ * No longer used to the best of our knowledge, deprecated as of X-Road 7.2.0.
+ * Will be removed in a future version.
  */
+@Deprecated
 public class SkEsteidCertificateProfileInfoProviderTest {
 
     /**
