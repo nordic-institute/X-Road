@@ -41,11 +41,14 @@ import org.springframework.stereotype.Component;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Collection;
+import java.util.Set;
 
 import static ee.ria.xroad.common.util.CertUtils.getIssuerCommonName;
 import static ee.ria.xroad.common.util.CertUtils.getSubjectAlternativeNames;
 import static ee.ria.xroad.common.util.CertUtils.getSubjectCommonName;
 import static java.lang.String.valueOf;
+import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.INVALID_CERTIFICATE;
 
 @Component
@@ -92,6 +95,12 @@ public class CaInfoConverter {
                 .setCaCertificate(this.toCertificateDetails(caInfo))
                 .setUpdatedAt(caInfo.getUpdatedAt())
                 .setCreatedAt(caInfo.getCreatedAt());
+    }
+
+    public Set<CertificateAuthority> toCertificateAuthorities(Collection<CaInfo> caInfos) {
+        return caInfos.stream()
+                .map(this::toCertificateAuthority)
+                .collect(toSet());
     }
 
     public CaInfo toCaInfo(byte[] certificate) {

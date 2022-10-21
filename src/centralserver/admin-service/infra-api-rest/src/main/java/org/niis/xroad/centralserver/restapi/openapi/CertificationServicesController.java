@@ -128,8 +128,9 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
-    public ResponseEntity<Set<CertificateAuthorityDto>> getCertificationServiceIntermediateCas(String id) {
-        throw new NotImplementedException("getCertificationServiceIntermediateCas not implemented yet");
+    @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
+    public ResponseEntity<Set<CertificateAuthorityDto>> getCertificationServiceIntermediateCas(Integer id) {
+        return ok(certificateAuthorityDtoConverter.convert(certificationServicesService.getIntermediateCas(id)));
     }
 
     @Override

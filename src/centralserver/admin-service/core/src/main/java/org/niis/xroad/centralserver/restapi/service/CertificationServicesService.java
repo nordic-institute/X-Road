@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
@@ -124,6 +125,11 @@ public class CertificationServicesService {
         auditDataHelper.put(INTERMEDIATE_CA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
 
         return caInfoConverter.toCertificateAuthority(caInfo);
+    }
+
+    public Set<CertificateAuthority> getIntermediateCas(Integer certificationServiceId) {
+        final ApprovedCa approvedCa = getById(certificationServiceId);
+        return caInfoConverter.toCertificateAuthorities(approvedCa.getIntermediateCaInfos());
     }
 
     public List<CertificationServiceListItem> getCertificationServices() {
