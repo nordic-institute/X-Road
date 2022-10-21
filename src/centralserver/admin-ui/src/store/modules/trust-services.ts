@@ -25,6 +25,7 @@
  * THE SOFTWARE.
  */
 import {
+  ApprovedCertificationService,
   ApprovedCertificationServiceListItem,
   CertificationServiceFileAndSettings,
 } from '@/openapi-types';
@@ -33,6 +34,7 @@ import axios from 'axios';
 
 export interface State {
   certificationServices: ApprovedCertificationServiceListItem[];
+  currentCertificationService: ApprovedCertificationService | null;
 }
 
 export const useCertificationServiceStore = defineStore(
@@ -40,13 +42,28 @@ export const useCertificationServiceStore = defineStore(
   {
     state: (): State => ({
       certificationServices: [],
+      currentCertificationService: null,
     }),
     persist: true,
     actions: {
       fetchAll() {
         return axios
-          .get<ApprovedCertificationServiceListItem[]>('/certification-services')
+          .get<ApprovedCertificationServiceListItem[]>(
+            '/certification-services',
+          )
           .then((resp) => (this.certificationServices = resp.data));
+      },
+      loadById(certificationServiceId: string) {
+        return axios
+          .get<ApprovedCertificationService>(
+            `/certification-services/${certificationServiceId}`,
+          )
+          .then((resp) => {
+            this.currentCertificationService = resp.data;
+          })
+          .catch((error) => {
+            throw error;
+          });
       },
       add(newCas: CertificationServiceFileAndSettings) {
         const formData = new FormData();

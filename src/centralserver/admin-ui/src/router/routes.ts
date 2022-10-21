@@ -76,6 +76,9 @@ import TrustedAnchors from '@/views/GlobalConfiguration/TrustedAnchors/TrustedAn
 import ManagementRequests from '@/views/ManagementRequests/ManagementRequests.vue';
 import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
 import AppForbidden from '@/views/AppForbidden.vue';
+import CertificationService from '@/views/TrustServices/CertificationService/CertificationService.vue';
+import CertificationServiceDetails from '@/views/TrustServices/CertificationService/Details/CertificationServiceDetails.vue';
+import TrustServiceList from '@/views/TrustServices/TrustServiceList.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -104,7 +107,12 @@ const routes: RouteConfig[] = [
             path: 'global-resources',
             component: GlobalResources,
             props: true,
-            meta: { permissions: [Permissions.VIEW_GLOBAL_GROUPS, Permissions.VIEW_SECURITY_SERVERS] },
+            meta: {
+              permissions: [
+                Permissions.VIEW_GLOBAL_GROUPS,
+                Permissions.VIEW_SECURITY_SERVERS,
+              ],
+            },
             children: [
               {
                 name: RouteName.GlobalResources,
@@ -272,14 +280,38 @@ const routes: RouteConfig[] = [
       },
 
       {
-        name: RouteName.TrustServices,
         path: '/trust-services',
         components: {
           default: TrustServices,
           top: TabsBase,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.VIEW_APPROVED_TSAS] },
+        children: [
+          {
+            name: RouteName.TrustServices,
+            path: '',
+            component: TrustServiceList,
+            meta: { permissions: [Permissions.VIEW_APPROVED_CAS] },
+          },
+          {
+            path: '/certification-services/:certificationServiceId',
+            components: {
+              default: CertificationService,
+              pageNavigation: PageNavigation,
+            },
+            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+            props: { default: true },
+            redirect: '/certification-services/:certificationServiceId/details',
+            children: [
+              {
+                name: RouteName.CertificationServiceDetails,
+                path: 'details',
+                component: CertificationServiceDetails,
+                meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+              },
+            ],
+          },
+        ],
       },
 
       {
