@@ -537,9 +537,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -3496,19 +3496,13 @@ components:
         id:
           description: unique identifier
           example: 123
-          format: text
+          format: int32
           readOnly: true
-          type: string
+          type: integer
         ca_certificate:
           $ref: '#/components/schemas/CertificateDetails'
-        ocsp_responders:
-          description: array containing ocsp responders
-          items:
-            $ref: '#/components/schemas/OcspResponder'
-          type: array
       required:
         - ca_certificate
-        - ocsp_responders
       type: object
     CertificateDetails:
       description: certificate details for any kind of certificate (TLS, auth, sign) # potential-common-api

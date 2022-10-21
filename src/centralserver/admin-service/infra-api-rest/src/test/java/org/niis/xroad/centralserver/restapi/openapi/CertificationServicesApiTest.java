@@ -46,6 +46,7 @@ import static org.apache.commons.lang3.BooleanUtils.TRUE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -156,6 +157,21 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
         assertThat(created.getUrl()).isEqualTo("http://localhost:1234");
         assertThat(created.getCreatedAt()).isBefore(OffsetDateTime.now());
         assertThat(created.getUpdatedAt()).isBefore(OffsetDateTime.now());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"ADD_APPROVED_CA"})
+    void addCertificationServiceIntermediateCa() throws Exception {
+        String newApprovedCa = callAddCertificationService().andReturn()
+                .getResponse().getContentAsString();
+        Integer id = objectMapper.readValue(newApprovedCa, ApprovedCertificationServiceDto.class).getId();
+
+        mockMvc.perform(
+                        multipart(commonModuleEndpointPaths.getBasePath() + "/certification-services/{id}/intermediate-cas", id)
+                                .file("certificate", TestCertUtil.getCa().certChain[0].getEncoded()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("id", notNullValue()))
+                .andExpect(jsonPath("ca_certificate.hash", equalTo("24AFDE09AA818A20D3EE7A4A2264BA247DA5C3F9")));
     }
 
     @Test
