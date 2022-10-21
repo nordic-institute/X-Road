@@ -26,6 +26,7 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import ee.ria.xroad.common.TestCertUtil;
+
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
