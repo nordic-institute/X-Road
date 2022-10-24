@@ -41,6 +41,8 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.OffsetDateTime;
 
+import static ee.ria.xroad.common.TestCertUtil.generateAuthCert;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static org.apache.commons.lang3.BooleanUtils.FALSE;
 import static org.apache.commons.lang3.BooleanUtils.TRUE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -166,12 +168,41 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
                 .getResponse().getContentAsString();
         Integer id = objectMapper.readValue(newApprovedCa, ApprovedCertificationServiceDto.class).getId();
 
+        addIntermediateCaToCertificationService(id);
+    }
+
+    @Test
+    @WithMockUser(authorities = {"ADD_APPROVED_CA", "VIEW_APPROVED_CA_DETAILS"})
+    void getCertificationServiceIntermediateCas() throws Exception {
+        String newApprovedCa = callAddCertificationService().andReturn()
+                .getResponse().getContentAsString();
+        Integer id = objectMapper.readValue(newApprovedCa, ApprovedCertificationServiceDto.class).getId();
+
+        final String hash1 = addIntermediateCaToCertificationService(id);
+        final String hash2 = addIntermediateCaToCertificationService(id);
+
         mockMvc.perform(
-                        multipart(commonModuleEndpointPaths.getBasePath() + "/certification-services/{id}/intermediate-cas", id)
-                                .file("certificate", TestCertUtil.getCa().certChain[0].getEncoded()))
+                        get(commonModuleEndpointPaths.getBasePath() + "/certification-services/{id}/intermediate-cas", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", equalTo(2)))
+                .andExpect(jsonPath("$[0].id", notNullValue()))
+                .andExpect(jsonPath("$..ca_certificate.hash", containsInAnyOrder(hash1, hash2)))
+                .andExpect(jsonPath("$[1].id", notNullValue()));
+    }
+
+    private String addIntermediateCaToCertificationService(Integer certificationServiceId) throws Exception {
+        final byte[] certBytes = generateAuthCert();
+        final String certHash = calculateCertHexHash(certBytes).toUpperCase();
+
+        mockMvc.perform(
+                        multipart(commonModuleEndpointPaths.getBasePath()
+                                + "/certification-services/{id}/intermediate-cas", certificationServiceId)
+                                .file("certificate", certBytes))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id", notNullValue()))
-                .andExpect(jsonPath("ca_certificate.hash", equalTo("24AFDE09AA818A20D3EE7A4A2264BA247DA5C3F9")));
+                .andExpect(jsonPath("ca_certificate.hash", equalTo(certHash)));
+
+        return certHash;
     }
 
     @Test

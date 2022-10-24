@@ -57,7 +57,9 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import static ee.ria.xroad.common.TestCertUtil.generateAuthCert;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -182,6 +184,17 @@ class CertificationServicesServiceTest {
     }
 
     @Test
+    void getIntermediateCas() {
+        when(approvedCaRepository.findById(ID)).thenReturn(Optional.of(approvedCa()));
+
+        final Set<CertificateAuthority> intermediateCas = service.getIntermediateCas(ID);
+
+        assertEquals(2, intermediateCas.size());
+        intermediateCas
+                .forEach(ca -> assertNotNull(ca.getCaCertificate()));
+    }
+
+    @Test
     void getCertificateDetails() {
         when(approvedCaRepository.findById(ID)).thenReturn(Optional.of(approvedCa()));
 
@@ -198,18 +211,23 @@ class CertificationServicesServiceTest {
                 certificateDetails.getIssuerDistinguishedName());
     }
 
-    @SneakyThrows
     private ApprovedCa approvedCa() {
-        CaInfo caInfo = new CaInfo();
-        caInfo.setValidFrom(VALID_FROM);
-        caInfo.setValidTo(VALID_TO);
-        caInfo.setCert(TestCertUtil.generateAuthCert());
         ApprovedCa ca = new ApprovedCa();
         ca.setName(CA_NAME);
         ca.setAuthenticationOnly(true);
         ca.setCertProfileInfo(CERT_PROFILE);
-        ca.setCaInfo(caInfo);
+        ca.setCaInfo(caInfo());
+        ca.setIntermediateCaInfos(Set.of(caInfo(), caInfo()));
         return ca;
+    }
+
+    @SneakyThrows
+    private CaInfo caInfo() {
+        CaInfo caInfo = new CaInfo();
+        caInfo.setValidFrom(VALID_FROM);
+        caInfo.setValidTo(VALID_TO);
+        caInfo.setCert(generateAuthCert());
+        return caInfo;
     }
 
 

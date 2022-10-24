@@ -32,9 +32,14 @@ import org.mapstruct.MappingConstants;
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
 
+import java.util.Collection;
+import java.util.Set;
+
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CertificateAuthorityDtoConverter extends BaseConverter {
 
     CertificateAuthorityDto convert(CertificateAuthority certificateAuthority);
+
+    Set<CertificateAuthorityDto> convert(Collection<CertificateAuthority> certificateAuthorities);
 
 }
