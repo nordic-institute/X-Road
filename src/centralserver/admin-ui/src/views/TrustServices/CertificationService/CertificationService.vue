@@ -25,7 +25,62 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
-    <router-view data-test="trust-services-view"></router-view>
-  </xrd-sub-view-container>
+  <div id="certificationserviceview">
+    <div class="header-row">
+      <div class="title-search">
+        <div class="xrd-view-title">
+          {{ certificationServiceStore.currentCertificationService.name }}
+        </div>
+      </div>
+    </div>
+    <PageNavigation
+      :items="certificationServiceNavigationItems"
+    ></PageNavigation>
+    <router-view />
+  </div>
 </template>
+
+<script lang="ts">
+import Vue from 'vue';
+import PageNavigation, {
+  NavigationItem,
+} from '@/components/layout/PageNavigation.vue';
+import { Colors } from '@/global';
+import { mapStores } from 'pinia';
+import { useCertificationServiceStore } from '@/store/modules/trust-services';
+
+/**
+ * Wrapper component for a certification service view
+ */
+export default Vue.extend({
+  name: 'CertificationService',
+  components: { PageNavigation },
+  props: {
+    certificationServiceId: {
+      type: String,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      colors: Colors,
+    };
+  },
+  computed: {
+    ...mapStores(useCertificationServiceStore),
+    certificationServiceNavigationItems(): NavigationItem[] {
+      return [
+        {
+          url: `/certification-services/${this.certificationServiceId}/details`,
+          label: this.$t(
+            'trustServices.trustService.pagenavigation.details',
+          ) as string,
+        },
+      ];
+    },
+  },
+  created() {
+    this.certificationServiceStore.loadById(this.certificationServiceId);
+  },
+});
+</script>
