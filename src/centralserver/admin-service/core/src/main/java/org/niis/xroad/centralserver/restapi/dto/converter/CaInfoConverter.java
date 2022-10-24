@@ -32,8 +32,10 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
 import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
 import org.niis.xroad.centralserver.restapi.entity.CaInfo;
+import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
@@ -44,6 +46,7 @@ import static ee.ria.xroad.common.util.CertUtils.getIssuerCommonName;
 import static ee.ria.xroad.common.util.CertUtils.getSubjectAlternativeNames;
 import static ee.ria.xroad.common.util.CertUtils.getSubjectCommonName;
 import static java.lang.String.valueOf;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.INVALID_CERTIFICATE;
 
 @Component
 @RequiredArgsConstructor
@@ -52,7 +55,7 @@ public class CaInfoConverter {
     private final KeyUsageConverter keyUsageConverter;
 
     @SneakyThrows
-    public CertificateDetails convert(CaInfo caInfo) {
+    public CertificateDetails toCertificateDetails(CaInfo caInfo) {
 
         final X509Certificate[] certificates = CertUtils.readCertificateChain(caInfo.getCert());
         final X509Certificate certificate = certificates[0];
@@ -81,6 +84,29 @@ public class CaInfoConverter {
         }
 
         return certificateDetails;
+    }
+
+    public CertificateAuthority toCertificateAuthority(CaInfo caInfo) {
+        return new CertificateAuthority()
+                .setId(caInfo.getId())
+                .setCaCertificate(this.toCertificateDetails(caInfo))
+                .setUpdatedAt(caInfo.getUpdatedAt())
+                .setCreatedAt(caInfo.getCreatedAt());
+    }
+
+    public CaInfo toCaInfo(byte[] certificate) {
+        try {
+            final X509Certificate[] certificates = CertUtils.readCertificateChain(certificate);
+            final X509Certificate cert = certificates[0];
+
+            final CaInfo caInfo = new CaInfo();
+            caInfo.setCert(certificate);
+            caInfo.setValidFrom(cert.getNotBefore().toInstant());
+            caInfo.setValidTo(cert.getNotAfter().toInstant());
+            return caInfo;
+        } catch (Exception e) {
+            throw new ValidationFailureException(INVALID_CERTIFICATE);
+        }
     }
 
 }

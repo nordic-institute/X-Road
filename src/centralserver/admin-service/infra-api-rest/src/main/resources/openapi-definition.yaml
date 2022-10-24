@@ -537,9 +537,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -2498,6 +2498,39 @@ paths:
       summary: update an ocsp responder
       tags:
         - ocsp-responders
+  /ocsp-responders/{id}/certificate:
+    get:
+      description: <h3>CS administrator views the details of an approved OCSP Responders cetificate.</h3>
+      operationId: getOcspRespondersCertificate
+      parameters:
+        - description: unique identifier of the OCSP Responder
+          in: path
+          name: id
+          required: true
+          schema:
+            format: int32
+            minLength: 1
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+          description: a certification service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a certificate
+      tags:
+        - ocsp-responders
   /security-servers:
     get:
       description: <h3>CS administrator searches for X-Road Security Servers that are registered in the central server.</h3>
@@ -3496,19 +3529,13 @@ components:
         id:
           description: unique identifier
           example: 123
-          format: text
+          format: int32
           readOnly: true
-          type: string
+          type: integer
         ca_certificate:
           $ref: '#/components/schemas/CertificateDetails'
-        ocsp_responders:
-          description: array containing ocsp responders
-          items:
-            $ref: '#/components/schemas/OcspResponder'
-          type: array
       required:
         - ca_certificate
-        - ocsp_responders
       type: object
     CertificateDetails:
       description: certificate details for any kind of certificate (TLS, auth, sign) # potential-common-api

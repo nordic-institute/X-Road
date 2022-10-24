@@ -26,15 +26,16 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
 import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
@@ -50,22 +51,32 @@ import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
 import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CA_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
 @ExtendWith(MockitoExtension.class)
 class CertificationServicesServiceTest {
@@ -136,11 +147,38 @@ class CertificationServicesServiceTest {
         var result = service.addOcspResponder(mockOcspResponder);
 
         assertThat(result).isEqualTo(mockOcspResponder);
-        verify(auditDataHelper).put(RestApiAuditProperty.CA_ID, mockOcspInfo.getCaInfo().getId());
-        verify(auditDataHelper).put(RestApiAuditProperty.OCSP_ID, mockOcspInfo.getId());
-        verify(auditDataHelper).put(RestApiAuditProperty.OCSP_URL, mockOcspInfo.getUrl());
-        verify(auditDataHelper).put(RestApiAuditProperty.OCSP_CERT_HASH, "F5:1B:1F:9C:07:23:4C:DA:E6:4C:99:CB:FC:D8:EE:0E:C5:5F:A4:AF");
-        verify(auditDataHelper).put(RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM, CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID);
+        verify(auditDataHelper).put(CA_ID, mockOcspInfo.getCaInfo().getId());
+        verify(auditDataHelper).put(OCSP_ID, mockOcspInfo.getId());
+        verify(auditDataHelper).put(OCSP_URL, mockOcspInfo.getUrl());
+        verify(auditDataHelper).put(OCSP_CERT_HASH, "F5:1B:1F:9C:07:23:4C:DA:E6:4C:99:CB:FC:D8:EE:0E:C5:5F:A4:AF");
+        verify(auditDataHelper).put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+    }
+
+    @Test
+    @SneakyThrows
+    void addIntermediateCa() {
+        final X509Certificate certificate = TestCertUtil.getCa().certChain[0];
+        final byte[] certificateBytes = certificate.getEncoded();
+        var approvedCaMock = mock(ApprovedCa.class);
+
+        when(approvedCaRepository.findById(ID)).thenReturn(Optional.of(approvedCaMock));
+
+        final CertificateAuthority certificateAuthority = service.addIntermediateCa(ID, certificateBytes);
+
+        assertEquals("24AFDE09AA818A20D3EE7A4A2264BA247DA5C3F9", certificateAuthority.getCaCertificate().getHash());
+
+        ArgumentCaptor<CaInfo> captor = ArgumentCaptor.forClass(CaInfo.class);
+        verify(approvedCaMock).addIntermediateCa(captor.capture());
+        assertEquals(certificate.getNotBefore().toInstant(), captor.getValue().getValidFrom());
+        assertEquals(certificate.getNotAfter().toInstant(), captor.getValue().getValidTo());
+        assertEquals(certificateBytes, captor.getValue().getCert());
+
+        verify(approvedCaRepository).save(approvedCaMock);
+
+        verify(auditDataHelper).put(CA_ID, ID);
+        verify(auditDataHelper).put(INTERMEDIATE_CA_ID, 0);
+        verify(auditDataHelper).put(INTERMEDIATE_CA_CERT_HASH, "24:AF:DE:09:AA:81:8A:20:D3:EE:7A:4A:22:64:BA:24:7D:A5:C3:F9");
+        verify(auditDataHelper).put(INTERMEDIATE_CA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
     @Test
