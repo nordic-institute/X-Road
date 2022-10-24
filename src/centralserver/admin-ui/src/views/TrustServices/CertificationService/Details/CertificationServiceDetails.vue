@@ -55,14 +55,16 @@
       <info-card
         :title-text="$t('trustServices.validFrom')"
         :info-text="
-          certificationServiceStore.currentCertificationService.not_before || ''
+          certificationServiceStore.currentCertificationService.not_before
+            | formatDateTime
         "
         data-test="valid-from-card"
       />
       <info-card
         :title-text="$t('trustServices.validTo')"
         :info-text="
-          certificationServiceStore.currentCertificationService.not_after || ''
+          certificationServiceStore.currentCertificationService.not_after
+            | formatDateTime
         "
         data-test="valid-to-card"
       />
