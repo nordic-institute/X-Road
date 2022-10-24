@@ -38,9 +38,8 @@ import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.PagedClientsConverter;
 import org.niis.xroad.centralserver.restapi.converter.db.ClientDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.model.ClientTypeDtoConverter;
-import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
-import org.niis.xroad.centralserver.restapi.service.ClientService;
-import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
+import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -88,8 +87,8 @@ public class ClientsApiController implements ClientsApi {
                                                        ClientTypeDto clientTypeDto,
                                                        String encodedSecurityServerId) {
         PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
-        FlattenedSecurityServerClientRepository.SearchParameters params =
-                new FlattenedSecurityServerClientRepository.SearchParameters()
+        ClientService.SearchParameters params =
+                new ClientService.SearchParameters()
                         .setMultifieldSearch(query)
                         .setMemberNameSearch(name)
                         .setInstanceSearch(instance)

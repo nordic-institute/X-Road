@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,17 +26,16 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository;
 
-import ee.ria.xroad.common.identifier.XRoadObjectType;
-
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.cs.admin.jpa.entity.FlattenedSecurityServerClientViewEntity;
-import org.niis.xroad.cs.admin.jpa.entity.FlattenedSecurityServerClientViewEntity_;
-import org.niis.xroad.cs.admin.jpa.entity.FlattenedServerClientEntity_;
-import org.niis.xroad.cs.admin.jpa.entity.MemberClassEntity_;
-import org.niis.xroad.cs.admin.jpa.entity.SecurityServerEntity;
-import org.niis.xroad.cs.admin.jpa.entity.SubsystemEntity;
-import org.niis.xroad.cs.admin.jpa.entity.XRoadMemberEntity;
+import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity;
+import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity_;
+import org.niis.xroad.cs.admin.core.entity.FlattenedServerClientEntity_;
+import org.niis.xroad.cs.admin.core.entity.MemberClassEntity_;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
+import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
+import org.niis.xroad.cs.admin.core.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,7 +56,14 @@ import java.util.List;
 @Repository
 public interface JpaFlattenedSecurityServerClientRepository extends
         PagingAndSortingRepository<FlattenedSecurityServerClientViewEntity, Long>,
-        JpaSpecificationExecutor<FlattenedSecurityServerClientViewEntity> {
+        JpaSpecificationExecutor<FlattenedSecurityServerClientViewEntity>,
+        FlattenedSecurityServerClientRepository {
+
+    default Page<FlattenedSecurityServerClientViewEntity> findAll(
+            ClientService.SearchParameters params,
+            Pageable pageable) {
+        return findAll(multiParameterSearch(params), pageable);
+    }
 
     Page<FlattenedSecurityServerClientViewEntity> findAll(
             Specification<FlattenedSecurityServerClientViewEntity> spec,
@@ -69,12 +75,12 @@ public interface JpaFlattenedSecurityServerClientRepository extends
 
     List<FlattenedSecurityServerClientViewEntity> findAll(Sort sort);
 
-    default Specification<FlattenedSecurityServerClientViewEntity> multiParameterSearch(SearchParameters params) {
+    default Specification<FlattenedSecurityServerClientViewEntity> multiParameterSearch(ClientService.SearchParameters params) {
         return (root, query, builder) -> {
             var predicates = new ArrayList<Predicate>();
             if (params.getSecurityServerId() != null) {
                 predicates.add(clientOfSecurityServerPredicate(root, builder,
-                        params.getSecurityServerId().intValue()));
+                        params.getSecurityServerId()));
             }
             if (!StringUtils.isBlank(params.getMultifieldSearch())) {
                 predicates.add(multifieldTextSearchPredicate(root, builder,
@@ -177,23 +183,29 @@ public interface JpaFlattenedSecurityServerClientRepository extends
         return builder.equal(
                 root.get(FlattenedSecurityServerClientViewEntity_.TYPE).as(String.class), XRoadMemberEntity.DISCRIMINATOR_VALUE);
     }
+
     private static Predicate subsystemPredicate(Root root, CriteriaBuilder builder) {
         return builder.equal(
                 root.get(FlattenedSecurityServerClientViewEntity_.TYPE).as(String.class), SubsystemEntity.DISCRIMINATOR_VALUE);
     }
+
     private static Predicate memberNamePredicate(Root root, CriteriaBuilder builder, String s) {
         return CriteriaBuilderUtil.caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientViewEntity_.MEMBER_NAME));
     }
+
     private static Predicate subsystemCodePredicate(Root root, CriteriaBuilder builder, String s) {
         return CriteriaBuilderUtil.caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientViewEntity_.SUBSYSTEM_CODE));
     }
+
     private static Predicate memberCodePredicate(Root root, CriteriaBuilder builder, String s) {
         return CriteriaBuilderUtil.caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientViewEntity_.MEMBER_CODE));
     }
+
     private static Predicate memberClassPredicate(Root root, CriteriaBuilder builder, String s) {
         return CriteriaBuilderUtil.caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientViewEntity_.MEMBER_CLASS)
                 .get(MemberClassEntity_.CODE));
     }
+
     private static Predicate instancePredicate(Root root, CriteriaBuilder builder, String s) {
         return CriteriaBuilderUtil.caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientViewEntity_.XROAD_INSTANCE));
     }
@@ -201,9 +213,10 @@ public interface JpaFlattenedSecurityServerClientRepository extends
     static Predicate clientOfSecurityServerPredicate(Root root, CriteriaBuilder builder, int id) {
         Join<FlattenedSecurityServerClientViewEntity, SecurityServerEntity> securityServer
                 = root.join(FlattenedSecurityServerClientViewEntity_.FLATTENED_SERVER_CLIENTS)
-                      .join(FlattenedServerClientEntity_.SECURITY_SERVER);
+                .join(FlattenedServerClientEntity_.SECURITY_SERVER);
         return builder.equal(securityServer.get(FlattenedSecurityServerClientViewEntity_.ID), id);
     }
+
     static Predicate multifieldTextSearchPredicate(Root root, CriteriaBuilder builder, String q) {
         return builder.or(
                 memberNamePredicate(root, builder, q),
@@ -218,89 +231,6 @@ public interface JpaFlattenedSecurityServerClientRepository extends
      */
     private static Predicate idIsNotNull(Root root, CriteriaBuilder builder) {
         return builder.isNotNull(root.get("id"));
-    }
-
-    /**
-     * Parameters that defined which clients are returned.
-     * All given parameters must match (e.g. memberClass = GOV, memberCode = 123 will not return a client
-     * with memberClass = GOV, memberCode = 456). Null / undefined parameters are ignored.
-     */
-    @Getter
-    class SearchParameters {
-        private String multifieldSearch;
-        private String instanceSearch;
-        private String memberNameSearch;
-        private String memberClassSearch;
-        private String memberCodeSearch;
-        private String subsystemCodeSearch;
-        private XRoadObjectType clientType;
-        private Integer securityServerId;
-
-        /**
-         * Return clients that contain given parameter in member name. Case insensitive.
-         */
-        public SearchParameters setMemberNameSearch(String memberNameSearchParam) {
-            this.memberNameSearch = memberNameSearchParam;
-            return this;
-        }
-
-        /**
-         * Return clients that contain given parameter in member name, member class, member code or
-         * subsystem code. Case insensitive.
-         */
-        public SearchParameters setMultifieldSearch(String multifieldSearchParam) {
-            this.multifieldSearch = multifieldSearchParam;
-            return this;
-        }
-
-        /**
-         * Return clients that contain given parameter in instance identifier. Case insensitive.
-         */
-        public SearchParameters setInstanceSearch(String instanceSearchParam) {
-            this.instanceSearch = instanceSearchParam;
-            return this;
-        }
-
-        /**
-         * Return clients that contain given parameter in member class. Case insensitive.
-         */
-        public SearchParameters setMemberClassSearch(String memberClassSearchParam) {
-            this.memberClassSearch = memberClassSearchParam;
-            return this;
-        }
-
-        /**
-         * Return clients that contain given parameter in member code. Case insensitive.
-         */
-        public SearchParameters setMemberCodeSearch(String memberCodeSearchParam) {
-            this.memberCodeSearch = memberCodeSearchParam;
-            return this;
-        }
-
-        /**
-         * Return clients that contain given parameter in subsystem code. Case insensitive.
-         */
-        public SearchParameters setSubsystemCodeSearch(String subsystemCodeSearchParam) {
-            this.subsystemCodeSearch = subsystemCodeSearchParam;
-            return this;
-        }
-
-        /**
-         * Return clients of given XRoadObjectType (either MEMBER or SUBSYSTEM).
-         */
-        public SearchParameters setClientType(XRoadObjectType clientTypeParam) {
-            this.clientType = clientTypeParam;
-            return this;
-        }
-
-        /**
-         * Return clients that are clients of given security server
-         * @param securityServerIdParam security server ID
-         */
-        public SearchParameters setSecurityServerId(Integer securityServerIdParam) {
-            this.securityServerId = securityServerIdParam;
-            return this;
-        }
     }
 
 

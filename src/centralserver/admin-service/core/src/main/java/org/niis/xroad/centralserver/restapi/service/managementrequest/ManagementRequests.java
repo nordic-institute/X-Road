@@ -31,13 +31,14 @@ import org.niis.xroad.centralserver.restapi.dto.AuthenticationCertificateRegistr
 import org.niis.xroad.centralserver.restapi.dto.ClientDeletionRequestDto;
 import org.niis.xroad.centralserver.restapi.dto.ClientRegistrationRequestDto;
 import org.niis.xroad.centralserver.restapi.dto.ManagementRequestDto;
-import org.niis.xroad.centralserver.restapi.dto.ManagementRequestInfoDto;
-import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateDeletionRequest;
-import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateRegistrationRequest;
-import org.niis.xroad.centralserver.restapi.entity.ClientDeletionRequest;
-import org.niis.xroad.centralserver.restapi.entity.ClientRegistrationRequest;
-import org.niis.xroad.centralserver.restapi.entity.ManagementRequestView;
-import org.niis.xroad.centralserver.restapi.entity.Request;
+import org.niis.xroad.cs.admin.api.domain.Request;
+import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
+import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.ManagementRequestViewEntity;
+import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 
 final class ManagementRequests {
 
@@ -45,9 +46,9 @@ final class ManagementRequests {
         //Utility class
     }
 
-    static ManagementRequestDto asDto(Request request) {
-        if (request instanceof AuthenticationCertificateRegistrationRequest) {
-            var req = (AuthenticationCertificateRegistrationRequest) request;
+    static ManagementRequestDto asDto(RequestEntity request) {
+        if (request instanceof AuthenticationCertificateRegistrationRequestEntity) {
+            var req = (AuthenticationCertificateRegistrationRequestEntity) request;
             return new AuthenticationCertificateRegistrationRequestDto(
                     req.getId(),
                     req.getOrigin(),
@@ -57,8 +58,8 @@ final class ManagementRequests {
                     req.getAddress());
         }
 
-        if (request instanceof AuthenticationCertificateDeletionRequest) {
-            var req = (AuthenticationCertificateDeletionRequest) request;
+        if (request instanceof AuthenticationCertificateDeletionRequestEntity) {
+            var req = (AuthenticationCertificateDeletionRequestEntity) request;
             return new AuthenticationCertificateDeletionRequestDto(
                     req.getId(),
                     req.getOrigin(),
@@ -67,8 +68,8 @@ final class ManagementRequests {
                     req.getAuthCert());
         }
 
-        if (request instanceof ClientRegistrationRequest) {
-            var req = (ClientRegistrationRequest) request;
+        if (request instanceof ClientRegistrationRequestEntity) {
+            var req = (ClientRegistrationRequestEntity) request;
             return new ClientRegistrationRequestDto(
                     req.getId(),
                     req.getOrigin(),
@@ -77,8 +78,8 @@ final class ManagementRequests {
                     req.getClientId());
         }
 
-        if (request instanceof ClientDeletionRequest) {
-            var req = (ClientDeletionRequest) request;
+        if (request instanceof ClientDeletionRequestEntity) {
+            var req = (ClientDeletionRequestEntity) request;
             return new ClientDeletionRequestDto(
                     req.getId(),
                     req.getOrigin(),
@@ -101,7 +102,7 @@ final class ManagementRequests {
                 req.getCreatedAt());
     }
 
-    static ManagementRequestInfoDto asInfoDto(final ManagementRequestView managementRequestView) {
+    static ManagementRequestInfoDto asInfoDto(final ManagementRequestViewEntity managementRequestView) {
         return new ManagementRequestInfoDto(
                 managementRequestView.getId(),
                 managementRequestView.getManagementRequestType(),

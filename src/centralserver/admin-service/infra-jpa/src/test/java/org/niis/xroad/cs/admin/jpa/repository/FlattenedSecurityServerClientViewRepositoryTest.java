@@ -30,7 +30,8 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.cs.admin.jpa.entity.FlattenedSecurityServerClientViewEntity;
+import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -303,20 +304,20 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
     public void findClientsByMultiParameterSearch() {
         List<FlattenedSecurityServerClientViewEntity> clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                 ));
         assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setSecurityServerId(1000001)
                 ));
         assertEquals(3, clients.size());
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setSecurityServerId(1000001)
                                 .setMultifieldSearch("ss1")
                 ));
@@ -324,7 +325,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setSecurityServerId(1000001)
                                 .setMemberCodeSearch("m1")
                 ));
@@ -332,7 +333,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setSecurityServerId(1000001)
                                 .setMultifieldSearch("ss1")
                                 .setMemberCodeSearch("m1")
@@ -341,7 +342,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setSecurityServerId(1000001)
                                 .setMultifieldSearch("ss1")
                                 .setMemberCodeSearch("m1-does-not-exist")
@@ -351,7 +352,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
         // memberClass
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setSecurityServerId(1000001)
                                 .setMemberClassSearch("gov")
                 ));
@@ -359,7 +360,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setSecurityServerId(1000001)
                                 .setMemberClassSearch("gov")
                                 .setMultifieldSearch("ss1")
@@ -368,7 +369,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setMemberCodeSearch("m1")
                                 .setMemberClassSearch("gov")
                 ));
@@ -376,7 +377,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setMemberCodeSearch("m2")
                                 .setMemberClassSearch("foo")
                 ));
@@ -384,7 +385,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setMemberCodeSearch("m1")
                                 .setMemberClassSearch("foo")
                 ));
@@ -393,21 +394,21 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
         // instance
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setInstanceSearch("e")
                 ));
         assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setInstanceSearch("instance2")
                 ));
         assertEquals(1, clients.size());
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setMemberCodeSearch("m1")
                                 .setMemberClassSearch("gov")
                                 .setInstanceSearch("test")
@@ -417,14 +418,14 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
         // subsystemCode
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setSubsystemCodeSearch("s1")
                 ));
         assertEquals(1, clients.size());
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setSubsystemCodeSearch("s1")
                                 .setMemberCodeSearch("m1")
                 ));
@@ -432,7 +433,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setSubsystemCodeSearch("s1")
                                 .setMemberCodeSearch("m2")
                 ));
@@ -441,21 +442,21 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
         // clientType
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setClientType(XRoadObjectType.MEMBER)
                 ));
         assertEquals(MEMBERS_TOTAL_COUNT, clients.size());
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setClientType(XRoadObjectType.SUBSYSTEM)
                 ));
         assertEquals(SUBSYSTEMS_TOTAL_COUNT, clients.size());
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setClientType(XRoadObjectType.MEMBER)
                                 .setMemberCodeSearch("m1")
                 ));
@@ -464,7 +465,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
         try {
             repository.findAll(
                     repository.multiParameterSearch(
-                            new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                            new ClientService.SearchParameters()
                                     .setClientType(XRoadObjectType.SERVER)
                     ));
             fail("bad client type should throw exception");
@@ -474,7 +475,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
         // memberName
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setMemberNameSearch("gov")
                                 .setClientType(XRoadObjectType.MEMBER)
                 ));
@@ -482,7 +483,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
 
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setMemberNameSearch("2")
                 ));
         // Member2, TEST2
@@ -491,7 +492,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
         // combo all parameters
         clients = repository.findAll(
                 repository.multiParameterSearch(
-                        new JpaFlattenedSecurityServerClientRepository.SearchParameters()
+                        new ClientService.SearchParameters()
                                 .setClientType(XRoadObjectType.MEMBER)
                                 .setMemberCodeSearch("m1")
                                 .setSecurityServerId(1000001)

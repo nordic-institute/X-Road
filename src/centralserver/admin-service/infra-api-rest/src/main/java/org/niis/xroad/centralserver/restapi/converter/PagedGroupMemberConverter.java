@@ -30,7 +30,7 @@ import org.niis.xroad.centralserver.openapi.model.GroupMemberDto;
 import org.niis.xroad.centralserver.openapi.model.PagedGroupMemberDto;
 import org.niis.xroad.centralserver.openapi.model.PagingMetadataDto;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
-import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 

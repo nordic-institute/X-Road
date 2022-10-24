@@ -16,24 +16,6 @@
 
     <include file="centerui/202207011455-identifiers-remove-redundant-type-field.xml" relativeToChangelogFile="true"/>
 
-    <changeSet id="apikey-test" author="ricardas" context="test">
-        <!--TODO this is just for POC-->
-        <sql>
-            -- noinspection SqlResolve
-            INSERT INTO apikey
-                (id,   encodedkey)
-            VALUES (1,    'ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1');
-            ALTER SEQUENCE apikey_id_seq RESTART WITH 1001000;
-
-            INSERT INTO apikey_roles
-                (id,    apikey_id, role)
-            VALUES (1000001, 1,       'XROAD_SYSTEM_ADMINISTRATOR'),
-                   (1000002, 1,       'XROAD_SECURITY_OFFICER'),
-                   (1000003, 1,       'XROAD_REGISTRATION_OFFICER');
-            ALTER SEQUENCE apikey_roles_id_seq RESTART WITH 1001000;
-
-        </sql>
-    </changeSet>
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
         <sql splitStatements="false" dbms="postgresql"><![CDATA[

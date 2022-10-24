@@ -33,11 +33,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
-import org.niis.xroad.cs.admin.jpa.entity.ClientIdEntity;
-import org.niis.xroad.cs.admin.jpa.entity.MemberClassEntity;
-import org.niis.xroad.cs.admin.jpa.entity.MemberIdEntity;
-import org.niis.xroad.cs.admin.jpa.entity.SecurityServerClient;
-import org.niis.xroad.cs.admin.jpa.entity.XRoadMemberEntity;
+import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
+import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,7 +69,7 @@ public class JpaSecurityServerClientRepositoryTest extends AbstractRepositoryTes
             ClientIdEntity persistedMemberId = identifierRepository.save(memberId);
             xRoadMemberRepository.save(new XRoadMemberEntity("TestMember", persistedMemberId, memberClass));
 
-            SecurityServerClient client = xRoadMemberRepository.findOneBy(memberId, null).getOrNull();
+            SecurityServerClientEntity client = xRoadMemberRepository.findOneBy(memberId, null).getOrNull();
 
             assertNotNull(client);
             assertEquals(memberId, client.getIdentifier());
@@ -82,7 +82,7 @@ public class JpaSecurityServerClientRepositoryTest extends AbstractRepositoryTes
             ClientIdEntity persistedMemberId = identifierRepository.save(memberId);
             xRoadMemberRepository.save(new XRoadMemberEntity("TestMember", persistedMemberId, memberClass));
 
-            SecurityServerClient client = xRoadMemberRepository.findOneBy(memberId, XRoadObjectType.MEMBER).getOrNull();
+            SecurityServerClientEntity client = xRoadMemberRepository.findOneBy(memberId, XRoadObjectType.MEMBER).getOrNull();
 
             assertNotNull(client);
             assertEquals(memberId, client.getIdentifier());
@@ -95,7 +95,7 @@ public class JpaSecurityServerClientRepositoryTest extends AbstractRepositoryTes
             ClientIdEntity persistedMemberId = identifierRepository.save(memberId);
             xRoadMemberRepository.save(new XRoadMemberEntity("TestMember", persistedMemberId, memberClass));
 
-            SecurityServerClient client = xRoadMemberRepository.findOneBy(memberId, XRoadObjectType.SERVER).getOrNull();
+            SecurityServerClientEntity client = xRoadMemberRepository.findOneBy(memberId, XRoadObjectType.SERVER).getOrNull();
 
             assertNull(client);
         }

@@ -31,9 +31,9 @@ import org.niis.xroad.centralserver.openapi.model.SubsystemDto;
 import org.niis.xroad.centralserver.openapi.model.UsedSecurityServersDto;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.dto.converter.DtoConverter;
-import org.niis.xroad.centralserver.restapi.entity.Subsystem;
-import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
-import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
+import org.niis.xroad.cs.admin.api.domain.Subsystem;
+import org.niis.xroad.cs.admin.api.service.SecurityServerService;
+import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
@@ -44,7 +44,7 @@ import static ee.ria.xroad.common.util.Fn.self;
 @RequiredArgsConstructor
 public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto> {
 
-    private final SubsystemRepository subSystems;
+    private final SubsystemService subsystemService;
 
     private final SecurityServerService securityServerService;
 
@@ -69,8 +69,8 @@ public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto>
 
     @Override
     public Subsystem fromDto(SubsystemDto source) {
-        return subSystems
+        return subsystemService
                 .findByIdentifier(clientIdDtoConverter
-                        .fromDto(source.getSubsystemId()));
+                        .fromDto(source.getSubsystemId())).orElse(null);
     }
 }

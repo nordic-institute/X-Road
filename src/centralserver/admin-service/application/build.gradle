@@ -29,6 +29,9 @@ dependencies {
 
     //TODO test automation should release BOM module
     intTestImplementation("org.testcontainers:postgresql:1.17.5")
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
 }
 
 test {

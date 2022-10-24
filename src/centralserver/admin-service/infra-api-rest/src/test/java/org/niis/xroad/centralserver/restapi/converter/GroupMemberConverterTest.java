@@ -30,8 +30,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.GroupMemberDto;
 import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
-import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
-import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 
 import java.time.ZoneOffset;
 import java.util.List;

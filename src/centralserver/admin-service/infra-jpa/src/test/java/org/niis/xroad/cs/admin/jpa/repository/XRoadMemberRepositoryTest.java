@@ -40,10 +40,10 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.cs.admin.jpa.entity.ClientIdEntity;
-import org.niis.xroad.cs.admin.jpa.entity.MemberIdEntity;
-import org.niis.xroad.cs.admin.jpa.entity.SubsystemIdEntity;
-import org.niis.xroad.cs.admin.jpa.entity.XRoadMemberEntity;
+import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
+import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
+import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.inOrder;

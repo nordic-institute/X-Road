@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,17 +31,19 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.entity.ClientDeletionRequest;
-import org.niis.xroad.centralserver.restapi.entity.Request;
-import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
-import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
-import org.niis.xroad.centralserver.restapi.entity.SecurityServerId;
-import org.niis.xroad.centralserver.restapi.repository.IdentifierRepository;
-import org.niis.xroad.centralserver.restapi.repository.RequestRepository;
-import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientRepository;
-import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
+import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
+import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.RequestEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
+import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
+import org.niis.xroad.cs.admin.core.repository.RequestRepository;
+import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
+import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -53,10 +55,11 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class ClientDeletionRequestHandler implements RequestHandler<ClientDeletionRequest> {
 
-    private final SecurityServerClientRepository<SecurityServerClient> clients;
+    private final SecurityServerClientRepository<SecurityServerClientEntity> clients;
     private final SecurityServerRepository servers;
-    private final IdentifierRepository<SecurityServerId> serverIds;
-    private final RequestRepository<ClientDeletionRequest> requests;
+    private final IdentifierRepository<SecurityServerIdEntity> serverIds;
+    private final RequestRepository<ClientDeletionRequestEntity> requests;
+    private final RequestMapper requestMapper;
 
     @Override
     public boolean canAutoApprove(ClientDeletionRequest request) {
@@ -65,14 +68,15 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
 
     @Override
     public ClientDeletionRequest add(ClientDeletionRequest request) {
-        SecurityServerId securityServerId = request.getSecurityServerId();
-        ClientId clientId = request.getClientId();
+        var requestEntity = requestMapper.fromDto(request);
+        SecurityServerIdEntity securityServerId = requestEntity.getSecurityServerId();
+        ClientId clientId = requestEntity.getClientId();
 
-        SecurityServer securityServer = servers.findBy(securityServerId, clientId).getOrElseThrow(() ->
+        SecurityServerEntity securityServer = servers.findBy(securityServerId, clientId).getOrElseThrow(() ->
                 new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND));
 
         //todo: somewhat inefficient, could also directly delete the association entity
-        SecurityServerClient client = clients.findOneBy(clientId).getOrElseThrow(() ->
+        SecurityServerClientEntity client = clients.findOneBy(clientId).getOrElseThrow(() ->
                 new NoSuchElementException("No value present"));
         for (var it = client.getServerClients().iterator(); it.hasNext(); ) {
             var item = it.next();
@@ -88,12 +92,13 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
          * and if there is a registration, there can not be pending requests (unless there is a concurrency issue
          * that should be addressed).
          */
-        return Option.of(request)
-                .map(Request::getOrigin)
+        return Option.of(requestEntity)
+                .map(RequestEntity::getOrigin)
                 .flatMap(origin -> Option.of(securityServerId)
                         .map(serverIds::findOrCreate)
-                        .map(dbSecurityServerId -> new ClientDeletionRequest(origin, dbSecurityServerId, clientId)))
+                        .map(dbSecurityServerId -> new ClientDeletionRequestEntity(origin, dbSecurityServerId, clientId)))
                 .map(requests::save)
+                .map(requestMapper::toDto)
                 .get();
     }
 

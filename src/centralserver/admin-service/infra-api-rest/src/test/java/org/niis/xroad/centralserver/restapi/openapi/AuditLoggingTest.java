@@ -27,6 +27,7 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConfDto;
@@ -48,6 +49,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
+@Disabled("Has to be revorked for new architecture.")
 @ActiveProfiles({"test", "audit-test"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class AuditLoggingTest extends AbstractApiRestTemplateTestContext {

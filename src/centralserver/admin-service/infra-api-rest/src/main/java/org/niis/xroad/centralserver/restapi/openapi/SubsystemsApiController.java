@@ -33,8 +33,8 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SubsystemsApi;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.restapi.converter.db.ClientDtoConverter;
-import org.niis.xroad.centralserver.restapi.entity.Subsystem;
-import org.niis.xroad.centralserver.restapi.service.SubsystemService;
+import org.niis.xroad.cs.admin.api.domain.Subsystem;
+import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -77,6 +77,7 @@ public class SubsystemsApiController implements SubsystemsApi {
                 .map(ResponseEntity.status(HttpStatus.CREATED)::body)
                 .get();
     }
+
     @Override
     @PreAuthorize("hasAuthority('ADD_SECURITY_SERVER_CLIENT_REG_REQUEST')")
     @AuditEventMethod(event = RestApiAuditEvent.UNREGISTER_SUBSYSTEM)
@@ -113,6 +114,7 @@ public class SubsystemsApiController implements SubsystemsApi {
             throw new BadRequestException("Invalid subsystem id");
         }
     }
+
     private void verifyMemberId(String id) {
         if (!clientIdConverter.isEncodedMemberId(id)) {
             throw new BadRequestException("Invalid member id");

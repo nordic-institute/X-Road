@@ -31,6 +31,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
+import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
+import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
+import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.jpa.repository.AbstractRepositoryTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
@@ -53,9 +60,8 @@ public class DatabaseTest extends AbstractRepositoryTest {
         member.getSubsystems().add(new SubsystemEntity(member, subsystemId));
         member = entityManager.persist(member);
 
-        final SecurityServerEntity server = new SecurityServerEntity();
-        server.setOwner(member);
-        server.setServerCode("SERVERCODE");
+        final SecurityServerEntity server = new SecurityServerEntity(member, "SERVERCODE");
+
         server.setAddress("ss1.example.org");
 
         ServerClientEntity sc = new ServerClientEntity();

@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.openapi.model.SecurityServerIdDto;
 import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.dto.converter.DtoConverter;
-import org.niis.xroad.centralserver.restapi.entity.SecurityServerId;
+import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.springframework.stereotype.Service;
 
 import static ee.ria.xroad.common.util.Fn.self;

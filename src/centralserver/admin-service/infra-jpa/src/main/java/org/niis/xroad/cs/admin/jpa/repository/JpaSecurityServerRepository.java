@@ -31,17 +31,20 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import io.vavr.control.Option;
-import org.niis.xroad.cs.admin.jpa.entity.ClientIdEntity;
-import org.niis.xroad.cs.admin.jpa.entity.SecurityServerClient;
-import org.niis.xroad.cs.admin.jpa.entity.SecurityServerClient_;
-import org.niis.xroad.cs.admin.jpa.entity.SecurityServerEntity;
-import org.niis.xroad.cs.admin.jpa.entity.SecurityServerEntity_;
-import org.niis.xroad.cs.admin.jpa.entity.ServerClientEntity_;
-import org.niis.xroad.cs.admin.jpa.entity.SubsystemEntity_;
-import org.niis.xroad.cs.admin.jpa.entity.XRoadIdEntity_;
-import org.niis.xroad.cs.admin.jpa.entity.XRoadMemberEntity;
-import org.niis.xroad.cs.admin.jpa.entity.XRoadMemberEntity_;
+import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity_;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity_;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity_;
+import org.niis.xroad.cs.admin.core.entity.SubsystemEntity_;
+import org.niis.xroad.cs.admin.core.entity.XRoadIdEntity_;
+import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
+import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity_;
+import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -54,7 +57,12 @@ import javax.persistence.criteria.Root;
 
 @Repository
 public interface JpaSecurityServerRepository extends
-        JpaRepository<SecurityServerEntity, Integer>, JpaSpecificationExecutor<SecurityServerEntity> {
+        JpaRepository<SecurityServerEntity, Integer>, JpaSpecificationExecutor<SecurityServerEntity>,
+        SecurityServerRepository {
+
+    default Page<SecurityServerEntity> findAllByQuery(String query, Pageable pageable) {
+        return findAll(multifieldSearch(query), pageable);
+    }
 
     Option<SecurityServerEntity> findByOwnerAndServerCode(XRoadMemberEntity owner, String serverCode);
 
@@ -70,13 +78,17 @@ public interface JpaSecurityServerRepository extends
         );
     }
 
+    default long count(SecurityServerId id) {
+        return count(serverIdSpec(id));
+    }
+
     static Specification<SecurityServerEntity> clientIdSpec(ClientId clientId) {
 
         return (root, query, builder) -> {
-            Join<SecurityServerClient, ClientIdEntity> cid = root
+            Join<SecurityServerClientEntity, ClientIdEntity> cid = root
                     .join(SecurityServerEntity_.serverClients)
                     .join(ServerClientEntity_.securityServerClient)
-                    .join(SecurityServerClient_.identifier);
+                    .join(SecurityServerClientEntity_.identifier);
 
             Predicate pred = builder.and(
                     builder.equal(cid.get(XRoadIdEntity_.OBJECT_TYPE), clientId.getObjectType()),
@@ -99,7 +111,7 @@ public interface JpaSecurityServerRepository extends
             Predicate pred = builder.and(builder.equal(root.get(SecurityServerEntity_.serverCode), serverId.getServerCode()));
 
             Join<XRoadMemberEntity, ClientIdEntity> oid =
-                    root.join(SecurityServerEntity_.owner).join(SecurityServerClient_.identifier);
+                    root.join(SecurityServerEntity_.owner).join(SecurityServerClientEntity_.identifier);
 
             pred = builder.and(pred,
                     builder.equal(oid.get(XRoadIdEntity_.OBJECT_TYPE), XRoadObjectType.MEMBER),
@@ -120,7 +132,7 @@ public interface JpaSecurityServerRepository extends
     private static Predicate multifieldSearchPredicate(Root<SecurityServerEntity> root, CriteriaBuilder builder, String q) {
         final Join<SecurityServerEntity, XRoadMemberEntity> owner = root.join(SecurityServerEntity_.owner);
         final Join<XRoadMemberEntity, ClientIdEntity> identifier =
-                owner.join(SecurityServerClient_.identifier);
+                owner.join(SecurityServerClientEntity_.identifier);
 
         return builder.or(
                 CriteriaBuilderUtil.caseInsensitiveLike(root, builder, q, root.get(SecurityServerEntity_.serverCode)),

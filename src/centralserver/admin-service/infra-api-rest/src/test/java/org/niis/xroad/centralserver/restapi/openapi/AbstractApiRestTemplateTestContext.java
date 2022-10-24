@@ -26,7 +26,6 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.centralserver.restapi.config.BootstrapConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -37,10 +36,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  *
  * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
  */
-@SpringBootTest(
-        classes = BootstrapConfiguration.class,
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableAutoConfiguration
 public abstract class AbstractApiRestTemplateTestContext extends AbstractFacadeMockingTestContext {
 

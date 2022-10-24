@@ -36,8 +36,8 @@ import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDt
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.converter.CertificationServiceConverter;
 import org.niis.xroad.centralserver.restapi.dto.AddApprovedCertificationServiceDto;
-import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
-import org.niis.xroad.centralserver.restapi.service.CertificationServicesService;
+import org.niis.xroad.cs.admin.api.domain.ApprovedCa;
+import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;

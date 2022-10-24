@@ -29,7 +29,7 @@ package org.niis.xroad.centralserver.restapi.converter;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescriptionDto;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupResourceDto;
-import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 
 import java.time.ZoneOffset;
 

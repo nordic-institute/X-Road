@@ -42,20 +42,22 @@ import org.niis.xroad.centralserver.restapi.converter.db.ClientIdDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.db.SubsystemDtoConverter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.dto.converter.AbstractDtoConverterTest;
-import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
-import org.niis.xroad.centralserver.restapi.entity.ServerClient;
-import org.niis.xroad.centralserver.restapi.entity.Subsystem;
-import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
-import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
-import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
-import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
+import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.ServerClient;
+import org.niis.xroad.cs.admin.api.domain.Subsystem;
+import org.niis.xroad.cs.admin.api.domain.SubsystemId;
+import org.niis.xroad.cs.admin.api.domain.XRoadMember;
+import org.niis.xroad.cs.admin.api.service.SecurityServerService;
+import org.niis.xroad.cs.admin.api.service.SubsystemService;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implements WithInOrder {
@@ -78,7 +80,7 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
     private SecurityServerService securityServerService;
 
     @Mock
-    private SubsystemRepository subsystemRepository;
+    private SubsystemService subsystemService;
 
     @Mock
     private ClientIdDtoConverter clientIdDtoConverter;
@@ -130,7 +132,8 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
                     MEMBER_CODE, SUBSYSTEM_CODE);
             doReturn(clientIdDto).when(subsystemDto).getSubsystemId();
             doReturn(clientId).when(clientIdDtoConverter).fromDto(clientIdDto);
-            doReturn(subsystem).when(subsystemRepository).findByIdentifier(any());
+
+            when(subsystemService.findByIdentifier(any())).thenReturn(Optional.of(subsystem));
 
             Subsystem converted = converter.fromDto(subsystemDto);
 

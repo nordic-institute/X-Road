@@ -37,8 +37,8 @@ import org.niis.xroad.centralserver.openapi.model.SecurityServerIdDto;
 import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.converter.model.SecurityServerIdDtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.AbstractDtoConverterTest;
-import org.niis.xroad.centralserver.restapi.entity.SecurityServerId;
-import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
+import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
+import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

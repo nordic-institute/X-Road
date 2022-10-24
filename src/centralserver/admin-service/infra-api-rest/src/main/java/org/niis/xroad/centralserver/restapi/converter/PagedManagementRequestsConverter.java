@@ -31,7 +31,7 @@ import org.niis.xroad.centralserver.openapi.model.PagedManagementRequestsDto;
 import org.niis.xroad.centralserver.openapi.model.PagingMetadataDto;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.centralserver.restapi.converter.db.ManagementRequestDtoConverter;
-import org.niis.xroad.centralserver.restapi.dto.ManagementRequestInfoDto;
+import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 

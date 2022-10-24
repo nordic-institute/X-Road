@@ -29,6 +29,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConfDto;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatusDto;
@@ -50,9 +51,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
-import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.INSTANCE_IDENTIFIER;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANCE_IDENTIFIER;
 
+@Disabled("Has to be revorked for new architecture.")
 @WithMockUser(authorities = {"INIT_CONFIG"})
 @Transactional
 public class InitializationApiControllerTest extends AbstractApiControllerTestContext {

@@ -31,7 +31,6 @@ import org.niis.xroad.centralserver.openapi.model.ClientDto;
 import org.niis.xroad.centralserver.openapi.model.PagedClientsDto;
 import org.niis.xroad.centralserver.openapi.model.PagingMetadataDto;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
-import org.niis.xroad.centralserver.restapi.converter.db.ClientDtoConverter;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +39,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PagedClientsConverter {
     private final PagingMetadataConverter pagingMetadataConverter;
-    private final ClientDtoConverter clientConverter;
 
     public PagedClientsDto convert(Page<ClientDto> page,
                                    PagingSortingParametersDto pagingSorting) {

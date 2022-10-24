@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescriptionDto;
 import org.niis.xroad.centralserver.openapi.model.GlobalGroupResourceDto;
@@ -53,6 +54,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
+@Disabled("Has to be revorked for new architecture.")
 class GlobalGroupApiTest extends AbstractApiRestTemplateTestContext {
 
     @Autowired

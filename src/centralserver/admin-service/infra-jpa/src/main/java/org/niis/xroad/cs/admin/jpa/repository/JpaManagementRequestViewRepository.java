@@ -26,19 +26,17 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-
-import lombok.Builder;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
-import org.niis.xroad.cs.admin.jpa.entity.ManagementRequestViewEntity;
-import org.niis.xroad.cs.admin.jpa.entity.ManagementRequestViewEntity_;
+import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
+import org.niis.xroad.cs.admin.core.entity.ManagementRequestViewEntity;
+import org.niis.xroad.cs.admin.core.entity.ManagementRequestViewEntity_;
+import org.niis.xroad.cs.admin.core.repository.ManagementRequestViewRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,20 +45,16 @@ import java.util.stream.Collectors;
 import static java.util.Optional.ofNullable;
 import static org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil.caseInsensitiveLike;
 
+@Repository
 public interface JpaManagementRequestViewRepository extends JpaRepository<ManagementRequestViewEntity, Integer>,
-        JpaSpecificationExecutor<ManagementRequestViewEntity> {
+        JpaSpecificationExecutor<ManagementRequestViewEntity>,
+        ManagementRequestViewRepository {
 
-    @Builder
-    @Getter
-    class Criteria {
-        private final String query;
-        private final Origin origin;
-        private final List<ManagementRequestType> types;
-        private final ManagementRequestStatus status;
-        private final SecurityServerId serverId;
+    default Page<ManagementRequestViewEntity> findAll(ManagementRequestService.Criteria criteria, Pageable pageable) {
+        return findAll(findSpec(criteria), pageable);
     }
 
-    static Specification<ManagementRequestViewEntity> findSpec(final Criteria criteria) {
+    static Specification<ManagementRequestViewEntity> findSpec(final ManagementRequestService.Criteria criteria) {
         final List<String> entityTypes = ofNullable(criteria.getTypes())
                 .map(managementRequestTypes -> criteria.getTypes().stream()
                         .map(ManagementRequestViewEntity.ManagementRequestTypeDiscriminatorMapping::getDiscriminator)

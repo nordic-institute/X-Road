@@ -26,12 +26,13 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository;
 
-import org.niis.xroad.cs.admin.jpa.entity.RequestEntity;
+import org.niis.xroad.cs.admin.core.entity.RequestEntity;
+import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface JpaRequestRepository<T extends RequestEntity>
-        extends JpaRepository<T, Integer>, JpaSpecificationExecutor<T> {
+        extends JpaRepository<T, Integer>, JpaSpecificationExecutor<T>, RequestRepository<T> {
 }
