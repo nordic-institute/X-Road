@@ -311,7 +311,7 @@ paths:
               schema:
                 description: array of certification service objects
                 items:
-                  $ref: '#/components/schemas/ApprovedCertificationService'
+                  $ref: '#/components/schemas/ApprovedCertificationServiceListItem'
                 type: array
                 uniqueItems: true
           description: list of certification services
@@ -396,9 +396,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       responses:
         '200':
           content:
@@ -458,6 +458,39 @@ paths:
       summary: update the certification service
       tags:
         - certification-services
+  /certification-services/{id}/certificate:
+    get:
+      description: <h3>CS administrator views the details of an approved certification service cetificate.</h3>
+      operationId: getCertificationServiceCertificate
+      parameters:
+        - description: unique identifier of the certification service
+          in: path
+          name: id
+          required: true
+          schema:
+            format: int32
+            minLength: 1
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+          description: a certification service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a certification service
+      tags:
+        - certification-services
   /certification-services/{id}/intermediate-cas:
     get:
       description: <h3>CS administrator views the intermediate CAs configured for a certification service.</h3>
@@ -468,9 +501,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       responses:
         '200':
           content:
@@ -504,9 +537,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -575,9 +608,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -2465,6 +2498,39 @@ paths:
       summary: update an ocsp responder
       tags:
         - ocsp-responders
+  /ocsp-responders/{id}/certificate:
+    get:
+      description: <h3>CS administrator views the details of an approved OCSP Responders cetificate.</h3>
+      operationId: getOcspRespondersCertificate
+      parameters:
+        - description: unique identifier of the OCSP Responder
+          in: path
+          name: id
+          required: true
+          schema:
+            format: int32
+            minLength: 1
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+          description: a certification service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a certificate
+      tags:
+        - ocsp-responders
   /security-servers:
     get:
       description: <h3>CS administrator searches for X-Road Security Servers that are registered in the central server.</h3>
@@ -3321,41 +3387,99 @@ components:
     Unauthorized:
       description: authentication credentials are missing
   schemas:
+    ApprovedCertificationServiceListItem:
+      description: certification service list item
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        name:
+          description: certification service name
+          example: Name
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        not_after:
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        not_before:
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+      required:
+        - id
+        - name
+        - not_before
+        - not_after
+      type: object
     ApprovedCertificationService:
       allOf:
         - $ref: '#/components/schemas/ModificationTimestamps'
       description: certification service
       properties:
-        ca_certificate:
-          $ref: '#/components/schemas/CertificateDetails'
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        name:
+          description: certification service name
+          example: Name
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        issuer_distinguished_name:
+          description: certificate issuer distinguished name
+          example: issuer123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        subject_distinguished_name:
+          description: certificate subject distinguished name
+          example: subject123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        not_after:
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        not_before:
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
         certificate_profile_info:
           description: fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface
           example: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
           format: text
           minLength: 1
           type: string
-        id:
-          description: unique identifier
-          example: 123
-          format: text
-          readOnly: true
-          type: string
-        intermediate_cas:
-          description: array containing intermediate CAs
-          items:
-            $ref: '#/components/schemas/CertificateAuthority'
-          type: array
-        ocsp_responders:
-          description: array containing ocsp responders
-          items:
-            $ref: '#/components/schemas/OcspResponder'
-          type: array
         tls_auth:
           description: can the CA be used for TLS authentication
           type: boolean
       required:
         - id
-        - ca_certificate
         - tls_auth
         - certificate_profile_info
       type: object
@@ -3405,19 +3529,13 @@ components:
         id:
           description: unique identifier
           example: 123
-          format: text
+          format: int32
           readOnly: true
-          type: string
+          type: integer
         ca_certificate:
           $ref: '#/components/schemas/CertificateDetails'
-        ocsp_responders:
-          description: array containing ocsp responders
-          items:
-            $ref: '#/components/schemas/OcspResponder'
-          type: array
       required:
         - ca_certificate
-        - ocsp_responders
       type: object
     CertificateDetails:
       description: certificate details for any kind of certificate (TLS, auth, sign) # potential-common-api
@@ -3570,14 +3688,10 @@ components:
           description: fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface
           example: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
           format: text
-          minLength: 1
           type: string
         tls_auth:
           description: can the CA be used for TLS authentication
           type: string
-      required:
-        - tls_auth
-        - certificate_profile_info
       type: object
     CodeWithDetails:
       $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
@@ -4141,9 +4255,9 @@ components:
         id:
           description: unique identifier
           example: 123
-          format: text
+          format: int32
           readOnly: true
-          type: string
+          type: integer
       required:
         - id
     OcspResponderCertificate:

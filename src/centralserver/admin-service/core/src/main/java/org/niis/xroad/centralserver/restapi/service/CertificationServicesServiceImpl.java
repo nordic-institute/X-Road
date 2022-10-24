@@ -25,21 +25,50 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationService;
+import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
+import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
+import org.niis.xroad.centralserver.restapi.dto.CertificationService;
+import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
+import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
+import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
 import org.niis.xroad.cs.admin.api.domain.ApprovedCa;
+import org.niis.xroad.centralserver.restapi.entity.CaInfo;
+import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ApprovedCaMapper;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
+import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.Set;
+
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTICATION_ONLY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CA_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERTIFICATE_PROFILE_INFO;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
 @Slf4j
 @Service
@@ -47,26 +76,93 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CertificationServicesServiceImpl implements CertificationServicesService {
     private final ApprovedCaRepository approvedCaRepository;
+    private final OcspInfoJpaRepository ocspInfoRepository;
     private final AuditDataHelper auditDataHelper;
-    private final ApprovedCaMapper approvedCaMapper;
+    private final ApprovedCaConverter approvedCaConverter;
+    private final OcspResponderConverter ocspResponderConverter;
+    private final CaInfoConverter caInfoConverter;
 
-    public ApprovedCa add(ApprovedCa approvedCa) {
-        var approvedCaEntity = approvedCaMapper.fromDto(approvedCa);
-        approvedCaEntity = approvedCaRepository.save(approvedCaEntity);
-        addAuditData(approvedCaEntity);
+    public CertificationService add(ApprovedCertificationService certificationService) {
+        final ApprovedCa approvedCaEntity = approvedCaConverter.toEntity(certificationService);
+        final ApprovedCa persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
+        addAuditData(persistedApprovedCa);
 
-        return approvedCaMapper.toDto(approvedCaEntity);
+        return approvedCaConverter.convert(persistedApprovedCa);
     }
 
-    public List<ApprovedCa> getCertificationServices() {
-        return approvedCaRepository.findAll().stream()
-                .map(approvedCaMapper::toDto)
-                .collect(Collectors.toList());
+    public CertificationService get(Integer id) {
+        return approvedCaConverter.convert(getById(id));
+    }
+
+    public CertificationService update(CertificationService approvedCa) {
+        ApprovedCa persistedApprovedCa = getById(approvedCa.getId());
+        Optional.ofNullable(approvedCa.getCertificateProfileInfo()).ifPresent(persistedApprovedCa::setCertProfileInfo);
+        Optional.ofNullable(approvedCa.getTlsAuth()).ifPresent(persistedApprovedCa::setAuthenticationOnly);
+        final ApprovedCa updatedApprovedCa = approvedCaRepository.save(persistedApprovedCa);
+        addAuditData(updatedApprovedCa);
+
+        return approvedCaConverter.convert(updatedApprovedCa);
+    }
+
+    private ApprovedCa getById(Integer id) {
+        return approvedCaRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
+    }
+
+    public CertificateDetails getCertificateDetails(Integer id) {
+        return approvedCaRepository.findById(id)
+                .map(ApprovedCa::getCaInfo)
+                .map(caInfoConverter::toCertificateDetails)
+                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
+    }
+
+    public CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert) {
+        final CaInfo caInfo = caInfoConverter.toCaInfo(cert);
+
+        final ApprovedCa approvedCa = getById(certificationServiceId);
+        approvedCa.addIntermediateCa(caInfo);
+        approvedCaRepository.save(approvedCa);
+
+        auditDataHelper.put(CA_ID, certificationServiceId);
+        auditDataHelper.put(INTERMEDIATE_CA_ID, caInfo.getId());
+        auditDataHelper.put(INTERMEDIATE_CA_CERT_HASH, calculateCertHash(cert));
+        auditDataHelper.put(INTERMEDIATE_CA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+
+        return caInfoConverter.toCertificateAuthority(caInfo);
+    }
+
+    public Set<CertificateAuthority> getIntermediateCas(Integer certificationServiceId) {
+        final ApprovedCa approvedCa = getById(certificationServiceId);
+        return caInfoConverter.toCertificateAuthorities(approvedCa.getIntermediateCaInfos());
+    }
+
+    public List<CertificationServiceListItem> getCertificationServices() {
+        return approvedCaConverter.toListItems(approvedCaRepository.findAll());
+    }
+
+    public OcspResponder addOcspResponder(OcspResponder ocspResponder) {
+        OcspInfo ocspInfo = ocspResponderConverter.toEntity(ocspResponder);
+        OcspInfo persistedOcspInfo = ocspInfoRepository.save(ocspInfo);
+        addAuditData(persistedOcspInfo);
+        return ocspResponderConverter.toModel(persistedOcspInfo);
     }
 
     private void addAuditData(ApprovedCaEntity approvedCa) {
         auditDataHelper.putCertificateData(Integer.toString(approvedCa.getId()), approvedCa.getCaInfo().getCert());
-        auditDataHelper.put(RestApiAuditProperty.AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());
-        auditDataHelper.put(RestApiAuditProperty.CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
+        auditDataHelper.put(AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());
+        auditDataHelper.put(CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
+    }
+
+    private void addAuditData(OcspInfo ocspInfo) {
+        auditDataHelper.put(CA_ID, ocspInfo.getCaInfo().getId());
+        auditDataHelper.put(OCSP_ID, ocspInfo.getId());
+        auditDataHelper.put(OCSP_URL, ocspInfo.getUrl());
+        auditDataHelper.put(OCSP_CERT_HASH, calculateCertHash(ocspInfo.getCert()));
+        auditDataHelper.put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+    }
+
+    @SneakyThrows
+    private String calculateCertHash(byte[] cert) {
+        return CryptoUtils.calculateCertHexHash(cert).toUpperCase().replaceAll("(?<=..)(..)", ":$1");
     }
 }

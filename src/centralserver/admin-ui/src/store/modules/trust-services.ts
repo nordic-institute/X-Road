@@ -26,13 +26,15 @@
  */
 import {
   ApprovedCertificationService,
+  ApprovedCertificationServiceListItem,
   CertificationServiceFileAndSettings,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
 export interface State {
-  certificationServices: ApprovedCertificationService[];
+  certificationServices: ApprovedCertificationServiceListItem[];
+  currentCertificationService: ApprovedCertificationService | null;
 }
 
 export const useCertificationServiceStore = defineStore(
@@ -40,21 +42,36 @@ export const useCertificationServiceStore = defineStore(
   {
     state: (): State => ({
       certificationServices: [],
+      currentCertificationService: null,
     }),
     persist: true,
     actions: {
       fetchAll() {
         return axios
-          .get<ApprovedCertificationService[]>('/certification-services')
+          .get<ApprovedCertificationServiceListItem[]>(
+            '/certification-services',
+          )
           .then((resp) => (this.certificationServices = resp.data));
+      },
+      loadById(certificationServiceId: string) {
+        return axios
+          .get<ApprovedCertificationService>(
+            `/certification-services/${certificationServiceId}`,
+          )
+          .then((resp) => {
+            this.currentCertificationService = resp.data;
+          })
+          .catch((error) => {
+            throw error;
+          });
       },
       add(newCas: CertificationServiceFileAndSettings) {
         const formData = new FormData();
         formData.append(
           'certificate_profile_info',
-          newCas.certificate_profile_info,
+          newCas.certificate_profile_info || '',
         );
-        formData.append('tls_auth', newCas.tls_auth);
+        formData.append('tls_auth', newCas.tls_auth || '');
         formData.append('certificate', newCas.certificate);
         return axios
           .post('/certification-services', formData)

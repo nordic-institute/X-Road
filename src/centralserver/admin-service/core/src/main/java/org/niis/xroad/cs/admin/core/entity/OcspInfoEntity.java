@@ -73,6 +73,12 @@ public class OcspInfoEntity extends AuditableEntity {
 //        //JPA
 //    }
 
+    public OcspInfo(CaInfo caInfo, String url, byte[] cert) {
+        this.caInfo = caInfo;
+        this.url = url;
+        this.cert = cert;
+    }
+
 }
 
 

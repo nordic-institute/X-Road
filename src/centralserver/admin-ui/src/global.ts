@@ -36,6 +36,7 @@ export enum RouteName {
   SecurityServers = 'security-servers',
   ManagementRequests = 'management-requests',
   TrustServices = 'trust-services',
+  CertificationServiceDetails = 'certification-service-details',
   Settings = 'settings',
   GlobalResources = 'global-resources',
   GlobalGroup = 'global-group',
@@ -182,6 +183,8 @@ export const mainTabs: Tab[] = [
     permissions: [
       Permissions.VIEW_APPROVED_CAS,
       Permissions.VIEW_APPROVED_TSAS,
+      Permissions.VIEW_APPROVED_CA_DETAILS,
+      Permissions.VIEW_APPROVED_TSA_DETAILS,
     ],
   },
   {

@@ -31,10 +31,12 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
-import org.niis.xroad.test.ui.glue.constants.Constants;
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
+import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_CLOSE_SNACKBAR;
+import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_DIALOG_SAVE;
+import static org.niis.xroad.test.ui.glue.constants.Constants.SNACKBAR_SUCCESS;
 import static org.openqa.selenium.By.xpath;
 
 public class CentralServerMemberStepDefs extends BaseUiStepDefs {
@@ -61,10 +63,10 @@ public class CentralServerMemberStepDefs extends BaseUiStepDefs {
         $(SELECT_MEMBER_CLASS).click();
         getOption(memberClass).click();
         $(INPUT_MEMBER_CODE).setValue(memberCode);
-        $(Constants.BTN_DIALOG_SAVE).shouldBe(Condition.enabled).click();
+        $(BTN_DIALOG_SAVE).shouldBe(Condition.enabled).click();
 
-        $(Constants.SNACKBAR_SUCCESS).shouldBe(Condition.visible);
-        $(Constants.BTN_CLOSE_SNACKBAR).click();
+        $(SNACKBAR_SUCCESS).shouldBe(Condition.visible);
+        $(BTN_CLOSE_SNACKBAR).click();
     }
 
     @Then("A new member is listed")
@@ -81,5 +83,4 @@ public class CentralServerMemberStepDefs extends BaseUiStepDefs {
         return $(xpath("//div[@role=\"listbox\"]//div[@role=\"option\" and contains(./descendant-or-self::*/text(),\""
                 + option + "\")]"));
     }
-
 }

@@ -27,6 +27,6 @@ package org.niis.xroad.cs.admin.core.repository;
 
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 
-public interface ApprovedCaRepository extends GenericRepository<ApprovedCaEntity, Long> {
+public interface ApprovedCaRepository extends GenericRepository<ApprovedCaEntity, Integer> {
 
 }

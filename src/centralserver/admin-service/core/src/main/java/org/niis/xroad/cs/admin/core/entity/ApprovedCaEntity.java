@@ -97,6 +97,10 @@ public class ApprovedCaEntity extends AuditableEntity {
     @Setter
     private Set<CaInfoEntity> intermediateCaInfos = new HashSet<>(0);
 
+    public void addIntermediateCa(CaInfo intermediateCa) {
+        intermediateCa.setApprovedCa(this);
+        getIntermediateCaInfos().add(intermediateCa);
+    }
 }
 
 

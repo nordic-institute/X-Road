@@ -1021,9 +1021,9 @@
     "addSubsystemTitle": "Add subsystem",
     "client": {
       "addClient": "Add Client",
+      "clientExists": "Client already exists",
       "memberClassTooltip": "Code identifying the member class (e.g., government agency, private enterprise etc.).",
       "memberCodeTooltip": "Member code that uniquely identifies this X-Road member within its member class (e.g. business ID).",
-      "memberExists": "Member already exists",
       "memberNameTooltip": "Name of the member organization.",
       "register": "Register client",
       "searchLabel": "Client",
@@ -1044,6 +1044,7 @@
     "member": {
       "info1": "Specify the details of the Member you want to add.",
       "info2": "If the Member is already existing, you can select it from the Global list.",
+      "memberExists": "Member already exists",
       "register": "Register member",
       "searchLabel": "Member",
       "select": "Select member",
@@ -1065,7 +1066,8 @@
       "registerSubsystem": "Register subsystem",
       "searchLabel": "Subsystem",
       "selectSubsystem": "Select Subsystem",
-      "subsystemAdded": "Subsystem added"
+      "subsystemAdded": "Subsystem added",
+      "subsystemExists": "Subsystem already exists"
     },
     "subsystemCode": "Subsystem Code",
     "token": {

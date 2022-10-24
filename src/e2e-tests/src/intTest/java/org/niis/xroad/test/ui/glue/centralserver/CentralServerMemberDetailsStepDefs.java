@@ -27,14 +27,17 @@ package org.niis.xroad.test.ui.glue.centralserver;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
-import org.niis.xroad.test.ui.glue.constants.Constants;
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
+import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_CLOSE_SNACKBAR;
+import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_DIALOG_CANCEL;
+import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_DIALOG_DELETE;
+import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_DIALOG_SAVE;
 import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_INFO_CARD_EDIT;
+import static org.niis.xroad.test.ui.glue.constants.Constants.SNACKBAR_SUCCESS;
 import static org.openqa.selenium.By.xpath;
 
 public class CentralServerMemberDetailsStepDefs extends BaseUiStepDefs {
@@ -65,44 +68,44 @@ public class CentralServerMemberDetailsStepDefs extends BaseUiStepDefs {
         $(xpath(String.format(MEMBER_CODE_CARD, memberCode))).shouldBe(Condition.enabled);
     }
 
-    @Given("The Owned Servers table is correctly shown")
+    @Then("The Owned Servers table is correctly shown")
     public void ownedSecurityServersTableIsShown() {
         $(By.xpath(String.format(TABLE_TITLE, "Owned Servers"))).shouldBe(Condition.enabled);
         $(By.xpath(OWNED_SERVERS_SEARCH)).shouldBe(Condition.enabled);
         $(By.xpath(OWNED_SERVERS_TABLE)).shouldBe(Condition.enabled);
     }
 
-    @Given("The Global Groups table is correctly shown")
+    @Then("The Global Groups table is correctly shown")
     public void globalGroupsTableIsShown() {
         $(By.xpath(String.format(TABLE_TITLE, "Global Groups"))).shouldBe(Condition.enabled);
         $(By.xpath(GLOBAL_GROUPS_SEARCH)).shouldBe(Condition.enabled);
         $(By.xpath(GLOBAL_GROUPS_TABLE)).shouldBe(Condition.enabled);
     }
 
-    @Given("The name of the member is able to changed")
+    @Then("The name of the member is able to changed")
     public void memberNameIsChanged() {
         $(BTN_INFO_CARD_EDIT).click();
-        $(Constants.BTN_DIALOG_CANCEL).shouldBe(Condition.enabled);
-        $(Constants.BTN_DIALOG_SAVE).shouldNotBe(Condition.enabled);
+        $(BTN_DIALOG_CANCEL).shouldBe(Condition.enabled);
+        $(BTN_DIALOG_SAVE).shouldNotBe(Condition.enabled);
 
         $(xpath(INPUT_EDIT_MEMBER_NAME)).setValue(" Other");
-        $(Constants.BTN_DIALOG_SAVE).shouldBe(Condition.enabled).click();
+        $(BTN_DIALOG_SAVE).shouldBe(Condition.enabled).click();
 
-        $(Constants.SNACKBAR_SUCCESS).shouldBe(Condition.visible);
-        $(Constants.BTN_CLOSE_SNACKBAR).click();
+        $(SNACKBAR_SUCCESS).shouldBe(Condition.visible);
+        $(BTN_CLOSE_SNACKBAR).click();
     }
 
-    @Given("Deleting the member requires the user to input the member code: {}")
+    @Then("Deleting the member requires the user to input the member code: {}")
     public void deleteMember(String memberCode) {
         $(xpath(DELETE_MEMBER)).click();
-        $(Constants.BTN_DIALOG_CANCEL).shouldBe(Condition.enabled);
-        $(Constants.BTN_DIALOG_DELETE).shouldNotBe(Condition.enabled);
+        $(BTN_DIALOG_CANCEL).shouldBe(Condition.enabled);
+        $(BTN_DIALOG_DELETE).shouldNotBe(Condition.enabled);
 
         $(xpath(INPUT_MEMBER_CODE)).setValue(memberCode);
-        $(Constants.BTN_DIALOG_DELETE).shouldBe(Condition.enabled).click();
+        $(BTN_DIALOG_DELETE).shouldBe(Condition.enabled).click();
 
-        $(Constants.SNACKBAR_SUCCESS).shouldBe(Condition.visible);
-        $(Constants.BTN_CLOSE_SNACKBAR).click();
+        $(SNACKBAR_SUCCESS).shouldBe(Condition.visible);
+        $(BTN_CLOSE_SNACKBAR).click();
     }
 
     private SelenideElement getMemberElement(String memberName) {
