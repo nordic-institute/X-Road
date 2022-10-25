@@ -26,6 +26,7 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -79,6 +80,7 @@ public class CertificationServicesService {
     private final CaInfoConverter caInfoConverter;
 
     public CertificationService add(ApprovedCertificationService certificationService) {
+        CertificateProfileInfoValidator.validate(certificationService.getCertificateProfileInfo());
         final ApprovedCa approvedCaEntity = approvedCaConverter.toEntity(certificationService);
         final ApprovedCa persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
         addAuditData(persistedApprovedCa);
@@ -92,7 +94,11 @@ public class CertificationServicesService {
 
     public CertificationService update(CertificationService approvedCa) {
         ApprovedCa persistedApprovedCa = getById(approvedCa.getId());
-        Optional.ofNullable(approvedCa.getCertificateProfileInfo()).ifPresent(persistedApprovedCa::setCertProfileInfo);
+        Optional.ofNullable(approvedCa.getCertificateProfileInfo())
+                .ifPresent(certProfile -> {
+                    CertificateProfileInfoValidator.validate(certProfile);
+                    persistedApprovedCa.setCertProfileInfo(certProfile);
+                });
         Optional.ofNullable(approvedCa.getTlsAuth()).ifPresent(persistedApprovedCa::setAuthenticationOnly);
         final ApprovedCa updatedApprovedCa = approvedCaRepository.save(persistedApprovedCa);
         addAuditData(updatedApprovedCa);

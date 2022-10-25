@@ -25,68 +25,66 @@
    THE SOFTWARE.
  -->
 <template>
-  <div id="certificationserviceview">
-    <div class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">
-          {{ certificationServiceStore.currentCertificationService.name }}
-        </div>
+  <xrd-simple-dialog
+    :dialog="true"
+    title="trustServices.caSettings"
+    save-button-text="action.save"
+    cancel-button-text="action.cancel"
+    @cancel="cancelEdit"
+    @save="updateCertificationServiceSettings"
+  >
+    <template #content>
+      <div class="dlg-input-width">
+        <v-checkbox
+          v-model="tlsAuth"
+          :label="$t('trustServices.addCASettingsCheckbox')"
+        />
       </div>
-    </div>
-    <PageNavigation
-      :items="certificationServiceNavigationItems"
-    ></PageNavigation>
-    <router-view />
-  </div>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import PageNavigation, {
-  NavigationItem,
-} from '@/components/layout/PageNavigation.vue';
-import { Colors } from '@/global';
-import { mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
 
-/**
- * Wrapper component for a certification service view
- */
+import Vue from "vue";
+import {mapActions, mapStores} from "pinia";
+import {useCertificationServiceStore} from "@/store/modules/trust-services";
+import {ApprovedCertificationService} from "@/openapi-types";
+import {notificationsStore} from "@/store/modules/notifications";
+
 export default Vue.extend({
-  name: 'CertificationService',
-  components: { PageNavigation },
+  name: 'EditTlsAuthDialog',
   props: {
-    certificationServiceId: {
-      type: String,
+    certificationService: {
+      type: Object as () => ApprovedCertificationService,
       required: true,
     },
   },
   data() {
     return {
-      colors: Colors,
-    };
+      tlsAuth: this.certificationService.tls_auth
+    }
   },
   computed: {
-    ...mapStores(useCertificationServiceStore),
-    certificationServiceNavigationItems(): NavigationItem[] {
-      return [
-        {
-          url: `/certification-services/${this.certificationServiceId}/details`,
-          label: this.$t(
-            'trustServices.trustService.pagenavigation.details',
-          ) as string,
-        },
-        {
-          url: `/certification-services/${this.certificationServiceId}/settings`,
-          label: this.$t(
-            'trustServices.trustService.pagenavigation.settings',
-          ) as string,
-        },
-      ];
+    ...mapStores(useCertificationServiceStore)
+  },
+  methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    cancelEdit(): void {
+      this.$emit('cancel');
     },
-  },
-  created() {
-    this.certificationServiceStore.loadById(this.certificationServiceId);
-  },
+    updateCertificationServiceSettings(): void {
+      this.certificationServiceStore.update(
+        this.certificationService.id, {certificate_profile_info: this.certificationService.certificate_profile_info, tls_auth: `${this.tlsAuth}`}
+      )
+      .then(() => {
+        this.showSuccess(this.$t('trustServices.trustService.settings.saveSuccess'));
+        this.$emit('tlsAuthChanged');
+      })
+      .catch((error) => {
+        this.showError(error);
+      });
+    }
+  }
 });
 </script>
