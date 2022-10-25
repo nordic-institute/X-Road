@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
+import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockPart;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -49,6 +50,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -181,13 +183,17 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
         final String hash1 = addIntermediateCaToCertificationService(id);
         final String hash2 = addIntermediateCaToCertificationService(id);
 
-        mockMvc.perform(
+        final String response = mockMvc.perform(
                         get(commonModuleEndpointPaths.getBasePath() + "/certification-services/{id}/intermediate-cas", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()", equalTo(2)))
                 .andExpect(jsonPath("$[0].id", notNullValue()))
                 .andExpect(jsonPath("$..ca_certificate.hash", containsInAnyOrder(hash1, hash2)))
-                .andExpect(jsonPath("$[1].id", notNullValue()));
+                .andExpect(jsonPath("$[1].id", notNullValue()))
+                .andReturn().getResponse().getContentAsString();
+
+        final CertificateAuthority[] list = objectMapper.readValue(response, CertificateAuthority[].class);
+        assertNotEquals(list[0].getId(), list[1].getId());
     }
 
     private String addIntermediateCaToCertificationService(Integer certificationServiceId) throws Exception {
