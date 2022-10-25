@@ -28,12 +28,19 @@ package org.niis.xroad.centralserver.restapi.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
+import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
+import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
+import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
 import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
 
@@ -43,12 +50,26 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 @RequiredArgsConstructor
 public class OcspRespondersService {
     private final OcspInfoJpaRepository ocspInfoRepository;
+    private final ApprovedCaRepository approvedCaRepository;
     private final CaInfoConverter caInfoConverter;
+    private final OcspResponderConverter ocspResponderConverter;
 
     public CertificateDetails getOcspResponderCertificateDetails(Integer id) {
         return ocspInfoRepository.findById(id)
                 .map(OcspInfo::getCaInfo)
                 .map(caInfoConverter::toCertificateDetails)
+                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
+    }
+
+    public Set<OcspResponder> getOcspResponders(Integer certificationServiceId) {
+        final ApprovedCa approvedCa = getById(certificationServiceId);
+        return ocspInfoRepository.findByCaInfoId(approvedCa.getCaInfo().getId()).stream()
+                .map(ocspResponderConverter::toModel)
+                .collect(Collectors.toSet());
+    }
+
+    private ApprovedCa getById(Integer id) {
+        return approvedCaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
     }
 }

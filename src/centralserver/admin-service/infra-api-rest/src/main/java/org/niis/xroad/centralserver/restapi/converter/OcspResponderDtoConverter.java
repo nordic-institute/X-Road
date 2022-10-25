@@ -43,9 +43,9 @@ public class OcspResponderDtoConverter {
         var dto = new OcspResponderDto();
         dto.setId(ocspResponder.getId());
         dto.setUrl(ocspResponder.getUrl());
+        dto.hasCertificate(ocspResponder.getCertificate().length != 0);
         dto.setCreatedAt(ocspResponder.getCreatedAt().atOffset(dtoZoneOffset));
         dto.setUpdatedAt(ocspResponder.getUpdatedAt().atOffset(dtoZoneOffset));
-        //TODO OcspResponderDto's CertificateDetails to be imlemented during query API's implementation
         return dto;
     }
 

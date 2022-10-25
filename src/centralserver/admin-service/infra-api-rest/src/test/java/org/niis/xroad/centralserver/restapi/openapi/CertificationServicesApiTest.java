@@ -40,6 +40,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.OffsetDateTime;
+import java.util.Objects;
 
 import static ee.ria.xroad.common.TestCertUtil.generateAuthCert;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
@@ -145,20 +146,7 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
                 callAddCertificationService().andReturn().getResponse().getContentAsString(), ApprovedCertificationServiceDto.class
         );
 
-        var result = mockMvc.perform(
-                        multipart(commonModuleEndpointPaths.getBasePath() + "/certification-services/" +
-                                certificationService.getId() + "/ocsp-responders")
-                                .part(new MockPart("url", "http://localhost:1234".getBytes()))
-                                .part(new MockPart("certificate", "ocsp.crt", TestCertUtil.getOcspSigner().certChain[0].getEncoded())))
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        OcspResponderDto created =
-                objectMapper.readValue(result.getResponse().getContentAsString(), OcspResponderDto.class);
-        assertThat(created.getId()).isNotNull();
-        assertThat(created.getUrl()).isEqualTo("http://localhost:1234");
-        assertThat(created.getCreatedAt()).isBefore(OffsetDateTime.now());
-        assertThat(created.getUpdatedAt()).isBefore(OffsetDateTime.now());
+        addOcspResponderToCertificationService(certificationService.getId());
     }
 
     @Test
@@ -207,6 +195,51 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
 
     @Test
     @WithMockUser(authorities = {"ADD_APPROVED_CA", "VIEW_APPROVED_CA_DETAILS"})
+    void getCertificationServiceOcspResponders() throws Exception {
+        String newApprovedCa = callAddCertificationService().andReturn()
+                .getResponse().getContentAsString();
+        Integer id = objectMapper.readValue(newApprovedCa, ApprovedCertificationServiceDto.class).getId();
+
+        final OcspResponderDto ocspResponderWithFile = addOcspResponderToCertificationService(id);
+        final OcspResponderDto ocspResponder = addOcspResponderToCertificationService(id, null);
+
+        mockMvc.perform(
+                        get(commonModuleEndpointPaths.getBasePath() + "/certification-services/{id}/ocsp-responders", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", equalTo(2)))
+                .andExpect(jsonPath("$[0].id", notNullValue()))
+                .andExpect(jsonPath("$..has_certificate", containsInAnyOrder(ocspResponder.getHasCertificate(),
+                        ocspResponderWithFile.getHasCertificate())))
+                .andExpect(jsonPath("$[1].id", notNullValue()));
+    }
+
+    private OcspResponderDto addOcspResponderToCertificationService(Integer certificationServiceId) throws Exception {
+        var fileContent = TestCertUtil.getOcspSigner().certChain[0].getEncoded();
+        return addOcspResponderToCertificationService(certificationServiceId, fileContent);
+    }
+
+    private OcspResponderDto addOcspResponderToCertificationService(Integer certificationServiceId, byte[] fileContent) throws Exception {
+
+        var result = mockMvc.perform(
+                        multipart(commonModuleEndpointPaths.getBasePath() + "/certification-services/"
+                                + certificationServiceId + "/ocsp-responders")
+                                .part(new MockPart("url", "http://localhost:1234".getBytes()))
+                                .part(new MockPart("certificate", "ocsp.crt", fileContent)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        OcspResponderDto created =
+                objectMapper.readValue(result.getResponse().getContentAsString(), OcspResponderDto.class);
+        assertThat(created.getId()).isNotNull();
+        assertThat(created.getUrl()).isEqualTo("http://localhost:1234");
+        assertThat(created.getCreatedAt()).isBefore(OffsetDateTime.now());
+        assertThat(created.getUpdatedAt()).isBefore(OffsetDateTime.now());
+
+        return created;
+    }
+
+    @Test
+    @WithMockUser(authorities = {"ADD_APPROVED_CA", "VIEW_APPROVED_CA_DETAILS"})
     void getCertificationServiceCertificate() throws Exception {
         String newApprovedCa = callAddCertificationService().andReturn()
                 .getResponse().getContentAsString();
@@ -239,13 +272,13 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
                         multipart(commonModuleEndpointPaths.getBasePath() + "/certification-services")
                                 .part(new MockPart("certificate_profile_info", BASIC_CERT_PROFILE_INFO_PROVIDER.getBytes()))
                                 .part(new MockPart("tls_auth", FALSE.getBytes()))
-                                .part(new MockPart("certificate", filename, generateMockCertFile(filename))))
+                                .part(new MockPart("certificate", filename, generateMockCertFile())))
                 .andExpect(status().isCreated());
     }
 
     @SneakyThrows
-    private byte[] generateMockCertFile(String filename) {
-        return IOUtils.toByteArray(this.getClass().getClassLoader().getResourceAsStream(filename));
+    private byte[] generateMockCertFile() {
+        return IOUtils.toByteArray(
+                Objects.requireNonNull(this.getClass().getClassLoader().getResourceAsStream("x-road.global.der")));
     }
-
 }

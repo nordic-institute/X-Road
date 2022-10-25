@@ -572,9 +572,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       responses:
         '200':
           content:
@@ -4248,7 +4248,6 @@ components:
     OcspResponder:
       allOf:
         - $ref: '#/components/schemas/OcspResponderUrl'
-        - $ref: '#/components/schemas/OcspResponderCertificate'
         - $ref: '#/components/schemas/ModificationTimestamps'
       description: OCSP responder
       properties:
@@ -4258,6 +4257,10 @@ components:
           format: int32
           readOnly: true
           type: integer
+        has_certificate:
+          description: has OCSP responder certificate
+          default: false
+          type: boolean
       required:
         - id
     OcspResponderCertificate:

@@ -46,6 +46,7 @@ import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
 import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
 import org.niis.xroad.centralserver.restapi.service.CertificationServicesService;
+import org.niis.xroad.centralserver.restapi.service.OcspRespondersService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -56,6 +57,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.Boolean.parseBoolean;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -69,6 +71,7 @@ import static org.springframework.http.ResponseEntity.status;
 public class CertificationServicesController implements CertificationServicesApi {
 
     private final CertificationServicesService certificationServicesService;
+    private final OcspRespondersService ocspRespondersService;
     private final ApprovedCertificationServiceDtoConverter approvedCertificationServiceDtoConverter;
     private final OcspResponderDtoConverter ocspResponderDtoConverter;
     private final CertificateDetailsDtoConverter certificateDetailsDtoConverter;
@@ -134,8 +137,12 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
-    public ResponseEntity<Set<OcspResponderDto>> getCertificationServiceOcspResponders(String id) {
-        throw new NotImplementedException("getCertificationServiceOcspResponders not implemented yet");
+    @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
+    public ResponseEntity<Set<OcspResponderDto>> getCertificationServiceOcspResponders(Integer id) {
+        return ok(ocspRespondersService.getOcspResponders(id).stream()
+                .map(ocspResponderDtoConverter::toDto)
+                .collect(Collectors.toSet())
+        );
     }
 
     @Override

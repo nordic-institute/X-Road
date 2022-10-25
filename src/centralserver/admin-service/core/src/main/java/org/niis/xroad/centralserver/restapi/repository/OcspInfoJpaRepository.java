@@ -30,6 +30,9 @@ import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Set;
+
 @Repository
 public interface OcspInfoJpaRepository extends JpaRepository<OcspInfo, Integer> {
+    Set<OcspInfo> findByCaInfoId(Integer caInfoId);
 }
