@@ -29,6 +29,7 @@ package org.niis.xroad.centralserver.restapi.service;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.entity.mapper.FlattenedSecurityServerClientViewMapper;
 import org.niis.xroad.cs.admin.core.repository.FlattenedSecurityServerClientRepository;
 import org.springframework.data.domain.Page;
@@ -46,7 +47,7 @@ import javax.transaction.Transactional;
 public class ClientServiceImpl implements ClientService {
     private final FlattenedSecurityServerClientRepository flattenedClientRepository;
     private final FlattenedSecurityServerClientViewMapper flattenedSecurityServerClientViewMapper;
-    private final StableSortHelperImpl stableSortHelper;
+    private final StableSortHelper stableSortHelper;
 
     public Page<FlattenedSecurityServerClientView> find(
             ClientService.SearchParameters params,

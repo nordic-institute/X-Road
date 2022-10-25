@@ -43,6 +43,11 @@ public class ApprovedCa extends Auditable {
     private String identifierDecoderMethodName;
     private String certProfileInfo;
     private Set<CaInfo> intermediateCaInfos = new HashSet<>(0);
+
+    public void addIntermediateCa(CaInfo intermediateCa) {
+        intermediateCa.setApprovedCa(this);
+        getIntermediateCaInfos().add(intermediateCa);
+    }
 }
 
 

@@ -31,6 +31,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface JpaApprovedCaRepository extends JpaRepository<ApprovedCaEntity, Long>, ApprovedCaRepository {
+public interface JpaApprovedCaRepository extends JpaRepository<ApprovedCaEntity, Integer>, ApprovedCaRepository {
 
 }

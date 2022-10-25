@@ -30,24 +30,22 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationService;
-import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
-import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
-import org.niis.xroad.centralserver.restapi.dto.CertificationService;
-import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
 import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
-import org.niis.xroad.cs.admin.api.domain.ApprovedCa;
-import org.niis.xroad.centralserver.restapi.entity.CaInfo;
-import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
+import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
+import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.cs.admin.api.dto.CertificationService;
+import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
+import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
-import org.niis.xroad.cs.admin.core.entity.mapper.ApprovedCaMapper;
+import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
+import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
-import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
-import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
@@ -76,50 +74,55 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 @RequiredArgsConstructor
 public class CertificationServicesServiceImpl implements CertificationServicesService {
     private final ApprovedCaRepository approvedCaRepository;
-    private final OcspInfoJpaRepository ocspInfoRepository;
+    private final OcspInfoRepository ocspInfoRepository;
     private final AuditDataHelper auditDataHelper;
     private final ApprovedCaConverter approvedCaConverter;
     private final OcspResponderConverter ocspResponderConverter;
     private final CaInfoConverter caInfoConverter;
 
+    @Override
     public CertificationService add(ApprovedCertificationService certificationService) {
-        final ApprovedCa approvedCaEntity = approvedCaConverter.toEntity(certificationService);
-        final ApprovedCa persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
+        final ApprovedCaEntity approvedCaEntity = approvedCaConverter.toEntity(certificationService);
+        final ApprovedCaEntity persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
         addAuditData(persistedApprovedCa);
 
         return approvedCaConverter.convert(persistedApprovedCa);
     }
 
+    @Override
     public CertificationService get(Integer id) {
         return approvedCaConverter.convert(getById(id));
     }
 
+    @Override
     public CertificationService update(CertificationService approvedCa) {
-        ApprovedCa persistedApprovedCa = getById(approvedCa.getId());
+        ApprovedCaEntity persistedApprovedCa = getById(approvedCa.getId());
         Optional.ofNullable(approvedCa.getCertificateProfileInfo()).ifPresent(persistedApprovedCa::setCertProfileInfo);
         Optional.ofNullable(approvedCa.getTlsAuth()).ifPresent(persistedApprovedCa::setAuthenticationOnly);
-        final ApprovedCa updatedApprovedCa = approvedCaRepository.save(persistedApprovedCa);
+        final ApprovedCaEntity updatedApprovedCa = approvedCaRepository.save(persistedApprovedCa);
         addAuditData(updatedApprovedCa);
 
         return approvedCaConverter.convert(updatedApprovedCa);
     }
 
-    private ApprovedCa getById(Integer id) {
+    private ApprovedCaEntity getById(Integer id) {
         return approvedCaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
     }
 
+    @Override
     public CertificateDetails getCertificateDetails(Integer id) {
         return approvedCaRepository.findById(id)
-                .map(ApprovedCa::getCaInfo)
+                .map(ApprovedCaEntity::getCaInfo)
                 .map(caInfoConverter::toCertificateDetails)
                 .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
     }
 
+    @Override
     public CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert) {
-        final CaInfo caInfo = caInfoConverter.toCaInfo(cert);
+        final CaInfoEntity caInfo = caInfoConverter.toCaInfo(cert);
 
-        final ApprovedCa approvedCa = getById(certificationServiceId);
+        final ApprovedCaEntity approvedCa = getById(certificationServiceId);
         approvedCa.addIntermediateCa(caInfo);
         approvedCaRepository.save(approvedCa);
 
@@ -131,18 +134,21 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         return caInfoConverter.toCertificateAuthority(caInfo);
     }
 
+    @Override
     public Set<CertificateAuthority> getIntermediateCas(Integer certificationServiceId) {
-        final ApprovedCa approvedCa = getById(certificationServiceId);
+        final ApprovedCaEntity approvedCa = getById(certificationServiceId);
         return caInfoConverter.toCertificateAuthorities(approvedCa.getIntermediateCaInfos());
     }
 
+    @Override
     public List<CertificationServiceListItem> getCertificationServices() {
         return approvedCaConverter.toListItems(approvedCaRepository.findAll());
     }
 
+    @Override
     public OcspResponder addOcspResponder(OcspResponder ocspResponder) {
-        OcspInfo ocspInfo = ocspResponderConverter.toEntity(ocspResponder);
-        OcspInfo persistedOcspInfo = ocspInfoRepository.save(ocspInfo);
+        OcspInfoEntity ocspInfo = ocspResponderConverter.toEntity(ocspResponder);
+        OcspInfoEntity persistedOcspInfo = ocspInfoRepository.save(ocspInfo);
         addAuditData(persistedOcspInfo);
         return ocspResponderConverter.toModel(persistedOcspInfo);
     }
@@ -153,7 +159,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         auditDataHelper.put(CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
     }
 
-    private void addAuditData(OcspInfo ocspInfo) {
+    private void addAuditData(OcspInfoEntity ocspInfo) {
         auditDataHelper.put(CA_ID, ocspInfo.getCaInfo().getId());
         auditDataHelper.put(OCSP_ID, ocspInfo.getId());
         auditDataHelper.put(OCSP_URL, ocspInfo.getUrl());

@@ -35,24 +35,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
-import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
-import org.niis.xroad.centralserver.restapi.dto.CertificationService;
-import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
 import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.KeyUsageConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
-import org.niis.xroad.cs.admin.api.domain.ApprovedCa;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
+import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.cs.admin.api.dto.CertificationService;
+import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
+import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
+import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
+import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ApprovedCaMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.ApprovedCaMapperImpl;
-import org.niis.xroad.centralserver.restapi.entity.CaInfo;
-import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
-import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
-import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.security.cert.CertificateEncodingException;
@@ -73,7 +72,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
+import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH_ALGORITHM;
@@ -96,7 +95,7 @@ class CertificationServicesServiceImplTest {
     @Mock
     private ApprovedCaRepository approvedCaRepository;
     @Mock
-    private OcspInfoJpaRepository ocspInfoRepository;
+    private OcspInfoRepository ocspInfoRepository;
     @Spy
     private ApprovedCaConverter approvedCaConverter = new ApprovedCaConverter();
     @Mock
@@ -108,6 +107,7 @@ class CertificationServicesServiceImplTest {
 
     @Spy
     private ApprovedCaMapper approvedCaMapper = new ApprovedCaMapperImpl();
+
     @InjectMocks
     private CertificationServicesServiceImpl service;
 
@@ -167,7 +167,7 @@ class CertificationServicesServiceImplTest {
     void addIntermediateCa() {
         final X509Certificate certificate = TestCertUtil.getCa().certChain[0];
         final byte[] certificateBytes = certificate.getEncoded();
-        var approvedCaMock = mock(ApprovedCa.class);
+        var approvedCaMock = mock(ApprovedCaEntity.class);
 
         when(approvedCaRepository.findById(ID)).thenReturn(Optional.of(approvedCaMock));
 
@@ -175,7 +175,7 @@ class CertificationServicesServiceImplTest {
 
         assertEquals("24AFDE09AA818A20D3EE7A4A2264BA247DA5C3F9", certificateAuthority.getCaCertificate().getHash());
 
-        ArgumentCaptor<CaInfo> captor = ArgumentCaptor.forClass(CaInfo.class);
+        ArgumentCaptor<CaInfoEntity> captor = ArgumentCaptor.forClass(CaInfoEntity.class);
         verify(approvedCaMock).addIntermediateCa(captor.capture());
         assertEquals(certificate.getNotBefore().toInstant(), captor.getValue().getValidFrom());
         assertEquals(certificate.getNotAfter().toInstant(), captor.getValue().getValidTo());
@@ -217,8 +217,8 @@ class CertificationServicesServiceImplTest {
                 certificateDetails.getIssuerDistinguishedName());
     }
 
-    private ApprovedCa approvedCa() {
-        ApprovedCa ca = new ApprovedCa();
+    private ApprovedCaEntity approvedCa() {
+        var ca = new ApprovedCaEntity();
         ca.setName(CA_NAME);
         ca.setAuthenticationOnly(true);
         ca.setCertProfileInfo(CERT_PROFILE);
@@ -228,8 +228,8 @@ class CertificationServicesServiceImplTest {
     }
 
     @SneakyThrows
-    private CaInfo caInfo() {
-        CaInfo caInfo = new CaInfo();
+    private CaInfoEntity caInfo() {
+        var caInfo = new CaInfoEntity();
         caInfo.setValidFrom(VALID_FROM);
         caInfo.setValidTo(VALID_TO);
         caInfo.setCert(generateAuthCert());
@@ -244,8 +244,8 @@ class CertificationServicesServiceImplTest {
                 .setCertificate(TestCertUtil.getOcspSigner().certChain[0].getEncoded());
     }
 
-    private OcspInfo ocspInfo() throws CertificateEncodingException {
-        return new OcspInfo(new CaInfo(), "https://flakyocsp:666",
+    private OcspInfoEntity ocspInfo() throws CertificateEncodingException {
+        return new OcspInfoEntity(new CaInfoEntity(), "https://flakyocsp:666",
                 TestCertUtil.getOcspSigner().certChain[0].getEncoded());
     }
 

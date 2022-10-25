@@ -30,7 +30,7 @@ package org.niis.xroad.centralserver.restapi.converter;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
-import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
+import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 
 import java.util.Collection;
 import java.util.Set;

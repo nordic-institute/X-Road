@@ -34,6 +34,8 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.restapi.config.BootstrapConfiguration;
 import org.niis.xroad.cs.admin.api.facade.GlobalConfFacade;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.niis.xroad.cs.admin.application.openapi.AbstractApiControllerTestContext;
+import org.niis.xroad.cs.admin.application.openapi.AbstractFacadeMockingTestContext;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -53,17 +55,9 @@ import java.util.Map;
 /**
  * application test
  */
-@SpringBootTest(classes = {
-        BootstrapConfiguration.class,
-        ApplicationInitializationTest.ExtDataSourceProperties.class
-})
-@EnableAutoConfiguration
-@AutoConfigureTestDatabase(
-        replace = AutoConfigureTestDatabase.Replace.NONE,
-        connection = EmbeddedDatabaseConnection.HSQLDB
-)
-@ActiveProfiles({"test", "audit-test"})
-public class ApplicationInitializationTest {
+
+//@ActiveProfiles({"test", "audit-test"})
+public class ApplicationInitializationTest extends AbstractApiControllerTestContext {
 
     /**
      * test that spring context loads
@@ -73,53 +67,5 @@ public class ApplicationInitializationTest {
     public void contextLoads() {
     }
 
-    static {
-        fixSupportedDefaultValueComputedMap();
-    }
 
-    @MockBean
-    protected GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    protected SignerProxyFacade signerProxyFacade;
-
-    @Primary
-    @Configuration
-    @ConfigurationProperties(prefix = "spring.datasource")
-    public static class ExtDataSourceProperties extends DataSourceProperties {
-
-        @Getter
-        @Setter
-        private Map<String, String> urlProperties = new LinkedHashMap<>();
-
-        @SneakyThrows
-        public String determineUrl() {
-            String url = super.determineUrl();
-            url = appendPropertiesToUrl(url);
-            return url;
-        }
-
-        private String appendPropertiesToUrl(String url) {
-            for (Map.Entry<String, String> entry : this.urlProperties.entrySet()) {
-                url += ";" + entry.getKey() + "=" + entry.getValue();
-            }
-            return url;
-        }
-
-    }
-
-    @SneakyThrows
-    private static void fixSupportedDefaultValueComputedMap() {
-        Field supportedDefaultValueComputedMapField = FieldUtils.getDeclaredField(
-                HsqlDatabase.class, "SUPPORTED_DEFAULT_VALUE_COMPUTED_MAP", true);
-        Map<String, HashSet<String>> supportedDefaultValueComputedMap =
-                (Map<String, HashSet<String>>) supportedDefaultValueComputedMapField.get(null);
-        HashSet<String> set = supportedDefaultValueComputedMap.get("datetime");
-        HashSet<String> modifiedSet = new HashSet<>();
-        for (String value : set) {
-            modifiedSet.add(value.toLowerCase());
-        }
-        set.clear();
-        set.addAll(modifiedSet);
-    }
 }

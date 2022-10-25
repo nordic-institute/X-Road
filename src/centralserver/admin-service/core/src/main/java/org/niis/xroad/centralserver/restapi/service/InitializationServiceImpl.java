@@ -34,7 +34,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacadeImpl;
 import org.niis.xroad.centralserver.restapi.service.exception.InvalidCharactersException;
 import org.niis.xroad.centralserver.restapi.service.exception.InvalidInitParamsException;
 import org.niis.xroad.centralserver.restapi.service.exception.ServerAlreadyFullyInitializedException;
@@ -44,7 +43,10 @@ import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.InitialServerConfDto;
 import org.niis.xroad.cs.admin.api.dto.InitializationStatusDto;
 import org.niis.xroad.cs.admin.api.dto.TokenInitStatus;
+import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
+import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -68,10 +70,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class InitializationServiceImpl implements InitializationService {
 
-    private final SignerProxyFacadeImpl signerProxyFacade;
+    private final SignerProxyFacade signerProxyFacade;
     private final GlobalGroupRepository globalGroupRepository;
-    private final SystemParameterServiceImpl systemParameterService;
-    private final TokenPinValidatorImpl tokenPinValidator;
+    private final SystemParameterService systemParameterService;
+    private final TokenPinValidator tokenPinValidator;
     private final AuditDataHelper auditDataHelper;
     private final HAConfigStatus currentHaConfigStatus;
 

@@ -28,7 +28,7 @@ package org.niis.xroad.centralserver.restapi.converter;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;

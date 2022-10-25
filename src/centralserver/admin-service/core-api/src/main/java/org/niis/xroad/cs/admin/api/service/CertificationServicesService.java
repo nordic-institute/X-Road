@@ -25,14 +25,31 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.cs.admin.api.domain.ApprovedCa;
+import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
+import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
+import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.cs.admin.api.dto.CertificationService;
+import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
+import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 
 import java.util.List;
+import java.util.Set;
 
 public interface CertificationServicesService {
-    ApprovedCa add(ApprovedCa approvedCa);
+    CertificationService add(ApprovedCertificationService approvedCa);
 
-    List<ApprovedCa> getCertificationServices();
+    CertificationService get(Integer id);
+
+    CertificationService update(CertificationService approvedCa);
+
+    CertificateDetails getCertificateDetails(Integer id);
+
+    CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert);
+
+    Set<CertificateAuthority> getIntermediateCas(Integer certificationServiceId);
+
+    List<CertificationServiceListItem> getCertificationServices();
 
 
+    OcspResponder addOcspResponder(OcspResponder ocspResponder);
 }

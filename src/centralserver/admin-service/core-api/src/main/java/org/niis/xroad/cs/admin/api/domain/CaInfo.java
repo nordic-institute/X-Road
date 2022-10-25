@@ -37,7 +37,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 public class CaInfo extends Auditable {
     private int id;
-//    private ApprovedCa approvedCa;
+    private ApprovedCa approvedCa;
     private byte[] cert;
     private Instant validFrom;
     private Instant validTo;

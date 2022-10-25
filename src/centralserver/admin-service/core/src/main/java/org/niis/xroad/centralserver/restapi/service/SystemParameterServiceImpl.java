@@ -45,14 +45,14 @@ import javax.xml.crypto.dsig.DigestMethod;
 import java.util.Arrays;
 import java.util.Optional;
 
-@Slf4j
-@Service
-@PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 
 /**
  *    Class for handling SystemParameter taking HA-setup into account
  */
+@Slf4j
+@Service
+@PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 @Transactional
 public class SystemParameterServiceImpl implements SystemParameterService {
 

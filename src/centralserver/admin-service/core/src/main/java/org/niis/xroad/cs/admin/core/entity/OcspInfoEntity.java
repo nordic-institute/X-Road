@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
@@ -41,6 +42,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 @Entity
+@NoArgsConstructor
 @Table(name = OcspInfoEntity.TABLE_NAME)
 public class OcspInfoEntity extends AuditableEntity {
 
@@ -69,11 +71,7 @@ public class OcspInfoEntity extends AuditableEntity {
     @Setter
     private byte[] cert;
 
-//    protected OcspInfoEntity() {
-//        //JPA
-//    }
-
-    public OcspInfo(CaInfo caInfo, String url, byte[] cert) {
+    public OcspInfoEntity(CaInfoEntity caInfo, String url, byte[] cert) {
         this.caInfo = caInfo;
         this.url = url;
         this.cert = cert;
