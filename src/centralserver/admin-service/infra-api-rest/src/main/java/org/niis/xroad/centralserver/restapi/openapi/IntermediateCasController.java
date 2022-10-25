@@ -57,12 +57,12 @@ public class IntermediateCasController implements IntermediateCasApi {
 
     @Override
     public ResponseEntity<OcspResponderDto> addIntermediateCaOcspResponder(String id, String url, MultipartFile certificate) {
-        throw new NotImplementedException("Not implemented yet");
+        throw new NotImplementedException("addIntermediateCaOcspResponder not implemented yet");
     }
 
     @Override
     public ResponseEntity<Void> deleteIntermediateCa(String id) {
-        throw new NotImplementedException("Not implemented yet");
+        throw new NotImplementedException("deleteIntermediateCa not implemented yet");
     }
 
     @Override
@@ -73,7 +73,7 @@ public class IntermediateCasController implements IntermediateCasApi {
 
     @Override
     public ResponseEntity<Set<OcspResponderDto>> getIntermediateCaOcspResponders(String id) {
-        throw new NotImplementedException("Not implemented yet");
+        throw new NotImplementedException("getIntermediateCaOcspResponders not implemented yet");
     }
 
 }
