@@ -27,6 +27,7 @@
 package org.niis.xroad.centralserver.restapi.converter;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
 import org.springframework.stereotype.Component;
@@ -43,7 +44,7 @@ public class OcspResponderDtoConverter {
         var dto = new OcspResponderDto();
         dto.setId(ocspResponder.getId());
         dto.setUrl(ocspResponder.getUrl());
-        dto.hasCertificate(ocspResponder.getCertificate().length != 0);
+        dto.hasCertificate(ArrayUtils.isNotEmpty(ocspResponder.getCertificate()));
         dto.setCreatedAt(ocspResponder.getCreatedAt().atOffset(dtoZoneOffset));
         dto.setUpdatedAt(ocspResponder.getUpdatedAt().atOffset(dtoZoneOffset));
         return dto;
