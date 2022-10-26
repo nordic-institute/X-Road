@@ -62,7 +62,7 @@ public class OcspRespondersService {
     }
 
     public Set<OcspResponder> getOcspResponders(Integer certificationServiceId) {
-        final ApprovedCa approvedCa = getById(certificationServiceId);
+        var approvedCa = getById(certificationServiceId);
         return ocspInfoRepository.findByCaInfoId(approvedCa.getCaInfo().getId()).stream()
                 .map(ocspResponderConverter::toModel)
                 .collect(Collectors.toSet());
