@@ -71,7 +71,6 @@ import static org.springframework.http.ResponseEntity.status;
 public class CertificationServicesController implements CertificationServicesApi {
 
     private final CertificationServicesService certificationServicesService;
-    private final OcspRespondersService ocspRespondersService;
     private final ApprovedCertificationServiceDtoConverter approvedCertificationServiceDtoConverter;
     private final OcspResponderDtoConverter ocspResponderDtoConverter;
     private final CertificateDetailsDtoConverter certificateDetailsDtoConverter;
@@ -139,7 +138,7 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
     public ResponseEntity<Set<OcspResponderDto>> getCertificationServiceOcspResponders(Integer id) {
-        return ok(ocspRespondersService.getOcspResponders(id).stream()
+        return ok(certificationServicesService.getOcspResponders(id).stream()
                 .map(ocspResponderDtoConverter::toDto)
                 .collect(Collectors.toSet())
         );
