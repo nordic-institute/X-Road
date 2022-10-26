@@ -139,7 +139,6 @@ public class CertificationServicesService {
 
     public OcspResponder addOcspResponder(OcspResponder ocspResponder) {
         OcspInfo ocspInfo = ocspResponderConverter.toEntity(ocspResponder);
-        ocspInfo.getCaInfo().addOcspInfos(ocspInfo);
         OcspInfo persistedOcspInfo = ocspInfoRepository.save(ocspInfo);
         addAuditData(persistedOcspInfo);
         return ocspResponderConverter.toModel(persistedOcspInfo);

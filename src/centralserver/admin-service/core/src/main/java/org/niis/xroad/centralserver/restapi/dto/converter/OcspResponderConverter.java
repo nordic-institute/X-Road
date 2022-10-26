@@ -44,7 +44,9 @@ public class OcspResponderConverter {
     public OcspInfo toEntity(OcspResponder ocspResponder) {
         ApprovedCa ca = approvedCaRepository.findById(ocspResponder.getCaId())
                 .orElseThrow(() -> new NotFoundException(ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND));
-        return new OcspInfo(ca.getCaInfo(), ocspResponder.getUrl(), ocspResponder.getCertificate());
+        var ocspInfo = new OcspInfo(ca.getCaInfo(), ocspResponder.getUrl(), ocspResponder.getCertificate());
+        ocspInfo.getCaInfo().addOcspInfos(ocspInfo);
+        return ocspInfo;
     }
 
     public OcspResponder toModel(OcspInfo ocspInfo) {
