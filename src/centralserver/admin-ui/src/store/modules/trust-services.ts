@@ -27,10 +27,11 @@
 import {
   ApprovedCertificationService,
   ApprovedCertificationServiceListItem,
-  CertificationServiceFileAndSettings,
+  CertificationServiceFileAndSettings, CertificationServiceSettings, Client,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import certificationService from "@/views/TrustServices/CertificationService/CertificationService.vue";
 
 export interface State {
   certificationServices: ApprovedCertificationServiceListItem[];
@@ -77,6 +78,16 @@ export const useCertificationServiceStore = defineStore(
           .post('/certification-services', formData)
           .finally(() => this.fetchAll());
       },
+      update(certificationServiceId: number, settings: CertificationServiceSettings) {
+        return axios
+          .patch<ApprovedCertificationService>(`/certification-services/${certificationServiceId}`, settings)
+          .then((resp) => {
+            this.currentCertificationService = resp.data;
+          })
+          .catch((error) => {
+            throw error;
+          });
+      }
     },
   },
 );

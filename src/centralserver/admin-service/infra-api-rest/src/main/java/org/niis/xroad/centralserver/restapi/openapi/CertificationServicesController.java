@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.NotImplementedException;
@@ -81,8 +79,6 @@ public class CertificationServicesController implements CertificationServicesApi
     public ResponseEntity<ApprovedCertificationServiceDto> addCertificationService(MultipartFile certificate,
                                                                                    String certificateProfileInfo,
                                                                                    String tlsAuth) {
-        CertificateProfileInfoValidator.validate(certificateProfileInfo);
-
         var isForTlsAuth = parseBoolean(tlsAuth);
         var approvedCa = new ApprovedCertificationService(certificate.getBytes(), certificateProfileInfo, isForTlsAuth);
 

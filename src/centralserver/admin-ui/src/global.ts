@@ -37,6 +37,7 @@ export enum RouteName {
   ManagementRequests = 'management-requests',
   TrustServices = 'trust-services',
   CertificationServiceDetails = 'certification-service-details',
+  CertificationServiceSettings = 'certification-service-settings',
   Settings = 'settings',
   GlobalResources = 'global-resources',
   GlobalGroup = 'global-group',

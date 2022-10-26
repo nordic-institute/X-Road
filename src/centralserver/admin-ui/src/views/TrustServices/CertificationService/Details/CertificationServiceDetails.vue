@@ -28,12 +28,14 @@
   Certification Service details view
 -->
 <template>
-  <main id="certification-service-details-content" class="mt-8">
+  <main id="certification-service-details" class="mt-8">
     <!-- Certification Service Details -->
 
     <info-card
       class="mb-6"
-      :title-text="$t('trustServices.subjectDistinguishedName')"
+      :title-text="
+        $t('trustServices.trustService.details.subjectDistinguishedName')
+      "
       :info-text="
         certificationServiceStore.currentCertificationService
           .subject_distinguished_name || ''
@@ -43,7 +45,9 @@
 
     <info-card
       class="mb-6"
-      :title-text="$t('trustServices.issuerDistinguishedName')"
+      :title-text="
+        $t('trustServices.trustService.details.issuerDistinguishedName')
+      "
       :info-text="
         certificationServiceStore.currentCertificationService
           .issuer_distinguished_name || ''
