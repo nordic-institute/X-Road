@@ -34,6 +34,7 @@ import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
+import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMapper;
@@ -63,7 +64,7 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 @RequiredArgsConstructor
 public class GlobalGroupServiceImpl implements GlobalGroupService {
     private final AuditDataHelper auditDataHelper;
-    private final StableSortHelperImpl stableSortHelper;
+    private final StableSortHelper stableSortHelper;
     private final GlobalGroupRepository globalGroupRepository;
     private final SystemParameterRepository systemParameterRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;

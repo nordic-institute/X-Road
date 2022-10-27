@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.admin.core.entity;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.Fn;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,8 +45,7 @@ import static org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegis
 @Entity
 @NoArgsConstructor
 @DiscriminatorValue(DISCRIMINATOR_VALUE)
-public class AuthenticationCertificateRegistrationRequestEntity extends RequestWithProcessingEntity
-        implements Fn.Self<AuthenticationCertificateRegistrationRequestEntity> {
+public class AuthenticationCertificateRegistrationRequestEntity extends RequestWithProcessingEntity {
     public static final String DISCRIMINATOR_VALUE = "AuthCertRegRequest";
 
     private static final int KILOBYTE = 1024;

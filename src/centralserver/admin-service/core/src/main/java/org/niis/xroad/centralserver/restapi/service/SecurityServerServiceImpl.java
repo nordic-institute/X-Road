@@ -32,13 +32,12 @@ import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
-import org.niis.xroad.centralserver.restapi.service.managementrequest.ManagementRequestServiceImpl;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
-import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
+import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.data.domain.Page;
@@ -56,11 +55,9 @@ import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.
 @RequiredArgsConstructor
 public class SecurityServerServiceImpl implements SecurityServerService {
 
-    private final StableSortHelperImpl stableSortHelper;
+    private final StableSortHelper stableSortHelper;
     private final SecurityServerRepository securityServerRepository;
-    private final ManagementRequestServiceImpl managementRequestService;
-
-    private final SecurityServerClientMapper securityServerClientMapper;
+    private final ManagementRequestService managementRequestService;
     private final SecurityServerMapper securityServerMapper;
 
     @Override
