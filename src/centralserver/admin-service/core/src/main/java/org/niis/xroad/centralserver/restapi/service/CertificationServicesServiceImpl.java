@@ -160,6 +160,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         return ocspResponderConverter.toModel(persistedOcspInfo);
     }
 
+    @Override
     public Set<OcspResponder> getOcspResponders(Integer certificationServiceId) {
         var approvedCa = getById(certificationServiceId);
         return approvedCa.getCaInfo().getOcspInfos().stream()

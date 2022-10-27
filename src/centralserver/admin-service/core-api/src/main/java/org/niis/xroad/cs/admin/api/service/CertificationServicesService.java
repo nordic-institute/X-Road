@@ -52,4 +52,6 @@ public interface CertificationServicesService {
 
 
     OcspResponder addOcspResponder(OcspResponder ocspResponder);
+
+    Set<OcspResponder> getOcspResponders(Integer certificationServiceId);
 }
