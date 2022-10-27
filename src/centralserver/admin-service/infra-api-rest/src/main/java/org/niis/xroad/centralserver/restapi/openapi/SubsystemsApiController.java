@@ -32,8 +32,8 @@ import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SubsystemsApi;
 import org.niis.xroad.centralserver.openapi.model.ClientDto;
+import org.niis.xroad.centralserver.restapi.converter.SubsystemCreationRequestMapper;
 import org.niis.xroad.centralserver.restapi.converter.db.ClientDtoConverter;
-import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -60,6 +60,7 @@ public class SubsystemsApiController implements SubsystemsApi {
     private final ClientDtoConverter clientDtoConverter;
     private final ClientIdConverter clientIdConverter;
     private final SecurityServerIdConverter securityServerIdConverter;
+    private final SubsystemCreationRequestMapper subsystemCreationRequestMapper;
 
     @Override
     @PreAuthorize("hasAuthority('ADD_MEMBER_SUBSYSTEM')")
@@ -70,8 +71,7 @@ public class SubsystemsApiController implements SubsystemsApi {
         auditData.put(RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE, clientDto.getXroadId().getSubsystemCode());
 
         return Try.success(clientDto)
-                .map(clientDtoConverter::fromDto)
-                .map(clientDtoConverter.expectType(Subsystem.class))
+                .map(subsystemCreationRequestMapper::toTarget)
                 .map(subsystemService::add)
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity.status(HttpStatus.CREATED)::body)

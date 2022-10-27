@@ -28,12 +28,10 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.mapstruct.factory.Mappers;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericDtoMapper;
+import org.niis.xroad.centralserver.restapi.dto.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
-import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
@@ -41,10 +39,10 @@ import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {ClientIdMapper.class}
 )
-public interface SecurityServerClientMapper extends GenericDtoMapper<SecurityServerClientEntity, SecurityServerClient> {
+public interface SecurityServerClientMapper extends GenericUniDirectionalMapper<SecurityServerClientEntity, SecurityServerClient> {
 
     @Override
-    default SecurityServerClient toDto(SecurityServerClientEntity source) {
+    default SecurityServerClient toTarget(SecurityServerClientEntity source) {
         if (source instanceof SubsystemEntity) {
             return toDto((SubsystemEntity) source);
         }
@@ -54,27 +52,6 @@ public interface SecurityServerClientMapper extends GenericDtoMapper<SecuritySer
 
         throw new IllegalArgumentException("Cannot map " + source.getClass());
     }
-
-    @Override
-    default SecurityServerClientEntity fromDto(SecurityServerClient source) {
-        if (source instanceof Subsystem) {
-            return fromDto((Subsystem) source);
-        }
-        if (source instanceof XRoadMember) {
-            return fromDto((XRoadMember) source);
-        }
-
-        throw new IllegalArgumentException("Cannot map " + source.getClass());
-    }
-
-
-    default SubsystemEntity fromDto(Subsystem source) {
-        XRoadMemberEntity xRoadMemberEntity = fromDto(source.getXroadMember());
-        ClientIdEntity clientId = Mappers.getMapper(ClientIdMapper.class).fromDto(source.getIdentifier());
-        return new SubsystemEntity(xRoadMemberEntity, clientId);
-    }
-
-    XRoadMemberEntity fromDto(XRoadMember source);
 
     Subsystem toDto(SubsystemEntity source);
 

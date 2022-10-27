@@ -62,6 +62,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+
 @SuppressWarnings("checkstyle:TodoComment")
 @Slf4j
 @Service
@@ -252,9 +254,7 @@ public class InitializationServiceImpl implements InitializationService {
                 isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
             }
         } catch (Exception e) {
-            if (!((e instanceof CodedException)
-                    && ErrorCodes.X_KEY_NOT_FOUND.equals(((CodedException) e).getFaultCode())
-            )) {
+            if (!((e instanceof CodedException) && X_KEY_NOT_FOUND.equals(((CodedException) e).getFaultCode()))) {
                 throw new SignerNotReachableException("could not list all tokens", e);
             }
         }

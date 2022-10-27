@@ -29,7 +29,7 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericDtoMapper;
+import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
@@ -45,10 +45,10 @@ import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {RequestProcessingMapper.class, ClientIdMapper.class, SecurityServerIdMapper.class})
-public interface RequestMapper extends GenericDtoMapper<RequestEntity, Request> {
+public interface RequestMapper extends GenericBiDirectionalMapper<RequestEntity, Request> {
 
     @Override
-    default Request toDto(RequestEntity source) {
+    default Request toTarget(RequestEntity source) {
         if (source == null) {
             return null;
         }
@@ -72,7 +72,7 @@ public interface RequestMapper extends GenericDtoMapper<RequestEntity, Request> 
     }
 
     @Override
-    default RequestEntity fromDto(Request source) {
+    default RequestEntity fromTarget(Request source) {
         if (source == null) {
             return null;
         }

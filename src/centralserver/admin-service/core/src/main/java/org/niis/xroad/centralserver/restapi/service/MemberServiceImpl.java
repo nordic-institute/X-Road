@@ -29,20 +29,22 @@ package org.niis.xroad.centralserver.restapi.service;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
+import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientNameEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
+import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
+import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.springframework.stereotype.Service;
@@ -52,9 +54,9 @@ import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_EXISTS;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_NOT_FOUND;
 
@@ -64,28 +66,41 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 public class MemberServiceImpl implements MemberService {
 
     private final XRoadMemberRepository xRoadMemberRepository;
+    private final MemberClassRepository memberClassRepository;
     private final SecurityServerClientNameRepository securityServerClientNameRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
 
+    private final SecurityServerMapper securityServerMapper;
     private final SecurityServerClientMapper securityServerClientMapper;
     private final GlobalGroupMemberMapper globalGroupMemberMapper;
 
     @Override
-    public XRoadMember add(XRoadMember member) {
-        Consumer<XRoadMember> ensureClientNotExists = __ -> {
-            boolean exists = xRoadMemberRepository.findOneBy(member.getIdentifier()).isDefined();
-            if (exists) {
-                throw new EntityExistsException(MEMBER_EXISTS, member.getIdentifier().toShortString());
-            }
-        };
+    public XRoadMember add(MemberCreationRequest request) {
 
-        return Try.success(member)
-                .andThen(ensureClientNotExists)
-                .map(securityServerClientMapper::fromDto)
-                .map(xRoadMemberRepository::save)
-                .peek(this::saveSecurityServerClientName)
-                .map(securityServerClientMapper::toDto)
-                .get();
+        final boolean exists = xRoadMemberRepository.findOneBy(request.getClientId()).isDefined();
+        if (exists) {
+            throw new EntityExistsException(MEMBER_EXISTS, request.getClientId().toShortString());
+        }
+
+        var persistedEntity = saveMember(request);
+        saveSecurityServerClientName(persistedEntity);
+        return securityServerClientMapper.toDto(persistedEntity);
+    }
+
+    private XRoadMemberEntity saveMember(MemberCreationRequest request) {
+        var memberClass = memberClassRepository.findByCode(request.getMemberClass())
+                .getOrElseThrow(() -> new NotFoundException(
+                        MEMBER_CLASS_NOT_FOUND,
+                        "code",
+                        request.getMemberClass()
+                ));
+
+        var entity = new XRoadMemberEntity(
+                request.getMemberName(),
+                request.getClientId(),
+                memberClass);
+
+        return xRoadMemberRepository.save(entity);
     }
 
     @Override
@@ -104,14 +119,17 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public List<GlobalGroupMember> getMemberGlobalGroups(ClientId memberId) {
         return globalGroupMemberRepository.findMemberGroups(memberId)
-                .stream().map(globalGroupMemberMapper::toDto)
+                .stream().map(globalGroupMemberMapper::toTarget)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Set<SecurityServer> getMemberOwnedServers(ClientId memberId) {
-        return findMember(memberId)
-                .map(XRoadMember::getOwnedServers)
+        return xRoadMemberRepository.findMember(memberId)
+                .map(XRoadMemberEntity::getOwnedServers)
+                .map(securityServerEntities -> securityServerEntities.stream()
+                        .map(securityServerMapper::toTarget)
+                        .collect(Collectors.toSet()))
                 .getOrElse(Set.of());
     }
 

@@ -44,24 +44,25 @@ import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
-import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
-import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
-import org.niis.xroad.cs.admin.api.domain.XRoadMember;
+import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
+import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientNameEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
+import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapperImpl;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
+import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -85,6 +86,8 @@ public class SubsystemServiceImplTest implements WithInOrder {
 
     @Mock
     private SecurityServerClientNameRepository securityServerClientNameRepository;
+    @Mock
+    private XRoadMemberRepository xRoadMemberRepository;
 
     @Spy
     private ClientIdMapper clientIdMapper = new ClientIdMapperImpl();
@@ -102,8 +105,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
         private final String memberName = "member name";
         private final MemberId memberId = MemberId.create("TEST", "CLASS", "MEMBER");
         private final SubsystemId subsystemId = SubsystemId.create("TEST", "CLASS", "MEMBER", "SUBSYSTEM");
-        private final XRoadMember xRoadMember = new XRoadMember(memberName, memberId, new MemberClass("CLASS", "DESC"));
-        private final Subsystem subsystem = new Subsystem(xRoadMember, subsystemId);
+        private final XRoadMemberEntity xRoadMember = new XRoadMemberEntity(memberName, memberId, new MemberClassEntity("CLASS", "DESC"));
 
         @Test
         @DisplayName("should create client when not already present")
@@ -111,7 +113,9 @@ public class SubsystemServiceImplTest implements WithInOrder {
             when(subsystemRepository.findOneBy(subsystemId)).thenReturn(Option.none());
             when(subsystemRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            SecurityServerClient result = subsystemService.add(subsystem);
+            when(xRoadMemberRepository.findMember(memberId)).thenReturn(Option.of(xRoadMember));
+
+            SecurityServerClient result = subsystemService.add(new SubsystemCreationRequest(memberId, subsystemId));
 
             assertEquals("MEMBER", result.getIdentifier().getMemberCode());
             ArgumentCaptor<SecurityServerClientNameEntity> captor = ArgumentCaptor.forClass(SecurityServerClientNameEntity.class);
@@ -130,7 +134,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
             SubsystemEntity presentSecurityServerClient = mock(SubsystemEntity.class);
             when(subsystemRepository.findOneBy(subsystemId)).thenReturn(Option.of(presentSecurityServerClient));
 
-            Executable testable = () -> subsystemService.add(subsystem);
+            Executable testable = () -> subsystemService.add(new SubsystemCreationRequest(memberId, subsystemId));
 
             EntityExistsException exception = assertThrows(EntityExistsException.class, testable);
             assertEquals(SUBSYSTEM_EXISTS.getDescription(), exception.getMessage());

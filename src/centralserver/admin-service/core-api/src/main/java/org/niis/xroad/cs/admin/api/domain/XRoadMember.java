@@ -30,29 +30,23 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Entity representing X-Road Member
  */
 @Getter
 @Setter
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class XRoadMember extends SecurityServerClient {
     private MemberClass memberClass;
     private String memberCode;
     private String name;
     private String administrativeContact;
-    private Set<SecurityServer> ownedServers = new HashSet<>(0);
-    private Set<Subsystem> subsystems = new HashSet<>(0);
-
-    public XRoadMember() {
-        //JPA
-    }
 
     public XRoadMember(String name, ClientId identifier, MemberClass memberClass) {
         super(MemberId.ensure(identifier));

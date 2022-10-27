@@ -30,9 +30,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -41,8 +38,6 @@ public class GlobalGroup extends Auditable {
     private String groupCode;
     private String description;
     private Integer memberCount;
-
-    private Set<GlobalGroupMember> globalGroupMembers = new HashSet<>(0);
 
     public GlobalGroup(String groupCode) {
         this.groupCode = groupCode;

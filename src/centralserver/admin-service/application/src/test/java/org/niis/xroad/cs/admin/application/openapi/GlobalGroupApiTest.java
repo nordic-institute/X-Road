@@ -39,6 +39,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -53,6 +54,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
+@Transactional
 class GlobalGroupApiTest extends AbstractApiControllerTestContext {
 
     @Autowired
@@ -184,15 +186,15 @@ class GlobalGroupApiTest extends AbstractApiControllerTestContext {
     void deleteGlobalGroup() {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
         ResponseEntity<GlobalGroupResourceDto> existingGlobalGroup =
-                restTemplate.getForEntity("/api/v1/global-groups/1000002", GlobalGroupResourceDto.class);
+                restTemplate.getForEntity("/api/v1/global-groups/1000003", GlobalGroupResourceDto.class);
         assertThat(existingGlobalGroup.getBody()).isNotNull();
         assertThat(existingGlobalGroup.getStatusCode()).isEqualTo(OK);
-        assertThat(existingGlobalGroup.getBody().getId()).isEqualTo(1000002);
+        assertThat(existingGlobalGroup.getBody().getId()).isEqualTo(1000003);
 
-        restTemplate.delete("/api/v1/global-groups/1000002");
+        restTemplate.delete("/api/v1/global-groups/1000003");
 
         ResponseEntity<GlobalGroupResourceDto> deleteGlobalGroup =
-                restTemplate.getForEntity("/api/v1/global-groups/1000002", GlobalGroupResourceDto.class);
+                restTemplate.getForEntity("/api/v1/global-groups/1000003", GlobalGroupResourceDto.class);
 
         assertThat(deleteGlobalGroup.getBody()).isNotNull();
         assertThat(deleteGlobalGroup.getStatusCode()).isEqualTo(NOT_FOUND);

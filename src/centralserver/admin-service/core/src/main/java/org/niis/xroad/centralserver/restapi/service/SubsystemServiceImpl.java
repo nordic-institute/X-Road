@@ -35,7 +35,7 @@ import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
-import org.niis.xroad.cs.admin.api.service.MemberService;
+import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientNameEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
@@ -43,6 +43,7 @@ import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
+import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -50,7 +51,9 @@ import javax.transaction.Transactional;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_NOT_FOUND;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SUBSYSTEM_EXISTS;
 
 @Service
@@ -59,22 +62,32 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 public class SubsystemServiceImpl implements SubsystemService {
 
     private final SubsystemRepository subsystemRepository;
-    private final MemberService memberService;
+    private final XRoadMemberRepository xRoadMemberRepository;
+
     private final SecurityServerClientNameRepository securityServerClientNameRepository;
     private final SecurityServerClientMapper subsystemConverter;
 
-
     @Override
-    public Subsystem add(Subsystem subsystem) {
-        boolean exists = subsystemRepository.findOneBy(subsystem.getIdentifier()).isDefined();
+    public Subsystem add(SubsystemCreationRequest request) {
+        final boolean exists = subsystemRepository.findOneBy(request.getSubsystemId()).isDefined();
         if (exists) {
-            throw new EntityExistsException(SUBSYSTEM_EXISTS, subsystem.getIdentifier().toShortString());
+            throw new EntityExistsException(SUBSYSTEM_EXISTS, request.getSubsystemId().toShortString());
         }
 
-        var subsystemEntity = subsystemConverter.fromDto(subsystem);
-        SubsystemEntity saved = subsystemRepository.save(subsystemEntity);
-        saveSecurityServerClientName(saved);
-        return subsystemConverter.toDto(saved);
+        var persistedEntity = saveSubsystem(request);
+        saveSecurityServerClientName(persistedEntity);
+        return subsystemConverter.toDto(persistedEntity);
+    }
+
+    private SubsystemEntity saveSubsystem(SubsystemCreationRequest request) {
+        var memberEntity = xRoadMemberRepository.findMember(request.getMemberId())
+                .getOrElseThrow(() -> new NotFoundException(
+                        MEMBER_NOT_FOUND,
+                        "code",
+                        request.getMemberId().getMemberCode()
+                ));
+        var subsystemEntity = new SubsystemEntity(memberEntity, request.getSubsystemId());
+        return subsystemRepository.save(subsystemEntity);
     }
 
     private void saveSecurityServerClientName(SubsystemEntity subsystem) {
@@ -84,9 +97,10 @@ public class SubsystemServiceImpl implements SubsystemService {
 
     @Override
     public Set<Subsystem> findByMemberIdentifier(ClientId id) {
-        return memberService.findMember(id)
+        return xRoadMemberRepository.findMember(id)
                 .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND))
-                .getSubsystems();
+                .getSubsystems().stream().map(subsystemConverter::toDto)
+                .collect(Collectors.toSet());
     }
 
     @Override

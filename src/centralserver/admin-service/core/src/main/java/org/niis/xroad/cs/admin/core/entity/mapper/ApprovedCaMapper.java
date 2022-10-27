@@ -29,11 +29,11 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.ReportingPolicy;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericDtoMapper;
+import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ApprovedCa;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface ApprovedCaMapper extends GenericDtoMapper<ApprovedCaEntity, ApprovedCa> {
+public interface ApprovedCaMapper extends GenericBiDirectionalMapper<ApprovedCaEntity, ApprovedCa> {
 }

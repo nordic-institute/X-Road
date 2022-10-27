@@ -75,7 +75,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     @Override
     public Optional<Request> getRequest(int id) {
         return requests.findById(id)
-                .map(requestMapper::toDto);
+                .map(requestMapper::toTarget);
     }
 
     /**
@@ -139,7 +139,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         var request = requests.findById(requestId)
                 .orElseThrow(() -> new NotFoundException(ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND));
 
-        return (T) requestMapper.toDto(request);
+        return (T) requestMapper.toTarget(request);
     }
 
     /*

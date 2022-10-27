@@ -101,7 +101,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
                     () -> new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_SERVER_NOT_FOUND,
                             ownerId.toString()));
 
-            servers.findByOwnerAndServerCode(owner, serverId.getServerCode()).getOrElseThrow(
+            servers.findByOwnerIdAndServerCode(owner.getId(), serverId.getServerCode()).getOrElseThrow(
                     () -> new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_SERVER_NOT_FOUND,
                             serverId.toString()));
 
@@ -167,7 +167,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
                 // create new subsystem if necessary
                 client = clients
                         .findOneBy(request.getClientId())
-                        .getOrElse(() -> clients.save(new SubsystemEntity(clientMember, clientIdMapper.fromDto(request.getClientId()))));
+                        .getOrElse(() -> clients.save(new SubsystemEntity(clientMember, clientIdMapper.fromTarget(request.getClientId()))));
                 break;
             default:
                 throw new IllegalArgumentException("Invalid client type");

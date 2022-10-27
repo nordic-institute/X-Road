@@ -67,13 +67,13 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     public Page<SecurityServer> findSecurityServers(String q, Pageable pageable) {
         return securityServerRepository
                 .findAllByQuery(q, stableSortHelper.addSecondaryIdSort(pageable))
-                .map(securityServerMapper::toDto);
+                .map(securityServerMapper::toTarget);
     }
 
     @Override
     public Option<SecurityServer> find(SecurityServerId id) {
         return securityServerRepository.findBy(id)
-                .map(securityServerMapper::toDto);
+                .map(securityServerMapper::toTarget);
     }
 
     @Override
@@ -93,7 +93,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     @Override
     public Option<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode) {
         //TODO we should map back to entities just for lookups.
-        return securityServerRepository.findByOwnerAndServerCode(securityServerClientMapper.fromDto(owner), serverCode)
-                .map(securityServerMapper::toDto);
+        return securityServerRepository.findByOwnerIdAndServerCode(owner.getId(), serverCode)
+                .map(securityServerMapper::toTarget);
     }
 }

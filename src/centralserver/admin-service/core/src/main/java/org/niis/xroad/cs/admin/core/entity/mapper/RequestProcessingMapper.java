@@ -29,7 +29,7 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericDtoMapper;
+import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequestProcessing;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequestProcessing;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequestProcessing;
@@ -43,10 +43,10 @@ import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {ClientIdMapper.class, SecurityServerIdMapper.class})
-public interface RequestProcessingMapper extends GenericDtoMapper<RequestProcessingEntity, RequestProcessing> {
+public interface RequestProcessingMapper extends GenericBiDirectionalMapper<RequestProcessingEntity, RequestProcessing> {
 
     @Override
-    default RequestProcessing toDto(RequestProcessingEntity source) {
+    default RequestProcessing toTarget(RequestProcessingEntity source) {
         if (source == null) {
             return null;
         }
@@ -64,7 +64,7 @@ public interface RequestProcessingMapper extends GenericDtoMapper<RequestProcess
     }
 
     @Override
-    default RequestProcessingEntity fromDto(RequestProcessing source) {
+    default RequestProcessingEntity fromTarget(RequestProcessing source) {
         if (source == null) {
             return null;
         }

@@ -32,13 +32,14 @@ import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
+import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 
 import java.util.List;
 import java.util.Set;
 
 public interface MemberService {
 
-    XRoadMember add(XRoadMember member);
+    XRoadMember add(MemberCreationRequest request);
 
     void delete(ClientId clientId);
 

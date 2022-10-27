@@ -36,7 +36,6 @@ import lombok.Setter;
 public class SecurityServerSecurityCategory {
     private int id;
     private SecurityCategory securityCategory;
-    private SecurityServer securityServer;
 }
 
 

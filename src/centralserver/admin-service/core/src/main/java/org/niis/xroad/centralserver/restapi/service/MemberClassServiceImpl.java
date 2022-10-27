@@ -68,13 +68,13 @@ public class MemberClassServiceImpl implements MemberClassService {
     public Seq<MemberClass> findAll() {
         Sort sort = Sort.by(Sort.Order.asc("code").ignoreCase());
         return memberClassRepository.findAllSortedBy(sort)
-                .map(memberClassMapper::toDto);
+                .map(memberClassMapper::toTarget);
     }
 
     @Override
     public Option<MemberClass> findByCode(String code) {
         return memberClassRepository.findByCode(code)
-                .map(memberClassMapper::toDto);
+                .map(memberClassMapper::toTarget);
     }
 
     @Override
@@ -87,11 +87,11 @@ public class MemberClassServiceImpl implements MemberClassService {
             }
         };
 
-        var memberClassEntity = memberClassMapper.fromDto(memberClass);
+        var memberClassEntity = memberClassMapper.fromTarget(memberClass);
         return Try.success(memberClassEntity)
                 .andThen(ensureNotExists)
                 .map(memberClassRepository::save)
-                .map(memberClassMapper::toDto)
+                .map(memberClassMapper::toTarget)
                 .get();
     }
 
@@ -99,13 +99,13 @@ public class MemberClassServiceImpl implements MemberClassService {
     public MemberClass update(final MemberClass memberClass) {
         return Try.success(memberClass)
                 .filter(mc -> mc.getId() > 0)
-                .map(memberClassMapper::fromDto)
+                .map(memberClassMapper::fromTarget)
                 .orElse(() -> memberClassRepository.findByCode(memberClass.getCode()).toTry())
                 .filter(Objects::nonNull, () ->
                         new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberClass.getCode()))
                 .andThen(persistedMemberClass -> persistedMemberClass.setDescription(memberClass.getDescription()))
                 .map(memberClassRepository::save)
-                .map(memberClassMapper::toDto)
+                .map(memberClassMapper::toTarget)
                 .get();
     }
 

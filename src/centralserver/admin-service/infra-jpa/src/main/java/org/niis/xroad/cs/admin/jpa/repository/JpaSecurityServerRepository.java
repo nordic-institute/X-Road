@@ -64,7 +64,7 @@ public interface JpaSecurityServerRepository extends
         return findAll(multifieldSearch(query), pageable);
     }
 
-    Option<SecurityServerEntity> findByOwnerAndServerCode(XRoadMemberEntity owner, String serverCode);
+    Option<SecurityServerEntity> findByOwnerIdAndServerCode(Integer ownerId, String serverCode);
 
     default Option<SecurityServerEntity> findBy(SecurityServerId serverId, ClientId clientId) {
         return Option.ofOptional(

@@ -62,7 +62,6 @@ class GlobalGroupConverterTest {
         assertThat(result.getId()).isZero();
         assertThat(result.getGroupCode()).isEqualTo(globalGroupCodeAndDescription.getCode());
         assertThat(result.getDescription()).isEqualTo(globalGroupCodeAndDescription.getDescription());
-        assertThat(result.getGlobalGroupMembers().size()).isZero();
         assertThat(result.getCreatedAt()).isNotNull();
         assertThat(result.getUpdatedAt()).isNotNull();
     }

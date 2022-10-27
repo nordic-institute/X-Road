@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
+import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
@@ -33,6 +34,7 @@ import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
+import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
@@ -68,49 +70,58 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     private final GlobalGroupMapper globalGroupMapper;
     private final GlobalGroupMemberMapper globalGroupMemberMapper;
 
+    @Override
     public List<GlobalGroup> findGlobalGroups() {
         return globalGroupRepository.findAll().stream()
-                .map(globalGroupMapper::toDto)
+                .map(globalGroupMapper::toTarget)
                 .collect(Collectors.toList());
     }
 
+    @Override
     public GlobalGroup addGlobalGroup(GlobalGroup globalGroup) {
         assertGlobalGroupExists(globalGroup.getGroupCode());
 
-        var globalGroupEntity = globalGroupMapper.fromDto(globalGroup);
+        var globalGroupEntity = globalGroupMapper.fromTarget(globalGroup);
+
         globalGroupEntity = globalGroupRepository.save(globalGroupEntity);
-        addAuditData(globalGroup);
+        addAuditData(globalGroupEntity);
 
-        return globalGroupMapper.toDto(globalGroupEntity);
+        return globalGroupMapper.toTarget(globalGroupEntity);
     }
 
+    @Override
     public GlobalGroup getGlobalGroup(Integer groupId) {
-        return findGlobalGroupOrThrowException(groupId);
+        return Try.success(findGlobalGroupOrThrowException(groupId))
+                .map(globalGroupMapper::toTarget)
+                .get();
     }
 
+    @Override
     public void deleteGlobalGroup(Integer groupId) {
         handleInternalDelete(findGlobalGroupOrThrowException(groupId));
     }
 
+    @Override
     public GlobalGroup updateGlobalGroupDescription(GlobalGroupUpdateDto updateDto) {
-        GlobalGroup globalGroup = findGlobalGroupOrThrowException(updateDto.getGroupId());
+        GlobalGroupEntity globalGroup = findGlobalGroupOrThrowException(updateDto.getGroupId());
         return handleInternalUpdate(globalGroup, updateDto);
     }
 
+    @Override
     public List<GlobalGroupMember> getGroupMembersFilterModel(Integer groupId) {
         return globalGroupMemberRepository.findByGlobalGroupId(groupId).stream()
-                .map(globalGroupMemberMapper::toDto)
+                .map(globalGroupMemberMapper::toTarget)
                 .collect(Collectors.toList());
     }
 
+    @Override
     public Page<GlobalGroupMember> findGroupMembers(GlobalGroupService.Criteria criteria, Pageable pageable) {
         return globalGroupMemberRepository.findAll(criteria, stableSortHelper.addSecondaryIdSort(pageable))
-                .map(globalGroupMemberMapper::toDto);
+                .map(globalGroupMemberMapper::toTarget);
     }
 
-    private GlobalGroup findGlobalGroupOrThrowException(Integer groupId) {
+    private GlobalGroupEntity findGlobalGroupOrThrowException(Integer groupId) {
         return globalGroupRepository.findById(groupId)
-                .map(globalGroupMapper::toDto)
                 .orElseThrow(() -> new NotFoundException(GLOBAL_GROUP_NOT_FOUND));
     }
 
@@ -121,7 +132,7 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
                 });
     }
 
-    private void handleInternalDelete(GlobalGroup entity) {
+    private void handleInternalDelete(GlobalGroupEntity entity) {
         List<SystemParameterEntity> ownersGroupCode = systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP);
         if (isOwnersGroup(ownersGroupCode, entity.getGroupCode())) {
             throw new ValidationFailureException(OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED);
@@ -130,13 +141,12 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
         globalGroupRepository.deleteById(entity.getId());
     }
 
-    private GlobalGroup handleInternalUpdate(GlobalGroup globalGroup, GlobalGroupUpdateDto updateDto) {
+    private GlobalGroup handleInternalUpdate(GlobalGroupEntity globalGroup, GlobalGroupUpdateDto updateDto) {
         globalGroup.setDescription(updateDto.getDescription());
-        addAuditData(globalGroup);
 
-        var globalGroupEntity = globalGroupMapper.fromDto(globalGroup);
-        globalGroupEntity = globalGroupRepository.save(globalGroupEntity);
-        return globalGroupMapper.toDto(globalGroupEntity);
+        addAuditData(globalGroup);
+        var savedEntity = globalGroupRepository.save(globalGroup);
+        return globalGroupMapper.toTarget(savedEntity);
     }
 
     private boolean isOwnersGroup(List<SystemParameterEntity> ownersGroupCode, String groupCode) {
@@ -145,7 +155,7 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
                 .anyMatch(code -> code.equalsIgnoreCase(groupCode));
     }
 
-    private void addAuditData(GlobalGroup entity) {
+    private void addAuditData(GlobalGroupEntity entity) {
         auditDataHelper.put(RestApiAuditProperty.CODE, entity.getGroupCode());
         auditDataHelper.put(RestApiAuditProperty.DESCRIPTION, entity.getDescription());
     }

@@ -27,6 +27,8 @@
 package org.niis.xroad.cs.admin.core.entity;
 // Generated Feb 16, 2021 11:14:33 AM by Hibernate Tools 5.4.20.Final
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -93,7 +95,7 @@ public class XRoadMemberEntity extends SecurityServerClientEntity {
     @Getter
     private Set<SubsystemEntity> subsystems = new HashSet<>(0);
 
-    public XRoadMemberEntity(String name, ClientIdEntity identifier, MemberClassEntity memberClass) {
+    public XRoadMemberEntity(String name, ClientId identifier, MemberClassEntity memberClass) {
         super(MemberIdEntity.ensure(identifier));
         boolean isMemberClassInconsistent = !Objects.equals(identifier.getMemberClass(), memberClass.getCode());
         if (isMemberClassInconsistent) {

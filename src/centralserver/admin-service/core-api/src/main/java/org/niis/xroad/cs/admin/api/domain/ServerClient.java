@@ -28,26 +28,18 @@ package org.niis.xroad.cs.admin.api.domain;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @EqualsAndHashCode
 public class ServerClient {
-
     private int id;
-    private SecurityServerClient securityServerClient;
-    private SecurityServer securityServer;
-
-    public ServerClient() {
-        //JPA
-    }
-
-    ServerClient(SecurityServer server, SecurityServerClient client) {
-        securityServer = server;
-        securityServerClient = client;
-    }
-
+    private String serverCode;
+    private String serverOwner;
+    private SecurityServerId serverId;
 }
 
 

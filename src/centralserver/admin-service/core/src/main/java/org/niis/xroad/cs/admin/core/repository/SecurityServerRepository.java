@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
-import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -40,7 +39,7 @@ public interface SecurityServerRepository extends
 
     Page<SecurityServerEntity> findAllByQuery(String query, Pageable pageable);
 
-    Option<SecurityServerEntity> findByOwnerAndServerCode(XRoadMemberEntity owner, String serverCode);
+    Option<SecurityServerEntity> findByOwnerIdAndServerCode(Integer ownerId, String serverCode);
 
     Option<SecurityServerEntity> findBy(SecurityServerId serverId, ClientId clientId);
 

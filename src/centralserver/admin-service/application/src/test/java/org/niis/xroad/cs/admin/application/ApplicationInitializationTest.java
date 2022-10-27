@@ -25,32 +25,8 @@
  */
 package org.niis.xroad.cs.admin.application;
 
-import liquibase.database.core.HsqlDatabase;
-import liquibase.repackaged.org.apache.commons.lang3.reflect.FieldUtils;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.restapi.config.BootstrapConfiguration;
-import org.niis.xroad.cs.admin.api.facade.GlobalConfFacade;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.application.openapi.AbstractApiControllerTestContext;
-import org.niis.xroad.cs.admin.application.openapi.AbstractFacadeMockingTestContext;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.test.context.ActiveProfiles;
-
-import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * application test

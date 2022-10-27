@@ -32,9 +32,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * Read-only entity representing SecurityServerClient from view flattened_security_server_client
  * type
@@ -50,7 +47,6 @@ public class FlattenedSecurityServerClientView extends Auditable {
     private String subsystemCode;
     private String memberName;
     private XRoadObjectType type;
-    private Set<FlattenedServerClient> flattenedServerClients = new HashSet<>();
 }
 
 

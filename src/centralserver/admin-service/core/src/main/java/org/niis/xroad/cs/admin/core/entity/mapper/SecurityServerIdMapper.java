@@ -28,10 +28,10 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericDtoMapper;
+import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface SecurityServerIdMapper extends GenericDtoMapper<SecurityServerIdEntity, SecurityServerId> {
+public interface SecurityServerIdMapper extends GenericBiDirectionalMapper<SecurityServerIdEntity, SecurityServerId> {
 }

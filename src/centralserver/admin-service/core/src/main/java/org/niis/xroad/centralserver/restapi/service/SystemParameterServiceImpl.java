@@ -104,9 +104,9 @@ public class SystemParameterServiceImpl implements SystemParameterService {
                 lookupKey, updateValue, systemParameterToStore.getHaNodeName()
         );
 
-        var systemParameterEntity = systemParameterMapper.fromDto(systemParameterToStore);
+        var systemParameterEntity = systemParameterMapper.fromTarget(systemParameterToStore);
         systemParameterEntity = systemParameterRepository.save(systemParameterEntity);
-        return systemParameterMapper.toDto(systemParameterEntity);
+        return systemParameterMapper.toTarget(systemParameterEntity);
     }
 
     private Optional<SystemParameter> getSystemParameterOptional(String lookupKey) {
@@ -119,7 +119,7 @@ public class SystemParameterServiceImpl implements SystemParameterService {
             systemParameter = systemParameterRepository.findByKey(lookupKey)
                     .stream().findFirst();
         }
-        return systemParameter.map(systemParameterMapper::toDto);
+        return systemParameter.map(systemParameterMapper::toTarget);
     }
 
     private boolean isNodeLocalParameter(String key) {

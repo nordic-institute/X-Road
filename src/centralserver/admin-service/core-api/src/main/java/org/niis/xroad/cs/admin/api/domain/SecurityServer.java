@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.api.domain;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 
@@ -35,6 +36,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class SecurityServer extends Auditable {
     private int id;
@@ -51,22 +53,9 @@ public class SecurityServer extends Auditable {
 
     private Set<SecurityServerSecurityCategory> securityServerSecurityCategories = new HashSet<>(0);
 
-    private Set<ServerClient> serverClients = new HashSet<>(0);
-
-    public SecurityServer() {
-        //JPA
-    }
-
     public SecurityServer(XRoadMember owner, String serverCode) {
         this.owner = owner;
         this.serverCode = serverCode;
-    }
-
-    public void addClient(SecurityServerClient client) {
-        var serverClient = new ServerClient(this, client);
-        serverClients.add(serverClient);
-        //todo: is two-way mapping necessary.
-        client.getServerClients().add(serverClient);
     }
 
     public SecurityServerId getServerId() {

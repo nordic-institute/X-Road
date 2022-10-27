@@ -24,15 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.entity.mapper;
+package org.niis.xroad.centralserver.restapi.dto.converter;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
-import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
+import ee.ria.xroad.common.util.NoCoverage;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        uses = {ClientIdMapper.class})
-public interface GlobalGroupMapper extends GenericBiDirectionalMapper<GlobalGroupEntity, GlobalGroup> {
+public interface GenericBiDirectionalMapper<SOURCE, TARGET> extends GenericUniDirectionalMapper<SOURCE, TARGET> {
+    @NoCoverage
+    SOURCE fromTarget(TARGET source);
 }

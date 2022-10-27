@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.application.openapi;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConfDto;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatusDto;

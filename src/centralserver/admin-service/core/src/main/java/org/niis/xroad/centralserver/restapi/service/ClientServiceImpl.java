@@ -55,7 +55,7 @@ public class ClientServiceImpl implements ClientService {
         pageable = stableSortHelper.addSecondaryIdSort(pageable);
 
         return flattenedClientRepository.findAll(params, pageable)
-                .map(flattenedSecurityServerClientViewMapper::toDto);
+                .map(flattenedSecurityServerClientViewMapper::toTarget);
     }
 
 }

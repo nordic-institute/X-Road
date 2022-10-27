@@ -30,13 +30,14 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
+import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
 
 import java.util.Optional;
 import java.util.Set;
 
 public interface SubsystemService {
 
-    Subsystem add(Subsystem subsystem);
+    Subsystem add(SubsystemCreationRequest request);
 
     Set<Subsystem> findByMemberIdentifier(ClientId id);
 

@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.entity;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -57,7 +59,7 @@ public class SubsystemEntity extends SecurityServerClientEntity {
     @Getter
     private String subsystemCode;
 
-    public SubsystemEntity(XRoadMemberEntity member, ClientIdEntity identifier) {
+    public SubsystemEntity(XRoadMemberEntity member, ClientId identifier) {
         super(SubsystemIdEntity.create(identifier));
         if (!identifier.subsystemContainsMember(member.getIdentifier())) {
             throw new IllegalArgumentException("Subsystem identifier does not match member");

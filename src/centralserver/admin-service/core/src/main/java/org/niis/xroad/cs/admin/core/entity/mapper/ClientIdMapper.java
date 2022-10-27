@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericDtoMapper;
+import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
@@ -37,10 +37,10 @@ import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ClientIdMapper extends GenericDtoMapper<ClientIdEntity, ClientId> {
+public interface ClientIdMapper extends GenericBiDirectionalMapper<ClientIdEntity, ClientId> {
 
     @Override
-    default ClientId toDto(ClientIdEntity source) {
+    default ClientId toTarget(ClientIdEntity source) {
         if (source == null) {
             return null;
         }
@@ -56,7 +56,7 @@ public interface ClientIdMapper extends GenericDtoMapper<ClientIdEntity, ClientI
 
 
     @Override
-    default ClientIdEntity fromDto(ClientId source) {
+    default ClientIdEntity fromTarget(ClientId source) {
         if (source == null) {
             return null;
         }

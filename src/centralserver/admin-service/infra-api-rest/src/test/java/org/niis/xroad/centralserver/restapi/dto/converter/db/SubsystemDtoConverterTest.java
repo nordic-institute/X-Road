@@ -42,11 +42,9 @@ import org.niis.xroad.centralserver.restapi.converter.db.ClientIdDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.db.SubsystemDtoConverter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.dto.converter.AbstractDtoConverterTest;
-import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
-import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 
@@ -69,12 +67,6 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
 
     @Mock
     private ServerClient serverClient;
-
-    @Mock
-    private SecurityServer securityServer;
-
-    @Mock
-    private XRoadMember xRoadMember;
 
     @Mock
     private SecurityServerService securityServerService;
@@ -102,10 +94,10 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
             doReturn(clientId).when(subsystem).getIdentifier();
             doReturn(clientIdDto).when(clientIdDtoConverter).toDto(clientId);
             doReturn(serverClients).when(subsystem).getServerClients();
-            doReturn(securityServer).when(serverClient).getSecurityServer();
-            doReturn(SERVER_CODE).when(securityServer).getServerCode();
-            doReturn(xRoadMember).when(securityServer).getOwner();
-            doReturn(MEMBER_NAME).when(xRoadMember).getName();
+
+            when(serverClient.getServerOwner()).thenReturn(MEMBER_NAME);
+            when(serverClient.getServerCode()).thenReturn(SERVER_CODE);
+
             doReturn(ManagementRequestStatus.APPROVED).when(securityServerService)
                     .findSecurityServerRegistrationStatus(any());
 

@@ -187,7 +187,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
 
         //create new security server if necessary
         final String serverCode = serverId.getServerCode();
-        SecurityServerEntity server = servers.findByOwnerAndServerCode(owner, serverCode)
+        SecurityServerEntity server = servers.findByOwnerIdAndServerCode(owner.getId(), serverCode)
                 .getOrElse(() -> new SecurityServerEntity(owner, serverCode));
 
         //register certificate

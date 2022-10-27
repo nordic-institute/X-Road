@@ -45,13 +45,13 @@ import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsExcept
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
-import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
-import org.niis.xroad.cs.admin.api.domain.XRoadMember;
+import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientNameEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
@@ -61,7 +61,9 @@ import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapperImpl;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapperImpl;
+import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
+import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.springframework.util.CollectionUtils;
@@ -85,6 +87,7 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceImplTest implements WithInOrder {
+    private static final String MEMBER_CLASS = "CLASS";
 
     @Mock
     private XRoadMemberRepository xRoadMemberRepository;
@@ -92,6 +95,10 @@ class MemberServiceImplTest implements WithInOrder {
     private SecurityServerClientNameRepository securityServerClientNameRepository;
     @Mock
     private GlobalGroupMemberRepository globalGroupMemberRepository;
+    @Mock
+    private MemberClassRepository memberClassRepository;
+    @Mock
+    private SecurityServerMapper securityServerMapper;
 
     @Spy
     private ClientIdMapper clientIdMapper = new ClientIdMapperImpl();
@@ -109,8 +116,7 @@ class MemberServiceImplTest implements WithInOrder {
     @DisplayName("add(Client clientDto)")
     class AddMethod implements WithInOrder {
         private final String memberName = "member name";
-        private final MemberId memberId = MemberId.create("TEST", "CLASS", "MEMBER");
-        private final XRoadMember xRoadMember = new XRoadMember(memberName, memberId, new MemberClass("CLASS", "DESC"));
+        private final MemberId memberId = MemberId.create("TEST", MEMBER_CLASS, "MEMBER");
 
         @Test
         @DisplayName("should create client when not already present")
@@ -118,7 +124,10 @@ class MemberServiceImplTest implements WithInOrder {
             when(xRoadMemberRepository.findOneBy(memberId)).thenReturn(Option.none());
             when(xRoadMemberRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            SecurityServerClient result = memberService.add(xRoadMember);
+            when(memberClassRepository.findByCode(MEMBER_CLASS))
+                    .thenReturn(Option.of(new MemberClassEntity(MEMBER_CLASS, "")));
+
+            SecurityServerClient result = memberService.add(new MemberCreationRequest(memberName, MEMBER_CLASS, memberId));
 
             assertEquals("MEMBER", result.getIdentifier().getMemberCode());
             ArgumentCaptor<SecurityServerClientNameEntity> captor = ArgumentCaptor.forClass(SecurityServerClientNameEntity.class);
@@ -141,7 +150,7 @@ class MemberServiceImplTest implements WithInOrder {
 
             String clientIdentifier = memberId.toShortString();
 
-            Executable testable = () -> memberService.add(xRoadMember);
+            Executable testable = () -> memberService.add(new MemberCreationRequest(memberName, MEMBER_CLASS, memberId));
 
             EntityExistsException exception = assertThrows(EntityExistsException.class, testable);
             assertEquals(MEMBER_EXISTS.getDescription(), exception.getMessage());
@@ -158,7 +167,7 @@ class MemberServiceImplTest implements WithInOrder {
     @DisplayName("findMember(ClientId clientId)")
     class FindMember implements WithInOrder {
 
-        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+        private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
 
         @Mock
         private XRoadMemberEntity xRoadMember;
@@ -177,7 +186,7 @@ class MemberServiceImplTest implements WithInOrder {
     @Nested
     @DisplayName("deleteMember(ClientId clientId)")
     class DeleteMember implements WithInOrder {
-        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+        private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
 
         @Mock
         private XRoadMemberEntity xRoadMember;
@@ -214,7 +223,7 @@ class MemberServiceImplTest implements WithInOrder {
     @DisplayName("updateMemberName(clientId, newName)")
     class UpdateName implements WithInOrder {
 
-        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+        private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
 
         @Mock
         private XRoadMemberEntity xRoadMember;
@@ -239,7 +248,7 @@ class MemberServiceImplTest implements WithInOrder {
     @DisplayName("findMemberGlobalGroups(ClientId memberId)")
     class FindMemberGlobalGroups implements WithInOrder {
 
-        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+        private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
 
         @Test
         void shouldReturnMemberGlobalGroups() {
@@ -256,20 +265,23 @@ class MemberServiceImplTest implements WithInOrder {
     @Nested
     @DisplayName("getMemberOwnedServers(ClientId memberId)")
     class GetMemberOwnedServers implements WithInOrder {
-        private final ClientId clientId = ClientId.Conf.create("TEST", "CLASS", "MEMBER");
+        private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
 
         @Mock
         private XRoadMemberEntity xRoadMember;
 
+
         @Test
         void shouldReturnMemberOwnedServers() {
-            var securityServersMock = Set.of(
-                    new SecurityServerEntity(mock(XRoadMemberEntity.class), "SS0"),
-                    new SecurityServerEntity(mock(XRoadMemberEntity.class), "SS1"));
+            var ss0 = new SecurityServerEntity(mock(XRoadMemberEntity.class), "SS0");
+            var ss1 = new SecurityServerEntity(mock(XRoadMemberEntity.class), "SS1");
+            var securityServersMock = Set.of(ss0, ss1);
+
+            when(securityServerMapper.toTarget(ss0)).thenReturn(new SecurityServer(null, "SS0"));
+            when(securityServerMapper.toTarget(ss1)).thenReturn(new SecurityServer(null, "SS1"));
 
             doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
             doReturn(securityServersMock).when(xRoadMember).getOwnedServers();
-
 
             final Set<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
 

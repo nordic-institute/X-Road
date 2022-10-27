@@ -9,7 +9,7 @@ dependencies {
     implementation project(':centralserver:admin-service:core')
     implementation project(':common-util')
 
-    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    api('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation("org.hibernate.validator:hibernate-validator")
 
     implementation "org.mapstruct:mapstruct:${mapStructVersion}"
