@@ -10,17 +10,17 @@ VALUES (1000001, 'testuser', null,     now(),        now());
 ALTER SEQUENCE ui_users_id_seq RESTART WITH 1001000;
 
 -- noinspection SqlResolve
--- INSERT INTO apikey
---        (id,   encodedkey)
--- VALUES (1,    'ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1');
--- ALTER SEQUENCE apikey_id_seq RESTART WITH 1001000;
---
--- INSERT INTO apikey_roles
---        (id,    apikey_id, role)
--- VALUES (1000001, 1,       'XROAD_SYSTEM_ADMINISTRATOR'),
---        (1000002, 1,       'XROAD_SECURITY_OFFICER'),
---        (1000003, 1,       'XROAD_REGISTRATION_OFFICER');
--- ALTER SEQUENCE apikey_roles_id_seq RESTART WITH 1001000;
+INSERT INTO apikey
+       (id,   encodedkey)
+VALUES (1,    'ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1');
+ALTER SEQUENCE apikey_id_seq RESTART WITH 1001000;
+
+INSERT INTO apikey_roles
+       (id,    apikey_id, role)
+VALUES (1000001, 1,       'XROAD_SYSTEM_ADMINISTRATOR'),
+       (1000002, 1,       'XROAD_SECURITY_OFFICER'),
+       (1000003, 1,       'XROAD_REGISTRATION_OFFICER');
+ALTER SEQUENCE apikey_roles_id_seq RESTART WITH 1001000;
 
 
 INSERT INTO member_classes

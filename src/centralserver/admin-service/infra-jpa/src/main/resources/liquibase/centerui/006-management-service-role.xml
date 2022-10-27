@@ -4,7 +4,7 @@
     <changeSet author="niis" id="centerui/006-management-service-role">
         <sql splitStatements="false" dbms="postgresql">
             <![CDATA[
-            ALTER TABLE APIKEY_ROLES DROP CONSTRAINT VALID_ROLE;
+            ALTER TABLE APIKEY_ROLES DROP CONSTRAINT IF EXISTS VALID_ROLE;
             ALTER TABLE APIKEY_ROLES ADD CONSTRAINT VALID_ROLE
                 CHECK (ROLE IN (
                     'XROAD_SECURITY_OFFICER',

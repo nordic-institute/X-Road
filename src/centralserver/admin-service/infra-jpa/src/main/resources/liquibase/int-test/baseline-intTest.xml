@@ -4,13 +4,12 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
                    logicalFilePath="centerui/003-apikeys.xml">
 
-    <changeSet id="apikey-test" author="ricardas" context="int-test">
+    <changeSet id="apikey-testdata" author="ricardas" context="int-test">
         <sql>
             -- noinspection SqlResolve
             INSERT INTO apikey
                 (id, encodedkey)
             VALUES (1, 'ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1');
-            ALTER SEQUENCE apikey_id_seq RESTART WITH 1001000;
 
             INSERT INTO apikey_roles
                 (id, apikey_id, role)
