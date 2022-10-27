@@ -28,6 +28,7 @@ package org.niis.xroad.centralserver.restapi.dto.converter;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
+import org.niis.xroad.centralserver.restapi.dto.OcspResponderAddRequest;
 import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
@@ -41,7 +42,7 @@ public class OcspResponderConverter {
 
     private final ApprovedCaRepository approvedCaRepository;
 
-    public OcspInfo toEntity(OcspResponder ocspResponder) {
+    public OcspInfo toEntity(OcspResponderAddRequest ocspResponder) {
         ApprovedCa ca = approvedCaRepository.findById(ocspResponder.getCaId())
                 .orElseThrow(() -> new NotFoundException(ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND));
         var ocspInfo = new OcspInfo(ca.getCaInfo(), ocspResponder.getUrl(), ocspResponder.getCertificate());

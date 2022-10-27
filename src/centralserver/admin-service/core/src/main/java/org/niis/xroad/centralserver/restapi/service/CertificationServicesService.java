@@ -25,18 +25,16 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
 import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
 import org.niis.xroad.centralserver.restapi.dto.CertificationService;
 import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
 import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
+import org.niis.xroad.centralserver.restapi.dto.OcspResponderAddRequest;
 import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
@@ -57,6 +55,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTICATION_ONLY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CA_ID;
@@ -69,7 +68,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
-@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -130,7 +128,7 @@ public class CertificationServicesService {
 
         auditDataHelper.put(CA_ID, certificationServiceId);
         auditDataHelper.put(INTERMEDIATE_CA_ID, caInfo.getId());
-        auditDataHelper.put(INTERMEDIATE_CA_CERT_HASH, calculateCertHash(cert));
+        auditDataHelper.put(INTERMEDIATE_CA_CERT_HASH, calculateCertHexHashDelimited(cert));
         auditDataHelper.put(INTERMEDIATE_CA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
 
         return caInfoConverter.toCertificateAuthority(caInfo);
@@ -145,7 +143,7 @@ public class CertificationServicesService {
         return approvedCaConverter.toListItems(approvedCaRepository.findAll());
     }
 
-    public OcspResponder addOcspResponder(OcspResponder ocspResponder) {
+    public OcspResponder addOcspResponder(OcspResponderAddRequest ocspResponder) {
         OcspInfo ocspInfo = ocspResponderConverter.toEntity(ocspResponder);
         OcspInfo persistedOcspInfo = ocspInfoRepository.save(ocspInfo);
         addAuditData(persistedOcspInfo);
@@ -169,12 +167,8 @@ public class CertificationServicesService {
         auditDataHelper.put(CA_ID, ocspInfo.getCaInfo().getId());
         auditDataHelper.put(OCSP_ID, ocspInfo.getId());
         auditDataHelper.put(OCSP_URL, ocspInfo.getUrl());
-        auditDataHelper.put(OCSP_CERT_HASH, calculateCertHash(ocspInfo.getCert()));
+        auditDataHelper.put(OCSP_CERT_HASH, calculateCertHexHashDelimited(ocspInfo.getCert()));
         auditDataHelper.put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
-    @SneakyThrows
-    private String calculateCertHash(byte[] cert) {
-        return CryptoUtils.calculateCertHexHash(cert).toUpperCase().replaceAll("(?<=..)(..)", ":$1");
-    }
 }

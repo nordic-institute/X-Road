@@ -31,8 +31,13 @@ import org.niis.xroad.centralserver.openapi.OcspRespondersApi;
 import org.niis.xroad.centralserver.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.converter.CertificateDetailsDtoConverter;
+import org.niis.xroad.centralserver.restapi.converter.OcspResponderDtoConverter;
+import org.niis.xroad.centralserver.restapi.dto.OcspResponderModifyRequest;
 import org.niis.xroad.centralserver.restapi.service.OcspRespondersService;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.util.MultipartFileUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -49,6 +54,7 @@ public class OcspRespondersController implements OcspRespondersApi {
 
     private final OcspRespondersService ocspRespondersService;
     private final CertificateDetailsDtoConverter certificateDetailsDtoConverter;
+    private final OcspResponderDtoConverter ocspResponderDtoConverter;
 
 
     @Override
@@ -62,8 +68,16 @@ public class OcspRespondersController implements OcspRespondersApi {
     }
 
     @Override
-    public ResponseEntity<OcspResponderDto> updateOcspResponder(String id, String url, MultipartFile certificate) {
-        throw new NotImplementedException("updateOcspResponder not implemented yet");
+    @PreAuthorize("hasAuthority('EDIT_APPROVED_CA')")
+    @AuditEventMethod(event = RestApiAuditEvent.EDIT_OCSP_RESPONDER)
+    public ResponseEntity<OcspResponderDto> updateOcspResponder(Integer id, String url, MultipartFile certificate) {
+        final OcspResponderModifyRequest updateRequest = new OcspResponderModifyRequest()
+                .setId(id)
+                .setUrl(url);
+        if (certificate != null) {
+            updateRequest.setCertificate(MultipartFileUtils.readBytes(certificate));
+        }
+        return ok(ocspResponderDtoConverter.toDto(ocspRespondersService.update(updateRequest)));
     }
 
     @Override
