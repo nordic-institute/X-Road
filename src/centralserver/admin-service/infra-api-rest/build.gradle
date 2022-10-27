@@ -11,8 +11,7 @@ configurations {
 dependencies {
     annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
 
-    //TODO Should depend on core-api, not whole core.
-    implementation project(':centralserver:admin-service:core')
+    implementation project(':centralserver:admin-service:core-api')
 
     implementation project(':common-util')
     implementation project(':common-verifier')

@@ -27,7 +27,7 @@ package org.niis.xroad.centralserver.restapi.converter;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.model.GroupMembersFilterModelDto;
-import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

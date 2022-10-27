@@ -25,7 +25,7 @@ test-automation:
         enabled: true
       reuse-between-runs: false
       jar-build-dir: build/libs/
-      spring-profiles-to-activate: test,audit-test
+      spring-profiles-to-activate: int-test,audit-test
       internal-http-port: 4000
 
     context-containers:

@@ -39,11 +39,11 @@ import org.niis.xroad.centralserver.restapi.converter.ApprovedCertificationServi
 import org.niis.xroad.centralserver.restapi.converter.CertificateAuthorityDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.OcspResponderDtoConverter;
-import org.niis.xroad.centralserver.restapi.dto.ApprovedCertificationService;
-import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
-import org.niis.xroad.centralserver.restapi.dto.CertificationService;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
-import org.niis.xroad.centralserver.restapi.service.CertificationServicesService;
+import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
+import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
+import org.niis.xroad.cs.admin.api.dto.CertificationService;
+import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;

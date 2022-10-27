@@ -30,6 +30,8 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 
+//TODO use GenericDtoMapper
+@Deprecated
 public interface BaseConverter {
 
     default OffsetDateTime fromInstant(Instant instant) {

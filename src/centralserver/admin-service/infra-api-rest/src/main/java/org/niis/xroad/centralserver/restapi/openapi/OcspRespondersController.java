@@ -31,7 +31,7 @@ import org.niis.xroad.centralserver.openapi.OcspRespondersApi;
 import org.niis.xroad.centralserver.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.converter.CertificateDetailsDtoConverter;
-import org.niis.xroad.centralserver.restapi.service.OcspRespondersService;
+import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -28,22 +28,22 @@
 package org.niis.xroad.centralserver.restapi.dto.converter;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum;
+import org.niis.xroad.cs.admin.api.dto.KeyUsageEnum;
 
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.CRL_SIGN;
-import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.DATA_ENCIPHERMENT;
-import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.DECIPHER_ONLY;
-import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
-import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.ENCIPHER_ONLY;
-import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.KEY_AGREEMENT;
-import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.KEY_CERT_SIGN;
-import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.KEY_ENCIPHERMENT;
-import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.NON_REPUDIATION;
+import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.CRL_SIGN;
+import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.DATA_ENCIPHERMENT;
+import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.DECIPHER_ONLY;
+import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
+import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.ENCIPHER_ONLY;
+import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.KEY_AGREEMENT;
+import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.KEY_CERT_SIGN;
+import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.KEY_ENCIPHERMENT;
+import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.NON_REPUDIATION;
 
 class KeyUsageConverterTest {
 

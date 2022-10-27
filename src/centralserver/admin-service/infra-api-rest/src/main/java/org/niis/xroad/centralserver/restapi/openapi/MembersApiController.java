@@ -37,14 +37,14 @@ import org.niis.xroad.centralserver.openapi.model.MemberNameDto;
 import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
 import org.niis.xroad.centralserver.openapi.model.SubsystemDto;
 import org.niis.xroad.centralserver.restapi.converter.GroupMemberConverter;
+import org.niis.xroad.centralserver.restapi.converter.MemberCreationRequestMapper;
 import org.niis.xroad.centralserver.restapi.converter.db.ClientDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.db.SecurityServerDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.db.SubsystemDtoConverter;
-import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
-import org.niis.xroad.centralserver.restapi.service.MemberService;
-import org.niis.xroad.centralserver.restapi.service.SubsystemService;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.service.MemberService;
+import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -77,6 +77,7 @@ public class MembersApiController implements MembersApi {
     private final SubsystemDtoConverter subsystemDtoConverter;
     private final GroupMemberConverter groupMemberConverter;
     private final SecurityServerDtoConverter securityServerDtoConverter;
+    private final MemberCreationRequestMapper memberCreationRequestMapper;
 
     @Override
     @PreAuthorize("hasAuthority('ADD_NEW_MEMBER')")
@@ -87,8 +88,7 @@ public class MembersApiController implements MembersApi {
         auditData.put(RestApiAuditProperty.MEMBER_CODE, clientDto.getXroadId().getMemberCode());
 
         return Try.success(clientDto)
-                .map(clientDtoConverter::fromDto)
-                .map(clientDtoConverter.expectType(XRoadMember.class))
+                .map(memberCreationRequestMapper::toTarget)
                 .map(memberService::add)
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity.status(HttpStatus.CREATED)::body)

@@ -37,11 +37,7 @@ import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.PagedManagementRequestsConverter;
 import org.niis.xroad.centralserver.restapi.converter.db.ManagementRequestDtoConverter;
-import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestDtoTypeConverter;
-import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestOriginDtoConverter;
-import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestStatusConverter;
-import org.niis.xroad.centralserver.restapi.converter.model.SecurityServerIdDtoConverter;
-import org.niis.xroad.centralserver.restapi.service.managementrequest.ManagementRequestService;
+import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -52,6 +48,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
+
 import static java.util.Map.entry;
 
 @RestController
@@ -61,10 +59,6 @@ import static java.util.Map.entry;
 public class ManagementRequestsApiController implements ManagementRequestsApi {
     private final ManagementRequestService service;
     private final ManagementRequestDtoConverter managementRequestDtoConverter;
-    private final ManagementRequestOriginDtoConverter.Service originMapper;
-    private final ManagementRequestDtoTypeConverter.Service typeMapper;
-    private final ManagementRequestStatusConverter.Service statusMapper;
-    private final SecurityServerIdDtoConverter securityServerIdDtoMapper;
     private final ManagementRequestDtoConverter converter;
     private final PageRequestConverter pageRequestConverter;
     private final PagedManagementRequestsConverter pagedManagementRequestsConverter;
@@ -99,6 +93,7 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
     public ResponseEntity<ManagementRequestDto> getManagementRequest(Integer id) {
         return Option.of(id)
                 .map(service::getRequest)
+                .map(Optional::get)
                 .map(managementRequestDtoConverter::toDto)
                 .map(ResponseEntity::ok).get();
     }

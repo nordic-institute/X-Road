@@ -32,9 +32,9 @@ import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
 import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.converter.model.XRoadObjectTypeDtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.DtoConverter;
-import org.niis.xroad.centralserver.restapi.entity.ClientId;
-import org.niis.xroad.centralserver.restapi.entity.MemberId;
-import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
+import org.niis.xroad.cs.admin.api.domain.ClientId;
+import org.niis.xroad.cs.admin.api.domain.MemberId;
+import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
