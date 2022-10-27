@@ -48,6 +48,7 @@ import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.entity.CaInfo;
 import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
+import org.niis.xroad.centralserver.restapi.repository.CaInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -91,6 +92,8 @@ class CertificationServicesServiceTest {
 
     @Mock
     private ApprovedCaRepository approvedCaRepository;
+    @Mock
+    private CaInfoJpaRepository caInfoJpaRepository;
     @Mock
     private OcspInfoJpaRepository ocspInfoRepository;
     @Spy
@@ -170,12 +173,11 @@ class CertificationServicesServiceTest {
         assertEquals("24AFDE09AA818A20D3EE7A4A2264BA247DA5C3F9", certificateAuthority.getCaCertificate().getHash());
 
         ArgumentCaptor<CaInfo> captor = ArgumentCaptor.forClass(CaInfo.class);
-        verify(approvedCaMock).addIntermediateCa(captor.capture());
+        verify(caInfoJpaRepository).save(captor.capture());
+
         assertEquals(certificate.getNotBefore().toInstant(), captor.getValue().getValidFrom());
         assertEquals(certificate.getNotAfter().toInstant(), captor.getValue().getValidTo());
         assertEquals(certificateBytes, captor.getValue().getCert());
-
-        verify(approvedCaRepository).save(approvedCaMock);
 
         verify(auditDataHelper).put(CA_ID, ID);
         verify(auditDataHelper).put(INTERMEDIATE_CA_ID, 0);

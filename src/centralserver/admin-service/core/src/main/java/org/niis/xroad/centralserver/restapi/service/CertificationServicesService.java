@@ -44,6 +44,7 @@ import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
 import org.niis.xroad.centralserver.restapi.entity.CaInfo;
 import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
 import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
+import org.niis.xroad.centralserver.restapi.repository.CaInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -75,6 +76,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 public class CertificationServicesService {
     private final ApprovedCaRepository approvedCaRepository;
     private final OcspInfoJpaRepository ocspInfoRepository;
+    private final CaInfoJpaRepository caInfoJpaRepository;
     private final AuditDataHelper auditDataHelper;
     private final ApprovedCaConverter approvedCaConverter;
     private final OcspResponderConverter ocspResponderConverter;
@@ -124,7 +126,7 @@ public class CertificationServicesService {
 
         final ApprovedCa approvedCa = getById(certificationServiceId);
         approvedCa.addIntermediateCa(caInfo);
-        approvedCaRepository.save(approvedCa);
+        caInfoJpaRepository.save(caInfo);
 
         auditDataHelper.put(CA_ID, certificationServiceId);
         auditDataHelper.put(INTERMEDIATE_CA_ID, caInfo.getId());

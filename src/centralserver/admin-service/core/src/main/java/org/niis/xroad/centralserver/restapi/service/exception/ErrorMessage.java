@@ -62,7 +62,8 @@ public enum ErrorMessage {
     GLOBAL_GROUP_EXISTS("Global group with the same code already exists."),
 
     CERTIFICATION_SERVICE_NOT_FOUND("Certification service not found."),
-    INVALID_CERTIFICATE("Invalid X.509 certificate");
+    INVALID_CERTIFICATE("Invalid X.509 certificate"),
+    INTERMEDIATE_CA_NOT_FOUND("Intermediate CA not found");
 
     @Getter
     final String description;
