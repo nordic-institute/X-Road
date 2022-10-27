@@ -54,6 +54,8 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 @RequiredArgsConstructor
 public class CaInfoConverter {
 
+    private static final int RADIX_FOR_HEX = 16;
+
     private final KeyUsageConverter keyUsageConverter;
 
     @SneakyThrows
@@ -82,7 +84,7 @@ public class CaInfoConverter {
         if (publicKey instanceof RSAPublicKey) {
             final RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
             certificateDetails.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent());
-            certificateDetails.setRsaPublicKeyModulus(valueOf(rsaPublicKey.getModulus()));
+            certificateDetails.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
         }
 
         return certificateDetails;

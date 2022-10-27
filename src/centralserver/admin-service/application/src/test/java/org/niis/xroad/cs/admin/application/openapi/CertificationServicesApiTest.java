@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
+import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockPart;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -49,6 +50,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -65,13 +67,13 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
     private static final String ISSUER_DISTINGUISHED_NAME = "CN=R3, O=Let's Encrypt, C=US";
     private static final String SUBJECT_DISTINGUISHED_NAME = "CN=x-road.global";
 
-    private static final String PUBLIC_KEY_MODULUS = "2151337145236360089905485986239099550408653247848020894166069752"
-            + "0416378609304765007780222461167023921306298709865053553264571232520963553301724989345282355757634100081"
-            + "0258344926231639837331468122241370837604080589551961120675968964630965115354573794618014405466949546724"
-            + "4201705186303922225178667308300514801910429150661494168487329789787848962256761338099544609344525660587"
-            + "2579759495640701008157064858289660210909976083547958403393634030552367189161406679433747845402338839149"
-            + "1440591425939889179496380726624809248875109616596096080404895105177498452149263637853276502776347214179"
-            + "55234262167985570855634033219952254891";
+    private static final String PUBLIC_KEY_MODULUS = "aa6b31cebfebbb049acff88b6a324d4228eddd02abd2aea0550b33b947f9be21"
+            + "39cdbc3a037495483f92716ea4a12c8435a6631266ed898030000341898cec020920ca88defc25f85a808a1dbb09d5b34157c12"
+            + "dee3bf2636566772dc3b06c0f26f4f6fee0a3ff09a08faa86581cc5315bec31de9767db1ff4f943356b6e0c1d91bdd03e36daf8"
+            + "db2fcb5d8f5225994a74380f1e01dd935f1b0b5777dbb573435e2d468830f3be133132350f96b57fb5aeda16f05407456a37a51"
+            + "26615363a95a48fcb4f55eb6e0d641909fb20ae1a31c2f2a5377041444dae279b3a8c582e038a10fef16270c75f5e74bdedd2fa"
+            + "d260fec155a459a8587867372c8dc3491fab";
+
     private static final String SIGNATURE = "30c8191a152e0cd78cb531a112600ff7bdbeff2a19e0dcd698c2a9ffcc72ac44fda1c7527"
             + "a552a91b1b93278d5c4cc6ba3d87a20fc660190dd3251f4c29e540d3d759fbb75f2c65041ad5a0c26662826ab762fc38696aee6"
             + "16c3890cdb3dcc407a75a93ddbfdb7e8fb86fb6adc1a27e81534398c78ce73f62a3b2552650386b482d33300d9685d764767f58"
@@ -167,13 +169,17 @@ class CertificationServicesApiTest extends AbstractApiControllerTest {
         final String hash1 = addIntermediateCaToCertificationService(id);
         final String hash2 = addIntermediateCaToCertificationService(id);
 
-        mockMvc.perform(
+        final String response = mockMvc.perform(
                         get(commonModuleEndpointPaths.getBasePath() + "/certification-services/{id}/intermediate-cas", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()", equalTo(2)))
                 .andExpect(jsonPath("$[0].id", notNullValue()))
                 .andExpect(jsonPath("$..ca_certificate.hash", containsInAnyOrder(hash1, hash2)))
-                .andExpect(jsonPath("$[1].id", notNullValue()));
+                .andExpect(jsonPath("$[1].id", notNullValue()))
+                .andReturn().getResponse().getContentAsString();
+
+        final CertificateAuthority[] list = objectMapper.readValue(response, CertificateAuthority[].class);
+        assertNotEquals(list[0].getId(), list[1].getId());
     }
 
     private String addIntermediateCaToCertificationService(Integer certificationServiceId) throws Exception {
