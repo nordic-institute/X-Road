@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
-import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
+import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockPart;
 import org.springframework.security.test.context.support.WithMockUser;

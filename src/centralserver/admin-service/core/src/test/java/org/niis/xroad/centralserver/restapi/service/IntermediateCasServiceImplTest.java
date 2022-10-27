@@ -32,12 +32,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.centralserver.restapi.dto.CertificateAuthority;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
-import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
-import org.niis.xroad.centralserver.restapi.entity.CaInfo;
-import org.niis.xroad.centralserver.restapi.repository.CaInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
+import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
+import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
+import org.niis.xroad.cs.admin.core.repository.CaInfoRepository;
 
 import java.util.Optional;
 
@@ -47,25 +47,25 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class IntermediateCasServiceTest {
+class IntermediateCasServiceImplTest {
 
     private static final Integer ID = 123;
 
     @Mock
-    private CaInfoJpaRepository caInfoJpaRepository;
+    private CaInfoRepository caInfoRepository;
     @Mock
     private CaInfoConverter caInfoConverter;
     @Mock
-    private CaInfo caInfo;
+    private CaInfoEntity caInfo;
     @Mock
     private CertificateAuthority certificateAuthority;
     @InjectMocks
-    private IntermediateCasService intermediateCasService;
+    private IntermediateCasServiceImpl intermediateCasService;
 
     @Test
     void get() {
-        when(caInfoJpaRepository.findById(ID)).thenReturn(Optional.of(caInfo));
-        when(caInfo.getApprovedCa()).thenReturn(new ApprovedCa());
+        when(caInfoRepository.findById(ID)).thenReturn(Optional.of(caInfo));
+        when(caInfo.getApprovedCa()).thenReturn(new ApprovedCaEntity());
         when(caInfoConverter.toCertificateAuthority(caInfo)).thenReturn(certificateAuthority);
 
         final CertificateAuthority ca = intermediateCasService.get(ID);
@@ -75,7 +75,7 @@ class IntermediateCasServiceTest {
 
     @Test
     void getShouldThrowNotFoundException() {
-        when(caInfoJpaRepository.findById(ID)).thenReturn(Optional.empty());
+        when(caInfoRepository.findById(ID)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> intermediateCasService.get(ID));
         verifyNoInteractions(caInfoConverter);
@@ -83,7 +83,7 @@ class IntermediateCasServiceTest {
 
     @Test
     void getShouldThrowNotFoundExceptionWhenNotIntermediate() {
-        when(caInfoJpaRepository.findById(ID)).thenReturn(Optional.of(caInfo));
+        when(caInfoRepository.findById(ID)).thenReturn(Optional.of(caInfo));
         when(caInfo.getApprovedCa()).thenReturn(null);
 
         assertThrows(NotFoundException.class, () -> intermediateCasService.get(ID));

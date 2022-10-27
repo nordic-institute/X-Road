@@ -34,12 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
-import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
-import org.niis.xroad.centralserver.restapi.entity.CaInfo;
-import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
-import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
-import org.niis.xroad.centralserver.restapi.repository.CaInfoJpaRepository;
-import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
@@ -52,6 +46,7 @@ import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
+import org.niis.xroad.cs.admin.core.repository.CaInfoRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
@@ -83,7 +78,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 public class CertificationServicesServiceImpl implements CertificationServicesService {
     private final ApprovedCaRepository approvedCaRepository;
     private final OcspInfoRepository ocspInfoRepository;
-    private final CaInfoJpaRepository caInfoJpaRepository;
+    private final CaInfoRepository caInfoRepository;
     private final AuditDataHelper auditDataHelper;
     private final ApprovedCaConverter approvedCaConverter;
     private final OcspResponderConverter ocspResponderConverter;
@@ -138,7 +133,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
 
         final ApprovedCaEntity approvedCa = getById(certificationServiceId);
         approvedCa.addIntermediateCa(caInfo);
-        caInfoJpaRepository.save(caInfo);
+        caInfoRepository.save(caInfo);
 
         auditDataHelper.put(CA_ID, certificationServiceId);
         auditDataHelper.put(INTERMEDIATE_CA_ID, caInfo.getId());
