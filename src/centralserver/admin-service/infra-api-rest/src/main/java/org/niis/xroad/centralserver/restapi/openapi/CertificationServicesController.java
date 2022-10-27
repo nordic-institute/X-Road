@@ -54,6 +54,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.Boolean.parseBoolean;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -130,8 +131,12 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
-    public ResponseEntity<Set<OcspResponderDto>> getCertificationServiceOcspResponders(String id) {
-        throw new NotImplementedException("getCertificationServiceOcspResponders not implemented yet");
+    @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
+    public ResponseEntity<Set<OcspResponderDto>> getCertificationServiceOcspResponders(Integer id) {
+        return ok(certificationServicesService.getOcspResponders(id).stream()
+                .map(ocspResponderDtoConverter::toDto)
+                .collect(Collectors.toSet())
+        );
     }
 
     @Override
