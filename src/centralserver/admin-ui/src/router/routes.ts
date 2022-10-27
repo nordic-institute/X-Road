@@ -79,6 +79,8 @@ import AppForbidden from '@/views/AppForbidden.vue';
 import CertificationService from '@/views/TrustServices/CertificationService/CertificationService.vue';
 import CertificationServiceDetails from '@/views/TrustServices/CertificationService/Details/CertificationServiceDetails.vue';
 import TrustServiceList from '@/views/TrustServices/TrustServiceList.vue';
+import CertificationServiceSettings
+  from "@/views/TrustServices/CertificationService/Settings/CertificationServiceSettings.vue";
 
 const routes: RouteConfig[] = [
   {
@@ -308,6 +310,12 @@ const routes: RouteConfig[] = [
                 path: 'details',
                 component: CertificationServiceDetails,
                 meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+              },
+              {
+                name: RouteName.CertificationServiceSettings,
+                path: 'settings',
+                component: CertificationServiceSettings,
+                meta: { permissions: [Permissions.EDIT_APPROVED_CA] },
               },
             ],
           },

@@ -25,12 +25,36 @@
  */
 package org.niis.xroad.cs.test;
 
+<<<<<<<< HEAD:src/centralserver/admin-service/application/src/intTest/java/org/niis/xroad/cs/test/CsAdminServiceTestConfiguration.java
 import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.niis.xroad.cs.test.api.FeignSystemApi;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+========
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
+import org.springframework.context.annotation.Bean;
+>>>>>>>> origin/develop-7.x:src/centralserver/admin-service/infra-api-rest/src/test/java/org/niis/xroad/centralserver/restapi/config/audit/AuditLogMockingConfiguration.java
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+<<<<<<<< HEAD:src/centralserver/admin-service/application/src/intTest/java/org/niis/xroad/cs/test/CsAdminServiceTestConfiguration.java
 @EnableFeignClients(clients = {FeignSystemApi.class, FeignSecurityServersApi.class})
 public class CsAdminServiceTestConfiguration {
+========
+@Profile("!audit-test")
+public class AuditLogMockingConfiguration {
+
+    @Bean
+    @Primary
+    public AuditDataHelper mockAuditDataHelper() {
+        return mock(AuditDataHelper.class);
+    }
+
+    @Bean
+    @Primary
+    public AuditEventHelper mockAuditEventHelper() {
+        return mock(AuditEventHelper.class);
+    }
+
+>>>>>>>> origin/develop-7.x:src/centralserver/admin-service/infra-api-rest/src/test/java/org/niis/xroad/centralserver/restapi/config/audit/AuditLogMockingConfiguration.java
 }

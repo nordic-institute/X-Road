@@ -433,14 +433,22 @@
     "certProfileInput": "Certificate profile info",
     "certProfileInputExplanation": "Fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "timestampingServices": "Timestamping Services",
-    "subjectDistinguishedName": "Subject distinguished name",
-    "issuerDistinguishedName": "Issuer distinguished name",
     "validFrom": "Valid from",
     "validTo": "Valid to",
     "uploadCertificate": "Upload the certificate file from your computer",
     "trustService": {
+      "details" : {
+        "subjectDistinguishedName": "Subject distinguished name",
+        "issuerDistinguishedName": "Issuer distinguished name"
+      },
+      "settings": {
+        "tlsAuth": "This CA can only be used for TLS authentication",
+        "certProfile": "Certificate profile info (fully qualified class name that implements the ee.ria.xroad.common.CertificateProfileInfoProvider interface)",
+        "saveSuccess": "CA Settings successfully saved"
+      },
       "pagenavigation": {
-        "details": "Details"
+        "details": "Details",
+        "settings": "CA Settings"
       }
     }
   },

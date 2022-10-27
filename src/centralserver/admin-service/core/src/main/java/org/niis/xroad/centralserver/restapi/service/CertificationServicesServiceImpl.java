@@ -26,6 +26,7 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -54,6 +55,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
@@ -82,6 +84,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
 
     @Override
     public CertificationService add(ApprovedCertificationService certificationService) {
+        CertificateProfileInfoValidator.validate(certificationService.getCertificateProfileInfo());
         final ApprovedCaEntity approvedCaEntity = approvedCaConverter.toEntity(certificationService);
         final ApprovedCaEntity persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
         addAuditData(persistedApprovedCa);
@@ -97,7 +100,11 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     @Override
     public CertificationService update(CertificationService approvedCa) {
         ApprovedCaEntity persistedApprovedCa = getById(approvedCa.getId());
-        Optional.ofNullable(approvedCa.getCertificateProfileInfo()).ifPresent(persistedApprovedCa::setCertProfileInfo);
+        Optional.ofNullable(approvedCa.getCertificateProfileInfo())
+                .ifPresent(certProfile -> {
+                    CertificateProfileInfoValidator.validate(certProfile);
+                    persistedApprovedCa.setCertProfileInfo(certProfile);
+                });
         Optional.ofNullable(approvedCa.getTlsAuth()).ifPresent(persistedApprovedCa::setAuthenticationOnly);
         final ApprovedCaEntity updatedApprovedCa = approvedCaRepository.save(persistedApprovedCa);
         addAuditData(updatedApprovedCa);
@@ -151,6 +158,13 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         OcspInfoEntity persistedOcspInfo = ocspInfoRepository.save(ocspInfo);
         addAuditData(persistedOcspInfo);
         return ocspResponderConverter.toModel(persistedOcspInfo);
+    }
+
+    public Set<OcspResponder> getOcspResponders(Integer certificationServiceId) {
+        var approvedCa = getById(certificationServiceId);
+        return approvedCa.getCaInfo().getOcspInfos().stream()
+                .map(ocspResponderConverter::toModel)
+                .collect(Collectors.toSet());
     }
 
     private void addAuditData(ApprovedCaEntity approvedCa) {

@@ -87,6 +87,8 @@ public class CaInfoEntity extends AuditableEntity {
     @Setter
     private Set<OcspInfoEntity> ocspInfos = new HashSet<>(0);
 
+    public void addOcspInfos(OcspInfo ocspInfo) {
+        ocspInfo.setCaInfo(this);
+        getOcspInfos().add(ocspInfo);
+    }
 }
-
-
