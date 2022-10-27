@@ -140,14 +140,14 @@ public class InitializationServiceImpl implements InitializationService {
 
         if (!isServerAddressInitialized) {
             systemParameterService.updateOrCreateParameter(
-                    SystemParameterServiceImpl.CENTRAL_SERVER_ADDRESS,
+                    SystemParameterService.CENTRAL_SERVER_ADDRESS,
                     configDto.getCentralServerAddress()
             );
         }
 
         if (!isInstanceIdentifierInitialized) {
             systemParameterService.updateOrCreateParameter(
-                    SystemParameterServiceImpl.INSTANCE_IDENTIFIER,
+                    SystemParameterService.INSTANCE_IDENTIFIER,
                     configDto.getInstanceIdentifier()
             );
         }
@@ -264,14 +264,14 @@ public class InitializationServiceImpl implements InitializationService {
 
     private String getStoredInstanceIdentifier() {
         return systemParameterService.getParameterValue(
-                SystemParameterServiceImpl.INSTANCE_IDENTIFIER,
+                SystemParameterService.INSTANCE_IDENTIFIER,
                 ""
         );
     }
 
     private String getStoredCentralServerAddress() {
         return systemParameterService.getParameterValue(
-                SystemParameterServiceImpl.CENTRAL_SERVER_ADDRESS,
+                SystemParameterService.CENTRAL_SERVER_ADDRESS,
                 "");
     }
 

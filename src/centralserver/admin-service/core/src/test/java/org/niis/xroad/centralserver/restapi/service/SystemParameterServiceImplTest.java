@@ -39,8 +39,8 @@ import org.springframework.context.annotation.Bean;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.niis.xroad.centralserver.restapi.service.SystemParameterServiceImpl.CENTRAL_SERVER_ADDRESS;
-import static org.niis.xroad.centralserver.restapi.service.SystemParameterServiceImpl.INSTANCE_IDENTIFIER;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANCE_IDENTIFIER;
 
 @Disabled
 class SystemParameterServiceImplTest {
