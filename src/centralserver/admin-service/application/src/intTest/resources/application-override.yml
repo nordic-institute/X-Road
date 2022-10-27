@@ -1,0 +1,34 @@
+---
+#Logging configuration
+logging:
+  level:
+    ROOT: INFO
+    cucumber: TRACE
+    org.springframework: INFO
+
+test-automation:
+  report-name: xroad-cs-api-test-suite
+  environment: restuitest
+  spring-component-scan: "org.niis.xroad.cs.test"
+  cucumber:
+    execution:
+      parallel:
+        enabled: false # Parallel execution triggers HTTP 429 Too Many Requests
+    glue-append: "org.niis.xroad.cs.test.glue"
+    filter:
+      tags: "not @Skip"
+  containers:
+    testable-container:
+      jar-debug-enabled: false
+      debug-port: 9000
+      jacoco:
+        enabled: true
+      reuse-between-runs: false
+      jar-build-dir: build/libs/
+      spring-profiles-to-activate: test,audit-test
+      internal-http-port: 4000
+
+    context-containers:
+      xrd-db :
+        enabled: true
+        reuse-between-runs: false

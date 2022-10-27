@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -22,34 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.config.audit;
+package org.niis.xroad.cs.test;
 
-import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.AuditEventHelper;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
+import com.nortal.test.TestRunner;
+import org.junit.platform.suite.api.SelectClasspathResource;
 
-import static org.mockito.Mockito.mock;
-
-/**
- * We probably need common-rest-api-test dependency for these
- */
-@Configuration
-@Profile("!audit-test")
-public class AuditLogMockingConfiguration {
-
-    @Bean
-    @Primary
-    public AuditDataHelper mockAuditDataHelper() {
-        return mock(AuditDataHelper.class);
-    }
-
-    @Bean
-    @Primary
-    public AuditEventHelper mockAuditEventHelper() {
-        return mock(AuditEventHelper.class);
-    }
-
+@SelectClasspathResource("/behavior/api")
+public class CentralServerApiBehavioralTest extends TestRunner {
 }

@@ -18,11 +18,54 @@ dependencies {
     implementation project(':centralserver:admin-service:core')
     implementation project(':centralserver:admin-service:infra-api-rest')
     implementation project(':centralserver:admin-service:infra-jpa')
+
+    implementation('org.liquibase:liquibase-core') //TODO enabling runtime liquibase
+
+    intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-assert:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-feign:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
+
+    //TODO test automation should release BOM module
+    intTestImplementation("org.testcontainers:postgresql:1.17.5")
 }
 
 test {
     useJUnitPlatform()
 }
+
+task intTest(type: Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs integration tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    def intTestArgs = []
+    if (project.hasProperty('intTestTags')) {
+        intTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('intTestTags')
+    }
+    if (project.hasProperty('intTestProfilesInclude')) {
+        intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
+    }
+
+    jvmArgs intTestArgs
+
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+
+    shouldRunAfter test
+}
+
+//TODO disabling automatic execution until we're out of POC phase.
+//test.finalizedBy(intTest)
 
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]

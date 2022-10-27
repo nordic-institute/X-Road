@@ -50,9 +50,4 @@ public class AuditLogMockingConfiguration {
         return mock(AuditEventHelper.class);
     }
 
-    @Bean
-    @Primary
-    public AuditEventLoggingFacade mockAuditEventLoggingFacade() {
-        return mock(AuditEventLoggingFacade.class);
-    }
 }

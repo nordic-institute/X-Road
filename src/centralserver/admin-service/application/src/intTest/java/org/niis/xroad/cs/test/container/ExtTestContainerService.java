@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -22,34 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.config.audit;
+package org.niis.xroad.cs.test.container;
 
-import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.AuditEventHelper;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.nortal.test.testcontainers.TestContainerNetworkProvider;
+import com.nortal.test.testcontainers.TestContainerService;
+import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
-import static org.mockito.Mockito.mock;
+@Slf4j
+@Primary
+@Service
+public class ExtTestContainerService extends TestContainerService {
 
-/**
- * We probably need common-rest-api-test dependency for these
- */
-@Configuration
-@Profile("!audit-test")
-public class AuditLogMockingConfiguration {
 
-    @Bean
-    @Primary
-    public AuditDataHelper mockAuditDataHelper() {
-        return mock(AuditDataHelper.class);
+    public ExtTestContainerService(@NotNull final TestContainerNetworkProvider testContainerNetworkProvider,
+                                   @NotNull final TestableContainerProperties testableContainerProperties) {
+        super(testContainerNetworkProvider, testableContainerProperties);
     }
 
-    @Bean
-    @Primary
-    public AuditEventHelper mockAuditEventHelper() {
-        return mock(AuditEventHelper.class);
+    @Override
+    protected void startContainer(@NotNull final GenericContainer<?> applicationContainer) {
+        //Adding additional wait condition. It's completely optional.
+        applicationContainer.waitingFor(Wait.forLogMessage(".*Started Main in.*", 1));
+        super.startContainer(applicationContainer);
     }
-
 }
