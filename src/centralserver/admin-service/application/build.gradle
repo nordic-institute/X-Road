@@ -64,7 +64,8 @@ task intTest(type: Test) {
     shouldRunAfter test
 }
 
-test.finalizedBy(intTest)
+//TODO disabling automatic execution until we're out of POC phase.
+//test.finalizedBy(intTest)
 
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
