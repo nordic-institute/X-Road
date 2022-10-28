@@ -96,7 +96,7 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
         OcspInfoEntity ocspResponder = get(id);
         ocspInfoRepository.delete(ocspResponder);
 
-        auditDataHelper.put(OCSP_ID, id);
+        auditDataHelper.put(OCSP_ID, ocspResponder.getId());
     }
 
 }

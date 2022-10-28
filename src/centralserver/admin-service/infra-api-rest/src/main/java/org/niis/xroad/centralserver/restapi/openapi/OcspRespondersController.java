@@ -44,6 +44,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
+import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
@@ -62,7 +63,7 @@ public class OcspRespondersController implements OcspRespondersApi {
     @AuditEventMethod(event = RestApiAuditEvent.DELETE_OCSP_RESPONDER)
     public ResponseEntity<Void> deleteOcspResponder(Integer id) {
         ocspRespondersService.delete(id);
-        return ResponseEntity.noContent().build();
+        return noContent().build();
     }
 
     @Override
