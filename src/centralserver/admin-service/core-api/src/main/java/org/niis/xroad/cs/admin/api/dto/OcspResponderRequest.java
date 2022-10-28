@@ -32,7 +32,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class OcspResponderModifyRequest {
+public class OcspResponderRequest {
 
     private Integer id;
     private String url;

@@ -32,7 +32,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class OcspResponderAddRequest extends OcspResponderModifyRequest {
+public class OcspResponderAddRequest extends OcspResponderRequest {
 
     private Integer caId;
 

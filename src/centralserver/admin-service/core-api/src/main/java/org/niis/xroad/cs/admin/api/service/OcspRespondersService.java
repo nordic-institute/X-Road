@@ -27,11 +27,11 @@ package org.niis.xroad.cs.admin.api.service;
 
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.dto.OcspResponderModifyRequest;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
 
 public interface OcspRespondersService {
     CertificateDetails getOcspResponderCertificateDetails(Integer id);
 
-    OcspResponder update(OcspResponderModifyRequest updateRequest);
+    OcspResponder update(OcspResponderRequest updateRequest);
 
 }

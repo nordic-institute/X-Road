@@ -33,7 +33,7 @@ import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.dto.OcspResponderModifyRequest;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
 import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
@@ -75,7 +75,7 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
     }
 
     @Override
-    public OcspResponder update(OcspResponderModifyRequest updateRequest) {
+    public OcspResponder update(OcspResponderRequest updateRequest) {
         final OcspInfoEntity ocspInfo = get(updateRequest.getId());
         if (StringUtils.isNotBlank(updateRequest.getUrl())) {
             ocspInfo.setUrl(updateRequest.getUrl());

@@ -32,7 +32,7 @@ import org.niis.xroad.centralserver.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.OcspResponderDtoConverter;
-import org.niis.xroad.cs.admin.api.dto.OcspResponderModifyRequest;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
 import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -71,7 +71,7 @@ public class OcspRespondersController implements OcspRespondersApi {
     @PreAuthorize("hasAuthority('EDIT_APPROVED_CA')")
     @AuditEventMethod(event = RestApiAuditEvent.EDIT_OCSP_RESPONDER)
     public ResponseEntity<OcspResponderDto> updateOcspResponder(Integer id, String url, MultipartFile certificate) {
-        final OcspResponderModifyRequest updateRequest = new OcspResponderModifyRequest()
+        final OcspResponderRequest updateRequest = new OcspResponderRequest()
                 .setId(id)
                 .setUrl(url);
         if (certificate != null) {

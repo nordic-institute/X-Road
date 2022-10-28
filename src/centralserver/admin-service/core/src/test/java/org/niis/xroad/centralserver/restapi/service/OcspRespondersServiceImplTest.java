@@ -40,7 +40,7 @@ import org.niis.xroad.centralserver.restapi.dto.converter.KeyUsageConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.dto.OcspResponderModifyRequest;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
@@ -110,7 +110,7 @@ class OcspRespondersServiceImplTest {
     void update() throws Exception {
         final byte[] cert = TestCertUtil.getOcspSigner().certChain[0].getEncoded();
         final String newUrl = "http://new.url";
-        final OcspResponderModifyRequest request = new OcspResponderModifyRequest()
+        final OcspResponderRequest request = new OcspResponderRequest()
                 .setId(ID)
                 .setUrl(newUrl)
                 .setCertificate(cert);
@@ -135,7 +135,7 @@ class OcspRespondersServiceImplTest {
     @Test
     void updateOnlyUrl() {
         final String newUrl = "http://new.url";
-        final OcspResponderModifyRequest request = new OcspResponderModifyRequest()
+        final OcspResponderRequest request = new OcspResponderRequest()
                 .setId(ID)
                 .setUrl(newUrl);
 
