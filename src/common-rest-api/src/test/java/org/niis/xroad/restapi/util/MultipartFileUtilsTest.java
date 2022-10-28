@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,36 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
-import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
-import org.niis.xroad.cs.admin.api.dto.CertificationService;
-import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
-import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
+package org.niis.xroad.restapi.util;
 
-import java.util.List;
-import java.util.Set;
+import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.MultipartFile;
 
-public interface CertificationServicesService {
-    CertificationService add(ApprovedCertificationService approvedCa);
+import java.io.IOException;
 
-    CertificationService get(Integer id);
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-    CertificationService update(CertificationService approvedCa);
+class MultipartFileUtilsTest {
 
-    CertificateDetails getCertificateDetails(Integer id);
+    @Test
+    void readBytes() {
+        final byte[] bytes = new byte[] {1, 2, 3};
+        final MultipartFile multipartFile = new MockMultipartFile("test", bytes);
 
-    CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert);
+        final byte[] result = MultipartFileUtils.readBytes(multipartFile);
 
-    Set<CertificateAuthority> getIntermediateCas(Integer certificationServiceId);
+        assertEquals(bytes, result);
+    }
 
-    List<CertificationServiceListItem> getCertificationServices();
+    @Test
+    void readBytesShouldThrowMultipartException() throws Exception {
+        final MultipartFile multipartFile = mock(MultipartFile.class);
 
+        when(multipartFile.getBytes()).thenThrow(new IOException());
 
-    OcspResponder addOcspResponder(OcspResponderAddRequest ocspResponder);
+        assertThrows(MultipartException.class, () -> MultipartFileUtils.readBytes(multipartFile));
+    }
 
-    Set<OcspResponder> getOcspResponders(Integer certificationServiceId);
 }

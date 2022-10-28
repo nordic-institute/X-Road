@@ -27,17 +27,28 @@ package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
 import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
 @Slf4j
 @Service
@@ -46,6 +57,9 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 public class OcspRespondersServiceImpl implements OcspRespondersService {
     private final OcspInfoRepository ocspInfoRepository;
     private final CaInfoConverter caInfoConverter;
+    private final OcspResponderConverter ocspResponderConverter;
+
+    private final AuditDataHelper auditDataHelper;
 
     @Override
     public CertificateDetails getOcspResponderCertificateDetails(Integer id) {
@@ -53,5 +67,29 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
                 .map(OcspInfoEntity::getCaInfo)
                 .map(caInfoConverter::toCertificateDetails)
                 .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
+    }
+
+    private OcspInfoEntity get(Integer id) {
+        return ocspInfoRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
+    }
+
+    @Override
+    public OcspResponder update(OcspResponderRequest updateRequest) {
+        final OcspInfoEntity ocspInfo = get(updateRequest.getId());
+        if (StringUtils.isNotBlank(updateRequest.getUrl())) {
+            ocspInfo.setUrl(updateRequest.getUrl());
+        }
+        if (updateRequest.getCertificate() != null) {
+            ocspInfo.setCert(updateRequest.getCertificate());
+        }
+        final OcspInfoEntity savedOcspInfo = ocspInfoRepository.save(ocspInfo);
+
+        auditDataHelper.put(OCSP_ID, savedOcspInfo.getId());
+        auditDataHelper.put(OCSP_URL, savedOcspInfo.getUrl());
+        auditDataHelper.put(OCSP_CERT_HASH, calculateCertHexHashDelimited(savedOcspInfo.getCert()));
+        auditDataHelper.put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+
+        return ocspResponderConverter.toModel(savedOcspInfo);
     }
 }
