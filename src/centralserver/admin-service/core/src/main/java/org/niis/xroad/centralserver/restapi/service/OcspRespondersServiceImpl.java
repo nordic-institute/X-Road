@@ -38,6 +38,7 @@ import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -92,4 +93,14 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
 
         return ocspResponderConverter.toModel(savedOcspInfo);
     }
+
+    @Override
+    public void delete(Integer id) {
+        OcspInfoEntity ocspResponder = ocspInfoRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
+        ocspInfoRepository.delete(ocspResponder);
+
+        auditDataHelper.put(OCSP_ID, id);
+    }
+
 }

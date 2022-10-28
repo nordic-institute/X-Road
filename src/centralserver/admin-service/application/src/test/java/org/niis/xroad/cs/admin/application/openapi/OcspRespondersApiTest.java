@@ -36,6 +36,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.springframework.http.HttpMethod.PATCH;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -72,6 +73,17 @@ class OcspRespondersApiTest extends AbstractApiControllerTest {
                         .part(new MockPart("url", newUrl.getBytes())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("url", equalTo(newUrl)));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"EDIT_APPROVED_CA", "ADD_APPROVED_CA"})
+    void deleteOcspResponder() throws Exception {
+        final byte[] cert = TestCertUtil.getOcspSigner().certChain[0].getEncoded();
+
+        final Integer id = addOcspResponder(100, cert); // certification service 100 from initial data set
+
+        mockMvc.perform(delete(commonModuleEndpointPaths.getBasePath() + "/ocsp-responders/{id}", id))
+                .andExpect(status().isNoContent());
     }
 
     private Integer addOcspResponder(Integer certServiceId, byte[] cert) throws Exception {
