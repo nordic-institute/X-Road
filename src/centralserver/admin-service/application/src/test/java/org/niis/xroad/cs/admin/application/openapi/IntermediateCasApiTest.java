@@ -41,6 +41,7 @@ import static ee.ria.xroad.common.util.CertUtils.getSubjectCommonName;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -67,6 +68,23 @@ class IntermediateCasApiTest extends AbstractApiControllerTest {
                 .andExpect(jsonPath("ca_certificate.subject_common_name", equalTo(getSubjectCommonName(x509Certificate))))
                 .andExpect(jsonPath("ca_certificate.not_before", notNullValue()))
                 .andExpect(jsonPath("ca_certificate.not_after", notNullValue()));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"ADD_APPROVED_CA", "VIEW_APPROVED_CA_DETAILS"})
+    void deleteIntermediateCa() throws Exception {
+        final byte[] certBytes = generateAuthCert();
+
+        final Integer id = addIntermediateCaToCertificationService(100, certBytes); // CA id from initial dataset
+
+        mockMvc.perform(
+                        delete(commonModuleEndpointPaths.getBasePath() + "/intermediate-cas/{id}", id))
+                .andExpect(status().isNoContent());
+
+        // verify is deleted
+        mockMvc.perform(
+                        get(commonModuleEndpointPaths.getBasePath() + "/intermediate-cas/{id}", id))
+                .andExpect(status().isNotFound());
     }
 
     private Integer addIntermediateCaToCertificationService(Integer certificationServiceId, byte[] certBytes) throws Exception {

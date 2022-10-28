@@ -142,7 +142,8 @@ public enum RestApiAuditEvent {
 
     ADD_SUBSYSTEM("Add subsystem"),
     UNREGISTER_SUBSYSTEM("Unregister subsystem as security server client"),
-    DELETE_SUBSYSTEM("Delete subsystem");
+    DELETE_SUBSYSTEM("Delete subsystem"),
+    DELETE_INTERMEDIATE_CA("Delete intermediate CA");
 
     private final String eventName;
 
