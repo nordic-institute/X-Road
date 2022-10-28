@@ -36,6 +36,7 @@ import org.niis.xroad.centralserver.restapi.dto.OcspResponderModifyRequest;
 import org.niis.xroad.centralserver.restapi.service.OcspRespondersService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.util.MultipartFileUtils;
 import org.springframework.http.ResponseEntity;

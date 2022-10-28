@@ -27,13 +27,12 @@
 package org.niis.xroad.centralserver.restapi.dto.converter;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponderAddRequest;
-import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
-import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
-import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
+import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
+import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -43,14 +42,14 @@ public class OcspResponderConverter {
     private final ApprovedCaRepository approvedCaRepository;
 
     public OcspInfo toEntity(OcspResponderAddRequest ocspResponder) {
-        ApprovedCa ca = approvedCaRepository.findById(ocspResponder.getCaId())
+        ApprovedCaEntity ca = approvedCaRepository.findById(ocspResponder.getCaId())
                 .orElseThrow(() -> new NotFoundException(ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND));
-        var ocspInfo = new OcspInfo(ca.getCaInfo(), ocspResponder.getUrl(), ocspResponder.getCertificate());
+        var ocspInfo = new OcspInfoEntity(ca.getCaInfo(), ocspResponder.getUrl(), ocspResponder.getCertificate());
         ocspInfo.getCaInfo().addOcspInfos(ocspInfo);
         return ocspInfo;
     }
 
-    public OcspResponder toModel(OcspInfo ocspInfo) {
+    public OcspResponder toModel(OcspInfoEntity ocspInfo) {
         return new OcspResponder()
                 .setId(ocspInfo.getId())
                 .setCaId(ocspInfo.getCaInfo().getId())

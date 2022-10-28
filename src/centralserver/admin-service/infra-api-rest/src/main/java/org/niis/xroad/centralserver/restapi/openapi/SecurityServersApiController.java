@@ -37,7 +37,7 @@ import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
 import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.SecurityServerConverter;
 import org.niis.xroad.centralserver.restapi.converter.db.SecurityServerDtoConverter;
-import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
+import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;

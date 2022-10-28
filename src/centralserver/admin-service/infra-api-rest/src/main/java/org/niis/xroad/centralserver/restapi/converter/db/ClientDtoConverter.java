@@ -33,15 +33,15 @@ import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
 import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.centralserver.restapi.converter.model.XRoadObjectTypeDtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.DtoConverter;
-import org.niis.xroad.centralserver.restapi.entity.ClientId;
-import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClientView;
-import org.niis.xroad.centralserver.restapi.entity.MemberClass;
-import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
-import org.niis.xroad.centralserver.restapi.entity.Subsystem;
-import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
-import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
-import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.domain.ClientId;
+import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
+import org.niis.xroad.cs.admin.api.domain.MemberClass;
+import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
+import org.niis.xroad.cs.admin.api.domain.Subsystem;
+import org.niis.xroad.cs.admin.api.domain.XRoadMember;
+import org.niis.xroad.cs.admin.api.service.MemberClassService;
+import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;
@@ -59,8 +59,8 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
 
     private final ZoneOffset dtoZoneOffset;
 
-    private final XRoadMemberRepository xRoadMemberRepository;
-    private final MemberClassRepository memberClassRepository;
+    private final MemberService memberService;
+    private final MemberClassService memberClassService;
 
     private final ClientIdDtoConverter clientIdDtoConverter;
 
@@ -105,7 +105,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
             switch (clientType) {
                 case MEMBER:
                     String memberClassCode = clientIdDto.getMemberClass();
-                    MemberClass memberClass = memberClassRepository
+                    MemberClass memberClass = memberClassService
                             .findByCode(memberClassCode)
                             .getOrElseThrow(() -> new NotFoundException(
                                     MEMBER_CLASS_NOT_FOUND,
@@ -118,7 +118,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                             memberClass
                     );
                 case SUBSYSTEM:
-                    XRoadMember xRoadMember = xRoadMemberRepository
+                    XRoadMember xRoadMember = memberService
                             .findMember(clientId.getMemberId())
                             .getOrElseThrow(() -> new NotFoundException(
                                     MEMBER_NOT_FOUND,

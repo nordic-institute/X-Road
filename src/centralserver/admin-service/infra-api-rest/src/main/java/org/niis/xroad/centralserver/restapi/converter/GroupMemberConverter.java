@@ -30,8 +30,8 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import org.niis.xroad.centralserver.openapi.model.GroupMemberDto;
 import org.niis.xroad.centralserver.openapi.model.GroupMembersFilterDto;
 import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
-import org.niis.xroad.centralserver.restapi.entity.GlobalGroupMember;
-import org.niis.xroad.centralserver.restapi.repository.GlobalGroupMemberRepository;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;
@@ -68,8 +68,8 @@ public class GroupMemberConverter {
                 .addedToGroup(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
     }
 
-    public GlobalGroupMemberRepository.Criteria convert(Integer groupId, GroupMembersFilterDto filter) {
-        return GlobalGroupMemberRepository.Criteria.builder()
+    public GlobalGroupService.Criteria convert(Integer groupId, GroupMembersFilterDto filter) {
+        return GlobalGroupService.Criteria.builder()
                 .groupId(groupId)
                 .query(filter.getQuery())
                 .memberClass(filter.getMemberClass())

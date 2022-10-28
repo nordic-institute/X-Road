@@ -52,7 +52,7 @@ import java.util.List;
 /**
  * SignerProxy Service
  * Mainly facade / wrapper, just to delegate to SignerProxy.
- *
+ * <p>
  * Exists to make testing easier by offering non-static methods.
  */
 @Slf4j
@@ -62,8 +62,8 @@ public class SignerProxyService {
     private final String signerIp;
 
     /**
-      * handling akka remoting feature
-      */
+     * handling akka remoting feature
+     */
     private ActorSystem actorSystem;
 
     public SignerProxyService(@Qualifier("signer-ip") String signerIp) {

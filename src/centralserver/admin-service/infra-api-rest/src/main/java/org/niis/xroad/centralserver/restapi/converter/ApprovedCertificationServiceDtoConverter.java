@@ -30,8 +30,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceListItemDto;
-import org.niis.xroad.centralserver.restapi.dto.CertificationService;
-import org.niis.xroad.centralserver.restapi.dto.CertificationServiceListItem;
+import org.niis.xroad.cs.admin.api.dto.CertificationService;
+import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
 
 import java.util.Collection;
 import java.util.Set;

@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -41,14 +41,14 @@ import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestDto
 import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestOriginDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestStatusConverter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.dto.ManagementRequestInfoDto;
 import org.niis.xroad.centralserver.restapi.dto.converter.DtoConverter;
-import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateDeletionRequest;
-import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateRegistrationRequest;
-import org.niis.xroad.centralserver.restapi.entity.ClientDeletionRequest;
-import org.niis.xroad.centralserver.restapi.entity.ClientRegistrationRequest;
-import org.niis.xroad.centralserver.restapi.entity.Request;
-import org.niis.xroad.centralserver.restapi.repository.ManagementRequestViewRepository;
+import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
+import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
+import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
+import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
+import org.niis.xroad.cs.admin.api.domain.Request;
+import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
+import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.stereotype.Service;
@@ -120,20 +120,19 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     (AuthenticationCertificateRegistrationRequestDto) request;
             return new AuthenticationCertificateRegistrationRequest(
                     originMapper.fromDto(req.getOrigin()),
-                    securityServerIdMapper.convertId(req.getSecurityServerId())
-            ).self(self -> {
-                self.setAuthCert(req.getAuthenticationCertificate());
-                self.setAddress(req.getServerAddress());
-            });
+                    securityServerIdMapper.convertId(req.getSecurityServerId()))
+
+                    .setAuthCert(req.getAuthenticationCertificate())
+                    .setAddress(req.getServerAddress());
+
 
         } else if (request instanceof AuthenticationCertificateDeletionRequestDto) {
             AuthenticationCertificateDeletionRequestDto req = (AuthenticationCertificateDeletionRequestDto) request;
             return new AuthenticationCertificateDeletionRequest(
                     originMapper.fromDto(req.getOrigin()),
-                    securityServerIdMapper.convertId(req.getSecurityServerId())
-            ).self(self -> {
-                self.setAuthCert(req.getAuthenticationCertificate());
-            });
+                    securityServerIdMapper.convertId(req.getSecurityServerId()))
+                    .setAuthCert(req.getAuthenticationCertificate());
+
 
         } else if (request instanceof ClientRegistrationRequestDto) {
             ClientRegistrationRequestDto req = (ClientRegistrationRequestDto) request;
@@ -156,8 +155,8 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         }
     }
 
-    public ManagementRequestViewRepository.Criteria convert(ManagementRequestsFilterDto filter) {
-        return ManagementRequestViewRepository.Criteria.builder()
+    public ManagementRequestService.Criteria convert(ManagementRequestsFilterDto filter) {
+        return ManagementRequestService.Criteria.builder()
                 .query(filter.getQuery())
                 .origin(originMapper.convert(filter.getOrigin()))
                 .types(convert(filter.getTypes()))
@@ -180,10 +179,10 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
 
     private List<ManagementRequestType> convert(List<ManagementRequestTypeDto> types) {
         return Optional.ofNullable(types)
-            .map(managementRequestTypes -> managementRequestTypes.stream()
-                .map(requestTypeConverter::convertToA)
-                .collect(Collectors.toList()))
-            .orElseGet(Collections::emptyList);
+                .map(managementRequestTypes -> managementRequestTypes.stream()
+                        .map(requestTypeConverter::convertToA)
+                        .collect(Collectors.toList()))
+                .orElseGet(Collections::emptyList);
     }
 
     private Optional<ee.ria.xroad.common.identifier.SecurityServerId> convert(String id) {

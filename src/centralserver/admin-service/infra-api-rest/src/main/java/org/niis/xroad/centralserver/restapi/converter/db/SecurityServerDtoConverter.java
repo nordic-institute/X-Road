@@ -34,12 +34,12 @@ import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
 import org.niis.xroad.centralserver.openapi.model.SecurityServerIdDto;
 import org.niis.xroad.centralserver.restapi.converter.model.SecurityServerIdDtoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.DtoConverter;
-import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
-import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
-import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
-import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.XRoadMember;
+import org.niis.xroad.cs.admin.api.service.MemberService;
+import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.stereotype.Service;
 
@@ -55,8 +55,8 @@ public class SecurityServerDtoConverter extends DtoConverter<SecurityServer, Sec
 
     private final ZoneOffset dtoZoneOffset;
 
-    private final SecurityServerRepository securityServerRepository;
-    private final XRoadMemberRepository xRoadMemberRepository;
+    private final SecurityServerService securityServerService;
+    private final MemberService memberService;
 
     private final SecurityServerIdConverter securityServerIdConverter;
     private final SecurityServerIdDtoConverter securityServerIdDtoConverter;
@@ -79,7 +79,7 @@ public class SecurityServerDtoConverter extends DtoConverter<SecurityServer, Sec
     public SecurityServer fromDto(SecurityServerDto source) {
         SecurityServerIdDto securityServerIdDto = source.getXroadId();
         SecurityServerId serverId = securityServerIdConverter.convert(securityServerIdDto);
-        XRoadMember owner = xRoadMemberRepository.findMember(serverId.getOwner())
+        XRoadMember owner = memberService.findMember(serverId.getOwner())
                 .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
         String serverCode = securityServerIdDto.getServerCode();
 
@@ -87,7 +87,7 @@ public class SecurityServerDtoConverter extends DtoConverter<SecurityServer, Sec
             self.setAddress(source.getServerAddress());
         });
 
-        return securityServerRepository
+        return securityServerService
                 .findByOwnerAndServerCode(owner, serverCode)
                 .getOrElse(newMemberClass);
     }

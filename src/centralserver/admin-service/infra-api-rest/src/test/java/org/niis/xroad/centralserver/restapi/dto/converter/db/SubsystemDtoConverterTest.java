@@ -42,20 +42,20 @@ import org.niis.xroad.centralserver.restapi.converter.db.ClientIdDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.db.SubsystemDtoConverter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.dto.converter.AbstractDtoConverterTest;
-import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
-import org.niis.xroad.centralserver.restapi.entity.ServerClient;
-import org.niis.xroad.centralserver.restapi.entity.Subsystem;
-import org.niis.xroad.centralserver.restapi.entity.SubsystemId;
-import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
-import org.niis.xroad.centralserver.restapi.repository.SubsystemRepository;
-import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
+import org.niis.xroad.cs.admin.api.domain.ServerClient;
+import org.niis.xroad.cs.admin.api.domain.Subsystem;
+import org.niis.xroad.cs.admin.api.domain.SubsystemId;
+import org.niis.xroad.cs.admin.api.service.SecurityServerService;
+import org.niis.xroad.cs.admin.api.service.SubsystemService;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implements WithInOrder {
@@ -69,16 +69,10 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
     private ServerClient serverClient;
 
     @Mock
-    private SecurityServer securityServer;
-
-    @Mock
-    private XRoadMember xRoadMember;
-
-    @Mock
     private SecurityServerService securityServerService;
 
     @Mock
-    private SubsystemRepository subsystemRepository;
+    private SubsystemService subsystemService;
 
     @Mock
     private ClientIdDtoConverter clientIdDtoConverter;
@@ -100,10 +94,10 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
             doReturn(clientId).when(subsystem).getIdentifier();
             doReturn(clientIdDto).when(clientIdDtoConverter).toDto(clientId);
             doReturn(serverClients).when(subsystem).getServerClients();
-            doReturn(securityServer).when(serverClient).getSecurityServer();
-            doReturn(SERVER_CODE).when(securityServer).getServerCode();
-            doReturn(xRoadMember).when(securityServer).getOwner();
-            doReturn(MEMBER_NAME).when(xRoadMember).getName();
+
+            when(serverClient.getServerOwner()).thenReturn(MEMBER_NAME);
+            when(serverClient.getServerCode()).thenReturn(SERVER_CODE);
+
             doReturn(ManagementRequestStatus.APPROVED).when(securityServerService)
                     .findSecurityServerRegistrationStatus(any());
 
@@ -130,7 +124,8 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
                     MEMBER_CODE, SUBSYSTEM_CODE);
             doReturn(clientIdDto).when(subsystemDto).getSubsystemId();
             doReturn(clientId).when(clientIdDtoConverter).fromDto(clientIdDto);
-            doReturn(subsystem).when(subsystemRepository).findByIdentifier(any());
+
+            when(subsystemService.findByIdentifier(any())).thenReturn(Optional.of(subsystem));
 
             Subsystem converted = converter.fromDto(subsystemDto);
 

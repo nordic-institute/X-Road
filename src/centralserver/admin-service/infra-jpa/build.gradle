@@ -1,4 +1,24 @@
+plugins {
+    id 'java-library'
+}
 
 dependencies {
-    //TODO JPA related dependencies should be moved here
+    annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
+    annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
+
+    implementation project(':centralserver:admin-service:core')
+    implementation project(':common-util')
+
+    api('org.springframework.boot:spring-boot-starter-data-jpa')
+    implementation("org.hibernate.validator:hibernate-validator")
+
+    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
+
+    //TODO test dependencies should be reviewed once tests are moved to different layer.
+    testImplementation project(':common-test')
+    testImplementation(testFixtures(project(":common-rest-api")))
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.springframework.security:spring-security-test')
+    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
+    testImplementation('org.liquibase:liquibase-core')
 }

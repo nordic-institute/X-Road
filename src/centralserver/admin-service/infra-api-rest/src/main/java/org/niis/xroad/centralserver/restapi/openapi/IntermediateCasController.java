@@ -33,7 +33,7 @@ import org.niis.xroad.centralserver.openapi.IntermediateCasApi;
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.converter.CertificateAuthorityDtoConverter;
-import org.niis.xroad.centralserver.restapi.service.IntermediateCasService;
+import org.niis.xroad.cs.admin.api.service.IntermediateCasService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -30,7 +30,7 @@ package org.niis.xroad.centralserver.restapi.dto.converter;
 import ee.ria.xroad.common.TestCertUtil;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.restapi.entity.CaInfo;
+import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 
 import java.security.cert.X509Certificate;
 
@@ -45,7 +45,7 @@ class CaInfoConverterTest {
         final X509Certificate x509Certificate = TestCertUtil.getCa().certChain[0];
         final byte[] certificateBytes = x509Certificate.getEncoded();
 
-        final CaInfo caInfo = caInfoConverter.toCaInfo(certificateBytes);
+        final CaInfoEntity caInfo = caInfoConverter.toCaInfo(certificateBytes);
 
         assertEquals(certificateBytes, caInfo.getCert());
         assertEquals(x509Certificate.getNotBefore().toInstant(), caInfo.getValidFrom());
