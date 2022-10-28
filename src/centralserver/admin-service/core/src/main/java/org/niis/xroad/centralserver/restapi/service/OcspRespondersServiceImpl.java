@@ -28,19 +28,16 @@ package org.niis.xroad.centralserver.restapi.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponderModifyRequest;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
-import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
-import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
-import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderModifyRequest;
 import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -72,20 +69,21 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
                 .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
     }
 
-    private OcspInfo get(Integer id) {
+    private OcspInfoEntity get(Integer id) {
         return ocspInfoRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
     }
 
+    @Override
     public OcspResponder update(OcspResponderModifyRequest updateRequest) {
-        final OcspInfo ocspInfo = get(updateRequest.getId());
+        final OcspInfoEntity ocspInfo = get(updateRequest.getId());
         if (StringUtils.isNotBlank(updateRequest.getUrl())) {
             ocspInfo.setUrl(updateRequest.getUrl());
         }
         if (updateRequest.getCertificate() != null) {
             ocspInfo.setCert(updateRequest.getCertificate());
         }
-        final OcspInfo savedOcspInfo = ocspInfoRepository.save(ocspInfo);
+        final OcspInfoEntity savedOcspInfo = ocspInfoRepository.save(ocspInfo);
 
         auditDataHelper.put(OCSP_ID, savedOcspInfo.getId());
         auditDataHelper.put(OCSP_URL, savedOcspInfo.getUrl());

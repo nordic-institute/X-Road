@@ -35,23 +35,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.centralserver.restapi.dto.CertificateDetails;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponder;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponderModifyRequest;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.KeyUsageConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
-import org.niis.xroad.centralserver.restapi.entity.ApprovedCa;
-import org.niis.xroad.centralserver.restapi.entity.CaInfo;
-import org.niis.xroad.centralserver.restapi.entity.OcspInfo;
-import org.niis.xroad.centralserver.restapi.repository.ApprovedCaRepository;
-import org.niis.xroad.centralserver.restapi.repository.OcspInfoJpaRepository;
-import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderModifyRequest;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
+import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -66,12 +61,11 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.centralserver.restapi.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
+import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
-import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
 
 @ExtendWith(MockitoExtension.class)
 class OcspRespondersServiceImplTest {
@@ -121,14 +115,14 @@ class OcspRespondersServiceImplTest {
                 .setUrl(newUrl)
                 .setCertificate(cert);
 
-        final OcspInfo ocspInfo = ocspInfo();
+        final OcspInfoEntity ocspInfo = ocspInfo();
 
         when(ocspInfoRepository.findById(ID)).thenReturn(Optional.of(ocspInfo));
-        when(ocspInfoRepository.save(isA(OcspInfo.class))).thenReturn(ocspInfo);
+        when(ocspInfoRepository.save(isA(OcspInfoEntity.class))).thenReturn(ocspInfo);
 
         final OcspResponder result = service.update(request);
 
-        ArgumentCaptor<OcspInfo> captor = ArgumentCaptor.forClass(OcspInfo.class);
+        ArgumentCaptor<OcspInfoEntity> captor = ArgumentCaptor.forClass(OcspInfoEntity.class);
         verify(ocspInfoRepository).save(captor.capture());
         assertEquals(newUrl, captor.getValue().getUrl());
         assertEquals(cert, captor.getValue().getCert());
@@ -145,15 +139,15 @@ class OcspRespondersServiceImplTest {
                 .setId(ID)
                 .setUrl(newUrl);
 
-        final OcspInfo ocspInfo = ocspInfo();
+        final OcspInfoEntity ocspInfo = ocspInfo();
         final byte[] cert = ocspInfo.getCert();
 
         when(ocspInfoRepository.findById(ID)).thenReturn(Optional.of(ocspInfo));
-        when(ocspInfoRepository.save(isA(OcspInfo.class))).thenReturn(ocspInfo);
+        when(ocspInfoRepository.save(isA(OcspInfoEntity.class))).thenReturn(ocspInfo);
 
         final OcspResponder result = service.update(request);
 
-        ArgumentCaptor<OcspInfo> captor = ArgumentCaptor.forClass(OcspInfo.class);
+        ArgumentCaptor<OcspInfoEntity> captor = ArgumentCaptor.forClass(OcspInfoEntity.class);
         verify(ocspInfoRepository).save(captor.capture());
         assertEquals(newUrl, captor.getValue().getUrl());
         assertEquals(cert, captor.getValue().getCert());
@@ -163,7 +157,7 @@ class OcspRespondersServiceImplTest {
         assertAuditMessages(ocspInfo, newUrl);
     }
 
-    private void assertAuditMessages(OcspInfo ocspInfo, String url) {
+    private void assertAuditMessages(OcspInfoEntity ocspInfo, String url) {
         verify(auditDataHelper).put(OCSP_ID, ocspInfo.getId());
         verify(auditDataHelper).put(OCSP_URL, url);
         verify(auditDataHelper).put(eq(OCSP_CERT_HASH), isA(String.class));

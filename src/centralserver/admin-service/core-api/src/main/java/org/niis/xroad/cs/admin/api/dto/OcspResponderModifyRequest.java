@@ -25,15 +25,17 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.centralserver.restapi.dto;
+package org.niis.xroad.cs.admin.api.dto;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class OcspResponderAddRequest extends OcspResponderModifyRequest {
+public class OcspResponderModifyRequest {
 
-    private Integer caId;
+    private Integer id;
+    private String url;
+    private byte[] certificate;
 
 }

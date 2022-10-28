@@ -32,11 +32,10 @@ import org.niis.xroad.centralserver.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.OcspResponderDtoConverter;
-import org.niis.xroad.centralserver.restapi.dto.OcspResponderModifyRequest;
-import org.niis.xroad.centralserver.restapi.service.OcspRespondersService;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderModifyRequest;
+import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.cs.admin.api.service.OcspRespondersService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.util.MultipartFileUtils;
 import org.springframework.http.ResponseEntity;
@@ -86,4 +85,5 @@ public class OcspRespondersController implements OcspRespondersApi {
     public ResponseEntity<CertificateDetailsDto> getOcspRespondersCertificate(Integer id) {
         return ok(certificateDetailsDtoConverter.convert(ocspRespondersService.getOcspResponderCertificateDetails(id)));
     }
+
 }

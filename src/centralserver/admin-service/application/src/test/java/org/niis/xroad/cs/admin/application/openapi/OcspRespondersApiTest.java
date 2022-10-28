@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.centralserver.restapi.openapi;
+package org.niis.xroad.cs.admin.application.openapi;
 
 import ee.ria.xroad.common.TestCertUtil;
 
