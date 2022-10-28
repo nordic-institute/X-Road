@@ -34,6 +34,9 @@ import java.io.IOException;
 
 public final class MultipartFileUtils {
 
+    private MultipartFileUtils() {
+    }
+
     public static byte[] readBytes(MultipartFile multipartFile) {
         try {
             return multipartFile.getBytes();
