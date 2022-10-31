@@ -45,6 +45,7 @@ import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
@@ -149,13 +150,14 @@ class CertificationServicesServiceImplTest {
 
     @Test
     void addCertificationServiceOcspResponder() throws Exception {
-        var mockOcspResponder = ocspResponder();
+        var mockOcspResponderRequest = ocspResponderAddRequest();
+        var mockOcspResponder = mock(OcspResponder.class);
         var mockOcspInfo = ocspInfo();
-        when(ocspResponderConverter.toEntity(mockOcspResponder)).thenReturn(mockOcspInfo);
+        when(ocspResponderConverter.toEntity(mockOcspResponderRequest)).thenReturn(mockOcspInfo);
         when(ocspInfoRepository.save(mockOcspInfo)).thenReturn(mockOcspInfo);
         when(ocspResponderConverter.toModel(mockOcspInfo)).thenReturn(mockOcspResponder);
 
-        var result = service.addOcspResponder(mockOcspResponder);
+        var result = service.addOcspResponder(mockOcspResponderRequest);
 
         assertThat(result).isEqualTo(mockOcspResponder);
         verify(auditDataHelper).put(CA_ID, mockOcspInfo.getCaInfo().getId());
@@ -238,11 +240,12 @@ class CertificationServicesServiceImplTest {
     }
 
 
-    private OcspResponder ocspResponder() throws CertificateEncodingException {
-        return new OcspResponder()
-                .setCaId(1)
+    private OcspResponderAddRequest ocspResponderAddRequest() throws CertificateEncodingException {
+        var request = new OcspResponderAddRequest();
+        request.setCaId(1)
                 .setUrl("https://flakyocsp:666")
                 .setCertificate(TestCertUtil.getOcspSigner().certChain[0].getEncoded());
+        return request;
     }
 
     private OcspInfoEntity ocspInfo() throws CertificateEncodingException {

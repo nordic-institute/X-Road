@@ -2393,14 +2393,14 @@ paths:
       description: <h3>CS administrator deletes an ocsp responder.</h3>
       operationId: deleteOcspResponder
       parameters:
-        - description: unique identifier of the ocsp responder
+        - description: unique identifier of the OCSP Responder
           in: path
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       responses:
         '204':
           description: ocsp responder deletion was successful
@@ -2467,9 +2467,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
           multipart/form-data:

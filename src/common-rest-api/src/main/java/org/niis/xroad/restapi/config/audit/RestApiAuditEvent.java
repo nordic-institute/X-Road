@@ -131,7 +131,7 @@ public enum RestApiAuditEvent {
     EDIT_CERTIFICATION_SERVICE_SETTINGS("Edit certification service settings"),
     ADD_CERTIFICATION_SERVICE_OCSP_RESPONDER("Add OCSP responder of certification service"),
     ADD_CERTIFICATION_SERVICE_INTERMEDIATE_CA("Add intermediate CA"),
-
+    EDIT_OCSP_RESPONDER("Edit OCSP responder"),
     ADD_GLOBAL_GROUP("Add global group"),
     DELETE_GLOBAL_GROUP("Delete global group"),
 
@@ -143,8 +143,8 @@ public enum RestApiAuditEvent {
     ADD_SUBSYSTEM("Add subsystem"),
     UNREGISTER_SUBSYSTEM("Unregister subsystem as security server client"),
     DELETE_SUBSYSTEM("Delete subsystem"),
-    DELETE_INTERMEDIATE_CA("Delete intermediate CA");
-
+    DELETE_INTERMEDIATE_CA("Delete intermediate CA"),
+    DELETE_OCSP_RESPONDER("Delete OCSP responder");
     private final String eventName;
 
     RestApiAuditEvent(String eventName) {

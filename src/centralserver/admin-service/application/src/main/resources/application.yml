@@ -13,6 +13,8 @@ spring:
     properties:
       hibernate:
         dialect_resolvers: ee.ria.xroad.common.db.Postgres10FixedImplicitSequenceDialectResolver
+  profiles:
+    include: nontest
   jackson:
     default-property-inclusion: NON_NULL
   liquibase:

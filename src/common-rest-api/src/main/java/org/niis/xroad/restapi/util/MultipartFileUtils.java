@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,36 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
-import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
-import org.niis.xroad.cs.admin.api.dto.CertificationService;
-import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
-import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
+package org.niis.xroad.restapi.util;
 
-import java.util.List;
-import java.util.Set;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.MultipartFile;
 
-public interface CertificationServicesService {
-    CertificationService add(ApprovedCertificationService approvedCa);
+import java.io.IOException;
 
-    CertificationService get(Integer id);
+public final class MultipartFileUtils {
 
-    CertificationService update(CertificationService approvedCa);
+    private MultipartFileUtils() {
+    }
 
-    CertificateDetails getCertificateDetails(Integer id);
+    public static byte[] readBytes(MultipartFile multipartFile) {
+        try {
+            return multipartFile.getBytes();
+        } catch (IOException e) {
+            throw new MultipartException("Failed to read multipart file", e);
+        }
+    }
 
-    CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert);
-
-    Set<CertificateAuthority> getIntermediateCas(Integer certificationServiceId);
-
-    List<CertificationServiceListItem> getCertificationServices();
-
-
-    OcspResponder addOcspResponder(OcspResponderAddRequest ocspResponder);
-
-    Set<OcspResponder> getOcspResponders(Integer certificationServiceId);
 }

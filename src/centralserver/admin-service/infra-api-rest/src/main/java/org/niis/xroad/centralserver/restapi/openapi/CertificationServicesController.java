@@ -26,7 +26,6 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.CertificationServicesApi;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
@@ -42,11 +41,12 @@ import org.niis.xroad.centralserver.restapi.converter.OcspResponderDtoConverter;
 import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
-import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.util.MultipartFileUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -74,14 +74,13 @@ public class CertificationServicesController implements CertificationServicesApi
     private final CertificateAuthorityDtoConverter certificateAuthorityDtoConverter;
 
     @Override
-    @SneakyThrows
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE)
     public ResponseEntity<ApprovedCertificationServiceDto> addCertificationService(MultipartFile certificate,
                                                                                    String certificateProfileInfo,
                                                                                    String tlsAuth) {
         var isForTlsAuth = parseBoolean(tlsAuth);
-        var approvedCa = new ApprovedCertificationService(certificate.getBytes(), certificateProfileInfo, isForTlsAuth);
+        var approvedCa = new ApprovedCertificationService(MultipartFileUtils.readBytes(certificate), certificateProfileInfo, isForTlsAuth);
 
         CertificationService persistedApprovedCa = certificationServicesService.add(approvedCa);
         return status(CREATED).body(approvedCertificationServiceDtoConverter.convert(persistedApprovedCa));
@@ -90,20 +89,20 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE_INTERMEDIATE_CA)
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
-    @SneakyThrows
     public ResponseEntity<CertificateAuthorityDto> addCertificationServiceIntermediateCa(Integer id, MultipartFile certificate) {
-        final CertificateAuthority certificateAuthority = certificationServicesService.addIntermediateCa(id, certificate.getBytes());
+        final CertificateAuthority certificateAuthority = certificationServicesService
+                .addIntermediateCa(id, MultipartFileUtils.readBytes(certificate));
         return status(CREATED).body(certificateAuthorityDtoConverter.convert(certificateAuthority));
     }
 
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE_OCSP_RESPONDER)
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
-    @SneakyThrows
     public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(Integer caId, String url, MultipartFile certificate) {
-        var ocspResponder = certificationServicesService.addOcspResponder(
-                new OcspResponder().setCaId(caId).setUrl(url).setCertificate(certificate.getBytes())
-        );
+        final var addRequest = new OcspResponderAddRequest();
+        addRequest.setCaId(caId).setUrl(url).setCertificate(MultipartFileUtils.readBytes(certificate));
+
+        var ocspResponder = certificationServicesService.addOcspResponder(addRequest);
         return status(CREATED).body(ocspResponderDtoConverter.toDto(ocspResponder));
     }
 

@@ -30,27 +30,46 @@ import ee.ria.xroad.common.TestCertUtil;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.KeyUsageConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
+import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.time.Instant;
 import java.util.Optional;
 
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.OCSP_RESPONDER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
 @ExtendWith(MockitoExtension.class)
 class OcspRespondersServiceImplTest {
@@ -62,16 +81,21 @@ class OcspRespondersServiceImplTest {
 
     @Mock
     private OcspInfoRepository ocspInfoRepository;
+    @Mock
+    private AuditDataHelper auditDataHelper;
+
+    @Spy
+    private OcspResponderConverter ocspResponderConverter = new OcspResponderConverter(mock(ApprovedCaRepository.class));
+
     @Spy
     private CaInfoConverter caInfoConverter = new CaInfoConverter(new KeyUsageConverter());
 
     @InjectMocks
     private OcspRespondersServiceImpl service;
 
-
     @Test
     void getCertificateDetails() {
-        when(ocspInfoRepository.findById(ID)).thenReturn(Optional.of(ocspResponder()));
+        when(ocspInfoRepository.findById(ID)).thenReturn(Optional.of(ocspInfo()));
 
         final CertificateDetails certificateDetails = service.getOcspResponderCertificateDetails(ID);
 
@@ -86,8 +110,86 @@ class OcspRespondersServiceImplTest {
                 certificateDetails.getIssuerDistinguishedName());
     }
 
+    @Test
+    void update() throws Exception {
+        final byte[] cert = TestCertUtil.getOcspSigner().certChain[0].getEncoded();
+        final String newUrl = "http://new.url";
+        final OcspResponderRequest request = new OcspResponderRequest()
+                .setId(ID)
+                .setUrl(newUrl)
+                .setCertificate(cert);
+
+        final OcspInfoEntity ocspInfo = ocspInfo();
+
+        when(ocspInfoRepository.findById(ID)).thenReturn(Optional.of(ocspInfo));
+        when(ocspInfoRepository.save(isA(OcspInfoEntity.class))).thenReturn(ocspInfo);
+
+        final OcspResponder result = service.update(request);
+
+        ArgumentCaptor<OcspInfoEntity> captor = ArgumentCaptor.forClass(OcspInfoEntity.class);
+        verify(ocspInfoRepository).save(captor.capture());
+        assertEquals(newUrl, captor.getValue().getUrl());
+        assertEquals(cert, captor.getValue().getCert());
+
+        assertEquals(newUrl, result.getUrl());
+
+        assertAuditMessages(ocspInfo, newUrl);
+    }
+
+    @Test
+    void updateOnlyUrl() {
+        final String newUrl = "http://new.url";
+        final OcspResponderRequest request = new OcspResponderRequest()
+                .setId(ID)
+                .setUrl(newUrl);
+
+        final OcspInfoEntity ocspInfo = ocspInfo();
+        final byte[] cert = ocspInfo.getCert();
+
+        when(ocspInfoRepository.findById(ID)).thenReturn(Optional.of(ocspInfo));
+        when(ocspInfoRepository.save(isA(OcspInfoEntity.class))).thenReturn(ocspInfo);
+
+        final OcspResponder result = service.update(request);
+
+        ArgumentCaptor<OcspInfoEntity> captor = ArgumentCaptor.forClass(OcspInfoEntity.class);
+        verify(ocspInfoRepository).save(captor.capture());
+        assertEquals(newUrl, captor.getValue().getUrl());
+        assertEquals(cert, captor.getValue().getCert());
+
+        assertEquals(newUrl, result.getUrl());
+
+        assertAuditMessages(ocspInfo, newUrl);
+    }
+
+    @Test
+    void shouldDelete() {
+        final OcspInfoEntity ocspInfo = ocspInfo();
+        when(ocspInfoRepository.findById(ID)).thenReturn(Optional.of(ocspInfo));
+
+        service.delete(ID);
+
+        verify(auditDataHelper).put(OCSP_ID, ocspInfo.getId());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenOcspInfoNotFound() {
+        when(ocspInfoRepository.findById(ID)).thenReturn(Optional.empty());
+
+        Executable testable = () -> service.delete(ID);
+
+        NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
+        assertEquals(OCSP_RESPONDER_NOT_FOUND.getDescription(), actualThrown.getMessage());
+    }
+
+    private void assertAuditMessages(OcspInfoEntity ocspInfo, String url) {
+        verify(auditDataHelper).put(OCSP_ID, ocspInfo.getId());
+        verify(auditDataHelper).put(OCSP_URL, url);
+        verify(auditDataHelper).put(eq(OCSP_CERT_HASH), isA(String.class));
+        verify(auditDataHelper).put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+    }
+
     @SneakyThrows
-    private OcspInfoEntity ocspResponder() {
+    private OcspInfoEntity ocspInfo() {
         CaInfoEntity caInfo = new CaInfoEntity();
         caInfo.setValidFrom(VALID_FROM);
         caInfo.setValidTo(VALID_TO);

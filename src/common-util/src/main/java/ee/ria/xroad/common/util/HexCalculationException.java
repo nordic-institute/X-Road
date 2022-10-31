@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,36 +24,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
-import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
-import org.niis.xroad.cs.admin.api.dto.CertificationService;
-import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
-import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
+package ee.ria.xroad.common.util;
 
-import java.util.List;
-import java.util.Set;
+public class HexCalculationException extends RuntimeException {
 
-public interface CertificationServicesService {
-    CertificationService add(ApprovedCertificationService approvedCa);
+    public HexCalculationException(Throwable cause) {
+        super(cause);
+    }
 
-    CertificationService get(Integer id);
-
-    CertificationService update(CertificationService approvedCa);
-
-    CertificateDetails getCertificateDetails(Integer id);
-
-    CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert);
-
-    Set<CertificateAuthority> getIntermediateCas(Integer certificationServiceId);
-
-    List<CertificationServiceListItem> getCertificationServices();
-
-
-    OcspResponder addOcspResponder(OcspResponderAddRequest ocspResponder);
-
-    Set<OcspResponder> getOcspResponders(Integer certificationServiceId);
 }
