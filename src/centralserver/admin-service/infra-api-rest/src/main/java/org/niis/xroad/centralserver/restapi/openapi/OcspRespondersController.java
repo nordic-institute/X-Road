@@ -44,6 +44,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
+import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
@@ -58,8 +59,11 @@ public class OcspRespondersController implements OcspRespondersApi {
 
 
     @Override
-    public ResponseEntity<Void> deleteOcspResponder(String id) {
-        throw new NotImplementedException("deleteOcspResponder not implemented yet");
+    @PreAuthorize("hasAuthority('EDIT_APPROVED_CA')")
+    @AuditEventMethod(event = RestApiAuditEvent.DELETE_OCSP_RESPONDER)
+    public ResponseEntity<Void> deleteOcspResponder(Integer id) {
+        ocspRespondersService.delete(id);
+        return noContent().build();
     }
 
     @Override

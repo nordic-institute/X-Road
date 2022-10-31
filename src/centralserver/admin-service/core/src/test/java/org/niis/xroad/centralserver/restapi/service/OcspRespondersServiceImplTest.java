@@ -30,6 +30,7 @@ import ee.ria.xroad.common.TestCertUtil;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -38,6 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.KeyUsageConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
@@ -56,11 +58,13 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.OCSP_RESPONDER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.DIGITAL_SIGNATURE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
@@ -155,6 +159,26 @@ class OcspRespondersServiceImplTest {
         assertEquals(newUrl, result.getUrl());
 
         assertAuditMessages(ocspInfo, newUrl);
+    }
+
+    @Test
+    void shouldDelete() {
+        final OcspInfoEntity ocspInfo = ocspInfo();
+        when(ocspInfoRepository.findById(ID)).thenReturn(Optional.of(ocspInfo));
+
+        service.delete(ID);
+
+        verify(auditDataHelper).put(OCSP_ID, ocspInfo.getId());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenOcspInfoNotFound() {
+        when(ocspInfoRepository.findById(ID)).thenReturn(Optional.empty());
+
+        Executable testable = () -> service.delete(ID);
+
+        NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
+        assertEquals(OCSP_RESPONDER_NOT_FOUND.getDescription(), actualThrown.getMessage());
     }
 
     private void assertAuditMessages(OcspInfoEntity ocspInfo, String url) {

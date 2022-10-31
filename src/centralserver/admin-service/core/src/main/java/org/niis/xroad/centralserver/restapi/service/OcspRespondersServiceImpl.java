@@ -26,7 +26,6 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
@@ -44,13 +43,12 @@ import javax.transaction.Transactional;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.OCSP_RESPONDER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
-@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -66,12 +64,12 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
         return ocspInfoRepository.findById(id)
                 .map(OcspInfoEntity::getCaInfo)
                 .map(caInfoConverter::toCertificateDetails)
-                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND));
     }
 
     private OcspInfoEntity get(Integer id) {
         return ocspInfoRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND));
     }
 
     @Override
@@ -92,4 +90,13 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
 
         return ocspResponderConverter.toModel(savedOcspInfo);
     }
+
+    @Override
+    public void delete(Integer id) {
+        OcspInfoEntity ocspResponder = get(id);
+        ocspInfoRepository.delete(ocspResponder);
+
+        auditDataHelper.put(OCSP_ID, ocspResponder.getId());
+    }
+
 }

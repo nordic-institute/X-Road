@@ -34,4 +34,6 @@ public interface OcspRespondersService {
 
     OcspResponder update(OcspResponderRequest updateRequest);
 
+    void delete(Integer id);
+
 }
