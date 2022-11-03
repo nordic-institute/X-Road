@@ -38,7 +38,6 @@ include "centralserver:admin-service"
 include 'centralserver:admin-service:core'
 include 'centralserver:admin-service:core-api'
 include 'centralserver:admin-service:infra-api-rest'
-include 'centralserver:admin-service:service'
 include 'centralserver:admin-service:application'
 include 'centralserver:admin-service:ui'
 include 'centralserver:admin-service:infra-jpa'
