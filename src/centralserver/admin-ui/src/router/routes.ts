@@ -77,10 +77,11 @@ import ManagementRequests from '@/views/ManagementRequests/ManagementRequests.vu
 import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
 import AppForbidden from '@/views/AppForbidden.vue';
 import CertificationService from '@/views/TrustServices/CertificationService/CertificationService.vue';
-import CertificationServiceDetails from '@/views/TrustServices/CertificationService/Details/CertificationServiceDetails.vue';
+import CertificationServiceDetails from '@/views/TrustServices/CertificationService/CertificationServiceDetails.vue';
 import TrustServiceList from '@/views/TrustServices/TrustServiceList.vue';
-import CertificationServiceSettings
-  from "@/views/TrustServices/CertificationService/Settings/CertificationServiceSettings.vue";
+import CertificationServiceSettings from '@/views/TrustServices/CertificationService/CertificationServiceSettings.vue';
+import CertificationServiceOcspResponders from "@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue";
+import OcspResponderCertificate from "@/views/TrustServices/CertificationService/OcspResponderCertificate.vue";
 
 const routes: RouteConfig[] = [
   {
@@ -297,12 +298,12 @@ const routes: RouteConfig[] = [
           },
           {
             path: '/certification-services/:certificationServiceId',
-            components: {
-              default: CertificationService,
-              pageNavigation: PageNavigation,
-            },
+            component: CertificationService,
             meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props: { default: true },
+            props: (route) => {
+              const certificationServiceId = Number(route.params.certificationServiceId)
+              return { certificationServiceId }
+            },
             redirect: '/certification-services/:certificationServiceId/details',
             children: [
               {
@@ -317,8 +318,24 @@ const routes: RouteConfig[] = [
                 component: CertificationServiceSettings,
                 meta: { permissions: [Permissions.EDIT_APPROVED_CA] },
               },
+              {
+                name: RouteName.CertificationServiceOcspResponders,
+                path: 'ocsp-responders',
+                component: CertificationServiceOcspResponders,
+                meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+              },
             ],
           },
+          {
+            name: RouteName.OcspResponderCertificateDetails,
+            path: 'ocsp-responder/:ocspResponderId/certificate-details',
+            component: OcspResponderCertificate,
+            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+            props: (route) => {
+              const ocspResponderId = Number(route.params.ocspResponderId)
+              return { ocspResponderId }
+            }
+          }
         ],
       },
 

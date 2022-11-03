@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
+  <main>
     <xrd-simple-dialog
       :dialog="showUploadCertificateDialog"
       cancel-button-text="action.cancel"
@@ -83,7 +83,7 @@
         </div>
       </template>
     </xrd-simple-dialog>
-  </xrd-sub-view-container>
+  </main>
 </template>
 
 <script lang="ts">
@@ -92,7 +92,7 @@ import { FileUploadResult } from '@niis/shared-ui';
 import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
-  name: 'AddApprovedCSDialog',
+  name: 'AddCertificationServiceDialog',
   props: {
     showDialog: {
       type: Boolean as Prop<boolean>,
