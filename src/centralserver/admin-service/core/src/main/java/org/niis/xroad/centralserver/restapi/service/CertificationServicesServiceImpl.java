@@ -30,6 +30,7 @@ import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.CertificateConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
@@ -81,6 +82,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     private final ApprovedCaConverter approvedCaConverter;
     private final OcspResponderConverter ocspResponderConverter;
     private final CaInfoConverter caInfoConverter;
+    private final CertificateConverter certConverter;
 
     @Override
     public CertificationService add(ApprovedCertificationService certificationService) {
@@ -121,7 +123,8 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     public CertificateDetails getCertificateDetails(Integer id) {
         return approvedCaRepository.findById(id)
                 .map(ApprovedCaEntity::getCaInfo)
-                .map(caInfoConverter::toCertificateDetails)
+                .map(CaInfoEntity::getCert)
+                .map(certConverter::toCertificateDetails)
                 .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
     }
 

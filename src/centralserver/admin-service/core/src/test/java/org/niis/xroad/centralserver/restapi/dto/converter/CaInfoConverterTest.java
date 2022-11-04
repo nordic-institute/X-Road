@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CaInfoConverterTest {
 
-    private final CaInfoConverter caInfoConverter = new CaInfoConverter(new KeyUsageConverter());
+    private final CaInfoConverter caInfoConverter = new CaInfoConverter(new CertificateConverter(new KeyUsageConverter()));
 
     @Test
     void toCaInfo() throws Exception {
