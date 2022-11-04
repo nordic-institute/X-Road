@@ -33,7 +33,12 @@ import org.niis.xroad.centralserver.openapi.IntermediateCasApi;
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
 import org.niis.xroad.centralserver.restapi.converter.CertificateAuthorityDtoConverter;
+import org.niis.xroad.centralserver.restapi.converter.OcspResponderDtoConverter;
+import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
+import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
 import org.niis.xroad.cs.admin.api.service.IntermediateCasService;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,7 +48,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Set;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_INTERMEDIATE_CA_OCSP_RESPONDER;
+import static org.niis.xroad.restapi.util.MultipartFileUtils.readBytes;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.ResponseEntity.ok;
+import static org.springframework.http.ResponseEntity.status;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -54,10 +63,19 @@ public class IntermediateCasController implements IntermediateCasApi {
     private final IntermediateCasService intermediateCasService;
 
     private final CertificateAuthorityDtoConverter certificateAuthorityDtoConverter;
+    private final OcspResponderDtoConverter ocspResponderDtoConverter;
 
     @Override
-    public ResponseEntity<OcspResponderDto> addIntermediateCaOcspResponder(String id, String url, MultipartFile certificate) {
-        throw new NotImplementedException("addIntermediateCaOcspResponder not implemented yet");
+    @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
+    @AuditEventMethod(event = ADD_INTERMEDIATE_CA_OCSP_RESPONDER)
+    public ResponseEntity<OcspResponderDto> addIntermediateCaOcspResponder(Integer id, String url, MultipartFile certificate) {
+        final OcspResponderRequest ocspResponderRequest = new OcspResponderAddRequest()
+                .setUrl(url)
+                .setCertificate(readBytes(certificate));
+
+        final OcspResponder ocspResponder = intermediateCasService.addOcspResponder(id, ocspResponderRequest);
+
+        return status(CREATED).body(ocspResponderDtoConverter.toDto(ocspResponder));
     }
 
     @Override
