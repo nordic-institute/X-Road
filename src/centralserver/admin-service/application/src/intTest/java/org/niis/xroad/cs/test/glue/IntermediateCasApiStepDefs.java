@@ -58,6 +58,8 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         final ResponseEntity<CertificateAuthorityDto> response = certificationServicesApi
                 .addCertificationServiceIntermediateCa(certificationServiceId, certificate);
 
+        assertEquals(CREATED, response.getStatusCode());
+
         scenarioContext.putStepData("intermediateCasId", response.getBody().getId());
     }
 
