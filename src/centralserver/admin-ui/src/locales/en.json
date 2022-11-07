@@ -271,6 +271,23 @@
     "signKey": "Sign key",
     "token": "Token:"
   },
+  "cert" : {
+    "certificate": "Certificate",
+    "hashInfo": "Hash (SHA-1)",
+    "rsaExp": "RSA Public Key Exponent",
+    "rsaModulus": "RSA Public Key Modulus",
+    "keyUsage": {
+      "CRL_SIGN": "CRL Sign",
+      "DATA_ENCIPHERMENT": "Data Encipherment",
+      "DECIPHER_ONLY": "Decipher Only",
+      "DIGITAL_SIGNATURE": "Digital Signature",
+      "ENCIPHER_ONLY": "Encipher Only",
+      "KEY_AGREEMENT": "Key Agreement",
+      "KEY_CERT_SIGN": "Certificate Sign",
+      "KEY_ENCIPHERMENT": "Key Encipherment",
+      "NON_REPUDIATION": "Non Repudiation"
+    }
+  },
   "login": {
     "errorMsg401": "Wrong username or password",
     "generalError": "Login failed. Please try again.",
@@ -446,9 +463,34 @@
         "certProfile": "Certificate profile info (fully qualified class name that implements the ee.ria.xroad.common.CertificateProfileInfoProvider interface)",
         "saveSuccess": "CA Settings successfully saved"
       },
+      "ocspResponders": {
+        "viewCertificate": "View Certificate",
+        "url": "URL",
+        "add": {
+          "dialog": {
+            "title": "Add OCSP Responder"
+          },
+          "success": "OCSP Responder added successfully"
+        },
+        "edit": {
+          "dialog": {
+            "title": "Edit OCSP Responder",
+            "uploadCertificate": "Upload new certificate"
+          },
+          "success": "OCSP Responder edited successfully"
+        },
+        "delete": {
+          "confirmationDialog": {
+            "message": "Are you sure you want to delete the OCSP Responder with the URL {url}?",
+            "title": "Are you sure?"
+          },
+          "success": "OCSP Responder deleted successfully"
+        }
+      },
       "pagenavigation": {
         "details": "Details",
-        "settings": "CA Settings"
+        "settings": "CA Settings",
+        "ocspResponders": "OCSP Responders"
       }
     }
   },

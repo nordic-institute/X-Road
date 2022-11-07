@@ -118,19 +118,19 @@
     </div>
 
     <!-- Dialogs -->
-    <AddApprovedCSDialog
+    <AddCertificationServiceDialog
       v-if="showAddCSDialog"
       :show-dialog="showAddCSDialog"
       @save="addCertificationService"
       @cancel="hideAddCSDialog"
     >
-    </AddApprovedCSDialog>
+    </AddCertificationServiceDialog>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import AddApprovedCSDialog from '@/views/TrustServices/AddApprovedCSDialog.vue';
+import AddCertificationServiceDialog from '@/components/certificationServices/AddCertificationServiceDialog.vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
@@ -146,7 +146,7 @@ import {
 export default Vue.extend({
   name: 'TrustServiceList',
   components: {
-    AddApprovedCSDialog,
+    AddCertificationServiceDialog,
   },
   data() {
     return {

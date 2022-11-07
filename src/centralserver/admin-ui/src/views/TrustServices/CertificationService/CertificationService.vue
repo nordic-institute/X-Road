@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div id="certificationserviceview">
+  <div id="certification-service-view">
     <div class="header-row">
       <div class="title-search">
         <div class="xrd-view-title">
@@ -57,7 +57,7 @@ export default Vue.extend({
   components: { PageNavigation },
   props: {
     certificationServiceId: {
-      type: String,
+      type: Number,
       required: true,
     },
   },
@@ -80,6 +80,12 @@ export default Vue.extend({
           url: `/certification-services/${this.certificationServiceId}/settings`,
           label: this.$t(
             'trustServices.trustService.pagenavigation.settings',
+          ) as string,
+        },
+        {
+          url: `/certification-services/${this.certificationServiceId}/ocsp-responders`,
+          label: this.$t(
+            'trustServices.trustService.pagenavigation.ocspResponders',
           ) as string,
         },
       ];

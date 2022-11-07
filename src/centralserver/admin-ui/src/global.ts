@@ -38,6 +38,8 @@ export enum RouteName {
   TrustServices = 'trust-services',
   CertificationServiceDetails = 'certification-service-details',
   CertificationServiceSettings = 'certification-service-settings',
+  CertificationServiceOcspResponders = 'certification-service-ocsp-responders',
+  OcspResponderCertificateDetails = 'ocsp-responder-certificate-details',
   Settings = 'settings',
   GlobalResources = 'global-resources',
   GlobalGroup = 'global-group',
