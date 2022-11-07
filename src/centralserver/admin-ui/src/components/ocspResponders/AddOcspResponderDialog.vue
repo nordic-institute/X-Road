@@ -25,44 +25,54 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
-    :disable-save="!formReady"
-    :dialog="true"
-    title="trustServices.trustService.ocspResponders.add.dialog.title"
-    save-button-text="action.save"
-    cancel-button-text="action.cancel"
-    @cancel="cancel"
-    @save="add"
-  >
-    <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="ocspUrl"
-          :label="$t('trustServices.trustService.ocspResponders.url')"
-          outlined
-          persistent-hint
-          data-test="ocsp-responder-url-input"
-        ></v-text-field>
-      </div>
+  <ValidationObserver v-slot="{ invalid }">
+    <xrd-simple-dialog
+      :disable-save="invalid || !certFile || !certFileTitle"
+      :dialog="true"
+      title="trustServices.trustService.ocspResponders.add.dialog.title"
+      save-button-text="action.save"
+      cancel-button-text="action.cancel"
+      @cancel="cancel"
+      @save="add"
+    >
+      <template #content>
+        <div class="dlg-input-width">
+          <ValidationProvider
+            v-slot="{ errors }"
+            rules="required|url"
+            name="url"
+          >
+            <v-text-field
+              v-model="ocspUrl"
+              :label="$t('trustServices.trustService.ocspResponders.url')"
+              :error-messages="errors"
+              outlined
+              persistent-hint
+              data-test="ocsp-responder-url-input"
 
-      <div class="dlg-input-width">
-        <xrd-file-upload
-          v-slot="{ upload }"
-          accepts=".der, .crt, .pem, .cer"
-          @file-changed="onFileUploaded"
-        >
-          <v-text-field
-            v-model="certFileTitle"
-            outlined
-            autofocus
-            :label="$t('trustServices.uploadCertificate')"
-            append-icon="icon-Upload"
-            @click="upload"
-          ></v-text-field>
-        </xrd-file-upload>
-      </div>
-    </template>
-  </xrd-simple-dialog>
+            ></v-text-field>
+          </ValidationProvider>
+        </div>
+
+        <div class="dlg-input-width">
+          <xrd-file-upload
+            v-slot="{ upload }"
+            accepts=".der, .crt, .pem, .cer"
+            @file-changed="onFileUploaded"
+          >
+            <v-text-field
+              v-model="certFileTitle"
+              outlined
+              autofocus
+              :label="$t('trustServices.uploadCertificate')"
+              append-icon="icon-Upload"
+              @click="upload"
+            ></v-text-field>
+          </xrd-file-upload>
+        </div>
+      </template>
+    </xrd-simple-dialog>
+  </ValidationObserver>
 </template>
 
 <script lang="ts">
@@ -71,9 +81,14 @@ import {mapActions, mapStores} from "pinia";
 import {useOcspResponderStore} from "@/store/modules/trust-services";
 import {notificationsStore} from "@/store/modules/notifications";
 import {FileUploadResult} from "@niis/shared-ui";
+import {ValidationObserver, ValidationProvider} from "vee-validate";
 
 export default Vue.extend({
   name: 'AddOcspResponderDialog',
+  components: {
+    ValidationProvider,
+    ValidationObserver
+  },
   props: {
     caId: {
       type: Number,
@@ -89,13 +104,6 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(useOcspResponderStore),
-    formReady(): boolean {
-      return !!(
-        this.ocspUrl &&
-        this.certFile &&
-        this.certFileTitle
-      );
-    },
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
