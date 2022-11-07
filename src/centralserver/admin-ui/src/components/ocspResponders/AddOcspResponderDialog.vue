@@ -32,6 +32,7 @@
       title="trustServices.trustService.ocspResponders.add.dialog.title"
       save-button-text="action.save"
       cancel-button-text="action.cancel"
+      :loading="loading"
       @cancel="cancel"
       @save="add"
     >
@@ -100,6 +101,7 @@ export default Vue.extend({
       ocspUrl: '',
       certFile: null as File | null,
       certFileTitle: '',
+      loading: false,
     };
   },
   computed: {
@@ -115,6 +117,7 @@ export default Vue.extend({
       this.certFileTitle = result.file.name;
     },
     add(): void {
+      this.loading = true;
       this.ocspResponderServiceStore.addOcspResponder(this.ocspUrl, this.certFile!)
       .then(() => {
         this.showSuccess(this.$t('trustServices.trustService.ocspResponders.add.success'));
@@ -122,7 +125,8 @@ export default Vue.extend({
       })
       .catch((error) => {
         this.showError(error);
-      });
+      })
+      .finally(() => (this.loading = false));
     },
     cancel(): void {
       this.$emit('cancel');

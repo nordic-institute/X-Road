@@ -30,6 +30,7 @@
     title="trustServices.caSettings"
     save-button-text="action.save"
     cancel-button-text="action.cancel"
+    :loading="loading"
     @cancel="cancelEdit"
     @save="updateCertificationServiceSettings"
   >
@@ -62,7 +63,8 @@ export default Vue.extend({
   },
   data() {
     return {
-      tlsAuth: this.certificationService.tls_auth
+      tlsAuth: this.certificationService.tls_auth,
+      loading: false,
     }
   },
   computed: {
@@ -74,6 +76,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     updateCertificationServiceSettings(): void {
+      this.loading = true;
       this.certificationServiceStore.update(
         this.certificationService.id, {certificate_profile_info: this.certificationService.certificate_profile_info, tls_auth: `${this.tlsAuth}`}
       )
@@ -83,7 +86,8 @@ export default Vue.extend({
       })
       .catch((error) => {
         this.showError(error);
-      });
+      })
+      .finally(() => (this.loading = false));
     }
   }
 });
