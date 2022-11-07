@@ -30,10 +30,14 @@ import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
 
+import java.util.Set;
+
 public interface IntermediateCasService {
     CertificateAuthority get(Integer id);
 
     OcspResponder addOcspResponder(Integer intermediateCaId, OcspResponderRequest ocspResponderRequest);
+
+    Set<OcspResponder> getOcspResponders(Integer intermediateCaId);
 
     void delete(Integer id);
 }

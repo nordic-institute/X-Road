@@ -50,9 +50,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.security.cert.CertificateEncodingException;
 import java.util.Optional;
+import java.util.Set;
 
 import static ee.ria.xroad.common.TestCertUtil.getOcspSigner;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.isA;
@@ -172,6 +174,19 @@ class IntermediateCasServiceImplTest {
         verify(auditDataHelper).put(OCSP_URL, URL);
         verify(auditDataHelper).put(OCSP_CERT_HASH, "F5:1B:1F:9C:07:23:4C:DA:E6:4C:99:CB:FC:D8:EE:0E:C5:5F:A4:AF");
         verify(auditDataHelper).put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+    }
+
+    @Test
+    void getOcspResponders() {
+        final OcspInfoEntity ocspInfo = ocspInfoEntity();
+        when(caInfoRepository.findById(ID)).thenReturn(Optional.of(caInfo));
+        when(caInfo.getApprovedCa()).thenReturn(new ApprovedCaEntity());
+        when(caInfo.getOcspInfos()).thenReturn(Set.of(ocspInfo));
+        when(ocspResponderConverter.toModel(ocspInfo)).thenReturn(ocspResponder);
+
+        final Set<OcspResponder> ocspResponders = intermediateCasService.getOcspResponders(ID);
+
+        assertThat(ocspResponders).containsExactly(ocspResponder);
     }
 
     private OcspInfoEntity ocspInfoEntity() {
