@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.cs.test;
 
-import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
-import org.niis.xroad.cs.test.api.FeignSystemApi;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -38,7 +36,7 @@ import org.springframework.context.annotation.Profile;
 import static org.mockito.Mockito.mock;
 
 @Configuration
-@EnableFeignClients(clients = {FeignSystemApi.class, FeignSecurityServersApi.class})
+@EnableFeignClients(basePackages = {"org.niis.xroad.cs.test.api"})
 public class CsAdminServiceTestConfiguration {
 
     @Profile("!audit-test")
