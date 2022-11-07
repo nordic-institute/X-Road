@@ -37,6 +37,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.dto.converter.ApprovedCaConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.CertificateConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.KeyUsageConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
@@ -107,7 +108,9 @@ class CertificationServicesServiceImplTest {
     @Mock
     private AuditDataHelper auditDataHelper;
     @Spy
-    private CaInfoConverter caInfoConverter = new CaInfoConverter(new KeyUsageConverter());
+    private CaInfoConverter caInfoConverter = new CaInfoConverter(new CertificateConverter(new KeyUsageConverter()));
+    @Spy
+    private CertificateConverter certConverter = new CertificateConverter(new KeyUsageConverter());
 
     @Spy
     private ApprovedCaMapper approvedCaMapper = new ApprovedCaMapperImpl();

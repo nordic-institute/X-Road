@@ -84,8 +84,8 @@ import {mapState, mapStores} from 'pinia';
 import { useCertificationServiceStore } from '@/store/modules/trust-services';
 import {Permissions} from "@/global";
 import {userStore} from "@/store/modules/user";
-import EditCertProfileDialog from "@/views/TrustServices/CertificationService/Settings/EditCertProfileDialog.vue";
-import EditTlsAuthDialog from "@/views/TrustServices/CertificationService/Settings/EditTlsAuthDialog.vue";
+import EditCertProfileDialog from "@/components/certificationServices/EditCertProfileDialog.vue";
+import EditTlsAuthDialog from "@/components/certificationServices/EditTlsAuthDialog.vue";
 
 export default Vue.extend({
   name: 'CertificationServiceSettings',

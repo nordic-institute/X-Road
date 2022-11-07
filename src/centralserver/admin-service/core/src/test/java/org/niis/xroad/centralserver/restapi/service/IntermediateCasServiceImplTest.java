@@ -57,6 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -113,10 +114,23 @@ class IntermediateCasServiceImplTest {
     }
 
     @Test
+    void delete() {
+        when(caInfoRepository.findById(ID)).thenReturn(Optional.of(caInfo));
+        when(caInfo.getApprovedCa()).thenReturn(new ApprovedCaEntity());
+
+        intermediateCasService.delete(ID);
+
+        verify(caInfoRepository, times(1)).delete(caInfo);
+        verify(auditDataHelper).put(INTERMEDIATE_CA_ID, caInfo.getId());
+    }
+
+    @Test
     void getShouldThrowNotFoundException() {
         when(caInfoRepository.findById(ID)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> intermediateCasService.get(ID));
+        assertThrows(NotFoundException.class, () -> intermediateCasService.delete(ID));
+
         verifyNoInteractions(caInfoConverter);
     }
 

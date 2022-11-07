@@ -37,13 +37,13 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.CertificateConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.KeyUsageConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
-import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
@@ -88,7 +88,10 @@ class OcspRespondersServiceImplTest {
     private OcspResponderConverter ocspResponderConverter = new OcspResponderConverter(mock(ApprovedCaRepository.class));
 
     @Spy
-    private CaInfoConverter caInfoConverter = new CaInfoConverter(new KeyUsageConverter());
+    private CaInfoConverter caInfoConverter = new CaInfoConverter(new CertificateConverter(new KeyUsageConverter()));
+
+    @Spy
+    private CertificateConverter certConverter = new CertificateConverter(new KeyUsageConverter());
 
     @InjectMocks
     private OcspRespondersServiceImpl service;
@@ -190,16 +193,7 @@ class OcspRespondersServiceImplTest {
 
     @SneakyThrows
     private OcspInfoEntity ocspInfo() {
-        CaInfoEntity caInfo = new CaInfoEntity();
-        caInfo.setValidFrom(VALID_FROM);
-        caInfo.setValidTo(VALID_TO);
-        caInfo.setCert(TestCertUtil.generateAuthCert());
-        ApprovedCaEntity ca = new ApprovedCaEntity();
-        ca.setName(CA_NAME);
-        ca.setAuthenticationOnly(true);
-        ca.setCertProfileInfo(CERT_PROFILE);
-        ca.setCaInfo(caInfo);
-        return new OcspInfoEntity(caInfo, "https://flakyocsp:666", new byte[0]);
+        return new OcspInfoEntity(new CaInfoEntity(), "https://flakyocsp:666", TestCertUtil.generateAuthCert());
     }
 
 }

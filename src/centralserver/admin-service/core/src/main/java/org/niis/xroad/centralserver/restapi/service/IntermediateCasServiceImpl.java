@@ -78,6 +78,13 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
     }
 
     @Override
+    public void delete(Integer id) {
+        CaInfoEntity intermediateCa = getIntermediateCa(id);
+        caInfoJpaRepository.delete(intermediateCa);
+        auditDataHelper.put(INTERMEDIATE_CA_ID, intermediateCa.getId());
+    }
+
+    @Override
     public OcspResponder addOcspResponder(Integer intermediateCaId, OcspResponderRequest ocspResponderRequest) {
         final CaInfoEntity intermediateCa = getIntermediateCa(intermediateCaId);
         final OcspInfoEntity ocspInfoEntity = new OcspInfoEntity(intermediateCa, ocspResponderRequest.getUrl(),

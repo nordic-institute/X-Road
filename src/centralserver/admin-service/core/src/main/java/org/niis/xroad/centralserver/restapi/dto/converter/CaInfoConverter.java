@@ -27,26 +27,17 @@
 package org.niis.xroad.centralserver.restapi.dto.converter;
 
 import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.springframework.stereotype.Component;
 
-import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPublicKey;
 import java.util.Collection;
 import java.util.Set;
 
-import static ee.ria.xroad.common.util.CertUtils.getIssuerCommonName;
-import static ee.ria.xroad.common.util.CertUtils.getSubjectAlternativeNames;
-import static ee.ria.xroad.common.util.CertUtils.getSubjectCommonName;
-import static java.lang.String.valueOf;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.INVALID_CERTIFICATE;
 
@@ -54,46 +45,12 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 @RequiredArgsConstructor
 public class CaInfoConverter {
 
-    private static final int RADIX_FOR_HEX = 16;
-
-    private final KeyUsageConverter keyUsageConverter;
-
-    @SneakyThrows
-    public CertificateDetails toCertificateDetails(CaInfoEntity caInfo) {
-
-        final X509Certificate[] certificates = CertUtils.readCertificateChain(caInfo.getCert());
-        final X509Certificate certificate = certificates[0];
-
-        final CertificateDetails certificateDetails = new CertificateDetails()
-                .setHash(CryptoUtils.calculateCertHexHash(certificate.getEncoded()).toUpperCase())
-                .setVersion(certificate.getVersion())
-                .setSerial(valueOf(certificate.getSerialNumber()))
-                .setSignatureAlgorithm(certificate.getSigAlgName())
-                .setIssuerDistinguishedName(certificate.getIssuerDN().getName())
-                .setNotBefore(certificate.getNotBefore().toInstant())
-                .setNotAfter(certificate.getNotAfter().toInstant())
-                .setSubjectDistinguishedName(certificate.getSubjectDN().getName())
-                .setPublicKeyAlgorithm(certificate.getPublicKey().getAlgorithm())
-                .setKeyUsages(keyUsageConverter.convert(certificate.getKeyUsage()))
-                .setSubjectAlternativeNames(getSubjectAlternativeNames(certificate))
-                .setSignature(CryptoUtils.encodeHex(certificate.getSignature()))
-                .setIssuerCommonName(getIssuerCommonName(certificate))
-                .setSubjectCommonName(getSubjectCommonName(certificate));
-
-        final PublicKey publicKey = certificate.getPublicKey();
-        if (publicKey instanceof RSAPublicKey) {
-            final RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
-            certificateDetails.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent());
-            certificateDetails.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
-        }
-
-        return certificateDetails;
-    }
+    private final CertificateConverter certConverter;
 
     public CertificateAuthority toCertificateAuthority(CaInfoEntity caInfo) {
         return new CertificateAuthority()
                 .setId(caInfo.getId())
-                .setCaCertificate(this.toCertificateDetails(caInfo))
+                .setCaCertificate(certConverter.toCertificateDetails(caInfo.getCert()))
                 .setUpdatedAt(caInfo.getUpdatedAt())
                 .setCreatedAt(caInfo.getCreatedAt());
     }

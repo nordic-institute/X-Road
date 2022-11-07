@@ -26,14 +26,15 @@
  */
 import {
   ApprovedCertificationService,
-  ApprovedCertificationServiceListItem,
-  CertificationServiceFileAndSettings, CertificationServiceSettings, Client,
+  ApprovedCertificationServiceListItem, CertificateAuthority, CertificateDetails,
+  CertificationServiceFileAndSettings,
+  CertificationServiceSettings,
+  OcspResponder,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import certificationService from "@/views/TrustServices/CertificationService/CertificationService.vue";
 
-export interface State {
+export interface CertificationServiceStoreState {
   certificationServices: ApprovedCertificationServiceListItem[];
   currentCertificationService: ApprovedCertificationService | null;
 }
@@ -41,7 +42,7 @@ export interface State {
 export const useCertificationServiceStore = defineStore(
   'certificationService',
   {
-    state: (): State => ({
+    state: (): CertificationServiceStoreState => ({
       certificationServices: [],
       currentCertificationService: null,
     }),
@@ -54,7 +55,7 @@ export const useCertificationServiceStore = defineStore(
           )
           .then((resp) => (this.certificationServices = resp.data));
       },
-      loadById(certificationServiceId: string) {
+      loadById(certificationServiceId: number) {
         return axios
           .get<ApprovedCertificationService>(
             `/certification-services/${certificationServiceId}`,
@@ -87,6 +88,61 @@ export const useCertificationServiceStore = defineStore(
           .catch((error) => {
             throw error;
           });
+      },
+    },
+  },
+);
+
+
+export interface OcspResponderStoreState {
+  currentCa: ApprovedCertificationService | CertificateAuthority | null
+  currentOcspResponders: OcspResponder[];
+}
+
+export const useOcspResponderStore = defineStore(
+  'ocspResponderService',
+  {
+    state: (): OcspResponderStoreState => ({
+      currentCa: null,
+      currentOcspResponders: [],
+    }),
+    persist: true,
+    actions: {
+      loadByCa(currentCa: ApprovedCertificationService | CertificateAuthority) {
+        this.currentCa = currentCa;
+        this.fetchOcspResponders();
+      },
+      fetchOcspResponders() {
+        if (!this.currentCa) return
+
+        return axios
+          .get<OcspResponder[]>(
+            `/certification-services/${this.currentCa.id}/ocsp-responders`,
+          )
+          .then((resp) => (this.currentOcspResponders = resp.data));
+      },
+      addOcspResponder(url: string, certificate: File) {
+        const formData = new FormData();
+        formData.append('url', url);
+        formData.append('certificate', certificate);
+        return axios
+          .post(`/certification-services/${this.currentCa!.id}/ocsp-responders`, formData)
+          .finally(() => this.fetchOcspResponders());
+      },
+      updateOcspResponder(id: number, url: string, certificate: File | null) {
+        const formData = new FormData();
+        formData.append('url', url);
+        if (certificate) {
+          formData.append('certificate', certificate);
+        }
+        return axios
+          .patch(`/ocsp-responders/${id}/`, formData);
+      },
+      deleteOcspResponder(id: number) {
+        return axios.delete(`/ocsp-responders/${id}`);
+      },
+      getOcspResponderCertificate(id: number) {
+        return axios.get<CertificateDetails>(`/ocsp-responders/${id}/certificate`)
       }
     },
   },
