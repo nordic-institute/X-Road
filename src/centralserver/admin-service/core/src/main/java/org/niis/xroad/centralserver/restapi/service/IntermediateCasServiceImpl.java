@@ -93,14 +93,16 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
         intermediateCa.addOcspInfos(ocspInfoEntity);
 
         final OcspInfoEntity savedOcspInfo = ocspInfoRepository.save(ocspInfoEntity);
+        addAuditData(intermediateCaId, savedOcspInfo);
+        return ocspResponderConverter.toModel(savedOcspInfo);
+    }
 
+    private void addAuditData(Integer intermediateCaId, OcspInfoEntity savedOcspInfo) {
         auditDataHelper.put(INTERMEDIATE_CA_ID, intermediateCaId);
         auditDataHelper.put(OCSP_ID, savedOcspInfo.getId());
         auditDataHelper.put(OCSP_URL, savedOcspInfo.getUrl());
         auditDataHelper.put(OCSP_CERT_HASH, calculateCertHexHashDelimited(savedOcspInfo.getCert()));
         auditDataHelper.put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
-
-        return ocspResponderConverter.toModel(savedOcspInfo);
     }
 
     private boolean isIntermediateCa(CaInfoEntity caInfo) {

@@ -39,7 +39,6 @@ import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
 import org.niis.xroad.cs.admin.api.service.IntermediateCasService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,6 +49,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Set;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_INTERMEDIATE_CA_OCSP_RESPONDER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERMEDIATE_CA;
 import static org.niis.xroad.restapi.util.MultipartFileUtils.readBytes;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.ResponseEntity.noContent;
@@ -81,7 +81,7 @@ public class IntermediateCasController implements IntermediateCasApi {
     }
 
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
-    @AuditEventMethod(event = RestApiAuditEvent.DELETE_INTERMEDIATE_CA)
+    @AuditEventMethod(event = DELETE_INTERMEDIATE_CA)
     public ResponseEntity<Void> deleteIntermediateCa(Integer id) {
         intermediateCasService.delete(id);
         return noContent().build();
