@@ -48,7 +48,7 @@
       <div v-if="!certUploadActive">
         <div class="dlg-input-width mb-6">
           <xrd-button outlined class="mr-3" @click="navigateToCertificateDetails()">
-            {{ $t('trustServices.trustService.ocspResponders.viewCertificate') }}
+            {{ $t('trustServices.viewCertificate') }}
           </xrd-button>
           <xrd-button text @click="certUploadActive = true">
             <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>

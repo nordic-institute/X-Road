@@ -26,12 +26,13 @@
  -->
 <template>
   <div id="certification-service-view">
-    <div class="header-row">
-      <div class="title-search">
+    <div class="table-toolbar mt-0 pl-0">
         <div class="xrd-view-title">
           {{ certificationServiceStore.currentCertificationService.name }}
         </div>
-      </div>
+        <xrd-button outlined @click="navigateToCertificateDetails()">
+          {{ $t('trustServices.viewCertificate') }}
+        </xrd-button>
     </div>
     <PageNavigation
       :items="certificationServiceNavigationItems"
@@ -45,7 +46,7 @@ import Vue from 'vue';
 import PageNavigation, {
   NavigationItem,
 } from '@/components/layout/PageNavigation.vue';
-import { Colors } from '@/global';
+import {Colors, RouteName} from '@/global';
 import { mapStores } from 'pinia';
 import { useCertificationServiceStore } from '@/store/modules/trust-services';
 
@@ -91,8 +92,21 @@ export default Vue.extend({
       ];
     },
   },
+  methods: {
+    navigateToCertificateDetails() {
+      this.$router.push({
+        name: RouteName.CertificationServiceCertificateDetails,
+        params: {
+          certificationServiceId: String(this.certificationServiceId)
+        }
+      });
+    },
+  },
   created() {
     this.certificationServiceStore.loadById(this.certificationServiceId);
   },
 });
 </script>
+<style lang="scss" scoped>
+@import '~styles/tables';
+</style>

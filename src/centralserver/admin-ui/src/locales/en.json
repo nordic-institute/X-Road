@@ -452,6 +452,7 @@
     "timestampingServices": "Timestamping Services",
     "validFrom": "Valid from",
     "validTo": "Valid to",
+    "viewCertificate": "View Certificate",
     "uploadCertificate": "Upload the certificate file from your computer",
     "trustService": {
       "details" : {
@@ -464,7 +465,6 @@
         "saveSuccess": "CA Settings successfully saved"
       },
       "ocspResponders": {
-        "viewCertificate": "View Certificate",
         "url": "URL",
         "add": {
           "dialog": {
