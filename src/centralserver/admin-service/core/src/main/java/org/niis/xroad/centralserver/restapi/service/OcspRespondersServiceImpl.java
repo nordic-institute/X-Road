@@ -27,7 +27,7 @@ package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.centralserver.restapi.dto.converter.CaInfoConverter;
+import org.niis.xroad.centralserver.restapi.dto.converter.CertificateConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
@@ -54,7 +54,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 @RequiredArgsConstructor
 public class OcspRespondersServiceImpl implements OcspRespondersService {
     private final OcspInfoRepository ocspInfoRepository;
-    private final CaInfoConverter caInfoConverter;
+    private final CertificateConverter certConverter;
     private final OcspResponderConverter ocspResponderConverter;
 
     private final AuditDataHelper auditDataHelper;
@@ -62,8 +62,8 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
     @Override
     public CertificateDetails getOcspResponderCertificateDetails(Integer id) {
         return ocspInfoRepository.findById(id)
-                .map(OcspInfoEntity::getCaInfo)
-                .map(caInfoConverter::toCertificateDetails)
+                .map(OcspInfoEntity::getCert)
+                .map(certConverter::toCertificateDetails)
                 .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND));
     }
 
