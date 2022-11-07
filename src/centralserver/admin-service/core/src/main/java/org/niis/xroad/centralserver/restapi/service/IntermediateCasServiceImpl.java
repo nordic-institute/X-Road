@@ -34,11 +34,13 @@ import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.service.IntermediateCasService;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.CaInfoRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.INTERMEDIATE_CA_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
 
 @Service
 @Transactional
@@ -46,7 +48,7 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 public class IntermediateCasServiceImpl implements IntermediateCasService {
 
     private final CaInfoRepository caInfoJpaRepository;
-
+    private final AuditDataHelper auditData;
     private final CaInfoConverter caInfoConverter;
 
     @Override
@@ -55,6 +57,15 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
                 .filter(this::isIntermediateCa)
                 .map(caInfoConverter::toCertificateAuthority)
                 .orElseThrow(() -> new NotFoundException(INTERMEDIATE_CA_NOT_FOUND));
+    }
+
+    @Override
+    public void delete(Integer id) {
+        CaInfoEntity intermediateCa = caInfoJpaRepository.findById(id)
+                .filter(this::isIntermediateCa)
+                .orElseThrow(() -> new NotFoundException(INTERMEDIATE_CA_NOT_FOUND));
+        caInfoJpaRepository.delete(intermediateCa);
+        auditData.put(INTERMEDIATE_CA_ID, intermediateCa.getId());
     }
 
     private boolean isIntermediateCa(CaInfoEntity caInfo) {

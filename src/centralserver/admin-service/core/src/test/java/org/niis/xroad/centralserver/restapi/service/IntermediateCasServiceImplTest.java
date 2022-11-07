@@ -38,13 +38,17 @@ import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.CaInfoRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
 
 @ExtendWith(MockitoExtension.class)
 class IntermediateCasServiceImplTest {
@@ -59,6 +63,8 @@ class IntermediateCasServiceImplTest {
     private CaInfoEntity caInfo;
     @Mock
     private CertificateAuthority certificateAuthority;
+    @Mock
+    private AuditDataHelper auditData;
     @InjectMocks
     private IntermediateCasServiceImpl intermediateCasService;
 
@@ -74,10 +80,23 @@ class IntermediateCasServiceImplTest {
     }
 
     @Test
+    void delete() {
+        when(caInfoRepository.findById(ID)).thenReturn(Optional.of(caInfo));
+        when(caInfo.getApprovedCa()).thenReturn(new ApprovedCaEntity());
+
+        intermediateCasService.delete(ID);
+
+        verify(caInfoRepository, times(1)).delete(caInfo);
+        verify(auditData).put(INTERMEDIATE_CA_ID, caInfo.getId());
+    }
+
+    @Test
     void getShouldThrowNotFoundException() {
         when(caInfoRepository.findById(ID)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> intermediateCasService.get(ID));
+        assertThrows(NotFoundException.class, () -> intermediateCasService.delete(ID));
+
         verifyNoInteractions(caInfoConverter);
     }
 

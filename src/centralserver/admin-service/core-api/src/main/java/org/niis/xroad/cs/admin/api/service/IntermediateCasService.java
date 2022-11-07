@@ -30,4 +30,6 @@ import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 
 public interface IntermediateCasService {
     CertificateAuthority get(Integer id);
+
+    void delete(Integer id);
 }
