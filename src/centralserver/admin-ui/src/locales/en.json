@@ -119,7 +119,7 @@
     }
   },
   "customValidation": {
-    "invalidUrl": "URL is not valid, examples of valid URL-s: 'http://www.example.com', 'https://www.example.com'"
+    "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'"
   },
   "error_code": {
     "invalid_init_params": "Problem in initialization parameters",
