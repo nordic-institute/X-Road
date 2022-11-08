@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,16 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
-import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
+package org.niis.xroad.cs.test.api;
 
-public interface IntermediateCasService {
-    CertificateAuthority get(Integer id);
+import org.niis.xroad.centralserver.openapi.CertificationServicesApi;
+import org.springframework.cloud.openfeign.FeignClient;
 
-    OcspResponder addOcspResponder(Integer intermediateCaId, OcspResponderRequest ocspResponderRequest);
-
-    void delete(Integer id);
+@FeignClient(name = "certificationServicesApi", path = "/api/v1")
+public interface FeignCertificationServicesApi extends CertificationServicesApi {
 }
