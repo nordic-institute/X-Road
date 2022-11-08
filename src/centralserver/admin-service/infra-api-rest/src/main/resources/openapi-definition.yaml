@@ -1760,6 +1760,52 @@ paths:
       summary: add an ocsp responder to an intermediate certificate authority
       tags:
         - intermediate-cas
+  /intermediate-cas/{id}/ocsp-responders/{ocspId}:
+    delete:
+      description: <h3>CS administrator deletes an OCSP responder of intermediate CA.</h3>
+      operationId: deleteIntermediateCaOcspResponder
+      parameters:
+        - description: unique identifier of the intermediate certificate authority
+          in: path
+          name: id
+          required: true
+          schema:
+            format: int32
+            minLength: 1
+            type: integer
+        - description: unique identifier of the intermediateCA ocsp responder
+          in: path
+          name: ocspId
+          required: true
+          schema:
+            format: int32
+            minLength: 1
+            type: integer
+      responses:
+        '204':
+          description: ocsp responder of ca deletion was successful
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/DeleteKeyWarningExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete an intermediate certificate authority ocsp responder
+      tags:
+        - intermediate-cas
   /member-classes:
     get:
       description: <h3>CS Administrator lists member classes.</h3>

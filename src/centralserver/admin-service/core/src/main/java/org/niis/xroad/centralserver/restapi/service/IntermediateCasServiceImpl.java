@@ -47,6 +47,7 @@ import javax.transaction.Transactional;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.INTERMEDIATE_CA_NOT_FOUND;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.OCSP_RESPONDER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
@@ -95,6 +96,20 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
         final OcspInfoEntity savedOcspInfo = ocspInfoRepository.save(ocspInfoEntity);
         addAuditData(intermediateCaId, savedOcspInfo);
         return ocspResponderConverter.toModel(savedOcspInfo);
+    }
+
+    @Override
+    public void deleteOcspResponder(Integer intermediateCaId, Integer ocspId) {
+        final CaInfoEntity intermediateCa = getIntermediateCa(intermediateCaId);
+
+        OcspInfoEntity ocspResponder = intermediateCa.getOcspInfos().stream()
+                .filter(ocspInfo -> ocspId.equals(ocspInfo.getId()))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND));
+
+        ocspInfoRepository.delete(ocspResponder);
+
+        auditDataHelper.put(OCSP_ID, ocspResponder.getId());
     }
 
     private void addAuditData(Integer intermediateCaId, OcspInfoEntity savedOcspInfo) {

@@ -50,6 +50,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.security.cert.CertificateEncodingException;
 import java.util.Optional;
+import java.util.Set;
 
 import static ee.ria.xroad.common.TestCertUtil.getOcspSigner;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
@@ -72,6 +73,7 @@ class IntermediateCasServiceImplTest {
 
     private static final Integer ID = 123;
     private static final Integer NEW_ID = 1369;
+    private static final Integer OCSP_INFO_ID = 1234;
     private static final String URL = "http://test-url";
     private static final byte[] TEST_CERT;
 
@@ -149,7 +151,7 @@ class IntermediateCasServiceImplTest {
                 .setUrl(URL)
                 .setCertificate(TEST_CERT);
 
-        final OcspInfoEntity ocspInfoEntity = ocspInfoEntity();
+        final OcspInfoEntity ocspInfoEntity = ocspInfoEntity(NEW_ID);
 
         when(caInfoRepository.findById(ID)).thenReturn(Optional.of(caInfo));
         when(caInfo.getApprovedCa()).thenReturn(new ApprovedCaEntity());
@@ -174,9 +176,23 @@ class IntermediateCasServiceImplTest {
         verify(auditDataHelper).put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
-    private OcspInfoEntity ocspInfoEntity() {
+    @Test
+    void deleteOcspResponder() {
+        when(caInfoRepository.findById(ID)).thenReturn(Optional.of(caInfo));
+        when(caInfo.getApprovedCa()).thenReturn(new ApprovedCaEntity());
+        final OcspInfoEntity ocspResponderToDelete = ocspInfoEntity(OCSP_INFO_ID);
+        when(caInfo.getOcspInfos()).thenReturn(Set.of(ocspResponderToDelete));
+
+        intermediateCasService.deleteOcspResponder(ID, OCSP_INFO_ID);
+
+        verify(ocspInfoRepository).delete(ocspResponderToDelete);
+
+        verify(auditDataHelper).put(OCSP_ID, OCSP_INFO_ID);
+    }
+
+    private OcspInfoEntity ocspInfoEntity(Integer ocspId) {
         final OcspInfoEntity entity = new OcspInfoEntity(mock(CaInfoEntity.class), URL, TEST_CERT);
-        ReflectionTestUtils.setField(entity, "id", NEW_ID);
+        ReflectionTestUtils.setField(entity, "id", ocspId);
         return entity;
     }
 

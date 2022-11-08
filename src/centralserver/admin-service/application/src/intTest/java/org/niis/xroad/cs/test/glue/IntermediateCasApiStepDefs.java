@@ -42,6 +42,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
@@ -73,6 +74,19 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .addIntermediateCaOcspResponder(intermediateCasId, url, certificate);
 
         assertEquals(CREATED, response.getStatusCode());
+
+        scenarioContext.putStepData("ocspRespIdOfIntermediateCa", response.getBody().getId());
+    }
+
+    @When("OCSP responder is deleted from intermediate CAS")
+    public void ocspResponderIsDeletedFromIntermediateCAS() {
+        final Integer intermediateCasId = scenarioContext.getStepData("intermediateCasId");
+        final Integer ocspResponderId = scenarioContext.getStepData("ocspRespIdOfIntermediateCa");
+
+        final ResponseEntity<Void> response = intermediateCasApi
+                .deleteIntermediateCaOcspResponder(intermediateCasId, ocspResponderId);
+
+        assertEquals(NO_CONTENT, response.getStatusCode());
     }
 
 }

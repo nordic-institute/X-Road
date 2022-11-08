@@ -36,4 +36,6 @@ public interface IntermediateCasService {
     OcspResponder addOcspResponder(Integer intermediateCaId, OcspResponderRequest ocspResponderRequest);
 
     void delete(Integer id);
+
+    void deleteOcspResponder(Integer caId, Integer ocspId);
 }
