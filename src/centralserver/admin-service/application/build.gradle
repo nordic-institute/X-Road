@@ -13,7 +13,7 @@ configurations {
     }
 }
 dependencies {
-    dist(project(path: ":centralserver:admin-ui", configuration: "dist"))
+    dist(project(path: ":centralserver:admin-service:ui", configuration: "dist"))
 
     implementation project(":centralserver:admin-service:core")
     implementation project(":centralserver:admin-service:core-api")
@@ -104,7 +104,7 @@ dependencyManagement {
 
 task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
     from configurations.dist
-    into "${buildDir}/admin-ui/public"
+    into "${buildDir}/admin-service/ui/public"
 }
 
 jar {
@@ -115,7 +115,7 @@ bootJar {
 
     if (!project.hasProperty('skip-frontend-build')) {
         dependsOn copyUi
-        classpath += file("${buildDir}/admin-ui")
+        classpath += file("${buildDir}/admin-service/ui")
     } else {
         println("Warning: Excluding frontend from boot jar")
     }

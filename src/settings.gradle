@@ -32,7 +32,6 @@ include "op-monitor-daemon"
 include "shared-ui"
 
 include "centralserver"
-include "centralserver:admin-ui"
 
 include "centralserver:admin-service"
 include 'centralserver:admin-service:core'
