@@ -84,8 +84,8 @@ public class IntermediateCasController implements IntermediateCasApi {
     @Override
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     @AuditEventMethod(event = DELETE_OCSP_RESPONDER)
-    public ResponseEntity<Void> deleteIntermediateCaOcspResponder(Integer caId, Integer ocspId) {
-        intermediateCasService.deleteOcspResponder(caId, ocspId);
+    public ResponseEntity<Void> deleteIntermediateCaOcspResponder(Integer intermediateCaId, Integer ocspResponderId) {
+        intermediateCasService.deleteOcspResponder(intermediateCaId, ocspResponderId);
         return noContent().build();
     }
 

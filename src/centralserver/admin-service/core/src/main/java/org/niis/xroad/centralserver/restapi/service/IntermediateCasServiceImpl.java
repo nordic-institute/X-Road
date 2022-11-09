@@ -109,11 +109,11 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
     }
 
     @Override
-    public void deleteOcspResponder(Integer intermediateCaId, Integer ocspId) {
+    public void deleteOcspResponder(Integer intermediateCaId, Integer ocspResponderId) {
         final CaInfoEntity intermediateCa = getIntermediateCa(intermediateCaId);
 
         OcspInfoEntity ocspResponder = intermediateCa.getOcspInfos().stream()
-                .filter(ocspInfo -> ocspId.equals(ocspInfo.getId()))
+                .filter(ocspInfo -> ocspResponderId.equals(ocspInfo.getId()))
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND));
 

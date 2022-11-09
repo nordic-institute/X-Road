@@ -41,5 +41,5 @@ public interface IntermediateCasService {
 
     void delete(Integer id);
 
-    void deleteOcspResponder(Integer caId, Integer ocspId);
+    void deleteOcspResponder(Integer intermediateCaId, Integer ocspResponderId);
 }

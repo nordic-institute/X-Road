@@ -204,9 +204,9 @@ class IntermediateCasServiceImplTest {
         assertThat(ocspResponders).containsExactly(ocspResponder);
     }
 
-    private OcspInfoEntity ocspInfoEntity(Integer ocspId) {
+    private OcspInfoEntity ocspInfoEntity(Integer ocspResponderId) {
         final OcspInfoEntity entity = new OcspInfoEntity(mock(CaInfoEntity.class), URL, TEST_CERT);
-        ReflectionTestUtils.setField(entity, "id", ocspId);
+        ReflectionTestUtils.setField(entity, "id", ocspResponderId);
         return entity;
     }
 
