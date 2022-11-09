@@ -1,10 +1,5 @@
 dependencies {
     intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
-    constraints {
-        implementation('com.fasterxml.jackson.core:jackson-databind:2.14.0') {
-            because 'versions below 2.14.0 have a security vulnerability'
-        }
-    }
     intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
 }

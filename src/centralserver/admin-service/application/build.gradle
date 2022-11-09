@@ -23,11 +23,6 @@ dependencies {
     implementation('org.liquibase:liquibase-core') //TODO enabling runtime liquibase
 
     intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
-    constraints {
-        implementation('com.fasterxml.jackson.core:jackson-databind:2.14.0') {
-            because 'versions below 2.14.0 have a security vulnerability'
-        }
-    }
     intTestImplementation("com.nortal.test:test-automation-assert:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-feign:${testAutomationFrameworkVersion}")
