@@ -106,21 +106,20 @@ public final class FormatUtils {
      * @return true or false depending on the validity of the provided url
      */
     public static boolean isValidUrl(String url) {
-        boolean hasValidProtocol;
-        boolean hasValidHost;
+        if (!isHttpsUrl(url) && !StringUtils.startsWith(url, HTTP_PROTOCOL)) {
+            return false;
+        }
         try {
-            hasValidProtocol = isHttpsUrl(url) || url.startsWith(HTTP_PROTOCOL);
-            URL wsdlUrl = new URL(url);
-            String asciiHost = IDN.toASCII(wsdlUrl.getHost());
-            hasValidHost = asciiHost.matches(URL_HOST_REGEX);
+            URL u = new URL(url);
+            String asciiHost = IDN.toASCII(u.getHost());
+            return  asciiHost.matches(URL_HOST_REGEX);
         } catch (MalformedURLException | IllegalArgumentException e) {
             return false;
         }
-        return hasValidProtocol && hasValidHost;
     }
 
     public static boolean isHttpsUrl(String url) {
-        return url != null && url.startsWith(HTTPS_PROTOCOL);
+        return StringUtils.startsWith(url, HTTPS_PROTOCOL);
     }
 
     /**
