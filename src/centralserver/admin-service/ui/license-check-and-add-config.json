@@ -24,7 +24,7 @@
     "tests/e2e/testdata/",
     "build/"
   ],
-  "license": "../../LICENSE.txt",
+  "license": "../../../LICENSE.txt",
   "licenseFormats": {
     "ts|js|css|scss": {
       "prepend": "/*",
