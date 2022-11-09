@@ -74,7 +74,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
     public void ocspResponderIsAddedToIntermediateCAS() throws Exception {
         final Integer intermediateCasId = scenarioContext.getStepData("intermediateCasId");
         final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert());
-        final String url = "http://" + UUID.randomUUID();
+        final String url = "https://" + UUID.randomUUID();
 
         final ResponseEntity<OcspResponderDto> response = intermediateCasApi
                 .addIntermediateCaOcspResponder(intermediateCasId, url, certificate);
@@ -84,6 +84,8 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .title("Validate response")
                 .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
         validationService.validate(validationBuilder.build());
+
+        scenarioContext.putStepData("ocspResponderId", response.getBody().getId());
     }
 
     @Then("intermediate CA has {int} OCSP responders")
@@ -96,7 +98,27 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .context(response)
                 .title("Validate response")
                 .assertion(equalsAssertion(OK, response.getStatusCode(), "Verify status code"))
-                .assertion(equalsAssertion(3, response.getBody().size(), "Response contains " + count + " items"));
+                .assertion(equalsAssertion(count, response.getBody().size(), "Response contains " + count + " items"));
         validationService.validate(validationBuilder.build());
     }
+
+    @Then("intermediate CA has the updated OCSP responder")
+    public void intermediateCAHasUpdatedOCSPResponder() {
+        final Integer intermediateCasId = scenarioContext.getStepData("intermediateCasId");
+
+        final ResponseEntity<Set<OcspResponderDto>> responseEntity = intermediateCasApi
+                .getIntermediateCaOcspResponders(intermediateCasId);
+        final OcspResponderDto response = responseEntity.getBody().iterator().next();
+
+        final String newOcspResponderUrl = scenarioContext.getStepData("newOcspResponderUrl");
+
+        final Validation.Builder validationBuilder = new Validation.Builder()
+                .context(response)
+                .title("Validate response")
+                .assertion(equalsAssertion(OK, responseEntity.getStatusCode(), "Verify status code"))
+                .assertion(equalsAssertion(Boolean.TRUE, response.getHasCertificate(), "Verify OCSP responder has certificate"))
+                .assertion(equalsAssertion(newOcspResponderUrl, response.getUrl(), "OCSP responder url matches"));
+        validationService.validate(validationBuilder.build());
+    }
+
 }
