@@ -71,11 +71,6 @@ dependencyCheck {
 }
 
 allprojects {
-    group = 'org.niis.xroad'
-    version = '1.0'
-
-    ext['snakeyaml.version'] = '1.33'
-
     buildscript {
       repositories {
         mavenCentral()

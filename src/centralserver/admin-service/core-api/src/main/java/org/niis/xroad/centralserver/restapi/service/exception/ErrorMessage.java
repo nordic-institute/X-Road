@@ -65,7 +65,8 @@ public enum ErrorMessage {
     INVALID_CERTIFICATE("Invalid X.509 certificate"),
     INTERMEDIATE_CA_NOT_FOUND("Intermediate CA not found"),
 
-    OCSP_RESPONDER_NOT_FOUND("OCSP Responder not found");
+    OCSP_RESPONDER_NOT_FOUND("OCSP Responder not found"),
+    INVALID_URL("Invalid url");
 
     @Getter
     final String description;

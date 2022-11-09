@@ -25,57 +25,67 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
-    :disable-save="!formReady"
-    :dialog="true"
-    title="trustServices.trustService.ocspResponders.edit.dialog.title"
-    save-button-text="action.save"
-    cancel-button-text="action.cancel"
-    @cancel="cancel"
-    @save="update"
-  >
-    <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="ocspUrl"
-          :label="$t('trustServices.trustService.ocspResponders.url')"
-          outlined
-          persistent-hint
-          data-test="ocsp-responder-url-input"
-        ></v-text-field>
-      </div>
-
-      <div v-if="!certUploadActive">
-        <div class="dlg-input-width mb-6">
-          <xrd-button outlined class="mr-3" @click="navigateToCertificateDetails()">
-            {{ $t('trustServices.trustService.ocspResponders.viewCertificate') }}
-          </xrd-button>
-          <xrd-button text @click="certUploadActive = true">
-            <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
-            {{ $t('trustServices.trustService.ocspResponders.edit.dialog.uploadCertificate') }}
-          </xrd-button>
-        </div>
-      </div>
-      <div v-else>
+  <ValidationObserver v-slot="{ invalid }">
+    <xrd-simple-dialog
+      :disable-save="invalid"
+      :dialog="true"
+      title="trustServices.trustService.ocspResponders.edit.dialog.title"
+      save-button-text="action.save"
+      cancel-button-text="action.cancel"
+      :loading="loading"
+      @cancel="cancel"
+      @save="update"
+    >
+      <template #content>
         <div class="dlg-input-width">
-          <xrd-file-upload
-            v-slot="{ upload }"
-            accepts=".der, .crt, .pem, .cer"
-            @file-changed="onFileUploaded"
+          <ValidationProvider
+            v-slot="{ errors }"
+            rules="required|url"
+            name="url"
           >
             <v-text-field
-              v-model="certFileTitle"
+              v-model="ocspUrl"
+              :label="$t('trustServices.trustService.ocspResponders.url')"
+              :error-messages="errors"
               outlined
-              autofocus
-              :label="$t('trustServices.uploadCertificate')"
-              append-icon="icon-Upload"
-              @click="upload"
+              persistent-hint
+              data-test="ocsp-responder-url-input"
             ></v-text-field>
-          </xrd-file-upload>
+          </ValidationProvider>
         </div>
-      </div>
-    </template>
-  </xrd-simple-dialog>
+
+        <div v-if="!certUploadActive">
+          <div class="dlg-input-width mb-6">
+            <xrd-button outlined class="mr-3" @click="navigateToCertificateDetails()">
+              {{ $t('trustServices.viewCertificate') }}
+            </xrd-button>
+            <xrd-button text @click="certUploadActive = true">
+              <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
+              {{ $t('trustServices.trustService.ocspResponders.edit.dialog.uploadCertificate') }}
+            </xrd-button>
+          </div>
+        </div>
+        <div v-else>
+          <div class="dlg-input-width">
+            <xrd-file-upload
+              v-slot="{ upload }"
+              accepts=".der, .crt, .pem, .cer"
+              @file-changed="onFileUploaded"
+            >
+              <v-text-field
+                v-model="certFileTitle"
+                outlined
+                autofocus
+                :label="$t('trustServices.uploadCertificate')"
+                append-icon="icon-Upload"
+                @click="upload"
+              ></v-text-field>
+            </xrd-file-upload>
+          </div>
+        </div>
+      </template>
+    </xrd-simple-dialog>
+  </ValidationObserver>
 </template>
 
 <script lang="ts">
@@ -86,9 +96,14 @@ import {notificationsStore} from "@/store/modules/notifications";
 import {FileUploadResult} from "@niis/shared-ui";
 import {OcspResponder} from "@/openapi-types";
 import {RouteName} from "@/global";
+import {ValidationObserver, ValidationProvider} from "vee-validate";
 
 export default Vue.extend({
   name: 'EditOcspResponderDialog',
+  components: {
+    ValidationProvider,
+    ValidationObserver
+  },
   props: {
     ocspResponder: {
       type: Object as () => OcspResponder
@@ -99,14 +114,12 @@ export default Vue.extend({
       ocspUrl: this.ocspResponder.url,
       certFile: null as File | null,
       certFileTitle: '',
-      certUploadActive: false
+      certUploadActive: false,
+      loading: false,
     };
   },
   computed: {
     ...mapStores(useOcspResponderStore),
-    formReady(): boolean {
-      return !!this.ocspUrl;
-    },
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
@@ -126,6 +139,7 @@ export default Vue.extend({
       this.certFileTitle = result.file.name;
     },
     update(): void {
+      this.loading = true;
       this.ocspResponderServiceStore.updateOcspResponder(this.ocspResponder.id, this.ocspUrl, this.certFile)
         .then(() => {
           this.showSuccess(this.$t('trustServices.trustService.ocspResponders.edit.success'));
@@ -133,7 +147,8 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.showError(error);
-        });
+        })
+        .finally(() => (this.loading = false));
     },
     cancel(): void {
       this.$emit('cancel');

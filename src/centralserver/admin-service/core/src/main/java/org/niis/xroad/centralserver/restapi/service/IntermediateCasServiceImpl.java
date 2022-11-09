@@ -44,6 +44,9 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.INTERMEDIATE_CA_NOT_FOUND;
@@ -76,6 +79,13 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
         return caInfoJpaRepository.findById(id)
                 .filter(this::isIntermediateCa)
                 .orElseThrow(() -> new NotFoundException(INTERMEDIATE_CA_NOT_FOUND));
+    }
+
+    @Override
+    public Set<OcspResponder> getOcspResponders(Integer intermediateCaId) {
+        return getIntermediateCa(intermediateCaId).getOcspInfos().stream()
+                .map(ocspResponderConverter::toModel)
+                .collect(Collectors.toSet());
     }
 
     @Override

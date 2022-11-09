@@ -24,71 +24,43 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+<!--
+  Certification Service settings view
+-->
 <template>
-  <xrd-simple-dialog
-    :dialog="true"
-    title="trustServices.caSettings"
-    save-button-text="action.save"
-    cancel-button-text="action.cancel"
-    :loading="loading"
-    @cancel="cancelEdit"
-    @save="updateCertificationServiceSettings"
-  >
-    <template #content>
-      <div class="dlg-input-width">
-        <v-checkbox
-          v-model="tlsAuth"
-          :label="$t('trustServices.addCASettingsCheckbox')"
-        />
-      </div>
-    </template>
-  </xrd-simple-dialog>
+  <main id="ocsp-responder-certificate-details" class="mt-8">
+    <CertificateDetails :certificateDetails="certificateDetails"/>
+  </main>
 </template>
 
 <script lang="ts">
-
 import Vue from "vue";
-import {mapActions, mapStores} from "pinia";
+import { mapStores} from "pinia";
 import {useCertificationServiceStore} from "@/store/modules/trust-services";
-import {ApprovedCertificationService} from "@/openapi-types";
-import {notificationsStore} from "@/store/modules/notifications";
+import CertificateDetails from "@/components/certificate/CertificateDetails.vue";
+import {CertificateDetails as CertificateDetailsType} from '@/openapi-types';
+
 
 export default Vue.extend({
-  name: 'EditTlsAuthDialog',
+  name: 'OcspResponderCertificate',
+  components: {CertificateDetails},
   props: {
-    certificationService: {
-      type: Object as () => ApprovedCertificationService,
+    certificationServiceId: {
+      type: Number,
       required: true,
     },
   },
   data() {
     return {
-      tlsAuth: this.certificationService.tls_auth,
-      loading: false,
-    }
+      certificateDetails: null as CertificateDetailsType | null,
+    };
   },
   computed: {
-    ...mapStores(useCertificationServiceStore)
+    ...mapStores(useCertificationServiceStore),
   },
-  methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    cancelEdit(): void {
-      this.$emit('cancel');
-    },
-    updateCertificationServiceSettings(): void {
-      this.loading = true;
-      this.certificationServiceStore.update(
-        this.certificationService.id, {certificate_profile_info: this.certificationService.certificate_profile_info, tls_auth: `${this.tlsAuth}`}
-      )
-      .then(() => {
-        this.showSuccess(this.$t('trustServices.trustService.settings.saveSuccess'));
-        this.$emit('tlsAuthChanged');
-      })
-      .catch((error) => {
-        this.showError(error);
-      })
-      .finally(() => (this.loading = false));
-    }
+  created() {
+    this.certificationServiceStore.getCertificate(this.certificationServiceId)
+      .then((resp) => (this.certificateDetails = resp.data));
   }
 });
 </script>

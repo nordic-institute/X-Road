@@ -72,7 +72,7 @@
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
           <xrd-button text :outlined="false" @click="navigateToCertificateDetails(item)">
-            {{ $t('trustServices.trustService.ocspResponders.viewCertificate') }}
+            {{ $t('trustServices.viewCertificate') }}
           </xrd-button>
           <xrd-button text :outlined="false" @click="openEditOcspResponderDialog(item)">
             {{ $t('action.edit') }}

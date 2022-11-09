@@ -27,6 +27,7 @@
 
 package org.niis.xroad.cs.test.glue;
 
+import com.nortal.test.asserts.Validation;
 import io.cucumber.java.en.When;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.cs.test.api.FeignCertificationServicesApi;
@@ -35,7 +36,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
 import static org.springframework.http.HttpStatus.CREATED;
 
@@ -46,14 +46,17 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
 
     @When("Certification service is created")
     public void createCertificationService() throws Exception {
-
         MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert());
         String certificateProfileInfo = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";
 
         final ResponseEntity<ApprovedCertificationServiceDto> response = certificationServicesApi
                 .addCertificationService(certificate, certificateProfileInfo, "false");
 
-        assertEquals(CREATED, response.getStatusCode());
+        final Validation.Builder validationBuilder = new Validation.Builder()
+                .context(response)
+                .title("Validate response")
+                .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
+        validationService.validate(validationBuilder.build());
 
         scenarioContext.putStepData("certificationServiceId", response.getBody().getId());
     }

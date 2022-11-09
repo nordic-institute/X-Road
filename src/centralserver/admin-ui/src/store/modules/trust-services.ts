@@ -89,6 +89,9 @@ export const useCertificationServiceStore = defineStore(
             throw error;
           });
       },
+      getCertificate(certificationServiceId: number) {
+        return axios.get<CertificateDetails>(`/certification-services/${certificationServiceId}/certificate`)
+      }
     },
   },
 );

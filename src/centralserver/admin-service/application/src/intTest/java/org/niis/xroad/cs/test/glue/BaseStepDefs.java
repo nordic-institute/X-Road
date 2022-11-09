@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.cs.test.glue;
 
+import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.ScenarioContext;
 import com.nortal.test.core.services.ScenarioExecutionContext;
@@ -37,4 +38,13 @@ public abstract class BaseStepDefs {
     protected ScenarioContext scenarioContext;
     @Autowired
     protected ValidationService validationService;
+
+    protected Assertion equalsAssertion(Object expected, Object actual, String message) {
+        return new Assertion.Builder()
+                .message(message)
+                .expression("=")
+                .actualValue(actual)
+                .expectedValue(expected)
+                .build();
+    }
 }

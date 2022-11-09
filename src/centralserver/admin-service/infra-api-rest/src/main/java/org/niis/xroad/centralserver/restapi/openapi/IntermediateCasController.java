@@ -28,7 +28,6 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.IntermediateCasApi;
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
@@ -48,6 +47,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Set;
 
+import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_INTERMEDIATE_CA_OCSP_RESPONDER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERMEDIATE_CA;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_OCSP_RESPONDER;
@@ -104,8 +104,11 @@ public class IntermediateCasController implements IntermediateCasApi {
     }
 
     @Override
-    public ResponseEntity<Set<OcspResponderDto>> getIntermediateCaOcspResponders(String id) {
-        throw new NotImplementedException("getIntermediateCaOcspResponders not implemented yet");
+    @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
+    public ResponseEntity<Set<OcspResponderDto>> getIntermediateCaOcspResponders(Integer id) {
+        return ok(intermediateCasService.getOcspResponders(id).stream()
+                .map(ocspResponderDtoConverter::toDto)
+                .collect(toSet()));
     }
 
 }

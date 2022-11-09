@@ -39,6 +39,7 @@ export enum RouteName {
   CertificationServiceDetails = 'certification-service-details',
   CertificationServiceSettings = 'certification-service-settings',
   CertificationServiceOcspResponders = 'certification-service-ocsp-responders',
+  CertificationServiceCertificateDetails = 'certification-service-certificate-details',
   OcspResponderCertificateDetails = 'ocsp-responder-certificate-details',
   Settings = 'settings',
   GlobalResources = 'global-resources',

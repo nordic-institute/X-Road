@@ -58,15 +58,17 @@ export function selectedFilter<T, K extends keyof T>(
   });
 }
 
-// Checks if the given WSDL URL valid
-export function isValidWsdlURL(str: string): boolean {
-  const pattern = new RegExp('(^(https?):///?)[-a-zA-Z0-9]');
-  return pattern.test(str);
-}
-
-// Checks if the given REST URL is valid
-export function isValidRestURL(str: string): boolean {
-  return isValidWsdlURL(str);
+// Checks if the given URL is valid
+export function isValidUrl(str: string): boolean {
+  try {
+    const url = new URL(str);
+    const protocolPattern = /^https?:$/
+    const hostPattern = /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$/;
+    return protocolPattern.test(url.protocol) && hostPattern.test(url.hostname)
+  }
+  catch (_) {
+    return false;
+  };
 }
 
 // Helper to copy text to clipboard
