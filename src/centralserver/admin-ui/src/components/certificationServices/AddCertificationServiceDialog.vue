@@ -63,6 +63,7 @@
       save-button-text="action.save"
       title="trustServices.caSettings"
       :disable-save="certProfile === ''"
+      :loading="loading"
       @save="onSave"
       @cancel="cancel"
     >
@@ -107,6 +108,7 @@ export default Vue.extend({
       certProfile: '',
       tlsAuthOnly: false,
       showUploadCertificateDialog: this.showDialog,
+      loading: false,
     };
   },
   methods: {
@@ -120,21 +122,24 @@ export default Vue.extend({
     },
     onSave(): void {
       if (this.certFile !== null) {
+        this.loading = true;
         const certService = {
           certificate: this.certFile,
           tls_auth: this.tlsAuthOnly.toString(),
           certificate_profile_info: this.certProfile,
         };
-        this.$emit('save', certService);
+        this.$emit('save', certService, { done : () => {
+            this.loading = false;
+            this.clearForm();
+          }
+        });
       }
-      this.clearForm();
     },
     cancel(): void {
       this.$emit('cancel');
       this.clearForm();
     },
     clearForm(): void {
-      this.showCASettingsDialog = false;
       this.certFile = null as File | null;
       this.certProfile = '';
       this.tlsAuthOnly = false;

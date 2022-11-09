@@ -205,7 +205,6 @@ export default Vue.extend({
     addCertificationService(
       addCertificationService: CertificationServiceFileAndSettings,
     ): void {
-      this.hideAddCSDialog();
       this.certificationServiceStore
         .add(addCertificationService)
         .then(() => {
@@ -213,7 +212,8 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.showError(error);
-        });
+        })
+        .finally(() => this.hideAddCSDialog());
     },
   },
 });

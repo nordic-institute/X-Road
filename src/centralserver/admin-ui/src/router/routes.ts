@@ -82,6 +82,8 @@ import TrustServiceList from '@/views/TrustServices/TrustServiceList.vue';
 import CertificationServiceSettings from '@/views/TrustServices/CertificationService/CertificationServiceSettings.vue';
 import CertificationServiceOcspResponders from "@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue";
 import OcspResponderCertificate from "@/views/TrustServices/CertificationService/OcspResponderCertificate.vue";
+import CertificationServiceCertificate
+  from "@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue";
 
 const routes: RouteConfig[] = [
   {
@@ -325,6 +327,16 @@ const routes: RouteConfig[] = [
                 meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
               },
             ],
+          },
+          {
+            name: RouteName.CertificationServiceCertificateDetails,
+            path: '/certification-services/:certificationServiceId/certificate-details',
+            component: CertificationServiceCertificate,
+            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+            props: (route) => {
+              const certificationServiceId = Number(route.params.certificationServiceId)
+              return { certificationServiceId }
+            }
           },
           {
             name: RouteName.OcspResponderCertificateDetails,

@@ -118,6 +118,9 @@
       "button": "Upload backup"
     }
   },
+  "customValidation": {
+    "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'"
+  },
   "error_code": {
     "invalid_init_params": "Problem in initialization parameters",
     "pin_min_char_classes_count": "PIN minimum character classes count",
@@ -130,7 +133,8 @@
     "member_exists": "A member with the same id already exists.",
     "global_group_not_found": "Global group by the given id not found.",
     "owners_global_group_cannot_be_deleted": "Cannot perform delete action on server owners group.",
-    "global_group_exists": "Global group with the same code already exists."
+    "global_group_exists": "Global group with the same code already exists.",
+    "invalid_url": "Invalid URL"
   },
   "fields": {
     "init": {
@@ -145,7 +149,8 @@
       "instanceIdentifier": "Instance Identifier"
     },
     "password": "Password",
-    "username": "Username"
+    "username": "Username",
+    "url": "URL"
   },
   "filters": {
     "apply": "Apply",
@@ -452,6 +457,7 @@
     "timestampingServices": "Timestamping Services",
     "validFrom": "Valid from",
     "validTo": "Valid to",
+    "viewCertificate": "View Certificate",
     "uploadCertificate": "Upload the certificate file from your computer",
     "trustService": {
       "details" : {
@@ -464,7 +470,6 @@
         "saveSuccess": "CA Settings successfully saved"
       },
       "ocspResponders": {
-        "viewCertificate": "View Certificate",
         "url": "URL",
         "add": {
           "dialog": {

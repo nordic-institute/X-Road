@@ -27,6 +27,7 @@
 import { extend, configure } from 'vee-validate';
 import { required, min, between, is } from 'vee-validate/dist/rules';
 import i18n from '../i18n';
+import * as Helpers from '@/util/helpers';
 
 configure({
   // This should be ok, as it is the vee-validate contract
@@ -50,3 +51,12 @@ extend('between', between);
 
 // Install is rule and message.
 extend('is', is);
+
+extend('url', {
+  validate: (value) => {
+    return Helpers.isValidUrl(value);
+  },
+  message() {
+    return i18n.t('customValidation.invalidUrl') as string;
+  },
+});
