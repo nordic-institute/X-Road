@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.NoCoverage;
 import lombok.Data;
 
 @Data
+@SuppressWarnings("java:S2176")
 public abstract class XRoadId extends Auditable
         implements ee.ria.xroad.common.identifier.XRoadId {
 

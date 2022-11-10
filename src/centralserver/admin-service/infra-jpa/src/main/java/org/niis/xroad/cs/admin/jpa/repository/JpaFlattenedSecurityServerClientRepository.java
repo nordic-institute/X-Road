@@ -75,6 +75,7 @@ public interface JpaFlattenedSecurityServerClientRepository extends
 
     List<FlattenedSecurityServerClientViewEntity> findAll(Sort sort);
 
+    @SuppressWarnings("java:S3776")
     default Specification<FlattenedSecurityServerClientViewEntity> multiParameterSearch(ClientService.SearchParameters params) {
         return (root, query, builder) -> {
             var predicates = new ArrayList<Predicate>();

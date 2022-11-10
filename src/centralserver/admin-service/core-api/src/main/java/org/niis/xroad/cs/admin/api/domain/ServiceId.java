@@ -36,6 +36,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@SuppressWarnings("java:S2176")
 public class ServiceId extends XRoadId implements ee.ria.xroad.common.identifier.ServiceId {
 
     @JsonIgnore
