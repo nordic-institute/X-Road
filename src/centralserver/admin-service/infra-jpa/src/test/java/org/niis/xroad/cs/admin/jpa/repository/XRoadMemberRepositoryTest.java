@@ -54,7 +54,7 @@ public class XRoadMemberRepositoryTest {
     @Nested
     @DisplayName("findMember(ClientId clientId)")
     @ExtendWith(MockitoExtension.class)
-    public static class FindMemberMethod {
+    public class FindMemberMethod {
 
         @Mock
         JpaXRoadMemberRepository xRoadMemberRepository;

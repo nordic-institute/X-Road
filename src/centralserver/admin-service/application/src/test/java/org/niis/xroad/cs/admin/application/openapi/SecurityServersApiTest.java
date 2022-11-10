@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.application.openapi;
 
 import org.junit.jupiter.api.Disabled;
 
+@SuppressWarnings("java:S2187")
 @Disabled("Has to be revorked for new architecture.")
 public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
 

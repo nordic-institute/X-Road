@@ -64,11 +64,10 @@ public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xro
                 .orElseGet(() -> {
                     XRoadObjectType objectType = identifier.getObjectType();
                     if (objectType != null) {
-                        switch (objectType) {
-                            case MEMBER:
-                                return MemberIdEntity.create(identifier);
-                            case SUBSYSTEM:
-                                return SubsystemIdEntity.create(identifier);
+                        if (objectType == XRoadObjectType.MEMBER) {
+                            return MemberIdEntity.create(identifier);
+                        } else if (objectType == XRoadObjectType.SUBSYSTEM) {
+                            return SubsystemIdEntity.create(identifier);
                         }
                     }
                     throw new IllegalArgumentException("illegal object type: " + objectType);

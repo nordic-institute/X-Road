@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.application.openapi;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.test.annotation.DirtiesContext;
 
+@SuppressWarnings("java:S2187")
 @Disabled("Has to be revorked for new architecture.")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class InitializationApiTest extends AbstractApiRestTemplateTestContext {

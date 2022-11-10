@@ -125,7 +125,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
             verify(securityServerClientNameRepository).save(captor.capture());
 
             assertThat(captor.getValue().getName()).isEqualTo(memberName);
-            assertThat(captor.getValue().getIdentifier()).isEqualTo(subsystemId);
+            assertThat(captor.getValue().getIdentifier().toShortString()).isEqualTo(subsystemId.toShortString());
         }
 
         @Test

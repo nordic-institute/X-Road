@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.application.openapi;
 
 import org.junit.jupiter.api.Disabled;
 
-
+@SuppressWarnings("java:S2187")
 @Disabled("Has to be revorked for new architecture.")
 class ManagementRequestsApiControllerTest extends AbstractApiControllerTest {
    /* private static final String VIEW_MANAGEMENT_REQUESTS = "VIEW_MANAGEMENT_REQUESTS";

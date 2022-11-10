@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-
+@SuppressWarnings("java:S2187")
 @Disabled("Has to be revorked for new architecture.")
 @ExtendWith(MockitoExtension.class)
 public class SubsystemsApiControllerTest implements WithInOrder {

@@ -138,7 +138,7 @@ class MemberServiceImplTest implements WithInOrder {
             verify(securityServerClientNameRepository).save(captor.capture());
 
             assertThat(captor.getValue().getName()).isEqualTo(memberName);
-            assertThat(captor.getValue().getIdentifier()).isEqualTo(memberId);
+            assertThat(captor.getValue().getIdentifier().toShortString()).isEqualTo(memberId.toShortString());
         }
 
         @Test
