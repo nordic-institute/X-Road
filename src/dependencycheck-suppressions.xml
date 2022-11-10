@@ -32,6 +32,21 @@
         <cve>CVE-2022-22976</cve>
         <cve>CVE-2022-22978</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[Ignored since we use MockServer only in integration tests.]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.testcontainers/mockserver@.*$</packageUrl>
+        <cve>CVE-2021-32827</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[Ignored since we use MockServer only in integration tests.]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.mock\-server/mockserver\-client\-java@.*$</packageUrl>
+        <cve>CVE-2021-32827</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[Ignored since we use MockServer only in integration tests.]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.mock\-server/mockserver\-core@.*$</packageUrl>
+        <cve>CVE-2021-32827</cve>
+    </suppress>
     <suppress until="2022-10-31Z">
         <notes><![CDATA[Time-limited suppression as there is no proper release with a fix available (only rc). The vulnerable feature UNWRAP_SINGLE_VALUE_ARRAYS is not enabled.]]></notes>
         <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
