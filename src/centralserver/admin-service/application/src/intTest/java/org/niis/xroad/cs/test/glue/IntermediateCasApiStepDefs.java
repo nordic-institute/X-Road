@@ -105,10 +105,10 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     @Then("intermediate CA has the updated OCSP responder")
     public void intermediateCAHasUpdatedOCSPResponder() {
-        final Integer intermediateCasId = scenarioContext.getStepData("intermediateCasId");
+        final Integer intermediateCaId = scenarioContext.getStepData("intermediateCaId");
 
         final ResponseEntity<Set<OcspResponderDto>> responseEntity = intermediateCasApi
-                .getIntermediateCaOcspResponders(intermediateCasId);
+                .getIntermediateCaOcspResponders(intermediateCaId);
         final OcspResponderDto response = responseEntity.getBody().iterator().next();
 
         final String newOcspResponderUrl = scenarioContext.getStepData("newOcspResponderUrl");
