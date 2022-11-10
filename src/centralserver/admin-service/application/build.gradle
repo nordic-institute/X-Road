@@ -37,17 +37,6 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
     testImplementation("org.liquibase:liquibase-core")
-
-    implementation('org.liquibase:liquibase-core') //TODO enabling runtime liquibase
-
-    intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
-    intTestImplementation("com.nortal.test:test-automation-assert:${testAutomationFrameworkVersion}")
-    intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
-    intTestImplementation("com.nortal.test:test-automation-feign:${testAutomationFrameworkVersion}")
-    intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
-
-    //TODO test automation should release BOM module
-    intTestImplementation("org.testcontainers:postgresql:1.17.5")
 }
 
 test {

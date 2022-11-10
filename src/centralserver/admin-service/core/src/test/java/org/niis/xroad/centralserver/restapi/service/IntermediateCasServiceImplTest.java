@@ -74,6 +74,7 @@ class IntermediateCasServiceImplTest {
 
     private static final Integer ID = 123;
     private static final Integer NEW_ID = 1369;
+    private static final Integer OCSP_INFO_ID = 1234;
     private static final String URL = "http://test-url";
     private static final byte[] TEST_CERT;
 
@@ -151,7 +152,7 @@ class IntermediateCasServiceImplTest {
                 .setUrl(URL)
                 .setCertificate(TEST_CERT);
 
-        final OcspInfoEntity ocspInfoEntity = ocspInfoEntity();
+        final OcspInfoEntity ocspInfoEntity = ocspInfoEntity(NEW_ID);
 
         when(caInfoRepository.findById(ID)).thenReturn(Optional.of(caInfo));
         when(caInfo.getApprovedCa()).thenReturn(new ApprovedCaEntity());
@@ -177,8 +178,22 @@ class IntermediateCasServiceImplTest {
     }
 
     @Test
+    void deleteOcspResponder() {
+        when(caInfoRepository.findById(ID)).thenReturn(Optional.of(caInfo));
+        when(caInfo.getApprovedCa()).thenReturn(new ApprovedCaEntity());
+        final OcspInfoEntity ocspResponderToDelete = ocspInfoEntity(OCSP_INFO_ID);
+        when(caInfo.getOcspInfos()).thenReturn(Set.of(ocspResponderToDelete));
+
+        intermediateCasService.deleteOcspResponder(ID, OCSP_INFO_ID);
+
+        verify(ocspInfoRepository).delete(ocspResponderToDelete);
+
+        verify(auditDataHelper).put(OCSP_ID, OCSP_INFO_ID);
+    }
+
+    @Test
     void getOcspResponders() {
-        final OcspInfoEntity ocspInfo = ocspInfoEntity();
+        final OcspInfoEntity ocspInfo = ocspInfoEntity(NEW_ID);
         when(caInfoRepository.findById(ID)).thenReturn(Optional.of(caInfo));
         when(caInfo.getApprovedCa()).thenReturn(new ApprovedCaEntity());
         when(caInfo.getOcspInfos()).thenReturn(Set.of(ocspInfo));
@@ -189,9 +204,9 @@ class IntermediateCasServiceImplTest {
         assertThat(ocspResponders).containsExactly(ocspResponder);
     }
 
-    private OcspInfoEntity ocspInfoEntity() {
+    private OcspInfoEntity ocspInfoEntity(Integer ocspResponderId) {
         final OcspInfoEntity entity = new OcspInfoEntity(mock(CaInfoEntity.class), URL, TEST_CERT);
-        ReflectionTestUtils.setField(entity, "id", NEW_ID);
+        ReflectionTestUtils.setField(entity, "id", ocspResponderId);
         return entity;
     }
 

@@ -137,6 +137,15 @@ configure(subprojects.findAll { !["frontend","shared-ui","ui"].contains(it.name)
     }
 
     dependencies {
+        constraints {
+            add('implementation', 'com.fasterxml.jackson.core:jackson-databind') {
+                version {
+                    require("$jacksonBomVersion")
+                    because("Vulnerability fix regarding CVE-2022-42003")
+                }
+            }
+        }
+
         testImplementation 'org.hamcrest:hamcrest:2.2'
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
         testImplementation "junit:junit:$junitVersion"
