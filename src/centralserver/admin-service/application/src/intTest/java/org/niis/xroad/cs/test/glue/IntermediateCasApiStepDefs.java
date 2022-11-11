@@ -42,6 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.niis.xroad.cs.test.constants.Constants.KEY_OCSP_RESPONDER_ID;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -49,6 +50,8 @@ import static org.springframework.http.HttpStatus.OK;
 
 
 public class IntermediateCasApiStepDefs extends BaseStepDefs {
+
+    private static final String KEY_INTERMEDIATE_CA_ID = "intermediateCaId";
 
     @Autowired
     private FeignCertificationServicesApi certificationServicesApi;
@@ -68,12 +71,12 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
         validationService.validate(validationBuilder.build());
 
-        scenarioContext.putStepData("intermediateCaId", response.getBody().getId());
+        scenarioContext.putStepData(KEY_INTERMEDIATE_CA_ID, response.getBody().getId());
     }
 
     @When("OCSP responder is added to intermediate CA")
     public void ocspResponderIsAddedToIntermediateCA() throws Exception {
-        final Integer intermediateCaId = scenarioContext.getStepData("intermediateCaId");
+        final Integer intermediateCaId = scenarioContext.getStepData(KEY_INTERMEDIATE_CA_ID);
         final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert());
         final String url = "https://" + UUID.randomUUID();
 
@@ -86,12 +89,12 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
         validationService.validate(validationBuilder.build());
 
-        scenarioContext.putStepData("ocspResponderId", response.getBody().getId());
+        scenarioContext.putStepData(KEY_OCSP_RESPONDER_ID, response.getBody().getId());
     }
 
     @Then("intermediate CA has {int} OCSP responders")
     public void intermediateCAHasOCSPResponders(int count) {
-        final Integer intermediateCaId = scenarioContext.getStepData("intermediateCaId");
+        final Integer intermediateCaId = scenarioContext.getStepData(KEY_INTERMEDIATE_CA_ID);
 
         final ResponseEntity<Set<OcspResponderDto>> response = intermediateCasApi.getIntermediateCaOcspResponders(intermediateCaId);
 
@@ -105,7 +108,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     @Then("intermediate CA has the updated OCSP responder")
     public void intermediateCAHasUpdatedOCSPResponder() {
-        final Integer intermediateCaId = scenarioContext.getStepData("intermediateCaId");
+        final Integer intermediateCaId = scenarioContext.getStepData(KEY_INTERMEDIATE_CA_ID);
 
         final ResponseEntity<Set<OcspResponderDto>> responseEntity = intermediateCasApi
                 .getIntermediateCaOcspResponders(intermediateCaId);
@@ -124,8 +127,8 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     @When("OCSP responder is deleted from intermediate CA")
     public void ocspResponderIsDeletedFromIntermediateCA() {
-        final Integer intermediateCaId = scenarioContext.getStepData("intermediateCaId");
-        final Integer ocspResponderId = scenarioContext.getStepData("ocspResponderId");
+        final Integer intermediateCaId = scenarioContext.getStepData(KEY_INTERMEDIATE_CA_ID);
+        final Integer ocspResponderId = scenarioContext.getStepData(KEY_OCSP_RESPONDER_ID);
 
         final ResponseEntity<Void> response = intermediateCasApi
                 .deleteIntermediateCaOcspResponder(intermediateCaId, ocspResponderId);
