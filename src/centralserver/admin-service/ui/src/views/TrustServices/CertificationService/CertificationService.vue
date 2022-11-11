@@ -30,7 +30,7 @@
         <div class="xrd-view-title">
           {{ certificationServiceStore.currentCertificationService.name }}
         </div>
-        <xrd-button outlined @click="navigateToCertificateDetails()">
+        <xrd-button outlined @click="navigateToCertificateDetails()" data-test="view-certificate-button">
           {{ $t('trustServices.viewCertificate') }}
         </xrd-button>
     </div>
