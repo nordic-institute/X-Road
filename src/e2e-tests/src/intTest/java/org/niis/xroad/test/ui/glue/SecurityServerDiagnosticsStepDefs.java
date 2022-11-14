@@ -27,13 +27,20 @@ package org.niis.xroad.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
 import org.openqa.selenium.By;
 
+import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 import static org.openqa.selenium.By.xpath;
 
 public class SecurityServerDiagnosticsStepDefs extends BaseUiStepDefs {
     private static final By TAB_DIAGNOSTICS = xpath("//a[@data-test=\"diagnostics\"]");
+    private static final By BACKUP_ENCRYPTION_STATUS = xpath("//div[@data-test=\"backup-encryption-status\"]");
+    public static final By BACKUP_ENCRYPTION_KEYS_TABLE_CELL =
+            xpath("//table[@data-test=\"backup-encryption-keys\"]/tbody/tr/td");
 
     @Given("Diagnostics tab is selected")
     public void userNavigatesToDiagnostics() {
@@ -49,6 +56,16 @@ public class SecurityServerDiagnosticsStepDefs extends BaseUiStepDefs {
             condition = Condition.not(Condition.visible);
         }
         $(TAB_DIAGNOSTICS).shouldBe(condition);
+    }
+
+    @Then("Backup encryption is enabled")
+    public void backupEncryptionIsEnabled() {
+        $(BACKUP_ENCRYPTION_STATUS).shouldHave(text("Enabled"));
+    }
+
+    @Then("Backup encryption configuration has {int} key(s)")
+    public void backupEncryptionHasNumOfKeys(int count) {
+        $$(BACKUP_ENCRYPTION_KEYS_TABLE_CELL).shouldHave(size(count));
     }
 
 }
