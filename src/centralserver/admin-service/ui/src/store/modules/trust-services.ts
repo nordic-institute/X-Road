@@ -150,3 +150,47 @@ export const useOcspResponderStore = defineStore(
     },
   },
 );
+
+export interface IntermediateCasStoreState {
+  currentCa: ApprovedCertificationService | CertificateAuthority | null
+  currentIntermediateCas: CertificateAuthority[];
+}
+
+export const useIntermediateCaStore = defineStore(
+    'intermediateCasService',
+    {
+      state: (): IntermediateCasStoreState => ({
+        currentCa: null,
+        currentIntermediateCas: [],
+      }),
+      persist: true,
+      actions: {
+        loadByCa(currentCa: ApprovedCertificationService | CertificateAuthority) {
+          this.currentCa = currentCa;
+          this.fetchIntermediateCas();
+        },
+        fetchIntermediateCas() {
+          if (!this.currentCa) return
+
+          return axios
+              .get<CertificateAuthority[]>(
+                  `/certification-services/${this.currentCa.id}/intermediate-cas`,
+              )
+              .then((resp) => (this.currentIntermediateCas = resp.data));
+        },
+        getIntermediateCa(id: number) {
+          return axios.get<CertificateAuthority>(`/intermediate-cas/${id}`)
+        },
+        addIntermediateCa(certificate: File) {
+          const formData = new FormData();
+          formData.append('certificate', certificate);
+          return axios
+              .post(`/certification-services/${this.currentCa!.id}/intermediate-cas`, formData)
+              .finally(() => this.fetchIntermediateCas());
+        },
+        deleteIntermediateCa(id: number) {
+          return axios.delete(`/intermediate-cas/${id}`);
+        }
+      },
+    },
+);

@@ -81,9 +81,12 @@ import CertificationServiceDetails from '@/views/TrustServices/CertificationServ
 import TrustServiceList from '@/views/TrustServices/TrustServiceList.vue';
 import CertificationServiceSettings from '@/views/TrustServices/CertificationService/CertificationServiceSettings.vue';
 import CertificationServiceOcspResponders from "@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue";
+import CertificationServiceIntermediateCas from "@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue";
 import OcspResponderCertificate from "@/views/TrustServices/CertificationService/OcspResponderCertificate.vue";
 import CertificationServiceCertificate
   from "@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue";
+import CertificateDetails from "@/components/certificate/CertificateDetails.vue";
+import IntermediateCACertificate from "@/views/TrustServices/CertificationService/IntermediateCACertificate.vue";
 
 const routes: RouteConfig[] = [
   {
@@ -326,6 +329,12 @@ const routes: RouteConfig[] = [
                 component: CertificationServiceOcspResponders,
                 meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
               },
+              {
+                name: RouteName.CertificationServiceIntermediateCas,
+                path: 'intermediate-cas',
+                component: CertificationServiceIntermediateCas,
+                meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+              },
             ],
           },
           {
@@ -346,6 +355,16 @@ const routes: RouteConfig[] = [
             props: (route) => {
               const ocspResponderId = Number(route.params.ocspResponderId)
               return { ocspResponderId }
+            }
+          },
+          {
+            name: RouteName.IntermediateCACertificateDetails,
+            path: '/intermediate-cas/:intermediateCaId',
+            component: IntermediateCACertificate,
+            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+            props: (route) => {
+              const intermediateCaId = Number(route.params.intermediateCaId)
+              return { intermediateCaId }
             }
           }
         ],

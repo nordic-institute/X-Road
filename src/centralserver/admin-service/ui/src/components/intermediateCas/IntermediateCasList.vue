@@ -24,18 +24,15 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<!--
-  Certification Service settings view
--->
 <template>
-  <main id="ocsp-responders" class="mt-8">
+  <main id="intermediate-cas" class="mt-8">
 
     <!-- Table -->
     <v-data-table
       :loading="loading"
       :headers="headers"
       :header-props="{ showHeaderBorder: false }"
-      :items="ocspResponders"
+      :items="intermediateCas"
       :must-sort="true"
       :items-per-page="-1"
       class="elevation-0 data-table"
@@ -43,16 +40,19 @@
       :loader-height="2"
       hide-default-footer
     >
+
       <template v-slot:header>
         <thead class="borderless-table-header">
         <tr>
+          <th />
+          <th />
           <th />
           <th class="text-right">
             <div class="button-wrap mb-6 mt-4">
               <xrd-button
                 outlined
                 data-test="token-add-key-button"
-                @click="showAddOcspResponderDialog = true"
+                @click="showAddIntermediateCaDialog = true"
               >
                 <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
                 {{ $t('action.add') }}
@@ -63,19 +63,18 @@
         </thead>
       </template>
 
-      <template #[`item.url`]="{ item }">
-        <div class="xrd-clickable">
-          {{ item.url }}
-        </div>
+      <template #[`item.ca_certificate.not_before`]="{ item }">
+        <div>{{ item.ca_certificate.not_before | formatDateTime }}</div>
+      </template>
+
+      <template #[`item.ca_certificate.not_after`]="{ item }">
+        <div>{{ item.ca_certificate.not_after | formatDateTime }}</div>
       </template>
 
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
           <xrd-button text :outlined="false" @click="navigateToCertificateDetails(item)">
             {{ $t('trustServices.viewCertificate') }}
-          </xrd-button>
-          <xrd-button text :outlined="false" @click="openEditOcspResponderDialog(item)">
-            {{ $t('action.edit') }}
           </xrd-button>
           <xrd-button text :outlined="false" @click="openDeleteConfirmationDialog(item)">
             {{ $t('action.delete') }}
@@ -84,36 +83,28 @@
       </template>
 
       <template #footer>
-        <div class="custom-footer"></div>
+        <div class="cs-table-custom-footer"></div>
       </template>
     </v-data-table>
 
-    <!-- Add Ocsp Responder dialog -->
-    <AddOcspResponderDialog
-      v-if="showAddOcspResponderDialog"
-      :ca-id="ocspResponderServiceStore.currentCa.id"
-      @cancel="hideAddOcspResponderDialog"
-      @save="hideAddOcspResponderDialog"
-    ></AddOcspResponderDialog>
-
-    <!-- Edit Ocsp Responder dialog -->
-    <EditOcspResponderDialog
-      v-if="showEditOcspResponderDialog"
-      :ocsp-responder="selectedOcspResponder"
-      @cancel="hideEditOcspResponderDialog"
-      @save="hideEditOcspResponderDialogAndRefetch"
-    ></EditOcspResponderDialog>
+    <!-- Add Intermediate CA dialog -->
+    <AddIntermediateCaDialog
+      v-if="showAddIntermediateCaDialog"
+      :ca-id="intermediateCasServiceStore.currentCa.id"
+      @cancel="hideAddIntermediateCaDialog"
+      @save="hideAddIntermediateCaDialog"
+    ></AddIntermediateCaDialog>
 
     <!-- Confirm delete dialog -->
     <xrd-confirm-dialog
       v-if="confirmDelete"
       :dialog="confirmDelete"
-      title="trustServices.trustService.ocspResponders.delete.confirmationDialog.title"
-      text="trustServices.trustService.ocspResponders.delete.confirmationDialog.message"
-      :data="{ url: selectedOcspResponder.url }"
-      :loading="deletingOcspResponder"
+      title="trustServices.trustService.intermediateCas.delete.confirmationDialog.title"
+      text="trustServices.trustService.intermediateCas.delete.confirmationDialog.message"
+      :data="{ name: selectedIntermediateCa.ca_certificate.subject_common_name }"
+      :loading="deletingIntermediateCa"
       @cancel="confirmDelete = false"
-      @accept="deleteOcspResponder"
+      @accept="deleteIntermediateCa"
     />
   </main>
 </template>
@@ -122,16 +113,19 @@
 import Vue from "vue";
 import {DataTableHeader} from "vuetify";
 import {mapActions, mapStores} from "pinia";
-import {useOcspResponderStore} from "@/store/modules/trust-services";
+import {useIntermediateCaStore} from "@/store/modules/trust-services";
 import {notificationsStore} from "@/store/modules/notifications";
-import AddOcspResponderDialog from "@/components/ocspResponders/AddOcspResponderDialog.vue";
-import {ApprovedCertificationService, CertificateAuthority, OcspResponder} from "@/openapi-types";
-import EditOcspResponderDialog from "@/components/ocspResponders/EditOcspResponderDialog.vue";
+import {
+  ApprovedCertificationService,
+  CertificateAuthority,
+  CertificateDetails as CertificateDetailsType
+} from "@/openapi-types";
+import AddIntermediateCaDialog from "@/components/intermediateCas/AddIntermediateCaDialog.vue";
 import {RouteName} from "@/global";
 
 export default Vue.extend({
-  name: 'OcspRespondersList',
-  components: {EditOcspResponderDialog, AddOcspResponderDialog},
+  name: 'IntermediateCasList',
+  components: {AddIntermediateCaDialog},
   props: {
     ca: {
       type: [Object as () => ApprovedCertificationService, Object as () => CertificateAuthority],
@@ -141,25 +135,36 @@ export default Vue.extend({
   data() {
     return {
       loading: false,
-      showAddOcspResponderDialog: false,
-      showEditOcspResponderDialog: false,
-      selectedOcspResponder: undefined as undefined | OcspResponder,
+      showAddIntermediateCaDialog: false,
+      selectedIntermediateCa: undefined as undefined | CertificateAuthority,
       confirmDelete: false,
-      deletingOcspResponder: false,
+      deletingIntermediateCa: false,
     }
   },
   computed: {
-    ...mapStores(useOcspResponderStore),
-    ocspResponders(): OcspResponder[] {
-      return this.ocspResponderServiceStore.currentOcspResponders;
+    ...mapStores(useIntermediateCaStore),
+    intermediateCas(): CertificateAuthority[] {
+      return this.intermediateCasServiceStore.currentIntermediateCas;
     },
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('trustServices.trustService.ocspResponders.url') as string,
+          text: this.$t('trustServices.trustService.intermediateCas.intermediateCa') as string,
           align: 'start',
-          value: 'url',
-          class: 'xrd-table-header mr-table-header-id',
+          value: 'ca_certificate.subject_common_name',
+          class: 'xrd-table-header text-uppercase',
+        },
+        {
+          text: this.$t('trustServices.validFrom') as string,
+          align: 'start',
+          value: 'ca_certificate.not_before',
+          class: 'xrd-table-header text-uppercase',
+        },
+        {
+          text: this.$t('trustServices.validTo') as string,
+          align: 'start',
+          value: 'ca_certificate.not_after',
+          class: 'xrd-table-header text-uppercase',
         },
         {
           text: '',
@@ -171,63 +176,48 @@ export default Vue.extend({
     }
   },
   created() {
-    this.ocspResponderServiceStore.loadByCa(this.ca)
+    this.intermediateCasServiceStore.loadByCa(this.ca)
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    hideAddOcspResponderDialog() {
-      this.showAddOcspResponderDialog = false;
+    hideAddIntermediateCaDialog() {
+      this.showAddIntermediateCaDialog = false;
     },
-    hideEditOcspResponderDialog() {
-      this.showEditOcspResponderDialog = false;
-    },
-    hideEditOcspResponderDialogAndRefetch() {
-      this.showEditOcspResponderDialog = false;
-      this.fetchOcspResponders();
-    },
-    openDeleteConfirmationDialog(ocspResponder: OcspResponder): void {
-      this.selectedOcspResponder = ocspResponder;
+    openDeleteConfirmationDialog(intermediateCa: CertificateAuthority): void {
+      this.selectedIntermediateCa = intermediateCa;
       this.confirmDelete = true;
     },
-    openEditOcspResponderDialog(ocspResponder: OcspResponder): void {
-      this.selectedOcspResponder = ocspResponder;
-      this.showEditOcspResponderDialog = true;
+    fetchIntermediateCas(): void {
+      this.intermediateCasServiceStore.fetchIntermediateCas()
     },
-    navigateToCertificateDetails(ocspResponder: OcspResponder) {
-      this.$router.push({
-        name: RouteName.OcspResponderCertificateDetails,
-        params: {
-          ocspResponderId: String(ocspResponder.id)
-        }
-      });
-    },
-    fetchOcspResponders(): void {
-      this.ocspResponderServiceStore.fetchOcspResponders()
-    },
-    deleteOcspResponder(): void {
-      if (!this.selectedOcspResponder) return;
+    deleteIntermediateCa(): void {
+      if (!this.selectedIntermediateCa) return;
 
-      this.deletingOcspResponder = true;
-      this.ocspResponderServiceStore.deleteOcspResponder(this.selectedOcspResponder.id)
+      this.deletingIntermediateCa = true;
+      this.intermediateCasServiceStore.deleteIntermediateCa(this.selectedIntermediateCa.id as number)
         .then(() => {
-          this.showSuccess(this.$t('trustServices.trustService.ocspResponders.delete.success'));
+          this.showSuccess(this.$t('trustServices.trustService.intermediateCas.delete.success'));
           this.confirmDelete = false;
-          this.deletingOcspResponder = false;
-          this.fetchOcspResponders();
+          this.deletingIntermediateCa = false;
+          this.fetchIntermediateCas();
         })
         .catch((error) => {
           this.showError(error);
         });
-    }
+    },
+    navigateToCertificateDetails(intermediateCa: CertificateAuthority) {
+      this.$router.push({
+        name: RouteName.IntermediateCACertificateDetails,
+        params: {
+          intermediateCaId: String(intermediateCa.id)
+        }
+      });
+    },
   }
 });
 </script>
 <style lang="scss" scoped>
 @import '~styles/tables';
 
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
-}
 
 </style>

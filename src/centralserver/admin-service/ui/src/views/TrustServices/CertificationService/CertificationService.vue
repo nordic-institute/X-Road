@@ -89,6 +89,12 @@ export default Vue.extend({
             'trustServices.trustService.pagenavigation.ocspResponders',
           ) as string,
         },
+        {
+          url: `/certification-services/${this.certificationServiceId}/intermediate-cas`,
+          label: this.$t(
+              'trustServices.trustService.pagenavigation.intermediateCas',
+          ) as string,
+        },
       ];
     },
   },

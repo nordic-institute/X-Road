@@ -28,7 +28,7 @@
   Certification Service settings view
 -->
 <template>
-  <main id="certification-service-certificate-details" class="mt-8">
+  <main id="intermediate-ca-certificate-details" class="mt-8">
     <CertificateDetails :certificateDetails="certificateDetails"/>
   </main>
 </template>
@@ -36,16 +36,16 @@
 <script lang="ts">
 import Vue from "vue";
 import { mapStores} from "pinia";
-import {useCertificationServiceStore} from "@/store/modules/trust-services";
+import {useIntermediateCaStore} from "@/store/modules/trust-services";
 import CertificateDetails from "@/components/certificate/CertificateDetails.vue";
 import {CertificateDetails as CertificateDetailsType} from '@/openapi-types';
 
 
 export default Vue.extend({
-  name: 'CertificationServiceCertificate',
+  name: 'IntermediateCaCertificate',
   components: {CertificateDetails},
   props: {
-    certificationServiceId: {
+    intermediateCaId: {
       type: Number,
       required: true,
     },
@@ -56,11 +56,11 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useCertificationServiceStore),
+    ...mapStores(useIntermediateCaStore),
   },
   created() {
-    this.certificationServiceStore.getCertificate(this.certificationServiceId)
-      .then((resp) => (this.certificateDetails = resp.data));
+    this.intermediateCasServiceStore.getIntermediateCa(this.intermediateCaId)
+      .then((resp) => (this.certificateDetails = resp.data.ca_certificate));
   }
 });
 </script>
