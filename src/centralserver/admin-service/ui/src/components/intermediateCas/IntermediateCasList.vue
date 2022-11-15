@@ -26,7 +26,6 @@
  -->
 <template>
   <main id="intermediate-cas" class="mt-8">
-
     <!-- Table -->
     <v-data-table
       :loading="loading"
@@ -40,26 +39,25 @@
       :loader-height="2"
       hide-default-footer
     >
-
-      <template v-slot:header>
+      <template #header>
         <thead class="borderless-table-header">
-        <tr>
-          <th />
-          <th />
-          <th />
-          <th class="text-right">
-            <div class="button-wrap mb-6 mt-4">
-              <xrd-button
-                outlined
-                data-test="token-add-key-button"
-                @click="showAddIntermediateCaDialog = true"
-              >
-                <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-                {{ $t('action.add') }}
-              </xrd-button>
-            </div>
-          </th>
-        </tr>
+          <tr>
+            <th />
+            <th />
+            <th />
+            <th class="text-right">
+              <div class="button-wrap mb-6 mt-4">
+                <xrd-button
+                  outlined
+                  data-test="token-add-key-button"
+                  @click="showAddIntermediateCaDialog = true"
+                >
+                  <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+                  {{ $t('action.add') }}
+                </xrd-button>
+              </div>
+            </th>
+          </tr>
         </thead>
       </template>
 
@@ -73,10 +71,18 @@
 
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
-          <xrd-button text :outlined="false" @click="navigateToCertificateDetails(item)">
+          <xrd-button
+            text
+            :outlined="false"
+            @click="navigateToCertificateDetails(item)"
+          >
             {{ $t('trustServices.viewCertificate') }}
           </xrd-button>
-          <xrd-button text :outlined="false" @click="openDeleteConfirmationDialog(item)">
+          <xrd-button
+            text
+            :outlined="false"
+            @click="openDeleteConfirmationDialog(item)"
+          >
             {{ $t('action.delete') }}
           </xrd-button>
         </div>
@@ -101,7 +107,9 @@
       :dialog="confirmDelete"
       title="trustServices.trustService.intermediateCas.delete.confirmationDialog.title"
       text="trustServices.trustService.intermediateCas.delete.confirmationDialog.message"
-      :data="{ name: selectedIntermediateCa.ca_certificate.subject_common_name }"
+      :data="{
+        name: selectedIntermediateCa.ca_certificate.subject_common_name,
+      }"
       :loading="deletingIntermediateCa"
       @cancel="confirmDelete = false"
       @accept="deleteIntermediateCa"
@@ -110,27 +118,29 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import {DataTableHeader} from "vuetify";
-import {mapActions, mapStores} from "pinia";
-import {useIntermediateCaStore} from "@/store/modules/trust-services";
-import {notificationsStore} from "@/store/modules/notifications";
+import Vue from 'vue';
+import { DataTableHeader } from 'vuetify';
+import { mapActions, mapStores } from 'pinia';
+import { useIntermediateCaStore } from '@/store/modules/trust-services';
+import { notificationsStore } from '@/store/modules/notifications';
 import {
   ApprovedCertificationService,
   CertificateAuthority,
-  CertificateDetails as CertificateDetailsType
-} from "@/openapi-types";
-import AddIntermediateCaDialog from "@/components/intermediateCas/AddIntermediateCaDialog.vue";
-import {RouteName} from "@/global";
+} from '@/openapi-types';
+import AddIntermediateCaDialog from '@/components/intermediateCas/AddIntermediateCaDialog.vue';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
   name: 'IntermediateCasList',
-  components: {AddIntermediateCaDialog},
+  components: { AddIntermediateCaDialog },
   props: {
     ca: {
-      type: [Object as () => ApprovedCertificationService, Object as () => CertificateAuthority],
-      required: true
-    }
+      type: [
+        Object as () => ApprovedCertificationService,
+        Object as () => CertificateAuthority,
+      ],
+      required: true,
+    },
   },
   data() {
     return {
@@ -139,7 +149,7 @@ export default Vue.extend({
       selectedIntermediateCa: undefined as undefined | CertificateAuthority,
       confirmDelete: false,
       deletingIntermediateCa: false,
-    }
+    };
   },
   computed: {
     ...mapStores(useIntermediateCaStore),
@@ -149,7 +159,9 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('trustServices.trustService.intermediateCas.intermediateCa') as string,
+          text: this.$t(
+            'trustServices.trustService.intermediateCas.intermediateCa',
+          ) as string,
           align: 'start',
           value: 'ca_certificate.subject_common_name',
           class: 'xrd-table-header text-uppercase',
@@ -172,11 +184,11 @@ export default Vue.extend({
           sortable: false,
           class: 'xrd-table-header mr-table-header-buttons',
         },
-      ]
-    }
+      ];
+    },
   },
   created() {
-    this.intermediateCasServiceStore.loadByCa(this.ca)
+    this.intermediateCasServiceStore.loadByCa(this.ca);
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
@@ -188,15 +200,20 @@ export default Vue.extend({
       this.confirmDelete = true;
     },
     fetchIntermediateCas(): void {
-      this.intermediateCasServiceStore.fetchIntermediateCas()
+      this.intermediateCasServiceStore.fetchIntermediateCas();
     },
     deleteIntermediateCa(): void {
       if (!this.selectedIntermediateCa) return;
 
       this.deletingIntermediateCa = true;
-      this.intermediateCasServiceStore.deleteIntermediateCa(this.selectedIntermediateCa.id as number)
+      this.intermediateCasServiceStore
+        .deleteIntermediateCa(this.selectedIntermediateCa.id as number)
         .then(() => {
-          this.showSuccess(this.$t('trustServices.trustService.intermediateCas.delete.success'));
+          this.showSuccess(
+            this.$t(
+              'trustServices.trustService.intermediateCas.delete.success',
+            ),
+          );
           this.confirmDelete = false;
           this.deletingIntermediateCa = false;
           this.fetchIntermediateCas();
@@ -209,15 +226,13 @@ export default Vue.extend({
       this.$router.push({
         name: RouteName.IntermediateCACertificateDetails,
         params: {
-          intermediateCaId: String(intermediateCa.id)
-        }
+          intermediateCaId: String(intermediateCa.id),
+        },
       });
     },
-  }
+  },
 });
 </script>
 <style lang="scss" scoped>
 @import '~styles/tables';
-
-
 </style>

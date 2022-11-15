@@ -92,7 +92,7 @@ export default Vue.extend({
         {
           url: `/certification-services/${this.certificationServiceId}/intermediate-cas`,
           label: this.$t(
-              'trustServices.trustService.pagenavigation.intermediateCas',
+            'trustServices.trustService.pagenavigation.intermediateCas',
           ) as string,
         },
       ];

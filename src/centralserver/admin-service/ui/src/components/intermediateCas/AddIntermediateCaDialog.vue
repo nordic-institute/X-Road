@@ -35,7 +35,6 @@
     @save="add"
   >
     <template #content>
-
       <div class="dlg-input-width">
         <xrd-file-upload
           v-slot="{ upload }"
@@ -57,11 +56,11 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import {mapActions, mapStores} from "pinia";
-import {useIntermediateCaStore, useOcspResponderStore} from "@/store/modules/trust-services";
-import {notificationsStore} from "@/store/modules/notifications";
-import {FileUploadResult} from "@niis/shared-ui";
+import Vue from 'vue';
+import { mapActions, mapStores } from 'pinia';
+import { useIntermediateCaStore } from '@/store/modules/trust-services';
+import { notificationsStore } from '@/store/modules/notifications';
+import { FileUploadResult } from '@niis/shared-ui';
 
 export default Vue.extend({
   name: 'AddIntermediateDialog',
@@ -80,10 +79,7 @@ export default Vue.extend({
   computed: {
     ...mapStores(useIntermediateCaStore),
     formReady(): boolean {
-      return !!(
-        this.certFile &&
-        this.certFileTitle
-      );
+      return !!(this.certFile && this.certFileTitle);
     },
   },
   methods: {
@@ -96,18 +92,24 @@ export default Vue.extend({
       this.certFileTitle = result.file.name;
     },
     add(): void {
-      this.intermediateCasServiceStore.addIntermediateCa(this.certFile!)
-      .then(() => {
-        this.showSuccess(this.$t('trustServices.trustService.intermediateCas.add.success'));
-        this.$emit('save');
-      })
-      .catch((error) => {
-        this.showError(error);
-      });
+      if (!this.certFile) {
+        throw new Error('Certificate is null');
+      }
+      this.intermediateCasServiceStore
+        .addIntermediateCa(this.certFile)
+        .then(() => {
+          this.showSuccess(
+            this.$t('trustServices.trustService.intermediateCas.add.success'),
+          );
+          this.$emit('save');
+        })
+        .catch((error) => {
+          this.showError(error);
+        });
     },
     cancel(): void {
       this.$emit('cancel');
     },
-  }
+  },
 });
 </script>

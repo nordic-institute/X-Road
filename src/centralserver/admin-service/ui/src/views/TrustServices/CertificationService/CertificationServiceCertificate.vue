@@ -24,26 +24,22 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<!--
-  Certification Service settings view
--->
 <template>
   <main id="certification-service-certificate-details" class="mt-8">
-    <CertificateDetails :certificateDetails="certificateDetails"/>
+    <CertificateDetails :certificate-details="certificateDetails" />
   </main>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { mapStores} from "pinia";
-import {useCertificationServiceStore} from "@/store/modules/trust-services";
-import CertificateDetails from "@/components/certificate/CertificateDetails.vue";
-import {CertificateDetails as CertificateDetailsType} from '@/openapi-types';
-
+import Vue from 'vue';
+import { mapStores } from 'pinia';
+import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
+import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 
 export default Vue.extend({
   name: 'CertificationServiceCertificate',
-  components: {CertificateDetails},
+  components: { CertificateDetails },
   props: {
     certificationServiceId: {
       type: Number,
@@ -59,8 +55,9 @@ export default Vue.extend({
     ...mapStores(useCertificationServiceStore),
   },
   created() {
-    this.certificationServiceStore.getCertificate(this.certificationServiceId)
+    this.certificationServiceStore
+      .getCertificate(this.certificationServiceId)
       .then((resp) => (this.certificateDetails = resp.data));
-  }
+  },
 });
 </script>

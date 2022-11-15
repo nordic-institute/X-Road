@@ -24,24 +24,23 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<!--
-  Certification Service settings view
--->
 <template>
   <main id="certification-service-indermediate-cas" class="mt-8">
-    <IntermediateCasList :ca="certificationServiceStore.currentCertificationService"/>
+    <IntermediateCasList
+      :ca="certificationServiceStore.currentCertificationService"
+    />
   </main>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { mapStores} from "pinia";
-import {useCertificationServiceStore} from "@/store/modules/trust-services";
-import IntermediateCasList from "@/components/intermediateCas/IntermediateCasList.vue";
+import Vue from 'vue';
+import { mapStores } from 'pinia';
+import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import IntermediateCasList from '@/components/intermediateCas/IntermediateCasList.vue';
 
 export default Vue.extend({
   name: 'CertificationServiceIntermediateCas',
-  components: {IntermediateCasList},
+  components: { IntermediateCasList },
   computed: {
     ...mapStores(useCertificationServiceStore),
   },

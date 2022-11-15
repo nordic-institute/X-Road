@@ -182,10 +182,13 @@ export const useIntermediateCaStore = defineStore(
           return axios.get<CertificateAuthority>(`/intermediate-cas/${id}`)
         },
         addIntermediateCa(certificate: File) {
+          if (!this.currentCa) {
+            throw new Error('CA not selected');
+          }
           const formData = new FormData();
           formData.append('certificate', certificate);
           return axios
-              .post(`/certification-services/${this.currentCa!.id}/intermediate-cas`, formData)
+              .post(`/certification-services/${this.currentCa.id}/intermediate-cas`, formData)
               .finally(() => this.fetchIntermediateCas());
         },
         deleteIntermediateCa(id: number) {
