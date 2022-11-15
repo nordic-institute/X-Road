@@ -77,10 +77,6 @@ public class ApprovedTsaEntity extends AuditableEntity {
     @Setter
     private Instant validTo;
 
-    protected ApprovedTsaEntity() {
-        //JPA
-    }
-
 }
 
 
