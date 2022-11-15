@@ -492,10 +492,27 @@
           "success": "OCSP Responder deleted successfully"
         }
       },
+      "intermediateCas": {
+        "intermediateCa": "Intermediate CA",
+        "add": {
+          "dialog": {
+            "title": "Add Intermediate CAs"
+          },
+          "success": "Intermediate CA added successfully"
+        },
+        "delete": {
+          "confirmationDialog": {
+            "message": "Are you sure you want to delete the Intermediate CA {name}?",
+            "title": "Are you sure?"
+          },
+          "success": "Intermediate CA deleted successfully"
+        }
+      },
       "pagenavigation": {
         "details": "Details",
         "settings": "CA Settings",
-        "ocspResponders": "OCSP Responders"
+        "ocspResponders": "OCSP Responders",
+        "intermediateCas": "Intermediate CAs"
       }
     }
   },

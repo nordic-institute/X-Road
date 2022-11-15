@@ -24,12 +24,9 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<!--
-  Certification Service settings view
--->
 <template>
-  <main id="certification-service-ocsp-responders" class="mt-8">
-    <OcspRespondersList
+  <main id="certification-service-indermediate-cas" class="mt-8">
+    <IntermediateCasList
       :ca="certificationServiceStore.currentCertificationService"
     />
   </main>
@@ -39,11 +36,11 @@
 import Vue from 'vue';
 import { mapStores } from 'pinia';
 import { useCertificationServiceStore } from '@/store/modules/trust-services';
-import OcspRespondersList from '@/components/ocspResponders/OcspRespondersList.vue';
+import IntermediateCasList from '@/components/intermediateCas/IntermediateCasList.vue';
 
 export default Vue.extend({
-  name: 'CertificationServiceOcspResponders',
-  components: { OcspRespondersList },
+  name: 'CertificationServiceIntermediateCas',
+  components: { IntermediateCasList },
   computed: {
     ...mapStores(useCertificationServiceStore),
   },

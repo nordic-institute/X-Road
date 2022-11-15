@@ -59,8 +59,10 @@ import SecurityServersList from '@/views/SecurityServers/SecurityServersList.vue
 import SecurityServer from '@/views/SecurityServers/SecurityServer/SecurityServer.vue';
 import SecurityServerDetails from '@/views/SecurityServers/SecurityServer/SecurityServerDetails.vue';
 import SecurityServerClients from '@/views/SecurityServers/SecurityServer/SecurityServerClients.vue';
-import SecurityServerAuthenticationCertificates from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
-import SecurityServerManagementRequests from '@/views/SecurityServers/SecurityServer/SecurityServerManagementRequests.vue';
+import SecurityServerAuthenticationCertificates
+    from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
+import SecurityServerManagementRequests
+    from '@/views/SecurityServers/SecurityServer/SecurityServerManagementRequests.vue';
 
 import GlobalResources from '@/views/GlobalResources/GlobalResources.vue';
 import GlobalResourcesList from '@/views/GlobalResources/GlobalResourcesList.vue';
@@ -80,10 +82,14 @@ import CertificationService from '@/views/TrustServices/CertificationService/Cer
 import CertificationServiceDetails from '@/views/TrustServices/CertificationService/CertificationServiceDetails.vue';
 import TrustServiceList from '@/views/TrustServices/TrustServiceList.vue';
 import CertificationServiceSettings from '@/views/TrustServices/CertificationService/CertificationServiceSettings.vue';
-import CertificationServiceOcspResponders from "@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue";
-import OcspResponderCertificate from "@/views/TrustServices/CertificationService/OcspResponderCertificate.vue";
+import CertificationServiceOcspResponders
+    from '@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue';
+import CertificationServiceIntermediateCas
+    from '@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue';
+import OcspResponderCertificate from '@/views/TrustServices/CertificationService/OcspResponderCertificate.vue';
 import CertificationServiceCertificate
-  from "@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue";
+    from '@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue';
+import IntermediateCACertificate from '@/views/TrustServices/CertificationService/IntermediateCACertificate.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -326,6 +332,12 @@ const routes: RouteConfig[] = [
                 component: CertificationServiceOcspResponders,
                 meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
               },
+              {
+                name: RouteName.CertificationServiceIntermediateCas,
+                path: 'intermediate-cas',
+                component: CertificationServiceIntermediateCas,
+                meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+              },
             ],
           },
           {
@@ -346,6 +358,16 @@ const routes: RouteConfig[] = [
             props: (route) => {
               const ocspResponderId = Number(route.params.ocspResponderId)
               return { ocspResponderId }
+            }
+          },
+          {
+            name: RouteName.IntermediateCACertificateDetails,
+            path: '/intermediate-cas/:intermediateCaId',
+            component: IntermediateCACertificate,
+            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+            props: (route) => {
+              const intermediateCaId = Number(route.params.intermediateCaId)
+              return { intermediateCaId }
             }
           }
         ],
