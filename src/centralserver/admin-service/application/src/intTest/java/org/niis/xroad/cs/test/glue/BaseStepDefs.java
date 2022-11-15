@@ -27,15 +27,22 @@ package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.ValidationService;
+import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
-import com.nortal.test.core.services.ScenarioExecutionContext;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Optional;
+
+/**
+ * Base class for all step definitions. Provides convenience methods and most commonly used beans.
+ */
+@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public abstract class BaseStepDefs {
     @Autowired
-    protected ScenarioExecutionContext scenarioExecutionContext;
+    private ScenarioContext scenarioContext;
     @Autowired
-    protected ScenarioContext scenarioContext;
+    protected CucumberScenarioProvider cucumberScenarioProvider;
     @Autowired
     protected ValidationService validationService;
 
@@ -47,4 +54,36 @@ public abstract class BaseStepDefs {
                 .expectedValue(expected)
                 .build();
     }
+
+    /**
+     * Put a value in scenario context. Value can be accessed through getStepData.
+     *
+     * @param key   value key. Non-null.
+     * @param value value
+     */
+    protected void putStepData(String key, Object value) {
+        scenarioContext.putStepData(key, value);
+    }
+
+    /**
+     * Get value from scenario context.
+     *
+     * @param key value key
+     * @return value from the context
+     */
+    protected <T> Optional<T> getStepData(String key) {
+        return Optional.ofNullable(scenarioContext.getStepData(key));
+    }
+
+    /**
+     * Get value from scenario context.
+     *
+     * @param key value key
+     * @return value from the context
+     * @throws AssertionFailedError thrown if value is missing
+     */
+    protected <T> T getRequiredStepData(String key) throws AssertionFailedError {
+        return scenarioContext.getRequiredStepData(key);
+    }
+
 }

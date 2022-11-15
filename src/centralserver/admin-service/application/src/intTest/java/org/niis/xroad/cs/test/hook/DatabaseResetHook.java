@@ -1,5 +1,6 @@
-/*
+/**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,45 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.test.container;
+package org.niis.xroad.cs.test.hook;
 
-import com.nortal.test.testcontainers.AbstractAuxiliaryContainer;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
+import com.nortal.test.core.services.ScenarioExecutionContext;
+import com.nortal.test.core.services.hooks.AfterScenarioHook;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.cs.test.container.database.LiquibaseExecutor;
 import org.springframework.stereotype.Component;
-import org.testcontainers.containers.PostgreSQLContainer;
 
+/**
+ * Database reset hook which drops current database and initializes fresh schema.
+ */
+@Slf4j
 @Component
-public class PostgresContextualContainer extends AbstractAuxiliaryContainer<PostgresContextualContainer.XRoadTestPostgreSQLContainer> {
+@RequiredArgsConstructor
+public class DatabaseResetHook implements AfterScenarioHook {
+    private static final String TAG_RESET_DB = "@Modifying";
 
-    public static class XRoadTestPostgreSQLContainer extends PostgreSQLContainer<XRoadTestPostgreSQLContainer> {
+    private final LiquibaseExecutor liquibaseExecutor;
 
-        public XRoadTestPostgreSQLContainer() {
-            super("postgres:14");
+    @Override
+    public void after(ScenarioExecutionContext scenarioExecutionContext) {
+        assert scenarioExecutionContext != null;
+
+        var resetDatabase = scenarioExecutionContext.getCucumberScenario().getSourceTagNames()
+                .stream()
+                .anyMatch(TAG_RESET_DB::equalsIgnoreCase);
+
+        if (resetDatabase) {
+            log.info("Scenario was marked as {}. Resetting database.", TAG_RESET_DB);
+            liquibaseExecutor.executeChangesets();
         }
-    }
-
-    @NotNull
-    @Override
-    public String getConfigurationKey() {
-        return "xrd-db";
-    }
-
-    @NotNull
-    @Override
-    public XRoadTestPostgreSQLContainer configure() {
-        return new XRoadTestPostgreSQLContainer()
-                .withDatabaseName("xrd_cs")
-                .withUsername("xrd")
-                .withPassword("secret")
-                .withInitScript("postgres-init.sql")
-                .withNetworkAliases("xrd-db");
-
-    }
-
-    public String getJdbcUrl() {
-        Assertions.assertTrue(isRunning());
-
-        return "jdbc:postgresql://xrd-db:5432/" + getTestContainer().getDatabaseName();
     }
 }

@@ -56,7 +56,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
 
     @When("OCSP responder url is updated")
     public void updateOcspResponderUrl() {
-        Integer ocspResponderId = scenarioContext.getStepData(KEY_OCSP_RESPONDER_ID);
+        Integer ocspResponderId = getRequiredStepData(KEY_OCSP_RESPONDER_ID);
 
         final String newUrl = "https://updated-ocsp-responder-url-" + UUID.randomUUID();
 
@@ -69,18 +69,18 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(OK, response.getStatusCode(), "Verify status code"));
         validationService.validate(validationBuilder.build());
 
-        scenarioContext.putStepData(KEY_NEW_OCSP_RESPONDER_URL, newUrl);
+        putStepData(KEY_NEW_OCSP_RESPONDER_URL, newUrl);
     }
 
 
     @When("OCSP responder url and certificate is updated")
     public void ocspResponderUrlAndCertificateIsUpdated() throws Exception {
-        Integer ocspResponderId = scenarioContext.getStepData(KEY_OCSP_RESPONDER_ID);
+        Integer ocspResponderId = getRequiredStepData(KEY_OCSP_RESPONDER_ID);
 
         final ResponseEntity<CertificateDetailsDto> certificateResponse = ocspRespondersApi
                 .getOcspRespondersCertificate(ocspResponderId);
 
-        scenarioContext.putStepData(KEY_OLD_OCSP_RESPONDER_CERT_HASH, certificateResponse.getBody().getHash());
+        putStepData(KEY_OLD_OCSP_RESPONDER_CERT_HASH, certificateResponse.getBody().getHash());
 
         final String newUrl = "https://updated-ocsp-responder-url-" + UUID.randomUUID();
         MultipartFile newCertificate = new MockMultipartFile("certificate", generateAuthCert());
@@ -94,17 +94,17 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(OK, response.getStatusCode(), "Verify status code"));
         validationService.validate(validationBuilder.build());
 
-        scenarioContext.putStepData(KEY_NEW_OCSP_RESPONDER_URL, newUrl);
+        putStepData(KEY_NEW_OCSP_RESPONDER_URL, newUrl);
     }
 
     @And("the OCSP responder certificate was updated")
     public void theOCSPResponderCertificateWasUpdated() {
-        Integer ocspResponderId = scenarioContext.getStepData(KEY_OCSP_RESPONDER_ID);
+        Integer ocspResponderId = getRequiredStepData(KEY_OCSP_RESPONDER_ID);
 
         final ResponseEntity<CertificateDetailsDto> certificateResponse = ocspRespondersApi
                 .getOcspRespondersCertificate(ocspResponderId);
 
-        final String oldHash = scenarioContext.getStepData(KEY_OLD_OCSP_RESPONDER_CERT_HASH);
+        final String oldHash = getRequiredStepData(KEY_OLD_OCSP_RESPONDER_CERT_HASH);
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(certificateResponse)
                 .title("Validate response")

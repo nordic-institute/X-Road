@@ -58,7 +58,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
         validationService.validate(validationBuilder.build());
 
-        scenarioContext.putStepData("certificationServiceId", response.getBody().getId());
+        putStepData("certificationServiceId", response.getBody().getId());
     }
 
 }

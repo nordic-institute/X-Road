@@ -40,16 +40,16 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
     public void systemStatusIsRequested(String id) {
         try {
             var response = securityServersApi.getSecurityServerAuthCerts(id);
-            scenarioContext.putStepData("responseCode", response.getStatusCodeValue());
+            putStepData("responseCode", response.getStatusCodeValue());
         } catch (FeignException feignException) {
 
-            scenarioContext.putStepData("responseCode", feignException.status());
+            putStepData("responseCode", feignException.status());
         }
     }
 
     @Then("Response is of status code {int}")
     public void systemStatusIsValidated(int statusCode) {
-        int responseCode = scenarioContext.getStepData("responseCode");
+        int responseCode = getRequiredStepData("responseCode");
 
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(responseCode)

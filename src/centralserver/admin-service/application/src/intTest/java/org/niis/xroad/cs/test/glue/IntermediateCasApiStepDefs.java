@@ -60,7 +60,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     @When("intermediate CA added to certification service")
     public void addIntermediateCa() throws Exception {
-        final Integer certificationServiceId = scenarioContext.getStepData("certificationServiceId");
+        final Integer certificationServiceId = getRequiredStepData("certificationServiceId");
         final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert());
         final ResponseEntity<CertificateAuthorityDto> response = certificationServicesApi
                 .addCertificationServiceIntermediateCa(certificationServiceId, certificate);
@@ -71,12 +71,12 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
         validationService.validate(validationBuilder.build());
 
-        scenarioContext.putStepData(KEY_INTERMEDIATE_CA_ID, response.getBody().getId());
+        putStepData(KEY_INTERMEDIATE_CA_ID, response.getBody().getId());
     }
 
     @When("OCSP responder is added to intermediate CA")
     public void ocspResponderIsAddedToIntermediateCA() throws Exception {
-        final Integer intermediateCaId = scenarioContext.getStepData(KEY_INTERMEDIATE_CA_ID);
+        final Integer intermediateCaId = getRequiredStepData(KEY_INTERMEDIATE_CA_ID);
         final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert());
         final String url = "https://" + UUID.randomUUID();
 
@@ -89,12 +89,12 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
         validationService.validate(validationBuilder.build());
 
-        scenarioContext.putStepData(KEY_OCSP_RESPONDER_ID, response.getBody().getId());
+        putStepData(KEY_OCSP_RESPONDER_ID, response.getBody().getId());
     }
 
     @Then("intermediate CA has {int} OCSP responders")
     public void intermediateCAHasOCSPResponders(int count) {
-        final Integer intermediateCaId = scenarioContext.getStepData(KEY_INTERMEDIATE_CA_ID);
+        final Integer intermediateCaId = getRequiredStepData(KEY_INTERMEDIATE_CA_ID);
 
         final ResponseEntity<Set<OcspResponderDto>> response = intermediateCasApi.getIntermediateCaOcspResponders(intermediateCaId);
 
@@ -108,13 +108,13 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     @Then("intermediate CA has the updated OCSP responder")
     public void intermediateCAHasUpdatedOCSPResponder() {
-        final Integer intermediateCaId = scenarioContext.getStepData(KEY_INTERMEDIATE_CA_ID);
+        final Integer intermediateCaId = getRequiredStepData(KEY_INTERMEDIATE_CA_ID);
 
         final ResponseEntity<Set<OcspResponderDto>> responseEntity = intermediateCasApi
                 .getIntermediateCaOcspResponders(intermediateCaId);
         final OcspResponderDto response = responseEntity.getBody().iterator().next();
 
-        final String newOcspResponderUrl = scenarioContext.getStepData("newOcspResponderUrl");
+        final String newOcspResponderUrl = getRequiredStepData("newOcspResponderUrl");
 
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
@@ -127,8 +127,8 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     @When("OCSP responder is deleted from intermediate CA")
     public void ocspResponderIsDeletedFromIntermediateCA() {
-        final Integer intermediateCaId = scenarioContext.getStepData(KEY_INTERMEDIATE_CA_ID);
-        final Integer ocspResponderId = scenarioContext.getStepData(KEY_OCSP_RESPONDER_ID);
+        final Integer intermediateCaId = getRequiredStepData(KEY_INTERMEDIATE_CA_ID);
+        final Integer ocspResponderId = getRequiredStepData(KEY_OCSP_RESPONDER_ID);
 
         final ResponseEntity<Void> response = intermediateCasApi
                 .deleteIntermediateCaOcspResponder(intermediateCaId, ocspResponderId);

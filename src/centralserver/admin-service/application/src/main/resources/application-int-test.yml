@@ -4,11 +4,7 @@ debug: true
 spring:
   jpa:
     hibernate:
-     ddl-auto: none #TODO this should be removed once schema is stable.
-  liquibase:
-    enabled: true
-    change-log: classpath:liquibase/int-test/centerui-int-test-changelog.xml
-    contexts: int-test
+      ddl-auto: none #TODO this should be removed once schema is stable.
 
 server:
   ssl:

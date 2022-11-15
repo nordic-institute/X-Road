@@ -69,7 +69,7 @@ public class SecurityServerBackupStepDefs extends BaseUiStepDefs {
                 .text();
 
         String backupName = snackbarMessage.split(" ")[1];
-        scenarioExecutionContext.getCucumberScenario().log(String.format("Backup %s was created", backupName));
+        scenarioProvider.getCucumberScenario().log(String.format("Backup %s was created", backupName));
         scenarioContext.putStepData("backupName", backupName);
 
         $(Constants.BTN_CLOSE_SNACKBAR).click();
