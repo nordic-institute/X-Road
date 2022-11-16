@@ -2,13 +2,11 @@
 debug: true
 
 spring:
+  cache:
+    type: none
   jpa:
     hibernate:
       ddl-auto: none #TODO this should be removed once schema is stable.
-
-cache:
-  simple:
-    ttl: 1 #TODO we should have an ability to fully disable or clear the cache.
 
 server:
   ssl:
