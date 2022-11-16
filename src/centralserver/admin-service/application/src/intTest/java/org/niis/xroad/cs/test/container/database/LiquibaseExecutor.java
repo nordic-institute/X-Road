@@ -67,7 +67,9 @@ public class LiquibaseExecutor extends SpringLiquibase {
     public synchronized void executeChangesets() {
         var stopWatch = StopWatch.createStarted();
 
-        setDataSource(createDataSource());
+        if (getDataSource() == null) {
+            setDataSource(createDataSource());
+        }
         executeUpdate();
 
         log.info("Liquibase schema initialized in {} ms.", stopWatch.getTime(TimeUnit.MILLISECONDS));
@@ -86,6 +88,7 @@ public class LiquibaseExecutor extends SpringLiquibase {
 
     private DataSource createDataSource() {
         var config = new HikariConfig();
+        config.setMaximumPoolSize(1);
         config.setJdbcUrl(postgresContextualContainer.getExternalJdbcUrl());
         config.setUsername(postgresContextualContainer.getTestContainer().getUsername());
         config.setPassword(postgresContextualContainer.getTestContainer().getPassword());
