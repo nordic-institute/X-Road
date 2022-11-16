@@ -29,9 +29,10 @@ import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
-import io.vavr.control.Option;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Optional;
 
 /**
  * Base class for all step definitions. Provides convenience methods and most commonly used beans.
@@ -70,8 +71,8 @@ public abstract class BaseStepDefs {
      * @param key value key
      * @return value from the context
      */
-    protected <T> Option<T> getStepData(StepDataKey key) {
-        return Option.of(scenarioContext.getStepData(key.name()));
+    protected <T> Optional<T> getStepData(StepDataKey key) {
+        return Optional.ofNullable(scenarioContext.getStepData(key.name()));
     }
 
     /**
