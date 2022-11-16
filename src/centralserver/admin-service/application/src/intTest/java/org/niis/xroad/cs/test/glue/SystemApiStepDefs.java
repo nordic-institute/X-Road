@@ -38,17 +38,15 @@ public class SystemApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignSystemApi feignSystemApi;
 
+    private ResponseEntity<SystemStatusDto> response;
+
     @Then("System status is requested")
     public void systemStatusIsRequested() {
-        var response = feignSystemApi.getSystemStatus();
-
-        putStepData(StepDataKey.RESPONSE, response);
+        response = feignSystemApi.getSystemStatus();
     }
 
     @Then("System status is validated")
     public void systemStatusIsValidated() {
-        ResponseEntity<SystemStatusDto> response = getRequiredStepData(StepDataKey.RESPONSE);
-
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
                 .title("Validate response")
