@@ -49,7 +49,7 @@ import CertificateInfo from "@/components/certificate/CertificateInfo.vue";
 import {CertificateDetails} from "@/openapi-types";
 
 export default Vue.extend({
-  name: 'OcspResponders',
+  name: 'CertificateDetails',
   components: {
     CertificateInfo,
     CertificateHash,

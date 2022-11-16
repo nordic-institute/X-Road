@@ -76,6 +76,12 @@ public class MemberClassDtoConverter extends DtoConverter<MemberClass, MemberCla
         return memberClassService
                 .findByCode(memberClassCode)
                 .filter(Objects::nonNull)
+                .map(memberClass -> setDescription(memberClass, source.getDescription()))
                 .getOrElse(newMemberClass);
+    }
+
+    private MemberClass setDescription(MemberClass memberClass, String description) {
+        memberClass.setDescription(description);
+        return memberClass;
     }
 }

@@ -225,10 +225,6 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/tables';
 
-.borderless-table-header > tr > th {
-  border-bottom: none !important;
-}
-
 .custom-footer {
   border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
   height: 16px;

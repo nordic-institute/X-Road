@@ -112,6 +112,8 @@ public class MemberClassDtoConverterTest extends AbstractDtoConverterTest implem
             inOrder().verify(inOrder -> {
                 inOrder.verify(memberClassDto).getCode();
                 inOrder.verify(memberClassService).findByCode(MEMBER_CLASS_CODE);
+                inOrder.verify(memberClassDto).getDescription();
+                inOrder.verify(memberClass).setDescription(null);
             });
         }
 
