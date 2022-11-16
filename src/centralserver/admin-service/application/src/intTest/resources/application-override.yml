@@ -14,7 +14,7 @@ test-automation:
     execution:
       parallel:
         enabled: true
-        executor-count: 3 # Parallel execution triggers HTTP 429 Too Many Requests
+        executor-count: 3
         isolation-tag: "@Modifying"
     glue-append: "org.niis.xroad.cs.test.glue"
     filter:
