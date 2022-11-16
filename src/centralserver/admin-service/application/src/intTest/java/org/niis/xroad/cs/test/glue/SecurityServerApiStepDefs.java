@@ -54,15 +54,12 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(responseCode)
                 .title("Validate response")
-                .assertion(
-                        new Assertion.Builder()
-                                .message("Verify status code")
-                                .expression("=")
-                                .actualValue(responseCode)
-                                .expectedValue(statusCode)
-                                .build());
-
-
+                .assertion(new Assertion.Builder()
+                        .message("Verify status code")
+                        .expression("=")
+                        .actualValue(responseCode)
+                        .expectedValue(statusCode)
+                        .build());
         validationService.validate(validationBuilder.build());
     }
 }

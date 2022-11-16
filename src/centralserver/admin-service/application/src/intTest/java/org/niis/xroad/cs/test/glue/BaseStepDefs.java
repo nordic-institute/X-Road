@@ -31,6 +31,7 @@ import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 
 import java.util.Optional;
 
@@ -46,11 +47,18 @@ public abstract class BaseStepDefs {
     @Autowired
     protected ValidationService validationService;
 
-    protected Assertion equalsAssertion(Object expected, Object actual, String message) {
+    protected Assertion equalsAssertion(Object expected, String actualValuePath, String message) {
         return new Assertion.Builder()
                 .message(message)
-                .expression("=")
-                .actualValue(actual)
+                .expression(actualValuePath)
+                .expectedValue(expected)
+                .build();
+    }
+
+    protected Assertion equalsStatusCodeAssertion(HttpStatus expected) {
+        return new Assertion.Builder()
+                .message("Verify status code")
+                .expression("statusCode")
                 .expectedValue(expected)
                 .build();
     }
@@ -90,6 +98,7 @@ public abstract class BaseStepDefs {
      * An enumerated key for data transfer between steps.
      */
     public enum StepDataKey {
+        RESPONSE,
         RESPONSE_BODY,
         RESPONSE_STATUS,
         CERTIFICATION_SERVICE_ID,

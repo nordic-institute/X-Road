@@ -67,7 +67,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
                 .title("Validate response")
-                .assertion(equalsAssertion(OK, response.getStatusCode(), "Verify status code"));
+                .assertion(equalsStatusCodeAssertion(OK));
         validationService.validate(validationBuilder.build());
 
         putStepData(NEW_OCSP_RESPONDER_URL, newUrl);
@@ -92,7 +92,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
                 .title("Validate response")
-                .assertion(equalsAssertion(OK, response.getStatusCode(), "Verify status code"));
+                .assertion(equalsStatusCodeAssertion(OK));
         validationService.validate(validationBuilder.build());
 
         putStepData(NEW_OCSP_RESPONDER_URL, newUrl);
@@ -108,12 +108,11 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(certificateResponse)
                 .title("Validate response")
-                .assertion(equalsAssertion(OK, certificateResponse.getStatusCode(), "Verify status code"))
+                .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(new Assertion.Builder()
                         .message("Certificate hash differs")
-                        .expression("!=")
+                        .expression("body.hash")
                         .operation(AssertionOperation.NOT_EQUALS)
-                        .actualValue(certificateResponse.getBody().getHash())
                         .expectedValue(getKeyOldOcspResponderCertHash)
                         .build());
         validationService.validate(validationBuilder.build());

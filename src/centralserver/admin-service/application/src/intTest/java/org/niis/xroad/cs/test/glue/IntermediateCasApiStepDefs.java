@@ -70,7 +70,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
                 .title("Validate response")
-                .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
+                .assertion(equalsStatusCodeAssertion(CREATED));
         validationService.validate(validationBuilder.build());
 
         intermediateCaId = response.getBody().getId();
@@ -87,7 +87,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
                 .title("Validate response")
-                .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
+                .assertion(equalsStatusCodeAssertion(CREATED));
         validationService.validate(validationBuilder.build());
 
         putStepData(OCSP_RESPONDER_ID, response.getBody().getId());
@@ -100,25 +100,24 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
                 .title("Validate response")
-                .assertion(equalsAssertion(OK, response.getStatusCode(), "Verify status code"))
-                .assertion(equalsAssertion(count, response.getBody().size(), "Response contains " + count + " items"));
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(count, "body.size", "Response contains " + count + " items"));
         validationService.validate(validationBuilder.build());
     }
 
     @Then("intermediate CA has the updated OCSP responder")
     public void intermediateCAHasUpdatedOCSPResponder() {
-        final ResponseEntity<Set<OcspResponderDto>> responseEntity = intermediateCasApi
+        final ResponseEntity<Set<OcspResponderDto>> response = intermediateCasApi
                 .getIntermediateCaOcspResponders(intermediateCaId);
-        final OcspResponderDto response = responseEntity.getBody().iterator().next();
 
         final String newOcspResponderUrl = getRequiredStepData(NEW_OCSP_RESPONDER_URL);
 
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
                 .title("Validate response")
-                .assertion(equalsAssertion(OK, responseEntity.getStatusCode(), "Verify status code"))
-                .assertion(equalsAssertion(Boolean.TRUE, response.getHasCertificate(), "Verify OCSP responder has certificate"))
-                .assertion(equalsAssertion(newOcspResponderUrl, response.getUrl(), "OCSP responder url matches"));
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(Boolean.TRUE, "body[0].hasCertificate", "Verify OCSP responder has certificate"))
+                .assertion(equalsAssertion(newOcspResponderUrl, "body[0].url", "OCSP responder url matches"));
         validationService.validate(validationBuilder.build());
     }
 
@@ -132,7 +131,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
                 .title("Validate response")
-                .assertion(equalsAssertion(NO_CONTENT, response.getStatusCode(), "Verify status code"));
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT));
         validationService.validate(validationBuilder.build());
     }
 
