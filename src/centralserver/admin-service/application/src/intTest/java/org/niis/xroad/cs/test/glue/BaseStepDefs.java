@@ -29,10 +29,9 @@ import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
+import io.vavr.control.Option;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Optional;
 
 /**
  * Base class for all step definitions. Provides convenience methods and most commonly used beans.
@@ -61,8 +60,8 @@ public abstract class BaseStepDefs {
      * @param key   value key. Non-null.
      * @param value value
      */
-    protected void putStepData(String key, Object value) {
-        scenarioContext.putStepData(key, value);
+    protected void putStepData(StepDataKey key, Object value) {
+        scenarioContext.putStepData(key.name(), value);
     }
 
     /**
@@ -71,8 +70,8 @@ public abstract class BaseStepDefs {
      * @param key value key
      * @return value from the context
      */
-    protected <T> Optional<T> getStepData(String key) {
-        return Optional.ofNullable(scenarioContext.getStepData(key));
+    protected <T> Option<T> getStepData(StepDataKey key) {
+        return Option.of(scenarioContext.getStepData(key.name()));
     }
 
     /**
@@ -82,8 +81,18 @@ public abstract class BaseStepDefs {
      * @return value from the context
      * @throws AssertionFailedError thrown if value is missing
      */
-    protected <T> T getRequiredStepData(String key) throws AssertionFailedError {
-        return scenarioContext.getRequiredStepData(key);
+    protected <T> T getRequiredStepData(StepDataKey key) throws AssertionFailedError {
+        return scenarioContext.getRequiredStepData(key.name());
     }
 
+    /**
+     * An enumerated key for data transfer between steps.
+     */
+    public enum StepDataKey {
+        RESPONSE_BODY,
+        RESPONSE_STATUS,
+        CERTIFICATION_SERVICE_ID,
+        OCSP_RESPONDER_ID,
+        NEW_OCSP_RESPONDER_URL
+    }
 }

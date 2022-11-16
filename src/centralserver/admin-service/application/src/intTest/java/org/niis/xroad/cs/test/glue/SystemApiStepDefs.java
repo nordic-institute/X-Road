@@ -29,18 +29,24 @@ import io.cucumber.java.en.Then;
 import org.assertj.core.api.Assertions;
 import org.niis.xroad.cs.test.api.FeignSystemApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 
+@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public class SystemApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignSystemApi feignSystemApi;
 
     @Then("System status is requested")
     public void systemStatusIsRequested() {
-        feignSystemApi.getSystemStatus();
+        var response = feignSystemApi.getSystemStatus();
+
+        putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCode());
     }
 
     @Then("System status is validated")
     public void systemStatusIsValidated() {
-        Assertions.assertThat(true).isTrue();
+        HttpStatus responseStatus = getRequiredStepData(StepDataKey.RESPONSE_STATUS);
+
+        Assertions.assertThat(responseStatus.is2xxSuccessful()).isTrue();
     }
 }

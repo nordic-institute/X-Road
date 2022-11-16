@@ -36,9 +36,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.CERTIFICATION_SERVICE_ID;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
 import static org.springframework.http.HttpStatus.CREATED;
 
+@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public class CertificationServicesApiStepDefs extends BaseStepDefs {
 
     @Autowired
@@ -58,7 +60,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
         validationService.validate(validationBuilder.build());
 
-        putStepData("certificationServiceId", response.getBody().getId());
+        putStepData(CERTIFICATION_SERVICE_ID, response.getBody().getId());
     }
 
 }
