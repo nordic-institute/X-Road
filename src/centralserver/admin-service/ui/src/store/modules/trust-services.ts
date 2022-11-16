@@ -154,6 +154,7 @@ export const useOcspResponderStore = defineStore(
 export interface IntermediateCasStoreState {
   currentCa: ApprovedCertificationService | CertificateAuthority | null
   currentIntermediateCas: CertificateAuthority[];
+  currentSelectedIntermediateCa: CertificateAuthority | null;
 }
 
 export const useIntermediateCaStore = defineStore(
@@ -162,12 +163,22 @@ export const useIntermediateCaStore = defineStore(
       state: (): IntermediateCasStoreState => ({
         currentCa: null,
         currentIntermediateCas: [],
+        currentSelectedIntermediateCa: null,
       }),
       persist: true,
       actions: {
         loadByCa(currentCa: ApprovedCertificationService | CertificateAuthority) {
           this.currentCa = currentCa;
           this.fetchIntermediateCas();
+        },
+        loadById(intermediateCaId: number) {
+          return this.getIntermediateCa(intermediateCaId)
+            .then((resp) => {
+              this.currentSelectedIntermediateCa = resp.data;
+            })
+            .catch((error) => {
+              throw error;
+            });
         },
         fetchIntermediateCas() {
           if (!this.currentCa) return

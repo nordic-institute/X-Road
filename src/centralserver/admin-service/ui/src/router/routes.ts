@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-import { RouteConfig } from 'vue-router';
+import { Route, RouteConfig } from 'vue-router';
 import TabsBase from '@/components/layout/TabsBase.vue';
 
 import AppLogin from '@/views/AppLogin.vue';
@@ -59,10 +59,8 @@ import SecurityServersList from '@/views/SecurityServers/SecurityServersList.vue
 import SecurityServer from '@/views/SecurityServers/SecurityServer/SecurityServer.vue';
 import SecurityServerDetails from '@/views/SecurityServers/SecurityServer/SecurityServerDetails.vue';
 import SecurityServerClients from '@/views/SecurityServers/SecurityServer/SecurityServerClients.vue';
-import SecurityServerAuthenticationCertificates
-    from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
-import SecurityServerManagementRequests
-    from '@/views/SecurityServers/SecurityServer/SecurityServerManagementRequests.vue';
+import SecurityServerAuthenticationCertificates from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
+import SecurityServerManagementRequests from '@/views/SecurityServers/SecurityServer/SecurityServerManagementRequests.vue';
 
 import GlobalResources from '@/views/GlobalResources/GlobalResources.vue';
 import GlobalResourcesList from '@/views/GlobalResources/GlobalResourcesList.vue';
@@ -82,14 +80,13 @@ import CertificationService from '@/views/TrustServices/CertificationService/Cer
 import CertificationServiceDetails from '@/views/TrustServices/CertificationService/CertificationServiceDetails.vue';
 import TrustServiceList from '@/views/TrustServices/TrustServiceList.vue';
 import CertificationServiceSettings from '@/views/TrustServices/CertificationService/CertificationServiceSettings.vue';
-import CertificationServiceOcspResponders
-    from '@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue';
-import CertificationServiceIntermediateCas
-    from '@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue';
+import CertificationServiceOcspResponders from '@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue';
+import CertificationServiceIntermediateCas from '@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue';
 import OcspResponderCertificate from '@/views/TrustServices/CertificationService/OcspResponderCertificate.vue';
-import CertificationServiceCertificate
-    from '@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue';
+import CertificationServiceCertificate from '@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue';
 import IntermediateCACertificate from '@/views/TrustServices/CertificationService/IntermediateCACertificate.vue';
+import IntermediateCa from '@/views/TrustServices/CertificationService/IntermediateCa.vue';
+import IntermediateCaDetails from '@/views/TrustServices/CertificationService/IntermediateCaDetails.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -308,9 +305,11 @@ const routes: RouteConfig[] = [
             path: '/certification-services/:certificationServiceId',
             component: CertificationService,
             meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props: (route) => {
-              const certificationServiceId = Number(route.params.certificationServiceId)
-              return { certificationServiceId }
+            props(route: Route): { certificationServiceId: number } {
+              const certificationServiceId = Number(
+                route.params.certificationServiceId,
+              );
+              return { certificationServiceId };
             },
             redirect: '/certification-services/:certificationServiceId/details',
             children: [
@@ -341,35 +340,55 @@ const routes: RouteConfig[] = [
             ],
           },
           {
+            path: '/intermediate-ca/:intermediateCaId',
+            component: IntermediateCa,
+            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+            props: (route: Route): { intermediateCaId: number } => {
+              const intermediateCaId = Number(route.params.intermediateCaId);
+              return { intermediateCaId };
+            },
+            redirect: '/intermediate-ca/:intermediateCaId/details',
+            children: [
+              {
+                name: RouteName.IntermediateCaDetails,
+                path: 'details',
+                component: IntermediateCaDetails,
+                meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+              },
+            ],
+          },
+          {
             name: RouteName.CertificationServiceCertificateDetails,
             path: '/certification-services/:certificationServiceId/certificate-details',
             component: CertificationServiceCertificate,
             meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props: (route) => {
-              const certificationServiceId = Number(route.params.certificationServiceId)
-              return { certificationServiceId }
-            }
+            props: (route: Route): { certificationServiceId: number } => {
+              const certificationServiceId = Number(
+                route.params.certificationServiceId,
+              );
+              return { certificationServiceId };
+            },
           },
           {
             name: RouteName.OcspResponderCertificateDetails,
             path: 'ocsp-responder/:ocspResponderId/certificate-details',
             component: OcspResponderCertificate,
             meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props: (route) => {
-              const ocspResponderId = Number(route.params.ocspResponderId)
-              return { ocspResponderId }
-            }
+            props: (route: Route): { ocspResponderId: number } => {
+              const ocspResponderId = Number(route.params.ocspResponderId);
+              return { ocspResponderId };
+            },
           },
           {
             name: RouteName.IntermediateCACertificateDetails,
             path: '/intermediate-cas/:intermediateCaId',
             component: IntermediateCACertificate,
             meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props: (route) => {
-              const intermediateCaId = Number(route.params.intermediateCaId)
-              return { intermediateCaId }
-            }
-          }
+            props: (route: Route): { intermediateCaId: number } => {
+              const intermediateCaId = Number(route.params.intermediateCaId);
+              return { intermediateCaId };
+            },
+          },
         ],
       },
 

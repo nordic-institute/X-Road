@@ -61,6 +61,12 @@
         </thead>
       </template>
 
+      <template #[`item.ca_certificate.subject_common_name`]="{ item }">
+        <div class="xrd-clickable" @click="toDetails(item)">
+          {{ item.ca_certificate.subject_common_name }}
+        </div>
+      </template>
+
       <template #[`item.ca_certificate.not_before`]="{ item }">
         <div>{{ item.ca_certificate.not_before | formatDateTime }}</div>
       </template>
@@ -192,6 +198,14 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    toDetails(intermediateCa: CertificateAuthority) {
+      this.$router.push({
+        name: RouteName.IntermediateCaDetails,
+        params: {
+          intermediateCaId: String(intermediateCa.id),
+        },
+      });
+    },
     hideAddIntermediateCaDialog() {
       this.showAddIntermediateCaDialog = false;
     },
