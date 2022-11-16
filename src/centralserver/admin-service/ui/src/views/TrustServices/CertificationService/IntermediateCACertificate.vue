@@ -24,28 +24,40 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<!--
-  Certification Service settings view
--->
 <template>
-  <main id="certification-service-ocsp-responders" class="mt-8">
-    <OcspRespondersList
-      :ca="certificationServiceStore.currentCertificationService"
-    />
+  <main id="intermediate-ca-certificate-details" class="mt-8">
+    <CertificateDetails :certificate-details="certificateDetails" />
   </main>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
-import OcspRespondersList from '@/components/ocspResponders/OcspRespondersList.vue';
+import { useIntermediateCaStore } from '@/store/modules/trust-services';
+import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
+import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 
 export default Vue.extend({
-  name: 'CertificationServiceOcspResponders',
-  components: { OcspRespondersList },
+  name: 'IntermediateCaCertificate',
+  components: { CertificateDetails },
+  props: {
+    intermediateCaId: {
+      type: Number,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      certificateDetails: null as CertificateDetailsType | null,
+    };
+  },
   computed: {
-    ...mapStores(useCertificationServiceStore),
+    ...mapStores(useIntermediateCaStore),
+  },
+  created() {
+    this.intermediateCasServiceStore
+      .getIntermediateCa(this.intermediateCaId)
+      .then((resp) => (this.certificateDetails = resp.data.ca_certificate));
   },
 });
 </script>

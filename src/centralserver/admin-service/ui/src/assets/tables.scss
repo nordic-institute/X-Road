@@ -95,3 +95,7 @@
   border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
   height: 16px;
 }
+
+.borderless-table-header > tr > th {
+  border-bottom: none !important;
+}

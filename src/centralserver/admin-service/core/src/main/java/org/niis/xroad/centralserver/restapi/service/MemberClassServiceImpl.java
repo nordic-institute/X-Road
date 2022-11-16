@@ -97,10 +97,7 @@ public class MemberClassServiceImpl implements MemberClassService {
 
     @Override
     public MemberClass update(final MemberClass memberClass) {
-        return Try.success(memberClass)
-                .filter(mc -> mc.getId() > 0)
-                .map(memberClassMapper::fromTarget)
-                .orElse(() -> memberClassRepository.findByCode(memberClass.getCode()).toTry())
+        return memberClassRepository.findByCode(memberClass.getCode()).toTry()
                 .filter(Objects::nonNull, () ->
                         new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberClass.getCode()))
                 .andThen(persistedMemberClass -> persistedMemberClass.setDescription(memberClass.getDescription()))
