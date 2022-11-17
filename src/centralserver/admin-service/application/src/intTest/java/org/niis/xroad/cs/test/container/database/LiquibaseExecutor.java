@@ -64,7 +64,7 @@ public class LiquibaseExecutor extends SpringLiquibase {
      * Executes changesets.
      * Will drop any existing data in database.
      */
-    public synchronized void executeChangesets() {
+    public void executeChangesets() {
         var stopWatch = StopWatch.createStarted();
 
         if (getDataSource() == null) {

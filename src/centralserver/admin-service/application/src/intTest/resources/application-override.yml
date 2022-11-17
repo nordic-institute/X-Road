@@ -13,9 +13,9 @@ test-automation:
   cucumber:
     execution:
       parallel:
-        enabled: false
+        enabled: true
         executor-count: 3
-        isolation-tag: "@Modifying"
+        isolation-tag: "Modifying"
     glue-append: "org.niis.xroad.cs.test.glue"
     filter:
       tags: "not @Skip"
