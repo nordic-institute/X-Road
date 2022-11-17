@@ -296,7 +296,7 @@
 
           <v-card-text class="xrd-card-text">
             <div v-if="backupEncryptionDiagnostics">
-              <div class="sub-title status-wrapper">
+              <div class="sub-title status-wrapper" data-test="backup-encryption-status">
                 <span>
                   {{ $t('diagnostics.encryption.statusTitle') }}
                 </span>
@@ -308,7 +308,7 @@
                 {{ $t(`diagnostics.encryption.status.${backupEncryptionDiagnostics.backup_encryption_status}`,) }}
               </div>
 
-              <table class="xrd-table" v-if="backupEncryptionDiagnostics.backup_encryption_status">
+              <table class="xrd-table" data-test="backup-encryption-keys" v-if="backupEncryptionDiagnostics.backup_encryption_status">
                 <thead>
                   <tr>
                     <th>

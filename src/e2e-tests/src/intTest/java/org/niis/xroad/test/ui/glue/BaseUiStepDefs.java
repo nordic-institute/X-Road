@@ -25,8 +25,8 @@
  */
 package org.niis.xroad.test.ui.glue;
 
+import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
-import com.nortal.test.core.services.ScenarioExecutionContext;
 import org.niis.xroad.test.configuration.TestProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -34,7 +34,7 @@ public abstract class BaseUiStepDefs {
     @Autowired
     protected TestProperties testProperties;
     @Autowired
-    protected ScenarioExecutionContext scenarioExecutionContext;
+    protected CucumberScenarioProvider scenarioProvider;
     @Autowired
     protected ScenarioContext scenarioContext;
 }

@@ -29,6 +29,8 @@ import com.nortal.test.testcontainers.AbstractTestableSpringBootContainerSetup;
 import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.cs.test.container.database.LiquibaseExecutor;
+import org.niis.xroad.cs.test.container.database.PostgresContextualContainer;
 import org.springframework.stereotype.Component;
 import org.testcontainers.images.builder.dockerfile.DockerfileBuilder;
 
@@ -41,6 +43,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
     private final PostgresContextualContainer postgresContextualContainer;
+    private final LiquibaseExecutor liquibaseExecutor;
 
     @NotNull
     @Override
@@ -86,6 +89,13 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
         envConfig.put("spring.datasource.username", "xrd");
         envConfig.put("spring.datasource.password", "secret");
         return envConfig;
+    }
+
+    @Override
+    public void initialize() {
+        liquibaseExecutor.executeChangesets();
+
+        super.initialize();
     }
 
     @Override
