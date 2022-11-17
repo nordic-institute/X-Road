@@ -27,6 +27,8 @@
 
 package org.niis.xroad.cs.test.glue;
 
+import com.nortal.test.asserts.Assertion;
+import com.nortal.test.asserts.AssertionOperation;
 import com.nortal.test.asserts.Validation;
 import io.cucumber.java.en.When;
 import org.niis.xroad.centralserver.openapi.model.ApprovedCertificationServiceDto;
@@ -36,9 +38,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.CERTIFICATION_SERVICE_ID;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
 import static org.springframework.http.HttpStatus.CREATED;
 
+@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public class CertificationServicesApiStepDefs extends BaseStepDefs {
 
     @Autowired
@@ -55,10 +59,14 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
                 .title("Validate response")
-                .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
+                .assertion(equalsStatusCodeAssertion(CREATED))
+                .assertion(new Assertion.Builder()
+                        .message("Body has ID")
+                        .expression("body.id")
+                        .operation(AssertionOperation.NOT_NULL).build());
         validationService.validate(validationBuilder.build());
 
-        scenarioContext.putStepData("certificationServiceId", response.getBody().getId());
+        putStepData(CERTIFICATION_SERVICE_ID, response.getBody().getId());
     }
 
 }

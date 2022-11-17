@@ -20,16 +20,13 @@ dependencies {
     implementation project(":centralserver:admin-service:infra-api-rest")
     implementation project(":centralserver:admin-service:infra-jpa")
 
-    implementation('org.liquibase:liquibase-core') //TODO enabling runtime liquibase
-
     intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-assert:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-feign:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
-
-    //TODO test automation should release BOM module
-    intTestImplementation("org.testcontainers:postgresql:1.17.5")
+    intTestImplementation('org.liquibase:liquibase-core')
+    intTestImplementation("org.testcontainers:postgresql:1.17.5") //TODO test automation should release BOM module
 
     testImplementation project(":common-test")
     testImplementation(testFixtures(project(":common-rest-api")))

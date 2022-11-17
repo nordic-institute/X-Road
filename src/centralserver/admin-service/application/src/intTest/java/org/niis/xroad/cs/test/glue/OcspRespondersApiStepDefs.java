@@ -42,21 +42,22 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
-import static org.niis.xroad.cs.test.constants.Constants.KEY_OCSP_RESPONDER_ID;
+import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.NEW_OCSP_RESPONDER_URL;
+import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.OCSP_RESPONDER_ID;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
 import static org.springframework.http.HttpStatus.OK;
 
+@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public class OcspRespondersApiStepDefs extends BaseStepDefs {
-
-    private static final String KEY_NEW_OCSP_RESPONDER_URL = "newOcspResponderUrl";
-    private static final String KEY_OLD_OCSP_RESPONDER_CERT_HASH = "oldOcspResponderCertHash";
 
     @Autowired
     private FeignOcspRespondersApi ocspRespondersApi;
 
+    private String getKeyOldOcspResponderCertHash;
+
     @When("OCSP responder url is updated")
     public void updateOcspResponderUrl() {
-        Integer ocspResponderId = scenarioContext.getStepData(KEY_OCSP_RESPONDER_ID);
+        Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
         final String newUrl = "https://updated-ocsp-responder-url-" + UUID.randomUUID();
 
@@ -66,21 +67,21 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
                 .title("Validate response")
-                .assertion(equalsAssertion(OK, response.getStatusCode(), "Verify status code"));
+                .assertion(equalsStatusCodeAssertion(OK));
         validationService.validate(validationBuilder.build());
 
-        scenarioContext.putStepData(KEY_NEW_OCSP_RESPONDER_URL, newUrl);
+        putStepData(NEW_OCSP_RESPONDER_URL, newUrl);
     }
 
 
     @When("OCSP responder url and certificate is updated")
     public void ocspResponderUrlAndCertificateIsUpdated() throws Exception {
-        Integer ocspResponderId = scenarioContext.getStepData(KEY_OCSP_RESPONDER_ID);
+        Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
         final ResponseEntity<CertificateDetailsDto> certificateResponse = ocspRespondersApi
                 .getOcspRespondersCertificate(ocspResponderId);
 
-        scenarioContext.putStepData(KEY_OLD_OCSP_RESPONDER_CERT_HASH, certificateResponse.getBody().getHash());
+        getKeyOldOcspResponderCertHash = certificateResponse.getBody().getHash();
 
         final String newUrl = "https://updated-ocsp-responder-url-" + UUID.randomUUID();
         MultipartFile newCertificate = new MockMultipartFile("certificate", generateAuthCert());
@@ -91,30 +92,28 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(response)
                 .title("Validate response")
-                .assertion(equalsAssertion(OK, response.getStatusCode(), "Verify status code"));
+                .assertion(equalsStatusCodeAssertion(OK));
         validationService.validate(validationBuilder.build());
 
-        scenarioContext.putStepData(KEY_NEW_OCSP_RESPONDER_URL, newUrl);
+        putStepData(NEW_OCSP_RESPONDER_URL, newUrl);
     }
 
     @And("the OCSP responder certificate was updated")
     public void theOCSPResponderCertificateWasUpdated() {
-        Integer ocspResponderId = scenarioContext.getStepData(KEY_OCSP_RESPONDER_ID);
+        Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
         final ResponseEntity<CertificateDetailsDto> certificateResponse = ocspRespondersApi
                 .getOcspRespondersCertificate(ocspResponderId);
 
-        final String oldHash = scenarioContext.getStepData(KEY_OLD_OCSP_RESPONDER_CERT_HASH);
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(certificateResponse)
                 .title("Validate response")
-                .assertion(equalsAssertion(OK, certificateResponse.getStatusCode(), "Verify status code"))
+                .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(new Assertion.Builder()
                         .message("Certificate hash differs")
-                        .expression("!=")
+                        .expression("body.hash")
                         .operation(AssertionOperation.NOT_EQUALS)
-                        .actualValue(certificateResponse.getBody().getHash())
-                        .expectedValue(oldHash)
+                        .expectedValue(getKeyOldOcspResponderCertHash)
                         .build());
         validationService.validate(validationBuilder.build());
     }

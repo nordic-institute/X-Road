@@ -25,22 +25,32 @@
  */
 package org.niis.xroad.cs.test.glue;
 
+import com.nortal.test.asserts.Validation;
 import io.cucumber.java.en.Then;
-import org.assertj.core.api.Assertions;
+import org.niis.xroad.centralserver.openapi.model.SystemStatusDto;
 import org.niis.xroad.cs.test.api.FeignSystemApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
+@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public class SystemApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignSystemApi feignSystemApi;
 
+    private ResponseEntity<SystemStatusDto> response;
+
     @Then("System status is requested")
     public void systemStatusIsRequested() {
-        feignSystemApi.getSystemStatus();
+        response = feignSystemApi.getSystemStatus();
     }
 
     @Then("System status is validated")
     public void systemStatusIsValidated() {
-        Assertions.assertThat(true).isTrue();
+        final Validation.Builder validationBuilder = new Validation.Builder()
+                .context(response)
+                .title("Validate response")
+                .assertion(equalsStatusCodeAssertion(HttpStatus.OK));
+        validationService.validate(validationBuilder.build());
     }
 }
