@@ -40,7 +40,7 @@ import org.niis.xroad.cs.admin.core.repository.ApprovedTsaRepository;
 import java.util.Set;
 
 import static java.util.List.of;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -65,7 +65,7 @@ class TimestampingServicesServiceImplTest {
 
         final Set<ApprovedTsa> timestampingServices = timestampingServicesService.getTimestampingServices();
 
-        assertEquals(2, timestampingServices.size());
+        assertThat(timestampingServices.size()).isEqualTo(2);
         verify(approvedTsaMapper, times(2)).toTarget(isA(ApprovedTsaEntity.class));
     }
 
