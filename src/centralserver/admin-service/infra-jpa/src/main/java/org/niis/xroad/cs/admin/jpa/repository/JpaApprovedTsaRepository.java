@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,32 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+package org.niis.xroad.cs.admin.jpa.repository;
 
-import java.time.Instant;
+import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
+import org.niis.xroad.cs.admin.core.repository.ApprovedTsaRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class ApprovedTsa extends Auditable {
-    private int id;
-    private String name;
-    private String url;
-    private Integer timestampingInterval;
-    private ApprovedTsaCost cost;
-    private CertificateDetails certificate;
-    private Instant validFrom;
-    private Instant validTo;
-
-    public enum ApprovedTsaCost {
-        FREE,
-        PAID,
-        UNDEFINED,
-    }
+@Repository
+public interface JpaApprovedTsaRepository extends JpaRepository<ApprovedTsaEntity, Integer>, ApprovedTsaRepository {
 
 }
-
-

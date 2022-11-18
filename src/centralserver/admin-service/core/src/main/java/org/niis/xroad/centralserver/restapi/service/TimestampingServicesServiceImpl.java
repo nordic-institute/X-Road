@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,32 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+package org.niis.xroad.centralserver.restapi.service;
 
-import java.time.Instant;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
+import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
+import org.niis.xroad.cs.admin.core.entity.mapper.ApprovedTsaMapper;
+import org.niis.xroad.cs.admin.core.repository.ApprovedTsaRepository;
+import org.springframework.stereotype.Service;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class ApprovedTsa extends Auditable {
-    private int id;
-    private String name;
-    private String url;
-    private Integer timestampingInterval;
-    private ApprovedTsaCost cost;
-    private CertificateDetails certificate;
-    private Instant validFrom;
-    private Instant validTo;
+import javax.transaction.Transactional;
 
-    public enum ApprovedTsaCost {
-        FREE,
-        PAID,
-        UNDEFINED,
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class TimestampingServicesServiceImpl implements TimestampingServicesService {
+
+    private final ApprovedTsaRepository approvedTsaRepository;
+
+    private final ApprovedTsaMapper approvedTsaMapper;
+
+    @Override
+    public Set<ApprovedTsa> getTimestampingServices() {
+        return approvedTsaRepository.findAll().stream()
+                .map(approvedTsaMapper::toTarget)
+                .collect(Collectors.toSet());
     }
 
 }
-
-
