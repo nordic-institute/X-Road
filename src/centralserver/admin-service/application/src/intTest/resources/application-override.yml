@@ -13,7 +13,9 @@ test-automation:
   cucumber:
     execution:
       parallel:
-        enabled: false # Parallel execution triggers HTTP 429 Too Many Requests
+        enabled: true
+        executor-count: 3
+        isolation-tag: "Modifying"
     glue-append: "org.niis.xroad.cs.test.glue"
     filter:
       tags: "not @Skip"

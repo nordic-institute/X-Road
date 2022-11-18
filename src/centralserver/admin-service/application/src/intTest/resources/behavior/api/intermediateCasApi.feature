@@ -1,3 +1,4 @@
+@Modifying
 @IntermediateCas
 Feature: Intermediate CAS API
 

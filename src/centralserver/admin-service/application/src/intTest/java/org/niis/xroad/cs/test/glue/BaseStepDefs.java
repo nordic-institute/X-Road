@@ -27,24 +27,82 @@ package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.ValidationService;
+import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
-import com.nortal.test.core.services.ScenarioExecutionContext;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 
+import java.util.Optional;
+
+/**
+ * Base class for all step definitions. Provides convenience methods and most commonly used beans.
+ */
+@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public abstract class BaseStepDefs {
     @Autowired
-    protected ScenarioExecutionContext scenarioExecutionContext;
+    private ScenarioContext scenarioContext;
     @Autowired
-    protected ScenarioContext scenarioContext;
+    protected CucumberScenarioProvider cucumberScenarioProvider;
     @Autowired
     protected ValidationService validationService;
 
-    protected Assertion equalsAssertion(Object expected, Object actual, String message) {
+    protected Assertion equalsAssertion(Object expected, String actualValuePath, String message) {
         return new Assertion.Builder()
                 .message(message)
-                .expression("=")
-                .actualValue(actual)
+                .expression(actualValuePath)
                 .expectedValue(expected)
                 .build();
+    }
+
+    protected Assertion equalsStatusCodeAssertion(HttpStatus expected) {
+        return new Assertion.Builder()
+                .message("Verify status code")
+                .expression("statusCode")
+                .expectedValue(expected)
+                .build();
+    }
+
+    /**
+     * Put a value in scenario context. Value can be accessed through getStepData.
+     *
+     * @param key   value key. Non-null.
+     * @param value value
+     */
+    protected void putStepData(StepDataKey key, Object value) {
+        scenarioContext.putStepData(key.name(), value);
+    }
+
+    /**
+     * Get value from scenario context.
+     *
+     * @param key value key
+     * @return value from the context
+     */
+    protected <T> Optional<T> getStepData(StepDataKey key) {
+        return Optional.ofNullable(scenarioContext.getStepData(key.name()));
+    }
+
+    /**
+     * Get value from scenario context.
+     *
+     * @param key value key
+     * @return value from the context
+     * @throws AssertionFailedError thrown if value is missing
+     */
+    protected <T> T getRequiredStepData(StepDataKey key) throws AssertionFailedError {
+        return scenarioContext.getRequiredStepData(key.name());
+    }
+
+    /**
+     * An enumerated key for data transfer between steps.
+     */
+    public enum StepDataKey {
+        RESPONSE,
+        RESPONSE_BODY,
+        RESPONSE_STATUS,
+        CERTIFICATION_SERVICE_ID,
+        OCSP_RESPONDER_ID,
+        NEW_OCSP_RESPONDER_URL
     }
 }

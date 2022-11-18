@@ -32,6 +32,7 @@ import io.cucumber.java.en.Then;
 import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public class SecurityServerApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignSecurityServersApi securityServersApi;
@@ -40,30 +41,25 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
     public void systemStatusIsRequested(String id) {
         try {
             var response = securityServersApi.getSecurityServerAuthCerts(id);
-            scenarioContext.putStepData("responseCode", response.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
         } catch (FeignException feignException) {
-
-            scenarioContext.putStepData("responseCode", feignException.status());
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
         }
     }
 
     @Then("Response is of status code {int}")
     public void systemStatusIsValidated(int statusCode) {
-        int responseCode = scenarioContext.getStepData("responseCode");
+        int responseCode = getRequiredStepData(StepDataKey.RESPONSE_STATUS);
 
         final Validation.Builder validationBuilder = new Validation.Builder()
                 .context(responseCode)
                 .title("Validate response")
-                .assertion(
-                        new Assertion.Builder()
-                                .message("Verify status code")
-                                .expression("=")
-                                .actualValue(responseCode)
-//                                .expressionType(ExpressionType.ABSOLUTE)
-                                .expectedValue(statusCode)
-                                .build());
-
-
+                .assertion(new Assertion.Builder()
+                        .message("Verify status code")
+                        .expression("=")
+                        .actualValue(responseCode)
+                        .expectedValue(statusCode)
+                        .build());
         validationService.validate(validationBuilder.build());
     }
 }

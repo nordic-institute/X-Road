@@ -1,6 +1,6 @@
 @SecurityServer
-Feature: POC
+Feature: System Status API
 
-  Scenario: Making sure feign client is working
+  Scenario: Verifying that system status is OK
     When System status is requested
     Then System status is validated

@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,18 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.ui.glue;
 
-import com.nortal.test.core.services.CucumberScenarioProvider;
-import com.nortal.test.core.services.ScenarioContext;
-import org.niis.xroad.test.configuration.TestProperties;
-import org.springframework.beans.factory.annotation.Autowired;
+package org.niis.xroad.cs.admin.jpa.repository;
 
-public abstract class BaseUiStepDefs {
-    @Autowired
-    protected TestProperties testProperties;
-    @Autowired
-    protected CucumberScenarioProvider scenarioProvider;
-    @Autowired
-    protected ScenarioContext scenarioContext;
+import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
+import org.niis.xroad.cs.admin.core.repository.ApprovedTsaRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface JpaApprovedTsaRepository extends JpaRepository<ApprovedTsaEntity, Integer>, ApprovedTsaRepository {
+
 }

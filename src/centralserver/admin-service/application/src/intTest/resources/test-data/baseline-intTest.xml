@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd"
                    logicalFilePath="centerui/003-apikeys.xml">
 
-    <changeSet id="apikey-testdata" author="ricardas" context="int-test">
+    <changeSet id="apikey-testdata" author="ricardas">
+        <comment>Add default apiKey which can be used for scenarios which do not case about permissions.
+            This maps to header value X-ROAD-APIKEY TOKEN=d56e1ca7-4134-4ed4-8030-5f330bdb602a
+        </comment>
         <sql>
             -- noinspection SqlResolve
             INSERT INTO apikey

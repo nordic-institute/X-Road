@@ -1,6 +1,6 @@
-/*
+/**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,13 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.test.hook;
 
-package org.niis.xroad.cs.test.constants;
+import com.nortal.test.core.services.ScenarioExecutionContext;
+import com.nortal.test.core.services.hooks.AfterScenarioHook;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.cs.test.container.database.LiquibaseExecutor;
+import org.springframework.stereotype.Component;
 
-public final class Constants {
-    public static final String KEY_OCSP_RESPONDER_ID = "ocspResponderId";
+/**
+ * Database reset hook which drops current database and initializes fresh schema.
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class DatabaseResetHook implements AfterScenarioHook {
+    private static final String TAG_RESET_DB = "@Modifying";
 
-    private Constants() {
+    private final LiquibaseExecutor liquibaseExecutor;
+
+    @Override
+    public void after(ScenarioExecutionContext scenarioExecutionContext) {
+        assert scenarioExecutionContext != null;
+
+        var resetDatabase = scenarioExecutionContext.getCucumberScenario().getSourceTagNames()
+                .stream()
+                .anyMatch(TAG_RESET_DB::equalsIgnoreCase);
+
+        if (resetDatabase) {
+            log.info("Scenario [{}] was marked as {}. Resetting database.",
+                    scenarioExecutionContext.getCucumberScenario().getName(),
+                    TAG_RESET_DB);
+            liquibaseExecutor.executeChangesets();
+        }
     }
-
 }
