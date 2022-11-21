@@ -48,14 +48,6 @@ public abstract class BaseStepDefs {
     @Autowired
     protected ValidationService validationService;
 
-    protected Assertion equalsAssertion(Object expected, String actualValuePath, String message) {
-        return new Assertion.Builder()
-                .message(message)
-                .expression(actualValuePath)
-                .expectedValue(expected)
-                .build();
-    }
-
     protected Assertion equalsStatusCodeAssertion(HttpStatus expected) {
         return new Assertion.Builder()
                 .message("Verify status code")

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Validation;
 import io.cucumber.java.en.Then;
 import org.niis.xroad.centralserver.openapi.model.SystemStatusDto;
 import org.niis.xroad.cs.test.api.FeignSystemApi;
@@ -47,10 +46,8 @@ public class SystemApiStepDefs extends BaseStepDefs {
 
     @Then("System status is validated")
     public void systemStatusIsValidated() {
-        final Validation.Builder validationBuilder = new Validation.Builder()
-                .context(response)
-                .title("Validate response")
-                .assertion(equalsStatusCodeAssertion(HttpStatus.OK));
-        validationService.validate(validationBuilder.build());
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
+                .execute();
     }
 }

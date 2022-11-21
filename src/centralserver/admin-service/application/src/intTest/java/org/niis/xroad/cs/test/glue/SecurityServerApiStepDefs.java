@@ -26,7 +26,6 @@
 package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
-import com.nortal.test.asserts.Validation;
 import feign.FeignException;
 import io.cucumber.java.en.Then;
 import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
@@ -51,15 +50,13 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
     public void systemStatusIsValidated(int statusCode) {
         int responseCode = getRequiredStepData(StepDataKey.RESPONSE_STATUS);
 
-        final Validation.Builder validationBuilder = new Validation.Builder()
-                .context(responseCode)
-                .title("Validate response")
+        validate(responseCode)
                 .assertion(new Assertion.Builder()
                         .message("Verify status code")
                         .expression("=")
                         .actualValue(responseCode)
                         .expectedValue(statusCode)
-                        .build());
-        validationService.validate(validationBuilder.build());
+                        .build())
+                .execute();
     }
 }
