@@ -681,7 +681,7 @@ apt upgrade xroad-securityserver
 
 serverconf.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/serverconf
 serverconf.hibernate.connection.username = serverconf
-serverconf.hibernate.connection.password = <randomly generated password> 
+serverconf.hibernate.connection.password = <randomly generated password>
 serverconf.hibernate.connection.driver_class = org.postgresql.Driver
 serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
 serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
@@ -801,6 +801,10 @@ CREATE ROLE serverconf LOGIN PASSWORD '<serverconf password>';
 GRANT serverconf to <superuser>;
 GRANT TEMPORARY,CONNECT ON DATABASE serverconf TO serverconf;
 GRANT USAGE ON SCHEMA public to serverconf;
+GRANT USAGE ON SCHEMA serverconf TO serverconf;
+GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA serverconf TO serverconf;
+GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA serverconf TO serverconf;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA serverconf to serverconf;
 ```
 
 **messagelog** (required by xroad-addon-messagelog)
@@ -818,6 +822,10 @@ CREATE ROLE messagelog LOGIN PASSWORD '<messagelog password>';
 GRANT messagelog to <superuser>;
 GRANT TEMPORARY,CONNECT ON DATABASE messagelog TO messagelog;
 GRANT USAGE ON SCHEMA public to messagelog;
+GRANT USAGE ON SCHEMA messagelog TO messagelog;
+GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA messagelog TO messagelog;
+GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA messagelog TO messagelog;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA messagelog to messagelog;
 ```
 
 **op-monitor** (optional, required by xroad-opmonitor)
@@ -838,6 +846,10 @@ CREATE ROLE opmonitor LOGIN PASSWORD '<opmonitor password>';
 GRANT opmonitor to <superuser>;
 GRANT TEMPORARY,CONNECT ON DATABASE "op-monitor" TO opmonitor;
 GRANT USAGE ON SCHEMA public to opmonitor;
+GRANT USAGE ON SCHEMA opmonitor TO opmonitor;
+GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA opmonitor TO opmonitor;
+GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA opmonitor TO opmonitor;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA opmonitor to opmonitor;
 ```
 
 Lastly, customize the database connection properties to match the values used when creating the database.
