@@ -44,6 +44,7 @@ export enum RouteName {
   IntermediateCACertificateDetails = 'intermediate-ca-certificate-details',
   OcspResponderCertificateDetails = 'ocsp-responder-certificate-details',
   IntermediateCaDetails = 'intermediate-ca-details',
+  IntermediateCaOcspResponders = 'intermediate-ca-ocsp-responders',
   Settings = 'settings',
   GlobalResources = 'global-resources',
   GlobalGroup = 'global-group',

@@ -87,6 +87,7 @@ import CertificationServiceCertificate from '@/views/TrustServices/Certification
 import IntermediateCACertificate from '@/views/TrustServices/CertificationService/IntermediateCACertificate.vue';
 import IntermediateCa from '@/views/TrustServices/CertificationService/IntermediateCa.vue';
 import IntermediateCaDetails from '@/views/TrustServices/CertificationService/IntermediateCaDetails.vue';
+import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationService/IntermediateCaOcspResponders.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -353,6 +354,12 @@ const routes: RouteConfig[] = [
                 name: RouteName.IntermediateCaDetails,
                 path: 'details',
                 component: IntermediateCaDetails,
+                meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+              },
+              {
+                name: RouteName.IntermediateCaOcspResponders,
+                path: 'ocsp-responders',
+                component: IntermediateCaOcspResponders,
                 meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
               },
             ],
