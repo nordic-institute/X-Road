@@ -75,7 +75,7 @@ public class SystemApiController implements SystemApi {
     }
 
     /**
-     * PUT /system/status/server-address : update the server address
+     * PUT /system/server-address : update the server address
      *
      * @param centralServerAddress New central server address (required)
      * @return System status with updated Central Server address (status code 200)

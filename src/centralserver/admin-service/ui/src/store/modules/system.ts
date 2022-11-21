@@ -92,7 +92,7 @@ export const systemStore = defineStore('systemStore', {
     },
     async updateCentralServerAddress(newAddress: CentralServerAddress) {
       return api
-        .put<SystemStatus>('/system/status/server-address', newAddress)
+        .put<SystemStatus>('/system/server-address', newAddress)
         .then((resp) => (this.systemStatus = resp.data));
     },
 
