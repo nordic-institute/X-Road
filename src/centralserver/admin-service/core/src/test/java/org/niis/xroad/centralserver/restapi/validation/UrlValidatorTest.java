@@ -25,16 +25,32 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.centralserver.restapi.validation;
 
-import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 
-import java.util.Set;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public interface TimestampingServicesService {
+class UrlValidatorTest {
 
-    Set<ApprovedTsa> getTimestampingServices();
+    private final UrlValidator urlValidator = new UrlValidator();
 
-    ApprovedTsa add(String url, byte[] certificate);
+    @Test
+    void validateUrlThrowsException() {
+        assertThatThrownBy(() -> urlValidator.validateUrl(null)).isInstanceOf(ValidationFailureException.class);
+        assertThatThrownBy(() -> urlValidator.validateUrl("")).isInstanceOf(ValidationFailureException.class);
+        assertThatThrownBy(() -> urlValidator.validateUrl("something")).isInstanceOf(ValidationFailureException.class);
+        assertThatThrownBy(() -> urlValidator.validateUrl("https")).isInstanceOf(ValidationFailureException.class);
+        assertThatThrownBy(() -> urlValidator.validateUrl("https-not-url")).isInstanceOf(ValidationFailureException.class);
+        assertThatThrownBy(() -> urlValidator.validateUrl("http:/not-valid")).isInstanceOf(ValidationFailureException.class);
+    }
+
+    @Test
+    void validateUrl() {
+        urlValidator.validateUrl("http://url");
+        urlValidator.validateUrl("https://another.url/something");
+    }
+
 
 }

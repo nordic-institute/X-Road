@@ -26,6 +26,7 @@
 package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
+import com.nortal.test.asserts.ValidationHelper;
 import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
@@ -61,6 +62,10 @@ public abstract class BaseStepDefs {
                 .expression("statusCode")
                 .expectedValue(expected)
                 .build();
+    }
+
+    protected ValidationHelper validate(Object context) {
+        return new ValidationHelper(validationService, context, "Validate response");
     }
 
     /**

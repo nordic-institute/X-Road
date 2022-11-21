@@ -58,6 +58,9 @@ class ApprovedTsaMapperTest {
     private static final Instant VALID_TO = Instant.now().plus(2, DAYS);
     private static final X509Certificate CERTIFICATE = TestCertUtil.getTspCert();
 
+    private static final Instant TEST_TSA_CERT_VALID_FROM = Instant.ofEpochMilli(1354189986000L); //2012-11-29 11:53:06Z
+    private static final Instant TEST_TSA_CERT_VALID_TO = Instant.ofEpochMilli(1417261986000L); //2014-11-29 11:53:06Z
+
     @Autowired
     private ApprovedTsaMapper approvedTsaMapper;
 
@@ -75,8 +78,8 @@ class ApprovedTsaMapperTest {
         assertThat(result.getCertificate().getIssuerCommonName()).isEqualTo("AdminCA1");
         assertThat(result.getCertificate().getIssuerDistinguishedName()).isEqualTo("C=SE, O=EJBCA Sample, CN=AdminCA1");
         assertThat(result.getCertificate().getKeyUsages()).isEqualTo(Set.of(NON_REPUDIATION));
-        assertThat(result.getCertificate().getNotAfter()).isEqualTo(Instant.ofEpochMilli(1417261986000L));
-        assertThat(result.getCertificate().getNotBefore()).isEqualTo(Instant.ofEpochMilli(1354189986000L));
+        assertThat(result.getCertificate().getNotAfter()).isEqualTo(TEST_TSA_CERT_VALID_TO);
+        assertThat(result.getCertificate().getNotBefore()).isEqualTo(TEST_TSA_CERT_VALID_FROM);
         assertThat(result.getCertificate().getPublicKeyAlgorithm()).isEqualTo("RSA");
         assertThat(result.getCertificate().getRsaPublicKeyExponent()).isEqualTo(new BigInteger("65537"));
         assertThat(result.getCertificate().getRsaPublicKeyModulus()).isEqualTo("9be793550ed1f3b3dd6c7e55f77"
@@ -102,6 +105,17 @@ class ApprovedTsaMapperTest {
         assertThat(result.getTimestampingInterval()).isEqualTo(60);
     }
 
+    @Test
+    void toEntity() throws Exception {
+        final ApprovedTsaEntity result = approvedTsaMapper.toEntity(URL, CERTIFICATE.getEncoded());
+
+        assertThat(result.getName()).isEqualTo("timestamp1");
+        assertThat(result.getUrl()).isEqualTo(URL);
+        assertThat(result.getCert()).isEqualTo(CERTIFICATE.getEncoded());
+        assertThat(result.getValidFrom()).isEqualTo(TEST_TSA_CERT_VALID_FROM);
+        assertThat(result.getValidTo()).isEqualTo(TEST_TSA_CERT_VALID_TO);
+    }
+
     private ApprovedTsaEntity approvedTsaEntity() throws Exception {
         final ApprovedTsaEntity entity = new ApprovedTsaEntity();
 
@@ -114,6 +128,5 @@ class ApprovedTsaMapperTest {
 
         return entity;
     }
-
 
 }

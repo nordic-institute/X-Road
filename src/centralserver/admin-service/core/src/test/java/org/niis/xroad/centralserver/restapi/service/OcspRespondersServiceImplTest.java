@@ -41,6 +41,7 @@ import org.niis.xroad.centralserver.restapi.dto.converter.CertificateConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.KeyUsageConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.OcspResponderConverter;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.centralserver.restapi.validation.UrlValidator;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
@@ -83,6 +84,8 @@ class OcspRespondersServiceImplTest {
     private OcspInfoRepository ocspInfoRepository;
     @Mock
     private AuditDataHelper auditDataHelper;
+    @Mock
+    private UrlValidator urlValidator;
 
     @Spy
     private OcspResponderConverter ocspResponderConverter = new OcspResponderConverter(mock(ApprovedCaRepository.class));
@@ -129,6 +132,8 @@ class OcspRespondersServiceImplTest {
 
         final OcspResponder result = service.update(request);
 
+        verify(urlValidator).validateUrl(newUrl);
+
         ArgumentCaptor<OcspInfoEntity> captor = ArgumentCaptor.forClass(OcspInfoEntity.class);
         verify(ocspInfoRepository).save(captor.capture());
         assertEquals(newUrl, captor.getValue().getUrl());
@@ -153,6 +158,7 @@ class OcspRespondersServiceImplTest {
         when(ocspInfoRepository.save(isA(OcspInfoEntity.class))).thenReturn(ocspInfo);
 
         final OcspResponder result = service.update(request);
+        verify(urlValidator).validateUrl(newUrl);
 
         ArgumentCaptor<OcspInfoEntity> captor = ArgumentCaptor.forClass(OcspInfoEntity.class);
         verify(ocspInfoRepository).save(captor.capture());

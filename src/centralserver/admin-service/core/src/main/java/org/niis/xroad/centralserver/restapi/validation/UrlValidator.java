@@ -25,16 +25,21 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.centralserver.restapi.validation;
 
-import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
+import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
+import org.springframework.stereotype.Component;
 
-import java.util.Set;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.INVALID_URL;
+import static org.niis.xroad.restapi.util.FormatUtils.isValidUrl;
 
-public interface TimestampingServicesService {
+@Component
+public class UrlValidator {
 
-    Set<ApprovedTsa> getTimestampingServices();
-
-    ApprovedTsa add(String url, byte[] certificate);
+    public void validateUrl(String url) {
+        if (!isValidUrl(url)) {
+            throw new ValidationFailureException(INVALID_URL);
+        }
+    }
 
 }

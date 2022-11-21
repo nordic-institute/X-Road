@@ -34,7 +34,10 @@ import org.niis.xroad.centralserver.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.centralserver.openapi.model.TimestampingServiceUrlDto;
 import org.niis.xroad.centralserver.restapi.mapper.TimestampingServiceMapper;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.util.MultipartFileUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -44,7 +47,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_TSP;
 import static org.springframework.http.ResponseEntity.ok;
+import static org.springframework.http.ResponseEntity.status;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -57,8 +62,11 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     private final TimestampingServiceMapper timestampingServiceMapper;
 
     @Override
+    @AuditEventMethod(event = ADD_TSP)
+    @PreAuthorize("hasAuthority('ADD_APPROVED_TSA')")
     public ResponseEntity<TimestampingServiceDto> addTimestampingService(String url, MultipartFile certificate) {
-        throw new NotImplementedException("addTimestampingService not implemented yet.");
+        return status(HttpStatus.CREATED).body(timestampingServiceMapper.toTarget(
+                timestampingServicesService.add(url, MultipartFileUtils.readBytes(certificate))));
     }
 
     @Override
