@@ -623,18 +623,44 @@ psql -h <database host> -U <superuser> -d postgres
 ```
 
 Run the following commands to create the necessary database structures and roles.
+If necessary, customize the database and role names to suit your environment.
+By default, the database is named `centerui_production`, database user and schema both are named `centerui`, and the admin user is named with `_admin` suffix (e.g. `centerui_admin`).
+
 
 ```sql
-CREATE DATABASE <database name> ENCODING 'UTF8';
-REVOKE ALL ON DATABASE <database name> FROM PUBLIC;
-CREATE ROLE <database user> LOGIN PASSWORD '<database password>';
-GRANT <database user> to <superuser>;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <database name> TO <database user>;
-\c <database name>
+CREATE DATABASE centerui_production ENCODING 'UTF8';
+REVOKE ALL ON DATABASE centerui_production FROM PUBLIC;
+CREATE ROLE centerui_admin LOGIN PASSWORD '<centerui_admin password>';
+GRANT centerui_admin TO <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE centerui_production TO centerui_admin;
+\c centerui_production
 CREATE EXTENSION hstore;
-CREATE SCHEMA <database schema> AUTHORIZATION <database user>;
+CREATE SCHEMA centerui AUTHORIZATION centerui_admin;
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to <database user>;
+GRANT USAGE ON SCHEMA public TO centerui_admin;
+CREATE ROLE centerui LOGIN PASSWORD '<centerui password>';
+GRANT centerui TO <superuser>;
+GRANT TEMPORARY,CONNECT ON DATABASE centerui_production TO centerui;
+GRANT USAGE ON SCHEMA public TO centerui;
+GRANT USAGE ON SCHEMA centerui TO centerui;
+GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA centerui TO centerui;
+GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA centerui TO centerui;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA centerui TO centerui;
+```
+
+Create the `/etc/xroad.properties` file
+```bash
+sudo touch /etc/xroad.properties
+sudo chown root:root /etc/xroad.properties
+sudo chmod 0600 /etc/xroad.properties
+```
+
+Edit `/etc/xroad.properties` and add/update the following properties (if you customized the role names, use your own).
+The admin users are used to run database migrations during the install and upgrades.
+
+```properties
+centerui.database.admin_user = centerui_admin
+centerui.database.admin_password = <centerui_admin password>
 ```
 
 Create the `/etc/xroad/db.properties` file
@@ -647,7 +673,8 @@ sudo chmod 0640 /etc/xroad/db.properties
 sudo chown xroad:xroad /etc/xroad/db.properties
 ```
 
-Edit `/etc/xroad/db.properties` to match the values used when creating the database (the default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)).
+Edit `/etc/xroad/db.properties` file and add/update the following connection properties (if you customized the database, user, and/or role names, use the customized values).
+The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties).
 
 ```properties
 adapter=postgresql
@@ -673,7 +700,7 @@ To run the database migrations manually, follow the next steps.
 2. Ensure that the central server user interface process is stopped.
 
 ```bash
-systemctl stop xroad-jetty
+systemctl stop xroad-center
 ```
 
 3. Run the database migrations.
@@ -685,7 +712,7 @@ systemctl stop xroad-jetty
 4. Start the services, if they are not yet running.
 
 ```bash
-systemctl start xroad-signer nginx xroad-jetty
+systemctl start xroad-center
 ```
 
 5. Verify that everything is working by performing the steps described in [2.11 Post-Installation Checks](#211-post-installation-checks).

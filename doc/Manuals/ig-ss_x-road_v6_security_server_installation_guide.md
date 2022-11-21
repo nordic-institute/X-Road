@@ -781,7 +781,9 @@ Login to the database server(s) as the superuser (`postgres` by default) to run 
 psql -h <database host>:<port> -U <superuser> -d postgres
 ```
 
-Run the following commands to create the necessary database structures. If necessary, customize the database and role names to suit your environment (e.g when the same database server is shared between several security server instances, it is necessary to have separate database names and roles for each server). By default, the database, database user, and schema use the same name (e.g. serverconf), and the admin user is named with \_admin prefix (e.g. serverconf_admin).
+Run the following commands to create the necessary database structures.
+If necessary, customize the database and role names to suit your environment (e.g when the same database server is shared between several security server instances, it is necessary to have separate database names and roles for each server).
+By default, the database, database user, and schema use the same name of `serverconf`, and the admin user is named with `_admin` suffix (e.g. `serverconf_admin`).
 
 **serverconf** (required)
 ```sql
