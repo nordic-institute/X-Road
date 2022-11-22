@@ -623,18 +623,44 @@ psql -h <database host> -U <superuser> -d postgres
 ```
 
 Run the following commands to create the necessary database structures and roles.
+If necessary, customize the database and role names to suit your environment.
+By default, the database is named `centerui_production`, database user and schema both are named `centerui`, and the admin user is named with `_admin` suffix (e.g. `centerui_admin`).
+
 
 ```sql
-CREATE DATABASE <database name> ENCODING 'UTF8';
-REVOKE ALL ON DATABASE <database name> FROM PUBLIC;
-CREATE ROLE <database user> LOGIN PASSWORD '<database password>';
-GRANT <database user> to <superuser>;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <database name> TO <database user>;
-\c <database name>
+CREATE DATABASE <database> ENCODING 'UTF8';
+REVOKE ALL ON DATABASE <database> FROM PUBLIC;
+CREATE ROLE <admin_user> LOGIN PASSWORD '<admin_user password>';
+GRANT <admin_user> TO <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <database> TO <admin_user>;
+\c <database>
 CREATE EXTENSION hstore;
-CREATE SCHEMA <database schema> AUTHORIZATION <database user>;
+CREATE SCHEMA <database_schema> AUTHORIZATION <admin_user>;
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to <database user>;
+GRANT USAGE ON SCHEMA public TO <admin_user>;
+CREATE ROLE <database_user> LOGIN PASSWORD '<database_user password>';
+GRANT <database_user> TO <superuser>;
+GRANT TEMPORARY,CONNECT ON DATABASE <database> TO <database_user>;
+GRANT USAGE ON SCHEMA public TO <database_user>;
+GRANT USAGE ON SCHEMA <database_schema> TO <database_user>;
+GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA <database_schema> TO <database_user>;
+GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA <database_schema> TO <database_user>;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA <database_schema> TO <database_user>;
+```
+
+Create the `/etc/xroad.properties` file
+```bash
+sudo touch /etc/xroad.properties
+sudo chown root:root /etc/xroad.properties
+sudo chmod 0600 /etc/xroad.properties
+```
+
+Edit `/etc/xroad.properties` and add/update the following properties (if you customized the role names, use your own).
+The admin users are used to run database migrations during the install and upgrades.
+
+```properties
+centerui.database.admin_user = <admin_user>
+centerui.database.admin_password = <admin_user password>
 ```
 
 Create the `/etc/xroad/db.properties` file
@@ -647,18 +673,19 @@ sudo chmod 0640 /etc/xroad/db.properties
 sudo chown xroad:xroad /etc/xroad/db.properties
 ```
 
-Edit `/etc/xroad/db.properties` to match the values used when creating the database (the default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)).
+Edit `/etc/xroad/db.properties` file and add/update the following connection properties (if you customized the database, user, and/or role names, use the customized values).
+The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties).
 
 ```properties
 adapter=postgresql
 encoding=utf8
-username=<database user>
-password=<database password>
-database=<database name>
+username=<database_user>
+password=<database_user password>
+database=<database>
 reconnect=true
-host=<database host>
-port=<database port>
-schema=<database schema>
+host=<database_host>
+port=<database_port>
+schema=<database_schema>
 skip_migrations=<false by default, set to true to skip migrations>
 ```
 
@@ -673,7 +700,7 @@ To run the database migrations manually, follow the next steps.
 2. Ensure that the central server user interface process is stopped.
 
 ```bash
-systemctl stop xroad-jetty
+systemctl stop xroad-center
 ```
 
 3. Run the database migrations.
@@ -685,7 +712,7 @@ systemctl stop xroad-jetty
 4. Start the services, if they are not yet running.
 
 ```bash
-systemctl start xroad-signer nginx xroad-jetty
+systemctl start xroad-center
 ```
 
 5. Verify that everything is working by performing the steps described in [2.11 Post-Installation Checks](#211-post-installation-checks).
