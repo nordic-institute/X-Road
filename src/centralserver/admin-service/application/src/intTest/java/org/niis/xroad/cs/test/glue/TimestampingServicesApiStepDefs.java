@@ -29,8 +29,7 @@ package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
+import io.cucumber.java.en.Step;
 import org.niis.xroad.centralserver.openapi.TimestampingServicesApi;
 import org.niis.xroad.centralserver.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
@@ -56,7 +55,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
     private Integer timestampingServiceId;
     private int responseStatusCode;
 
-    @When("timestamping service is added")
+    @Step("timestamping service is added")
     public void timestampingServiceIsAdded() throws Exception {
         final String url = "https://timestamping-service-" + UUID.randomUUID();
         final MultipartFile certificate = new MockMultipartFile("certificate", CertificateUtils.generateAuthCert());
@@ -71,7 +70,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
         this.timestampingServiceId = response.getBody().getId();
     }
 
-    @Then("timestamping services list contains added timestamping service")
+    @Step("timestamping services list contains added timestamping service")
     public void timestampingServicesListContainsNewTimestampingService() {
         final ResponseEntity<Set<TimestampingServiceDto>> response = timestampingServicesApi.getTimestampingServices();
 
@@ -82,7 +81,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @When("user tries to add timestamping service with invalid url")
+    @Step("user tries to add timestamping service with invalid url")
     public void userTriesToAddTimestampingServiceWithInvalidUrl() throws Exception {
         final String url = "not valid url";
         final MultipartFile certificate = new MockMultipartFile("certificate", CertificateUtils.generateAuthCert());
@@ -94,7 +93,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
         }
     }
 
-    @Then("creating timestamping service fails with exception")
+    @Step("creating timestamping service fails with exception")
     public void exceptionIsReturned() {
         validate(this.responseStatusCode)
                 .assertion(new Assertion.Builder()
