@@ -118,54 +118,23 @@ export const useOcspResponderStore = defineStore('ocspResponderService', {
   }),
   persist: true,
   actions: {
-    loadByCa(
-      currentCa: ApprovedCertificationService | CertificateAuthority,
-      isIntermediateCa: boolean,
-    ) {
+    loadByCa(currentCa: ApprovedCertificationService | CertificateAuthority) {
       this.currentCa = currentCa;
-      this.fetchOcspResponders(isIntermediateCa);
+      this.fetchOcspResponders();
     },
-    fetchOcspResponders(isIntermediateCa: boolean) {
-      if (!this.currentCa) return;
-
-      if (isIntermediateCa) {
-        return axios
-          .get<OcspResponder[]>(
-            `/intermediate-cas/${this.currentCa.id}/ocsp-responders`,
-          )
-          .then((resp) => (this.currentOcspResponders = resp.data));
-      } else {
-        return axios
-          .get<OcspResponder[]>(
-            `/certification-services/${this.currentCa.id}/ocsp-responders`,
-          )
-          .then((resp) => (this.currentOcspResponders = resp.data));
-      }
+    fetchOcspResponders() {
+      return axios
+        .get<OcspResponder[]>(this.getCurrentCaOcspRespondersPath())
+        .then((resp) => (this.currentOcspResponders = resp.data));
     },
-    addOcspResponder(
-      url: string,
-      certificate: File,
-      isIntermediateCa: boolean,
-    ) {
+    addOcspResponder(url: string, certificate: File) {
       const formData = new FormData();
       formData.append('url', url);
       formData.append('certificate', certificate);
 
-      if (isIntermediateCa) {
-        return axios
-          .post(
-            `/intermediate-cas/${this.currentCa!.id}/ocsp-responders`,
-            formData,
-          )
-          .finally(() => this.fetchOcspResponders(isIntermediateCa));
-      } else {
-        return axios
-          .post(
-            `/certification-services/${this.currentCa!.id}/ocsp-responders`,
-            formData,
-          )
-          .finally(() => this.fetchOcspResponders(isIntermediateCa));
-      }
+      return axios
+        .post(this.getCurrentCaOcspRespondersPath(), formData)
+        .finally(() => this.fetchOcspResponders());
     },
     updateOcspResponder(id: number, url: string, certificate: File | null) {
       const formData = new FormData();
@@ -182,6 +151,13 @@ export const useOcspResponderStore = defineStore('ocspResponderService', {
       return axios.get<CertificateDetails>(
         `/ocsp-responders/${id}/certificate`,
       );
+    },
+    getCurrentCaOcspRespondersPath() {
+      if ((<ApprovedCertificationService>this.currentCa).name) {
+        return `/certification-services/${this.currentCa!.id}/ocsp-responders`;
+      } else {
+        return `/intermediate-cas/${this.currentCa!.id}/ocsp-responders`;
+      }
     },
   },
 });

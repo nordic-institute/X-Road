@@ -28,7 +28,6 @@
   <main id="intermediate-ca-ocsp-responders" class="mt-8">
     <OcspRespondersList
       :ca="intermediateCasServiceStore.currentSelectedIntermediateCa"
-      :is-intermediate-ca="true"
     />
   </main>
 </template>
