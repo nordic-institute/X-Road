@@ -628,24 +628,24 @@ By default, the database is named `centerui_production`, database user and schem
 
 
 ```sql
-CREATE DATABASE centerui_production ENCODING 'UTF8';
-REVOKE ALL ON DATABASE centerui_production FROM PUBLIC;
-CREATE ROLE centerui_admin LOGIN PASSWORD '<centerui_admin password>';
-GRANT centerui_admin TO <superuser>;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE centerui_production TO centerui_admin;
-\c centerui_production
+CREATE DATABASE <database> ENCODING 'UTF8';
+REVOKE ALL ON DATABASE <database> FROM PUBLIC;
+CREATE ROLE <admin_user> LOGIN PASSWORD '<admin_user password>';
+GRANT <admin_user> TO <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <database> TO <admin_user>;
+\c <database>
 CREATE EXTENSION hstore;
-CREATE SCHEMA centerui AUTHORIZATION centerui_admin;
+CREATE SCHEMA <database_schema> AUTHORIZATION <admin_user>;
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public TO centerui_admin;
-CREATE ROLE centerui LOGIN PASSWORD '<centerui password>';
-GRANT centerui TO <superuser>;
-GRANT TEMPORARY,CONNECT ON DATABASE centerui_production TO centerui;
-GRANT USAGE ON SCHEMA public TO centerui;
-GRANT USAGE ON SCHEMA centerui TO centerui;
-GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA centerui TO centerui;
-GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA centerui TO centerui;
-GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA centerui TO centerui;
+GRANT USAGE ON SCHEMA public TO <admin_user>;
+CREATE ROLE <database_user> LOGIN PASSWORD '<database_user password>';
+GRANT <database_user> TO <superuser>;
+GRANT TEMPORARY,CONNECT ON DATABASE <database> TO <database_user>;
+GRANT USAGE ON SCHEMA public TO <database_user>;
+GRANT USAGE ON SCHEMA <database_schema> TO <database_user>;
+GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA <database_schema> TO <database_user>;
+GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA <database_schema> TO <database_user>;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA <database_schema> TO <database_user>;
 ```
 
 Create the `/etc/xroad.properties` file
@@ -659,8 +659,8 @@ Edit `/etc/xroad.properties` and add/update the following properties (if you cus
 The admin users are used to run database migrations during the install and upgrades.
 
 ```properties
-centerui.database.admin_user = centerui_admin
-centerui.database.admin_password = <centerui_admin password>
+centerui.database.admin_user = <admin_user>
+centerui.database.admin_password = <admin_user password>
 ```
 
 Create the `/etc/xroad/db.properties` file
@@ -679,13 +679,13 @@ The default values can be found in [Annex A Central Server Default Database Prop
 ```properties
 adapter=postgresql
 encoding=utf8
-username=<database user>
-password=<database password>
-database=<database name>
+username=<database_user>
+password=<database_user password>
+database=<database>
 reconnect=true
-host=<database host>
-port=<database port>
-schema=<database schema>
+host=<database_host>
+port=<database_port>
+schema=<database_schema>
 skip_migrations=<false by default, set to true to skip migrations>
 ```
 
