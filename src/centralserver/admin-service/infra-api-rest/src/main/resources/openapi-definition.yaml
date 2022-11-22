@@ -4527,9 +4527,9 @@ components:
         id:
           description: unique identifier
           example: 123
-          format: text
+          format: int32
           readOnly: true
-          type: string
+          type: integer
         timestamping_interval:
           description: timestamping interval in seconds
           example: 60

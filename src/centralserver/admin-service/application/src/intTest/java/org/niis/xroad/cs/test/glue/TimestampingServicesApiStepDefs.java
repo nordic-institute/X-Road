@@ -53,7 +53,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
     @Autowired
     private TimestampingServicesApi timestampingServicesApi;
 
-    private String timestampingServiceId;
+    private Integer timestampingServiceId;
     private int responseStatusCode;
 
     @When("timestamping service is added")
@@ -77,7 +77,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(1, "body.?[id=='" + timestampingServiceId + "'].size()",
+                .assertion(equalsAssertion(1, "body.?[id==" + timestampingServiceId + "].size()",
                         "Timestamping services list contains the added service"))
                 .execute();
     }
