@@ -100,7 +100,6 @@
     <AddOcspResponderDialog
       v-if="showAddOcspResponderDialog"
       :ca-id="ocspResponderServiceStore.currentCa.id"
-      :is-intermediate-ca="isIntermediateCa"
       @cancel="hideAddOcspResponderDialog"
       @save="hideAddOcspResponderDialog"
     ></AddOcspResponderDialog>
@@ -131,10 +130,7 @@
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapStores } from 'pinia';
-import {
-  useIntermediateCaStore,
-  useOcspResponderStore,
-} from '@/store/modules/trust-services';
+import { useOcspResponderStore } from '@/store/modules/trust-services';
 import { notificationsStore } from '@/store/modules/notifications';
 import AddOcspResponderDialog from '@/components/ocspResponders/AddOcspResponderDialog.vue';
 import {
@@ -155,9 +151,6 @@ export default Vue.extend({
         Object as () => CertificateAuthority,
       ],
       required: true,
-    },
-    isIntermediateCa: {
-      type: Boolean,
     },
   },
   data() {
@@ -195,7 +188,7 @@ export default Vue.extend({
     },
   },
   created() {
-    this.ocspResponderServiceStore.loadByCa(this.ca, this.isIntermediateCa);
+    this.ocspResponderServiceStore.loadByCa(this.ca);
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
@@ -226,7 +219,7 @@ export default Vue.extend({
       });
     },
     fetchOcspResponders(): void {
-      this.ocspResponderServiceStore.fetchOcspResponders(this.isIntermediateCa);
+      this.ocspResponderServiceStore.fetchOcspResponders();
     },
     deleteOcspResponder(): void {
       if (!this.selectedOcspResponder) return;

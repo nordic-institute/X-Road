@@ -28,7 +28,6 @@
   <main id="certification-service-ocsp-responders" class="mt-8">
     <OcspRespondersList
       :ca="certificationServiceStore.currentCertificationService"
-      :is-intermediate-ca="false"
     />
   </main>
 </template>

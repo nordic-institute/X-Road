@@ -94,10 +94,6 @@ export default Vue.extend({
       type: Number,
       required: true,
     },
-    isIntermediateCa: {
-      type: Boolean,
-      required: true,
-    },
   },
   data() {
     return {
@@ -125,7 +121,7 @@ export default Vue.extend({
       if (!this.certFile) return;
 
       this.ocspResponderServiceStore
-        .addOcspResponder(this.ocspUrl, this.certFile, this.isIntermediateCa)
+        .addOcspResponder(this.ocspUrl, this.certFile)
         .then(() => {
           this.showSuccess(
             this.$t('trustServices.trustService.ocspResponders.add.success'),
