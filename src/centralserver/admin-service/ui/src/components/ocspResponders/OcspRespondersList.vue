@@ -24,12 +24,8 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<!--
-  Certification Service settings view
--->
 <template>
   <main id="ocsp-responders" class="mt-8">
-
     <!-- Table -->
     <v-data-table
       :loading="loading"
@@ -43,23 +39,23 @@
       :loader-height="2"
       hide-default-footer
     >
-      <template v-slot:header>
+      <template #header>
         <thead class="borderless-table-header">
-        <tr>
-          <th />
-          <th class="text-right">
-            <div class="button-wrap mb-6 mt-4">
-              <xrd-button
-                outlined
-                data-test="token-add-key-button"
-                @click="showAddOcspResponderDialog = true"
-              >
-                <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-                {{ $t('action.add') }}
-              </xrd-button>
-            </div>
-          </th>
-        </tr>
+          <tr>
+            <th />
+            <th class="text-right">
+              <div class="button-wrap mb-6 mt-4">
+                <xrd-button
+                  outlined
+                  data-test="token-add-key-button"
+                  @click="showAddOcspResponderDialog = true"
+                >
+                  <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+                  {{ $t('action.add') }}
+                </xrd-button>
+              </div>
+            </th>
+          </tr>
         </thead>
       </template>
 
@@ -71,13 +67,25 @@
 
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
-          <xrd-button text :outlined="false" @click="navigateToCertificateDetails(item)">
+          <xrd-button
+            text
+            :outlined="false"
+            @click="navigateToCertificateDetails(item)"
+          >
             {{ $t('trustServices.viewCertificate') }}
           </xrd-button>
-          <xrd-button text :outlined="false" @click="openEditOcspResponderDialog(item)">
+          <xrd-button
+            text
+            :outlined="false"
+            @click="openEditOcspResponderDialog(item)"
+          >
             {{ $t('action.edit') }}
           </xrd-button>
-          <xrd-button text :outlined="false" @click="openDeleteConfirmationDialog(item)">
+          <xrd-button
+            text
+            :outlined="false"
+            @click="openDeleteConfirmationDialog(item)"
+          >
             {{ $t('action.delete') }}
           </xrd-button>
         </div>
@@ -92,6 +100,7 @@
     <AddOcspResponderDialog
       v-if="showAddOcspResponderDialog"
       :ca-id="ocspResponderServiceStore.currentCa.id"
+      :is-intermediate-ca="isIntermediateCa"
       @cancel="hideAddOcspResponderDialog"
       @save="hideAddOcspResponderDialog"
     ></AddOcspResponderDialog>
@@ -119,24 +128,37 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import {DataTableHeader} from "vuetify";
-import {mapActions, mapStores} from "pinia";
-import {useOcspResponderStore} from "@/store/modules/trust-services";
-import {notificationsStore} from "@/store/modules/notifications";
-import AddOcspResponderDialog from "@/components/ocspResponders/AddOcspResponderDialog.vue";
-import {ApprovedCertificationService, CertificateAuthority, OcspResponder} from "@/openapi-types";
-import EditOcspResponderDialog from "@/components/ocspResponders/EditOcspResponderDialog.vue";
-import {RouteName} from "@/global";
+import Vue from 'vue';
+import { DataTableHeader } from 'vuetify';
+import { mapActions, mapStores } from 'pinia';
+import {
+  useIntermediateCaStore,
+  useOcspResponderStore,
+} from '@/store/modules/trust-services';
+import { notificationsStore } from '@/store/modules/notifications';
+import AddOcspResponderDialog from '@/components/ocspResponders/AddOcspResponderDialog.vue';
+import {
+  ApprovedCertificationService,
+  CertificateAuthority,
+  OcspResponder,
+} from '@/openapi-types';
+import EditOcspResponderDialog from '@/components/ocspResponders/EditOcspResponderDialog.vue';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
   name: 'OcspRespondersList',
-  components: {EditOcspResponderDialog, AddOcspResponderDialog},
+  components: { EditOcspResponderDialog, AddOcspResponderDialog },
   props: {
     ca: {
-      type: [Object as () => ApprovedCertificationService, Object as () => CertificateAuthority],
-      required: true
-    }
+      type: [
+        Object as () => ApprovedCertificationService,
+        Object as () => CertificateAuthority,
+      ],
+      required: true,
+    },
+    isIntermediateCa: {
+      type: Boolean,
+    },
   },
   data() {
     return {
@@ -146,7 +168,7 @@ export default Vue.extend({
       selectedOcspResponder: undefined as undefined | OcspResponder,
       confirmDelete: false,
       deletingOcspResponder: false,
-    }
+    };
   },
   computed: {
     ...mapStores(useOcspResponderStore),
@@ -156,7 +178,9 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('trustServices.trustService.ocspResponders.url') as string,
+          text: this.$t(
+            'trustServices.trustService.ocspResponders.url',
+          ) as string,
           align: 'start',
           value: 'url',
           class: 'xrd-table-header mr-table-header-id',
@@ -167,11 +191,11 @@ export default Vue.extend({
           sortable: false,
           class: 'xrd-table-header mr-table-header-buttons',
         },
-      ]
-    }
+      ];
+    },
   },
   created() {
-    this.ocspResponderServiceStore.loadByCa(this.ca)
+    this.ocspResponderServiceStore.loadByCa(this.ca, this.isIntermediateCa);
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
@@ -197,20 +221,23 @@ export default Vue.extend({
       this.$router.push({
         name: RouteName.OcspResponderCertificateDetails,
         params: {
-          ocspResponderId: String(ocspResponder.id)
-        }
+          ocspResponderId: String(ocspResponder.id),
+        },
       });
     },
     fetchOcspResponders(): void {
-      this.ocspResponderServiceStore.fetchOcspResponders()
+      this.ocspResponderServiceStore.fetchOcspResponders(this.isIntermediateCa);
     },
     deleteOcspResponder(): void {
       if (!this.selectedOcspResponder) return;
 
       this.deletingOcspResponder = true;
-      this.ocspResponderServiceStore.deleteOcspResponder(this.selectedOcspResponder.id)
+      this.ocspResponderServiceStore
+        .deleteOcspResponder(this.selectedOcspResponder.id)
         .then(() => {
-          this.showSuccess(this.$t('trustServices.trustService.ocspResponders.delete.success'));
+          this.showSuccess(
+            this.$t('trustServices.trustService.ocspResponders.delete.success'),
+          );
           this.confirmDelete = false;
           this.deletingOcspResponder = false;
           this.fetchOcspResponders();
@@ -218,8 +245,8 @@ export default Vue.extend({
         .catch((error) => {
           this.showError(error);
         });
-    }
-  }
+    },
+  },
 });
 </script>
 <style lang="scss" scoped>
@@ -229,5 +256,4 @@ export default Vue.extend({
   border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
   height: 16px;
 }
-
 </style>

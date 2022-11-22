@@ -50,7 +50,6 @@
               outlined
               persistent-hint
               data-test="ocsp-responder-url-input"
-
             ></v-text-field>
           </ValidationProvider>
         </div>
@@ -77,22 +76,26 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import {mapActions, mapStores} from "pinia";
-import {useOcspResponderStore} from "@/store/modules/trust-services";
-import {notificationsStore} from "@/store/modules/notifications";
-import {FileUploadResult} from "@niis/shared-ui";
-import {ValidationObserver, ValidationProvider} from "vee-validate";
+import Vue from 'vue';
+import { mapActions, mapStores } from 'pinia';
+import { useOcspResponderStore } from '@/store/modules/trust-services';
+import { notificationsStore } from '@/store/modules/notifications';
+import { FileUploadResult } from '@niis/shared-ui';
+import { ValidationObserver, ValidationProvider } from 'vee-validate';
 
 export default Vue.extend({
   name: 'AddOcspResponderDialog',
   components: {
     ValidationProvider,
-    ValidationObserver
+    ValidationObserver,
   },
   props: {
     caId: {
       type: Number,
+      required: true,
+    },
+    isIntermediateCa: {
+      type: Boolean,
       required: true,
     },
   },
@@ -118,19 +121,25 @@ export default Vue.extend({
     },
     add(): void {
       this.loading = true;
-      this.ocspResponderServiceStore.addOcspResponder(this.ocspUrl, this.certFile!)
-      .then(() => {
-        this.showSuccess(this.$t('trustServices.trustService.ocspResponders.add.success'));
-        this.$emit('save');
-      })
-      .catch((error) => {
-        this.showError(error);
-      })
-      .finally(() => (this.loading = false));
+
+      if (!this.certFile) return;
+
+      this.ocspResponderServiceStore
+        .addOcspResponder(this.ocspUrl, this.certFile, this.isIntermediateCa)
+        .then(() => {
+          this.showSuccess(
+            this.$t('trustServices.trustService.ocspResponders.add.success'),
+          );
+          this.$emit('save');
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => (this.loading = false));
     },
     cancel(): void {
       this.$emit('cancel');
     },
-  }
+  },
 });
 </script>
