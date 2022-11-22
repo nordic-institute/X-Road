@@ -28,6 +28,7 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.validation.UrlValidator;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TIMESTAMPING_AUTHORITY_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_ID;
@@ -76,6 +78,24 @@ public class TimestampingServicesServiceImpl implements TimestampingServicesServ
         final ApprovedTsaEntity savedTsa = approvedTsaRepository.save(entity);
         addAuditMessages(savedTsa);
         return approvedTsaMapper.toTarget(savedTsa);
+    }
+
+    @Override
+    public void delete(Integer id) {
+        final ApprovedTsaEntity approvedTsaEntity = get(id);
+        addDeleteAuditMessages(approvedTsaEntity);
+        approvedTsaRepository.delete(approvedTsaEntity);
+    }
+
+    private ApprovedTsaEntity get(Integer id) {
+        return approvedTsaRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(TIMESTAMPING_AUTHORITY_NOT_FOUND));
+    }
+
+    private void addDeleteAuditMessages(ApprovedTsaEntity approvedTsaEntity) {
+        auditDataHelper.put(TSA_ID, approvedTsaEntity.getId());
+        auditDataHelper.put(TSA_NAME, approvedTsaEntity.getName());
+        auditDataHelper.put(TSA_URL, approvedTsaEntity.getUrl());
     }
 
     private void addAuditMessages(ApprovedTsaEntity tsaEntity) {

@@ -37,4 +37,6 @@ public interface TimestampingServicesService {
 
     ApprovedTsa add(String url, byte[] certificate);
 
+    void delete(Integer id);
+
 }

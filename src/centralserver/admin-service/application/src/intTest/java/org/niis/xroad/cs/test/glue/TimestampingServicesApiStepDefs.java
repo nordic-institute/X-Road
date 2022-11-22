@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.centralserver.openapi.TimestampingServicesApi;
@@ -43,8 +42,11 @@ import java.util.UUID;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
+import static java.lang.Integer.MIN_VALUE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 public class TimestampingServicesApiStepDefs extends BaseStepDefs {
@@ -96,13 +98,43 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
     @Step("creating timestamping service fails with exception")
     public void exceptionIsReturned() {
         validate(this.responseStatusCode)
-                .assertion(new Assertion.Builder()
-                        .message("Verify status code")
-                        .expression("=")
-                        .actualValue(responseStatusCode)
-                        .expectedValue(BAD_REQUEST.value())
-                        .build())
+                .assertion(equalsStatusCodeAssertion(this.responseStatusCode, BAD_REQUEST))
                 .execute();
     }
 
+    @Step("user tries to delete timestamping service with not existing id")
+    public void userTriesToDeleteTimestampingServiceWithNonExistingId() {
+        try {
+            timestampingServicesApi.deleteTimestampingService(MIN_VALUE); //should not exist with negative id...
+        } catch (FeignException feignException) {
+            responseStatusCode = feignException.status();
+        }
+    }
+
+    @Step("timestamping service is not found")
+    public void errorCodeIsReturned() {
+        validate(this.responseStatusCode)
+                .assertion(equalsStatusCodeAssertion(this.responseStatusCode, NOT_FOUND))
+                .execute();
+    }
+
+    @Step("user deletes the added timestamping service")
+    public void userDeletesTheAddedTimestampingService() {
+        final ResponseEntity<Void> responseEntity = timestampingServicesApi.deleteTimestampingService(timestampingServiceId);
+
+        validate(responseEntity)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                .execute();
+    }
+
+    @Step("timestamping services list does not contain added timestamping service")
+    public void timestampingServicesListDoesNotContainAddedTimestampingService() {
+        final ResponseEntity<Set<TimestampingServiceDto>> response = timestampingServicesApi.getTimestampingServices();
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(0, "body.?[id==" + timestampingServiceId + "].size()",
+                        "Timestamping services list contains the added service"))
+                .execute();
+    }
 }

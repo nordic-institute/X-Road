@@ -34,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.validation.UrlValidator;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
@@ -42,15 +43,18 @@ import org.niis.xroad.cs.admin.core.repository.ApprovedTsaRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.security.cert.X509Certificate;
+import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static java.util.List.of;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH_ALGORITHM;
@@ -109,6 +113,30 @@ class TimestampingServicesServiceImplTest {
         verify(auditDataHelper).put(TSA_URL, URL);
         verify(auditDataHelper).put(TSA_CERT_HASH, "05:A1:0E:EB:DB:0C:D9:67:9E:4C:85:A7:88:48:14:5E:F1:F0:0B:EA");
         verify(auditDataHelper).put(TSA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+    }
+
+    @Test
+    void delete() {
+        when(approvedTsaRepository.findById(ID)).thenReturn(Optional.of(approvedTsaEntity));
+        when(approvedTsaEntity.getId()).thenReturn(ID);
+        when(approvedTsaEntity.getName()).thenReturn(NAME);
+        when(approvedTsaEntity.getUrl()).thenReturn(URL);
+
+        timestampingServicesService.delete(ID);
+
+        verify(approvedTsaRepository).delete(approvedTsaEntity);
+
+        verify(auditDataHelper).put(TSA_ID, ID);
+        verify(auditDataHelper).put(TSA_NAME, NAME);
+        verify(auditDataHelper).put(TSA_URL, URL);
+    }
+
+    @Test
+    void deleteShouldThrowNotFoundException() {
+        when(approvedTsaRepository.findById(ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> timestampingServicesService.delete(ID)).isInstanceOf(NotFoundException.class);
+        verifyNoMoreInteractions(approvedTsaRepository, auditDataHelper);
     }
 
 }
