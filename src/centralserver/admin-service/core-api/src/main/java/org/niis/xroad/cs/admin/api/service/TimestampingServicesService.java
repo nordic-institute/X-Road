@@ -35,4 +35,6 @@ public interface TimestampingServicesService {
 
     Set<ApprovedTsa> getTimestampingServices();
 
+    ApprovedTsa add(String url, byte[] certificate);
+
 }

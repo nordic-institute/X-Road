@@ -129,7 +129,13 @@ public enum RestApiAuditProperty {
     DESCRIPTION,
 
     AUTHENTICATION_ONLY,
-    CERTIFICATE_PROFILE_INFO;
+    CERTIFICATE_PROFILE_INFO,
+
+    TSA_ID,
+    TSA_NAME,
+    TSA_URL,
+    TSA_CERT_HASH,
+    TSA_CERT_HASH_ALGORITHM;
 
     /**
      * Gets logged property name for the enum value.

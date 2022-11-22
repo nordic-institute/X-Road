@@ -28,16 +28,27 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.restapi.validation.UrlValidator;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
+import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ApprovedTsaMapper;
 import org.niis.xroad.cs.admin.core.repository.ApprovedTsaRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_URL;
 
 @Service
 @Transactional
@@ -46,13 +57,33 @@ public class TimestampingServicesServiceImpl implements TimestampingServicesServ
 
     private final ApprovedTsaRepository approvedTsaRepository;
 
+    private final AuditDataHelper auditDataHelper;
+
     private final ApprovedTsaMapper approvedTsaMapper;
+    private final UrlValidator urlValidator;
 
     @Override
     public Set<ApprovedTsa> getTimestampingServices() {
         return approvedTsaRepository.findAll().stream()
                 .map(approvedTsaMapper::toTarget)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public ApprovedTsa add(String url, byte[] certificate) {
+        urlValidator.validateUrl(url);
+        final ApprovedTsaEntity entity = approvedTsaMapper.toEntity(url, certificate);
+        final ApprovedTsaEntity savedTsa = approvedTsaRepository.save(entity);
+        addAuditMessages(savedTsa);
+        return approvedTsaMapper.toTarget(savedTsa);
+    }
+
+    private void addAuditMessages(ApprovedTsaEntity tsaEntity) {
+        auditDataHelper.put(TSA_ID, tsaEntity.getId());
+        auditDataHelper.put(TSA_NAME, tsaEntity.getName());
+        auditDataHelper.put(TSA_URL, tsaEntity.getUrl());
+        auditDataHelper.put(TSA_CERT_HASH, calculateCertHexHashDelimited(tsaEntity.getCert()));
+        auditDataHelper.put(TSA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
 }

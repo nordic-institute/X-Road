@@ -27,52 +27,82 @@
 
 package org.niis.xroad.cs.test.glue;
 
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
+import com.nortal.test.asserts.Assertion;
+import feign.FeignException;
+import io.cucumber.java.en.Step;
 import org.niis.xroad.centralserver.openapi.TimestampingServicesApi;
+import org.niis.xroad.centralserver.openapi.model.TimestampingServiceDto;
+import org.niis.xroad.cs.test.utils.CertificateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Set;
+import java.util.UUID;
+
+import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static com.nortal.test.asserts.Assertions.notNullAssertion;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 public class TimestampingServicesApiStepDefs extends BaseStepDefs {
 
     @Autowired
     private TimestampingServicesApi timestampingServicesApi;
 
-    private String timestampingServiceId;
+    private Integer timestampingServiceId;
+    private int responseStatusCode;
 
-    @When("timestamping service is added")
+    @Step("timestamping service is added")
     public void timestampingServiceIsAdded() throws Exception {
-        // TODO enable the test after implementing the endpoint
-//        final String url = "https://timestamping-service-" + UUID.randomUUID();
-//        final MultipartFile certificate = new MockMultipartFile("certificate", CertificateUtils.generateAuthCert());
-//
-//        final ResponseEntity<TimestampingServiceDto> response = timestampingServicesApi.addTimestampingService(url, certificate);
-//
-//        final Validation.Builder validationBuilder = new Validation.Builder()
-//                .context(response)
-//                .title("Validate response")
-//                .assertion(equalsAssertion(CREATED, response.getStatusCode(), "Verify status code"));
-//        validationService.validate(validationBuilder.build());
-//
-//        this.timestampingServiceId = response.getBody().getId();
+        final String url = "https://timestamping-service-" + UUID.randomUUID();
+        final MultipartFile certificate = new MockMultipartFile("certificate", CertificateUtils.generateAuthCert());
+
+        final ResponseEntity<TimestampingServiceDto> response = timestampingServicesApi.addTimestampingService(url, certificate);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(CREATED))
+                .assertion(notNullAssertion("body.id"))
+                .execute();
+
+        this.timestampingServiceId = response.getBody().getId();
     }
 
-
-    @Then("timestamping services list contains added timestamping service")
+    @Step("timestamping services list contains added timestamping service")
     public void timestampingServicesListContainsNewTimestampingService() {
-        // TODO enable the test after implementing the addTimestampingService endpoint
+        final ResponseEntity<Set<TimestampingServiceDto>> response = timestampingServicesApi.getTimestampingServices();
 
-//        final ResponseEntity<Set<TimestampingServiceDto>> response = timestampingServicesApi.getTimestampingServices();
-//
-//        final Validation.Builder validationBuilder = new Validation.Builder()
-//                .context(response)
-//                .title("Validate response")
-//                .assertion(equalsAssertion(OK, response.getStatusCode(), "Verify status code"))
-//                .assertion(new Assertion.Builder()
-//                        .message("Timestamping services list contains the added service")
-//                        .expression("body.?[id=='" + timestampingServiceId + "'].size()")
-//                        .operation(EQUALS)
-//                        .expectedValue(1)
-//                        .build());
-//        validationService.validate(validationBuilder.build());
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1, "body.?[id==" + timestampingServiceId + "].size()",
+                        "Timestamping services list contains the added service"))
+                .execute();
     }
+
+    @Step("user tries to add timestamping service with invalid url")
+    public void userTriesToAddTimestampingServiceWithInvalidUrl() throws Exception {
+        final String url = "not valid url";
+        final MultipartFile certificate = new MockMultipartFile("certificate", CertificateUtils.generateAuthCert());
+
+        try {
+            timestampingServicesApi.addTimestampingService(url, certificate);
+        } catch (FeignException feignException) {
+            responseStatusCode = feignException.status();
+        }
+    }
+
+    @Step("creating timestamping service fails with exception")
+    public void exceptionIsReturned() {
+        validate(this.responseStatusCode)
+                .assertion(new Assertion.Builder()
+                        .message("Verify status code")
+                        .expression("=")
+                        .actualValue(responseStatusCode)
+                        .expectedValue(BAD_REQUEST.value())
+                        .build())
+                .execute();
+    }
+
 }

@@ -27,15 +27,21 @@
 
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
+import ee.ria.xroad.common.util.CertUtils;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.niis.xroad.centralserver.restapi.dto.converter.CertificateConverter;
 import org.niis.xroad.centralserver.restapi.dto.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
 
+import java.security.cert.X509Certificate;
+
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 import static org.mapstruct.ReportingPolicy.IGNORE;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.INVALID_CERTIFICATE;
 
 @Mapper(componentModel = SPRING, unmappedTargetPolicy = IGNORE,
         uses = {CertificateConverter.class})
@@ -47,4 +53,18 @@ public interface ApprovedTsaMapper extends GenericUniDirectionalMapper<ApprovedT
     @Mapping(target = "cost", constant = "FREE") // TODO stub value. Will be implemented in separate story
     ApprovedTsa toTarget(ApprovedTsaEntity approvedTsaEntity);
 
+    default ApprovedTsaEntity toEntity(String url, byte[] certificate) {
+        try {
+            final X509Certificate cert = CertUtils.readCertificateChain(certificate)[0];
+            final var entity = new ApprovedTsaEntity();
+            entity.setUrl(url);
+            entity.setCert(certificate);
+            entity.setValidFrom(cert.getNotBefore().toInstant());
+            entity.setValidTo(cert.getNotAfter().toInstant());
+            entity.setName(CertUtils.getSubjectCommonName(cert));
+            return entity;
+        } catch (Exception e) {
+            throw new ValidationFailureException(INVALID_CERTIFICATE);
+        }
+    }
 }

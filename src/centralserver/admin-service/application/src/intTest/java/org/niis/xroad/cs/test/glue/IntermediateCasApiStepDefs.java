@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Validation;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
@@ -42,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.CERTIFICATION_SERVICE_ID;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.NEW_OCSP_RESPONDER_URL;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.OCSP_RESPONDER_ID;
@@ -67,11 +67,9 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         final ResponseEntity<CertificateAuthorityDto> response = certificationServicesApi
                 .addCertificationServiceIntermediateCa(certificationServiceId, certificate);
 
-        final Validation.Builder validationBuilder = new Validation.Builder()
-                .context(response)
-                .title("Validate response")
-                .assertion(equalsStatusCodeAssertion(CREATED));
-        validationService.validate(validationBuilder.build());
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(CREATED))
+                .execute();
 
         intermediateCaId = response.getBody().getId();
     }
@@ -84,11 +82,9 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         final ResponseEntity<OcspResponderDto> response = intermediateCasApi
                 .addIntermediateCaOcspResponder(intermediateCaId, url, certificate);
 
-        final Validation.Builder validationBuilder = new Validation.Builder()
-                .context(response)
-                .title("Validate response")
-                .assertion(equalsStatusCodeAssertion(CREATED));
-        validationService.validate(validationBuilder.build());
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(CREATED))
+                .execute();
 
         putStepData(OCSP_RESPONDER_ID, response.getBody().getId());
     }
@@ -97,12 +93,11 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
     public void intermediateCAHasOCSPResponders(int count) {
         final ResponseEntity<Set<OcspResponderDto>> response = intermediateCasApi.getIntermediateCaOcspResponders(intermediateCaId);
 
-        final Validation.Builder validationBuilder = new Validation.Builder()
-                .context(response)
-                .title("Validate response")
+        validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(count, "body.size", "Response contains " + count + " items"));
-        validationService.validate(validationBuilder.build());
+                .assertion(equalsAssertion(count, "body.size", "Response contains " + count + " items"))
+                .execute();
+
     }
 
     @Then("intermediate CA has the updated OCSP responder")
@@ -112,13 +107,11 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
         final String newOcspResponderUrl = getRequiredStepData(NEW_OCSP_RESPONDER_URL);
 
-        final Validation.Builder validationBuilder = new Validation.Builder()
-                .context(response)
-                .title("Validate response")
+        validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(Boolean.TRUE, "body[0].hasCertificate", "Verify OCSP responder has certificate"))
-                .assertion(equalsAssertion(newOcspResponderUrl, "body[0].url", "OCSP responder url matches"));
-        validationService.validate(validationBuilder.build());
+                .assertion(equalsAssertion(newOcspResponderUrl, "body[0].url", "OCSP responder url matches"))
+                .execute();
     }
 
     @When("OCSP responder is deleted from intermediate CA")
@@ -128,11 +121,9 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         final ResponseEntity<Void> response = intermediateCasApi
                 .deleteIntermediateCaOcspResponder(intermediateCaId, ocspResponderId);
 
-        final Validation.Builder validationBuilder = new Validation.Builder()
-                .context(response)
-                .title("Validate response")
-                .assertion(equalsStatusCodeAssertion(NO_CONTENT));
-        validationService.validate(validationBuilder.build());
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                .execute();
     }
 
 }

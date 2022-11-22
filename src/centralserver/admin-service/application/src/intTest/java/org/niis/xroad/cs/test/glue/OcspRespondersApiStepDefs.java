@@ -29,7 +29,6 @@ package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.AssertionOperation;
-import com.nortal.test.asserts.Validation;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
 import org.niis.xroad.centralserver.openapi.model.CertificateDetailsDto;
@@ -64,11 +63,9 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         final ResponseEntity<OcspResponderDto> response = ocspRespondersApi
                 .updateOcspResponder(ocspResponderId, newUrl, null);
 
-        final Validation.Builder validationBuilder = new Validation.Builder()
-                .context(response)
-                .title("Validate response")
-                .assertion(equalsStatusCodeAssertion(OK));
-        validationService.validate(validationBuilder.build());
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
 
         putStepData(NEW_OCSP_RESPONDER_URL, newUrl);
     }
@@ -89,11 +86,9 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         final ResponseEntity<OcspResponderDto> response = ocspRespondersApi
                 .updateOcspResponder(ocspResponderId, newUrl, newCertificate);
 
-        final Validation.Builder validationBuilder = new Validation.Builder()
-                .context(response)
-                .title("Validate response")
-                .assertion(equalsStatusCodeAssertion(OK));
-        validationService.validate(validationBuilder.build());
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
 
         putStepData(NEW_OCSP_RESPONDER_URL, newUrl);
     }
@@ -105,16 +100,14 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         final ResponseEntity<CertificateDetailsDto> certificateResponse = ocspRespondersApi
                 .getOcspRespondersCertificate(ocspResponderId);
 
-        final Validation.Builder validationBuilder = new Validation.Builder()
-                .context(certificateResponse)
-                .title("Validate response")
+        validate(certificateResponse)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(new Assertion.Builder()
                         .message("Certificate hash differs")
                         .expression("body.hash")
                         .operation(AssertionOperation.NOT_EQUALS)
                         .expectedValue(getKeyOldOcspResponderCertHash)
-                        .build());
-        validationService.validate(validationBuilder.build());
+                        .build())
+                .execute();
     }
 }
