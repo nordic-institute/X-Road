@@ -1347,13 +1347,13 @@ pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n center
 ```properties
     adapter=postgresql
     encoding=utf8
-    username=<database user>
-    password=<database password>
-    database=<database name>
+    username=centerui
+    password=<centerui password>
+    database=centerui_production
     reconnect=true
     host=<database host>
     port=<database port>
-    schema=<database schema>
+    schema=centerui
 ```
 
 9. Start again the X-Road services.

@@ -2913,22 +2913,31 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
 7. Edit `/etc/xroad.properties`.
 
     ```properties
-    postgres.connection.password = <postgres-password>
-    op-monitor.database.admin_password = <opmonitor_admin-password>
-    serverconf.database.initialized = true
-    messagelog.database.initialized = true
-    op-monitor.database.initialized = true
+    serverconf.database.admin_user = serverconf_admin
+    serverconf.database.admin_password = <serverconf_admin password>
+    messagelog.database.admin_user = messagelog_admin
+    messagelog.database.admin_password = messagelog_admin password>
+    op-monitor.database.admin_user = opmonitor_admin
+    op-monitor.database.admin_password = <opmonitor_admin password>
     ```
 
 8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
 
     ```properties
-    serverconf.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/serverconf
-    messagelog.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/messagelog
-    op-monitor.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/op-monitor
-    serverconf.hibernate.connection.password = <serverconf-password>
-    messagelog.hibernate.connection.password = <messagelog-password>
-    op-monitor.hibernate.connection.password = <opmonitor-password>
+    serverconf.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/serverconf
+    serverconf.hibernate.connection.username = serverconf
+    serverconf.hibernate.connection.password = <serverconf password>
+    serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
+
+    messagelog.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/messagelog
+    messagelog.hibernate.connection.username = messagelog
+    messagelog.hibernate.connection.password = <messagelog password>
+    messagelog.hibernate.hikari.dataSource.currentSchema = messagelog,public
+
+    op-monitor.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/op-monitor
+    op-monitor.hibernate.connection.username = opmonitor
+    op-monitor.hibernate.connection.password = <opmonitor password>
+    op-monitor.hibernate.hikari.dataSource.currentSchema = opmonitor,public
     ```
 
 9. Start again the X-Road services.
