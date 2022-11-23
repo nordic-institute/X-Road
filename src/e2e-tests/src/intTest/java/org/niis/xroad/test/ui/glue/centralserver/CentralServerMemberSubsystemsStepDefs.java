@@ -47,7 +47,7 @@ public class CentralServerMemberSubsystemsStepDefs extends BaseUiStepDefs {
     private static final By INPUT_MEMBER_CODE = xpath("//input[@data-test=\"add-subsystem-input\"]");
     private static final String SUBSYSTEM_ROW =
             SUBSYSTEMS_TABLE + "//div//table//tbody//tr[td[contains(text(), \"%s\")] and td[contains(text(), \"%s\")]]";
-    private static final By BTN_DELETE_SUBSYSTEM = xpath("//button[@data-test=\"delete-subsystem\"]");
+    private static final String BTN_DELETE_SUBSYSTEM = SUBSYSTEM_ROW + "//button[@data-test=\"delete-subsystem\"]";
 
     @When("Subsystems tab is selected")
     public void subsystemsTabIsSelected() {
@@ -77,9 +77,9 @@ public class CentralServerMemberSubsystemsStepDefs extends BaseUiStepDefs {
         $(xpath(String.format(SUBSYSTEM_ROW, subsystemCode, subsystemStatus))).shouldBe(Condition.visible);
     }
 
-    @When("Subsystem is deleted")
-    public void subsystemIsDeleted() {
-        $(BTN_DELETE_SUBSYSTEM).click();
+    @When("Subsystem with code: {} and status: {} is deleted")
+    public void subsystemIsDeleted(String subsystemCode, String subsystemStatus) {
+        $(xpath(String.format(BTN_DELETE_SUBSYSTEM, subsystemCode, subsystemStatus))).click();
 
         $(BTN_DIALOG_CANCEL).shouldBe(Condition.enabled);
         $(BTN_DIALOG_DELETE).shouldBe(Condition.enabled).click();

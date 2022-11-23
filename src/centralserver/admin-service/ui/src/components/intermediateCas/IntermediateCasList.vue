@@ -38,6 +38,7 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
+      data-test="intermediate-cas-table"
     >
       <template #header>
         <thead class="borderless-table-header">
@@ -49,7 +50,7 @@
               <div class="button-wrap mb-6 mt-4">
                 <xrd-button
                   outlined
-                  data-test="token-add-key-button"
+                  data-test="add-intermediate-ca-button"
                   @click="showAddIntermediateCaDialog = true"
                 >
                   <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
