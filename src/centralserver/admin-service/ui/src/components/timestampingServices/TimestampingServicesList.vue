@@ -59,11 +59,7 @@
     >
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
-          <xrd-button
-            text
-            :outlined="false"
-            @click="() => {}"
-          >
+          <xrd-button text :outlined="false" @click="() => {}">
             {{ $t('trustServices.viewCertificate') }}
           </xrd-button>
           <xrd-button
@@ -78,7 +74,7 @@
             v-if="showDeleteTsaButton"
             text
             :outlined="false"
-            @click="() => {}"
+            @click="showDeleteDialog(item)"
           >
             {{ $t('action.delete') }}
           </xrd-button>
@@ -89,13 +85,25 @@
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
+
+    <!-- Confirm delete dialog -->
+    <xrd-confirm-dialog
+      v-if="confirmDelete"
+      :dialog="confirmDelete"
+      title="trustServices.trustService.timestampingService.delete.dialog.title"
+      text="trustServices.trustService.timestampingService.delete.dialog.message"
+      :data="{ url: selectedTimestampingService.url }"
+      :loading="deletingTimestampingService"
+      @cancel="confirmDelete = false"
+      @accept="deleteTimestampingService"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
-import { mapState, mapStores } from 'pinia';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import { userStore } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
@@ -109,6 +117,9 @@ export default Vue.extend({
   data() {
     return {
       loading: false,
+      confirmDelete: false,
+      deletingTimestampingService: false,
+      selectedTimestampingService: undefined as undefined | TimestampingService,
     };
   },
   computed: {
@@ -166,9 +177,40 @@ export default Vue.extend({
     },
   },
   created() {
-    this.timestampingServicesStore.fetchTimestampingServices();
+    this.fetchTimestampingServices();
   },
-  methods: {},
+  methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    fetchTimestampingServices(): void {
+      this.loading = true;
+      try {
+        this.timestampingServicesStore.fetchTimestampingServices();
+      } finally {
+        this.loading = false;
+      }
+    },
+    showDeleteDialog(item: TimestampingService): void {
+      this.selectedTimestampingService = item;
+      this.confirmDelete = true;
+    },
+    deleteTimestampingService(): void {
+      if (!this.selectedTimestampingService) return;
+      this.deletingTimestampingService = true;
+      this.timestampingServicesStore
+        .delete(this.selectedTimestampingService.id)
+        .then(() => {
+          this.showSuccess(
+            'trustServices.trustService.timestampingService.delete.success',
+          );
+          this.confirmDelete = false;
+          this.deletingTimestampingService = false;
+          this.fetchTimestampingServices();
+        })
+        .catch((error) => {
+          this.showError(error);
+        });
+    },
+  },
 });
 </script>
 
