@@ -296,6 +296,9 @@ export default (
       return this.getSystemStatus?.initialization_status?.instance_identifier;
     },
   },
+  created() {
+    this.fetchSystemStatus();
+  },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     ...mapActions(systemStore, [
