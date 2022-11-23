@@ -89,9 +89,10 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
         final MultipartFile certificate = new MockMultipartFile("certificate", CertificateUtils.generateAuthCert());
 
         try {
-            timestampingServicesApi.addTimestampingService(url, certificate);
+            final ResponseEntity<TimestampingServiceDto> response = timestampingServicesApi.addTimestampingService(url, certificate);
+            this.responseStatusCode = response.getStatusCodeValue();
         } catch (FeignException feignException) {
-            responseStatusCode = feignException.status();
+            this.responseStatusCode = feignException.status();
         }
     }
 
@@ -105,9 +106,10 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
     @Step("user tries to delete timestamping service with not existing id")
     public void userTriesToDeleteTimestampingServiceWithNonExistingId() {
         try {
-            timestampingServicesApi.deleteTimestampingService(MIN_VALUE); //should not exist with negative id...
+            final ResponseEntity<Void> response = timestampingServicesApi.deleteTimestampingService(MIN_VALUE);
+            this.responseStatusCode = response.getStatusCodeValue();
         } catch (FeignException feignException) {
-            responseStatusCode = feignException.status();
+            this.responseStatusCode = feignException.status();
         }
     }
 
