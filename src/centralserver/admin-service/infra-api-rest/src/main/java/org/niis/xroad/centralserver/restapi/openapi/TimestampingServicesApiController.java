@@ -48,6 +48,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_TSP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_TSP;
+import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
 
@@ -70,8 +72,11 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     }
 
     @Override
-    public ResponseEntity<Void> deleteTimestampingService(String id) {
-        throw new NotImplementedException("deleteTimestampingService not implemented yet.");
+    @AuditEventMethod(event = DELETE_TSP)
+    @PreAuthorize("hasAuthority('DELETE_APPROVED_TSA')")
+    public ResponseEntity<Void> deleteTimestampingService(Integer id) {
+        timestampingServicesService.delete(id);
+        return noContent().build();
     }
 
     @Override

@@ -56,6 +56,15 @@ public abstract class BaseStepDefs {
                 .build();
     }
 
+    protected Assertion equalsStatusCodeAssertion(int actualValue, HttpStatus expectedValue) {
+        return new Assertion.Builder()
+                .message("Verify status code")
+                .expression("=")
+                .actualValue(actualValue)
+                .expectedValue(expectedValue.value())
+                .build();
+    }
+
     protected ValidationHelper validate(Object context) {
         return new ValidationHelper(validationService, context, "Validate response");
     }

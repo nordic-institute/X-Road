@@ -3085,9 +3085,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       responses:
         '204':
           description: timestamping service deletion was successful
