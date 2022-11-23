@@ -508,6 +508,11 @@
           "success": "Intermediate CA deleted successfully"
         }
       },
+      "timestampingService": {
+        "url": "Url",
+        "timestampingInterval": "Timestamping interval",
+        "cost": "Cost"
+      },
       "pagenavigation": {
         "details": "Details",
         "settings": "CA Settings",

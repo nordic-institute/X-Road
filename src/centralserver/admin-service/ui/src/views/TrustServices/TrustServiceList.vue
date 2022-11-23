@@ -76,46 +76,10 @@
       </v-data-table>
     </div>
 
-    <div data-test="timestamping-services">
-      <!-- Title and button -->
-      <div class="table-toolbar align-fix mt-8 pl-0">
-        <div class="xrd-view-title align-fix">
-          {{ $t('trustServices.timestampingServices') }}
-        </div>
-
-        <xrd-button data-test="add-timestamping-service" @click="() => {}">
-          <xrd-icon-base class="xrd-large-button-icon"
-            ><XrdIconAdd
-          /></xrd-icon-base>
-          {{ $t('trustServices.addTimestampingService') }}</xrd-button
-        >
-      </div>
-
-      <!-- Table -->
-      <v-data-table
-        :loading="loading"
-        :headers="headers"
-        :items="certificationServices"
-        :search="search"
-        :must-sort="true"
-        :items-per-page="-1"
-        class="elevation-0 data-table"
-        item-key="id"
-        :loader-height="2"
-        hide-default-footer
-      >
-        <template #[`item.server`]="{ item }">
-          <div class="server-code">
-            <xrd-icon-base class="mr-4"><XrdIconCertificate /></xrd-icon-base
-            >{{ item.server }}
-          </div>
-        </template>
-
-        <template #footer>
-          <div class="custom-footer"></div>
-        </template>
-      </v-data-table>
-    </div>
+    <TimestampingServicesList
+      v-if="showTsaList"
+    >
+    </TimestampingServicesList>
 
     <!-- Dialogs -->
     <AddCertificationServiceDialog
@@ -125,6 +89,7 @@
       @cancel="hideAddCSDialog"
     >
     </AddCertificationServiceDialog>
+
   </div>
 </template>
 
@@ -142,11 +107,13 @@ import {
   ApprovedCertificationServiceListItem,
   CertificationServiceFileAndSettings,
 } from '@/openapi-types';
+import TimestampingServicesList from '@/components/timestampingServices/TimestampingServicesList.vue';
 
 export default Vue.extend({
   name: 'TrustServiceList',
   components: {
     AddCertificationServiceDialog,
+    TimestampingServicesList,
   },
   data() {
     return {
@@ -165,25 +132,28 @@ export default Vue.extend({
     showAddCSButton(): boolean {
       return this.hasPermission(Permissions.ADD_APPROVED_CA);
     },
+    showTsaList(): boolean {
+      return this.hasPermission(Permissions.VIEW_APPROVED_TSAS);
+    },
     headers(): DataTableHeader[] {
       return [
         {
           text: this.$t('trustServices.approvedCertificationService') as string,
           align: 'start',
           value: 'name',
-          class: 'xrd-table-header ts-table-header-server-code',
+          class: 'xrd-table-header ts-table-header-server-code text-uppercase',
         },
         {
           text: this.$t('trustServices.validFrom') as string,
           align: 'start',
           value: 'not_before',
-          class: 'xrd-table-header ts-table-header-valid-from',
+          class: 'xrd-table-header ts-table-header-valid-from text-uppercase',
         },
         {
           text: this.$t('trustServices.validTo') as string,
           align: 'start',
           value: 'not_after',
-          class: 'xrd-table-header ts-table-header-valid-to',
+          class: 'xrd-table-header ts-table-header-valid-to text-uppercase',
         },
       ];
     },
