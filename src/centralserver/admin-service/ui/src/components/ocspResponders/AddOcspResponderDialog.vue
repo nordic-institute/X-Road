@@ -66,6 +66,7 @@
               autofocus
               :label="$t('trustServices.uploadCertificate')"
               append-icon="icon-Upload"
+              data-test="ocsp-responder-file-input"
               @click="upload"
             ></v-text-field>
           </xrd-file-upload>

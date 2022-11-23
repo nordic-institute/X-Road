@@ -30,7 +30,7 @@ Feature: Central Server Member details view Subsystem tab
     And Member E2E Test Member with Subsystems is selected
     And Subsystems tab is selected
     And Subsystem with code: e2e-test-subsystem and status: Unregistered is listed
-    When Subsystem is deleted
+    When Subsystem with code: e2e-test-subsystem and status: Unregistered is deleted
     Then Subsystem with code: e2e-test-subsystem and status: Unregistered not listed any more
 
 

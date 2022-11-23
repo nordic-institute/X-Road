@@ -38,6 +38,7 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
+      data-test="ocsp-responders-table"
     >
       <template #header>
         <thead class="borderless-table-header">
@@ -47,7 +48,7 @@
               <div class="button-wrap mb-6 mt-4">
                 <xrd-button
                   outlined
-                  data-test="token-add-key-button"
+                  data-test="add-ocsp-responder-button"
                   @click="showAddOcspResponderDialog = true"
                 >
                   <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
@@ -70,6 +71,7 @@
           <xrd-button
             text
             :outlined="false"
+            data-test="view-ocsp-responder-certificate"
             @click="navigateToCertificateDetails(item)"
           >
             {{ $t('trustServices.viewCertificate') }}
@@ -77,6 +79,7 @@
           <xrd-button
             text
             :outlined="false"
+            data-test="edit-ocsp-responder"
             @click="openEditOcspResponderDialog(item)"
           >
             {{ $t('action.edit') }}
@@ -84,6 +87,7 @@
           <xrd-button
             text
             :outlined="false"
+            data-test="delete-ocsp-responder"
             @click="openDeleteConfirmationDialog(item)"
           >
             {{ $t('action.delete') }}

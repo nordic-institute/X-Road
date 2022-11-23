@@ -47,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_CLOSE_SNACKBAR;
 import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_DIALOG_SAVE;
 import static org.niis.xroad.test.ui.glue.constants.Constants.DATETIME_FORMAT;
+import static org.niis.xroad.test.ui.glue.constants.Constants.INPUT_FILE_UPLOAD;
 import static org.niis.xroad.test.ui.glue.constants.Constants.SNACKBAR_SUCCESS;
 import static org.niis.xroad.test.ui.utils.CertificateUtils.generateAuthCert;
 import static org.niis.xroad.test.ui.utils.CertificateUtils.getAsFile;
@@ -66,7 +67,6 @@ public class CentralServerCertificationServicesStepDefs extends BaseUiStepDefs {
     private static final By BTN_EDIT_TLS_AUTH = xpath("//div[@data-test=\"tls-auth-card\"]//button[@data-test=\"info-card-edit-button\"]");
     private static final By BTN_EDIT_CERT_PROFILE =
             xpath("//div[@data-test=\"cert-profile-card\"]//button[@data-test=\"info-card-edit-button\"]");
-    private static final By INPUT_FILE_UPLOAD = xpath("//input[@type=\"file\"]");
     private static final By INPUT_CERTIFICATE_PROFILE = xpath("//input[@data-test=\"cert-profile-input\"]");
     private static final String TABLE_CERT_SERVICES = "//div[@data-test=\"certification-services\"]//table";
     private static final String TABLE_ROW_NEW_CERT_SERVICE = TABLE_CERT_SERVICES + "/tbody/tr/td/div[contains(text(), \"%s\")]";
