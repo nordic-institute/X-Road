@@ -28,9 +28,7 @@
 package org.niis.xroad.test.ui.glue.centralserver;
 
 import com.codeborne.selenide.Condition;
-import io.cucumber.java.en.And;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
+import io.cucumber.java.en.Step;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 import org.openqa.selenium.By;
 
@@ -70,12 +68,12 @@ public class CentralServerOcspRespondersStepDefs extends BaseUiStepDefs {
     private static final String BTN_DELETE_OCSP_RESPONDER =
             TABLE_ROW_OCSP_RESPONDER + "/../..//td/div/button[@data-test=\"delete-ocsp-responder\"]";
 
-    @And("OCSP responders tab is selected")
+    @Step("OCSP responders tab is selected")
     public void ocspRespondersTabIsSelected() {
         $(TAB_OCSP_RESPONDERS).click();
     }
 
-    @When("OCSP responder with URL {} is added")
+    @Step("OCSP responder with URL {} is added")
     public void newOcspResponderIsAdded(String url) throws Exception {
         $(BTN_ADD_OCSP_RESPONDER).click();
         $(BTN_DIALOG_CANCEL).should(Condition.enabled);
@@ -91,17 +89,17 @@ public class CentralServerOcspRespondersStepDefs extends BaseUiStepDefs {
         $(BTN_CLOSE_SNACKBAR).click();
     }
 
-    @When("OCSP responder table is visible")
+    @Step("OCSP responder table is visible")
     public void ocspResponderTableIsVisible() {
         $(xpath(TABLE_OCSP_RESPONDERS)).shouldBe(Condition.enabled);
     }
 
-    @Then("OCSP responder with URL {} is visible in the OCSP responders list")
+    @Step("OCSP responder with URL {} is visible in the OCSP responders list")
     public void ocspResponderIsVisibleInTheOcspRespondersList(String url) {
         $(xpath(format(TABLE_ROW_OCSP_RESPONDER, url))).should(appear);
     }
 
-    @Then("User is able to sort OCSP responders by URL")
+    @Step("User is able to sort OCSP responders by URL")
     public void userIsAbleToSortOcspRespondersByUrl() {
         assertEquals("none", $(TABLE_URL_HEADER).getAttribute("aria-sort"));
         $(TABLE_URL_HEADER).click();
@@ -110,18 +108,18 @@ public class CentralServerOcspRespondersStepDefs extends BaseUiStepDefs {
         assertEquals("descending", $(TABLE_URL_HEADER).getAttribute("aria-sort"));
     }
 
-    @And("User is able to view the certificate of OCSP responder with URL {}")
+    @Step("User is able to view the certificate of OCSP responder with URL {}")
     public void userIsAbleToViewTheCertificate(String url) {
         $(xpath(format(BTN_VIEW_OCSP_RESPONDER_CERTIFICATE, url))).click();
         $(CERTIFICATE_DETAILS_COMPONENT).shouldBe(visible);
     }
 
-    @When("User is able click Edit button in OCSP responder with URL {}")
+    @Step("User is able click Edit button in OCSP responder with URL {}")
     public void userIsAbleToEditOcspResponder(String url) {
         $(xpath(format(BTN_EDIT_OCSP_RESPONDER, url))).click();
     }
 
-    @And("User is able change the URL to new URL {}")
+    @Step("User is able change the URL to new URL {}")
     public void userIsAbleEditTheUrl(String newUrl) {
         $(BTN_DIALOG_CANCEL).should(Condition.enabled);
         $(BTN_DIALOG_SAVE).should(Condition.enabled);
@@ -137,14 +135,14 @@ public class CentralServerOcspRespondersStepDefs extends BaseUiStepDefs {
         $(BTN_CLOSE_SNACKBAR).click();
     }
 
-    @Then("User is able view the certificate of OCSP responder")
+    @Step("User is able view the certificate of OCSP responder")
     public void userIsAbleViewTheCertificate() {
         $(BTN_VIEW_CERTIFICATE).click();
         $(CERTIFICATE_DETAILS_COMPONENT).shouldBe(visible);
         $(BTN_CLOSE_X).click();
     }
 
-    @Then("User is able change the certificate of OCSP responder with URL {}")
+    @Step("User is able change the certificate of OCSP responder with URL {}")
     public void userIsAbleChangeTheCertificate(String url) throws Exception {
         $(BTN_UPLOAD_CERTIFICATE).click();
 
@@ -156,7 +154,7 @@ public class CentralServerOcspRespondersStepDefs extends BaseUiStepDefs {
         $(BTN_CLOSE_SNACKBAR).click();
     }
 
-    @Then("User is able to click delete button in OCSP responder with URL {}")
+    @Step("User is able to click delete button in OCSP responder with URL {}")
     public void userIsAbleToDeleteOcspResponder(String url) {
         $(xpath(format(BTN_DELETE_OCSP_RESPONDER, url))).click();
 
@@ -167,7 +165,7 @@ public class CentralServerOcspRespondersStepDefs extends BaseUiStepDefs {
         $(BTN_CLOSE_SNACKBAR).click();
     }
 
-    @And("OCSP responder with URL {} should removed in list")
+    @Step("OCSP responder with URL {} should removed in list")
     public void ocspResponderShouldRemovedInList(String url) {
         $(xpath(format(TABLE_ROW_OCSP_RESPONDER, url))).shouldNotBe(appear);
     }

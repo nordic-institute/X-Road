@@ -28,7 +28,7 @@
 package org.niis.xroad.test.ui.glue.centralserver;
 
 import com.codeborne.selenide.Condition;
-import io.cucumber.java.en.And;
+import io.cucumber.java.en.Step;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 import org.openqa.selenium.By;
 
@@ -52,13 +52,12 @@ public class CentralServerIntermediateCasStepDefs extends BaseUiStepDefs {
     private static final String TABLE_INTERMEDIATE_CAS = "//div[@data-test=\"intermediate-cas-table\"]//table";
     private static final String TABLE_ROW_INTERMEDIATE_CAS = TABLE_INTERMEDIATE_CAS + "/tbody/tr/td/div[contains(text(), \"%s\")]";
 
-
-    @And("Intermediate CAs tab is selected")
+    @Step("Intermediate CAs tab is selected")
     public void intermediateCasTabIsSelected() {
         $(TAB_INTERMEDIATE_CAS).click();
     }
 
-    @And("Intermediate CA with name {} is added")
+    @Step("Intermediate CA with name {} is added")
     public void newIntermediateCaIsAdded(String name) throws Exception {
         $(BTN_ADD_INTERMEDIATE_CA).click();
         $(BTN_DIALOG_CANCEL).should(Condition.enabled);
@@ -73,7 +72,7 @@ public class CentralServerIntermediateCasStepDefs extends BaseUiStepDefs {
         $(BTN_CLOSE_SNACKBAR).click();
     }
 
-    @And("User opens intermediate CA with name {} details")
+    @Step("User opens intermediate CA with name {} details")
     public void userOpensIntermediateCaDetails(String name) {
         $(xpath(format(TABLE_ROW_INTERMEDIATE_CAS, name))).click();
     }
