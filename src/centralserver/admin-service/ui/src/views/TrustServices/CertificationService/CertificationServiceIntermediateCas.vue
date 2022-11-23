@@ -27,7 +27,7 @@
 <template>
   <main id="certification-service-indermediate-cas" class="mt-8">
     <IntermediateCasList
-      :ca="certificationServiceStore.currentCertificationService"
+      :cs="certificationServiceStore.currentCertificationService"
     />
   </main>
 </template>

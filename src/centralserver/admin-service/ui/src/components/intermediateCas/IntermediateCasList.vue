@@ -141,11 +141,8 @@ export default Vue.extend({
   name: 'IntermediateCasList',
   components: { AddIntermediateCaDialog },
   props: {
-    ca: {
-      type: [
-        Object as () => ApprovedCertificationService,
-        Object as () => CertificateAuthority,
-      ],
+    cs: {
+      type: Object as () => ApprovedCertificationService,
       required: true,
     },
   },
@@ -195,7 +192,7 @@ export default Vue.extend({
     },
   },
   created() {
-    this.intermediateCasServiceStore.loadByCa(this.ca);
+    this.intermediateCasServiceStore.loadByCs(this.cs);
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),

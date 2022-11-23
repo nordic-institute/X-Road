@@ -117,14 +117,23 @@ export const useOcspResponderStore = defineStore('ocspResponderService', {
     currentOcspResponders: [],
   }),
   persist: true,
+  getters: {
+    getCurrentCaOcspRespondersPath(): string {
+      if ((this.currentCa as ApprovedCertificationService).name) {
+        return `/certification-services/${this.currentCa!.id}/ocsp-responders`;
+      } else {
+        return `/intermediate-cas/${this.currentCa!.id}/ocsp-responders`;
+      }
+    },
+  },
   actions: {
-    loadByCa(currentCa: ApprovedCertificationService | CertificateAuthority) {
-      this.currentCa = currentCa;
+    loadByCa(ca: ApprovedCertificationService | CertificateAuthority) {
+      this.currentCa = ca;
       this.fetchOcspResponders();
     },
     fetchOcspResponders() {
       return axios
-        .get<OcspResponder[]>(this.getCurrentCaOcspRespondersPath())
+        .get<OcspResponder[]>(this.getCurrentCaOcspRespondersPath)
         .then((resp) => (this.currentOcspResponders = resp.data));
     },
     addOcspResponder(url: string, certificate: File) {
@@ -133,7 +142,7 @@ export const useOcspResponderStore = defineStore('ocspResponderService', {
       formData.append('certificate', certificate);
 
       return axios
-        .post(this.getCurrentCaOcspRespondersPath(), formData)
+        .post(this.getCurrentCaOcspRespondersPath, formData)
         .finally(() => this.fetchOcspResponders());
     },
     updateOcspResponder(id: number, url: string, certificate: File | null) {
@@ -152,32 +161,25 @@ export const useOcspResponderStore = defineStore('ocspResponderService', {
         `/ocsp-responders/${id}/certificate`,
       );
     },
-    getCurrentCaOcspRespondersPath() {
-      if ((<ApprovedCertificationService>this.currentCa).name) {
-        return `/certification-services/${this.currentCa!.id}/ocsp-responders`;
-      } else {
-        return `/intermediate-cas/${this.currentCa!.id}/ocsp-responders`;
-      }
-    },
   },
 });
 
 export interface IntermediateCasStoreState {
-  currentCa: ApprovedCertificationService | CertificateAuthority | null;
+  currentCs: ApprovedCertificationService | null;
   currentIntermediateCas: CertificateAuthority[];
   currentSelectedIntermediateCa: CertificateAuthority | null;
 }
 
 export const useIntermediateCaStore = defineStore('intermediateCasService', {
   state: (): IntermediateCasStoreState => ({
-    currentCa: null,
+    currentCs: null,
     currentIntermediateCas: [],
     currentSelectedIntermediateCa: null,
   }),
   persist: true,
   actions: {
-    loadByCa(currentCa: ApprovedCertificationService | CertificateAuthority) {
-      this.currentCa = currentCa;
+    loadByCs(cs: ApprovedCertificationService) {
+      this.currentCs = cs;
       this.fetchIntermediateCas();
     },
     loadById(intermediateCaId: number) {
@@ -190,11 +192,11 @@ export const useIntermediateCaStore = defineStore('intermediateCasService', {
         });
     },
     fetchIntermediateCas() {
-      if (!this.currentCa) return;
+      if (!this.currentCs) return;
 
       return axios
         .get<CertificateAuthority[]>(
-          `/certification-services/${this.currentCa.id}/intermediate-cas`,
+          `/certification-services/${this.currentCs.id}/intermediate-cas`,
         )
         .then((resp) => (this.currentIntermediateCas = resp.data));
     },
@@ -202,14 +204,14 @@ export const useIntermediateCaStore = defineStore('intermediateCasService', {
       return axios.get<CertificateAuthority>(`/intermediate-cas/${id}`);
     },
     addIntermediateCa(certificate: File) {
-      if (!this.currentCa) {
+      if (!this.currentCs) {
         throw new Error('CA not selected');
       }
       const formData = new FormData();
       formData.append('certificate', certificate);
       return axios
         .post(
-          `/certification-services/${this.currentCa.id}/intermediate-cas`,
+          `/certification-services/${this.currentCs.id}/intermediate-cas`,
           formData,
         )
         .finally(() => this.fetchIntermediateCas());
