@@ -446,7 +446,6 @@
   },
   "trustServices": {
     "addCertificationService": "Add certification service",
-    "addTimestampingService": "Add timestamping service",
     "addCASettingsCheckbox": "This CA can only be used for TLS authentication (mark if true)",
     "approvedCertificationService": "Approved Certification service",
     "caSettings": "CA Settings",
@@ -459,6 +458,21 @@
     "validTo": "Valid to",
     "viewCertificate": "View Certificate",
     "uploadCertificate": "Upload the certificate file from your computer",
+    "timestampingService": {
+      "url": "URL",
+      "dialog": {
+        "add": {
+          "title": "Add timestamping service",
+          "success": "Timestamping service added successfully"
+        },
+        "edit": {
+          "title": "Edit Timestamping Service",
+          "uploadCertificate": "Upload new certificate",
+          "success": "Timestamping service edited successfully"
+        }
+      },
+      "addedSuccessfully": "Timestamping service added successfully"
+    },
     "trustService": {
       "details" : {
         "subjectDistinguishedName": "Subject distinguished name",

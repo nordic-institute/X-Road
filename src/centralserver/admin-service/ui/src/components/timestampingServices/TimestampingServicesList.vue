@@ -35,12 +35,12 @@
       <xrd-button
         v-if="showAddTsaButton"
         data-test="add-timestamping-service"
-        @click="() => {}"
+        @click="showAddDialog = true"
       >
         <xrd-icon-base class="xrd-large-button-icon">
           <XrdIconAdd />
         </xrd-icon-base>
-        {{ $t('trustServices.addTimestampingService') }}
+        {{ $t('trustServices.timestampingService.dialog.add.title') }}
       </xrd-button>
     </div>
 
@@ -86,7 +86,7 @@
             v-if="showEditTsaButton"
             text
             :outlined="false"
-            @click="() => {}"
+            @click="openEditDialog(item)"
           >
             {{ $t('action.edit') }}
           </xrd-button>
@@ -117,11 +117,29 @@
       @cancel="confirmDelete = false"
       @accept="deleteTimestampingService"
     />
+
+    <AddTimestampingServiceDialog
+      v-if="showAddDialog"
+      :show-dialog="showAddDialog"
+      @save="hideAddDialog"
+      @cancel="hideAddDialog"
+    >
+    </AddTimestampingServiceDialog>
+    <EditTimestampingServiceDialog
+      v-if="showEditDialog"
+      :show-dialog="showEditDialog"
+      :tsa-service="selectedTimestampingService"
+      @save="hideEditDialog"
+      @cancel="hideEditDialog"
+    >
+    </EditTimestampingServiceDialog>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import AddTimestampingServiceDialog from '@/components/timestampingServices/AddTimestampingServiceDialog.vue';
+import EditTimestampingServiceDialog from '@/components/timestampingServices/EditTimestampingServiceDialog.vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
@@ -132,7 +150,10 @@ import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
   name: 'TimestampingServicesList',
-  components: {},
+  components: {
+    AddTimestampingServiceDialog,
+    EditTimestampingServiceDialog,
+  },
   props: {},
   data() {
     return {
@@ -140,6 +161,8 @@ export default Vue.extend({
       confirmDelete: false,
       deletingTimestampingService: false,
       selectedTimestampingService: undefined as undefined | TimestampingService,
+      showAddDialog: false,
+      showEditDialog: false,
     };
   },
   computed: {
@@ -211,15 +234,23 @@ export default Vue.extend({
       this.selectedTimestampingService = item;
       this.confirmDelete = true;
     },
+    hideAddDialog(): void {
+      this.showAddDialog = false;
+    },
+    openEditDialog(item: TimestampingService): void {
+      this.selectedTimestampingService = item;
+      this.showEditDialog = true;
+    },
+    hideEditDialog(): void {
+      this.showEditDialog = false;
+    },
     deleteTimestampingService(): void {
       if (!this.selectedTimestampingService) return;
       this.deletingTimestampingService = true;
       this.timestampingServicesStore
         .delete(this.selectedTimestampingService.id)
         .then(() => {
-          this.showSuccess(
-            'trustServices.trustService.timestampingService.delete.success',
-          );
+          this.showSuccess('trustServices.trustService.timestampingService.delete.success');
           this.confirmDelete = false;
           this.deletingTimestampingService = false;
           this.fetchTimestampingServices();
