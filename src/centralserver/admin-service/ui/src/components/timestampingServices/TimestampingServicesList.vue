@@ -199,11 +199,9 @@ export default Vue.extend({
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     fetchTimestampingServices(): void {
       this.loading = true;
-      try {
-        this.timestampingServicesStore.fetchTimestampingServices();
-      } finally {
-        this.loading = false;
-      }
+      this.timestampingServicesStore
+        .fetchTimestampingServices()
+        .finally(() => (this.loading = false));
     },
     showDeleteDialog(item: TimestampingService): void {
       this.selectedTimestampingService = item;
