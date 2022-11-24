@@ -28,6 +28,8 @@
 package org.niis.xroad.cs.admin.api.service;
 
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
+import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
+import scala.App;
 
 import java.util.Set;
 
@@ -36,6 +38,8 @@ public interface TimestampingServicesService {
     Set<ApprovedTsa> getTimestampingServices();
 
     ApprovedTsa add(String url, byte[] certificate);
+
+    ApprovedTsa get(Integer id);
 
     void delete(Integer id);
 

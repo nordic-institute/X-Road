@@ -4,6 +4,7 @@ Feature: Timestamping services API
   @Modifying
   Scenario: View the list of timestamping services
     When timestamping service is added
+    And timestamping services returns added timestamping service by id
     Then timestamping services list contains added timestamping service
 
   Scenario: Adding the timestamping service with invalid url is not allowed
@@ -13,6 +14,7 @@ Feature: Timestamping services API
   @Modifying
   Scenario: Deleting timestamping service
     Given timestamping service is added
+    And timestamping services returns added timestamping service by id
     And timestamping services list contains added timestamping service
     When user deletes the added timestamping service
     Then timestamping services list does not contain added timestamping service
