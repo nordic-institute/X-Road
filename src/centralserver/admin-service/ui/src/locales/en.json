@@ -511,6 +511,7 @@
       "timestampingService": {
         "url": "Url",
         "timestampingInterval": "Timestamping interval",
+        "timestampingIntervalMinutes": "{min} minute(s)",
         "cost": "Cost",
         "costValues": {
           "FREE": "Free",

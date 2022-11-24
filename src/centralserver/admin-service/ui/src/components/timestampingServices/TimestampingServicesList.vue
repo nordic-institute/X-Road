@@ -57,6 +57,14 @@
       :loader-height="2"
       hide-default-footer
     >
+      <template #[`item.timestamping_interval`]="{ item }">
+        {{
+          $t(
+            'trustServices.trustService.timestampingService.timestampingIntervalMinutes',
+            { min: toMinutes(item.timestamping_interval) },
+          )
+        }}
+      </template>
       <template #[`item.cost`]="{ item }">
         {{
           $t(
@@ -217,6 +225,9 @@ export default Vue.extend({
         .catch((error) => {
           this.showError(error);
         });
+    },
+    toMinutes(seconds: number): string {
+      return '' + parseFloat((seconds / 60).toFixed(2));
     },
   },
 });
