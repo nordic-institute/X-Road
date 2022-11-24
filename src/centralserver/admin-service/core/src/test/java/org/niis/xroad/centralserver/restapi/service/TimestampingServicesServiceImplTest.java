@@ -28,6 +28,7 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import ee.ria.xroad.common.TestCertUtil;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -49,7 +50,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_I
 import static java.util.List.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -126,7 +126,7 @@ class TimestampingServicesServiceImplTest {
 
         verify(approvedTsaRepository).findById(ID);
 
-        assertEquals(approvedTsa, timestampingService);
+        assertThat(approvedTsa).isEqualTo(timestampingService);
     }
 
     @Test
