@@ -103,7 +103,7 @@
     <!-- Add Intermediate CA dialog -->
     <AddIntermediateCaDialog
       v-if="showAddIntermediateCaDialog"
-      :ca-id="intermediateCasServiceStore.currentCa.id"
+      :ca-id="intermediateCasServiceStore.currentCs.id"
       @cancel="hideAddIntermediateCaDialog"
       @save="hideAddIntermediateCaDialog"
     ></AddIntermediateCaDialog>

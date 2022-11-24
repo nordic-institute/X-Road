@@ -29,7 +29,7 @@
     <div class="table-toolbar mt-0 pl-0">
       <div class="xrd-view-title">
         {{
-          intermediateCasServiceStore.currentCa.name +
+          intermediateCasServiceStore.currentCs.name +
           ' / ' +
           intermediateCasServiceStore.currentSelectedIntermediateCa
             .ca_certificate.subject_common_name
