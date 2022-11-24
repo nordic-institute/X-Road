@@ -82,12 +82,17 @@ public class TimestampingServicesServiceImpl implements TimestampingServicesServ
 
     @Override
     public void delete(Integer id) {
-        final ApprovedTsaEntity approvedTsaEntity = get(id);
+        final ApprovedTsaEntity approvedTsaEntity = getApprovedTsaEntity(id);
         addDeleteAuditMessages(approvedTsaEntity);
         approvedTsaRepository.delete(approvedTsaEntity);
     }
 
-    private ApprovedTsaEntity get(Integer id) {
+    @Override
+    public ApprovedTsa get(Integer id) {
+        return approvedTsaMapper.toTarget(getApprovedTsaEntity(id));
+    }
+
+    private ApprovedTsaEntity getApprovedTsaEntity(Integer id) {
         return approvedTsaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(TIMESTAMPING_AUTHORITY_NOT_FOUND));
     }

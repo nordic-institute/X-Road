@@ -80,8 +80,9 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     }
 
     @Override
-    public ResponseEntity<TimestampingServiceDto> getTimestampingService(String id) {
-        throw new NotImplementedException("getTimestampingService not implemented yet.");
+    @PreAuthorize("hasAuthority('VIEW_APPROVED_TSAS')")
+    public ResponseEntity<TimestampingServiceDto> getTimestampingService(Integer id) {
+        return ok(timestampingServiceMapper.toTarget(timestampingServicesService.get(id)));
     }
 
     @Override

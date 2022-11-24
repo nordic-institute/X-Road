@@ -55,6 +55,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
     private TimestampingServicesApi timestampingServicesApi;
 
     private Integer timestampingServiceId;
+    private String timestampingURL;
     private int responseStatusCode;
 
     @Step("timestamping service is added")
@@ -70,6 +71,17 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
                 .execute();
 
         this.timestampingServiceId = response.getBody().getId();
+        this.timestampingURL = response.getBody().getUrl();
+    }
+
+    @Step("timestamping services returns added timestamping service by id")
+    public void timestampingServicesReturnsTimestampingServiceById() {
+        final ResponseEntity<TimestampingServiceDto> response = timestampingServicesApi.getTimestampingService(timestampingServiceId);
+
+        validate(response).assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(timestampingURL, "body.url",
+                        "Verify Timestamping Service URL"))
+                .execute();
     }
 
     @Step("timestamping services list contains added timestamping service")

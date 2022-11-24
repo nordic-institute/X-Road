@@ -80,6 +80,8 @@ class TimestampingServicesServiceImplTest {
     private UrlValidator urlValidator;
     @Mock
     private ApprovedTsaEntity approvedTsaEntity;
+    @Mock
+    private ApprovedTsa approvedTsa;
 
     @InjectMocks
     private TimestampingServicesServiceImpl timestampingServicesService;
@@ -113,6 +115,18 @@ class TimestampingServicesServiceImplTest {
         verify(auditDataHelper).put(TSA_URL, URL);
         verify(auditDataHelper).put(TSA_CERT_HASH, "05:A1:0E:EB:DB:0C:D9:67:9E:4C:85:A7:88:48:14:5E:F1:F0:0B:EA");
         verify(auditDataHelper).put(TSA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+    }
+
+    @Test
+    void get() {
+        when(approvedTsaRepository.findById(ID)).thenReturn(Optional.of(approvedTsaEntity));
+        when(approvedTsaMapper.toTarget(approvedTsaEntity)).thenReturn(approvedTsa);
+
+        final ApprovedTsa timestampingService = timestampingServicesService.get(ID);
+
+        verify(approvedTsaRepository).findById(ID);
+
+        assertThat(approvedTsa).isEqualTo(timestampingService);
     }
 
     @Test

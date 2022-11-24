@@ -6,6 +6,11 @@ Feature: Timestamping services API
     When timestamping service is added
     Then timestamping services list contains added timestamping service
 
+  @Modifying
+  Scenario: View timestamping service by id
+    When timestamping service is added
+    Then timestamping services returns added timestamping service by id
+
   Scenario: Adding the timestamping service with invalid url is not allowed
     When user tries to add timestamping service with invalid url
     Then creating timestamping service fails with exception
