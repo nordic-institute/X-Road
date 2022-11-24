@@ -57,6 +57,14 @@
       :loader-height="2"
       hide-default-footer
     >
+      <template #[`item.cost`]="{ item }">
+        {{
+          $t(
+            'trustServices.trustService.timestampingService.costValues.' +
+              item.cost,
+          )
+        }}
+      </template>
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
           <xrd-button text :outlined="false" @click="() => {}">

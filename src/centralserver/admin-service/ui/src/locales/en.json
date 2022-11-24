@@ -512,6 +512,11 @@
         "url": "Url",
         "timestampingInterval": "Timestamping interval",
         "cost": "Cost",
+        "costValues": {
+          "FREE": "Free",
+          "PAID": "Paid",
+          "UNDEFINED": "Undefined"
+        },
         "delete": {
           "dialog": {
             "title": "Are you sure?",
