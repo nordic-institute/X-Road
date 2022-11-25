@@ -38,6 +38,7 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
+      data-test="intermediate-cas-table"
     >
       <template #header>
         <thead class="borderless-table-header">
@@ -49,7 +50,7 @@
               <div class="button-wrap mb-6 mt-4">
                 <xrd-button
                   outlined
-                  data-test="token-add-key-button"
+                  data-test="add-intermediate-ca-button"
                   @click="showAddIntermediateCaDialog = true"
                 >
                   <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
@@ -59,6 +60,12 @@
             </th>
           </tr>
         </thead>
+      </template>
+
+      <template #[`item.ca_certificate.subject_common_name`]="{ item }">
+        <div class="xrd-clickable" @click="toDetails(item)">
+          {{ item.ca_certificate.subject_common_name }}
+        </div>
       </template>
 
       <template #[`item.ca_certificate.not_before`]="{ item }">
@@ -96,7 +103,7 @@
     <!-- Add Intermediate CA dialog -->
     <AddIntermediateCaDialog
       v-if="showAddIntermediateCaDialog"
-      :ca-id="intermediateCasServiceStore.currentCa.id"
+      :ca-id="intermediateCasServiceStore.currentCs.id"
       @cancel="hideAddIntermediateCaDialog"
       @save="hideAddIntermediateCaDialog"
     ></AddIntermediateCaDialog>
@@ -134,11 +141,8 @@ export default Vue.extend({
   name: 'IntermediateCasList',
   components: { AddIntermediateCaDialog },
   props: {
-    ca: {
-      type: [
-        Object as () => ApprovedCertificationService,
-        Object as () => CertificateAuthority,
-      ],
+    cs: {
+      type: Object as () => ApprovedCertificationService,
       required: true,
     },
   },
@@ -188,10 +192,18 @@ export default Vue.extend({
     },
   },
   created() {
-    this.intermediateCasServiceStore.loadByCa(this.ca);
+    this.intermediateCasServiceStore.loadByCs(this.cs);
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    toDetails(intermediateCa: CertificateAuthority) {
+      this.$router.push({
+        name: RouteName.IntermediateCaDetails,
+        params: {
+          intermediateCaId: String(intermediateCa.id),
+        },
+      });
+    },
     hideAddIntermediateCaDialog() {
       this.showAddIntermediateCaDialog = false;
     },

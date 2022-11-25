@@ -26,6 +26,7 @@
 package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
+import com.nortal.test.asserts.ValidationHelper;
 import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
@@ -47,20 +48,25 @@ public abstract class BaseStepDefs {
     @Autowired
     protected ValidationService validationService;
 
-    protected Assertion equalsAssertion(Object expected, String actualValuePath, String message) {
-        return new Assertion.Builder()
-                .message(message)
-                .expression(actualValuePath)
-                .expectedValue(expected)
-                .build();
-    }
-
     protected Assertion equalsStatusCodeAssertion(HttpStatus expected) {
         return new Assertion.Builder()
                 .message("Verify status code")
                 .expression("statusCode")
                 .expectedValue(expected)
                 .build();
+    }
+
+    protected Assertion equalsStatusCodeAssertion(int actualValue, HttpStatus expectedValue) {
+        return new Assertion.Builder()
+                .message("Verify status code")
+                .expression("=")
+                .actualValue(actualValue)
+                .expectedValue(expectedValue.value())
+                .build();
+    }
+
+    protected ValidationHelper validate(Object context) {
+        return new ValidationHelper(validationService, context, "Validate response");
     }
 
     /**

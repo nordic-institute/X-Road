@@ -25,9 +25,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <main id="certification-service-ocsp-responders" class="mt-8">
+  <main id="intermediate-ca-ocsp-responders" class="mt-8">
     <OcspRespondersList
-      :ca="certificationServiceStore.currentCertificationService"
+      :ca="intermediateCasServiceStore.currentSelectedIntermediateCa"
     />
   </main>
 </template>
@@ -35,14 +35,17 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import {
+  useCertificationServiceStore,
+  useIntermediateCaStore,
+} from '@/store/modules/trust-services';
 import OcspRespondersList from '@/components/ocspResponders/OcspRespondersList.vue';
 
 export default Vue.extend({
-  name: 'CertificationServiceOcspResponders',
+  name: 'IntermediateCaOcspResponders',
   components: { OcspRespondersList },
   computed: {
-    ...mapStores(useCertificationServiceStore),
+    ...mapStores(useCertificationServiceStore, useIntermediateCaStore),
   },
 });
 </script>

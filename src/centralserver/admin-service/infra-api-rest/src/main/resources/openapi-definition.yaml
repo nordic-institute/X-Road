@@ -3085,9 +3085,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       responses:
         '204':
           description: timestamping service deletion was successful
@@ -3113,9 +3113,9 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       responses:
         '200':
           content:
@@ -4527,12 +4527,29 @@ components:
         id:
           description: unique identifier
           example: 123
-          format: text
+          format: int32
           readOnly: true
-          type: string
+          type: integer
+        timestamping_interval:
+          description: timestamping interval in seconds
+          example: 60
+          format: int32
+          type: integer
+        cost:
+          $ref: '#/components/schemas/TimestampingServiceCost'
       required:
         - id
+        - timestamping_interval
+        - cost
       type: object
+    TimestampingServiceCost:
+      description: timestamping service cost (free, paid, undefined)
+      enum:
+        - FREE
+        - PAID
+        - UNDEFINED
+      example: FREE
+      format: enum
     TimestampingServiceCertificate:
       description: timestamping service certificate
       properties:

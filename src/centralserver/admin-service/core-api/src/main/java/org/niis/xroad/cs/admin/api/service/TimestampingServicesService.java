@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,32 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+package org.niis.xroad.cs.admin.api.service;
 
-import java.time.Instant;
+import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class ApprovedTsa extends Auditable {
-    private int id;
-    private String name;
-    private String url;
-    private Integer timestampingInterval;
-    private ApprovedTsaCost cost;
-    private CertificateDetails certificate;
-    private Instant validFrom;
-    private Instant validTo;
+import java.util.Set;
 
-    public enum ApprovedTsaCost {
-        FREE,
-        PAID,
-        UNDEFINED,
-    }
+public interface TimestampingServicesService {
+
+    Set<ApprovedTsa> getTimestampingServices();
+
+    ApprovedTsa add(String url, byte[] certificate);
+
+    ApprovedTsa get(Integer id);
+
+    void delete(Integer id);
 
 }
-
-

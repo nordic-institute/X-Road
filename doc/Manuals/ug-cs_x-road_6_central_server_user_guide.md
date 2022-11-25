@@ -1277,45 +1277,57 @@ Prerequisites
 
 1. Shutdown X-Road processes.
 
-    `systemctl stop "xroad*"`
+```bash
+systemctl stop "xroad*"
+```
 
-2. Dump the local database centerui_production to be migrated. The credentials of the database user can be found in `/etc/xroad/db.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
+2. Dump the local database centerui_production to be migrated. The credentials of the database admin user can be found in `/etc/xroad.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
 
-    `pg_dump -F t -h 127.0.0.1 -p 5432 -U centerui -f centerui_production.dat centerui_production`
+```bash
+pg_dump -F t -h 127.0.0.1 -p 5432 -U centerui_admin -f centerui_production.dat centerui_production
+```
 
 3. Shut down and mask local postgresql so it won't start when xroad-proxy starts.
 
-    `systemctl stop postgresql`
-    `systemctl mask postgresql`
+```bash
+systemctl stop postgresql
+```
 
-4. Connect to the remote database server as the superuser postgres and create roles, databases and access permissions as follows. Note that the line `GRANT centerui_production to postgres` is AWS RDS specific and not necessary if the postgres user is a true super-user.
+```bash
+systemctl mask postgresql
+```
 
-Central Server version 6.23.x
+4. Connect to the remote database server as the superuser postgres and create roles, databases and access permissions as follows.
+
 ```bash
     psql -h <remote-db-url> -p <remote-db-port> -U postgres
     CREATE DATABASE centerui_production ENCODING 'UTF8';
-    CREATE ROLE centerui LOGIN PASSWORD '<centerui-password>';
-    GRANT centerui to postgres;
+    REVOKE ALL ON DATABASE centerui_production FROM PUBLIC;
+    CREATE ROLE centerui_admin LOGIN PASSWORD '<centerui_admin password>';
+    GRANT centerui_admin TO postgres;
+    GRANT CREATE,TEMPORARY,CONNECT ON DATABASE centerui_production TO centerui_admin;
     \c centerui_production
     CREATE EXTENSION hstore;
-```
-
-Additionally for Central Server version 6.24.x or greater
-```sql
-    CREATE SCHEMA centerui AUTHORIZATION centerui;
+    CREATE SCHEMA centerui AUTHORIZATION centerui_admin;
+    REVOKE ALL ON SCHEMA public FROM PUBLIC;
+    GRANT USAGE ON SCHEMA public TO centerui_admin;
+    CREATE ROLE centerui LOGIN PASSWORD '<centerui password>';
+    GRANT centerui TO postgres;
+    GRANT TEMPORARY,CONNECT ON DATABASE centerui_production TO centerui;
+    GRANT USAGE ON SCHEMA public TO centerui;
+    GRANT USAGE ON SCHEMA centerui TO centerui;
+    GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA centerui TO centerui;
+    GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA centerui TO centerui;
+    GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA centerui to centerui;
 ```
 
 5. Restore the database dumps on the remote database host.
 
-Version 6.23.x
+```bash
+pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n centerui -1 -d centerui_production centerui_production.dat
+```
 
-    `pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui -O -n public -1 -d centerui_production centerui_production.dat`
-
-Version 6.24.x or greater
-
-    `pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui -O -n centerui -1 -d centerui_production centerui_production.dat`
-
-6. Create properties file `/etc/xroad.properties` containing the superuser password.
+6. Create properties file `/etc/xroad.properties` if it does not exist.
 
 ```bash
     sudo touch /etc/xroad.properties
@@ -1323,25 +1335,29 @@ Version 6.24.x or greater
     sudo chmod 600 /etc/xroad.properties
 ```
 
-7. Edit `/etc/xroad.properties`.
+7. Make sure `/etc/xroad.properties` is containing the admin user & its password.
 
 ```properties
-    postgres.connection.password = '<master-password>'
+    centerui.database.admin_user = centerui_admin
+    centerui.database.admin_password = <centerui_admin password>
 ```
 
 8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
 
 ```properties
-    username = centerui
-    password = <centerui-password>
-    database = centerui_production
-    host = <remote-db-url>
-    port = <remote-db-port>
+    adapter=postgresql
+    encoding=utf8
+    username=centerui
+    password=<centerui password>
+    database=centerui_production
+    reconnect=true
+    host=<database host>
+    port=<database port>
+    schema=centerui
 ```
 
 9. Start again the X-Road services.
 
 ```bash
-    systemctl start xroad-jetty
-    systemctl start xroad-signer
+systemctl start "xroad*"
 ```
