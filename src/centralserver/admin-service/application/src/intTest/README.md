@@ -15,6 +15,7 @@
 * Scenario steps should be easily readable. Avoid hard-coding data in step definition, if possible expose it in
   scenario.
 * Mark scenarios which alter application state (ex: database) as @Modifying.
+* Scenarios cannot be tightly coupled. Scenario cannot depend on data which was added be another scenario.
 
 ### Scenario tagging
 

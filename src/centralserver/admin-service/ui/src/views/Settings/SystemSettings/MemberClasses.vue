@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div data-test="member-classes-list">
     <!-- Table -->
     <v-data-table
       :headers="headers"
