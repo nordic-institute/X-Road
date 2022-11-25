@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.validation.UrlValidator;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
+import org.niis.xroad.cs.admin.api.dto.TimestampServiceRequest;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ApprovedTsaMapper;
@@ -40,6 +41,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -78,6 +80,20 @@ public class TimestampingServicesServiceImpl implements TimestampingServicesServ
         final ApprovedTsaEntity savedTsa = approvedTsaRepository.save(entity);
         addAuditMessages(savedTsa);
         return approvedTsaMapper.toTarget(savedTsa);
+    }
+
+    @Override
+    public ApprovedTsa update(TimestampServiceRequest updateRequest) {
+        final ApprovedTsaEntity entity = getApprovedTsaEntity(updateRequest.getId());
+        Optional.ofNullable(updateRequest.getUrl()).ifPresent(url -> {
+            urlValidator.validateUrl(url);
+            entity.setUrl(url);
+        });
+        Optional.ofNullable(updateRequest.getCertificate()).ifPresent(entity::setCert);
+        final ApprovedTsaEntity savedEntity = approvedTsaRepository.save(entity);
+
+        addAuditMessages(savedEntity);
+        return approvedTsaMapper.toTarget(savedEntity);
     }
 
     @Override

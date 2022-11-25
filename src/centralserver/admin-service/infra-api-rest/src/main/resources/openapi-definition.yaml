@@ -3137,7 +3137,7 @@ paths:
       tags:
         - timestamping-services
     patch:
-      description: <h3>CS administrator edits the URL of a timestamping server.</h3>
+      description: <h3>CS administrator edits the URL or certificate of a timestamping server.</h3>
       operationId: updateTimestampingService
       parameters:
         - description: unique identifier of the timestamping service
@@ -3145,15 +3145,19 @@ paths:
           name: id
           required: true
           schema:
-            format: text
+            format: int32
             minLength: 1
-            type: string
+            type: integer
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TimestampingServiceUrl'
-        description: the new url of the timestamping service
+              allOf:
+                - $ref: '#/components/schemas/TimestampingServiceUrl'
+                - $ref: '#/components/schemas/CertificateFile'
+              required:
+                - url
+        description: updated URL or certificate of the timestamping service
         required: true
       responses:
         '200':

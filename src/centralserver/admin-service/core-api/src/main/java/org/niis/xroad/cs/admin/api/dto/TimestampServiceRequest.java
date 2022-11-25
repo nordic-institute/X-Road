@@ -25,23 +25,15 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.admin.api.dto;
 
-import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
-import org.niis.xroad.cs.admin.api.dto.TimestampServiceRequest;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
-import java.util.Set;
-
-public interface TimestampingServicesService {
-
-    Set<ApprovedTsa> getTimestampingServices();
-
-    ApprovedTsa add(String url, byte[] certificate);
-
-    ApprovedTsa get(Integer id);
-
-    ApprovedTsa update(TimestampServiceRequest updateRequest);
-
-    void delete(Integer id);
-
+@Data
+@Accessors(chain = true)
+public class TimestampServiceRequest {
+    private Integer id;
+    private String url;
+    private byte[] certificate;
 }
