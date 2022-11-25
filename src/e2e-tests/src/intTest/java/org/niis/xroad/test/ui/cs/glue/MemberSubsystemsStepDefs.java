@@ -61,9 +61,9 @@ public class MemberSubsystemsStepDefs extends BaseUiStepDefs {
         memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode, subsystemStatus).shouldBe(Condition.visible);
     }
 
-    @Step("Subsystem is deleted")
-    public void subsystemIsDeleted() {
-        memberSubsystemsPageObj.btnDelete().click();
+    @Step("Subsystem with code: {} and status: {} is deleted")
+    public void subsystemIsDeleted(String subsystemCode, String subsystemStatus) {
+        memberSubsystemsPageObj.btnDeleteSubsystem(subsystemCode, subsystemStatus).click();
 
         commonPageObjects.dialog.btnCancel().shouldBe(Condition.enabled);
         commonPageObjects.dialog.btnDelete().shouldBe(Condition.enabled).click();

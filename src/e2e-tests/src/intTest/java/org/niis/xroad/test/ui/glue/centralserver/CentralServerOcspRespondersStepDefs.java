@@ -124,8 +124,8 @@ public class CentralServerOcspRespondersStepDefs extends BaseUiStepDefs {
         $(BTN_DIALOG_CANCEL).should(Condition.enabled);
         $(BTN_DIALOG_SAVE).should(Condition.enabled);
 
-        $(INPUT_OCSP_RESPONDER_URL).sendKeys(CONTROL, "a");
-        $(INPUT_OCSP_RESPONDER_URL).sendKeys(DELETE);
+        clearInput($(INPUT_OCSP_RESPONDER_URL));
+
         $(BTN_DIALOG_SAVE).shouldNotBe(Condition.enabled);
 
         $(INPUT_OCSP_RESPONDER_URL).setValue(newUrl);
