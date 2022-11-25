@@ -84,7 +84,7 @@ public class TimestampingServicesServiceImpl implements TimestampingServicesServ
 
     @Override
     public ApprovedTsa update(TimestampServiceRequest updateRequest) {
-        final ApprovedTsaEntity entity = getApprovedTsaEntity(updateRequest.getId());
+        var entity = getApprovedTsaEntity(updateRequest.getId());
 
         urlValidator.validateUrl(updateRequest.getUrl());
         entity.setUrl(updateRequest.getUrl());
