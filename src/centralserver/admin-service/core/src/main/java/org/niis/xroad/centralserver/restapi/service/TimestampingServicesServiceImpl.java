@@ -85,13 +85,12 @@ public class TimestampingServicesServiceImpl implements TimestampingServicesServ
     @Override
     public ApprovedTsa update(TimestampServiceRequest updateRequest) {
         final ApprovedTsaEntity entity = getApprovedTsaEntity(updateRequest.getId());
-        Optional.ofNullable(updateRequest.getUrl()).ifPresent(url -> {
-            urlValidator.validateUrl(url);
-            entity.setUrl(url);
-        });
-        Optional.ofNullable(updateRequest.getCertificate()).ifPresent(entity::setCert);
-        final ApprovedTsaEntity savedEntity = approvedTsaRepository.save(entity);
 
+        urlValidator.validateUrl(updateRequest.getUrl());
+        entity.setUrl(updateRequest.getUrl());
+        Optional.ofNullable(updateRequest.getCertificate()).ifPresent(entity::setCert);
+
+        final ApprovedTsaEntity savedEntity = approvedTsaRepository.save(entity);
         addAuditMessages(savedEntity);
         return approvedTsaMapper.toTarget(savedEntity);
     }

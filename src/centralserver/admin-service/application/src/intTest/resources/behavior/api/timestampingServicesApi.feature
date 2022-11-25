@@ -25,3 +25,15 @@ Feature: Timestamping services API
   Scenario: Deleting not existing timestamping service
     When user tries to delete timestamping service with not existing id
     Then timestamping service is not found
+
+  @Modifying
+  Scenario: Modifying the timestamp service URL
+    Given timestamping service is added
+    And timestamping services list contains added timestamping service
+    Then timestamping service URL is updated
+
+  @Modifying
+  Scenario: Modifying the timestamp service URL and certificate
+    Given timestamping service is added
+    And timestamping services list contains added timestamping service
+    Then timestamping service URL and certificate are updated
