@@ -1,21 +1,21 @@
 /**
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,20 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.ui.glue.constants;
+package org.niis.xroad.test.ui.cs.page;
 
-import org.openqa.selenium.By;
+import com.codeborne.selenide.SelenideElement;
 
-import static org.openqa.selenium.By.xpath;
+import static com.codeborne.selenide.Selenide.$x;
 
-public final class Constants {
+@SuppressWarnings("InnerClassMayBeStatic")
+public class SystemSettingsParametersPage {
+    private final EditDialog editDialog = new EditDialog();
 
-    public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm";
+    public SelenideElement systemParametersCard() {
+        return $x("//div[@data-test='system-settings-system-parameters-card']");
+    }
 
-    public static final By BTN_DIALOG_SAVE = xpath("//button[@data-test=\"dialog-save-button\"]");
-    public static final By SNACKBAR_SUCCESS = xpath("//div[@data-test=\"success-snackbar\"]");
-    public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test=\"close-snackbar\"]");
+    public SelenideElement instanceIdentifierField() {
+        return $x("//*[@data-test='system-settings-instance-identifier-field']");
+    }
 
-    private Constants() {
+    public SelenideElement centralServerAddressField() {
+        return $x("//*[@data-test='system-settings-central-server-address-field']");
+    }
+
+    public SelenideElement btnEdit() {
+        return $x("//button[@data-test='system-settings-central-server-address-edit-button']");
+    }
+
+    public EditDialog editDialog() {
+        return editDialog;
+    }
+
+    public class EditDialog {
+        public SelenideElement inputCentralServerAddress() {
+            return $x("//input[@data-test='system-settings-central-server-address-edit-field']");
+        }
+
     }
 }

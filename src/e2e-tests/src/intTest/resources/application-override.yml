@@ -13,7 +13,7 @@ test-automation:
     execution:
       parallel:
         enabled: false # Parallel execution triggers HTTP 429 Too Many Requests
-    glue-append: "org.niis.xroad.test"
+    glue-append: "org.niis.xroad.test.ui"
     filter:
       tags: "not @Skip"
 

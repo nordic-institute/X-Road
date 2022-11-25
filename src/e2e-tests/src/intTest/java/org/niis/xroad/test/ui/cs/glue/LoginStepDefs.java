@@ -24,20 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.ui.glue.constants;
+package org.niis.xroad.test.ui.cs.glue;
 
-import org.openqa.selenium.By;
+import com.codeborne.selenide.Condition;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.test.ui.cs.page.LoginPage;
+import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 
-import static org.openqa.selenium.By.xpath;
+import java.time.Duration;
 
-public final class Constants {
+public class LoginStepDefs extends BaseUiStepDefs {
+    private final LoginPage loginPage = new LoginPage();
 
-    public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm";
+    @Step("Login form is visible")
+    public void loginFormVisible() {
+        loginPage.inputUsername().shouldBe(Condition.visible);
+        loginPage.inputPassword().shouldBe(Condition.visible);
+    }
 
-    public static final By BTN_DIALOG_SAVE = xpath("//button[@data-test=\"dialog-save-button\"]");
-    public static final By SNACKBAR_SUCCESS = xpath("//div[@data-test=\"success-snackbar\"]");
-    public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test=\"close-snackbar\"]");
+    @Given("User {} logs in to {} with password {}")
+    public void doLogin(final String username, final String target, final String password) {
 
-    private Constants() {
+        loginPage.inputUsername()
+                .shouldBe(Condition.visible)
+                .setValue(username);
+        loginPage.inputPassword()
+                .shouldBe(Condition.visible)
+                .setValue(password);
+
+        loginPage.btnLogin()
+                .shouldBe(Condition.visible)
+                .shouldBe(Condition.enabled)
+                .click();
+    }
+
+    @Given("Error message for incorrect credentials is shown")
+    public void errorMessageIsShown() {
+        loginPage.inputeErorMessageWithText("Wrong username or password")
+                .shouldBe(Condition.visible);
     }
 }

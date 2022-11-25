@@ -23,17 +23,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.ui.glue;
+package org.niis.xroad.test.ui.cs.glue;
 
-import com.codeborne.selenide.Selenide;
-import io.cucumber.java.en.Given;
+import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
+import io.cucumber.java.en.Then;
+import org.niis.xroad.test.ui.cs.page.MemberPageObj;
+import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 
-public class CentralServerCommonUiStepDefs extends BaseUiStepDefs {
+public class MemberStepDefs extends BaseUiStepDefs {
+    private final MemberPageObj memberPageObj = new MemberPageObj();
 
-    @Step("CentralServer login page is open")
-    public void openPage() {
-        Selenide.open(testProperties.getCentralServerUrl());
+    @Then("Member {} is selected")
+    public void memberIsSelected(String memberName) {
+      memberPageObj.listRowOf(memberName).click();
+    }
+
+    @Step("A new member with name: {}, code: {} & member class: {} is added")
+    public void memberIsAdded(String memberName, String memberCode, String memberClass) {
+        memberPageObj.btnAddMember().click();
+
+        memberPageObj.addDialog().inputMemberCode().setValue(memberCode);
+        memberPageObj.addDialog().inputMemberName().setValue(memberName);
+
+        memberPageObj.addDialog().selectMemberClass().click();
+        memberPageObj.addDialog().selectMemberClassOption(memberClass).click();
+
+        commonPageObjects.dialog.btnSave().shouldBe(Condition.enabled).click();
+
+        commonPageObjects.snackBar.success().shouldBe(Condition.visible);
+        commonPageObjects.snackBar.btnClose().click();
+    }
+
+    @Step("A member with name: {}, code: {} & member class: {} is listed")
+    public void newMemberIsListed(String memberName, String memberCode, String memberClass) {
+        memberPageObj.listRowOf(memberName, memberCode, memberClass).shouldBe(Condition.visible);
+
     }
 
 }

@@ -1,21 +1,21 @@
 /**
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,20 +24,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.ui.glue.constants;
+package org.niis.xroad.test.ui.cs.glue;
 
-import org.openqa.selenium.By;
+import com.codeborne.selenide.Condition;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.test.ui.cs.page.SettingsApiKeysPage;
+import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 
-import static org.openqa.selenium.By.xpath;
+public class NavigationStepDefs extends BaseUiStepDefs {
+    private final SettingsApiKeysPage settingsApiKeysPage = new SettingsApiKeysPage();
 
-public final class Constants {
+    @Step("Members tab is selected")
+    public void userNavigatesToMembersTab() {
+        commonPageObjects.menu.memberTab().click();
+    }
 
-    public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm";
+    @Step("TrustServices tab is selected")
+    public void trustServicesTabIsSelected() {
+        commonPageObjects.menu.trustServices().click();
+    }
 
-    public static final By BTN_DIALOG_SAVE = xpath("//button[@data-test=\"dialog-save-button\"]");
-    public static final By SNACKBAR_SUCCESS = xpath("//div[@data-test=\"success-snackbar\"]");
-    public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test=\"close-snackbar\"]");
+    @Step("CentralServer Settings tab is selected")
+    public void navigateSettingsTab() {
+        commonPageObjects.menu.settingsTab().click();
+    }
 
-    private Constants() {
+    @Step("System settings sub-tab is selected")
+    public void navigateSystemSettingsSubTa() {
+        commonPageObjects.subMenu.settingsTab().click();
+    }
+
+    @Step("Global Resources sub-tab is selected")
+    public void navigateGlobalResourcesSubTab() {
+        commonPageObjects.subMenu.globalResourcesTab().click();
+    }
+
+    @Step("API Keys sub-tab is selected")
+    public void navigateApiKeysSubTab() {
+        commonPageObjects.subMenu.apiKeysTab().click();
+
+        settingsApiKeysPage.apiKeysView().shouldBe(Condition.visible);
     }
 }
