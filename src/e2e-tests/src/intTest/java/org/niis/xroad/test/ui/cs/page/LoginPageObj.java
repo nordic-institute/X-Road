@@ -30,38 +30,23 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$x;
 
-public class SettingsGlobalResourcesPage {
-    public final GlobalGroupList globalGroupList = new GlobalGroupList();
-    public final GlobalGroupForm globalGroupForm = new GlobalGroupForm();
+public class LoginPageObj {
 
-    private final CommonPageObjects commonPageObjects = new CommonPageObjects();
-
-    public SelenideElement globalResourcesView() {
-        return $x("//div[@data-test='global-resources-view']");
-    }
-    public class GlobalGroupList {
-
-        public SelenideElement globalGroupRow(String code){
-            var xpath = "//div[@data-test='global-groups-table']//table/tbody/tr[.//td/div/div[starts-with(.,'%s')]]";
-            return $x(String.format(xpath,code));
-        }
-        public SelenideElement btnAddGlobalGroup() {
-            return $x("//button[@data-test='add-global-group-button']");
-        }
+    public SelenideElement inputUsername() {
+        return $x("//input[@data-test='login-username-input']");
     }
 
-    public class GlobalGroupForm {
+    public SelenideElement inputPassword() {
+        return $x("//input[@data-test='login-password-input']");
+    }
 
-        public SelenideElement inputGroupCode() {
-            return $x("//input[@data-test='add-global-group-code-input']");
-        }
+    public SelenideElement btnLogin() {
+        return $x("//button[@data-test='login-button']");
+    }
 
-        public SelenideElement inputGroupDescription() {
-            return $x("//input[@data-test='add-global-group-description-input']");
-        }
-
-        public SelenideElement btnConfirm() {
-            return commonPageObjects.dialog.btnSave();
-        }
+    public SelenideElement inputeErorMessageWithText(String partialText) {
+        var xpath = "//div[text()[contains(.,'%s')]]";
+        return $x(String.format(xpath, partialText));
     }
 }
+

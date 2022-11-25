@@ -30,23 +30,12 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$x;
 
-public class LoginPage {
-
-    public SelenideElement inputUsername() {
-        return $x("//input[@data-test='login-username-input']");
+public class CertificateViewPageObj {
+    public SelenideElement certificateDetails() {
+        return $x("//div[contains(@class, 'certificate-details-wrapper')]");
     }
 
-    public SelenideElement inputPassword() {
-        return $x("//input[@data-test='login-password-input']");
-    }
-
-    public SelenideElement btnLogin() {
-        return $x("//button[@data-test='login-button']");
-    }
-
-    public SelenideElement inputeErorMessageWithText(String partialText) {
-        var xpath = "//div[text()[contains(.,'%s')]]";
-        return $x(String.format(xpath, partialText));
+    public SelenideElement btnClose() {
+        return $x("//i[@data-test='close-x']");
     }
 }
-

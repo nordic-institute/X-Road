@@ -1,5 +1,6 @@
 @CentralServer
 @Member
+@This
 Feature: Central Server OCSP responders view
 
   Background:

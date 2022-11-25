@@ -31,8 +31,8 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$x;
 
 @SuppressWarnings("InnerClassMayBeStatic")
-public class SystemSettingsParametersPage {
-    private final EditDialog editDialog = new EditDialog();
+public class SystemSettingsParametersPageObj {
+    public final EditDialog editDialog = new EditDialog();
 
     public SelenideElement systemParametersCard() {
         return $x("//div[@data-test='system-settings-system-parameters-card']");
@@ -48,10 +48,6 @@ public class SystemSettingsParametersPage {
 
     public SelenideElement btnEdit() {
         return $x("//button[@data-test='system-settings-central-server-address-edit-button']");
-    }
-
-    public EditDialog editDialog() {
-        return editDialog;
     }
 
     public class EditDialog {

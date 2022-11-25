@@ -27,36 +27,36 @@ package org.niis.xroad.test.ui.cs.glue;
 
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.test.ui.cs.page.SystemSettingsParametersPage;
+import org.niis.xroad.test.ui.cs.page.SystemSettingsParametersPageObj;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 
-public class SystemSettingsParametersStepDefs extends BaseUiStepDefs {
-    private final SystemSettingsParametersPage systemSettingsParametersPage = new SystemSettingsParametersPage();
+public class SystemSettingsParametersStepDefsObj extends BaseUiStepDefs {
+    private final SystemSettingsParametersPageObj systemSettingsParametersPageObj = new SystemSettingsParametersPageObj();
 
     @Step("Central Server address {} entered in popup")
     public void setCentralServerAddress(String address) {
-        clearInput(systemSettingsParametersPage.editDialog().inputCentralServerAddress())
+        clearInput(systemSettingsParametersPageObj.editDialog.inputCentralServerAddress())
                 .setValue(address);
     }
 
     @Step("System Parameters card is visible")
     public void systemParametersIsVisible() {
-        systemSettingsParametersPage.systemParametersCard().shouldBe(Condition.visible);
+        systemSettingsParametersPageObj.systemParametersCard().shouldBe(Condition.visible);
     }
 
     @Step("Instance Identifier is {}")
     public void instanceIdentifierIs(String value) {
-        systemSettingsParametersPage.instanceIdentifierField().shouldBe(Condition.text(value));
+        systemSettingsParametersPageObj.instanceIdentifierField().shouldBe(Condition.text(value));
     }
 
     @Step("Central Server address is {}")
     public void centralServerAddressIs(String value) {
-        systemSettingsParametersPage.centralServerAddressField().shouldBe(Condition.text(value));
+        systemSettingsParametersPageObj.centralServerAddressField().shouldBe(Condition.text(value));
     }
 
     @Step("Central Server address edit dialog is opened")
     public void centralServerAddressEditDialogIsOpened() {
-        systemSettingsParametersPage.btnEdit().click();
-        systemSettingsParametersPage.editDialog().inputCentralServerAddress().shouldBe(Condition.visible);
+        systemSettingsParametersPageObj.btnEdit().click();
+        systemSettingsParametersPageObj.editDialog.inputCentralServerAddress().shouldBe(Condition.visible);
     }
 }

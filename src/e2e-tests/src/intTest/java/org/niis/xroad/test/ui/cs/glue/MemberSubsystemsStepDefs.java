@@ -46,14 +46,14 @@ public class MemberSubsystemsStepDefs extends BaseUiStepDefs {
     @Step("A new subsystem with code: {} is added")
     public void subsystemIsAdded(String subsystemCode) {
         memberSubsystemsPageObj.btnAddSubsystem().click();
-        commonPageObjects.dialog.btnSave().shouldNotBe(Condition.enabled);
-        commonPageObjects.dialog.btnCancel().shouldBe(Condition.enabled);
+        commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
+        commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
 
         memberSubsystemsPageObj.addDialog().subsystemCode().setValue(subsystemCode);
-        commonPageObjects.dialog.btnSave().shouldBe(Condition.enabled).click();
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
-        commonPageObjects.snackBar.success().shouldBe(Condition.visible);
-        commonPageObjects.snackBar.btnClose().click();
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("Subsystem with code: {} and status: {} is listed")
@@ -65,11 +65,11 @@ public class MemberSubsystemsStepDefs extends BaseUiStepDefs {
     public void subsystemIsDeleted(String subsystemCode, String subsystemStatus) {
         memberSubsystemsPageObj.btnDeleteSubsystem(subsystemCode, subsystemStatus).click();
 
-        commonPageObjects.dialog.btnCancel().shouldBe(Condition.enabled);
-        commonPageObjects.dialog.btnDelete().shouldBe(Condition.enabled).click();
+        commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
+        commonPageObj.dialog.btnDelete().shouldBe(Condition.enabled).click();
 
-        commonPageObjects.snackBar.success().shouldBe(Condition.visible);
-        commonPageObjects.snackBar.btnClose().click();
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("Subsystem with code: {} and status: {} not listed any more")

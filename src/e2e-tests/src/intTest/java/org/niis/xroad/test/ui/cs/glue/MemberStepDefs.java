@@ -36,7 +36,7 @@ public class MemberStepDefs extends BaseUiStepDefs {
 
     @Then("Member {} is selected")
     public void memberIsSelected(String memberName) {
-      memberPageObj.listRowOf(memberName).click();
+        memberPageObj.listRowOf(memberName).click();
     }
 
     @Step("A new member with name: {}, code: {} & member class: {} is added")
@@ -49,10 +49,10 @@ public class MemberStepDefs extends BaseUiStepDefs {
         memberPageObj.addDialog().selectMemberClass().click();
         memberPageObj.addDialog().selectMemberClassOption(memberClass).click();
 
-        commonPageObjects.dialog.btnSave().shouldBe(Condition.enabled).click();
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
-        commonPageObjects.snackBar.success().shouldBe(Condition.visible);
-        commonPageObjects.snackBar.btnClose().click();
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("A member with name: {}, code: {} & member class: {} is listed")

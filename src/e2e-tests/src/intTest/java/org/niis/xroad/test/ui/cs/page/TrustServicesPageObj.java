@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,16 +27,16 @@
 package org.niis.xroad.test.ui.cs.page;
 
 import com.codeborne.selenide.SelenideElement;
-import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$x;
+import static org.openqa.selenium.By.xpath;
 
 @SuppressWarnings("InnerClassMayBeStatic")
 public class TrustServicesPageObj {
     public final CertServiceDetails certServiceDetails = new CertServiceDetails();
     public final AddDialog addDialog = new AddDialog();
     public final AddCaSettingsDialog addCaSettingsDialog = new AddCaSettingsDialog();
-    public final CertificateView certificateView = new CertificateView();
+    public final CertificateViewPageObj certificateView = new CertificateViewPageObj();
 
     public SelenideElement btnAddCertificationService() {
         return $x("//button[@data-test='add-certification-service']");
@@ -48,41 +48,46 @@ public class TrustServicesPageObj {
 
     public SelenideElement tableServicesRowOf(String name) {
         var xpath = "./tbody/tr/td/div[contains(text(), '%s')]";
-        return tableServices().find(By.xpath(String.format(xpath, name)));
+        return tableServices().find(xpath(String.format(xpath, name)));
     }
 
     public SelenideElement tableServicesCol(int colIndex) {
         var xpath = "./thead/tr/th[%d]";
-        return tableServices().find(By.xpath(String.format(xpath, colIndex)));
+        return tableServices().find(xpath(String.format(xpath, colIndex)));
     }
 
 
     public SelenideElement cardSubjectDn() {
         return $x("//div[@data-test='subject-distinguished-name-card']/div[2]/div");
     }
+
     public SelenideElement cardIssuerDn() {
         return $x("//div[@data-test='issuer-distinguished-name-card']/div[2]/div");
     }
+
     public SelenideElement cardValidFrom() {
         return $x("//div[@data-test='valid-from-card']/div[2]/div");
     }
+
     public SelenideElement cardValidTo() {
         return $x("//div[@data-test='valid-to-card']/div[2]/div");
     }
 
 
-
-    public class CertificateView {
-        public SelenideElement certificateDetails() {
-            return $x("//div[contains(@class, 'certificate-details-wrapper')]");
-        }
-    }
-
     public class CertServiceDetails {
         public final CaSettings caSettings = new CaSettings();
+        public final IntermediateCasPageObj intermediaCas = new IntermediateCasPageObj();
 
         public SelenideElement tabSettings() {
             return $x("//div[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'CA Settings')]");
+        }
+
+        public SelenideElement tabIntermediateCas() {
+            return $x("//div[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'Intermediate CAs')]");
+        }
+
+        public SelenideElement tabOcspResponders() {
+            return $x("//div[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'OCSP Responders')]");
         }
 
         public SelenideElement btnViewCertificate() {
@@ -115,8 +120,8 @@ public class TrustServicesPageObj {
                 return $x("//div[@data-test='dialog-simple']//input[@data-test='cert-profile-input']");
             }
         }
-    }
 
+    }
 
     public class AddDialog {
         public SelenideElement inputFile() {

@@ -57,27 +57,27 @@ public class MemberDetailsStepDefs extends BaseUiStepDefs {
     @Then("The name of the member is able to changed")
     public void memberNameIsChanged() {
         memberDetailsPageObj.btnEdit().click();
-        commonPageObjects.dialog.btnCancel().shouldBe(Condition.enabled);
-        commonPageObjects.dialog.btnSave().shouldNotBe(Condition.enabled);
+        commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
+        commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
 
         memberDetailsPageObj.editNameDialog().inputMemberName().setValue(" Other");
-        commonPageObjects.dialog.btnSave().shouldBe(Condition.enabled).click();
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
-        commonPageObjects.snackBar.success().shouldBe(Condition.visible);
-        commonPageObjects.snackBar.btnClose().click();
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
     }
 
     @Then("Deleting the member requires the user to input the member code: {}")
     public void deleteMember(String memberCode) {
         memberDetailsPageObj.btnDelete().click();
-        commonPageObjects.dialog.btnCancel().shouldBe(Condition.enabled);
-        commonPageObjects.dialog.btnDelete().shouldNotBe(Condition.enabled);
+        commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
+        commonPageObj.dialog.btnDelete().shouldNotBe(Condition.enabled);
 
         memberDetailsPageObj.deleteDialog().inputMemberCode().setValue(memberCode);
-        commonPageObjects.dialog.btnDelete().shouldBe(Condition.enabled).click();
+        commonPageObj.dialog.btnDelete().shouldBe(Condition.enabled).click();
 
-        commonPageObjects.snackBar.success().shouldBe(Condition.visible);
-        commonPageObjects.snackBar.btnClose().click();
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
     }
 
 }

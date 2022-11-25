@@ -1,6 +1,5 @@
 @CentralServer
 @Member
-@This
 Feature: CS Member details view Subsystem tab
 
   Background:

@@ -27,33 +27,37 @@
 package org.niis.xroad.test.ui.cs.glue;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.test.ui.cs.page.LoginPage;
+import org.niis.xroad.test.ui.cs.page.LoginPageObj;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 
-import java.time.Duration;
-
 public class LoginStepDefs extends BaseUiStepDefs {
-    private final LoginPage loginPage = new LoginPage();
+    private final LoginPageObj loginPageObj = new LoginPageObj();
+
+    @Step("CentralServer login page is open")
+    public void openPage() {
+        Selenide.open(testProperties.getCentralServerUrl());
+    }
 
     @Step("Login form is visible")
     public void loginFormVisible() {
-        loginPage.inputUsername().shouldBe(Condition.visible);
-        loginPage.inputPassword().shouldBe(Condition.visible);
+        loginPageObj.inputUsername().shouldBe(Condition.visible);
+        loginPageObj.inputPassword().shouldBe(Condition.visible);
     }
 
     @Given("User {} logs in to {} with password {}")
     public void doLogin(final String username, final String target, final String password) {
 
-        loginPage.inputUsername()
+        loginPageObj.inputUsername()
                 .shouldBe(Condition.visible)
                 .setValue(username);
-        loginPage.inputPassword()
+        loginPageObj.inputPassword()
                 .shouldBe(Condition.visible)
                 .setValue(password);
 
-        loginPage.btnLogin()
+        loginPageObj.btnLogin()
                 .shouldBe(Condition.visible)
                 .shouldBe(Condition.enabled)
                 .click();
@@ -61,7 +65,7 @@ public class LoginStepDefs extends BaseUiStepDefs {
 
     @Given("Error message for incorrect credentials is shown")
     public void errorMessageIsShown() {
-        loginPage.inputeErorMessageWithText("Wrong username or password")
+        loginPageObj.inputeErorMessageWithText("Wrong username or password")
                 .shouldBe(Condition.visible);
     }
 }

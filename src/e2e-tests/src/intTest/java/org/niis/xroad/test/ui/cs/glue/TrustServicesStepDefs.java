@@ -66,12 +66,12 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         testCertificate = readCertificate(certificate);
 
         trustServicesPageObj.addDialog.inputFile().uploadFile(getAsFile(certificate));
-        commonPageObjects.dialog.btnSave().click();
+        commonPageObj.dialog.btnSave().click();
         trustServicesPageObj.addCaSettingsDialog.inputCertificateProfile().setValue(CERTIFICATE_PROFILE);
-        commonPageObjects.dialog.btnSave().click();
+        commonPageObj.dialog.btnSave().click();
 
-        commonPageObjects.snackBar.success().shouldBe(Condition.visible);
-        commonPageObjects.snackBar.btnClose().click();
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
     }
 
 
@@ -130,10 +130,10 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         clearInput(trustServicesPageObj.certServiceDetails.caSettings.inputCertProfile())
                 .setValue(NEW_CERTIFICATE_PROFILE);
 
-        commonPageObjects.dialog.btnSave().shouldBe(Condition.enabled).click();
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
-        commonPageObjects.snackBar.success().shouldBe(Condition.visible);
-        commonPageObjects.snackBar.btnClose().click();
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
 
         trustServicesPageObj.certServiceDetails.caSettings.cardCertProfile().shouldHave(text(NEW_CERTIFICATE_PROFILE));
     }
@@ -142,10 +142,10 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
     public void userCanChangeTheTLSAuthSetting() {
         trustServicesPageObj.certServiceDetails.caSettings.btnEditTlsAuth().click();
         trustServicesPageObj.certServiceDetails.caSettings.checkboxTlsAuth().click();
-        commonPageObjects.dialog.btnSave().shouldBe(Condition.enabled).click();
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
-        commonPageObjects.snackBar.success().shouldBe(Condition.visible);
-        commonPageObjects.snackBar.btnClose().click();
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
 
         trustServicesPageObj.certServiceDetails.caSettings.cardTlsAuth().shouldHave(text("True"));
     }

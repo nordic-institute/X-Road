@@ -33,11 +33,11 @@ public class CommonStepDefs extends BaseUiStepDefs {
 
     @Step("Dialog Save button is clicked")
     public void clickDialogSave() {
-        commonPageObjects.dialog.btnSave().click();
+        commonPageObj.dialog.btnSave().click();
     }
 
     @Step("Dialog Save button is of {selenideValidation} status")
     public void statusDialogSave(ParameterMappers.SelenideValidation selenideValidation) {
-        commonPageObjects.dialog.btnSave().shouldBe(selenideValidation.getSelenideCondition());
+        commonPageObj.dialog.btnSave().shouldBe(selenideValidation.getSelenideCondition());
     }
 }

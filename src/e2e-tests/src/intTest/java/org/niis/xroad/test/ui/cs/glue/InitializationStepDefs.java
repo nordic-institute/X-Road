@@ -28,100 +28,100 @@ package org.niis.xroad.test.ui.cs.glue;
 
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.test.ui.cs.page.InitializationPage;
+import org.niis.xroad.test.ui.cs.page.InitializationPageObj;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 
 public class InitializationStepDefs extends BaseUiStepDefs {
-    private final InitializationPage initializationPage = new InitializationPage();
+    private final InitializationPageObj initializationPageObj = new InitializationPageObj();
 
     @Step("Initial Configuration form is visible")
     public void initialConfigFormVisible() {
-        initializationPage.initializationView().shouldBe(Condition.visible);
-        initializationPage.initializationPhaseId().shouldBe(Condition.visible);
+        initializationPageObj.initializationView().shouldBe(Condition.visible);
+        initializationPageObj.initializationPhaseId().shouldBe(Condition.visible);
     }
 
     @Step("PIN input is visible, but not confirmed")
     public void pinInputIsPresentAndNotVerified() {
-        initializationPage.initializationView().shouldBe(Condition.visible);
-        initializationPage.initializationPhaseId().shouldBe(Condition.visible);
+        initializationPageObj.initializationView().shouldBe(Condition.visible);
+        initializationPageObj.initializationPhaseId().shouldBe(Condition.visible);
 
-        initializationPage.confirmPinOKIcon().shouldNotBe(Condition.visible);
+        initializationPageObj.confirmPinOKIcon().shouldNotBe(Condition.visible);
     }
 
     @Step("PIN {} is entered")
     public void pinIsEntered(String pin) {
-        initializationPage.pinInput().setValue(pin);
-        initializationPage.initializationPhaseId().shouldBe(Condition.visible);
+        initializationPageObj.pinInput().setValue(pin);
+        initializationPageObj.initializationPhaseId().shouldBe(Condition.visible);
 
-        initializationPage.confirmPinOKIcon().shouldNotBe(Condition.visible);
+        initializationPageObj.confirmPinOKIcon().shouldNotBe(Condition.visible);
     }
 
     @Step("PIN confirmation is required")
     public void pinConfirmationRequired() {
-        initializationPage.confirmPinInput().shouldBe(Condition.visible);
+        initializationPageObj.confirmPinInput().shouldBe(Condition.visible);
     }
 
     @Step("Confirmation PIN {} is entered")
     public void confirmationPinIsEntered(String pin) {
-        initializationPage.confirmPinInput().setValue(pin);
+        initializationPageObj.confirmPinInput().setValue(pin);
     }
 
     @Step("PIN should be marked as matching")
     public void pinConfirmed() {
-        initializationPage.confirmPinOKIcon().shouldBe(Condition.visible);
+        initializationPageObj.confirmPinOKIcon().shouldBe(Condition.visible);
     }
 
     @Step("PIN should be marked as mismatching")
     public void pinNotConfirmed() {
-        initializationPage.confirmPinOKIcon().shouldNotBe(Condition.visible);
+        initializationPageObj.confirmPinOKIcon().shouldNotBe(Condition.visible);
     }
 
     @Step("Submit button is disabled")
     public void submitDisabled() {
-        initializationPage.submitButton().shouldBe(Condition.disabled);
+        initializationPageObj.submitButton().shouldBe(Condition.disabled);
     }
 
     @Step("Submit button is enabled")
     public void submitEnabled() {
-        initializationPage.submitButton().shouldBe(Condition.enabled);
+        initializationPageObj.submitButton().shouldBe(Condition.enabled);
     }
 
     @Step("Submit button is clicked")
     public void doSubmit() {
-        initializationPage.submitButton().click();
+        initializationPageObj.submitButton().click();
     }
 
     @Step("Instance identifier {} is entered")
     public void setInstanceIdentifier(String value) {
-        initializationPage.instanceIdentifierInput().setValue(value);
+        initializationPageObj.instanceIdentifierInput().setValue(value);
     }
 
     @Step("Central Server Address {} is entered")
     public void setCentralServerAddress(String value) {
-        initializationPage.serverAddressInput().setValue(value);
+        initializationPageObj.serverAddressInput().setValue(value);
     }
 
     @Step("Submission failed with highlighted errors {}")
     public void validateForm(String value) {
         switch (value) {
             case "IDENTIFIER-ERROR":
-                initializationPage.instanceIdentifierValidation().shouldBe(Condition.visible);
+                initializationPageObj.instanceIdentifierValidation().shouldBe(Condition.visible);
                 break;
             case "ADDRESS-ERROR":
-                initializationPage.serverAddressValidation().shouldBe(Condition.visible);
+                initializationPageObj.serverAddressValidation().shouldBe(Condition.visible);
                 break;
             case "PIN-ERROR":
-                initializationPage.pinValidation().shouldBe(Condition.visible);
+                initializationPageObj.pinValidation().shouldBe(Condition.visible);
                 break;
             default:
                 throw new IllegalArgumentException("Cannot process undefined error type " + value);
         }
 
-        initializationPage.contextualAlertsNote().shouldBe(Condition.visible);
+        initializationPageObj.contextualAlertsNote().shouldBe(Condition.visible);
     }
 
     @Step("Central Server is successfully initialized")
     public void validateInitialized() {
-        initializationPage.initNotificationNote().shouldBe(Condition.visible);
+        initializationPageObj.initNotificationNote().shouldBe(Condition.visible);
     }
 }

@@ -28,14 +28,14 @@ package org.niis.xroad.test.ui.cs.glue;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.test.ui.cs.glue.ParameterMappers.SelenideValidation;
-import org.niis.xroad.test.ui.cs.page.SettingsGlobalResourcesPage;
+import org.niis.xroad.test.ui.cs.page.SettingsGlobalResourcesPageObj;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 
 import java.util.List;
 import java.util.Map;
 
 public class SettingsGlobalResourcesStepDefs extends BaseUiStepDefs {
-    private final SettingsGlobalResourcesPage globalResourcesPage = new SettingsGlobalResourcesPage();
+    private final SettingsGlobalResourcesPageObj globalResourcesPage = new SettingsGlobalResourcesPageObj();
 
     @Step("Global group list elements are validated")
     public void validateGlobalGroupList(DataTable table) {

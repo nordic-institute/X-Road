@@ -28,41 +28,41 @@ package org.niis.xroad.test.ui.cs.glue;
 
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.test.ui.cs.page.SettingsApiKeysPage;
+import org.niis.xroad.test.ui.cs.page.SettingsApiKeysPageObj;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 
 public class NavigationStepDefs extends BaseUiStepDefs {
-    private final SettingsApiKeysPage settingsApiKeysPage = new SettingsApiKeysPage();
+    private final SettingsApiKeysPageObj settingsApiKeysPageObj = new SettingsApiKeysPageObj();
 
     @Step("Members tab is selected")
     public void userNavigatesToMembersTab() {
-        commonPageObjects.menu.memberTab().click();
+        commonPageObj.menu.memberTab().click();
     }
 
     @Step("TrustServices tab is selected")
     public void trustServicesTabIsSelected() {
-        commonPageObjects.menu.trustServices().click();
+        commonPageObj.menu.trustServices().click();
     }
 
     @Step("CentralServer Settings tab is selected")
     public void navigateSettingsTab() {
-        commonPageObjects.menu.settingsTab().click();
+        commonPageObj.menu.settingsTab().click();
     }
 
     @Step("System settings sub-tab is selected")
     public void navigateSystemSettingsSubTa() {
-        commonPageObjects.subMenu.settingsTab().click();
+        commonPageObj.subMenu.settingsTab().click();
     }
 
     @Step("Global Resources sub-tab is selected")
     public void navigateGlobalResourcesSubTab() {
-        commonPageObjects.subMenu.globalResourcesTab().click();
+        commonPageObj.subMenu.globalResourcesTab().click();
     }
 
     @Step("API Keys sub-tab is selected")
     public void navigateApiKeysSubTab() {
-        commonPageObjects.subMenu.apiKeysTab().click();
+        commonPageObj.subMenu.apiKeysTab().click();
 
-        settingsApiKeysPage.apiKeysView().shouldBe(Condition.visible);
+        settingsApiKeysPageObj.apiKeysView().shouldBe(Condition.visible);
     }
 }

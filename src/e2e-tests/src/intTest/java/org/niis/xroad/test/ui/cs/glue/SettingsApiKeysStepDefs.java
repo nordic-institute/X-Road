@@ -29,14 +29,14 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.test.ui.cs.glue.ParameterMappers.SelenideValidation;
-import org.niis.xroad.test.ui.cs.page.SettingsApiKeysPage;
+import org.niis.xroad.test.ui.cs.page.SettingsApiKeysPageObj;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
 
 import java.util.List;
 import java.util.Map;
 
 public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
-    private final SettingsApiKeysPage apiKeysPage = new SettingsApiKeysPage();
+    private final SettingsApiKeysPageObj apiKeysPage = new SettingsApiKeysPageObj();
 
     private String createdApiKeyId;
 
@@ -92,7 +92,7 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
 
     @Step("Create API key wizard Cancel button is clicked")
     public void clickWizardCancel() {
-        commonPageObjects.dialog.btnCancel().click();
+        commonPageObj.dialog.btnCancel().click();
     }
 
     @Step("Create API key wizard Create Key button is clicked")
@@ -107,7 +107,7 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
 
     @Step("API key is created and visible")
     public void apiKeyIsPresent() {
-        commonPageObjects.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
         createdApiKeyId = apiKeysPage.wizard.createdApiKeyId()
                 .shouldBe(Condition.visible)
                 .text();
@@ -139,7 +139,7 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
     @Step("Newly created API key is revoked")
     public void apiKeyRevoked() {
         apiKeysPage.btnRevokeApiKey(createdApiKeyId).shouldBe(Condition.visible).click();
-        commonPageObjects.dialog.btnSave().click();
+        commonPageObj.dialog.btnSave().click();
     }
 
     @Step("Newly created API key is edit dialog is opened")

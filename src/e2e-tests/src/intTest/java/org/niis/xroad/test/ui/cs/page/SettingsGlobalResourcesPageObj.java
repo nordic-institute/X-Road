@@ -29,43 +29,42 @@ package org.niis.xroad.test.ui.cs.page;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$x;
-import static org.openqa.selenium.By.xpath;
 
 @SuppressWarnings("InnerClassMayBeStatic")
-public class MemberSubsystemsPageObj {
-    private final AddDialog addDialog = new AddDialog();
+public class SettingsGlobalResourcesPageObj {
+    public final GlobalGroupList globalGroupList = new GlobalGroupList();
+    public final GlobalGroupForm globalGroupForm = new GlobalGroupForm();
 
-    public SelenideElement tabSubsystems() {
-        return $x("//a[contains(text(), 'Subsystems') and contains(@class, 'v-tab')]");
+    private final CommonPageObj commonPageObj = new CommonPageObj();
+
+    public SelenideElement globalResourcesView() {
+        return $x("//div[@data-test='global-resources-view']");
     }
 
-    public SelenideElement listSubsystems() {
-        return $x("//div[@data-test='subsystems-table']");
+    public class GlobalGroupList {
+
+        public SelenideElement globalGroupRow(String code) {
+            var xpath = "//div[@data-test='global-groups-table']//table/tbody/tr[.//td/div/div[starts-with(.,'%s')]]";
+            return $x(String.format(xpath, code));
+        }
+
+        public SelenideElement btnAddGlobalGroup() {
+            return $x("//button[@data-test='add-global-group-button']");
+        }
     }
 
-    public SelenideElement listSubsystemsRowOf(String code, String status) {
+    public class GlobalGroupForm {
 
-        var xpath = ".//div//table//tbody//tr[td[contains(text(), '%s')] and td[contains(text(), '%s')]]";
+        public SelenideElement inputGroupCode() {
+            return $x("//input[@data-test='add-global-group-code-input']");
+        }
 
-        return listSubsystems().find(xpath(String.format(xpath, code, status)));
-    }
+        public SelenideElement inputGroupDescription() {
+            return $x("//input[@data-test='add-global-group-description-input']");
+        }
 
-    public SelenideElement btnDeleteSubsystem(String code, String status) {
-        return listSubsystemsRowOf(code, status)
-                .find(xpath(".//button[@data-test='delete-subsystem']"));
-    }
-
-    public SelenideElement btnAddSubsystem() {
-        return $x("//button[@data-test='add-subsystem']");
-    }
-
-    public AddDialog addDialog() {
-        return addDialog;
-    }
-
-    public class AddDialog {
-        public SelenideElement subsystemCode() {
-            return $x("//input[@data-test='add-subsystem-input']");
+        public SelenideElement btnConfirm() {
+            return commonPageObj.dialog.btnSave();
         }
     }
 }

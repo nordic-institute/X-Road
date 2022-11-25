@@ -8,7 +8,7 @@ Feature: CS: Settings -> Global Resources
     And User xrd logs in to CentralServer with password secret
     And CentralServer Settings tab is selected
     And Global Resources sub-tab is selected
-@This
+
   Scenario: Global group is added and listed
     Given Global group security-server-owners is present in list
     When Add Global Group button is clicked

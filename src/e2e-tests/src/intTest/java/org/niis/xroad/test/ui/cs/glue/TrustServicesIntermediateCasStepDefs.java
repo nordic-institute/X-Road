@@ -25,55 +25,45 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.test.ui.glue.centralserver;
+package org.niis.xroad.test.ui.cs.glue;
 
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.test.ui.cs.page.IntermediateCasPageObj;
+import org.niis.xroad.test.ui.cs.page.TrustServicesPageObj;
 import org.niis.xroad.test.ui.glue.BaseUiStepDefs;
-import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.$;
-import static java.lang.String.format;
-import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_CLOSE_SNACKBAR;
-import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_DIALOG_CANCEL;
-import static org.niis.xroad.test.ui.glue.constants.Constants.BTN_DIALOG_SAVE;
-import static org.niis.xroad.test.ui.glue.constants.Constants.INPUT_FILE_UPLOAD;
-import static org.niis.xroad.test.ui.glue.constants.Constants.SNACKBAR_SUCCESS;
 import static org.niis.xroad.test.ui.utils.CertificateUtils.generateAuthCert;
 import static org.niis.xroad.test.ui.utils.CertificateUtils.getAsFile;
-import static org.openqa.selenium.By.xpath;
 
-public class CentralServerIntermediateCasStepDefs extends BaseUiStepDefs {
-
-    private static final By TAB_INTERMEDIATE_CAS =
-            xpath("//a[contains(text(), \"Intermediate CAs\") and contains(@class, \"v-tab\")]");
-    private static final By BTN_ADD_INTERMEDIATE_CA = xpath("//button[@data-test=\"add-intermediate-ca-button\"]");
-    private static final String TABLE_INTERMEDIATE_CAS = "//div[@data-test=\"intermediate-cas-table\"]//table";
-    private static final String TABLE_ROW_INTERMEDIATE_CAS = TABLE_INTERMEDIATE_CAS + "/tbody/tr/td/div[contains(text(), \"%s\")]";
+public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
+    private final TrustServicesPageObj trustServicesPageObj = new TrustServicesPageObj();
+    private final IntermediateCasPageObj intermediateCasPageObj = new IntermediateCasPageObj();
 
     @Step("Intermediate CAs tab is selected")
     public void intermediateCasTabIsSelected() {
-        $(TAB_INTERMEDIATE_CAS).click();
+        trustServicesPageObj.certServiceDetails.tabIntermediateCas().click();
     }
 
     @Step("Intermediate CA with name {} is added")
     public void newIntermediateCaIsAdded(String name) throws Exception {
-        $(BTN_ADD_INTERMEDIATE_CA).click();
-        $(BTN_DIALOG_CANCEL).should(Condition.enabled);
-        $(BTN_DIALOG_SAVE).shouldNotBe(Condition.enabled);
+        intermediateCasPageObj.btnAdd().click();
+        commonPageObj.dialog.btnCancel().should(Condition.enabled);
+        commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
 
         final byte[] certificate = generateAuthCert(name);
 
-        $(INPUT_FILE_UPLOAD).uploadFile(getAsFile(certificate));
-        $(BTN_DIALOG_SAVE).click();
+        intermediateCasPageObj.inputAddCertFile().uploadFile(getAsFile(certificate));
+        commonPageObj.dialog.btnSave().click();
 
-        $(SNACKBAR_SUCCESS).shouldBe(visible);
-        $(BTN_CLOSE_SNACKBAR).click();
+
+        commonPageObj.snackBar.success().shouldBe(visible);
+        commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("User opens intermediate CA with name {} details")
     public void userOpensIntermediateCaDetails(String name) {
-        $(xpath(format(TABLE_ROW_INTERMEDIATE_CAS, name))).click();
+        intermediateCasPageObj.tableRowOf(name).click();
     }
 }
