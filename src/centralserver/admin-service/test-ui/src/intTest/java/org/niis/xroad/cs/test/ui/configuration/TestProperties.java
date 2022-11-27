@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.configuration;
+package org.niis.xroad.cs.test.ui.configuration;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "test-automation.custom")
 public class TestProperties {
     /**
-     * Security server admin UI url.
+     * Central server admin UI url.
      */
-    private String securityServerUrl;
+    private String centralServerUrl;
 }

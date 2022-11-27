@@ -40,6 +40,7 @@ include 'centralserver:admin-service:infra-api-rest'
 include 'centralserver:admin-service:application'
 include 'centralserver:admin-service:ui'
 include 'centralserver:admin-service:infra-jpa'
+include 'centralserver:admin-service:test-ui'
 
 include "centralserver:management-service"
 include "centralserver:registration-service"

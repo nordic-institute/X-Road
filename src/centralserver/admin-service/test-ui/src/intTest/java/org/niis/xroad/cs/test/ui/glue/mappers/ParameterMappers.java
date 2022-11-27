@@ -1,5 +1,6 @@
-/*
+/**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,20 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.configuration;
+package org.niis.xroad.cs.test.ui.glue.mappers;
 
+import com.codeborne.selenide.Condition;
+import io.cucumber.java.ParameterType;
 import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
-@Getter
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = "test-automation.custom")
-public class TestProperties {
+public class ParameterMappers {
+
+    public enum SelenideValidation {
+        PRESENT(Condition.visible),
+        MISSING(Condition.not(Condition.visible)),
+        ENABLED(Condition.enabled),
+        DISABLED(Condition.disabled);
+
+        @Getter
+        private final Condition selenideCondition;
+
+        SelenideValidation(Condition selenideCondition) {
+            this.selenideCondition = selenideCondition;
+        }
+
+        public static SelenideValidation fromString(String value) {
+            return valueOf(value.trim().toUpperCase());
+        }
+    }
+
     /**
-     * Security server admin UI url.
+     * Note: Annotation provides autocomplete functionality and validation.
+     *
+     * @param name string to convert
      */
-    private String securityServerUrl;
+    @ParameterType("present|missing|enabled|disabled")
+    public SelenideValidation selenideValidation(String name) {
+        return SelenideValidation.valueOf(name.toUpperCase());
+    }
 }

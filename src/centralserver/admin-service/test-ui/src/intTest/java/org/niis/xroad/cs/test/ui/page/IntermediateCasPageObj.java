@@ -1,5 +1,6 @@
-/*
+/**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,20 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.configuration;
+package org.niis.xroad.cs.test.ui.page;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import com.codeborne.selenide.SelenideElement;
 
-@Getter
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = "test-automation.custom")
-public class TestProperties {
-    /**
-     * Security server admin UI url.
-     */
-    private String securityServerUrl;
+import static com.codeborne.selenide.Selenide.$x;
+import static org.openqa.selenium.By.xpath;
+
+public class IntermediateCasPageObj {
+    public SelenideElement btnAdd() {
+        return $x("//button[@data-test='add-intermediate-ca-button']");
+    }
+
+    public SelenideElement inputAddCertFile() {
+        return $x("//input[@type='file']");
+    }
+
+    public SelenideElement table() {
+        return $x("//div[@data-test='intermediate-cas-table']//table");
+    }
+
+    public SelenideElement tableRowOf(String name) {
+        var xpath = "/tbody/tr/td/div[contains(text(), '%s')]";
+        return table().find(xpath(String.format(xpath, name)));
+    }
 }

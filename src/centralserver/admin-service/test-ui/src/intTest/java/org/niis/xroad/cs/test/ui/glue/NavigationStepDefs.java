@@ -1,5 +1,6 @@
-/*
+/**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,20 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.configuration;
+package org.niis.xroad.cs.test.ui.glue;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import com.codeborne.selenide.Condition;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.test.ui.page.SettingsApiKeysPageObj;
 
-@Getter
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = "test-automation.custom")
-public class TestProperties {
-    /**
-     * Security server admin UI url.
-     */
-    private String securityServerUrl;
+public class NavigationStepDefs extends BaseUiStepDefs {
+    private final SettingsApiKeysPageObj settingsApiKeysPageObj = new SettingsApiKeysPageObj();
+
+    @Step("Members tab is selected")
+    public void userNavigatesToMembersTab() {
+        commonPageObj.menu.memberTab().click();
+    }
+
+    @Step("TrustServices tab is selected")
+    public void trustServicesTabIsSelected() {
+        commonPageObj.menu.trustServices().click();
+    }
+
+    @Step("CentralServer Settings tab is selected")
+    public void navigateSettingsTab() {
+        commonPageObj.menu.settingsTab().click();
+    }
+
+    @Step("System settings sub-tab is selected")
+    public void navigateSystemSettingsSubTa() {
+        commonPageObj.subMenu.settingsTab().click();
+    }
+
+    @Step("Global Resources sub-tab is selected")
+    public void navigateGlobalResourcesSubTab() {
+        commonPageObj.subMenu.globalResourcesTab().click();
+    }
+
+    @Step("API Keys sub-tab is selected")
+    public void navigateApiKeysSubTab() {
+        commonPageObj.subMenu.apiKeysTab().click();
+
+        settingsApiKeysPageObj.apiKeysView().shouldBe(Condition.visible);
+    }
 }

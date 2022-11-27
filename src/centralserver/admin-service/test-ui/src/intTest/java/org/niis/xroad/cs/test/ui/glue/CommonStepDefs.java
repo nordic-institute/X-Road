@@ -1,5 +1,6 @@
-/*
+/**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,20 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.configuration;
+package org.niis.xroad.cs.test.ui.glue;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.test.ui.glue.mappers.ParameterMappers;
 
-@Getter
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = "test-automation.custom")
-public class TestProperties {
-    /**
-     * Security server admin UI url.
-     */
-    private String securityServerUrl;
+public class CommonStepDefs extends BaseUiStepDefs {
+
+    @Step("Dialog Save button is clicked")
+    public void clickDialogSave() {
+        commonPageObj.dialog.btnSave().click();
+    }
+
+    @Step("Dialog Save button is of {selenideValidation} status")
+    public void statusDialogSave(ParameterMappers.SelenideValidation selenideValidation) {
+        commonPageObj.dialog.btnSave().shouldBe(selenideValidation.getSelenideCondition());
+    }
 }

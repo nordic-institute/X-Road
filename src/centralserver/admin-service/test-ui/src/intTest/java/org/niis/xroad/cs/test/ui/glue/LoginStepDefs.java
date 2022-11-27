@@ -24,19 +24,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.ui.glue.constants;
+package org.niis.xroad.cs.test.ui.glue;
 
-import org.openqa.selenium.By;
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.test.ui.page.LoginPageObj;
 
-import static org.openqa.selenium.By.xpath;
+public class LoginStepDefs extends BaseUiStepDefs {
+    private final LoginPageObj loginPageObj = new LoginPageObj();
 
-public final class Constants {
+    @Step("CentralServer login page is open")
+    public void openPage() {
+        Selenide.open(testProperties.getCentralServerUrl());
+    }
 
-    public static final By BTN_DIALOG_SAVE = xpath("//button[@data-test='dialog-save-button']");
+    @Step("Login form is visible")
+    public void loginFormVisible() {
+        loginPageObj.inputUsername().shouldBe(Condition.visible);
+        loginPageObj.inputPassword().shouldBe(Condition.visible);
+    }
 
-    public static final By SNACKBAR_SUCCESS = xpath("//div[@data-test='success-snackbar']");
-    public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test='close-snackbar']");
+    @Given("User {} logs in to {} with password {}")
+    public void doLogin(final String username, final String target, final String password) {
 
-    private Constants() {
+        loginPageObj.inputUsername()
+                .shouldBe(Condition.visible)
+                .setValue(username);
+        loginPageObj.inputPassword()
+                .shouldBe(Condition.visible)
+                .setValue(password);
+
+        loginPageObj.btnLogin()
+                .shouldBe(Condition.visible)
+                .shouldBe(Condition.enabled)
+                .click();
+    }
+
+    @Given("Error message for incorrect credentials is shown")
+    public void errorMessageIsShown() {
+        loginPageObj.inputeErorMessageWithText("Wrong username or password")
+                .shouldBe(Condition.visible);
     }
 }

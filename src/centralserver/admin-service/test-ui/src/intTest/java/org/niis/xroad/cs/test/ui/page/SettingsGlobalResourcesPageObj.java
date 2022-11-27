@@ -24,19 +24,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.ui.glue.constants;
+package org.niis.xroad.cs.test.ui.page;
 
-import org.openqa.selenium.By;
+import com.codeborne.selenide.SelenideElement;
 
-import static org.openqa.selenium.By.xpath;
+import static com.codeborne.selenide.Selenide.$x;
 
-public final class Constants {
+@SuppressWarnings("InnerClassMayBeStatic")
+public class SettingsGlobalResourcesPageObj {
+    public final GlobalGroupList globalGroupList = new GlobalGroupList();
+    public final GlobalGroupForm globalGroupForm = new GlobalGroupForm();
 
-    public static final By BTN_DIALOG_SAVE = xpath("//button[@data-test='dialog-save-button']");
+    private final CommonPageObj commonPageObj = new CommonPageObj();
 
-    public static final By SNACKBAR_SUCCESS = xpath("//div[@data-test='success-snackbar']");
-    public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test='close-snackbar']");
+    public SelenideElement globalResourcesView() {
+        return $x("//div[@data-test='global-resources-view']");
+    }
 
-    private Constants() {
+    public class GlobalGroupList {
+
+        public SelenideElement globalGroupRow(String code) {
+            var xpath = "//div[@data-test='global-groups-table']//table/tbody/tr[.//td/div/div[starts-with(.,'%s')]]";
+            return $x(String.format(xpath, code));
+        }
+
+        public SelenideElement btnAddGlobalGroup() {
+            return $x("//button[@data-test='add-global-group-button']");
+        }
+    }
+
+    public class GlobalGroupForm {
+
+        public SelenideElement inputGroupCode() {
+            return $x("//input[@data-test='add-global-group-code-input']");
+        }
+
+        public SelenideElement inputGroupDescription() {
+            return $x("//input[@data-test='add-global-group-description-input']");
+        }
+
+        public SelenideElement btnConfirm() {
+            return commonPageObj.dialog.btnSave();
+        }
     }
 }

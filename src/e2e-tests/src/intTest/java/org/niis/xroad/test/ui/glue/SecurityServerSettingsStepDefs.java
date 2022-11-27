@@ -23,20 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.configuration;
+package org.niis.xroad.test.ui.glue;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import com.codeborne.selenide.Condition;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import org.openqa.selenium.By;
 
-@Getter
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = "test-automation.custom")
-public class TestProperties {
-    /**
-     * Security server admin UI url.
-     */
-    private String securityServerUrl;
+import static com.codeborne.selenide.Selenide.$;
+import static org.openqa.selenium.By.xpath;
+
+public class SecurityServerSettingsStepDefs extends BaseUiStepDefs {
+    private static final By TAB_SYSTEM_PARAMETERS = xpath("//a[@data-test=\"system-parameters-tab-button\"]");
+    private static final By BTN_ANCHOR_DOWNLOAD =
+            xpath("//*[@data-test=\"system-parameters-configuration-anchor-download-button\"]");
+
+    @Given("SecurityServer Settings tab is selected")
+    public void userNavigatesToSettings() {
+        $(By.xpath("//a[@data-test='settings']")).click();
+    }
+
+    @Given("System parameters tab is selected")
+    public void selectSystemParametersTab() {
+        $(TAB_SYSTEM_PARAMETERS).click();
+    }
+
+    @Then("Anchor download button is visible")
+    public void anchorDownloadButtonIsVisible() {
+        $(BTN_ANCHOR_DOWNLOAD).shouldBe(Condition.visible);
+    }
 }
