@@ -37,11 +37,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.validation.UrlValidator;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
+import org.niis.xroad.cs.admin.api.dto.TimestampServiceRequest;
 import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ApprovedTsaMapper;
 import org.niis.xroad.cs.admin.core.repository.ApprovedTsaRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 import java.util.Set;
@@ -115,6 +117,42 @@ class TimestampingServicesServiceImplTest {
         verify(auditDataHelper).put(TSA_URL, URL);
         verify(auditDataHelper).put(TSA_CERT_HASH, "05:A1:0E:EB:DB:0C:D9:67:9E:4C:85:A7:88:48:14:5E:F1:F0:0B:EA");
         verify(auditDataHelper).put(TSA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+    }
+
+    @Test
+    void update() throws Exception {
+        var request = new TimestampServiceRequest();
+        request.setId(ID);
+        request.setUrl(URL + "2");
+        request.setCertificate(CERTIFICATE.getEncoded());
+        when(approvedTsaRepository.findById(ID)).thenReturn(Optional.of(approvedTsaEntity));
+        when(approvedTsaRepository.save(approvedTsaEntity)).thenReturn(approvedTsaEntity);
+        when(approvedTsaEntity.getId()).thenReturn(ID);
+        when(approvedTsaEntity.getName()).thenReturn(NAME);
+        when(approvedTsaEntity.getUrl()).thenReturn(request.getUrl());
+        when(approvedTsaEntity.getCert()).thenReturn(CERTIFICATE.getEncoded());
+
+        timestampingServicesService.update(request);
+
+        verify(urlValidator).validateUrl(request.getUrl());
+
+        verify(auditDataHelper).put(TSA_ID, ID);
+        verify(auditDataHelper).put(TSA_NAME, NAME);
+        verify(auditDataHelper).put(TSA_URL, request.getUrl());
+        verify(auditDataHelper).put(TSA_CERT_HASH, "05:A1:0E:EB:DB:0C:D9:67:9E:4C:85:A7:88:48:14:5E:F1:F0:0B:EA");
+        verify(auditDataHelper).put(TSA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+    }
+
+    @Test
+    void updateShouldThrowNotFoundException() throws CertificateEncodingException {
+        var request = new TimestampServiceRequest();
+        request.setId(ID);
+        request.setUrl(URL + "2");
+        request.setCertificate(CERTIFICATE.getEncoded());
+        when(approvedTsaRepository.findById(ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> timestampingServicesService.update(request)).isInstanceOf(NotFoundException.class);
+        verifyNoMoreInteractions(approvedTsaRepository, auditDataHelper);
     }
 
     @Test
