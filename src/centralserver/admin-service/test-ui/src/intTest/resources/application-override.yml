@@ -8,7 +8,7 @@ logging:
 test-automation:
   report-name: xroad-cs-ui-test-suite
   environment: disposable
-  spring-component-scan: "org.niis.xroad.test"
+  spring-component-scan: "org.niis.xroad.cs.test"
   cucumber:
     execution:
       parallel:

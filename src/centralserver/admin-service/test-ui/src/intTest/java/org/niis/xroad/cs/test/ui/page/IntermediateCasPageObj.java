@@ -45,7 +45,7 @@ public class IntermediateCasPageObj {
     }
 
     public SelenideElement tableRowOf(String name) {
-        var xpath = "/tbody/tr/td/div[contains(text(), '%s')]";
+        var xpath = "./tbody/tr/td/div[contains(text(), '%s')]";
         return table().find(xpath(String.format(xpath, name)));
     }
 }
