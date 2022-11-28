@@ -80,6 +80,7 @@ public enum RestApiAuditEvent {
     UPLOAD_ANCHOR("Upload configuration anchor"),
     ADD_TSP("Add timestamping service"),
     DELETE_TSP("Delete timestamping service"),
+    EDIT_TIMESTAMP_SERVICE("Edit timestamping service"),
     GENERATE_INTERNAL_TLS_KEY_CERT("Generate new internal TLS key and certificate"),
     UPDATE_CENTRAL_SERVER_ADDRESS("Update Central Server address"),
 

@@ -28,11 +28,10 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.TimestampingServicesApi;
 import org.niis.xroad.centralserver.openapi.model.TimestampingServiceDto;
-import org.niis.xroad.centralserver.openapi.model.TimestampingServiceUrlDto;
 import org.niis.xroad.centralserver.restapi.mapper.TimestampingServiceMapper;
+import org.niis.xroad.cs.admin.api.dto.TimestampServiceRequest;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -49,6 +48,7 @@ import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_TSP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_TSP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_TIMESTAMP_SERVICE;
 import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
@@ -94,8 +94,15 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     }
 
     @Override
-    public ResponseEntity<TimestampingServiceDto> updateTimestampingService(String id,
-                                                                            TimestampingServiceUrlDto timestampingServiceUrlDto) {
-        throw new NotImplementedException("updateTimestampingService not implemented yet.");
+    @AuditEventMethod(event = EDIT_TIMESTAMP_SERVICE)
+    @PreAuthorize("hasAuthority('EDIT_APPROVED_TSA')")
+    public ResponseEntity<TimestampingServiceDto> updateTimestampingService(Integer id, String url, MultipartFile certificate) {
+        final TimestampServiceRequest updateRequest = new TimestampServiceRequest()
+                .setId(id)
+                .setUrl(url);
+        if (certificate != null) {
+            updateRequest.setCertificate(MultipartFileUtils.readBytes(certificate));
+        }
+        return ok(timestampingServiceMapper.toTarget(timestampingServicesService.update(updateRequest)));
     }
 }

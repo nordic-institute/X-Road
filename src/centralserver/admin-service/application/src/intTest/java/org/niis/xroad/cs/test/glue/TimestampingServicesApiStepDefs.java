@@ -151,4 +151,35 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
                         "Timestamping services list contains the added service"))
                 .execute();
     }
+
+    @Step("timestamping service URL and certificate are updated")
+    public void timestampingServiceIsUpdated() throws Exception {
+        final String url = "https://timestamping-service-" + UUID.randomUUID();
+        final MultipartFile certificate = new MockMultipartFile("certificate", CertificateUtils.generateAuthCert());
+
+        final ResponseEntity<TimestampingServiceDto> response =
+                timestampingServicesApi.updateTimestampingService(this.timestampingServiceId, url, certificate);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(url, "body.url",
+                        "Verify Timestamping Service URL"))
+                .assertion(notNullAssertion("body.certificate"))
+                .execute();
+    }
+
+    @Step("timestamping service URL is updated")
+    public void timestampingServiceUrlIsUpdated() {
+        final String url = "https://timestamping-service-" + UUID.randomUUID();
+
+        final ResponseEntity<TimestampingServiceDto> response =
+                timestampingServicesApi.updateTimestampingService(this.timestampingServiceId, url, null);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(url, "body.url",
+                        "Verify Timestamping Service URL"))
+                .assertion(notNullAssertion("body.certificate"))
+                .execute();
+    }
 }
