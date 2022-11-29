@@ -8,7 +8,7 @@ dependencies {
     intTestImplementation("org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}")
 }
 
-task e2eTest(type: Test) {
+task systemTest(type: Test) {
     useJUnitPlatform()
 
     setDescription("Runs integration tests.")
@@ -17,17 +17,17 @@ task e2eTest(type: Test) {
     testClassesDirs = sourceSets.intTest.output.classesDirs
     classpath = sourceSets.intTest.runtimeClasspath
 
-    def e2eTestArgs = []
-    if (project.hasProperty('e2eTestTags')) {
-        e2eTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('e2eTestTags')
+    def systemTestArgs = []
+    if (project.hasProperty('systemTestTags')) {
+        systemTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('systemTestTags')
     }
-    if (project.hasProperty('e2eTestServeReport')) {
-        e2eTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('e2eTestServeReport')
+    if (project.hasProperty('systemTestServeReport')) {
+        systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('systemTestServeReport')
     }
-    if (project.hasProperty('e2eTestCentralServerUrl')) {
-        e2eTestArgs += "-Dtest-automation.custom.central-server-url-override=" + project.getProperty('e2eTestCentralServerUrl')
+    if (project.hasProperty('systemTestCentralServerUrl')) {
+        systemTestArgs += "-Dtest-automation.custom.central-server-url-override=" + project.getProperty('systemTestCentralServerUrl')
     }
-    jvmArgs e2eTestArgs
+    jvmArgs systemTestArgs
 
     testLogging {
         showStackTraces(true)
