@@ -241,5 +241,27 @@ export const timestampingServicesStore = defineStore('timestampingServices', {
     delete(id: number) {
       return axios.delete(`/timestamping-services/${id}`);
     },
+    addTimestampingService(url: string, certificate: File) {
+      const formData = new FormData();
+      formData.append('url', url || '');
+      formData.append('certificate', certificate);
+      return axios
+        .post('/timestamping-services', formData)
+        .finally(() => this.fetchTimestampingServices());
+    },
+    updateTimestampingService(
+      id: number,
+      url: string,
+      certificate: File | null,
+    ) {
+      const formData = new FormData();
+      formData.append('url', url || '');
+      if (certificate) {
+        formData.append('certificate', certificate);
+      }
+      return axios
+        .patch(`/timestamping-services/${id}`, formData)
+        .finally(() => this.fetchTimestampingServices());
+    },
   },
 });
