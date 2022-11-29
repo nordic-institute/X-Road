@@ -1,6 +1,6 @@
 subprojects {
 
-    if(it.name != 'ui' && it.name != 'test-ui') {
+    if(it.name != 'ui' && it.name != 'ui-system-test') {
         apply {
             plugin 'io.spring.dependency-management'
             plugin 'org.springframework.boot'
