@@ -81,8 +81,8 @@ import Vue from 'vue';
 import { FileUploadResult } from '@niis/shared-ui';
 import { timestampingServicesStore } from '@/store/modules/trust-services';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
-import {mapActions, mapStores} from "pinia";
-import {notificationsStore} from "@/store/modules/notifications";
+import { mapActions, mapStores } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'AddTimestampingServiceDialog',
@@ -109,10 +109,9 @@ export default Vue.extend({
       this.certFileTitle = result.file.name;
     },
     save(): void {
-      this.loading = true;
-
       if (!this.certFile) return;
 
+      this.loading = true;
       this.timestampingServicesStore
         .addTimestampingService(this.tasUrl, this.certFile)
         .then(() => {
