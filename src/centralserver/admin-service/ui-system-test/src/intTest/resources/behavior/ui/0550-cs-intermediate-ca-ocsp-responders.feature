@@ -13,7 +13,7 @@ Feature: Central Server Intermediate CA OCSP responders view
     And Intermediate CAs tab is selected
     And Intermediate CA with name E2e-test CA is added
     And User opens intermediate CA with name E2e-test CA details
-    And OCSP responders tab is selected
+    And Intermediate CA OCSP responders tab is selected
 
   Scenario: Intermediate CA OCSP responder can be added
     When OCSP responder with URL http://e2e-test-ocsp-responder.com is added

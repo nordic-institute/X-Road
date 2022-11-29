@@ -44,6 +44,11 @@ public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
         trustServicesPageObj.certServiceDetails.tabIntermediateCas().click();
     }
 
+    @Step("Intermediate CA OCSP responders tab is selected")
+    public void ocspRespondersTabIsSelected() {
+        intermediateCasPageObj.tabOcspResponders().click();
+    }
+
     @Step("Intermediate CA with name {} is added")
     public void newIntermediateCaIsAdded(String name) throws Exception {
         intermediateCasPageObj.btnAdd().click();
