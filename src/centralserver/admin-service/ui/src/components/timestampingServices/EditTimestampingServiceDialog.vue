@@ -145,6 +145,7 @@ export default Vue.extend({
         .updateTimestampingService(this.tsaService.id, this.tasUrl, this.certFile)
         .then(() => {
           this.showSuccess('trustServices.timestampingService.dialog.edit.success');
+          this.$emit('save');
         })
         .catch((error) => {
           this.showError(error);
