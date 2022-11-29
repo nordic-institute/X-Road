@@ -47,7 +47,7 @@ import java.util.Optional;
 
 
 /**
- *    Class for handling SystemParameter taking HA-setup into account
+ * Class for handling SystemParameter taking HA-setup into account
  */
 @Slf4j
 @Service
@@ -82,34 +82,33 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     @Override
     public String getParameterValue(String key, String defaultValue) {
         log.debug("getParameterValue() - getting value for key:{} with default value:{}", key, defaultValue);
-        Optional<SystemParameter> valueInDb = getSystemParameterOptional(key);
+        Optional<SystemParameter> valueInDb = getSystemParameterOptional(key).map(systemParameterMapper::toTarget);
         return valueInDb.map(SystemParameter::getValue).orElse(defaultValue);
     }
 
     @Override
     public SystemParameter updateOrCreateParameter(String lookupKey, String updateValue) {
-        Optional<SystemParameter> systemParameter =
+        Optional<SystemParameterEntity> systemParameter =
                 getSystemParameterOptional(lookupKey);
 
         if (systemParameter.isEmpty()) {
-            SystemParameter newSystemParameter = new SystemParameter(lookupKey);
+            SystemParameterEntity newSystemParameter = new SystemParameterEntity(lookupKey);
             // now initial value for non-postgresql testing,
             // the real haNodeName will be inserted using Postgresql database trigger.
             newSystemParameter.setHaNodeName(currentHaConfigStatus.getCurrentHaNodeName());
             systemParameter = Optional.of(newSystemParameter);
         }
-        SystemParameter systemParameterToStore = systemParameter.get();
+        SystemParameterEntity systemParameterToStore = systemParameter.get();
         systemParameterToStore.setValue(updateValue);
         log.debug("updateOrCreateParameter(): storing Systemparameter of key:{} with value:{} for node:{}",
                 lookupKey, updateValue, systemParameterToStore.getHaNodeName()
         );
 
-        var systemParameterEntity = systemParameterMapper.fromTarget(systemParameterToStore);
-        systemParameterEntity = systemParameterRepository.save(systemParameterEntity);
-        return systemParameterMapper.toTarget(systemParameterEntity);
+        systemParameterToStore = systemParameterRepository.save(systemParameterToStore);
+        return systemParameterMapper.toTarget(systemParameterToStore);
     }
 
-    private Optional<SystemParameter> getSystemParameterOptional(String lookupKey) {
+    private Optional<SystemParameterEntity> getSystemParameterOptional(String lookupKey) {
         Optional<SystemParameterEntity> systemParameter;
         if (currentHaConfigStatus.isHaConfigured() && isNodeLocalParameter(lookupKey)) {
             String haNodeName = currentHaConfigStatus.getCurrentHaNodeName();
@@ -119,7 +118,7 @@ public class SystemParameterServiceImpl implements SystemParameterService {
             systemParameter = systemParameterRepository.findByKey(lookupKey)
                     .stream().findFirst();
         }
-        return systemParameter.map(systemParameterMapper::toTarget);
+        return systemParameter;
     }
 
     private boolean isNodeLocalParameter(String key) {

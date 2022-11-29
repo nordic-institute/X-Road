@@ -60,9 +60,9 @@ DO \$\$
 DECLARE
   id bigint;
 BEGIN
-  SELECT nextval('hibernate_sequence') INTO id;
+  SELECT nextval('apikey_id_seq') INTO id;
   INSERT INTO apikey values (id, '$ENCODED');
-  INSERT INTO apikey_roles values (nextval('hibernate_sequence'), id, 'XROAD_MANAGEMENT_SERVICE');
+  INSERT INTO apikey_roles values (nextval('apikey_roles_id_seq'), id, 'XROAD_MANAGEMENT_SERVICE');
 END
 \$\$
 ;
@@ -71,4 +71,8 @@ EOF
   crudini --set /etc/xroad/conf.d/local.ini registration-service api-token "$TOKEN"
 fi
 
+log "Making sure that token pin policy is enforced by default"
+if ! crudini --get /etc/xroad/conf.d/local.ini signer enforce-token-pin-policy &>/dev/null; then
+  crudini --set /etc/xroad/conf.d/local.ini signer enforce-token-pin-policy "true"
+fi
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

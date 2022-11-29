@@ -110,16 +110,3 @@ artifacts {
         builtBy(npmBuild)
     }
 }
-
-// run e2e tests vs remote url
-task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
-    doFirst {
-        assert project.hasProperty("testTargetUrl"): 'testTargetUrl is mandatory for e2eTests'
-    }
-    args = ['run', 'test:e2e', '--', "--url=${project.properties.testTargetUrl}"]
-
-    if (project.hasProperty("testDataUrl")) args.add("--testdata=${project.properties.testDataUrl}")
-    if (project.hasProperty("withTags")) args.add("--tag=${project.properties.withTags}")
-    if (project.hasProperty("withoutTags")) args.add("--skiptags=${project.properties.withoutTags}")
-    if (project.hasProperty("runHeadless")) args.add('--headless')
-}
