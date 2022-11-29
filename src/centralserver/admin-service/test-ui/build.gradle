@@ -1,7 +1,10 @@
+
+
 dependencies {
     intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
     intTestImplementation("org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}")
 }
 
@@ -21,11 +24,8 @@ task e2eTest(type: Test) {
     if (project.hasProperty('e2eTestServeReport')) {
         e2eTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('e2eTestServeReport')
     }
-    if (project.hasProperty('e2eTestSecurityServerUrl')) {
-        e2eTestArgs += "-Dtest-automation.custom.security-server-url=" + project.getProperty('e2eTestSecurityServerUrl')
-    }
     if (project.hasProperty('e2eTestCentralServerUrl')) {
-        e2eTestArgs += "-Dtest-automation.custom.central-server-url=" + project.getProperty('e2eTestCentralServerUrl')
+        e2eTestArgs += "-Dtest-automation.custom.central-server-url-override=" + project.getProperty('e2eTestCentralServerUrl')
     }
     jvmArgs e2eTestArgs
 

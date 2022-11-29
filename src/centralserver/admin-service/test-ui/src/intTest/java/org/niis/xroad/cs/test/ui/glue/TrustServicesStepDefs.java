@@ -28,9 +28,7 @@
 package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
-import io.cucumber.java.en.And;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
+import io.cucumber.java.en.Step;
 import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.constants.Constants;
 import org.niis.xroad.cs.test.ui.page.TrustServicesPageObj;
@@ -53,7 +51,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
     private String certificationServiceName;
     private X509Certificate testCertificate;
 
-    @When("new certification service is added")
+    @Step("new certification service is added")
     public void newCertificationServiceIsAdded() throws Exception {
         trustServicesPageObj.btnAddCertificationService().click();
 
@@ -72,12 +70,12 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
     }
 
 
-    @Then("new certification service is visible in the Certification Services list")
+    @Step("new certification service is visible in the Certification Services list")
     public void newCertificationServiceIsVisibleInTheList() {
         trustServicesPageObj.tableServicesRowOf(certificationServiceName).should(appear);
     }
 
-    @And("user is able to sort by column {int}")
+    @Step("user is able to sort by column {int}")
     public void userIsAbleToSortByColumn(int columnIndex) {
         var column = trustServicesPageObj.tableServicesCol(columnIndex);
         Assertions.assertEquals("none", column.getAttribute("aria-sort"));
@@ -88,12 +86,12 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
     }
 
 
-    @And("user opens certification service details")
+    @Step("user opens certification service details")
     public void userOpensCertificationServiceDetails() {
         trustServicesPageObj.tableServicesRowOf(certificationServiceName).click();
     }
 
-    @Then("certification service details are displayed")
+    @Step("certification service details are displayed")
     public void certificationServiceDetailsAreVisible() {
         final SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATETIME_FORMAT);
 
@@ -103,24 +101,24 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         trustServicesPageObj.cardValidTo().shouldHave(text(sdf.format(testCertificate.getNotAfter())));
     }
 
-    @And("user is able to view the certificate")
+    @Step("user is able to view the certificate")
     public void userIsAbleToViewTheCertificate() {
         trustServicesPageObj.certServiceDetails.btnViewCertificate().click();
         trustServicesPageObj.certificateView.certificateDetails().shouldBe(visible);
     }
 
-    @When("user navigates to CA settings")
+    @Step("user navigates to CA settings")
     public void userNavigatesToCASettings() {
         trustServicesPageObj.certServiceDetails.tabSettings().click();
     }
 
-    @Then("CA settings are shown")
+    @Step("CA settings are shown")
     public void caSettingsAreShown() {
         trustServicesPageObj.certServiceDetails.caSettings.cardCertProfile().shouldHave(text(CERTIFICATE_PROFILE));
         trustServicesPageObj.certServiceDetails.caSettings.cardTlsAuth().shouldHave(text("False"));
     }
 
-    @And("user can change the certificate profile")
+    @Step("user can change the certificate profile")
     public void userCanChangeTheCertificateProfile() {
         trustServicesPageObj.certServiceDetails.caSettings.btnEditCertProfile().click();
 
@@ -135,7 +133,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         trustServicesPageObj.certServiceDetails.caSettings.cardCertProfile().shouldHave(text(NEW_CERTIFICATE_PROFILE));
     }
 
-    @And("user can change the TLS Auth setting")
+    @Step("user can change the TLS Auth setting")
     public void userCanChangeTheTLSAuthSetting() {
         trustServicesPageObj.certServiceDetails.caSettings.btnEditTlsAuth().click();
         trustServicesPageObj.certServiceDetails.caSettings.checkboxTlsAuth().click();

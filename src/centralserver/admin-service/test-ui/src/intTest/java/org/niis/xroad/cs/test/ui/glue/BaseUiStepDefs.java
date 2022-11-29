@@ -30,6 +30,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.nortal.test.core.report.TestReportService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
+import org.niis.xroad.cs.test.ui.TargetHostUrlProvider;
 import org.niis.xroad.cs.test.ui.configuration.TestProperties;
 import org.niis.xroad.cs.test.ui.page.CommonPageObj;
 import org.openqa.selenium.OutputType;
@@ -50,7 +51,8 @@ public abstract class BaseUiStepDefs {
     protected CucumberScenarioProvider scenarioProvider;
     @Autowired
     protected ScenarioContext scenarioContext;
-
+    @Autowired
+    protected TargetHostUrlProvider targetHostUrlProvider;
     @Autowired
     protected TestReportService testReportService;
 

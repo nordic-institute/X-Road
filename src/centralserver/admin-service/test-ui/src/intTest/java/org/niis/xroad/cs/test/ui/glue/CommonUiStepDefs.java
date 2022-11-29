@@ -25,48 +25,12 @@
  */
 package org.niis.xroad.cs.test.ui.glue;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
-import io.cucumber.java.en.Given;
-import org.openqa.selenium.By;
-
-import java.time.Duration;
-
-import static com.codeborne.selenide.Selenide.$;
+import io.cucumber.java.en.Step;
 
 public class CommonUiStepDefs extends BaseUiStepDefs {
-    public static final int MAX_WAIT_IN_SECONDS = 120;
 
-    @Given("logout button is being clicked")
-    public void logoutButtonIsClicked() {
-        $(By.xpath("//button[@data-test='username-button']"))
-                .shouldBe(Condition.visible)
-                .shouldBe(Condition.enabled)
-                .click();
-    }
-
-    @Given("User becomes idle")
-    public void userBecomesIdle() {
-        Selenide.sleep(1);
-    }
-
-
-    @Given("after 120 seconds, session timeout popup appears")
-    public void errorMessageAboutTimeoutAppears() {
-        $(By.xpath("//button[@data-test='session-expired-ok-button']"))
-                .shouldBe(Condition.visible, Duration.ofSeconds(MAX_WAIT_IN_SECONDS));
-
-    }
-
-    @Given("OK is clicked on timeout notification popup")
-    public void okIsClickedOnTimeoutNotificationPopup() {
-        $(By.xpath("//button[@data-test='session-expired-ok-button']"))
-                .shouldBe(Condition.visible)
-                .shouldBe(Condition.enabled)
-                .click();
-    }
-
-    @Given("Page is prepared to be tested")
+    @Step("Page is prepared to be tested")
     public void preparePage() {
         Selenide.executeJavaScript("window.e2eTestingMode = true;\n"
                 + "      const style = `\n"
