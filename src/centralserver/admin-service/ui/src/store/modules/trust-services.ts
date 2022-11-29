@@ -32,6 +32,7 @@ import {
   CertificationServiceFileAndSettings,
   CertificationServiceSettings,
   OcspResponder,
+  TimestampingService,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
@@ -218,6 +219,27 @@ export const useIntermediateCaStore = defineStore('intermediateCasService', {
     },
     deleteIntermediateCa(id: number) {
       return axios.delete(`/intermediate-cas/${id}`);
+    },
+  },
+});
+
+export interface TimestampingServicesStoreState {
+  timestampingServices: TimestampingService[];
+}
+
+export const timestampingServicesStore = defineStore('timestampingServices', {
+  state: (): TimestampingServicesStoreState => ({
+    timestampingServices: [],
+  }),
+  persist: true,
+  actions: {
+    fetchTimestampingServices() {
+      return axios
+        .get<TimestampingService[]>('/timestamping-services')
+        .then((resp) => (this.timestampingServices = resp.data));
+    },
+    delete(id: number) {
+      return axios.delete(`/timestamping-services/${id}`);
     },
   },
 });

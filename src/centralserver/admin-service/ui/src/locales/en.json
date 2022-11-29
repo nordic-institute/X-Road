@@ -508,6 +508,24 @@
           "success": "Intermediate CA deleted successfully"
         }
       },
+      "timestampingService": {
+        "url": "Url",
+        "timestampingInterval": "Timestamping interval",
+        "timestampingIntervalMinutes": "{min} minute(s)",
+        "cost": "Cost",
+        "costValues": {
+          "FREE": "Free",
+          "PAID": "Paid",
+          "UNDEFINED": "Undefined"
+        },
+        "delete": {
+          "dialog": {
+            "title": "Are you sure?",
+            "message": "Are you sure you want to delete the Timestamping service with the URL {url}?"
+          },
+          "success": "Timestamping service deleted successfully"
+        }
+      },
       "pagenavigation": {
         "details": "Details",
         "settings": "CA Settings",

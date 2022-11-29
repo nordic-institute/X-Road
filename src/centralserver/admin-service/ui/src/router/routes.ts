@@ -88,6 +88,7 @@ import IntermediateCACertificate from '@/views/TrustServices/CertificationServic
 import IntermediateCa from '@/views/TrustServices/CertificationService/IntermediateCa.vue';
 import IntermediateCaDetails from '@/views/TrustServices/CertificationService/IntermediateCaDetails.vue';
 import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationService/IntermediateCaOcspResponders.vue';
+import TimestampingServiceCertificate from '@/components/timestampingServices/TimestampingServiceCertificate.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -301,6 +302,18 @@ const routes: RouteConfig[] = [
             path: '',
             component: TrustServiceList,
             meta: { permissions: [Permissions.VIEW_APPROVED_CAS] },
+          },
+          {
+            name: RouteName.TimestampingServiceCertificateDetails,
+            path: '',
+            component: TimestampingServiceCertificate,
+            meta: { permissions: [Permissions.VIEW_APPROVED_TSAS] },
+            props(route: Route): { timestampingServiceId: number } {
+              const timestampingServiceId = Number(
+                route.params.timestampingServiceId,
+              );
+              return { timestampingServiceId };
+            },
           },
           {
             path: '/certification-services/:certificationServiceId',
