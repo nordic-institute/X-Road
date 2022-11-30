@@ -26,7 +26,7 @@ test-automation:
       jacoco:
         enabled: true
       reuse-between-runs: false
-      jar-build-dir: build/libs/
+      jar-build-dir: ../application/build/libs/
       spring-profiles-to-activate: int-test,audit-test
       internal-http-port: 4000
 

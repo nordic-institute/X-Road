@@ -77,9 +77,7 @@ public class LiquibaseExecutor extends SpringLiquibase {
 
     @SneakyThrows
     private void executeUpdate() {
-        try (var c = getDataSource().getConnection();
-             Liquibase liquibase = createLiquibase(c)
-        ) {
+        try (var c = getDataSource().getConnection(); Liquibase liquibase = createLiquibase(c)) {
             performUpdate(liquibase);
         } catch (SQLException e) {
             throw new DatabaseException(e);

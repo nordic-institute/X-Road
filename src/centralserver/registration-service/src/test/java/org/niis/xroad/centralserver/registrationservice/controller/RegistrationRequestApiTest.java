@@ -40,10 +40,10 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.centralserver.openapi.model.CodeWithDetailsDto;
+import org.niis.xroad.centralserver.openapi.model.ErrorInfoDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
 import org.niis.xroad.centralserver.registrationservice.config.RegistrationServiceProperties;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.CodeWithDetailsDto;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.ErrorInfoDto;
-import org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestDto;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthCertRegRequest;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthRegRequestBuilder;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestGlobalConf;
@@ -60,7 +60,7 @@ import java.security.KeyPairGenerator;
 import java.util.Collections;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.niis.xroad.centralserver.registrationservice.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
+import static org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @RunWith(SpringRunner.class)

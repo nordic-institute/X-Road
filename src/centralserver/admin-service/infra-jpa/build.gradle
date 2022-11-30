@@ -22,3 +22,16 @@ dependencies {
     testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
     testImplementation('org.liquibase:liquibase-core')
 }
+
+configurations {
+    changelogJar
+}
+
+task changelogJar(type: Jar) {
+    classifier 'resources'
+    from sourceSets.main.resources
+}
+
+artifacts {
+    changelogJar changelogJar
+}
