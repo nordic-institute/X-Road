@@ -27,6 +27,9 @@ task systemTest(type: Test) {
     if (project.hasProperty('systemTestCentralServerUrl')) {
         systemTestArgs += "-Dtest-automation.custom.central-server-url-override=" + project.getProperty('systemTestCentralServerUrl')
     }
+    if (project.hasProperty('systemTestCsPackageHost')) {
+        systemTestArgs += "-Dtest-automation.custom.package-host=" + project.getProperty('systemTestCsPackageHost')
+    }
     jvmArgs systemTestArgs
 
     testLogging {

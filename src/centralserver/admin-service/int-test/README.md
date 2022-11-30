@@ -157,6 +157,6 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 ```
 
 **Result will look like this:**
-![img.png](doc/assets/validation-result-example.png)
+![img.png](src/intTest/doc/assets/validation-result-example.png)
 
 A more detailed description for various options can be found in JavaDoc.
