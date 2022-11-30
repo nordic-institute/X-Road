@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,36 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.factory.Mappers;
 import org.niis.xroad.centralserver.restapi.dto.converter.GenericUniDirectionalMapper;
-import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
-import org.niis.xroad.cs.admin.api.domain.Subsystem;
-import org.niis.xroad.cs.admin.api.domain.XRoadMember;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
-import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
-import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
+import org.niis.xroad.cs.admin.api.domain.ServerClient;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        uses = {ClientIdMapper.class, ServerClientMapper.class}
-)
-public interface SecurityServerClientMapper extends GenericUniDirectionalMapper<SecurityServerClientEntity, SecurityServerClient> {
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface ServerClientMapper extends GenericUniDirectionalMapper<ServerClientEntity, ServerClient> {
 
     @Override
-    default SecurityServerClient toTarget(SecurityServerClientEntity source) {
-        if (source instanceof SubsystemEntity) {
-            return toDto((SubsystemEntity) source);
-        }
-        if (source instanceof XRoadMemberEntity) {
-            return toDto((XRoadMemberEntity) source);
-        }
-
-        throw new IllegalArgumentException("Cannot map " + source.getClass());
+    default ServerClient toTarget(ServerClientEntity serverClientEntity) {
+        final ServerClient dto = new ServerClient();
+        dto.setServerOwner(serverClientEntity.getSecurityServer().getOwner().getName());
+        dto.setServerCode(serverClientEntity.getSecurityServer().getServerCode());
+        dto.setId(serverClientEntity.getId());
+        final SecurityServerIdMapper securityServerIdMapper = Mappers.getMapper(SecurityServerIdMapper.class);
+        dto.setServerId(securityServerIdMapper.toTarget(serverClientEntity.getSecurityServer().getServerId()));
+        return dto;
     }
 
-    Subsystem toDto(SubsystemEntity source);
-
-    XRoadMember toDto(XRoadMemberEntity source);
 }
