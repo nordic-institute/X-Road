@@ -27,33 +27,18 @@ package org.niis.xroad.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
-import org.openqa.selenium.By;
+import org.niis.xroad.test.ui.page.DiagnosticsPageObj;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
-import static org.openqa.selenium.By.xpath;
 
 public class SecurityServerDiagnosticsStepDefs extends BaseUiStepDefs {
-    private static final By TAB_DIAGNOSTICS = xpath("//a[@data-test='diagnostics']");
-    private static final By BACKUP_ENCRYPTION_STATUS = xpath("//div[@data-test='backup-encryption-status']");
-    public static final By BACKUP_ENCRYPTION_KEYS_TABLE_CELL =
-            xpath("//table[@data-test='backup-encryption-keys']/tbody/tr/td");
-
-    private static final By MESSAGE_LOG_ARCHIVE_ENCRYPTION_STATUS =
-            xpath("//div[@data-test='message-log-archive-encryption-status']");
-    private static final By MESSAGE_LOG_DATABASE_ENCRYPTION_STATUS =
-            xpath("//div[@data-test='message-log-database-encryption-status']");
-
-    private static final By MEMBER_ENCRYPTION_STATUS_TABLE =
-            xpath("//table[@data-test='member-encryption-status']");
-
+    private DiagnosticsPageObj diagnosticsPage = new DiagnosticsPageObj();
 
     @Step("Diagnostics tab is selected")
     public void userNavigatesToDiagnostics() {
-        $(TAB_DIAGNOSTICS).click();
+        commonPageObj.menu.diagnosticsTab().click();
     }
 
     @Step("Diagnostics tab is {string}")
@@ -64,45 +49,46 @@ public class SecurityServerDiagnosticsStepDefs extends BaseUiStepDefs {
         } else {
             condition = Condition.not(Condition.visible);
         }
-        $(TAB_DIAGNOSTICS).shouldBe(condition);
+        commonPageObj.menu.diagnosticsTab().shouldBe(condition);
     }
 
     @Step("Backup encryption is enabled")
     public void backupEncryptionIsEnabled() {
-        $(BACKUP_ENCRYPTION_STATUS).shouldHave(text("Enabled"));
+        diagnosticsPage.backupEncryptionStatus().shouldHave(text("Enabled"));
     }
 
     @Step("Backup encryption configuration has {int} key(s)")
     public void backupEncryptionHasNumOfKeys(int count) {
-        $$(BACKUP_ENCRYPTION_KEYS_TABLE_CELL).shouldHave(size(count));
+        diagnosticsPage.backupEncryptionKeyList().shouldHave(size(count));
     }
+
 
     @Step("Message log archive encryption is enabled")
     public void messageLogArchiveEncryptionIsEnabled() {
-        $(MESSAGE_LOG_ARCHIVE_ENCRYPTION_STATUS).shouldHave(text("Enabled"));
+        diagnosticsPage.messageLogEncryptionStatus().shouldHave(text("Enabled"));
     }
+
 
     @Step("Message log database encryption is enabled")
     public void messageLogDatabaseEncryptionIsEnabled() {
-        $(MESSAGE_LOG_DATABASE_ENCRYPTION_STATUS).shouldHave(text("Enabled"));
+        diagnosticsPage.messageLogDatabaseEncryptionStatus().shouldHave(text("Enabled"));
     }
 
     @Step("Message log grouping is set to {}")
     public void messageLogGroupingIs(String grouping) {
-        $(MESSAGE_LOG_ARCHIVE_ENCRYPTION_STATUS).shouldHave(text(grouping));
+        diagnosticsPage.messageLogEncryptionStatus().shouldHave(text(grouping));
     }
 
     @Step("At least one member should have encryption key configured")
     public void memberWithConfiguredEncryptionKeyExists() {
-        $(MEMBER_ENCRYPTION_STATUS_TABLE)
-                .$("td.status-wrapper:not(:has(i.warning-icon))")
-                .should(exist);
+        diagnosticsPage.memberMessageLogEncryptionKey().should(exist);
     }
+
 
     @Step("At least one member should use default encryption key")
     public void memberWithDefaultEncryptionKeyExists() {
-        $(MEMBER_ENCRYPTION_STATUS_TABLE)
-                .$("td.status-wrapper:has(i.warning-icon)")
-                .should(exist);
+        diagnosticsPage.memberMessageLogEncryptionKeyWithWarning().should(exist);
     }
+
+
 }
