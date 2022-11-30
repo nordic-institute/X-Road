@@ -3370,7 +3370,7 @@ components:
             metadata:
               - 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
     ErrorExample:
-      $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
+      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
     ErrorInvalidInitParamsMetadataExample:
       summary: Initialization error with metadata
       value:
@@ -3393,7 +3393,7 @@ components:
             - "3"
         status: 400
     ErrorWithMetadataExample:
-      $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
+      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
     InitializationWarningExample:
       summary: All initialization warnings example.
       value:
@@ -3744,7 +3744,7 @@ components:
           type: string
       type: object
     CodeWithDetails:
-      $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
+      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
     ConfigurationAnchor:
       allOf:
         - $ref: '#/components/schemas/ModificationTimestamps'
@@ -3823,7 +3823,7 @@ components:
       format: enum
       type: string
     ErrorInfo:
-      $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
+      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
     GlobalConfDownloadUrl:
       description: the global conf download url object
       properties:
@@ -4703,7 +4703,7 @@ components:
         - possible_actions
       type: object
     User:
-      $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
+      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
     Version:
       description: version information
       properties:

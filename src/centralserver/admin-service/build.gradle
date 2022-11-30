@@ -1,6 +1,7 @@
 subprojects {
 
-    if(it.name != 'ui' && it.name != 'ui-system-test') {
+    def standaloneModules = ["ui", "ui-system-test", "int-test"]
+    if(!standaloneModules.contains(it.name)) {
         apply {
             plugin 'io.spring.dependency-management'
             plugin 'org.springframework.boot'

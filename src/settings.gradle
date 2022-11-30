@@ -32,16 +32,16 @@ include "op-monitor-daemon"
 include "shared-ui"
 
 include "centralserver"
-
+include "centralserver:openapi-model"
 include "centralserver:admin-service"
-include 'centralserver:admin-service:core'
-include 'centralserver:admin-service:core-api'
-include 'centralserver:admin-service:infra-api-rest'
-include 'centralserver:admin-service:application'
-include 'centralserver:admin-service:ui'
-include 'centralserver:admin-service:infra-jpa'
-include 'centralserver:admin-service:ui-system-test'
-
+include "centralserver:admin-service:core"
+include "centralserver:admin-service:core-api"
+include "centralserver:admin-service:infra-api-rest"
+include "centralserver:admin-service:application"
+include "centralserver:admin-service:ui"
+include "centralserver:admin-service:infra-jpa"
+include "centralserver:admin-service:ui-system-test"
+include "centralserver:admin-service:int-test"
 include "centralserver:management-service"
 include "centralserver:registration-service"
 include "centralserver:globalconf-generator"
@@ -67,3 +67,5 @@ project(":addons:proxymonitor-metaservice").projectDir = file('addons/proxymonit
 
 include "addons:op-monitoring"
 include "addons:wsdlvalidator"
+
+

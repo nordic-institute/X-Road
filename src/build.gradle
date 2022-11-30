@@ -42,7 +42,11 @@ dependencyCheck {
     outputDirectory = "${project.buildDir}/reports/owasp-dependency-check"
     suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
     format = "ALL"
-    skipProjects = [":e2e-tests"]
+    skipProjects = [
+        ":e2e-tests",
+        ":centralserver:admin-service:ui-system-test",
+        ":centralserver:admin-service:int-test"
+    ]
     analyzers {
         experimentalEnabled = false
         archiveEnabled = false
@@ -72,14 +76,14 @@ dependencyCheck {
 
 allprojects {
     buildscript {
-      repositories {
-        mavenCentral()
-      }
+        repositories {
+            mavenCentral()
+        }
     }
 
     repositories {
-      mavenLocal()
-      mavenCentral()
+        mavenLocal()
+        mavenCentral()
     }
 
     group = 'ee.ria.xroad'
@@ -102,7 +106,7 @@ allprojects {
     }
 }
 
-configure(subprojects.findAll { !["frontend","shared-ui","ui"].contains(it.name) }) {
+configure(subprojects.findAll { !["frontend", "shared-ui", "ui"].contains(it.name) }) {
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
@@ -119,7 +123,7 @@ configure(subprojects.findAll { !["frontend","shared-ui","ui"].contains(it.name)
     }
 
     tasks.withType(JavaCompile) {
-      options.encoding = 'UTF-8'
+        options.encoding = 'UTF-8'
     }
 
     sourceSets {
@@ -238,7 +242,7 @@ configure(subprojects.findAll { !["frontend","shared-ui","ui"].contains(it.name)
 clean.delete << "${rootDir}/packages/build"
 
 jacocoTestReport {
-    def javaProjects = subprojects.findAll{it.plugins.hasPlugin(JavaPlugin)}
+    def javaProjects = subprojects.findAll { it.plugins.hasPlugin(JavaPlugin) }
     dependsOn javaProjects.check
     reports {
         xml.required = true
