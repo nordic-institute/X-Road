@@ -60,7 +60,7 @@ DO \$\$
 DECLARE
   id bigint;
 BEGIN
-  SELECT nextval('apikey_id_seq') INTO id;
+  SELECT nextval('hibernate_sequence') INTO id;
   INSERT INTO apikey values (id, '$ENCODED');
   INSERT INTO apikey_roles values (nextval('apikey_roles_id_seq'), id, 'XROAD_MANAGEMENT_SERVICE');
 END
