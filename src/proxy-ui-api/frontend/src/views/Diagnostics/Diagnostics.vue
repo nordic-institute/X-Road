@@ -354,7 +354,7 @@
             </v-row>
 
             <div v-if="messageLogEncryptionDiagnostics">
-              <div class="sub-title status-wrapper">
+              <div class="sub-title status-wrapper" data-test="message-log-archive-encryption-status">
                 <span>
                   {{ $t('diagnostics.encryption.statusTitle') }}
                 </span>
@@ -367,8 +367,8 @@
                 </span>
                 {{ $t(`${messageLogEncryptionDiagnostics.message_log_grouping_rule}`) }}
               </div>
-
-              <table class="xrd-table" v-if="messageLogEncryptionDiagnostics.message_log_archive_encryption_status">
+2
+              <table class="xrd-table" v-if="messageLogEncryptionDiagnostics.message_log_archive_encryption_status" data-test="member-encryption-status">
                 <thead>
                   <tr>
                     <th>
@@ -425,7 +425,7 @@
               </v-col>
             </v-row>
 
-            <div v-if="messageLogEncryptionDiagnostics" class="sub-title status-wrapper">
+            <div v-if="messageLogEncryptionDiagnostics" class="sub-title status-wrapper" data-test="message-log-database-encryption-status">
               <span>
                 {{ $t('diagnostics.encryption.statusTitle') }}
               </span>

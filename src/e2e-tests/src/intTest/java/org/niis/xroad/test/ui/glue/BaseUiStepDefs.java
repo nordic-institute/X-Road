@@ -31,6 +31,7 @@ import com.nortal.test.core.report.TestReportService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
 import org.niis.xroad.test.configuration.TestProperties;
+import org.niis.xroad.test.ui.page.CommonPageObj;
 import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -41,6 +42,7 @@ import static org.openqa.selenium.Keys.DELETE;
 
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public abstract class BaseUiStepDefs {
+    protected final CommonPageObj commonPageObj = new CommonPageObj();
 
     @Autowired
     protected TestProperties testProperties;

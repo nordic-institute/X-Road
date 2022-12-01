@@ -26,28 +26,22 @@
 package org.niis.xroad.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
-import org.openqa.selenium.By;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.test.ui.page.DiagnosticsPageObj;
 
 import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
-import static org.openqa.selenium.By.xpath;
 
 public class SecurityServerDiagnosticsStepDefs extends BaseUiStepDefs {
-    private static final By TAB_DIAGNOSTICS = xpath("//a[@data-test=\"diagnostics\"]");
-    private static final By BACKUP_ENCRYPTION_STATUS = xpath("//div[@data-test=\"backup-encryption-status\"]");
-    public static final By BACKUP_ENCRYPTION_KEYS_TABLE_CELL =
-            xpath("//table[@data-test=\"backup-encryption-keys\"]/tbody/tr/td");
+    private DiagnosticsPageObj diagnosticsPage = new DiagnosticsPageObj();
 
-    @Given("Diagnostics tab is selected")
+    @Step("Diagnostics tab is selected")
     public void userNavigatesToDiagnostics() {
-        $(TAB_DIAGNOSTICS).click();
+        commonPageObj.menu.diagnosticsTab().click();
     }
 
-    @Given("Diagnostics tab is {string}")
+    @Step("Diagnostics tab is {string}")
     public void diagnosticsTabIsVisible(String conditionStr) {
         Condition condition;
         if ("visible".equals(conditionStr)) {
@@ -55,17 +49,46 @@ public class SecurityServerDiagnosticsStepDefs extends BaseUiStepDefs {
         } else {
             condition = Condition.not(Condition.visible);
         }
-        $(TAB_DIAGNOSTICS).shouldBe(condition);
+        commonPageObj.menu.diagnosticsTab().shouldBe(condition);
     }
 
-    @Then("Backup encryption is enabled")
+    @Step("Backup encryption is enabled")
     public void backupEncryptionIsEnabled() {
-        $(BACKUP_ENCRYPTION_STATUS).shouldHave(text("Enabled"));
+        diagnosticsPage.backupEncryptionStatus().shouldHave(text("Enabled"));
     }
 
-    @Then("Backup encryption configuration has {int} key(s)")
+    @Step("Backup encryption configuration has {int} key(s)")
     public void backupEncryptionHasNumOfKeys(int count) {
-        $$(BACKUP_ENCRYPTION_KEYS_TABLE_CELL).shouldHave(size(count));
+        diagnosticsPage.backupEncryptionKeyList().shouldHave(size(count));
     }
+
+
+    @Step("Message log archive encryption is enabled")
+    public void messageLogArchiveEncryptionIsEnabled() {
+        diagnosticsPage.messageLogEncryptionStatus().shouldHave(text("Enabled"));
+    }
+
+
+    @Step("Message log database encryption is enabled")
+    public void messageLogDatabaseEncryptionIsEnabled() {
+        diagnosticsPage.messageLogDatabaseEncryptionStatus().shouldHave(text("Enabled"));
+    }
+
+    @Step("Message log grouping is set to {}")
+    public void messageLogGroupingIs(String grouping) {
+        diagnosticsPage.messageLogEncryptionStatus().shouldHave(text(grouping));
+    }
+
+    @Step("At least one member should have encryption key configured")
+    public void memberWithConfiguredEncryptionKeyExists() {
+        diagnosticsPage.memberMessageLogEncryptionKey().should(exist);
+    }
+
+
+    @Step("At least one member should use default encryption key")
+    public void memberWithDefaultEncryptionKeyExists() {
+        diagnosticsPage.memberMessageLogEncryptionKeyWithWarning().should(exist);
+    }
+
 
 }
