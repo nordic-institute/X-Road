@@ -1,6 +1,7 @@
 @CentralServer
-@Member
-Feature: Central Server Intermediate CA OCSP responders view
+@CertificationService
+@IntermediateCA
+Feature: CS: Trust Services -> CA Details -> Intermediate CAs -> Intermediate CA OCSP Responders
 
   Background:
     Given CentralServer login page is open
