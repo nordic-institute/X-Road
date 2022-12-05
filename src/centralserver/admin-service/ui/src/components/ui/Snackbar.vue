@@ -47,7 +47,7 @@
 
           <div class="row-wrapper">
             <div v-if="notification.successMessage">
-              {{ $t(notification.successMessage) }}
+              {{ notification.successMessage }}
             </div>
           </div>
           <v-btn

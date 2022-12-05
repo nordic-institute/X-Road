@@ -250,7 +250,7 @@ export default Vue.extend({
       this.timestampingServicesStore
         .delete(this.selectedTimestampingService.id)
         .then(() => {
-          this.showSuccess('trustServices.trustService.timestampingService.delete.success');
+          this.showSuccess(this.$t('trustServices.trustService.timestampingService.delete.success'));
           this.confirmDelete = false;
           this.deletingTimestampingService = false;
           this.fetchTimestampingServices();
