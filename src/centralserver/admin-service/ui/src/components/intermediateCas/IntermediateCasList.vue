@@ -81,6 +81,7 @@
           <xrd-button
             text
             :outlined="false"
+            data-test="view-intermediate-ca-certificate"
             @click="navigateToCertificateDetails(item)"
           >
             {{ $t('trustServices.viewCertificate') }}
@@ -88,6 +89,7 @@
           <xrd-button
             text
             :outlined="false"
+            data-test="delete-intermediate-ca"
             @click="openDeleteConfirmationDialog(item)"
           >
             {{ $t('action.delete') }}

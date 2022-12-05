@@ -32,6 +32,8 @@ import static com.codeborne.selenide.Selenide.$x;
 import static org.openqa.selenium.By.xpath;
 
 public class IntermediateCasPageObj {
+    public final CertificateViewPageObj certificateView = new CertificateViewPageObj();
+
     public SelenideElement btnAdd() {
         return $x("//button[@data-test='add-intermediate-ca-button']");
     }
@@ -47,6 +49,21 @@ public class IntermediateCasPageObj {
     public SelenideElement tableRowOf(String name) {
         var xpath = "./tbody/tr/td/div[contains(text(), '%s')]";
         return table().find(xpath(String.format(xpath, name)));
+    }
+
+    public SelenideElement tableHeaderCol(int headerColumnIndex) {
+        var xpath = "./thead[2]/tr/th[%d]";
+        return table().find(xpath(String.format(xpath, headerColumnIndex)));
+    }
+
+    public SelenideElement btnViewIntermediateCa(String url) {
+        var xpath = "./../..//td/div/button[@data-test='view-intermediate-ca-certificate']";
+        return tableRowOf(url).find(xpath(xpath));
+    }
+
+    public SelenideElement btnDeleteIntermediateCa(String url) {
+        var xpath = "./../..//td/div/button[@data-test='delete-intermediate-ca']";
+        return tableRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement tabOcspResponders() {

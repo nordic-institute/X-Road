@@ -1,7 +1,7 @@
 @CentralServer
-@Member
+@CertificationService
 @This
-Feature: Central Server OCSP responders view
+Feature: CS: Trust Services -> CA Details -> OCSP Responders
 
   Background:
     Given CentralServer login page is open
