@@ -28,7 +28,9 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.factory.Mappers;
 import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
@@ -42,6 +44,7 @@ import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {RequestProcessingMapper.class, ClientIdMapper.class, SecurityServerIdMapper.class})
@@ -103,7 +106,12 @@ public interface RequestMapper extends GenericBiDirectionalMapper<RequestEntity,
 
     ClientRegistrationRequestEntity fromDto(ClientRegistrationRequest source);
 
-    OwnerChangeRequestEntity fromDto(OwnerChangeRequest source);
+    default OwnerChangeRequestEntity fromDto(OwnerChangeRequest source) {
+        return new OwnerChangeRequestEntity(
+                source.getOrigin(),
+                SecurityServerIdEntity.create(source.getSecurityServerId()),
+                Mappers.getMapper(ClientIdMapper.class).fromTarget(source.getClientId()));
+    }
 
     AuthenticationCertificateDeletionRequest toDto(AuthenticationCertificateDeletionRequestEntity source);
 
@@ -113,5 +121,7 @@ public interface RequestMapper extends GenericBiDirectionalMapper<RequestEntity,
 
     ClientRegistrationRequest toDto(ClientRegistrationRequestEntity source);
 
+    @Mapping(source = "requestProcessing", target = "requestProcessing")
+    @Mapping(ignore = true, target = "processingStatus")
     OwnerChangeRequest toDto(OwnerChangeRequestEntity source);
 }

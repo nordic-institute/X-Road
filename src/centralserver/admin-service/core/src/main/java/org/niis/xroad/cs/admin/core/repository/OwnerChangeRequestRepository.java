@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,46 +24,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
+package org.niis.xroad.cs.admin.core.repository;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import static org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity.DISCRIMINATOR_VALUE;
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 
-@Entity
-@DiscriminatorValue(DISCRIMINATOR_VALUE)
-public class OwnerChangeRequestEntity extends RequestWithProcessingEntity {
-    public static final String DISCRIMINATOR_VALUE = "OwnerChangeRequest";
+import java.util.List;
+import java.util.Set;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sec_serv_user_id")
-    @Getter
-    @Setter
-    private ClientIdEntity clientId;
+public interface OwnerChangeRequestRepository extends RequestRepository<OwnerChangeRequestEntity> {
 
-    protected OwnerChangeRequestEntity() {
-        // JPA
-    }
-
-    public OwnerChangeRequestEntity(Origin origin, SecurityServerIdEntity serverId, ClientIdEntity clientId) {
-        super(origin, serverId, new OwnerChangeRequestProcessingEntity());
-        this.clientId = clientId;
-    }
-
-    @Override
-    @Transient
-    public ManagementRequestType getManagementRequestType() {
-        return ManagementRequestType.OWNER_CHANGE_REQUEST;
-    }
+    List<OwnerChangeRequestEntity> findBy(SecurityServerId serverId, Set<ManagementRequestStatus> status);
 
 }

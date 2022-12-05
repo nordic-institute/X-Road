@@ -29,6 +29,7 @@ package org.niis.xroad.centralserver.restapi.security;
 import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.centralserver.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
@@ -51,10 +52,10 @@ public class AdminServicePermissionEvaluator implements PermissionEvaluator {
     public AdminServicePermissionEvaluator(List<TargetTypeResolver<?>> resolvers) {
         this.resolvers = resolvers;
         this.targetMapping = self(new IdentityHashMap<>(), self -> {
-            self.put(AuthenticationCertificateRegistrationRequestDto.class,
-                    ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST);
+            self.put(AuthenticationCertificateRegistrationRequestDto.class, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST);
             self.put(ClientRegistrationRequestDto.class, ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
             self.put(ClientDeletionRequestDto.class, ManagementRequestType.CLIENT_DELETION_REQUEST);
+            self.put(OwnerChangeRequestDto.class, ManagementRequestType.OWNER_CHANGE_REQUEST);
         });
     }
 
