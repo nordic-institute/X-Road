@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.test.ui.glue;
 
-import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.constants.Constants;
@@ -39,6 +38,7 @@ import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -61,8 +61,8 @@ public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
     @Step("Intermediate CA with name {} is added")
     public void newIntermediateCaIsAdded(String name) throws Exception {
         intermediateCasPageObj.btnAdd().click();
-        commonPageObj.dialog.btnCancel().should(Condition.enabled);
-        commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
+        commonPageObj.dialog.btnCancel().should(enabled);
+        commonPageObj.dialog.btnSave().shouldNotBe(enabled);
 
         final byte[] certificate = CertificateUtils.generateAuthCert(name);
 
@@ -78,7 +78,7 @@ public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
 
     @Step("Intermediate CAs table is visible")
     public void intermediateCasTableIsVisible() {
-        intermediateCasPageObj.table().shouldBe(Condition.enabled);
+        intermediateCasPageObj.table().shouldBe(enabled);
     }
 
 
@@ -107,8 +107,8 @@ public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
     public void userIsAbleToDeleteIntermediateCa(String name) {
         intermediateCasPageObj.btnDeleteIntermediateCa(name).click();
 
-        commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
-        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
+        commonPageObj.dialog.btnCancel().shouldBe(enabled);
+        commonPageObj.dialog.btnSave().shouldBe(enabled).click();
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
