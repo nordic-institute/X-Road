@@ -62,6 +62,7 @@
           data-test="dialog-cancel-button"
           class="mr-3"
           outlined
+          :disabled="disableCancelButton"
           @click="cancel()"
         >
           {{ $t(cancelButtonText) }}
@@ -112,6 +113,11 @@ export default Vue.extend({
     disableSave: {
       type: Boolean,
     },
+    //  cancel button
+    allowLoadingCancellation: {
+      type: Boolean,
+      default: false,
+    },
     // Hide save button
     hideSaveButton: {
       type: Boolean,
@@ -153,6 +159,9 @@ export default Vue.extend({
       }
 
       return false;
+    },
+    disableCancelButton(): boolean {
+      return this.allowLoadingCancellation ? false : this.loading;
     },
   },
 
