@@ -33,7 +33,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
-import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
@@ -59,6 +58,7 @@ import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatu
 import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_CLIENT_ALREADY_OWNER;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_EXISTS;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_MEMBER_NOT_FOUND;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND;
@@ -115,7 +115,6 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
                 .getOrElseThrow(() -> new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_NOT_FOUND,
                         request.getSecurityServerId().toString()));
 
-
         // New owner must be registered as a client on the security server
         final boolean clientRegistered = securityServer.getServerClients().stream()
                 .anyMatch(serverClient -> ClientId.equals(serverClient.getSecurityServerClient().getIdentifier(), request.getClientId()));
@@ -142,7 +141,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
                 EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
 
         if (!pendingRequests.isEmpty()) {
-            throw new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_EXISTS);
+            throw new DataIntegrityException(MANAGEMENT_REQUEST_EXISTS);
         }
     }
 
