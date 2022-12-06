@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     common-ui (0.0.1)
-      addressable (~> 2.4.0)
+      addressable (= 2.8.0)
       jar-dependencies (= 0.4.1)
       psych (~> 3.0.3)
       rack-cache (~> 1.6.1)
@@ -38,7 +38,8 @@ GEM
     activesupport (3.2.22.5)
       i18n (~> 0.6, >= 0.6.4)
       multi_json (~> 1.0)
-    addressable (2.4.0)
+    addressable (2.8.0)
+      public_suffix (>= 2.0.2, < 5.0)
     arel (3.0.3)
     builder (3.0.4)
     concurrent-ruby (1.1.10)
@@ -59,6 +60,7 @@ GEM
     psych (3.0.3)
     psych (3.0.3-java)
       jar-dependencies (>= 0.1.7)
+    public_suffix (4.0.7)
     rack (1.4.7)
     rack-cache (1.6.1)
       rack (>= 0.4)
