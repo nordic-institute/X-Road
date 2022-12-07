@@ -34,8 +34,10 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
+import org.niis.xroad.cs.admin.api.service.GroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -57,6 +59,7 @@ import static java.lang.String.valueOf;
 import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.APPROVED;
 import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.WAITING;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_CLIENT_ALREADY_OWNER;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_EXISTS;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL;
@@ -77,6 +80,8 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final IdentifierRepository<MemberIdEntity> memberIds;
     private final SecurityServerRepository servers;
+
+    private final GroupMemberService groupMemberService;
 
     private final RequestMapper requestMapper;
 
@@ -165,19 +170,30 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
                 .getOrElseThrow(() -> new DataIntegrityException(MANAGEMENT_REQUEST_MEMBER_NOT_FOUND,
                         ownerChangeRequestEntity.getClientId().toString()));
 
-        newOwner.getOwnedServers().add(securityServer);
+        final XRoadMemberEntity currentOwner = securityServer.getOwner();
+
+        currentOwner.getOwnedServers().remove(securityServer);
+
         securityServer.setOwner(newOwner);
+        newOwner.getOwnedServers().add(securityServer);
 
         members.save(newOwner);
         servers.save(securityServer);
 
-
-        // TODO FIXME: GLOBAL GROUPS
-        // there are no services implemented at the moment
+        updateGlobalGroups(currentOwner, newOwner);
 
         ownerChangeRequestEntity.setProcessingStatus(APPROVED);
         final OwnerChangeRequestEntity saved = ownerChangeRequestRepository.save(ownerChangeRequestEntity);
         return requestMapper.toDto(saved);
+    }
+
+    private void updateGlobalGroups(XRoadMemberEntity currentOwner, XRoadMemberEntity newOwner) {
+        if (currentOwner.getOwnedServers().isEmpty()) {
+            groupMemberService.removeMemberFromGlobalGroup(MemberId.create(currentOwner.getIdentifier()),
+                    DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+        }
+        groupMemberService.addMemberToGlobalGroup(MemberId.create(newOwner.getIdentifier()),
+                DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
     }
 
     @Override

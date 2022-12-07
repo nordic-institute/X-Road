@@ -39,6 +39,7 @@ import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
+import org.niis.xroad.cs.admin.api.service.GroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
@@ -55,9 +56,11 @@ import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static ee.ria.xroad.common.SystemProperties.CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,6 +74,7 @@ import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatu
 import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.centralserver.restapi.domain.Origin.CENTER;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_CLIENT_ALREADY_OWNER;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_EXISTS;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_OWNER_MUST_BE_CLIENT;
@@ -82,6 +86,9 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 class OwnerChangeRequestHandlerTest {
 
     private static final Integer ID = 123;
+    private static final String INSTANCE = "CS";
+    private static final String MEMBER_CLASS = "MEMBER-CLASS";
+    private static final String MEMBER_CODE = "MEMBER-CODE";
 
     private final XRoadMemberRepository members = mock(XRoadMemberRepository.class);
     private final OwnerChangeRequestRepository ownerChangeRequestRepository = mock(OwnerChangeRequestRepository.class);
@@ -89,6 +96,7 @@ class OwnerChangeRequestHandlerTest {
     private final IdentifierRepository<MemberIdEntity> memberIds = mock(IdentifierRepository.class);
     private final SecurityServerRepository servers = mock(SecurityServerRepository.class);
     private final RequestMapper requestMapper = mock(RequestMapper.class);
+    private final GroupMemberService groupMemberService = mock(GroupMemberService.class);
     @Mock
     private OwnerChangeRequestEntity ownerChangeRequestEntity;
     @Mock
@@ -100,16 +108,19 @@ class OwnerChangeRequestHandlerTest {
     private OwnerChangeRequest ownerChangeRequestDto;
     @Mock
     private MemberIdEntity memberIdEntity;
+    @Mock
+    private XRoadMemberEntity currentOwnerMock;
 
     private final OwnerChangeRequestHandler ownerChangeRequestHandler = new OwnerChangeRequestHandler(members, ownerChangeRequestRepository,
-            serverIds, memberIds, servers, requestMapper);
+            serverIds, memberIds, servers, groupMemberService, requestMapper);
 
-    private final ClientId clientId = MemberId.create("CS", "MEMBER-CLASS", "MEMBER-CODE");
+    private final ClientId clientId = MemberId.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE);
     private final XRoadMemberEntity xRoadMemberEntity =
-            new XRoadMemberEntity("name", clientId, new MemberClassEntity("MEMBER-CLASS", "description"));
+            new XRoadMemberEntity("name", clientId, new MemberClassEntity(MEMBER_CLASS, "description"));
     private final ClientIdEntity clientIdEntity = ClientIdEntity.ensure(clientId);
-    private final SecurityServerId securityServerId = SecurityServerId.create("CS", "MEMBER-CLASS", "MEMBER-CODE", "SERVER-CODE");
+    private final SecurityServerId securityServerId = SecurityServerId.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE, "SERVER-CODE");
     private final SecurityServerIdEntity securityServerIdEntity = SecurityServerIdEntity.create(securityServerId);
+
 
     @Test
     void canAutoApproveFalse() {
@@ -211,11 +222,11 @@ class OwnerChangeRequestHandlerTest {
 
         when(servers.findBy(securityServerId)).thenReturn(Option.of(securityServerEntity));
         Set<ServerClientEntity> mockClients = Set.of(
-                mockServerClientEntity(MemberIdEntity.create("CS", "MEMBER-CLASS", "MEMBER-CODE")));
+                mockServerClientEntity(MemberIdEntity.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE)));
         when(securityServerEntity.getServerClients()).thenReturn(mockClients);
 
         final XRoadMemberEntity ownerMock = mock(XRoadMemberEntity.class);
-        final MemberIdEntity ownerId = MemberIdEntity.create("CS", "MEMBER-CLASS", "MEMBER-CODE");
+        final MemberIdEntity ownerId = MemberIdEntity.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE);
         when(ownerMock.getIdentifier()).thenReturn(ownerId);
         when(securityServerEntity.getOwner()).thenReturn(ownerMock);
 
@@ -234,11 +245,11 @@ class OwnerChangeRequestHandlerTest {
 
         when(servers.findBy(securityServerId)).thenReturn(Option.of(securityServerEntity));
         Set<ServerClientEntity> mockClients = Set.of(
-                mockServerClientEntity(MemberIdEntity.create("CS", "MEMBER-CLASS", "MEMBER-CODE")));
+                mockServerClientEntity(MemberIdEntity.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE)));
         when(securityServerEntity.getServerClients()).thenReturn(mockClients);
 
         final XRoadMemberEntity ownerMock = mock(XRoadMemberEntity.class);
-        final MemberIdEntity ownerId = MemberIdEntity.create("CS", "MEMBER-CLASS-1", "MEMBER-CODE-1");
+        final MemberIdEntity ownerId = MemberIdEntity.create(INSTANCE, "MEMBER-CLASS-1", "MEMBER-CODE-1");
         when(ownerMock.getIdentifier()).thenReturn(ownerId);
         when(securityServerEntity.getOwner()).thenReturn(ownerMock);
         when(securityServerEntity.getServerCode()).thenReturn("SS");
@@ -263,7 +274,7 @@ class OwnerChangeRequestHandlerTest {
     }
 
     private ServerClientEntity mockServerClientEntity() {
-        return mockServerClientEntity(MemberIdEntity.create("x", "y", "z"));
+        return mockServerClientEntity(MemberIdEntity.create("xx", "yy", UUID.randomUUID().toString()));
     }
 
     @Test
@@ -276,11 +287,11 @@ class OwnerChangeRequestHandlerTest {
 
         when(servers.findBy(securityServerId)).thenReturn(Option.of(securityServerEntity));
         Set<ServerClientEntity> mockClients = Set.of(
-                mockServerClientEntity(MemberIdEntity.create("CS", "MEMBER-CLASS", "MEMBER-CODE")));
+                mockServerClientEntity(MemberIdEntity.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE)));
         when(securityServerEntity.getServerClients()).thenReturn(mockClients);
 
         final XRoadMemberEntity ownerMock = mock(XRoadMemberEntity.class);
-        final MemberIdEntity ownerId = MemberIdEntity.create("CS", "MEMBER-CLASS-1", "MEMBER-CODE-1");
+        final MemberIdEntity ownerId = MemberIdEntity.create(INSTANCE, "MEMBER-CLASS-1", "MEMBER-CODE-1");
         when(ownerMock.getIdentifier()).thenReturn(ownerId);
         when(securityServerEntity.getOwner()).thenReturn(ownerMock);
         when(securityServerEntity.getServerCode()).thenReturn("SS");
@@ -317,6 +328,14 @@ class OwnerChangeRequestHandlerTest {
         when(ownerChangeRequestRepository.save(ownerChangeRequestEntity)).thenReturn(savedOwnerChangeRequestEntity);
         when(requestMapper.toDto(savedOwnerChangeRequestEntity)).thenReturn(ownerChangeRequestDto);
 
+        when(securityServerEntity.getOwner()).thenReturn(currentOwnerMock);
+
+        final Set<SecurityServerEntity> ownedServersMock = mock(HashSet.class);
+        final ClientIdEntity currentOwnerIdentifier = MemberIdEntity.create("x", "y", "z");
+        when(currentOwnerMock.getOwnedServers()).thenReturn(ownedServersMock);
+        when(currentOwnerMock.getIdentifier()).thenReturn(currentOwnerIdentifier);
+        when(ownedServersMock.isEmpty()).thenReturn(true);
+
         final OwnerChangeRequest result = ownerChangeRequestHandler.approve(request);
 
         assertThat(result).isEqualTo(ownerChangeRequestDto);
@@ -326,7 +345,10 @@ class OwnerChangeRequestHandlerTest {
         verify(servers).save(securityServerEntity);
         verify(ownerChangeRequestEntity).setProcessingStatus(APPROVED);
 
-        // TODO FIXME: verify assigning groups
+        verify(ownedServersMock).remove(securityServerEntity);
+        verify(groupMemberService).removeMemberFromGlobalGroup(MemberId.create("x", "y", "z"), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+        verify(groupMemberService).addMemberToGlobalGroup(
+                MemberId.create(xRoadMemberEntity.getIdentifier()), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
     }
 
 }
