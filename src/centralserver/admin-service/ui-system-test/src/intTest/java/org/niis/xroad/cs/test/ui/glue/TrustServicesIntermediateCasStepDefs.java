@@ -27,17 +27,26 @@
 
 package org.niis.xroad.cs.test.ui.glue;
 
-import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
+import org.junit.jupiter.api.Assertions;
+import org.niis.xroad.cs.test.ui.constants.Constants;
 import org.niis.xroad.cs.test.ui.page.IntermediateCasPageObj;
 import org.niis.xroad.cs.test.ui.page.TrustServicesPageObj;
 import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
 
+import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
+
+import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
 public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
     private final TrustServicesPageObj trustServicesPageObj = new TrustServicesPageObj();
     private final IntermediateCasPageObj intermediateCasPageObj = new IntermediateCasPageObj();
+
+    private X509Certificate testCertificate;
 
     @Step("Intermediate CAs tab is selected")
     public void intermediateCasTabIsSelected() {
@@ -52,10 +61,12 @@ public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
     @Step("Intermediate CA with name {} is added")
     public void newIntermediateCaIsAdded(String name) throws Exception {
         intermediateCasPageObj.btnAdd().click();
-        commonPageObj.dialog.btnCancel().should(Condition.enabled);
-        commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
+        commonPageObj.dialog.btnCancel().should(enabled);
+        commonPageObj.dialog.btnSave().shouldNotBe(enabled);
 
         final byte[] certificate = CertificateUtils.generateAuthCert(name);
+
+        testCertificate = CertificateUtils.readCertificate(certificate);
 
         intermediateCasPageObj.inputAddCertFile().uploadFile(CertificateUtils.getAsFile(certificate));
         commonPageObj.dialog.btnSave().click();
@@ -63,6 +74,59 @@ public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("Intermediate CAs table is visible")
+    public void intermediateCasTableIsVisible() {
+        intermediateCasPageObj.table().shouldBe(enabled);
+    }
+
+
+    @Step("Intermediate CA with name {} is visible in the Intermediate CA list")
+    public void intermediateCaIsVisibleInTheIntermediateCasList(String name) {
+        intermediateCasPageObj.tableRowOf(name).should(appear);
+    }
+
+    @Step("User is able to sort Intermediate CAs by header column {int}")
+    public void userIsAbleToSortByColumn(int headerColumnIndex) {
+        var column = intermediateCasPageObj.tableHeaderCol(headerColumnIndex);
+        Assertions.assertEquals("none", column.getAttribute("aria-sort"));
+        column.click();
+        Assertions.assertEquals("ascending", column.getAttribute("aria-sort"));
+        column.click();
+        Assertions.assertEquals("descending", column.getAttribute("aria-sort"));
+    }
+
+    @Step("User is able to view the certificate of Intermediate CA with name {}")
+    public void userIsAbleToViewTheCertificate(String url) {
+        intermediateCasPageObj.btnViewIntermediateCa(url).click();
+        intermediateCasPageObj.certificateView.certificateDetails().shouldBe(visible);
+    }
+
+    @Step("User is able to click delete button in Intermediate CA with name {}")
+    public void userIsAbleToDeleteIntermediateCa(String name) {
+        intermediateCasPageObj.btnDeleteIntermediateCa(name).click();
+
+        commonPageObj.dialog.btnCancel().shouldBe(enabled);
+        commonPageObj.dialog.btnSave().shouldBe(enabled).click();
+
+        commonPageObj.snackBar.success().shouldBe(visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("Intermediate CA with name {} should be removed in list")
+    public void ocspResponderShouldRemovedInList(String url) {
+        intermediateCasPageObj.tableRowOf(url).shouldNotBe(visible);
+    }
+
+    @Step("Intermediate CA details are visible")
+    public void intermediateCaDetailsAreVisible() {
+        final SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATETIME_FORMAT);
+
+        trustServicesPageObj.cardSubjectDn().shouldHave(text(testCertificate.getSubjectDN().getName()));
+        trustServicesPageObj.cardIssuerDn().shouldHave(text(testCertificate.getIssuerDN().getName()));
+        trustServicesPageObj.cardValidFrom().shouldHave(text(sdf.format(testCertificate.getNotBefore())));
+        trustServicesPageObj.cardValidTo().shouldHave(text(sdf.format(testCertificate.getNotAfter())));
     }
 
     @Step("User opens intermediate CA with name {} details")
