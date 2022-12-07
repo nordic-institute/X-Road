@@ -31,13 +31,12 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.service.GroupMemberService;
-import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
-import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
+import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
-import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
+import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -54,24 +53,24 @@ public class GlobalGroupMemberServiceImpl implements GroupMemberService {
 
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
     private final GlobalGroupRepository globalGroupRepository;
-    private final IdentifierRepository<MemberIdEntity> memberIdRepository;
+    private final XRoadMemberRepository xRoadMemberRepository;
 
     public void addMemberToGlobalGroup(MemberId memberId, String groupCode) {
-        final MemberIdEntity memberIdEntity = getMemberIdEntity(memberId);
+        final XRoadMemberEntity memberEntity = getMemberIdEntity(memberId);
         final GlobalGroupEntity globalGroupEntity = getGlobalGroupEntity(groupCode);
-        if (!isMemberAlreadyInGroup(globalGroupEntity, memberIdEntity)) {
-            final var globalGroupMemberEntity = new GlobalGroupMemberEntity(globalGroupEntity, memberIdEntity);
+        if (!isMemberAlreadyInGroup(globalGroupEntity, memberEntity)) {
+            final var globalGroupMemberEntity = new GlobalGroupMemberEntity(globalGroupEntity, memberEntity.getIdentifier());
             globalGroupEntity.getGlobalGroupMembers().add(globalGroupMemberEntity);
             globalGroupMemberRepository.save(globalGroupMemberEntity);
         }
     }
 
     public void removeMemberFromGlobalGroup(MemberId memberId, String groupCode) {
-        final MemberIdEntity memberIdEntity = getMemberIdEntity(memberId);
+        final XRoadMemberEntity memberEntity = getMemberIdEntity(memberId);
         final GlobalGroupEntity globalGroupEntity = getGlobalGroupEntity(groupCode);
 
         final Optional<GlobalGroupMemberEntity> globalGroupMember = globalGroupEntity.getGlobalGroupMembers().stream()
-                .filter(groupMember -> groupMember.getIdentifier().equals(memberIdEntity))
+                .filter(groupMember -> groupMember.getIdentifier().equals(memberEntity.getIdentifier()))
                 .findFirst();
 
         if (globalGroupMember.isPresent()) {
@@ -81,9 +80,9 @@ public class GlobalGroupMemberServiceImpl implements GroupMemberService {
         }
     }
 
-    private MemberIdEntity getMemberIdEntity(MemberId memberId) {
-        return memberIdRepository.findById((long) memberId.getId())
-                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
+    private XRoadMemberEntity getMemberIdEntity(MemberId memberId) {
+        return xRoadMemberRepository.findMember(memberId)
+                .getOrElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
     }
 
     private GlobalGroupEntity getGlobalGroupEntity(String groupCode) {
@@ -91,8 +90,8 @@ public class GlobalGroupMemberServiceImpl implements GroupMemberService {
                 .orElseThrow(() -> new NotFoundException(GLOBAL_GROUP_NOT_FOUND));
     }
 
-    private boolean isMemberAlreadyInGroup(GlobalGroupEntity globalGroupEntity, ClientIdEntity clientId) {
+    private boolean isMemberAlreadyInGroup(GlobalGroupEntity globalGroupEntity, XRoadMemberEntity memberEntity) {
         return globalGroupEntity.getGlobalGroupMembers().stream()
-                .anyMatch(groupMember -> groupMember.getIdentifier().equals(clientId));
+                .anyMatch(groupMember -> groupMember.getIdentifier().equals(memberEntity.getIdentifier()));
     }
 }
