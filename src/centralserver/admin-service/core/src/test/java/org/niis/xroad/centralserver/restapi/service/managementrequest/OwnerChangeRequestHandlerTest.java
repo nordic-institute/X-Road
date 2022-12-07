@@ -351,4 +351,8 @@ class OwnerChangeRequestHandlerTest {
                 MemberId.create(xRoadMemberEntity.getIdentifier()), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
     }
 
+    @Test
+    void requestType() {
+        assertThat(ownerChangeRequestHandler.requestType()).isEqualTo(OwnerChangeRequest.class);
+    }
 }

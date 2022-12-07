@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
@@ -157,10 +158,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         final OwnerChangeRequestEntity ownerChangeRequestEntity = ownerChangeRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ValidationFailureException(MANAGEMENT_REQUEST_NOT_FOUND, valueOf(requestId)));
 
-        if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(ownerChangeRequestEntity.getProcessingStatus())) {
-            throw new ValidationFailureException(MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL,
-                    valueOf(ownerChangeRequestEntity.getId()));
-        }
+        validateRequestStatus(ownerChangeRequestEntity, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
 
         final SecurityServerEntity securityServer = servers.findBy(ownerChangeRequestEntity.getSecurityServerId())
                 .getOrElseThrow(() -> new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_NOT_FOUND,
@@ -185,6 +183,13 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         ownerChangeRequestEntity.setProcessingStatus(APPROVED);
         final OwnerChangeRequestEntity saved = ownerChangeRequestRepository.save(ownerChangeRequestEntity);
         return requestMapper.toDto(saved);
+    }
+
+    private void validateRequestStatus(OwnerChangeRequestEntity requestEntity, EnumSet<ManagementRequestStatus> allowedStatuses) {
+        if (!allowedStatuses.contains(requestEntity.getProcessingStatus())) {
+            throw new ValidationFailureException(MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL,
+                    valueOf(requestEntity.getId()));
+        }
     }
 
     private void updateGlobalGroups(XRoadMemberEntity currentOwner, XRoadMemberEntity newOwner) {
