@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,20 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.entity.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
-import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+package org.niis.xroad.cs.test.api;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface SecurityServerIdMapper extends GenericBiDirectionalMapper<SecurityServerIdEntity, SecurityServerId> {
+import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.centralserver.openapi.ManagementRequestsApi;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestsFilterDto;
+import org.niis.xroad.centralserver.openapi.model.PagedManagementRequestsDto;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+
+@FeignClient(name = "managementRequestsApi", path = "/api/v1")
+public interface FeignManagementRequestsApi extends ManagementRequestsApi {
 
     @Override
-    default SecurityServerIdEntity fromTarget(SecurityServerId source) {
-        return SecurityServerIdEntity.create(source);
+    default ResponseEntity<PagedManagementRequestsDto> findManagementRequests(ManagementRequestsFilterDto filter,
+                                                                              PagingSortingParametersDto pagingSorting) {
+        // Feign can't generate due to "Method has too many Body parameters"
+        throw new NotImplementedException();
     }
-
 }

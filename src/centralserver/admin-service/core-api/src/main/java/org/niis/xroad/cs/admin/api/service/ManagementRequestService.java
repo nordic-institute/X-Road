@@ -60,6 +60,8 @@ public interface ManagementRequestService {
      */
     Optional<Request> getRequest(int id);
 
+    ManagementRequestType getRequestType(int id);
+
     /**
      * Find management requests matching criteria.
      */

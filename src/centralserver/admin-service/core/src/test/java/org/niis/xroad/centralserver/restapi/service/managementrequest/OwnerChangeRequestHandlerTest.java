@@ -310,7 +310,7 @@ class OwnerChangeRequestHandlerTest {
         assertThat(argHandler.getValue().getSecurityServerId()).isEqualTo(securityServerIdEntity);
         assertThat(argHandler.getValue().getClientId()).isEqualTo(memberIdEntity);
 
-        assertThat(argHandler.getValue().getProcessingStatus()).isEqualTo(SUBMITTED_FOR_APPROVAL);
+        assertThat(argHandler.getValue().getProcessingStatus()).isEqualTo(WAITING);
     }
 
     @Test

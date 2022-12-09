@@ -105,7 +105,6 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
                 request.getOrigin(),
                 securityServerIdEntity,
                 memberIdEntity);
-        entity.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
 
         final OwnerChangeRequestEntity saved = ownerChangeRequestRepository.save(entity);
         return requestMapper.toDto(saved);

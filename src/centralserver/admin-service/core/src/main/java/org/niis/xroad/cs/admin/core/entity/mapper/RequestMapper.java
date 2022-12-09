@@ -30,7 +30,6 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.mapstruct.factory.Mappers;
 import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
@@ -44,7 +43,6 @@ import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {RequestProcessingMapper.class, ClientIdMapper.class, SecurityServerIdMapper.class})
@@ -82,17 +80,8 @@ public interface RequestMapper extends GenericBiDirectionalMapper<RequestEntity,
         if (source instanceof AuthenticationCertificateDeletionRequest) {
             return fromDto((AuthenticationCertificateDeletionRequest) source);
         }
-        if (source instanceof AuthenticationCertificateRegistrationRequest) {
-            return fromDto((AuthenticationCertificateRegistrationRequest) source);
-        }
         if (source instanceof ClientDeletionRequest) {
             return fromDto((ClientDeletionRequest) source);
-        }
-        if (source instanceof ClientRegistrationRequest) {
-            return fromDto((ClientRegistrationRequest) source);
-        }
-        if (source instanceof OwnerChangeRequest) {
-            return fromDto((OwnerChangeRequest) source);
         }
 
         throw new IllegalArgumentException("Cannot map " + source.getClass());
@@ -100,28 +89,18 @@ public interface RequestMapper extends GenericBiDirectionalMapper<RequestEntity,
 
     AuthenticationCertificateDeletionRequestEntity fromDto(AuthenticationCertificateDeletionRequest source);
 
-    AuthenticationCertificateRegistrationRequestEntity fromDto(AuthenticationCertificateRegistrationRequest source);
-
     ClientDeletionRequestEntity fromDto(ClientDeletionRequest source);
-
-    ClientRegistrationRequestEntity fromDto(ClientRegistrationRequest source);
-
-    default OwnerChangeRequestEntity fromDto(OwnerChangeRequest source) {
-        return new OwnerChangeRequestEntity(
-                source.getOrigin(),
-                SecurityServerIdEntity.create(source.getSecurityServerId()),
-                Mappers.getMapper(ClientIdMapper.class).fromTarget(source.getClientId()));
-    }
 
     AuthenticationCertificateDeletionRequest toDto(AuthenticationCertificateDeletionRequestEntity source);
 
+    @Mapping(ignore = true, target = "processingStatus")
     AuthenticationCertificateRegistrationRequest toDto(AuthenticationCertificateRegistrationRequestEntity source);
 
     ClientDeletionRequest toDto(ClientDeletionRequestEntity source);
 
+    @Mapping(ignore = true, target = "processingStatus")
     ClientRegistrationRequest toDto(ClientRegistrationRequestEntity source);
 
-    @Mapping(source = "requestProcessing", target = "requestProcessing")
     @Mapping(ignore = true, target = "processingStatus")
     OwnerChangeRequest toDto(OwnerChangeRequestEntity source);
 }

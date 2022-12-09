@@ -113,6 +113,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         }
 
         return result.id(request.getId())
+                .type(requestTypeConverter.toDto(request.getManagementRequestType()))
                 .origin(originMapper.toDto(request.getOrigin()))
                 .securityServerId(securityServerIdMapper.convertId(request.getSecurityServerId()))
                 .status(statusMapper.toDto(request.getProcessingStatus()))

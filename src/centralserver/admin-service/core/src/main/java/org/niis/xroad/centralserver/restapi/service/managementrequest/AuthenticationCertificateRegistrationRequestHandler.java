@@ -27,14 +27,10 @@
 package org.niis.xroad.centralserver.restapi.service.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
-import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
@@ -60,8 +56,18 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.APPROVED;
 import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus.WAITING;
+import static org.niis.xroad.centralserver.restapi.domain.Origin.CENTER;
+import static org.niis.xroad.centralserver.restapi.domain.Origin.SECURITY_SERVER;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.INVALID_AUTH_CERTIFICATE;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_EXISTS;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_SECURITY_SERVER_EXISTS;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND;
 
 /**
  * Service for handling authentication certificate registration requests
@@ -90,33 +96,30 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
      * @throws DataIntegrityException     if request violates data integrity rules
      */
     public AuthenticationCertificateRegistrationRequest add(AuthenticationCertificateRegistrationRequest request) {
-        var requestEntity = requestMapper.fromDto(request);
+        final SecurityServerIdEntity serverId = SecurityServerIdEntity.create(request.getSecurityServerId());
+        final Origin origin = request.getOrigin();
 
-        SecurityServerIdEntity serverId = requestEntity.getSecurityServerId();
-        Origin origin = requestEntity.getOrigin();
-
-        if (Origin.CENTER.equals(origin)) {
+        if (CENTER.equals(origin)) {
             members.findOneBy(serverId.getOwner())
-                    .getOrElseThrow(() ->
-                            new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND));
+                    .getOrElseThrow(() -> new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND));
         }
 
         final byte[] validatedCert;
         try {
-            final X509Certificate authCert = CryptoUtils.readCertificate(requestEntity.getAuthCert());
-            if (!CertUtils.isAuthCert(authCert)) {
-                throw new ValidationFailureException(ErrorMessage.INVALID_AUTH_CERTIFICATE);
+            final X509Certificate authCert = readCertificate(request.getAuthCert());
+            if (!isAuthCert(authCert)) {
+                throw new ValidationFailureException(INVALID_AUTH_CERTIFICATE);
             }
 
             //todo: verify that certificate is issued by a known CA
 
             validatedCert = authCert.getEncoded();
         } catch (CertificateParsingException | CertificateEncodingException e) {
-            throw new ValidationFailureException(ErrorMessage.INVALID_AUTH_CERTIFICATE, e);
+            throw new ValidationFailureException(INVALID_AUTH_CERTIFICATE, e);
         }
 
         if (authCerts.existsByCert(validatedCert)) {
-            throw new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_SECURITY_SERVER_EXISTS);
+            throw new DataIntegrityException(MANAGEMENT_REQUEST_SECURITY_SERVER_EXISTS);
         }
 
         List<AuthenticationCertificateRegistrationRequestEntity> pendingRequests =
@@ -125,7 +128,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
         AuthenticationCertificateRegistrationRequestEntity authCertRegRequest;
         switch (pendingRequests.size()) {
             case 0:
-                authCertRegRequest = newRequest(requestEntity);
+                authCertRegRequest = newRequest(request);
                 break;
             case 1:
                 AuthenticationCertificateRegistrationRequestEntity existingRequest = pendingRequests.get(0);
@@ -138,14 +141,14 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
                     authCertRegRequest.getRequestProcessing().setStatus(SUBMITTED_FOR_APPROVAL);
                     break;
                 }
-                throw new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_EXISTS,
+                throw new DataIntegrityException(MANAGEMENT_REQUEST_EXISTS,
                         String.valueOf(existingRequest.getId()));
             default:
-                throw new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_EXISTS);
+                throw new DataIntegrityException(MANAGEMENT_REQUEST_EXISTS);
         }
 
         authCertRegRequest.setAuthCert(validatedCert);
-        authCertRegRequest.setAddress(requestEntity.getAddress());
+        authCertRegRequest.setAddress(request.getAddress());
         var result = authCertReqRequests.save(authCertRegRequest);
         return requestMapper.toDto(result);
     }
@@ -153,7 +156,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     public boolean canAutoApprove(AuthenticationCertificateRegistrationRequest request) {
         return (SystemProperties.getCenterAutoApproveAuthCertRegRequests()
                 || request.getProcessingStatus().equals(SUBMITTED_FOR_APPROVAL))
-                && request.getOrigin() == Origin.SECURITY_SERVER
+                && request.getOrigin() == SECURITY_SERVER
                 && members.count(request.getSecurityServerId().getOwner()) > 0;
     }
 
@@ -173,7 +176,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
 
         //check state
         if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(request.getRequestProcessing().getStatus())) {
-            throw new ValidationFailureException(ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL,
+            throw new ValidationFailureException(MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL,
                     String.valueOf(request.getId()));
         }
 
@@ -183,7 +186,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
         XRoadMemberEntity owner = members
                 .findOneBy(serverId.getOwner())
                 .getOrElseThrow(() ->
-                        new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND));
+                        new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND));
 
         //create new security server if necessary
         final String serverCode = serverId.getServerCode();
@@ -195,7 +198,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
         server.setAddress(request.getAddress());
 
         servers.save(server);
-        request.setProcessingStatus(ManagementRequestStatus.APPROVED);
+        request.setProcessingStatus(APPROVED);
 
         //todo: handle global group registration
 
@@ -208,9 +211,9 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     }
 
     private AuthenticationCertificateRegistrationRequestEntity newRequest(
-            AuthenticationCertificateRegistrationRequestEntity request) {
+            AuthenticationCertificateRegistrationRequest request) {
 
-        SecurityServerIdEntity serverId = identifiers.findOrCreate(request.getSecurityServerId());
+        SecurityServerIdEntity serverId = identifiers.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
         return new AuthenticationCertificateRegistrationRequestEntity(request.getOrigin(), serverId);
     }
 

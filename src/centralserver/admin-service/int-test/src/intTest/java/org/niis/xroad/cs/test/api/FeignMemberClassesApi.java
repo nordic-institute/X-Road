@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,20 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.entity.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
-import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+package org.niis.xroad.cs.test.api;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface SecurityServerIdMapper extends GenericBiDirectionalMapper<SecurityServerIdEntity, SecurityServerId> {
+import org.niis.xroad.centralserver.openapi.MemberClassesApi;
+import org.springframework.cloud.openfeign.FeignClient;
 
-    @Override
-    default SecurityServerIdEntity fromTarget(SecurityServerId source) {
-        return SecurityServerIdEntity.create(source);
-    }
-
+@FeignClient(name = "memberClassesApi", path = "/api/v1")
+public interface FeignMemberClassesApi extends MemberClassesApi {
 }

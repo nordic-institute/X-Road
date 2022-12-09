@@ -45,7 +45,7 @@ import static org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity.DISCR
 public class OwnerChangeRequestEntity extends RequestWithProcessingEntity {
     public static final String DISCRIMINATOR_VALUE = "OwnerChangeRequest";
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sec_serv_user_id")
     @Getter
     @Setter
