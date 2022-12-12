@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(':common-util')
+
+    testImplementation project(':common-test')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.assertj:assertj-core:3.23.1')
+}
