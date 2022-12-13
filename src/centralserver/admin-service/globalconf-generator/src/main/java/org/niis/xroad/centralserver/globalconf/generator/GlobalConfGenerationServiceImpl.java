@@ -26,14 +26,15 @@
  */
 package org.niis.xroad.centralserver.globalconf.generator;
 
-import lombok.Builder;
-import lombok.NonNull;
-import lombok.Value;
 
-@Value
-@Builder
-public class ConfigurationPart {
-    @NonNull String filename;
-    @NonNull String contentIdentifier;
-    @NonNull byte[] data;
+import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationService;
+import org.springframework.stereotype.Component;
+
+@Component
+public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationService {
+
+    @Override
+    public void generate() {
+
+    }
 }
