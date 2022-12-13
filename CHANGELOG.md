@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.3.0 - UNRELEASED
+
 ## 7.2.0 - 2022-11-10
 - XRDDEV-2167: As an X-Road user I would like the default maximum memory for the X-Road message log addon to be increased to 200m so that it wouldn't cause failures on higher traffic servers
 - XRDDEV-2161: Automatic backup generation does not work in the Sidecar
