@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,16 +24,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.globalconf.generator;
+package org.niis.xroad.cs.admin.api.service;
 
-import lombok.Builder;
-import lombok.NonNull;
-import lombok.Value;
+public interface GlobalConfGenerationService {
 
-@Value
-@Builder
-public class ConfigurationPart {
-    @NonNull String filename;
-    @NonNull String contentIdentifier;
-    @NonNull byte[] data;
+    void generate();
 }
