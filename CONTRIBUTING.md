@@ -5,6 +5,9 @@
 
 First off, thanks for taking the time to contribute! ❤️ 
 
+The guidelines described in this document apply to the X-Road core and all the official
+[X-Road extensions](https://x-road.global/xroad-extensions) (e.g., X-Road Metrics, MISP2).
+
 All types of contributions are encouraged and valued. See the [Table of Contents](#table-of-contents) for different ways to help and details about how this project handles them. Please make sure to read the relevant section before making your contribution. It will make it a lot easier for us maintainers and smooth out the experience for all involved. The community looks forward to your contributions. 🎉
 
 ## Table of Contents
@@ -33,7 +36,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 Before you ask a question, it is best to check the existing resources first:
 
 - [X-Road documentation portal](https://docs.x-road.global);
-- [Knowledge Base](https://confluence.niis.org/display/XRDKB);
+- [Knowledge Base](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB);
 - [List of X-Road resources](https://x-road.global/resources).
 
 If you then still feel the need to ask a question and need clarification, please submit a question to the [X-Road community Slack](https://jointxroad.slack.com/)
@@ -83,25 +86,29 @@ by post:
 ### Enhancement Requests and Error Reports
 
 X-Road enhancement requests and error reports can be submitted to the [X-Road Service
-Desk](https://jira.niis.org/servicedesk/customer/portal/1).
-[Sign up](https://jira.niis.org/secure/Signup!default.jspa) for an account and
-get access to the [X-Road Service
-Desk](https://jira.niis.org/servicedesk/customer/portal/1) and
-[X-Road Backlog](https://jira.niis.org/projects/XRDDEV/).
+Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4). In order 
+to access the X-Road Service Desk, [sign up](https://id.atlassian.com/signup) for an 
+account and request access to the [X-Road Backlog](https://nordic-institute.atlassian.net/jira/software/c/projects/XRDDEV/boards/6/backlog).
+Alternatively, you can use your existing account, sign in and request for access. Once 
+your request has been approved, you're able to access the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4) 
+and the [X-Road Backlog](https://nordic-institute.atlassian.net/jira/software/c/projects/XRDDEV/boards/6/backlog). 
+Approving the  request typically requires 1-2 business days.
 
 #### Submitting a Bug
 
 Before submitting a bug:
 
 - Make sure that you are using the latest version.
-- Check the [Knowledge Base](https://confluence.niis.org/display/XRDKB) for a list of common questions and problems.
+- Check the [Knowledge Base](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB) for a list of common questions and problems.
 - Ask the community on the [X-Road community Slack](https://jointxroad.slack.com/) if the problem is a known issue or a feature. Also, check the Slack history for previous questions on the same topic.
-- Perform a [cursory search](https://jira.niis.org/projects/XRDDEV/) to see if the problem has already been reported. If it has and the issue is still open, add a comment to the existing issue instead of opening a new one.
+- Perform a cursory search on the [X-Road](https://nordic-institute.atlassian.net/browse/XRDDEV),
+  [X-Road Metrics](https://nordic-institute.atlassian.net/browse/OPMONDEV) or [MISP2](https://nordic-institute.atlassian.net/browse/MISPDEV) backlogs depending on the software, 
+  to see if the problem has already been reported. If it has and the issue is still open, add a comment to the existing issue instead of opening a new one.
 
 When submitting a bug, explain the problem and include additional details to help maintainers reproduce the problem:
 
 - Summary of the problem.
-- X-Road software version.
+- Software version.
 - Host OS and version.
 - More detailed description of the problem that includes:
   - Steps to reproduce the issue.
@@ -114,8 +121,10 @@ When submitting a bug, explain the problem and include additional details to hel
 Before submitting an enhancement request:
 
 - Make sure that you are using the latest version.
-- Read the [documentation](https://docs.x-road.global) carefully and find out if the functionality is already covered, maybe by an individual configuration.
-- Perform a [search](https://jira.niis.org/projects/XRDDEV/) to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
+- Read the software specific documentation for [X-Road](https://docs.x-road.global), [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/tree/master/docs)
+  or [MISP2](https://github.com/nordic-institute/misp2/tree/develop/docs) carefully and find out if the functionality is already covered, maybe by an individual configuration.
+- Perform a search on the [X-Road](https://nordic-institute.atlassian.net/browse/XRDDEV), [X-Road Metrics](https://nordic-institute.atlassian.net/browse/OPMONDEV) or
+  [MISP2](https://nordic-institute.atlassian.net/browse/MISPDEV) backlogs to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
 - Find out whether your idea fits with the scope and aims of the project. It's up to you to make a strong case to convince the project's developers of the merits of this feature. Keep in mind that we want features that will be useful to the majority of our users and not just a small subset. If you're just targeting a minority of users, consider writing an add-on or an extension.
 
 The evaluation process of the enhancement requests is described [here](https://github.com/nordic-institute/X-Road-development/blob/master/DEVELOPMENT_MODEL.md#3-change-management).
@@ -123,19 +132,21 @@ The evaluation process of the enhancement requests is described [here](https://g
 ### Security Issues And Vulnerabilities
 
 Security issues and vulnerabilities are reported privately to the [X-Road Service
-Desk](https://jira.niis.org/servicedesk/customer/portal/1) using the
+Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4) using the
 `Report a software problem` request type.
-[Sign up](https://jira.niis.org/secure/Signup!default.jspa) for an account and
-get access to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1).
+[Sign up](https://id.atlassian.com/signup) for an account and
+get access to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4).
 
 Another alternative to report security issues and vulnerabilities is the X-Road bug bounty program that is run on the Intigrity platform. [Visit the program details](https://app.intigriti.com/programs/niis/x-road/detail) to get started.
 
 ### Your First Code Contribution
 
-Unsure where to begin contributing to X-Road? You can start by looking through these `beginner` and `help-wanted` issues:
+Unsure where to begin contributing to X-Road? You can start by looking through these `good first issue` and `help wanted` issues:
 
-- [Beginner issues](https://jira.niis.org/issues/?jql=project%20%3D%20XRDDEV%20AND%20status%20%3D%20%22To%20Do%22%20AND%20labels%20%3D%20beginner%20ORDER%20BY%20key%20DESC) - issues which should only require a few lines of code, and a test or two.
-- [Help wanted issues](https://jira.niis.org/issues/?jql=project%20%3D%20XRDDEV%20AND%20status%20%3D%20%22To%20Do%22%20AND%20labels%20%3D%20help-wanted%20ORDER%20BY%20key%20DESC) - issues which should be a bit more involved than beginner issues.
+- [Good first issues for X-Road](https://github.com/nordic-institute/X-Road/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+- [Help wanted issues for X-Road](https://github.com/nordic-institute/X-Road/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+- [Good first issues for X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+- [Help wanted issues for X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 
 X-Road can be developed locally. For instructions on how to do this, see the [build instructions](src/BUILD.md). Also,
 completing the X-Road Academy [Core Developer training](https://academy.x-road.global/courses/x-road-core-developer) is
@@ -182,7 +193,8 @@ Two long-running, perpetual branches – `master` and `develop` – together wit
 - `master` branch is used to release X-Road software into production.
 - `develop` branch is used to accumulate features for the next big release.
 - `feature` branches are used to work on features (or closely related sets of features) to enhance X-Road core software.
-  - `feature` branches are named using the id of the feature's backlog item, e.g., `XRDDEV-123`.
+  - `feature` branches are named using the id of the feature's backlog item, e.g., `XRDDEV-123` for JIRA tickets or
+    `ISSUE123` for GitHub issues.
 - `beta` branches are used to prepare new production releases.
 - `released minor version` branches are used to track all patch versions released related to a specific minor version.
   - for example, `release-7.0` branch contains version `7.0.0` and all its bugfix releases (e.g., `7.0.1`, `7.0.2`, ..., `7.0.5`, etc.).
@@ -195,7 +207,9 @@ The latest development version is always available in the `develop` branch and t
 Pull requests made against the `X-Road/develop` branch MUST follow these conventions:
 
 - Pull request name format is `<ISSUE_ID> <SHORT_DESCRIPTION>`, for example: `XRDDEV-1669 Allow overriding startup parameters`
-  - `ISSUE_ID` = id of the feature's / bug's backlog item. If the pull request is not related to any backlog item, `ISSUE_ID` can be omitted.
+  - `ISSUE_ID` = id of the feature's / bug's backlog item. If the pull request is not related to any backlog item,
+    `ISSUE_ID` can be omitted. If the issue is a GitHub issue, it can be `ISSUE1669 Allow overriding startup parameters`
+    instead.
   - `SHORT_DESCRIPTION` = short description of the changes included in the pull request.
 - The pull request's description field must contain more detailed information about the changes. Any relevant additional information should also be provided here.
 

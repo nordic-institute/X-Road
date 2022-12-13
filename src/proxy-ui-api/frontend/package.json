@@ -10,7 +10,7 @@
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
     "test:coverage": "vue-cli-service test:unit --coverage",
-    "npx-check-audit": "npx audit-ci@5.1.2 --config ../../shared-ui/audit-ci-shared.json >../build/reports/audit-ci.txt",
+    "npx-check-audit": "npx audit-ci@6.3.0 --config ../../shared-ui/audit-ci-shared.json >../build/reports/audit-ci.txt",
     "generate-types": "openapi --input ../src/main/resources/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
@@ -35,7 +35,7 @@
     "vue": "2.6.14",
     "vue-i18n": "~8.26.0",
     "vue-router": "~3.5.1",
-    "vuetify": "^2.6.0"
+    "vuetify": "^2.6.10"
   },
   "devDependencies": {
     "@mdi/font": "~6.5.95",
@@ -51,7 +51,7 @@
     "@vue/eslint-config-prettier": "~6.0.0",
     "@vue/eslint-config-typescript": "~7.0.0",
     "@vue/test-utils": "~1.2.0",
-    "chromedriver": "^98.0.0",
+    "chromedriver": "^105.0.1",
     "eslint": "6.8.0",
     "eslint-plugin-prettier": "~3.4.0",
     "eslint-plugin-vue": "~7.20.0",
@@ -64,6 +64,13 @@
     "typescript": "4.4.4",
     "vue-cli-plugin-vuetify": "~2.4.1",
     "vue-template-compiler": "2.6.14",
-    "vuetify-loader": "~1.7.1"
+    "vuetify-loader": "~1.7.3"
+  },
+  "overrides": {
+    "trim": "1.0.1",
+    "trim-newlines": "4.0.2",
+    "glob-parent": "^5.1.2",
+    "minimatch": "^3.1.2",
+    "loader-utils": "^2.0.4"
   }
 }

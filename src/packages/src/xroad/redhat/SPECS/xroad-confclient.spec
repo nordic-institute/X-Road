@@ -93,6 +93,13 @@ chmod 0775 /var/lib/xroad
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
 chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
+if [ $1 -gt 1 ] ; then
+    # upgrade
+    if [ -e /etc/xroad/globalconf/files ]; then
+        rm -f /etc/xroad/globalconf/files
+    fi
+fi
+
 %systemd_post xroad-confclient.service
 
 %preun

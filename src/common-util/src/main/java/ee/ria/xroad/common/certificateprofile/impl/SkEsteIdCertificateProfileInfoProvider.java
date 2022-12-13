@@ -45,7 +45,12 @@ import java.security.cert.X509Certificate;
 
 /**
  * Certificate profile for SK ESTEID.
+ *
+ * @deprecated
+ * No longer used to the best of our knowledge, deprecated as of X-Road 7.2.0.
+ * Will be removed in a future version.
  */
+@Deprecated
 public class SkEsteIdCertificateProfileInfoProvider
         implements CertificateProfileInfoProvider {
 

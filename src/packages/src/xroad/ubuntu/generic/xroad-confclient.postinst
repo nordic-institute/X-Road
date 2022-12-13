@@ -4,6 +4,7 @@ umask 027
 if [ "$1" = configure ]; then
     chown xroad:xroad /etc/xroad/backup.d/??_xroad-confclient
     chmod 0440 /etc/xroad/backup.d/??_xroad-confclient
+    test -e /etc/xroad/globalconf/files && rm -f /etc/xroad/globalconf/files
 fi
 
 if [ "$1" = abort-upgrade ]; then

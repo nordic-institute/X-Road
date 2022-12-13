@@ -77,6 +77,7 @@ import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenActive;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenInfo;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenStatus;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPrivateKey;
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPrivateKeys;
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPublicKey;
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPublicKeyCertificates;
@@ -318,7 +319,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         assertTokenWritable();
         assertActiveSession();
 
-        RSAPrivateKey privateKey = privateKeys.get(keyId);
+        RSAPrivateKey privateKey = getPrivateKey(keyId);
 
         if (privateKey != null) {
             log.info("Deleting private key '{}' on token '{}'", keyId, getWorkerId());
@@ -414,7 +415,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             throw keyNotAvailable(keyId);
         }
 
-        RSAPrivateKey key = privateKeys.get(keyId);
+        RSAPrivateKey key = getPrivateKey(keyId);
 
         if (key == null) {
             throw CodedException.tr(X_KEY_NOT_FOUND, "key_not_found_on_token", "Key '%s' not found on token '%s'",
@@ -490,6 +491,16 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                 log.error("Failed to find keys from token '{}'", getWorkerId(), e);
             }
         }
+    }
+
+    private RSAPrivateKey getPrivateKey(String keyId) throws Exception {
+        RSAPrivateKey privateKey = privateKeys.get(keyId);
+        if (privateKey == null) {
+            log.debug("Key {} not found in cache, trying to find it from hardware token", keyId);
+            privateKey = findPrivateKey(activeSession, keyId, tokenType.getPrivKeyAttributes().getAllowedMechanisms());
+            privateKeys.put(keyId, privateKey);
+        }
+        return privateKey;
     }
 
     private void findPublicKeysForPrivateKeys() throws Exception {

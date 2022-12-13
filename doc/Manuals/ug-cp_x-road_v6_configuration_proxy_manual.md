@@ -4,29 +4,31 @@
 
 # X-Road: Configuration Proxy Manual
 
-Version: 2.9  
+Version: 2.10  
 Doc. ID: UG-CP
 
 ## Version History
 
-|  Date      | Version |  Description                           | Author       |
-|------------|---------|----------------------------------------|--------------|
-| 26.11.2014 | 1.0     | Initial version                        |              |
-| 19.01.2015 | 1.1     | License information added              |              |
-| 07.05.2015 | 1.2     | Configuration properties table added   |              |
-| 26.05.2015 | 1.3     | Token initialization description added |              |
-| 30.06.2015 | 1.4     | Minor corrections done                 |              |
-| 09.07.2015 | 1.5     | Repository address updated             |              |
-| 20.09.2015 | 2.0     | Editorial changes made                 |              |
-| 07.06.2017 | 2.1     | System parameter *signature-algorithm-id* replaced with *signature-digest-algorithm-id* | Cybernetica AS |
-| 05.03.2018 | 2.2     | Added references, terms and abbreviations reference, document link | Tatu Repo |
-| 10.04.2018 | 2.3     | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS |
-| 14.10.2018 | 2.4     | Update package repository address | Petteri Kivimäki |
-| 15.11.2018 | 2.5     | Add Ubuntu 18.04 installation instructions | Jarkko Hyöty |
-| 11.09.2019 | 2.6     | Remove Ubuntu 14.04 support | Jarkko Hyöty |
-| 24.06.2020 | 2.7    | Add repository sign key details in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
-| 18.02.2021 | 2.8     | Add Ubuntu 20.04 in supported platforms | Petteri Kivimäki |
-| 01.07.2021 | 2.9    | Update 3rd party key server | Petteri Kivimäki
+| Date       | Version | Description                                                                                                                                                                                   | Author           |
+|------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
+| 26.11.2014 | 1.0     | Initial version                                                                                                                                                                               |                  |
+| 19.01.2015 | 1.1     | License information added                                                                                                                                                                     |                  |
+| 07.05.2015 | 1.2     | Configuration properties table added                                                                                                                                                          |                  |
+| 26.05.2015 | 1.3     | Token initialization description added                                                                                                                                                        |                  |
+| 30.06.2015 | 1.4     | Minor corrections done                                                                                                                                                                        |                  |
+| 09.07.2015 | 1.5     | Repository address updated                                                                                                                                                                    |                  |
+| 20.09.2015 | 2.0     | Editorial changes made                                                                                                                                                                        |                  |
+| 07.06.2017 | 2.1     | System parameter *signature-algorithm-id* replaced with *signature-digest-algorithm-id*                                                                                                       | Cybernetica AS   |
+| 05.03.2018 | 2.2     | Added references, terms and abbreviations reference, document link                                                                                                                            | Tatu Repo        |
+| 10.04.2018 | 2.3     | Updated chapter "[Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS   |
+| 14.10.2018 | 2.4     | Update package repository address                                                                                                                                                             | Petteri Kivimäki |
+| 15.11.2018 | 2.5     | Add Ubuntu 18.04 installation instructions                                                                                                                                                    | Jarkko Hyöty     |
+| 11.09.2019 | 2.6     | Remove Ubuntu 14.04 support                                                                                                                                                                   | Jarkko Hyöty     |
+| 24.06.2020 | 2.7     | Add repository sign key details in section [2.2 Reference data](#22-reference-data)                                                                                                           | Petteri Kivimäki |
+| 18.02.2021 | 2.8     | Add Ubuntu 20.04 in supported platforms                                                                                                                                                       | Petteri Kivimäki |
+| 01.07.2021 | 2.9     | Update 3rd party key server                                                                                                                                                                   | Petteri Kivimäki |
+| 26.09.2022 | 2.10    | Remove Ubuntu 18.04 support                                                                                                                                                                   | Andres Rosenthal |
+
 
 ## Table of Contents
 
@@ -90,7 +92,7 @@ The configuration proxy can be configured to mediate several global configuratio
 
 ### 2.1 Supported Platforms
 
-The configuration proxy runs on the Ubuntu Server 18.04 LTS or 20.04 LTS operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
+The configuration proxy runs on the Ubuntu Server 20.04 LTS or 22.04 LTS operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -101,14 +103,14 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 **Caution:** Data necessary for the functioning of the operating system is not included.
 
-| Ref  |                                          | Explanation                |
-|------|------------------------------------------|----------------------------|
-| 1.0  | Ubuntu 18.04, 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements. |
-| 1.1  | https://artifactory.niis.org/xroad-release-deb | X-Road package repository.  |
-| 1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
-| 1.3  | TCP 80                                   | Global configuration distribution.<br>Ports for inbound connections (from the external network to the configuration proxy). |
-| 1.4  | TCP 80                                   | Global configuration download.<br>Ports for outbound connections (from the configuration proxy to the external network). |
-| 1.5  |                                          | Configuration proxy’s public IP address, NAT address. |
+| Ref |                                                     | Explanation                                                                                                                                                                                                                                                                                |
+|-----|-----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0 | Ubuntu 20.04, 64bit<br>2GB RAM, 3GB free disk space | Minimum requirements.                                                                                                                                                                                                                                                                      |
+| 1.1 | https://artifactory.niis.org/xroad-release-deb      | X-Road package repository.                                                                                                                                                                                                                                                                 |
+| 1.2 | https://artifactory.niis.org/api/gpg/key/public     | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
+| 1.3 | TCP 80                                              | Global configuration distribution.<br>Ports for inbound connections (from the external network to the configuration proxy).                                                                                                                                                                |
+| 1.4 | TCP 80                                              | Global configuration download.<br>Ports for outbound connections (from the configuration proxy to the external network).                                                                                                                                                                   |
+| 1.5 |                                                     | Configuration proxy’s public IP address, NAT address.                                                                                                                                                                                                                                      |
 
 
 ### 2.3 Requirements for the Configuration Proxy
@@ -158,7 +160,7 @@ The installation is successful if the 'xroad-signer' service is started, the 'xr
 
 * Check from the command line that the 'xroad-signer' service is in the running state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the configuration proxy since it operates in one-shot mode.
 
-  * Ubuntu 18.04 or 20.04
+  * Ubuntu 20.04 or 22.04
     ```bash
     systemctl list-units "xroad*" 
 

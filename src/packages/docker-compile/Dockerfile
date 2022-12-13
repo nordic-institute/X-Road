@@ -1,14 +1,10 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
-ARG NODE_VERSION=14
-COPY nodesource.gpg.key /etc/apt/sources.list.d/
+
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install curl software-properties-common gawk \
     openjdk-8-jdk-headless build-essential git unzip debhelper \
-  && echo "deb https://deb.nodesource.com/node_${NODE_VERSION}.x bionic main" >/etc/apt/sources.list.d/nodesource.list \
-  && apt-key add /etc/apt/sources.list.d/nodesource.gpg.key \
-  && apt-get -qq update && apt-get -qq install nodejs \
   && apt-get -qq autoremove \
   && apt-get -qq clean
 
@@ -29,7 +25,7 @@ RUN cd ~ \
 
 RUN ~/.rvm/bin/rvm install jruby-$JRUBY_VERSION --binary --skip-gemsets \
   && ~/.rvm/bin/rvm jruby-$JRUBY_VERSION do jgem install jruby-openssl jruby-launcher \
-    gem-wrappers rubygems-bundler rake:13.0.3 rvm jruby-jars:$JRUBY_VERSION bundler:1.14.6 warbler:2.0.4 bundler-audit parallel:1.19 rubocop:0.81 ruby-maven:3.3.11 \
+    gem-wrappers rubygems-bundler rake:13.0.6 rvm jruby-jars:$JRUBY_VERSION bundler:1.14.6 warbler:2.0.4 bundler-audit parallel:1.19 rubocop:0.81 ruby-maven:3.3.11 \
   && mkdir -p /var/tmp/xroad
 
 WORKDIR /mnt

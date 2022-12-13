@@ -30,7 +30,6 @@ shadowJar {
 
 jar.enabled = false
 build.dependsOn shadowJar
-buildall.dependsOn shadowJar
 
 task runSignerConsole(type: JavaExec) {
     jvmArgs '-Djava.library.path=../passwordstore'

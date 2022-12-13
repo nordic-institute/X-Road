@@ -1,5 +1,38 @@
 # Change Log
 
+## 7.2.0 - 2022-11-10
+- XRDDEV-2167: As an X-Road user I would like the default maximum memory for the X-Road message log addon to be increased to 200m so that it wouldn't cause failures on higher traffic servers
+- XRDDEV-2161: Automatic backup generation does not work in the Sidecar
+- XRDDEV-2160: As a Developer I want to deprecate the SkEsteIdCertificateProfileInfoProvider class since it is no longer user according to our knowledge
+- XRDDEV-2157: As a Security Server sidecar user I would like to be able to use a version without a local postgres installed so that I don't have it installed if I use a remote database
+- XRDDEV-2133: Secondary SS node shows "Globlal configuration is expired" alert although everything seems to be fine with globalconf
+- XRDDEV-2132: As the Estonian X-Road operator I would like the default key length in my instance to be increased to 3072 so that security is increased
+- XRDDEV-2131: Secondary node keys/certificates not updated without manual xroad-signer restart when used with external HSM
+- XRDDEV-2117: File "files" is missing from global configuration on the Security Server
+- XRDDEV-2116: Read-only state on secondary Security Server nodes disables ability to log into the token
+- XRDDEV-2114: As a Security Server Sidecar user I want to have an improved migration experience so that I don't need to troubleshoot the installation using the codebase
+- XRDDEV-2113: Proxy does not re-establish connection to remote database
+- XRDDEV-2112: Deleting a version of the service also deletes ACL rules of other versions of the service
+- XRDDEV-2111: As a Security Server administrator I want that instructions for Security Server Clustering are updated for Ubuntu 22.04
+- XRDDEV-2109: As a Security Server administrator I want that instructions for Security Server version upgrade from Ubuntu 20.04 to Ubuntu 22.04 are documented so that I know how to complete the update
+- XRDDEV-2106: As a Product Owner I want that the test environments contain Ubuntu 22 X-Road servers so they are up to date
+- XRDDEV-2105: As a Developer I want that development environment (DEV) has an Ubuntu 22.04 Security Server so that changes to the software can be tested on Ubuntu 22
+- XRDDEV-2104: As a Product Owner I want that Ubuntu 22 clustering testing environment is set up so that I know that clustering works on Ubuntu 22
+- XRDDEV-2103: As a Product Owner I want that the test pipelines are expanded so that also Ubuntu 22 can be tested with them
+- XRDDEV-2102: As an X-Road operator I want that Configuration Proxy installation packages are available for Ubuntu 22.04 LTS so that I can use the latest LTS version of Ubuntu OS
+- XRDDEV-2101: As an X-Road operator I want that Central Server installation packages are available for Ubuntu 22.04 LTS so that I can use the latest LTS version of Ubuntu OS
+- XRDDEV-2100: As an X-Road user I want that Security Server installation packages are available for Ubuntu 22.04 LTS so that I can use the latest LTS version of Ubuntu OS
+- XRDDEV-2098: As a Developer I want that Ubuntu 18.04 LTS packaging is removed from all components because Ubuntu 18 is not supported anymore
+- XRDDEV-2097: Uploading a new configuration anchor fails on the Security Server
+- XRDDEV-2073: As a contributor I would like PR#1079 to be reviewed and merged so that my contribution would be accepted
+- XRDDEV-2072: As a contributor I would like PR#702 to be reviewed and merged so that my contribution would be accepted
+- XRDDEV-2042: As an X-Road user I want the representation party header extension for SOAP messages to be managed by NIIS so that all the information is in a central location
+- XRDDEV-2041: As a Security Server Administrator I want that the opmonitor add-on stores the Represented Party header when it's used with the REST protocol.
+- XRDDEV-2039: As a Developer I want to have ARM64 based servers in our testing environments so that we can verify the packages work correctly
+- XRDDEV-2038: As a Developer I want to update our release pipelines so that we are also able to release ARM64 versions of our debian packages
+- XRDDEV-2022: As an X-Road user I would like the content-length HTTP header to be calculated based on the body on the recipient side so that I can know the original size
+- XRDDEV-1561: As a Security Server Administrator I want that the Security Server health check interface supports HSMs so that I know if a sign key stored in an HSM is available
+
 ## 7.1.1 - 2022-08-18
 - XRDDEV-2095: Operational monitoring database migrations are not executed on RHEL8 during installation
 - XRDDEV-2115: Update dependencies with known vulnerabilities
@@ -24,7 +57,6 @@
 - XRDDEV-1986: Increase the default maximum body size for REST messages from 10mb to 20mb for the Security Server in the Estonian metapackage.
 - XRDDEV-1994: Fix issue with the configuration proxy where temporary files were not getting removed if the global configuration generation failed during the process. The issue caused temporary files to accumulate in the "/var/tmp/xroad/{INSTANCE_IDENTIFIER}" directory and eat up disk space.
 - XRDDEV-2043: Fix database migrations fail during installation in RHEL8.
-
 
 ## 7.0.3 - 2022-04-25
 - XRDDEV-1973: Update dependencies with known vulnerabilities

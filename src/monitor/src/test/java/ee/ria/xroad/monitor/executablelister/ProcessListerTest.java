@@ -29,6 +29,8 @@ import ee.ria.xroad.monitor.JmxStringifiedData;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -63,6 +65,9 @@ public class ProcessListerTest {
 
     @Test
     public void testProcessList() throws Exception {
+        Assume.assumeTrue("AbstractExecListener does not support other operating systems.",
+                SystemUtils.IS_OS_LINUX);
+
         ProcessLister testProcessLister = new ProcessLister() {
 
 

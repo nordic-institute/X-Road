@@ -12,4 +12,4 @@
 
 - set_fact:
     postgresql_serverconf_service: "postgresql@{{ postgresql_major_version }}-serverconf"
-  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"
+  when: ansible_distribution_release == "focal" or ansible_distribution_release == "jammy"

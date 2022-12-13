@@ -41,15 +41,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
 
 /**
@@ -179,18 +178,16 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
         getConfigurationFiles().forEach(consumer);
     }
 
-    private List<Path> getConfigurationFiles() throws Exception {
-        List<Path> confFiles = new ArrayList<>();
+    protected List<Path> getConfigurationFiles() throws Exception {
+        return excludeMetadataAndDirs(Files.walk(path));
+    }
 
-        File files = Paths.get(path.toString(), "files").toFile();
-
-        if (files.exists() && files.isFile()) {
-            FileUtils.readLines(files, StandardCharsets.UTF_8).forEach(f -> confFiles.add(Paths.get(f)));
-        } else {
-            throw new CodedException(X_MALFORMED_GLOBALCONF, "File 'files' is missing");
-        }
-
-        return confFiles;
+    private List<Path> excludeMetadataAndDirs(Stream<Path> stream) {
+        return stream.filter(Files::isRegularFile)
+                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.FILES))
+                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE))
+                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.METADATA_SUFFIX))
+                .collect(Collectors.toList());
     }
 
     /**

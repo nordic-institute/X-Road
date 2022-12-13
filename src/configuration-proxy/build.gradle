@@ -30,7 +30,6 @@ shadowJar {
 
 jar.enabled = false
 build.dependsOn shadowJar
-buildall.dependsOn shadowJar
 
 task runConfigurationProxyMain(type: JavaExec) {
     jvmArgs '-Dxroad.conf.path=src/test/resources/',

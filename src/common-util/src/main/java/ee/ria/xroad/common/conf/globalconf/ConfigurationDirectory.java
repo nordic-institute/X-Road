@@ -46,6 +46,7 @@ import java.util.Set;
  * Configuration directory interface.
  */
 public interface ConfigurationDirectory {
+    String FILES = "files";
     String METADATA_SUFFIX = ".metadata";
     String INSTANCE_IDENTIFIER_FILE = "instance-identifier";
 

@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.71 
+Version: 2.72 
 Doc. ID: UG-SS
 
 ---
@@ -104,6 +104,7 @@ Doc. ID: UG-SS
  13.04.2022 | 2.69   | Updated max loggable body size parameter name to correct one                                                                                                                                                                                                                                                                                                                                                | Raido Kaju
  03.05.2022 | 2.70   | Minor updates to system services                                                                                                                                                                                                                                                                                                                                                                            | Petteri Kivimäki
  17.05.2022 | 2.71   | Updates to Diagnostics section, minor updates to backup encryption, message log database encryption and archive encryption and grouping                                                                                                                                                                                                                                                                     | Petteri Kivimäki
+ 13.07.2022 | 2.72   | Updated chapter [21](#21-adding-command-line-arguments) and added `XROAD_MESSAGELOG_ARCHIVER_PARAMS` argument                                                                                                                                                                                                                                                                                               | Petteri Kivimäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -2896,18 +2897,19 @@ Example of `/etc/xroad/services/local.properties` with modifications that overri
 XROAD_PROXY_PARAMS=-Xms150m -Xmx1024m
 ```
 
-All possible properties to adjust in this file are
+All possible properties to adjust in this file are:
 ```
 XROAD_SIGNER_PARAMS
 XROAD_ADDON_PARAMS
-XROAD_CONFCLIENT_PARAM
-XROAD_CONFPROXY_PARAM
+XROAD_CONFCLIENT_PARAMS
+XROAD_CONFPROXY_PARAMS
 XROAD_JETTY_PARAMS
-XROAD_MONITOR_PARAM
-XROAD_OPMON_PARAM
-XROAD_PROXY_PARAM
-XROAD_PROXY_UI_API_PARAM
-XROAD_SIGNER_CONSOLE_PARAM
+XROAD_MESSAGELOG_ARCHIVER_PARAMS
+XROAD_MONITOR_PARAMS
+XROAD_OPMON_PARAMS
+XROAD_PROXY_PARAMS
+XROAD_PROXY_UI_API_PARAMS
+XROAD_SIGNER_CONSOLE_PARAMS
 ```
 
 ## 22 Additional Security Hardening
