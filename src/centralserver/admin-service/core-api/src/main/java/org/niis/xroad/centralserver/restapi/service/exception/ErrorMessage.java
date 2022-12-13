@@ -66,7 +66,15 @@ public enum ErrorMessage {
     INTERMEDIATE_CA_NOT_FOUND("Intermediate CA not found"),
     TIMESTAMPING_AUTHORITY_NOT_FOUND("Timestamping authority not found"),
     OCSP_RESPONDER_NOT_FOUND("OCSP Responder not found"),
-    INVALID_URL("Invalid url");
+    INVALID_URL("Invalid url"),
+    TOKEN_NOT_FOUND("Token not found"),
+    TOKEN_ACTIVATION_FAILED("Token activation failed"),
+    TOKEN_DEACTIVATION_FAILED("Token deactivation failed"),
+    TOKEN_PIN_LOCKED("Token PIN locked"),
+    TOKEN_PIN_FINAL_TRY("Tries left: 1"),
+    SIGNER_PROXY_ERROR("Signer proxy exception"),
+    TOKEN_INCORRECT_PIN_FORMAT("Incorrect PIN format"),
+    TOKEN_ACTION_NOT_POSSIBLE("Token action not possible");
 
     @Getter
     final String description;
