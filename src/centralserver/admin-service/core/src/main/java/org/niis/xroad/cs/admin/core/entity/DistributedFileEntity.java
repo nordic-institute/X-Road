@@ -90,6 +90,12 @@ public class DistributedFileEntity {
         //JPA
     }
 
+    public DistributedFileEntity(int version, String fileName, String contentIdentifier, Instant fileUpdatedAt) {
+        this.version = version;
+        this.fileName = fileName;
+        this.contentIdentifier = contentIdentifier;
+        this.fileUpdatedAt = fileUpdatedAt;
+    }
 }
 
 
