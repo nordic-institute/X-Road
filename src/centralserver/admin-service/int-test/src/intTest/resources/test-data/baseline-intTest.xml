@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd"
-                   logicalFilePath="centerui/003-apikeys.xml">
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
     <changeSet id="apikey-testdata" author="ricardas">
         <comment>Add default apiKey which can be used for scenarios which do not case about permissions.
@@ -18,7 +17,8 @@
                 (id, apikey_id, role)
             VALUES (1000001, 1, 'XROAD_SYSTEM_ADMINISTRATOR'),
                    (1000002, 1, 'XROAD_SECURITY_OFFICER'),
-                   (1000003, 1, 'XROAD_REGISTRATION_OFFICER');
+                   (1000003, 1, 'XROAD_REGISTRATION_OFFICER'),
+                   (1000004, 1, 'XROAD_MANAGEMENT_SERVICE');
             ALTER SEQUENCE apikey_roles_id_seq RESTART WITH 1001000;
 
         </sql>
@@ -43,6 +43,14 @@
             (version, file_name, file_data, content_identifier, file_updated_at, ha_node_name)
             VALUES (2, 'file.xml', null, 'SHARED-ID', '2022-01-01 01:00:00.000000', 'node_0');
 
+        </sql>
+    </changeSet>
+
+    <changeSet id="security-server-owners-global-group" author="justass">
+        <comment>Create security-server-owners global group.</comment>
+        <sql>
+            INSERT INTO global_groups(group_code, description, created_at, updated_at)
+            VALUES ('security-server-owners','Security server owners', now(), now());
         </sql>
     </changeSet>
 </databaseChangeLog>

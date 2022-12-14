@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,22 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
+
+package org.niis.xroad.cs.admin.jpa.repository;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import lombok.Getter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
+import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
+import org.niis.xroad.cs.admin.core.repository.OwnerChangeRequestRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
-@Getter
-public class AuthenticationCertificateDeletionRequestDto extends ManagementRequestDto {
-    private final byte[] authCert;
+import java.util.List;
+import java.util.Set;
 
-    public AuthenticationCertificateDeletionRequestDto(Integer id, Origin origin,
-                                                       SecurityServerId serverId, ManagementRequestStatus status, byte[] authCert) {
-        super(id, ManagementRequestType.AUTH_CERT_DELETION_REQUEST, origin, serverId, status);
-        this.authCert = authCert;
-    }
+@Repository
+public interface JpaOwnerChangeRequestRepository extends JpaRepository<OwnerChangeRequestEntity, Integer>, OwnerChangeRequestRepository {
+
+    @Query("SELECT r FROM #{#entityName} r JOIN r.requestProcessing p "
+            + "WHERE p.status IN :status "
+            + "AND r.securityServerId = :serverId ")
+    List<OwnerChangeRequestEntity> findBy(SecurityServerId serverId, Set<ManagementRequestStatus> status);
+
 }

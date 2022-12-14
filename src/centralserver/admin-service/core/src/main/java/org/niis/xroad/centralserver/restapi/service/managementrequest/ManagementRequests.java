@@ -26,80 +26,13 @@
  */
 package org.niis.xroad.centralserver.restapi.service.managementrequest;
 
-import org.niis.xroad.centralserver.restapi.dto.AuthenticationCertificateDeletionRequestDto;
-import org.niis.xroad.centralserver.restapi.dto.AuthenticationCertificateRegistrationRequestDto;
-import org.niis.xroad.centralserver.restapi.dto.ClientDeletionRequestDto;
-import org.niis.xroad.centralserver.restapi.dto.ClientRegistrationRequestDto;
-import org.niis.xroad.centralserver.restapi.dto.ManagementRequestDto;
-import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
-import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
-import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
-import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
-import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ManagementRequestViewEntity;
-import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 
 final class ManagementRequests {
 
     private ManagementRequests() {
         //Utility class
-    }
-
-    static ManagementRequestDto asDto(RequestEntity request) {
-        if (request instanceof AuthenticationCertificateRegistrationRequestEntity) {
-            var req = (AuthenticationCertificateRegistrationRequestEntity) request;
-            return new AuthenticationCertificateRegistrationRequestDto(
-                    req.getId(),
-                    req.getOrigin(),
-                    req.getSecurityServerId(),
-                    req.getProcessingStatus(),
-                    req.getAuthCert(),
-                    req.getAddress());
-        }
-
-        if (request instanceof AuthenticationCertificateDeletionRequestEntity) {
-            var req = (AuthenticationCertificateDeletionRequestEntity) request;
-            return new AuthenticationCertificateDeletionRequestDto(
-                    req.getId(),
-                    req.getOrigin(),
-                    req.getSecurityServerId(),
-                    req.getProcessingStatus(),
-                    req.getAuthCert());
-        }
-
-        if (request instanceof ClientRegistrationRequestEntity) {
-            var req = (ClientRegistrationRequestEntity) request;
-            return new ClientRegistrationRequestDto(
-                    req.getId(),
-                    req.getOrigin(),
-                    req.getSecurityServerId(),
-                    req.getProcessingStatus(),
-                    req.getClientId());
-        }
-
-        if (request instanceof ClientDeletionRequestEntity) {
-            var req = (ClientDeletionRequestEntity) request;
-            return new ClientDeletionRequestDto(
-                    req.getId(),
-                    req.getOrigin(),
-                    req.getSecurityServerId(),
-                    req.getProcessingStatus(),
-                    req.getClientId());
-        }
-
-        throw new IllegalArgumentException("Unknown request type");
-    }
-
-    static ManagementRequestInfoDto asInfoDto(Request req) {
-        return new ManagementRequestInfoDto(
-                req.getId(),
-                req.getManagementRequestType(),
-                req.getOrigin(),
-                null, //TODO should be a separate DTO. This field is not needed in this UC
-                req.getSecurityServerId(),
-                req.getProcessingStatus(),
-                req.getCreatedAt());
     }
 
     static ManagementRequestInfoDto asInfoDto(final ManagementRequestViewEntity managementRequestView) {

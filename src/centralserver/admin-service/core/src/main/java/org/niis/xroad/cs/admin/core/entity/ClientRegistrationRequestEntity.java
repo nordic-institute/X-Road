@@ -50,7 +50,7 @@ import static org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntit
 public class ClientRegistrationRequestEntity extends RequestWithProcessingEntity {
     public static final String DISCRIMINATOR_VALUE = "ClientRegRequest";
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sec_serv_user_id")
     @Access(AccessType.FIELD)
     @Getter

@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,20 +24,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.entity.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
-import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+package org.niis.xroad.cs.admin.core.repository;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface SecurityServerIdMapper extends GenericBiDirectionalMapper<SecurityServerIdEntity, SecurityServerId> {
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
-    @Override
-    default SecurityServerIdEntity fromTarget(SecurityServerId source) {
-        return SecurityServerIdEntity.create(source);
-    }
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
+
+import java.util.List;
+import java.util.Set;
+
+public interface OwnerChangeRequestRepository extends RequestRepository<OwnerChangeRequestEntity> {
+
+    List<OwnerChangeRequestEntity> findBy(SecurityServerId serverId, Set<ManagementRequestStatus> status);
 
 }

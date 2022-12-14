@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,30 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+package org.niis.xroad.cs.test.api;
 
-import lombok.Getter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
+import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.centralserver.openapi.ManagementRequestsApi;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestsFilterDto;
+import org.niis.xroad.centralserver.openapi.model.PagedManagementRequestsDto;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 
-@Getter
-public class AuthenticationCertificateRegistrationRequestDto extends ManagementRequestDto {
-    private final byte[] authCert;
-    private final String address;
+@FeignClient(name = "managementRequestsApi", path = "/api/v1")
+public interface FeignManagementRequestsApi extends ManagementRequestsApi {
 
-    public AuthenticationCertificateRegistrationRequestDto(Integer id, Origin origin, SecurityServerId serverId,
-                                                           ManagementRequestStatus status, byte[] authCert,
-                                                           String address) {
-        super(id, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST, origin, serverId, status);
-        this.authCert = authCert;
-        this.address = address;
-    }
-
-    public AuthenticationCertificateRegistrationRequestDto(Origin origin, SecurityServerId serverId,
-                                                           byte[] authCert, String address) {
-        this(null, origin, serverId, null, authCert, address);
+    @Override
+    default ResponseEntity<PagedManagementRequestsDto> findManagementRequests(ManagementRequestsFilterDto filter,
+                                                                              PagingSortingParametersDto pagingSorting) {
+        // Feign can't generate due to "Method has too many Body parameters"
+        throw new NotImplementedException();
     }
 }

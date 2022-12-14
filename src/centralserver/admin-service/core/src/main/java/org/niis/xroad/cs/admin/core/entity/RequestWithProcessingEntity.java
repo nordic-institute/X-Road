@@ -45,7 +45,7 @@ import javax.validation.constraints.NotNull;
 @Entity
 public abstract class RequestWithProcessingEntity extends RequestEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST})
     @JoinColumn(name = "request_processing_id", updatable = false, nullable = false)
     @Access(AccessType.FIELD)
     @NotNull

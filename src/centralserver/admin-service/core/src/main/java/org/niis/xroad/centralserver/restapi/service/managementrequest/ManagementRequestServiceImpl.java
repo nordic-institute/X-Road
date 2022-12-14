@@ -30,6 +30,7 @@ import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
@@ -76,6 +77,13 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     public Optional<Request> getRequest(int id) {
         return requests.findById(id)
                 .map(requestMapper::toTarget);
+    }
+
+    @Override
+    public ManagementRequestType getRequestType(int id) {
+        return requests.findById(id)
+                .map(RequestEntity::getManagementRequestType)
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND));
     }
 
     /**

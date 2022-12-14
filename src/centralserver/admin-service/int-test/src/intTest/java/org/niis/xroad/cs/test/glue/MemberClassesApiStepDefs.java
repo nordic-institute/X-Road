@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,20 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.entity.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
-import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+package org.niis.xroad.cs.test.glue;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface SecurityServerIdMapper extends GenericBiDirectionalMapper<SecurityServerIdEntity, SecurityServerId> {
+import io.cucumber.java.en.Step;
+import org.niis.xroad.centralserver.openapi.model.MemberClassDto;
+import org.niis.xroad.cs.test.api.FeignMemberClassesApi;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 
-    @Override
-    default SecurityServerIdEntity fromTarget(SecurityServerId source) {
-        return SecurityServerIdEntity.create(source);
+import static org.springframework.http.HttpStatus.OK;
+
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+public class MemberClassesApiStepDefs extends BaseStepDefs {
+
+    @Autowired
+    private FeignMemberClassesApi memberClassesApi;
+
+    @Step("member class {string} is created")
+    public void memberClassIsCreated(String memberClassCode) {
+        final MemberClassDto dto = new MemberClassDto()
+                .code(memberClassCode)
+                .description("Description for member class " + memberClassCode);
+
+        final ResponseEntity<MemberClassDto> response = memberClassesApi.addMemberClass(dto);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
     }
 
 }

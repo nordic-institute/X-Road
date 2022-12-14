@@ -36,8 +36,8 @@ import java.util.List;
 
 @Repository
 public interface JpaIdentifierRepository<T extends XRoadIdEntity> extends
-        JpaRepository<T, Long>,
-        JpaFindOrCreateAwareRepository<T, Long>,
+        JpaRepository<T, Integer>,
+        JpaFindOrCreateAwareRepository<T, Integer>,
         IdentifierRepository<T> {
 
     @Override

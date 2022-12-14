@@ -4820,6 +4820,7 @@ components:
           AUTH_CERT_DELETION_REQUEST: "AuthenticationCertificateDeletionRequest"
           CLIENT_REGISTRATION_REQUEST: "ClientRegistrationRequest"
           CLIENT_DELETION_REQUEST: "ClientDeletionRequest"
+          OWNER_CHANGE_REQUEST: "OwnerChangeRequest"
       properties:
         id:
           type: integer
@@ -4989,7 +4990,7 @@ components:
           format: byte
       required:
         - serverAddress
-        - authencationCertificate
+        - authenticationCertificate
     AuthenticationCertificateDeletionRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
@@ -4999,7 +5000,7 @@ components:
           type: string
           format: byte
       required:
-        - authencationCertificate
+        - authenticationCertificate
     ClientRegistrationRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
@@ -5010,6 +5011,15 @@ components:
       required:
         - clientId
     ClientDeletionRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        clientId:
+          $ref: '#/components/schemas/ClientId'
+      required:
+        - clientId
+    OwnerChangeRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
       type: object

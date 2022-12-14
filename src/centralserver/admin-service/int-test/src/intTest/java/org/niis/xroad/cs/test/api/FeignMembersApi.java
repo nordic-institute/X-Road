@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,28 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
+package org.niis.xroad.cs.test.api;
 
-import lombok.Getter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
+import org.niis.xroad.centralserver.openapi.MembersApi;
+import org.springframework.cloud.openfeign.FeignClient;
 
-@Getter
-public class ClientDeletionRequestDto extends ManagementRequestDto {
-    private final ClientId clientId;
-
-    public ClientDeletionRequestDto(Integer id, Origin origin,
-                                    SecurityServerId serverId, ManagementRequestStatus status, ClientId clientId) {
-        super(id, ManagementRequestType.CLIENT_DELETION_REQUEST, origin, serverId, status);
-        this.clientId = clientId;
-    }
-
-    public ClientDeletionRequestDto(Origin origin, SecurityServerId serverId, ClientId clientId) {
-        super(null, ManagementRequestType.CLIENT_DELETION_REQUEST, origin, serverId, null);
-        this.clientId = clientId;
-    }
+@FeignClient(name = "membersApi", path = "/api/v1")
+public interface FeignMembersApi extends MembersApi {
 }

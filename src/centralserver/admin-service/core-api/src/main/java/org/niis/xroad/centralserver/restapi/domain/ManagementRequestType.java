@@ -26,9 +26,6 @@
  */
 package org.niis.xroad.centralserver.restapi.domain;
 
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
 public enum ManagementRequestType {
     AUTH_CERT_REGISTRATION_REQUEST,
     CLIENT_REGISTRATION_REQUEST,

@@ -29,7 +29,7 @@ package org.niis.xroad.cs.admin.core.repository;
 import org.niis.xroad.cs.admin.core.entity.XRoadIdEntity;
 
 public interface IdentifierRepository<T extends XRoadIdEntity> extends
-        GenericRepository<T, Long>,
-        FindOrCreateAwareRepository<T, Long> {
+        GenericRepository<T, Integer>,
+        FindOrCreateAwareRepository<T, Integer> {
 
 }
