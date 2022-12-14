@@ -47,6 +47,7 @@
     </changeSet>
 
     <changeSet id="security-server-owners-global-group" author="justass">
+        <comment>Create security-server-owners global group.</comment>
         <sql>
             INSERT INTO global_groups(group_code, description, created_at, updated_at)
             VALUES ('security-server-owners','Security server owners', now(), now());
