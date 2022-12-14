@@ -3766,7 +3766,7 @@ components:
       properties:
         content_identifier:
           $ref: '#/components/schemas/ConfigurationPartContentIdentifier'
-        filename:
+        fileName:
           example: shared-params.xml
           format: filename
           maxLength: 255
@@ -3788,7 +3788,7 @@ components:
           example: 3
           format: text
           minLength: 1
-          type: string
+          type: integer
       required:
         - content_identifier
         - filename

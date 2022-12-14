@@ -70,7 +70,8 @@ public enum ErrorMessage {
     INTERMEDIATE_CA_NOT_FOUND("Intermediate CA not found"),
     TIMESTAMPING_AUTHORITY_NOT_FOUND("Timestamping authority not found"),
     OCSP_RESPONDER_NOT_FOUND("OCSP Responder not found"),
-    INVALID_URL("Invalid url");
+    INVALID_URL("Invalid url"),
+    CONFIGURATION_NOT_FOUND("Configuration Source not found");
 
     @Getter
     final String description;
