@@ -30,9 +30,14 @@ package org.niis.xroad.cs.admin.api.service;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
 
+import java.util.Set;
+
 public interface TokensService {
+
     TokenInfo login(TokenLoginRequest tokenLoginRequest);
 
     TokenInfo logout(String tokenId);
+
+    Set<TokenInfo> getTokens();
 
 }

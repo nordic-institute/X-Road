@@ -28,7 +28,6 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.TokensApi;
 import org.niis.xroad.centralserver.openapi.model.TokenDto;
 import org.niis.xroad.centralserver.openapi.model.TokenPasswordDto;
@@ -44,6 +43,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.LOGIN_TOKEN;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.LOGOUT_TOKEN;
@@ -59,8 +59,12 @@ public class TokensApiController implements TokensApi {
     private final TokenMapper tokenMapper;
 
     @Override
+    @PreAuthorize(
+            "hasAuthority('VIEW_INTERNAL_CONFIGURATION_SOURCE') or hasAuthority('VIEW_EXTERNAL_CONFIGURATION_SOURCE')"
+    )
     public ResponseEntity<Set<TokenDto>> getTokens() {
-        throw new NotImplementedException("getTokens not implemented yet.");
+        Set<TokenInfo> tokens = tokensService.getTokens();
+        return ok(tokens.stream().map(tokenMapper::toTarget).collect(Collectors.toSet()));
     }
 
     @Override

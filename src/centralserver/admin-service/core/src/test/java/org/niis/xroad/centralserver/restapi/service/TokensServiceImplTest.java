@@ -50,6 +50,7 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
@@ -85,6 +86,27 @@ class TokensServiceImplTest {
 
     @InjectMocks
     private TokensServiceImpl tokensService;
+
+    @Test
+    void getTokens() throws Exception {
+        ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo(OK);
+        when(signerProxyFacade.getTokens()).thenReturn(List.of(signerTokenInfo));
+        when(tokenInfoMapper.toTarget(signerTokenInfo)).thenReturn(tokenInfo);
+
+        Set<TokenInfo> result = tokensService.getTokens();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.iterator().next()).isEqualTo(tokenInfo);
+    }
+
+    @Test
+    void getTokensShouldThrowException() throws Exception {
+        doThrow(new Exception()).when(signerProxyFacade).getTokens();
+
+        assertThatThrownBy(() ->  tokensService.getTokens())
+                .isInstanceOf(SignerProxyException.class)
+                .hasMessage("Error getting tokens");
+    }
 
     @Test
     void loginShouldThrowWhenTokenNotFound() throws Exception {
