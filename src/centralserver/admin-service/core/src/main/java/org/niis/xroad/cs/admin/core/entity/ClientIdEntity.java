@@ -56,7 +56,6 @@ public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xro
         return ee.ria.xroad.common.identifier.ClientId.hashCode(this);
     }
 
-    @SuppressWarnings("checkstyle:MissingSwitchDefault")
     public static ClientIdEntity ensure(ee.ria.xroad.common.identifier.ClientId identifier) {
         return Optional.of(identifier)
                 .filter(ClientIdEntity.class::isInstance)

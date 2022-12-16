@@ -15,7 +15,6 @@ sourceSets {
         java.srcDirs = [
             'src/main/java',
             "${buildDir}/generated-sources/openapi/src/main/java",
-            "${buildDir}/generated/sources/annotationProcessor/java/main"
         ]
     }
 }

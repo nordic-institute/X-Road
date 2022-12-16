@@ -26,3 +26,12 @@ dependencies {
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
 }
+
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java',
+            "${buildDir}/generated/sources/annotationProcessor/java/main"
+        ]
+    }
+}

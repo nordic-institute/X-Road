@@ -1,6 +1,5 @@
 /**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,28 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
+package org.niis.xroad.cs.admin.jpa.repository;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
+import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import lombok.Getter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
+import java.util.Set;
 
-@Getter
-public class ClientDeletionRequestDto extends ManagementRequestDto {
-    private final ClientId clientId;
-
-    public ClientDeletionRequestDto(Integer id, Origin origin,
-                                    SecurityServerId serverId, ManagementRequestStatus status, ClientId clientId) {
-        super(id, ManagementRequestType.CLIENT_DELETION_REQUEST, origin, serverId, status);
-        this.clientId = clientId;
-    }
-
-    public ClientDeletionRequestDto(Origin origin, SecurityServerId serverId, ClientId clientId) {
-        super(null, ManagementRequestType.CLIENT_DELETION_REQUEST, origin, serverId, null);
-        this.clientId = clientId;
-    }
+@Repository
+public interface JpaDistributedFileRepository extends JpaRepository<DistributedFileEntity, Integer>, DistributedFileRepository {
+    
+    Set<DistributedFileEntity> findAllByHaNodeName(String haNodeName);
 }

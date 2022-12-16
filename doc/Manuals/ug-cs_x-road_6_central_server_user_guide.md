@@ -791,7 +791,7 @@ Access rights: Registration Officer
 The actions required to change a security server's owner depend on whether automatic approval of security server owner change requests is enabled or disabled (_default_).
 
 When automatic approval of security server owner change requests is enabled, the following action must be taken:
-- A security server owner chang request must be sent from the security server to the central server by the security server administrator.
+- A security server owner change request must be sent from the security server to the central server by the security server administrator.
 
 Automatic approval of security server owner change requests is disabled by default. In that case, to change the owner of a security server, the following actions must be taken.
 - A security server owner change request must be sent from the security server to the central server by the security server administrator;

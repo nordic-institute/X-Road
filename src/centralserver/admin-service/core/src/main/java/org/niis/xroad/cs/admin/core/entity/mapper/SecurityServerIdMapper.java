@@ -34,4 +34,10 @@ import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface SecurityServerIdMapper extends GenericBiDirectionalMapper<SecurityServerIdEntity, SecurityServerId> {
+
+    @Override
+    default SecurityServerIdEntity fromTarget(SecurityServerId source) {
+        return SecurityServerIdEntity.create(source);
+    }
+
 }

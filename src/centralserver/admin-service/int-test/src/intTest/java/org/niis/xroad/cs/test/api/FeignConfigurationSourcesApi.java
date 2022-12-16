@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,22 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
+package org.niis.xroad.cs.test.api;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import org.niis.xroad.centralserver.openapi.ConfigurationSourcesApi;
+import org.springframework.cloud.openfeign.FeignClient;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
-
-@Getter
-@RequiredArgsConstructor
-public abstract class ManagementRequestDto {
-    private final Integer id;
-    private final ManagementRequestType type;
-    private final Origin origin;
-    private final SecurityServerId serverId;
-    private final ManagementRequestStatus status;
+@FeignClient(name = "configurationSourcesApi", path = "/api/v1")
+public interface FeignConfigurationSourcesApi extends ConfigurationSourcesApi {
 }
