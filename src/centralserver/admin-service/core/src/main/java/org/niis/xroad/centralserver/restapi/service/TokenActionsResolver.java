@@ -35,29 +35,35 @@ import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
 
+import static java.util.EnumSet.noneOf;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_ACTION_NOT_POSSIBLE;
+import static org.niis.xroad.cs.admin.api.dto.PossibleAction.CHANGE_PIN;
+import static org.niis.xroad.cs.admin.api.dto.PossibleAction.EDIT_FRIENDLY_NAME;
+import static org.niis.xroad.cs.admin.api.dto.PossibleAction.GENERATE_KEY;
+import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGIN;
+import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGOUT;
 
 @Component
 public class TokenActionsResolver {
 
     public EnumSet<PossibleAction> resolveActions(TokenInfo tokenInfo) {
-        EnumSet<PossibleAction> actions = EnumSet.noneOf(PossibleAction.class);
+        EnumSet<PossibleAction> actions = noneOf(PossibleAction.class);
 
         if (tokenInfo.isActive()) {
-            actions.add(PossibleAction.GENERATE_KEY);
+            actions.add(GENERATE_KEY);
         }
 
         if (tokenInfo.isActive()) {
-            actions.add(PossibleAction.LOGOUT);
-            actions.add(PossibleAction.CHANGE_PIN);
+            actions.add(LOGOUT);
+            actions.add(CHANGE_PIN);
         } else {
             if (tokenInfo.isAvailable()) {
-                actions.add(PossibleAction.LOGIN);
+                actions.add(LOGIN);
             }
         }
 
         if (tokenInfo.isSavedToConfiguration()) {
-            actions.add(PossibleAction.EDIT_FRIENDLY_NAME);
+            actions.add(EDIT_FRIENDLY_NAME);
         }
 
         return actions;
