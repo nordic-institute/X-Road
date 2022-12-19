@@ -13,7 +13,7 @@ Feature: CS: Trust Services: Timestamping Services
     Then Timestamping service with URL http://e2e-test-timestamping-service1.com is visible in the Timestamping Services list
 
   Scenario: Timestamping services list is correctly shown
-    When Timestamping service table is visible
+    When Timestamping service table with columns Url, Timestamping interval, Cost is visible
     And Timestamping service with URL http://e2e-test-timestamping-service2.com is added
     Then user is able to sort the table by column 1
     And user is able to sort the table by column 2

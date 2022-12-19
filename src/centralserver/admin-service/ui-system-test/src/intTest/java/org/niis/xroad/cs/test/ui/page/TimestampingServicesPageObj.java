@@ -44,13 +44,22 @@ public class TimestampingServicesPageObj {
         return $x("//div[@data-test='timestamping-services-table']//table");
     }
 
+    public SelenideElement tableWithHeaders(String url, String interval, String cost) {
+        var xpath = "./thead//tr[th/span[contains(text(), '%s')] and th/span[contains(text(), '%s')] and th/span[contains(text(), '%s')]]";
+        return table().find(xpath(String.format(xpath, url, interval, cost)));
+    }
+
     public SelenideElement tableServicesRowOf(String url) {
         var xpath = "./tbody/tr/td[contains(text(), '%s')]";
         return table().find(xpath(String.format(xpath, url)));
     }
 
-    public SelenideElement loadingProgress() {
+    public SelenideElement tableLoading() {
         return $x("//tr[@class='v-data-table__progress']");
+    }
+
+    public SelenideElement buttonLoading() {
+        return $x("//span[@class='v-btn__loader']");
     }
 
     public SelenideElement tableServicesCol(int colIndex) {

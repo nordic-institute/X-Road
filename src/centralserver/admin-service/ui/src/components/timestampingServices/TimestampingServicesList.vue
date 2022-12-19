@@ -257,7 +257,6 @@ export default Vue.extend({
           this.showSuccess(this.$t('trustServices.trustService.timestampingService.delete.success'));
           this.confirmDelete = false;
           this.deletingTimestampingService = false;
-          this.fetchTimestampingServices();
         })
         .catch((error) => {
           this.showError(error);

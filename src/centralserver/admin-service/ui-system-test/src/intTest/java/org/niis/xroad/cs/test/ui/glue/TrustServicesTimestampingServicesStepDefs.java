@@ -33,11 +33,15 @@ import io.cucumber.java.en.Step;
 import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.page.TimestampingServicesPageObj;
 import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
-import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.remote.Command;
+import org.openqa.selenium.remote.CommandExecutor;
+import org.openqa.selenium.remote.Response;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
-import java.time.Duration;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.visible;
@@ -46,7 +50,6 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
 
     private final TimestampingServicesPageObj timestampingServicesPageObj = new TimestampingServicesPageObj();
 
-    @SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MethodParamPad"})
     @Step("Timestamping service with URL {} is added")
     public void newTimestampingServiceIsAdded(String url) throws Exception {
         timestampingServicesPageObj.btnAddTimestampingService().click();
@@ -60,43 +63,15 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         timestampingServicesPageObj.addEditDialog.inputUrl().setValue(url);
 
         commonPageObj.dialog.btnSave().click();
-
-        // 1. try
-        //WebDriverWait wait = new WebDriverWait(Selenide.webdriver().driver().getWebDriver(), Duration.ofMillis(5000));
-        //wait.pollingEvery(Duration.ofMillis(5)).until(ExpectedConditions.visibilityOf(timestampingServicesPageObj.loadingProgress()));
-
-        // 2. try
-        FluentWait wait = new FluentWait(Selenide.webdriver().driver().getWebDriver());
-        wait.withTimeout(Duration.ofMillis(5000));
-        wait.pollingEvery(Duration.ofMillis(250));
-        wait.ignoring(NoSuchElementException.class);
-        wait.ignoring(java.util.NoSuchElementException.class);
-        wait.until(ExpectedConditions.visibilityOf(timestampingServicesPageObj.loadingProgress()));
-
-        // 0. simple try
-        //timestampingServicesPageObj.loadingProgress().should(appear);
+        timestampingServicesPageObj.buttonLoading().should(appear);
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
-
-
-
-
-
-    }
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    private void waitForLoading() throws InterruptedException {
-        int count = 0;
-        while (timestampingServicesPageObj.loadingProgress().isDisplayed()  && count < 1) {
-            Thread.sleep(1000);
-            count++;
-        }
     }
 
     @Step("Loading check")
     public void loadingCheck() {
-        timestampingServicesPageObj.loadingProgress().should(appear);
+        timestampingServicesPageObj.tableLoading().should(appear);
     }
 
     @Step("Timestamping service with URL {} is visible in the Timestamping Services list")
@@ -114,9 +89,9 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         Assertions.assertEquals("descending", column.getAttribute("aria-sort"));
     }
 
-    @Step("Timestamping service table is visible")
-    public void timestampingServiceTableIsVisible() {
-        timestampingServicesPageObj.table().shouldBe(Condition.enabled);
+    @Step("Timestamping service table with columns {}, {}, {} is visible")
+    public void timestampingServiceTableIsVisible(String url, String interval, String cost) {
+        timestampingServicesPageObj.tableWithHeaders(url, interval, cost).shouldBe(Condition.enabled);
     }
 
     @Step("User is able to view the certificate of Timestamping service with URL {}")
@@ -130,11 +105,29 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         timestampingServicesPageObj.btnEditTimestampingService(url).click();
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     @Step("User is able view the certificate of Timestamping service")
-    public void userIsAbleViewTheCertificate() {
+    public void userIsAbleViewTheCertificate() throws IOException {
         timestampingServicesPageObj.addEditDialog.btnViewCertificate().click();
         timestampingServicesPageObj.certificateView.certificateDetails().shouldBe(visible);
+
+       //TODO right now Network throttling don't work
+        Map map = new HashMap();
+        map.put("offline", false);
+        map.put("latency", 5);
+        map.put("download_throughput",  1024);
+        map.put("upload_throughput",  1024);
+
+          var chromedriver = (ChromeDriver) Selenide.webdriver().object();
+           CommandExecutor executor = chromedriver.getCommandExecutor();
+
+           Response response = executor.execute(
+               new Command(chromedriver.getSessionId(), "setNetworkConnection",
+                      ImmutableMap.of("network_connection", ImmutableMap.copyOf(map)))
+        );
+
         timestampingServicesPageObj.certificateView.btnClose().click();
+        timestampingServicesPageObj.tableLoading().should(appear);
     }
 
     @Step("User is able change the certificate of Timestamping service with URL {}")
@@ -143,7 +136,9 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
 
         final byte[] certificate = CertificateUtils.generateAuthCert(url);
         timestampingServicesPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
+
         commonPageObj.dialog.btnSave().click();
+        timestampingServicesPageObj.buttonLoading().should(appear);
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
@@ -160,17 +155,21 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
 
         timestampingServicesPageObj.addEditDialog.inputUrl().setValue(newUrl);
         commonPageObj.dialog.btnSave().click();
+        timestampingServicesPageObj.buttonLoading().should(appear);
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     @Step("User is able to click delete button in Timestamping service with URL {}")
     public void userIsAbleToDeleteTimestampingService(String url) {
         timestampingServicesPageObj.btnDeleteTimestampingService(url).click();
 
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
+
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
+        timestampingServicesPageObj.buttonLoading().should(appear);
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
