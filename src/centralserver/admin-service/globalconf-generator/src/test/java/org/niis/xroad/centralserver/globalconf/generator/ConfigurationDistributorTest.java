@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.centralserver.globalconf.generator;
 
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -38,10 +37,11 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-
 public class ConfigurationDistributorTest {
 
     public static final int VERSION = 2;
+    public static final String CONF_DIRECTORY = "internalconf";
+
     public static final ConfigurationPart CONFIGURATION_PART1 = ConfigurationPart.builder()
             .contentIdentifier("CONTENT-ID1")
             .filename("config-file1.txt")
@@ -59,10 +59,10 @@ public class ConfigurationDistributorTest {
 
     @Test
     void testInitConfLocation() {
-        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir);
-
         var timestamp = Instant.parse("2022-12-08T07:55:01.411146000Z");
-        var path = configurationDistributor.initConfLocation(VERSION, timestamp);
+        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, timestamp);
+
+        var path = configurationDistributor.initConfLocation();
 
         assertThat(path)
                 .as("configuration folder")
@@ -74,8 +74,8 @@ public class ConfigurationDistributorTest {
 
     @Test
     void writeFiles() {
-        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir);
-        var confDir = configurationDistributor.initConfLocation(VERSION, Instant.now());
+        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, Instant.now());
+        var confDir = configurationDistributor.initConfLocation();
 
         configurationDistributor.writeConfigurationFiles(List.of(CONFIGURATION_PART1, CONFIGURATION_PART2));
 
@@ -89,11 +89,36 @@ public class ConfigurationDistributorTest {
 
     @Test
     void writeFilesBeforeInit_shouldThrow() {
-        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir);
+        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, Instant.now());
         // initConfLocation omitted
 
         assertThatThrownBy(() -> configurationDistributor.writeConfigurationFiles(List.of(CONFIGURATION_PART1)))
                 .isExactlyInstanceOf(RuntimeException.class)
                 .hasMessage("Config location not initialized.");
+    }
+
+    @Test
+    void writeDirectoryContent() {
+        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, Instant.now());
+        configurationDistributor.initConfLocation();
+
+        configurationDistributor.writeDirectoryContentFile(CONF_DIRECTORY, "data".getBytes(UTF_8));
+
+        assertThat(generatedConfDir.resolve(Path.of("V" + VERSION, CONF_DIRECTORY)))
+                .exists()
+                .content().isEqualTo("data");
+    }
+
+    @Test
+    void moveDirectoryContentFile() {
+        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, Instant.now());
+        configurationDistributor.initConfLocation();
+        configurationDistributor.writeDirectoryContentFile(CONF_DIRECTORY + ".tmp", "data".getBytes(UTF_8));
+
+        configurationDistributor.moveDirectoryContentFile(CONF_DIRECTORY + ".tmp", CONF_DIRECTORY);
+
+        assertThat(generatedConfDir.resolve(Path.of("V" + VERSION, CONF_DIRECTORY)))
+                .exists()
+                .content().isEqualTo("data");
     }
 }

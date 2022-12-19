@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
-import ee.ria.xroad.common.util.CryptoUtils;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.SystemParameter;
@@ -40,7 +38,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import javax.xml.crypto.dsig.DigestMethod;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -51,28 +48,19 @@ import java.util.Optional;
  */
 @Slf4j
 @Service
-@PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 @Transactional
 public class SystemParameterServiceImpl implements SystemParameterService {
 
     public static final String AUTH_CERT_REG_URL = "authCertRegUrl";
     public static final String DEFAULT_AUTH_CERT_REG_URL = "https://%{centralServerAddress}:4001/managementservice/";
-    public static final String CONF_HASH_ALGO_URI = "confHashAlgoUri";
-    public static final String DEFAULT_CONF_HASH_ALGO_URI = DigestMethod.SHA512;
-    public static final String CONF_SIGN_CERT_HASH_ALGO_URI = "confSignCertHashAlgoUri";
-    public static final String DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI = DigestMethod.SHA512;
     public static final String SECURITY_SERVER_OWNERS_GROUP = "securityServerOwnersGroup";
     public static final String DEFAULT_SECURITY_SERVER_OWNERS_GROUP = "security-server-owners";
     public static final String DEFAULT_SECURITY_SERVER_OWNERS_GROUP_DESC = "Security server owners";
-    public static final String CONF_SIGN_DIGEST_ALGO_ID = "confSignDigestAlgoId";
-    public static final String DEFAULT_CONF_SIGN_DIGEST_ALGO_ID = CryptoUtils.SHA512_ID;
     public static final String OCSP_FRESHNESS_SECONDS = "ocspFreshnessSeconds";
     public static final Integer DEFAULT_OCSP_FRESHNESS_SECONDS = 3600;
     public static final String TIME_STAMPING_INTERVAL_SECONDS = "timeStampingIntervalSeconds";
     public static final Integer DEFAULT_TIME_STAMPING_INTERVAL_SECONDS = 60;
-    public static final String CONF_EXPIRE_INTERVAL_SECONDS = "confExpireIntervalSeconds";
-    public static final Integer DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS = 600;
     private static final String[] NODE_LOCAL_PARAMETERS = {CENTRAL_SERVER_ADDRESS};
 
     private final SystemParameterRepository systemParameterRepository;
@@ -86,6 +74,7 @@ public class SystemParameterServiceImpl implements SystemParameterService {
         return valueInDb.map(SystemParameter::getValue).orElse(defaultValue);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Override
     public SystemParameter updateOrCreateParameter(String lookupKey, String updateValue) {
         Optional<SystemParameterEntity> systemParameter =

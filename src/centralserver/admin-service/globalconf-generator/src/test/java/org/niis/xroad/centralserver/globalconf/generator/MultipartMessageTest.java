@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.niis.xroad.centralserver.globalconf.generator.MultipartMessage.header;
 import static org.niis.xroad.centralserver.globalconf.generator.MultipartMessage.partBuilder;
+import static org.niis.xroad.centralserver.globalconf.generator.MultipartMessage.rawPart;
 
 class MultipartMessageTest {
 
@@ -59,6 +60,27 @@ class MultipartMessageTest {
                 .isEqualTo("Header: value\r\n" +
                         "\r\n" +
                         "content");
+    }
+
+    @Test
+    void partToString_noHeader() {
+        var part = partBuilder()
+                .content("content")
+                .build();
+        var partAsString = part.toString();
+
+        assertThat(partAsString)
+                .isEqualTo("\r\n" +
+                        "content");
+    }
+
+    @Test
+    void rawPartToString() {
+        var part = rawPart("content");
+        var partAsString = part.toString();
+
+        assertThat(partAsString)
+                .isEqualTo("content");
     }
 
     @Test

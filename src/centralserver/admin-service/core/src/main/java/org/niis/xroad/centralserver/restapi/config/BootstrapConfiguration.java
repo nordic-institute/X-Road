@@ -32,7 +32,8 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan(basePackages = {
         "org.niis.xroad.cs.admin",
         "org.niis.xroad.centralserver.restapi",
-        "org.niis.xroad.restapi"
+        "org.niis.xroad.restapi",
+        "org.niis.xroad.centralserver.globalconf.generator"
 })
 @Configuration
 public class BootstrapConfiguration {
