@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,42 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.cs.test.container;
 
-import com.nortal.test.testcontainers.TestContainerNetworkProvider;
-import com.nortal.test.testcontainers.TestContainerService;
-import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
-import lombok.extern.slf4j.Slf4j;
+import com.nortal.test.testcontainers.AbstractAuxiliaryContainer;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.containers.wait.strategy.Wait;
-
-@Slf4j
-@Primary
-@Service
-public class ExtTestContainerService extends TestContainerService {
+import org.mockserver.client.MockServerClient;
+import org.springframework.stereotype.Component;
+import org.testcontainers.containers.MockServerContainer;
+import org.testcontainers.utility.DockerImageName;
 
 
-    public ExtTestContainerService(@NotNull final TestContainerNetworkProvider testContainerNetworkProvider,
-                                   @NotNull final TestableContainerProperties testableContainerProperties) {
-        super(testContainerNetworkProvider, testableContainerProperties);
-    }
+@Component
+public class ExtMockServerContainer extends AbstractAuxiliaryContainer<MockServerContainer> {
 
+    private static final String DOCKER_IMAGE = "mockserver/mockserver";
+    private static final String NETWORK_ALIAS = "mock-server";
+
+    @NotNull
     @Override
-    protected void startContainer(@NotNull final GenericContainer<?> applicationContainer) {
-        //Adding additional wait condition. It's completely optional.
-        applicationContainer.waitingFor(Wait.forLogMessage(".*Started Main in.*", 1));
+    public MockServerContainer configure() {
+        final DockerImageName mockserverImage = DockerImageName
+                .parse(DOCKER_IMAGE)
+                .withTag("mockserver-" + MockServerClient.class.getPackage().getImplementationVersion());
 
-        super.startContainer(applicationContainer);
-
-        attachLogger(applicationContainer);
+        return new MockServerContainer(mockserverImage)
+                .withNetworkAliases(NETWORK_ALIAS);
     }
 
-    private void attachLogger(final GenericContainer<?> applicationContainer) {
-        Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(log).withSeparateOutputStreams();
-        applicationContainer.followOutput(logConsumer);
+    @NotNull
+    @Override
+    public String getConfigurationKey() {
+        return "mock-server";
     }
+
+    public String getEndpoint() {
+        return "http://" + NETWORK_ALIAS + ":" + MockServerContainer.PORT;
+    }
+
 }

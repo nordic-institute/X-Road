@@ -30,6 +30,7 @@ import com.nortal.test.asserts.ValidationHelper;
 import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
+import org.niis.xroad.cs.test.container.service.MockServerService;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,6 +48,8 @@ public abstract class BaseStepDefs {
     protected CucumberScenarioProvider cucumberScenarioProvider;
     @Autowired
     protected ValidationService validationService;
+    @Autowired
+    protected MockServerService mockServerService;
 
     protected Assertion equalsStatusCodeAssertion(HttpStatus expected) {
         return new Assertion.Builder()
