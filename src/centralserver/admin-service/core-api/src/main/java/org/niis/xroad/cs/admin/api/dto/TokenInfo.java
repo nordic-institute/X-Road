@@ -35,25 +35,15 @@ import java.util.EnumSet;
 public class TokenInfo {
 
     private String type;
-
     private String friendlyName;
-
     private String id;
-
     private boolean readOnly;
-
     private boolean available;
-
     private boolean active;
-
     private String serialNumber;
-
     private String label;
-
     private int slotIndex;
-
     private TokenStatus status;
-
     private EnumSet<PossibleAction> possibleActions;
 
 }
