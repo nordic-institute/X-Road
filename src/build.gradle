@@ -235,8 +235,8 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "ui"].contains(it.nam
 
     jar {
         from rootProject.file('LICENSE.txt')
+        duplicatesStrategy = DuplicatesStrategy.WARN
     }
-
 }
 
 clean.delete << "${rootDir}/packages/build"

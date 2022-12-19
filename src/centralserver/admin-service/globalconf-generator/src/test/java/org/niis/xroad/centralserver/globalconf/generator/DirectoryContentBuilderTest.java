@@ -26,11 +26,9 @@
  */
 package org.niis.xroad.centralserver.globalconf.generator;
 
-import ee.ria.xroad.common.util.HashCalculator;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.junit.jupiter.api.Test;
-
-import javax.xml.crypto.dsig.DigestMethod;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -42,9 +40,9 @@ public class DirectoryContentBuilderTest {
     public static final Pattern HEADER_PATTERN = Pattern.compile("^Content-Type: multipart/mixed; charset=UTF-8; boundary=(\\w+)\r\n.*", Pattern.DOTALL);
 
     @Test
-    void empty() {
+    void buildDirectoryContent() {
         var directoryContentBuilder = new DirectoryContentBuilder(
-                new HashCalculator(DigestMethod.SHA1),
+                CryptoUtils.SHA1_ID,
                 Instant.parse("2022-12-08T08:05:01.123Z"),
                 "/V2/some/path",
                 "CS-INSTANCE");
@@ -55,8 +53,6 @@ public class DirectoryContentBuilderTest {
                         .data("config-data".getBytes(StandardCharsets.UTF_8))
                         .build())
                 .build();
-
-
 
         var headerMatcher = HEADER_PATTERN.matcher(dirContent);
         assertThat(headerMatcher).as("Expecting header to match pattern").matches();

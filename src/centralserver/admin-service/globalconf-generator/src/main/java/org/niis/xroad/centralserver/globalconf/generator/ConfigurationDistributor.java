@@ -26,13 +26,14 @@
  */
 package org.niis.xroad.centralserver.globalconf.generator;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -40,28 +41,27 @@ import java.util.List;
 
 @Slf4j
 public class ConfigurationDistributor {
-
     public static final DateTimeFormatter DIRECTORY_TIMESTAMP_FORMATTER = DateTimeFormatter
             .ofPattern("uuuuMMddHHmmssnnnnnnnnn")
             .withZone(ZoneOffset.UTC);
 
-    final private Path generatedConfDir;
-    private Path configLocation;
+    private final Path generatedConfDir;
+    private final int version;
+    private final Instant timestamp;
 
-    public ConfigurationDistributor() {
-        this(Path.of(SystemProperties.getCenterGeneratedConfDir()));
-    }
+    private boolean initialized = false;
 
-    ConfigurationDistributor(Path generatedConfDir) {
+    ConfigurationDistributor(@NonNull Path generatedConfDir, int version, @NonNull Instant timestamp) {
         this.generatedConfDir = generatedConfDir;
+        this.version = version;
+        this.timestamp = timestamp;
     }
 
-
-    public Path initConfLocation(int version, Instant timestamp) {
+    public Path initConfLocation() {
         try {
-            configLocation = generatedConfDir.resolve(
-                    Path.of("V" + version, DIRECTORY_TIMESTAMP_FORMATTER.format(timestamp)));
+            var configLocation = getConfigLocationPath();
             Files.createDirectories(configLocation);
+            initialized = true;
             return configLocation;
         } catch (IOException e) {
             log.error("Failed to create config dir", e);
@@ -73,21 +73,52 @@ public class ConfigurationDistributor {
         configurationParts.forEach(this::writeConfigurationFile);
     }
 
+    public void writeDirectoryContentFile(String fileName, byte[] data) {
+        writeFile(getVersionSubPath().resolve(fileName), data);
+    }
+
+    @SneakyThrows
+    public void moveDirectoryContentFile(String source, String target) {
+        var versionPath = generatedConfDir.resolve(getVersionSubPath());
+        Files.move(versionPath.resolve(source), versionPath.resolve(target), StandardCopyOption.ATOMIC_MOVE);
+    }
+
     private void writeConfigurationFile(ConfigurationPart configurationPart) {
+        var fileSubPath = getConfigLocationPath().resolve(configurationPart.getFilename());
+        var data = configurationPart.getData();
+
+        writeFile(fileSubPath, data);
+    }
+
+
+    private void writeFile(Path fileSubPath, byte @NonNull [] data) {
+        checkInitialized();
+        var fileFullPath = generatedConfDir.resolve(fileSubPath);
         try {
-            Files.write(getConfigLocation().resolve(configurationPart.getFilename()), configurationPart.getData());
+            Files.write(fileFullPath, data);
         } catch (IOException e) {
-            log.error("Failed to write configuration part {}", configurationPart.getFilename(), e);
+            log.error("Failed to write file {}", fileFullPath, e);
             throw new RuntimeException(e);
         }
     }
 
-    private Path getConfigLocation() {
-        if (configLocation == null) {
-            throw new RuntimeException("Config location not initialized.");
-        }
-        return configLocation;
+
+    private Path getVersionSubPath() {
+        return Path.of("V" + version);
     }
 
+    public Path getSubPath() {
+        return getVersionSubPath().resolve(DIRECTORY_TIMESTAMP_FORMATTER.format(timestamp));
+    }
+
+    private Path getConfigLocationPath() {
+        return generatedConfDir.resolve(getSubPath());
+    }
+
+    private void checkInitialized() {
+        if (!initialized) {
+            throw new RuntimeException("Config location not initialized.");
+        }
+    }
 
 }

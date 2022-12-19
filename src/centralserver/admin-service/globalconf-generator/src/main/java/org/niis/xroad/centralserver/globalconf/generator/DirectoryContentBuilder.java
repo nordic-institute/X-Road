@@ -26,36 +26,52 @@
  */
 package org.niis.xroad.centralserver.globalconf.generator;
 
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HashCalculator;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.niis.xroad.centralserver.globalconf.generator.MultipartMessage.header;
 import static org.niis.xroad.centralserver.globalconf.generator.MultipartMessage.partBuilder;
 
-@RequiredArgsConstructor
 public class DirectoryContentBuilder {
     public static final DateTimeFormatter EXPIRE_DATE_FORMATTER = DateTimeFormatter
             .ofPattern("uuuu-MM-dd'T'HH:mm:ssX")
             .withZone(ZoneOffset.UTC);
-
-    private final HashCalculator hashCalculator;
     private final Instant expireDate;
     private final String pathPrefix;
     private final String instanceIdentifier;
+    private final HashCalculator hashCalculator;
+    private final List<ConfigurationPart> configurationParts = new ArrayList<>();
 
-    private List<ConfigurationPart> configurationParts = new ArrayList<>();
+    @SneakyThrows
+    public DirectoryContentBuilder(
+            @NonNull String hashAlgorithmId,
+            @NonNull Instant expireDate,
+            @NonNull String pathPrefix,
+            @NonNull String instanceIdentifier) {
+        this.expireDate = expireDate;
+        this.pathPrefix = pathPrefix;
+        this.instanceIdentifier = instanceIdentifier;
+
+        hashCalculator = new HashCalculator(CryptoUtils.getDigestAlgorithmURI(hashAlgorithmId));
+    }
 
     DirectoryContentBuilder contentPart(ConfigurationPart configurationPart) {
         configurationParts.add(configurationPart);
+        return this;
+    }
+
+    DirectoryContentBuilder contentParts(Collection<ConfigurationPart> configurationParts) {
+        this.configurationParts.addAll(configurationParts);
         return this;
     }
 
@@ -75,18 +91,18 @@ public class DirectoryContentBuilder {
 
     private MultipartMessage.Part buildPart(ConfigurationPart confPart) {
         return partBuilder()
-                .content(calculateHash(confPart.getData()))
                 .header(header("Content-type", "application/octet-stream"))
                 .header(header("Content-transfer-encoding", "base64"))
                 .header(header("Content-identifier",
                         String.format("%s; instance='%s'", confPart.getContentIdentifier(), instanceIdentifier)))
                 .header(header("Content-location", String.format("%s/%s", pathPrefix, confPart.getFilename())))
                 .header(header("Hash-algorithm-id", hashCalculator.getAlgoURI()))
+                .content(calculateHash(confPart.getData()))
                 .build();
     }
 
     @SneakyThrows
-    private String calculateHash(@NonNull byte[] data) {
+    private String calculateHash(byte[] data) {
         return hashCalculator.calculateFromBytes(data);
     }
 

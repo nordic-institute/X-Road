@@ -29,9 +29,11 @@ package org.niis.xroad.centralserver.restapi;
 import org.niis.xroad.centralserver.restapi.config.BootstrapConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 @SpringBootApplication
+@EnableScheduling
 public class Main {
     public static void main(String[] args) {
         SpringApplication.run(new Class[]{

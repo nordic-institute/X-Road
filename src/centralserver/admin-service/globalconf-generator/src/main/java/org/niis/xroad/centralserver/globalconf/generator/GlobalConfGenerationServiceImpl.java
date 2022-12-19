@@ -27,14 +27,129 @@
 package org.niis.xroad.centralserver.globalconf.generator;
 
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationService;
+import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-@Component
-public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationService {
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.List;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CONF_EXPIRE_INTERVAL_SECONDS;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CONF_HASH_ALGO_URI;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CONF_SIGN_CERT_HASH_ALGO_URI;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CONF_SIGN_DIGEST_ALGO_ID;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.DEFAULT_CONF_HASH_ALGO_URI;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID;
+import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANCE_IDENTIFIER;
+
+@Component
+@Slf4j
+@AllArgsConstructor
+public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationService {
+    private SignerProxyFacade signerProxyFacade;
+    private SystemParameterService systemParameterService;
+
+    @SneakyThrows
     @Override
+    @Scheduled(fixedRate = 60, timeUnit = SECONDS) // TODO make configurable
+    // TODO @Transactional
     public void generate() {
+        log.debug("Generating global configuration");
+
+        var configurationParts = generateConfiguration();
+        var configGenerationTime = Instant.now();
+
+        // TODO write to DB
+
+        // TODO split internal and external
+
+        // TODO add optional configuration parts
+
+        var generatedConfDir = Path.of(SystemProperties.getCenterGeneratedConfDir());
+
+        var configDistributor = new ConfigurationDistributor(generatedConfDir, 2, configGenerationTime);
+        configDistributor.initConfLocation();
+        configDistributor.writeConfigurationFiles(configurationParts);
+
+
+        var directoryContentBuilder = new DirectoryContentBuilder(
+                getConfHashAlgoId(),
+                Instant.now().plusSeconds(getConfExpireIntervalSeconds()),
+                "/" + configDistributor.getSubPath().toString(),
+                getInstanceIdentifier())
+                .contentParts(configurationParts);
+        var directoryContent = directoryContentBuilder.build();
+
+        DirectoryContentSigner directoryContentSigner = new DirectoryContentSigner(
+                signerProxyFacade,
+                getConfSignDigestAlgoId(),
+                getConfSignCertHashAlgoId());
+
+
+        var keyId = "F397AF7369B15D42D7190E90ECA9508D48275FAB";
+        var signedDirectory = directoryContentSigner.createSignedDirectory(directoryContent, keyId, "fixme".getBytes());
+
+        // FIXME write to temp and move atomically
+        configDistributor.writeDirectoryContentFile("internalconf", signedDirectory.getBytes(UTF_8));
+
+
+
+        // TODO write local copy
+
+        // TODO remove old configs
+    }
+
+    @SneakyThrows
+    private String getConfSignCertHashAlgoId() {
+        return CryptoUtils.getAlgorithmId(systemParameterService.getParameterValue(CONF_SIGN_CERT_HASH_ALGO_URI, DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI));
+    }
+
+    private String getConfSignDigestAlgoId() {
+        return systemParameterService.getParameterValue(CONF_SIGN_DIGEST_ALGO_ID, DEFAULT_CONF_SIGN_DIGEST_ALGO_ID);
+    }
+
+    private String getInstanceIdentifier() {
+        return systemParameterService.getParameterValue(INSTANCE_IDENTIFIER, null);
+    }
+
+    private int getConfExpireIntervalSeconds() {
+        return Integer.parseInt(systemParameterService
+                .getParameterValue(CONF_EXPIRE_INTERVAL_SECONDS, DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS.toString()));
+    }
+
+    @SneakyThrows
+    private String getConfHashAlgoId() {
+        return CryptoUtils.getAlgorithmId(systemParameterService.getParameterValue(CONF_HASH_ALGO_URI, DEFAULT_CONF_HASH_ALGO_URI));
+    }
+
+
+    // TODO replace with real configuration generator
+    private List<ConfigurationPart> generateConfiguration() {
+        return List.of(
+                ConfigurationPart.builder()
+                        .contentIdentifier(ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS)
+                        .filename(ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS)
+                        .data("<data>Private parameter file placeholder</data>".getBytes(UTF_8))
+                        .build(),
+                ConfigurationPart.builder()
+                        .contentIdentifier(ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS)
+                        .filename(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS)
+                        .data("<data>Shared parameter file placeholder</data>".getBytes(UTF_8))
+                        .build());
 
     }
 }

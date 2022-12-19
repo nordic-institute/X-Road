@@ -51,7 +51,6 @@ class MultipartMessage {
         this.contentType = contentType != null ? contentType : "multipart/mixed";
     }
 
-
     public String toString() {
         var header = header("Content-Type",
                 String.format("%s; charset=UTF-8; boundary=%s", contentType, boundary));
@@ -70,10 +69,13 @@ class MultipartMessage {
         return new Header(name, value);
     }
 
-    static Part.PartBuilder partBuilder() {
-        return Part.builder();
+    static SimplePart.SimplePartBuilder partBuilder() {
+        return SimplePart.builder();
     }
 
+    static Part rawPart(String content) {
+        return new RawPart(content);
+    }
 
     @Value
     static class Header {
@@ -85,9 +87,13 @@ class MultipartMessage {
         }
     }
 
+    interface Part {
+        String toString();
+    }
+
     @Value
     @Builder
-    static class Part {
+    static class SimplePart implements Part {
         @Singular
         List<Header> headers;
         String content;
@@ -100,8 +106,16 @@ class MultipartMessage {
                 sb.append(CRLF);
                 sb.append(content);
             }
-
             return sb.toString();
+        }
+    }
+
+    @Value
+    private static class RawPart implements Part {
+        String content;
+
+        public String toString() {
+            return content;
         }
     }
 

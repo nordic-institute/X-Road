@@ -170,10 +170,6 @@ task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
     check = true
 }
 
-jar {
-    duplicatesStrategy = DuplicatesStrategy.WARN
-}
-
 licenseFormatMain.enabled = false
 licenseMain.enabled = false
 

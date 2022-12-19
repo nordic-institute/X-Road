@@ -3,7 +3,10 @@ plugins {
 }
 
 dependencies {
+    implementation project(':centralserver:admin-service:core-api')
     implementation project(':common-util')
+
+    implementation('org.springframework:spring-context')
 
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
