@@ -4343,6 +4343,8 @@ components:
         - LOGIN
         - LOGOUT
         - GENERATE_KEY
+        - CHANGE_PIN
+        - EDIT_FRIENDLY_NAME
       example: DELETE
       format: enum
       type: string
