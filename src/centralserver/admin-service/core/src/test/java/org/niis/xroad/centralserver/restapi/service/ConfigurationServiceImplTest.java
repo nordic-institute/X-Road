@@ -60,6 +60,7 @@ import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CENTRAL
 class ConfigurationServiceImplTest {
 
     private static final String INTERNAL_CONFIGURATION = "internal";
+    private static final String EXTERNAL_CONFIGURATION = "external";
     private static final String CENTRAL_SERVICE = "cs";
     private static final String HA_NODE_NAME = "haNodeName";
     private static final int VERSION = 123;
@@ -83,7 +84,7 @@ class ConfigurationServiceImplTest {
     private ConfigurationServiceImpl configurationService;
 
     @Test
-    void shouldGetConfigurationParts() {
+    void shouldGetInternalConfigurationParts() {
         when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
                 .thenReturn(Optional.of(configurationSource));
         when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
@@ -99,7 +100,23 @@ class ConfigurationServiceImplTest {
     }
 
     @Test
-    void shouldGetConfigurationAnchor() {
+    void shouldGetExternalConfigurationParts() {
+        when(configurationSourceRepository.findBySourceType(EXTERNAL_CONFIGURATION))
+                .thenReturn(Optional.of(configurationSource));
+        when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
+        when(distributedFileRepository.findAllByHaNodeName(HA_NODE_NAME)).thenReturn(distributedFileEntitySet());
+
+        final Set<ConfigurationParts> result = configurationService.getConfigurationParts(EXTERNAL_CONFIGURATION);
+
+        result.forEach(configurationsParts -> {
+            assertThat(configurationsParts.getVersion()).isEqualTo(VERSION);
+            assertThat(configurationsParts.getFileName()).isEqualTo(FILE_NAME);
+            assertThat(configurationsParts.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT);
+        });
+    }
+
+    @Test
+    void shouldGetInternalConfigurationAnchor() {
         when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
                 .thenReturn(Optional.of(configurationSourceEntity()));
 
@@ -110,7 +127,18 @@ class ConfigurationServiceImplTest {
     }
 
     @Test
-    void shouldGetGlobalDownloadUrl() {
+    void shouldGetExternalConfigurationAnchor() {
+        when(configurationSourceRepository.findBySourceType(EXTERNAL_CONFIGURATION))
+                .thenReturn(Optional.of(configurationSourceEntity()));
+
+        final ConfigurationAnchor result = configurationService.getConfigurationAnchor(EXTERNAL_CONFIGURATION);
+
+        assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
+        assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
+    }
+
+    @Test
+    void shouldGetInternalGlobalDownloadUrl() {
         when(systemParameterService.getParameterValue(CENTRAL_SERVER_ADDRESS, ""))
                 .thenReturn(CENTRAL_SERVICE);
 
@@ -118,9 +146,18 @@ class ConfigurationServiceImplTest {
 
         assertThat(result.getUrl()).isEqualTo("http://" + CENTRAL_SERVICE + "/internalconf");
     }
+    @Test
+    void shouldGetExternalGlobalDownloadUrl() {
+        when(systemParameterService.getParameterValue(CENTRAL_SERVER_ADDRESS, ""))
+                .thenReturn(CENTRAL_SERVICE);
+
+        final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl("EXTERNAL");
+
+        assertThat(result.getUrl()).isEqualTo("http://" + CENTRAL_SERVICE + "/externalconf");
+    }
 
     @Test
-    void getShouldThrowNotFoundExceptionWhenSourceNotFound() {
+    void shouldThrowNotFoundExceptionWhenSourceNotFound() {
         when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
                 .thenReturn(Optional.empty());
 
