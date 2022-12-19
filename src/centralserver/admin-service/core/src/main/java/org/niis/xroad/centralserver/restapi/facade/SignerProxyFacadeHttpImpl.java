@@ -40,6 +40,7 @@ import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -93,11 +94,12 @@ public class SignerProxyFacadeHttpImpl implements SignerProxyFacade {
 
     @Override
     public void initSoftwareToken(char[] password) throws Exception {
+        throw new NotImplementedException("initSoftwareToken not implemented yet.");
     }
 
     @Override
     public List<TokenInfo> getTokens() throws Exception {
-        return null;
+        throw new NotImplementedException("getTokens not implemented yet.");
     }
 
     @Override
@@ -133,114 +135,115 @@ public class SignerProxyFacadeHttpImpl implements SignerProxyFacade {
 
     @Override
     public void setTokenFriendlyName(String tokenId, String friendlyName) throws Exception {
-
+        throw new NotImplementedException("setTokenFriendlyName not implemented yet.");
     }
 
     @Override
     public void setKeyFriendlyName(String keyId, String friendlyName) throws Exception {
-
+        throw new NotImplementedException("setKeyFriendlyName not implemented yet.");
     }
 
     @Override
     public KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
-        return null;
+        throw new NotImplementedException("generateKey not implemented yet.");
     }
 
     @Override
     public byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
                                          String commonName, Date notBefore, Date notAfter) throws Exception {
-        return new byte[0];
+        throw new NotImplementedException("generateSelfSignedCert not implemented yet.");
     }
 
     @Override
     public String importCert(byte[] certBytes, String initialStatus) throws Exception {
-        return null;
+        throw new NotImplementedException("importCert not implemented yet.");
     }
 
     @Override
     public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
-        return null;
+        throw new NotImplementedException("importCert2 not implemented yet.");
     }
 
     @Override
     public void activateCert(String certId) throws Exception {
-
+        throw new NotImplementedException("activateCert not implemented yet.");
     }
 
     @Override
     public void deactivateCert(String certId) throws Exception {
-
+        throw new NotImplementedException("deactivateCert not implemented yet.");
     }
 
     @Override
     public SignerProxy.GeneratedCertRequestInfo generateCertRequest(
             String keyId, MemberId memberId, KeyUsageInfo keyUsage, String subjectName, CertificateRequestFormat format) throws Exception {
-        return null;
+        throw new NotImplementedException("generateCertRequest not implemented yet.");
     }
 
     @Override
     public SignerProxy.GeneratedCertRequestInfo regenerateCertRequest(
             String certRequestId, CertificateRequestFormat format) throws Exception {
-        return null;
+        throw new NotImplementedException("regenerateCertRequest not implemented yet.");
     }
 
     @Override
     public void deleteCertRequest(String certRequestId) throws Exception {
-
+        throw new NotImplementedException("deleteCertRequest not implemented yet.");
     }
 
     @Override
     public void deleteCert(String certId) throws Exception {
-
+        throw new NotImplementedException("deleteCert not implemented yet.");
     }
 
     @Override
     public void deleteKey(String keyId, boolean deleteFromToken) throws Exception {
-
+        throw new NotImplementedException("deleteKey not implemented yet.");
     }
 
     @Override
     public void setCertStatus(String certId, String status) throws Exception {
-
+        throw new NotImplementedException("setCertStatus not implemented yet.");
     }
 
     @Override
     public CertificateInfo getCertForHash(String hash) throws Exception {
-        return null;
+        throw new NotImplementedException("getCertForHash not implemented yet.");
     }
 
     @Override
     public String getKeyIdForCertHash(String hash) throws Exception {
-        return null;
+        throw new NotImplementedException("getKeyIdForCertHash not implemented yet.");
     }
 
     @Override
     public TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) throws Exception {
-        return null;
+        throw new NotImplementedException("getTokenAndKeyIdForCertHash not implemented yet.");
     }
 
     @Override
     public TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
-        return null;
+        throw new NotImplementedException("getTokenAndKeyIdForCertRequestId not implemented yet.");
     }
 
     @Override
     public TokenInfo getTokenForKeyId(String keyId) throws Exception {
-        return null;
+        throw new NotImplementedException("getTokenForKeyId not implemented yet.");
     }
 
     @Override
     public String[] getOcspResponses(String[] certHashes) throws Exception {
-        return new String[0];
+        throw new NotImplementedException("getOcspResponses not implemented yet.");
     }
 
     @Override
     public <T> T execute(Object message) throws Exception {
-        return null;
+        throw new NotImplementedException("execute not implemented yet.");
     }
 
     @Override
     public void updateSoftwareTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
+        throw new NotImplementedException("updateSoftwareTokenPin not implemented yet.");
     }
 
 }
