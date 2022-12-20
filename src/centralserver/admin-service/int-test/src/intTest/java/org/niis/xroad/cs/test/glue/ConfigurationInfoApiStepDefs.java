@@ -53,10 +53,10 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignConfigurationPartsApi configurationPartsApi;
 
-    @Step("internal configuration parts exists")
-    public void viewInternalConfParts() {
+    @Step("{} configuration parts exists")
+    public void viewConfParts(String configurationType) {
         final ResponseEntity<Set<ConfigurationPartDto>> response = configurationPartsApi
-                .getConfigurationParts(ConfigurationTypeDto.INTERNAL);
+                .getConfigurationParts(ConfigurationTypeDto.fromValue(configurationType));
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -71,10 +71,10 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("internal configuration source anchor info exists")
-    public void viewInternalSourceAnchor() {
+    @Step("{} configuration source anchor info exists")
+    public void viewSourceAnchor(String configurationType) {
         final ResponseEntity<ConfigurationAnchorDto> response = configurationSourceAnchorApi
-                .getAnchor(ConfigurationTypeDto.INTERNAL);
+                .getAnchor(ConfigurationTypeDto.fromValue(configurationType));
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -86,14 +86,14 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("internal configuration source global download url exists")
-    public void viewInternalSourceDownloadUrl() {
+    @Step("{} configuration source global download url exists")
+    public void viewSourceDownloadUrl(String configurationType) {
         final ResponseEntity<GlobalConfDownloadUrlDto> response = configurationSourcesApi
-                .getDownloadUrl(ConfigurationTypeDto.INTERNAL);
+                .getDownloadUrl(ConfigurationTypeDto.fromValue(configurationType));
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion("http://cs/internalconf", "body.url",
+                .assertion(equalsAssertion("http://cs/" + configurationType.toLowerCase() + "conf", "body.url",
                         "Response contains global download url"))
                 .execute();
     }

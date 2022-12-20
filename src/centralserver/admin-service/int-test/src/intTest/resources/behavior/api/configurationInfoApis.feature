@@ -3,6 +3,11 @@
 Feature: Configuration Info APIs
 
   Scenario: View internal configuration
-    When internal configuration parts exists
-    And internal configuration source anchor info exists
-    Then internal configuration source global download url exists
+    When INTERNAL configuration parts exists
+    And INTERNAL configuration source anchor info exists
+    Then INTERNAL configuration source global download url exists
+
+  Scenario: View external configuration
+    When EXTERNAL configuration parts exists
+    And EXTERNAL configuration source anchor info exists
+    Then EXTERNAL configuration source global download url exists
