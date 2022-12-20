@@ -32,7 +32,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 
 @Getter

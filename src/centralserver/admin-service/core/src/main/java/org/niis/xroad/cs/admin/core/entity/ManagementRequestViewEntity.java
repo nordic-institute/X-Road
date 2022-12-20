@@ -33,8 +33,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.springframework.data.annotation.Immutable;
 
 import javax.persistence.Access;
@@ -50,11 +50,11 @@ import javax.persistence.Transient;
 import java.time.Instant;
 import java.util.Map;
 
-import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
-import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
-import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.CLIENT_DELETION_REQUEST;
-import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
-import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.OWNER_CHANGE_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_DELETION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.OWNER_CHANGE_REQUEST;
 
 @Entity
 @Immutable

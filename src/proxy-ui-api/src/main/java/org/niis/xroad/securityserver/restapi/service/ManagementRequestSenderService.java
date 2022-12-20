@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.request.ManagementRequestSender;
+import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

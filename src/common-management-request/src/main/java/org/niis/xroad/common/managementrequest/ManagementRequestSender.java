@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.request;
+package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
@@ -39,6 +39,10 @@ import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.HttpSender;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.managementrequest.model.AuthCertRegRequest;
+import org.niis.xroad.common.managementrequest.model.ClientRegRequest;
+import org.niis.xroad.common.managementrequest.model.ManagementRequest;
+import org.niis.xroad.common.managementrequest.model.OwnerChangeRequest;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -115,7 +119,7 @@ public final class ManagementRequestSender {
      * @throws Exception if an error occurs
      */
     public Integer sendAuthCertDeletionRequest(SecurityServerId.Conf securityServer,
-            byte[] authCert) throws Exception {
+                                               byte[] authCert) throws Exception {
         return sendToProxy(builder.buildAuthCertDeletionRequest(securityServer,
                 authCert));
     }
@@ -166,7 +170,7 @@ public final class ManagementRequestSender {
 
     private Integer sendToProxy(SoapMessageImpl request) throws Exception {
         try (HttpSender sender =
-                ManagementRequestClient.createProxyHttpSender()) {
+                     ManagementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new SimpleManagementRequest(request));
         }
@@ -218,7 +222,7 @@ public final class ManagementRequestSender {
 
 
     private static SoapMessageImpl getResponse(HttpSender sender,
-            String expectedContentType) throws Exception {
+                                               String expectedContentType) throws Exception {
         String baseContentType =
                 getBaseContentType(sender.getResponseContentType());
         if (baseContentType == null

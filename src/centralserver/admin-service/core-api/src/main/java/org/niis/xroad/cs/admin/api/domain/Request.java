@@ -31,7 +31,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 
 @Data

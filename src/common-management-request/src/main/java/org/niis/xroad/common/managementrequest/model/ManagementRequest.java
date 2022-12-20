@@ -23,33 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.request;
+package org.niis.xroad.common.managementrequest.model;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
-import org.junit.Test;
-
-import static ee.ria.xroad.common.message.SoapMessageTestUtil.createResponse;
-import static junit.framework.Assert.assertEquals;
+import java.io.InputStream;
 
 /**
- * Testing static methods of ManagementRequestSender
+ * Describes the management request to be sent.
  */
-public class ManagementRequestSenderTest {
+public interface ManagementRequest {
 
     /**
-     * Tests whether getting request id works as intended.
-     * @throws Exception in case of unexpected errors
+     * @return the request SOAP message
      */
-    @Test
-    public void getRequestIdFromManagementServiceResponse() throws Exception {
-        SoapMessageImpl response =
-                createResponse("response-with-requestId.answer");
+    SoapMessageImpl getRequestMessage();
 
-        Integer requestId = ManagementRequestSender.getRequestId(response);
+    /**
+     * @return the request content
+     * @throws Exception if an error occurs
+     */
+    InputStream getRequestContent() throws Exception;
 
-        Integer expectedRequestId = 413;
-        assertEquals(expectedRequestId, requestId);
-    }
+    /**
+     * @return the request content type (such as text/xml)
+     */
+    String getRequestContentType();
+
+    /**
+     * @return the response content type
+     */
+    String getResponseContentType();
 
 }

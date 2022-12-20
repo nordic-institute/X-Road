@@ -1,0 +1,14 @@
+plugins {
+    id "java-library"
+}
+
+dependencies {
+    implementation project(":common-util")
+    implementation project(":signer-protocol")
+    implementation project(":common-verifier")
+
+    implementation("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
+
+    testImplementation project(":common-test")
+    testImplementation project(path: ":common-util", configuration: "testArtifacts")
+}

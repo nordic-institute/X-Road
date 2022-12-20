@@ -32,6 +32,7 @@ import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
@@ -47,8 +48,6 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.List;
-
-import static org.niis.xroad.centralserver.restapi.domain.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
 
 @Service
 @Transactional
@@ -79,7 +78,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
                         ManagementRequestService.Criteria.builder()
                                 .origin(Origin.SECURITY_SERVER)
                                 .serverId(serverId)
-                                .types(List.of(CLIENT_REGISTRATION_REQUEST))
+                                .types(List.of(ManagementRequestType.CLIENT_REGISTRATION_REQUEST))
                                 .build(), Pageable.unpaged())
                 .stream()
                 .map(ManagementRequestInfoDto::getStatus)

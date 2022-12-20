@@ -1,6 +1,5 @@
 /**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,41 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.common.managementrequest.model;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-public class ClientRegistrationRequest extends RequestWithProcessing {
-    public static final String DISCRIMINATOR_VALUE = "ClientRegRequest";
+public class OwnerChangeRequest extends GenericClientRequest {
 
-    private ClientId clientId;
-
-
-    public ClientRegistrationRequest(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId serverId,
-                                     ClientId clientId) {
-        super(origin, serverId, new ClientRegistrationRequestProcessing());
-        this.clientId = ClientId.ensure(clientId);
-    }
-
-    public ClientRegistrationRequest(Origin origin, ClientRegistrationRequest other) {
-        super(origin, other.getSecurityServerId(), other.getRequestProcessing());
-        this.clientId = ClientId.ensure(other.getClientId());
-    }
-
-    @Override
-    public ManagementRequestType getManagementRequestType() {
-        return ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
+    public OwnerChangeRequest(ClientId client, SoapMessageImpl request) throws Exception {
+        super(client, request);
     }
 
 }

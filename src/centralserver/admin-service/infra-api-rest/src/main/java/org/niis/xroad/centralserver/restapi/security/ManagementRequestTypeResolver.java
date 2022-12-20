@@ -27,7 +27,7 @@
 package org.niis.xroad.centralserver.restapi.security;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.Request;

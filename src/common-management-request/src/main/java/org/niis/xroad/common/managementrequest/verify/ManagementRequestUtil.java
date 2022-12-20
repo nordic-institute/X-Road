@@ -23,11 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.registrationservice.request;
+package org.niis.xroad.common.managementrequest.verify;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.xml.namespace.QName;
@@ -42,12 +44,10 @@ import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
  * Contains utility methods for dealing with management requests.
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ManagementRequestUtil {
 
     public static final QName REQUEST_ID = new QName(NS_XROAD, "requestId", PREFIX_XROAD);
-
-    private ManagementRequestUtil() {
-    }
 
     /**
      * Converts the given management request to a response, adding the specified
