@@ -38,8 +38,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Set;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
 @Repository
 public interface JpaOwnerChangeRequestRepository extends JpaRepository<OwnerChangeRequestEntity, Integer>, OwnerChangeRequestRepository {

@@ -67,7 +67,8 @@ public final class ManagementRequestVerifier {
         private final AuthCertRegRequestType authCertRegRequest;
         private final ClientRequestType clientRequest;
 
-        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, AuthCertRegRequestType authCertRegRequest, ClientRequestType clientRequest) {
+        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType,
+                      AuthCertRegRequestType authCertRegRequest, ClientRequestType clientRequest) {
             this.soapMessage = soapMessage;
             this.requestType = requestType;
             this.authCertRegRequest = authCertRegRequest;
