@@ -47,6 +47,6 @@ public class ConfigurationSigningKey {
     private String keyHash;
     private String tokenId;
     private KeyLabel label;
-    private List<PossibleActions> possibleActions = null;
+    private List<PossibleAction> possibleActions = null;
 
 }

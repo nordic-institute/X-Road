@@ -34,8 +34,9 @@ import org.niis.xroad.centralserver.openapi.model.ConfigurationSigningKeyAddDto;
 import org.niis.xroad.centralserver.openapi.model.ConfigurationSigningKeyDto;
 import org.niis.xroad.centralserver.openapi.model.ConfigurationTypeDto;
 import org.niis.xroad.centralserver.restapi.converter.ConfigurationSigningKeysDtoConverter;
-import org.niis.xroad.cs.admin.api.dto.ConfigurationSigningKeyAddRequest;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeyService;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -59,14 +60,14 @@ public class SigningKeysController implements SigningKeysApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('GENERATE_SIGNING_KEY')")
+    @AuditEventMethod(event = RestApiAuditEvent.GENERATE_KEY)
     public ResponseEntity<ConfigurationSigningKeyDto> addKey(ConfigurationTypeDto configurationType,
                                                              ConfigurationSigningKeyAddDto configurationSigningKeyAddDto) {
         return ok(configurationSigningKeysDtoConverter.convert(
-                signingKeyService.addKey(ConfigurationSigningKeyAddRequest.builder()
-                        .sourceType(configurationType.getValue())
-                        .keyLabel(configurationSigningKeyAddDto.getKeyLabel())
-                        .tokenId(configurationSigningKeyAddDto.getTokenId())
-                        .build())
+                signingKeyService.addKey(configurationType.getValue(),
+                        configurationSigningKeyAddDto.getTokenId(),
+                        configurationSigningKeyAddDto.getKeyLabel())
         ));
     }
 

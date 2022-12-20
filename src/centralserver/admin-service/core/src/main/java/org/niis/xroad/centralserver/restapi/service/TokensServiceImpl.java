@@ -155,7 +155,8 @@ public class TokensServiceImpl implements TokensService {
         }
     }
 
-    private ee.ria.xroad.signer.protocol.dto.TokenInfo getToken(String tokenId) {
+    @Override
+    public ee.ria.xroad.signer.protocol.dto.TokenInfo getToken(String tokenId) {
         try {
             return signerProxyFacade.getToken(tokenId);
         } catch (CodedException codedException) {

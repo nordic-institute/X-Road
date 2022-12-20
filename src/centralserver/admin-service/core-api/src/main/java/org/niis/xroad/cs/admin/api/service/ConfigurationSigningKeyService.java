@@ -27,9 +27,8 @@
 package org.niis.xroad.cs.admin.api.service;
 
 import org.niis.xroad.cs.admin.api.dto.ConfigurationSigningKey;
-import org.niis.xroad.cs.admin.api.dto.ConfigurationSigningKeyAddRequest;
 
 public interface ConfigurationSigningKeyService {
 
-    ConfigurationSigningKey addKey(ConfigurationSigningKeyAddRequest configurationSigningKeyAddRequest);
+    ConfigurationSigningKey addKey(String sourceType, String tokenId, String keyLabel);
 }
