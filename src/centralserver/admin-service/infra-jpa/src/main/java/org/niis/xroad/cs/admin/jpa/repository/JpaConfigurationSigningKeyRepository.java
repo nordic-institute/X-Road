@@ -24,14 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.repository;
+package org.niis.xroad.cs.admin.jpa.repository;
 
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
+import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
-public interface ConfigurationSigningKeyRepository extends GenericRepository<ConfigurationSigningKeyEntity, Integer> {
-
-    List<ConfigurationSigningKeyEntity> findByTokenIdentifier(String tokenIdentifier);
-
+@Repository
+public interface JpaConfigurationSigningKeyRepository
+        extends JpaRepository<ConfigurationSigningKeyEntity, Integer>, ConfigurationSigningKeyRepository {
 }

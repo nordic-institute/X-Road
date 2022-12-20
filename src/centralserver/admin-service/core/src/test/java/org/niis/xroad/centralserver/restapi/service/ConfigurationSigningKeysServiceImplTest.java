@@ -55,7 +55,7 @@ class ConfigurationSigningKeysServiceImplTest {
 
     @Mock
     private ConfigurationSigningKeyRepository configurationSigningKeyRepository;
-    private ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
+    private final ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
 
     private ConfigurationSigningKeysServiceImpl configurationSigningKeysServiceImpl;
 
@@ -74,7 +74,6 @@ class ConfigurationSigningKeysServiceImplTest {
                 .thenReturn(List.of(configurationSigningKeyEntity));
         when(configurationSigningKeyEntity.getConfigurationSource()).thenReturn(configurationSourceEntity);
         when(configurationSourceEntity.getConfigurationSigningKey()).thenReturn(configurationSigningKeyEntity);
-        when(configurationSigningKeyEntity.getId()).thenReturn(1);
 
         List<ConfigurationSigningKey> configurationSigningKeys =
                 configurationSigningKeysServiceImpl.findByTokenIdentifier(tokenInfo.getId());
