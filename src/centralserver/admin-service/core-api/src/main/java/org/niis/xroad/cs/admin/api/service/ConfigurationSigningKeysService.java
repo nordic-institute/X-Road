@@ -43,4 +43,5 @@ public interface ConfigurationSigningKeysService {
 
     Optional<ConfigurationSigningKey> findActiveForSource(String sourceType);
 
+    void activateKey(String keyIdentifier);
 }
