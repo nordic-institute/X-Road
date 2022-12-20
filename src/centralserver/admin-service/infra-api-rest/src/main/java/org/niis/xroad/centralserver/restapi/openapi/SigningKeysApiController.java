@@ -43,6 +43,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ACTIVATE_SIGNING_KEY;
+import static org.springframework.http.ResponseEntity.noContent;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SIGNING_KEY;
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -55,9 +57,12 @@ public class SigningKeysApiController implements SigningKeysApi {
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final ConfigurationSigningKeyDtoMapper configurationSigningKeyDtoMapper;
 
+    @PreAuthorize("hasAuthority('ACTIVATE_SIGNING_KEY')")
+    @AuditEventMethod(event = ACTIVATE_SIGNING_KEY)
     @Override
     public ResponseEntity<Void> activateKey(String id) {
-        throw new NotImplementedException("activateKey not implemented yet");
+        configurationSigningKeysService.activateKey(id);
+        return noContent().build();
     }
 
     @Override

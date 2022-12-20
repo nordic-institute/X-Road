@@ -35,8 +35,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface JpaConfigurationSigningKeyRepository
-        extends JpaRepository<ConfigurationSigningKeyEntity, Integer>, ConfigurationSigningKeyRepository {
+public interface JpaConfigurationSigningKeyRepository extends JpaRepository<ConfigurationSigningKeyEntity, Integer>, ConfigurationSigningKeyRepository {
 
     @Override
     @Query("SELECT cs.configurationSigningKey FROM ConfigurationSourceEntity cs "

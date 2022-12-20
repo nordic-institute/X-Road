@@ -62,10 +62,13 @@ import java.util.Optional;
 
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -232,6 +235,50 @@ class ConfigurationSigningKeysServiceImplTest {
                 true, true, true, "serialNumber", "tokenLabel",
                 1, TokenStatusInfo.OK, keys, new HashMap<>()
         );
+    }
+    @Test
+    void activateKeyShouldFailWhenKeyNotFound() {
+        assertThatThrownBy(() -> configurationSigningKeysServiceImpl.activateKey("some_random_id"))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Signing key not found");
+    }
+
+    @Test
+    void activateKeyShouldFailWhenTokenNotLoggedIn() throws Exception {
+        final var tokenInfo = createTokenInfo(FALSE, TRUE, List.of());
+        final var signingKeyEntity = createConfigurationSigningEntity("EXTERNAL", TRUE);
+        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier())).thenReturn(Optional.of(signingKeyEntity));
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenReturn(tokenInfo);
+
+
+        assertThatThrownBy(() -> configurationSigningKeysServiceImpl.activateKey(signingKeyEntity.getKeyIdentifier()))
+                .isInstanceOf(SigningKeyException.class)
+                .hasMessage("Signing Key cannot be activated on not logged in token");
+    }
+
+    @Test
+    void activateKeyShouldSucceed() throws Exception {
+        final var tokenInfo = createTokenInfo(TRUE, TRUE, List.of());
+        final var signingKeyEntity = createConfigurationSigningEntity("EXTERNAL", FALSE);
+        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier())).thenReturn(Optional.of(signingKeyEntity));
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenReturn(tokenInfo);
+
+        configurationSigningKeysServiceImpl.activateKey(signingKeyEntity.getKeyIdentifier());
+
+        assertEquals(signingKeyEntity, signingKeyEntity.getConfigurationSource().getConfigurationSigningKey());
+        verify(configurationSigningKeyRepository).save(signingKeyEntity);
+    }
+
+    @Test
+    void activateKeyErrorGettingTokenFromSignerProxyShouldThrowException() throws Exception {
+        ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", false);
+        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
+                .thenReturn(Optional.of(signingKeyEntity));
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenThrow(new Exception());
+
+        assertThatThrownBy(() -> configurationSigningKeysServiceImpl.activateKey(signingKeyEntity.getKeyIdentifier()))
+                .isInstanceOf(SigningKeyException.class)
+                .hasMessage("Error activating signing key");
     }
 
     private KeyInfo createKeyInfo() {

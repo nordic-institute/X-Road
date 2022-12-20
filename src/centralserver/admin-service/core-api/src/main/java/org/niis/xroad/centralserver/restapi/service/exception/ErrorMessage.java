@@ -84,7 +84,11 @@ public enum ErrorMessage {
     SIGNING_KEY_ACTION_NOT_POSSIBLE("Singing key action not possible"),
     KEY_GENERATION_FAILED("Singing key generation failed"),
     SIGNING_KEY_NOT_FOUND("Signing key not found"),
-    ERROR_DELETING_SIGNING_KEY("Error deleting signing key");
+    ERROR_DELETING_SIGNING_KEY("Error deleting signing key"),
+    ERROR_ACTIVATING_SIGNING_KEY("Error activating signing key"),
+    ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED("Active configuration signing key cannot be deleted"),
+    TOKEN_MUST_BE_LOGGED_IN("Signing Key cannot be activated on not logged in token"),
+    CONFIGURATION_SIGNING_KEY_NOT_FOUND("Configuration Signing Key not found");
 
 
     @Getter

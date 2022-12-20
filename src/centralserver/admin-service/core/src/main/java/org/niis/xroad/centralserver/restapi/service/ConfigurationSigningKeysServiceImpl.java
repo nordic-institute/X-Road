@@ -62,9 +62,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ERROR_ACTIVATING_SIGNING_KEY;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ERROR_DELETING_SIGNING_KEY;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.KEY_GENERATION_FAILED;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SIGNING_KEY_NOT_FOUND;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_MUST_BE_LOGGED_IN;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.DELETE;
@@ -102,7 +104,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     public void deleteKey(String identifier) {
         ConfigurationSigningKey signingKey = configurationSigningKeyRepository.findByKeyIdentifier(identifier)
                 .map(configurationSigningKeyMapper::toTarget)
-                .orElseThrow(() -> new NotFoundException(SIGNING_KEY_NOT_FOUND));
+                .orElseThrow(ConfigurationSigningKeysServiceImpl::notFoundException);
 
         signingKeyActionsResolver.requireAction(DELETE, signingKey);
 
@@ -123,6 +125,15 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         } catch (Exception e) {
             throw new SigningKeyException(ERROR_DELETING_SIGNING_KEY, e);
         }
+    }
+
+    @Override
+    public void activateKey(final String keyIdentifier) {
+        final var signingKey = configurationSigningKeyRepository.findByKeyIdentifier(keyIdentifier)
+                .orElseThrow(ConfigurationSigningKeysServiceImpl::notFoundException);
+
+        validateForActivation(signingKey);
+        activateKey(signingKey);
     }
 
     public Optional<ConfigurationSigningKey> findActiveForSource(String sourceType) {
@@ -203,5 +214,30 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     @Override
     protected SignerProxyFacade getSignerProxyFacade() {
         return signerProxyFacade;
+    }
+
+    private void activateKey(ConfigurationSigningKeyEntity signingKey) {
+        try {
+            signingKey.getConfigurationSource().setConfigurationSigningKey(signingKey);
+            configurationSigningKeyRepository.save(signingKey);
+        } catch (Exception e) {
+            throw new SigningKeyException(ERROR_ACTIVATING_SIGNING_KEY, e);
+        }
+    }
+
+    private void validateForActivation(final ConfigurationSigningKeyEntity signingKey) {
+        final TokenInfo tokenInfo;
+        try {
+            tokenInfo = signerProxyFacade.getToken(signingKey.getTokenIdentifier());
+        } catch (Exception e) {
+            throw new SigningKeyException(ERROR_ACTIVATING_SIGNING_KEY, e);
+        }
+        if (!tokenInfo.isActive()) {
+            throw new SigningKeyException(TOKEN_MUST_BE_LOGGED_IN);
+        }
+    }
+
+    private static NotFoundException notFoundException() {
+        return new NotFoundException(SIGNING_KEY_NOT_FOUND);
     }
 }
