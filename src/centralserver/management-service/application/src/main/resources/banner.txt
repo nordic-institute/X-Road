@@ -1,0 +1,3 @@
+:: X-Road 7 Central Server - Management Service ${application.formatted-version} ::
+:: Spring Boot ${spring-boot.formatted-version} ::
+:: ${java.runtime.name} ${java.runtime.version} ::

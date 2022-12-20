@@ -1,0 +1,15 @@
+plugins {
+    id "java-library"
+}
+
+dependencies {
+    api project(":centralserver:management-service:core-api")
+
+    api project(":centralserver:admin-service:api-client")
+    implementation project(":common-verifier")
+
+    implementation("org.springframework.boot:spring-boot-starter-web") {
+        exclude module: "spring-webmvc"
+        exclude module: "spring-boot-starter-json"
+    }
+}

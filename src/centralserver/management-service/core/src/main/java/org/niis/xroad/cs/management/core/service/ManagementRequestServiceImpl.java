@@ -24,42 +24,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.registrationservice.service;
+package org.niis.xroad.cs.management.core.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.request.ClientRequestType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
+import org.niis.xroad.cs.management.core.api.ManagementRequestService;
 import org.springframework.stereotype.Service;
 
-@Service
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+
 @Slf4j
+@Service
 @RequiredArgsConstructor
-class AdminApiServiceImpl implements AdminApiService {
+public class ManagementRequestServiceImpl implements ManagementRequestService {
     private final FeignManagementRequestsApi managementRequestsApi;
 
     @Override
-    public int addRegistrationRequest(SecurityServerId serverId, String address, byte[] certificate) {
-        var request = new AuthenticationCertificateRegistrationRequestDto();
+    public int addManagementRequest(ClientRequestType request, ManagementRequestType requestType) {
+        var managementRequest = new ClientRegistrationRequestDto();
 
-        request.setType(ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST);
-        request.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
-        request.setServerAddress(address);
-        request.setAuthenticationCertificate(certificate);
-        request.setSecurityServerId(serverId.asEncodedId());
+        managementRequest.setType(mapRequestType(requestType));
+        managementRequest.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
+        //TODO fill
+        //managementRequest.setClientId(request.getClient());
 
-        var result = managementRequestsApi.addManagementRequest(request);
+        var result = managementRequestsApi.addManagementRequest(managementRequest);
 
         if (!result.hasBody()) {
             throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
         } else {
             return result.getBody().getId();
+        }
+
+
+    }
+
+    private ManagementRequestTypeDto mapRequestType(ManagementRequestType requestType) {
+        switch (requestType) {
+            case AUTH_CERT_REGISTRATION_REQUEST:
+                return ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
+            case CLIENT_REGISTRATION_REQUEST:
+                return ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
+            case OWNER_CHANGE_REQUEST:
+                return ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
+            default:
+                throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
         }
     }
 }

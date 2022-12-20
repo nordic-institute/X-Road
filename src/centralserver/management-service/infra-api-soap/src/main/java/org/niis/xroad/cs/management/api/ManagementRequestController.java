@@ -24,14 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.registrationservice.controller;
+package org.niis.xroad.cs.management.api;
 
 import ee.ria.xroad.common.CodedException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.centralserver.registrationservice.service.AdminApiService;
 import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
+import org.niis.xroad.cs.management.core.api.ManagementRequestService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -44,38 +44,25 @@ import java.io.InputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 
-/**
- * Handles security server authentication certificate registration requests from
- * security servers.
- * <p>
- * Security note: This API is exposed publicly (security servers not yet part of this X-Road instance need to be
- * able to send the registration request).
- */
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-public class RegistrationRequestController {
-
-    private final AdminApiService adminApiService;
+public class ManagementRequestController {
+    private final ManagementRequestService managementRequestService;
 
     @ResponseBody
-    @PostMapping(path = "/managementservice",
+    @PostMapping(path = "/managementservice/manage",
             produces = {MediaType.TEXT_XML_VALUE},
-            consumes = {MediaType.MULTIPART_RELATED_VALUE})
+            consumes = {MediaType.MULTIPART_RELATED_VALUE, MediaType.TEXT_XML_VALUE + ";charset=UTF-8"})
     public ResponseEntity<String> register(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {
         return ManagementRequestSoapExecutor.process(contentType, body,
                 result -> {
-                    var authRequest = result.getAuthCertRegRequest()
-                            .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "AuthCertRegRequest is missing"));
+                    var clientRequest = result.getClientRequest()
+                            .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "ClientRequest is missing"));
 
-                    log.debug("Making a registration request for {}", authRequest.getServer());
+                    var requestId = managementRequestService.addManagementRequest(clientRequest, result.getRequestType());
 
-                    var requestId = adminApiService.addRegistrationRequest(
-                            authRequest.getServer(),
-                            authRequest.getAddress(),
-                            authRequest.getAuthCert());
-
-                    log.info("Processed registration request {} for {}", requestId, authRequest.getServer());
+                    log.info("Processed management request {} of body {}", requestId, clientRequest);
                     return requestId;
                 });
     }
