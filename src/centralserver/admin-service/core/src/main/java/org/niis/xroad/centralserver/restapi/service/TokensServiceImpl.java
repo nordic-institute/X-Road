@@ -43,11 +43,16 @@ import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_FINAL_TRY;
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_LOCKED;
 import static java.lang.Integer.parseInt;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ERROR_GETTING_TOKENS;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SIGNER_PROXY_ERROR;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_ACTIVATION_FAILED;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_DEACTIVATION_FAILED;
@@ -62,6 +67,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_SERIAL_NUMBER;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class TokensServiceImpl implements TokensService {
 
@@ -74,6 +80,17 @@ public class TokensServiceImpl implements TokensService {
     private final TokenActionsResolver tokenActionsResolver;
 
     private final TokenInfoMapper tokenInfoMapper;
+
+    @Override
+    public Set<TokenInfo> getTokens() {
+        try {
+            return signerProxyFacade.getTokens().stream()
+                    .map(tokenInfoMapper::toTarget)
+                    .collect(Collectors.toSet());
+        } catch (Exception e) {
+            throw new SignerProxyException(ERROR_GETTING_TOKENS, e);
+        }
+    }
 
     @Override
     public TokenInfo login(TokenLoginRequest tokenLoginRequest) {

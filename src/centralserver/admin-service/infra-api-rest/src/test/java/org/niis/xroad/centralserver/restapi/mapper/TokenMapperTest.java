@@ -28,25 +28,39 @@
 package org.niis.xroad.centralserver.restapi.mapper;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.openapi.model.PossibleActionDto;
 import org.niis.xroad.centralserver.openapi.model.TokenDto;
 import org.niis.xroad.centralserver.openapi.model.TokenStatusDto;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenStatus;
 
+import java.time.Instant;
 import java.util.EnumSet;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGIN;
 import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGOUT;
 
+@ExtendWith(MockitoExtension.class)
 class TokenMapperTest {
 
+    @Spy
+    private ConfigurationSigningKeyDtoMapper configurationSigningKeyDtoMapper
+            = new ConfigurationSigningKeyDtoMapperImpl();
+
+    @InjectMocks
     private final TokenMapper tokenMapper = new TokenMapperImpl();
 
     @Test
     void toTarget() {
-        final TokenDto result = tokenMapper.toTarget(tokenInfo());
+        TokenInfo tokenInfo = tokenInfo();
+        final TokenDto result = tokenMapper.toTarget(tokenInfo);
         assertThat(result.getActive()).isTrue();
         assertThat(result.getAvailable()).isFalse();
         assertThat(result.getId()).isEqualTo("id");
@@ -56,6 +70,15 @@ class TokenMapperTest {
                 .containsExactlyInAnyOrder(PossibleActionDto.LOGIN, PossibleActionDto.LOGOUT);
         assertThat(result.getSerialNumber()).isEqualTo("serialNumber");
         assertThat(result.getStatus()).isEqualTo(TokenStatusDto.OK);
+
+        assertThat(result.getConfigurationSigningKeys()).hasSize(1);
+        assertThat(result.getConfigurationSigningKeys().get(0).getId())
+                .isEqualTo(tokenInfo.getConfigurationSigningKeys().get(0).getKeyIdentifier());
+        assertThat(result.getConfigurationSigningKeys().get(0).getTokenId()).isEqualTo(tokenInfo.getId());
+        assertThat(result.getConfigurationSigningKeys().get(0).getCreatedAt()).isNotNull();
+        assertThat(result.getConfigurationSigningKeys().get(0).getActive())
+                .isEqualTo(tokenInfo.getConfigurationSigningKeys().get(0).isActiveSourceSigningKey());
+
     }
 
     private TokenInfo tokenInfo() {
@@ -72,7 +95,19 @@ class TokenMapperTest {
         tokenInfo.setStatus(TokenStatus.OK);
         tokenInfo.setPossibleActions(EnumSet.of(LOGIN, LOGOUT));
 
+        tokenInfo.setConfigurationSigningKeys(List.of(configurationSigningKey()));
+
         return tokenInfo;
+    }
+
+    private ConfigurationSigningKey configurationSigningKey() {
+        final ConfigurationSigningKey signingKey = new ConfigurationSigningKey();
+        signingKey.setKeyIdentifier("keyIdentifier");
+        signingKey.setTokenIdentifier("id");
+        signingKey.setKeyGeneratedAt(Instant.now());
+        signingKey.setActiveSourceSigningKey(true);
+
+        return signingKey;
     }
 
 }

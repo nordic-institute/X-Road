@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,27 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.cs.admin.jpa.repository;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
+import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
-
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ConfigurationSigningKey {
-    private int id;
-    private String keyIdentifier;
-    private byte[] cert;
-    private Instant keyGeneratedAt;
-    private String tokenIdentifier;
-
-    private String sourceType;
-    private boolean activeSourceSigningKey;
-
+@Repository
+public interface JpaConfigurationSigningKeyRepository
+        extends JpaRepository<ConfigurationSigningKeyEntity, Integer>, ConfigurationSigningKeyRepository {
 }
-
-
