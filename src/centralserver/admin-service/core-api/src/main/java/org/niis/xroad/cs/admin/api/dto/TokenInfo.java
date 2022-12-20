@@ -28,8 +28,10 @@
 package org.niis.xroad.cs.admin.api.dto;
 
 import lombok.Data;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 
 import java.util.EnumSet;
+import java.util.List;
 
 @Data
 public class TokenInfo {
@@ -53,6 +55,8 @@ public class TokenInfo {
     private int slotIndex;
 
     private TokenStatus status;
+
+    private List<ConfigurationSigningKey> configurationSigningKeys;
 
     private EnumSet<PossibleAction> possibleActions;
 

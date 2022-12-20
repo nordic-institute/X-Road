@@ -24,24 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-package org.niis.xroad.centralserver.restapi.mapper;
+package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.niis.xroad.centralserver.openapi.model.TokenDto;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.Named;
 import org.niis.xroad.centralserver.restapi.dto.converter.GenericUniDirectionalMapper;
-import org.niis.xroad.cs.admin.api.dto.TokenInfo;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
-import static org.mapstruct.ReportingPolicy.IGNORE;
-
-@Mapper(componentModel = SPRING, unmappedTargetPolicy = IGNORE, uses = ConfigurationSigningKeyDtoMapper.class)
-public interface TokenMapper extends GenericUniDirectionalMapper<TokenInfo, TokenDto> {
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public abstract class ConfigurationSigningKeyMapper implements
+        GenericUniDirectionalMapper<ConfigurationSigningKeyEntity, ConfigurationSigningKey> {
 
     @Override
-    @Mapping(source = "friendlyName", target = "name")
-    @Mapping(source = "active", target = "loggedIn")
-    TokenDto toTarget(TokenInfo tokenInfo);
+    @Mapping(source = "keyIdentifier", target = "id")
+    @Mapping(source = "tokenIdentifier", target = "tokenIdentifier")
+    @Mapping(target = "sourceType", source = "entity", qualifiedByName = "mapSourceType")
+    @Mapping(target = "activeSourceSigningKey", source = "entity", qualifiedByName = "mapActiveSourceSigningKey")
+    public abstract ConfigurationSigningKey toTarget(ConfigurationSigningKeyEntity entity);
+
+    @Named("mapSourceType")
+    String mapSourceType(ConfigurationSigningKeyEntity entity) {
+        if (entity.getConfigurationSource() != null) {
+            return entity.getConfigurationSource().getSourceType();
+        }
+        return null;
+    }
+
+    @Named("mapActiveSourceSigningKey")
+    boolean mapActiveSourceSigningKey(ConfigurationSigningKeyEntity entity) {
+        if (entity.getConfigurationSource() != null && entity.getConfigurationSource().getConfigurationSigningKey() != null) {
+            return entity.getId() == entity.getConfigurationSource().getConfigurationSigningKey().getId();
+        }
+        return false;
+    }
 
 }

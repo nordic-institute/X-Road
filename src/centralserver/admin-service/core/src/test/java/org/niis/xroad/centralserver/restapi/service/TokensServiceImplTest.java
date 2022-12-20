@@ -28,6 +28,7 @@
 package org.niis.xroad.centralserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,7 @@ import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -251,19 +253,21 @@ class TokensServiceImplTest {
         assertAuditMessages();
     }
 
-    private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(TokenStatusInfo status, Map<String, String> tokenParams) {
+    private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(TokenStatusInfo status,
+                                                                     Map<String, String> tokenParams,
+                                                                     List<KeyInfo> keyInfos) {
         return new ee.ria.xroad.signer.protocol.dto.TokenInfo(
                 "type", TOKEN_FRIENDLY_NAME, TOKEN_ID, false, true,
-                false, TOKEN_SERIAL_NUMBER, "label", 13, status, List.of(), tokenParams
+                false, TOKEN_SERIAL_NUMBER, "label", 13, status, keyInfos, tokenParams
         );
     }
 
     private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(TokenStatusInfo status) {
-        return mockTokenInfo(status, new HashMap<>());
+        return mockTokenInfo(status, new HashMap<>(), new ArrayList<>());
     }
 
     private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(Map<String, String> tokenParams) {
-        return mockTokenInfo(OK, tokenParams);
+        return mockTokenInfo(OK, tokenParams, new ArrayList<>());
     }
 
     private void assertAuditMessages() {

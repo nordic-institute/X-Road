@@ -43,6 +43,8 @@ import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -65,6 +67,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_SERIAL_NUMBER;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class TokensServiceImpl implements TokensService {
 

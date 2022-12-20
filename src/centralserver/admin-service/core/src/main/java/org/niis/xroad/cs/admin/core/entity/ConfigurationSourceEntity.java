@@ -60,7 +60,7 @@ public class ConfigurationSourceEntity {
     @Getter
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "active_key_id")
     @Getter
     @Setter
