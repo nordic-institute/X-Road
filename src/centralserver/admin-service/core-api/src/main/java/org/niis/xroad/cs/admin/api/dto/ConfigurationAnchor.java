@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,30 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
+package org.niis.xroad.cs.admin.api.dto;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
-import lombok.Getter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import java.time.Instant;
 
-@Getter
-public class AuthenticationCertificateRegistrationRequestDto extends ManagementRequestDto {
-    private final byte[] authCert;
-    private final String address;
+@Data
+@Accessors(chain = true)
+@AllArgsConstructor
+@NoArgsConstructor
+public class ConfigurationAnchor {
 
-    public AuthenticationCertificateRegistrationRequestDto(Integer id, Origin origin, SecurityServerId serverId,
-                                                           ManagementRequestStatus status, byte[] authCert,
-                                                           String address) {
-        super(id, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST, origin, serverId, status);
-        this.authCert = authCert;
-        this.address = address;
-    }
+    private String anchorFileHash;
+    private Instant anchorGeneratedAt;
 
-    public AuthenticationCertificateRegistrationRequestDto(Origin origin, SecurityServerId serverId,
-                                                           byte[] authCert, String address) {
-        this(null, origin, serverId, null, authCert, address);
-    }
 }

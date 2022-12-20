@@ -28,9 +28,6 @@ package org.niis.xroad.centralserver.restapi.security;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
-import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.springframework.stereotype.Component;
 
@@ -52,8 +49,6 @@ class ManagementRequestTypeResolver implements TargetTypeResolver<ManagementRequ
             throw new IllegalArgumentException("Unable to resolve " + targetType);
         }
 
-        return managementRequestService.getRequest((Integer) id)
-                .map(Request::getManagementRequestType)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND));
+        return managementRequestService.getRequestType((Integer) id);
     }
 }

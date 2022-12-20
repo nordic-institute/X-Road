@@ -57,6 +57,10 @@ public enum ErrorMessage {
     MANAGEMENT_REQUEST_MEMBER_NOT_FOUND("Member does not exist"),
     MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND("Client registration does not exist"),
     MANAGEMENT_REQUEST_ALREADY_REGISTERED("Client already registered to a server"),
+    MANAGEMENT_REQUEST_OWNER_MUST_BE_MEMBER("Owner must be a member"),
+    MANAGEMENT_REQUEST_OWNER_MUST_BE_CLIENT("Owner is not registered as client on the security server"),
+    MANAGEMENT_REQUEST_CLIENT_ALREADY_OWNER("Client is already owner of the security server"),
+    MANAGEMENT_REQUEST_SERVER_CODE_EXISTS("Mewmber already owns a security server with server code"),
     GLOBAL_GROUP_NOT_FOUND("Global group by given id does not exist"),
     OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED("Cannot perform delete action on server owners group"),
     GLOBAL_GROUP_EXISTS("Global group with the same code already exists."),
@@ -66,7 +70,16 @@ public enum ErrorMessage {
     INTERMEDIATE_CA_NOT_FOUND("Intermediate CA not found"),
     TIMESTAMPING_AUTHORITY_NOT_FOUND("Timestamping authority not found"),
     OCSP_RESPONDER_NOT_FOUND("OCSP Responder not found"),
-    INVALID_URL("Invalid url");
+    INVALID_URL("Invalid url"),
+    CONFIGURATION_NOT_FOUND("Configuration Source not found"),
+    TOKEN_NOT_FOUND("Token not found"),
+    TOKEN_ACTIVATION_FAILED("Token activation failed"),
+    TOKEN_DEACTIVATION_FAILED("Token deactivation failed"),
+    TOKEN_PIN_LOCKED("Token PIN locked"),
+    TOKEN_PIN_FINAL_TRY("Tries left: 1"),
+    SIGNER_PROXY_ERROR("Signer proxy exception"),
+    TOKEN_INCORRECT_PIN_FORMAT("Incorrect PIN format"),
+    TOKEN_ACTION_NOT_POSSIBLE("Token action not possible");
 
     @Getter
     final String description;

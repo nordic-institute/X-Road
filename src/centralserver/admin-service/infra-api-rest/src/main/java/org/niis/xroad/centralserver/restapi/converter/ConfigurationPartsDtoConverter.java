@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,22 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+package org.niis.xroad.centralserver.restapi.converter;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.centralserver.openapi.model.ConfigurationPartDto;
+import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 
-@Getter
-@RequiredArgsConstructor
-public abstract class ManagementRequestDto {
-    private final Integer id;
-    private final ManagementRequestType type;
-    private final Origin origin;
-    private final SecurityServerId serverId;
-    private final ManagementRequestStatus status;
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface ConfigurationPartsDtoConverter extends BaseConverter {
+
+    ConfigurationPartDto convert(ConfigurationParts configurationParts);
+
 }

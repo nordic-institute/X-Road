@@ -37,6 +37,8 @@ import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -70,6 +72,7 @@ public abstract class RequestProcessingEntity extends AuditableEntity {
     private int id;
 
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     @NotNull
     @Getter
     @Setter

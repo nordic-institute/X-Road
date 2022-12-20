@@ -36,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequestDto;
@@ -45,11 +46,14 @@ import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatusDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.centralserver.restapi.converter.db.ClientIdDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.db.ManagementRequestDtoConverter;
+import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestDtoTypeConverter;
 import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestOriginDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestStatusConverter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.centralserver.restapi.dto.converter.AbstractDtoConverterTest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
@@ -70,6 +74,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto.AUTH_CERT_DELETION_REQUEST;
+import static org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
+import static org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto.CLIENT_DELETION_REQUEST;
+import static org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
 
 @ExtendWith(MockitoExtension.class)
 public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest implements WithInOrder {
@@ -92,6 +100,8 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
     private ManagementRequestStatusConverter.Service statusMapper;
     @Mock
     private ClientIdDtoConverter clientIdDtoMapper;
+    @Spy
+    private ManagementRequestDtoTypeConverter.Service requestTypeConverter = new ManagementRequestDtoTypeConverter.Service();
 
     @InjectMocks
     private ManagementRequestDtoConverter converter;
@@ -115,11 +125,11 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             AuthenticationCertificateRegistrationRequest request = mock(AuthenticationCertificateRegistrationRequest.class);
             doReturn(SERVER_ADDRESS).when(request).getAddress();
             doReturn(authCertBytes).when(request).getAuthCert();
-            prepareCommonStubs(request);
+            prepareCommonStubs(request, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST);
 
             ManagementRequestDto converted = converter.toDto(request);
 
-            assertCommon(converted);
+            assertCommon(converted, AUTH_CERT_REGISTRATION_REQUEST);
             AuthenticationCertificateRegistrationRequestDto casted =
                     assertInstanceOf(AuthenticationCertificateRegistrationRequestDto.class, converted);
             assertEquals(authCertBytes, casted.getAuthenticationCertificate());
@@ -136,11 +146,11 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
         public void testAuthenticationCertificateDeletionRequestConversion() {
             AuthenticationCertificateDeletionRequest request = mock(AuthenticationCertificateDeletionRequest.class);
             doReturn(authCertBytes).when(request).getAuthCert();
-            prepareCommonStubs(request);
+            prepareCommonStubs(request, ManagementRequestType.AUTH_CERT_DELETION_REQUEST);
 
             ManagementRequestDto converted = converter.toDto(request);
 
-            assertCommon(converted);
+            assertCommon(converted, AUTH_CERT_DELETION_REQUEST);
             AuthenticationCertificateDeletionRequestDto casted =
                     assertInstanceOf(AuthenticationCertificateDeletionRequestDto.class, converted);
             assertEquals(authCertBytes, casted.getAuthenticationCertificate());
@@ -156,11 +166,11 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             ClientRegistrationRequest request = mock(ClientRegistrationRequest.class);
             doReturn(clientId).when(request).getClientId();
             doReturn(clientIdDto).when(clientIdDtoMapper).toDto(clientId);
-            prepareCommonStubs(request);
+            prepareCommonStubs(request, ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
 
             ManagementRequestDto converted = converter.toDto(request);
 
-            assertCommon(converted);
+            assertCommon(converted, CLIENT_REGISTRATION_REQUEST);
             ClientRegistrationRequestDto casted =
                     assertInstanceOf(ClientRegistrationRequestDto.class, converted);
             assertEquals(clientIdDto, casted.getClientId());
@@ -177,11 +187,11 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             ClientDeletionRequest request = mock(ClientDeletionRequest.class);
             doReturn(clientId).when(request).getClientId();
             doReturn(clientIdDto).when(clientIdDtoMapper).toDto(clientId);
-            prepareCommonStubs(request);
+            prepareCommonStubs(request, ManagementRequestType.CLIENT_DELETION_REQUEST);
 
             ManagementRequestDto converted = converter.toDto(request);
 
-            assertCommon(converted);
+            assertCommon(converted, CLIENT_DELETION_REQUEST);
             ClientDeletionRequestDto casted =
                     assertInstanceOf(ClientDeletionRequestDto.class, converted);
             assertEquals(clientIdDto, casted.getClientId());
@@ -204,9 +214,10 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             inOrder(illegalRequest).verifyNoMoreInteractions();
         }
 
-        private void prepareCommonStubs(Request request) {
+        private void prepareCommonStubs(Request request, ManagementRequestType type) {
             doReturn(ID).when(request).getId();
             doReturn(origin).when(request).getOrigin();
+            doReturn(type).when(request).getManagementRequestType();
             doReturn(originDto).when(originDtoMapper).toDto(origin);
             doReturn(securityServerId).when(request).getSecurityServerId();
             doReturn("SECURITY_SERVER_ID").when(securityServerIdMapper).convertId(securityServerId);
@@ -216,11 +227,12 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             doReturn(updatedAtInstance).when(request).getUpdatedAt();
         }
 
-        private void assertCommon(ManagementRequestDto requestDto) {
+        private void assertCommon(ManagementRequestDto requestDto, ManagementRequestTypeDto type) {
             assertNotNull(requestDto);
             assertEquals(ID, requestDto.getId());
             assertEquals(originDto, requestDto.getOrigin());
             assertEquals("SECURITY_SERVER_ID", requestDto.getSecurityServerId());
+            assertEquals(type, requestDto.getType());
             assertEquals(managementRequestStatusDto, requestDto.getStatus());
             assertEquals(createdAtOffsetDateTime, requestDto.getCreatedAt());
             assertEquals(updatedAtOffsetDateTime, requestDto.getUpdatedAt());
@@ -228,6 +240,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         private void verifyCommon(org.mockito.InOrder inOrder, Request request) {
             inOrder.verify(request).getId();
+            inOrder.verify(request).getManagementRequestType();
             inOrder.verify(request).getOrigin();
             inOrder.verify(originDtoMapper).toDto(origin);
             inOrder.verify(request).getSecurityServerId();

@@ -39,3 +39,12 @@ dependencies {
     testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
     testImplementation('org.liquibase:liquibase-core')
 }
+
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java',
+            "${buildDir}/generated/sources/annotationProcessor/java/main"
+        ]
+    }
+}

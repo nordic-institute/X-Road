@@ -100,6 +100,10 @@ public class ConfigurationSourceEntity {
         //JPA
     }
 
+    public ConfigurationSourceEntity(String anchorFileHash, Instant anchorGeneratedAt) {
+        this.anchorFileHash = anchorFileHash;
+        this.anchorGeneratedAt = anchorGeneratedAt;
+    }
 }
 
 

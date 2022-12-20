@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,28 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
+package org.niis.xroad.centralserver.restapi.service.exception;
 
-import lombok.Getter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+public class SignerProxyException extends UncheckedServiceException {
 
-@Getter
-public class ClientRegistrationRequestDto extends ManagementRequestDto {
-    private final ClientId clientId;
-
-    public ClientRegistrationRequestDto(Integer id, Origin origin,
-                                        SecurityServerId serverId, ManagementRequestStatus status, ClientId clientId) {
-        super(id, ManagementRequestType.CLIENT_REGISTRATION_REQUEST, origin, serverId, status);
-        this.clientId = clientId;
+    public SignerProxyException(ErrorMessage code, String... metadata) {
+        super(code, metadata);
     }
 
-    public ClientRegistrationRequestDto(Origin origin, SecurityServerId serverId, ClientId clientId) {
-        super(null, ManagementRequestType.CLIENT_REGISTRATION_REQUEST, origin, serverId, null);
-        this.clientId = clientId;
+    public SignerProxyException(ErrorMessage code, Throwable cause, String... metadata) {
+        super(code, cause, metadata);
     }
 }

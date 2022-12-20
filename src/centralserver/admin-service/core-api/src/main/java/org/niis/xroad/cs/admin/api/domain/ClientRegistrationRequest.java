@@ -40,20 +40,13 @@ import org.niis.xroad.centralserver.restapi.domain.Origin;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 public class ClientRegistrationRequest extends RequestWithProcessing {
-    public static final String DISCRIMINATOR_VALUE = "ClientRegRequest";
 
     private ClientId clientId;
-
 
     public ClientRegistrationRequest(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId serverId,
                                      ClientId clientId) {
         super(origin, serverId, new ClientRegistrationRequestProcessing());
         this.clientId = ClientId.ensure(clientId);
-    }
-
-    public ClientRegistrationRequest(Origin origin, ClientRegistrationRequest other) {
-        super(origin, other.getSecurityServerId(), other.getRequestProcessing());
-        this.clientId = ClientId.ensure(other.getClientId());
     }
 
     @Override

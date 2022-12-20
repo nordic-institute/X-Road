@@ -26,10 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.entity;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
@@ -44,20 +41,23 @@ import javax.persistence.Transient;
 import static org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity.DISCRIMINATOR_VALUE;
 
 @Entity
-@NoArgsConstructor
 @DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class OwnerChangeRequestEntity extends RequestWithProcessingEntity {
     public static final String DISCRIMINATOR_VALUE = "OwnerChangeRequest";
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sec_serv_user_id")
     @Getter
     @Setter
     private ClientIdEntity clientId;
 
-    public OwnerChangeRequestEntity(Origin origin, SecurityServerId serverId, OwnerChangeRequestProcessingEntity processing) {
-        super(origin, serverId, processing);
+    protected OwnerChangeRequestEntity() {
+        // JPA
+    }
+
+    public OwnerChangeRequestEntity(Origin origin, SecurityServerIdEntity serverId, ClientIdEntity clientId) {
+        super(origin, serverId, new OwnerChangeRequestProcessingEntity());
+        this.clientId = clientId;
     }
 
     @Override

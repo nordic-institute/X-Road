@@ -37,6 +37,7 @@ import org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatusDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestsFilterDto;
+import org.niis.xroad.centralserver.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestDtoTypeConverter;
 import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestOriginDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestStatusConverter;
@@ -46,6 +47,7 @@ import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionReque
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
+import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
@@ -102,11 +104,16 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                 self.setClientId(clientIdDtoMapper.toDto(req.getClientId()));
             });
 
+        } else if (request instanceof OwnerChangeRequest) {
+            OwnerChangeRequest req = (OwnerChangeRequest) request;
+            result = self(new OwnerChangeRequestDto(), self -> self.setClientId(clientIdDtoMapper.toDto(req.getClientId())));
+
         } else {
             throw new BadRequestException("Unknown request type");
         }
 
         return result.id(request.getId())
+                .type(requestTypeConverter.toDto(request.getManagementRequestType()))
                 .origin(originMapper.toDto(request.getOrigin()))
                 .securityServerId(securityServerIdMapper.convertId(request.getSecurityServerId()))
                 .status(statusMapper.toDto(request.getProcessingStatus()))
@@ -146,6 +153,13 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         } else if (request instanceof ClientDeletionRequestDto) {
             ClientDeletionRequestDto req = (ClientDeletionRequestDto) request;
             return new ClientDeletionRequest(
+                    originMapper.fromDto(req.getOrigin()),
+                    securityServerIdMapper.convertId(req.getSecurityServerId()),
+                    clientIdDtoMapper.fromDto(req.getClientId()));
+
+        } else if (request instanceof OwnerChangeRequestDto) {
+            OwnerChangeRequestDto req = (OwnerChangeRequestDto) request;
+            return new OwnerChangeRequest(
                     originMapper.fromDto(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     clientIdDtoMapper.fromDto(req.getClientId()));
