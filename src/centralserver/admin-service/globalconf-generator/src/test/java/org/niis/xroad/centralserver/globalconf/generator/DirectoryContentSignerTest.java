@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -82,7 +83,7 @@ class DirectoryContentSignerTest {
                 .createSignedDirectory(DIRECTORY_CONTENT, KEY_ID, SIGNING_CERT);
 
         var headerMatcher = HEADER_PATTERN.matcher(signedDirectory);
-        assertThat(headerMatcher).as("Expecting header to match pattern").matches();
+        assertThat(headerMatcher).as("Expecting header to match pattern").matches(Matcher::matches);
         var boundary = headerMatcher.group(1);
 
         assertThat(signedDirectory).isEqualTo("Content-Type: multipart/related; charset=UTF-8; boundary=%s\r\n" +

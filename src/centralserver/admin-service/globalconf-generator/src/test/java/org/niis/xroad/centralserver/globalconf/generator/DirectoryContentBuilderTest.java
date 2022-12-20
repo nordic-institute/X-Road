@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,7 +56,7 @@ public class DirectoryContentBuilderTest {
                 .build();
 
         var headerMatcher = HEADER_PATTERN.matcher(dirContent);
-        assertThat(headerMatcher).as("Expecting header to match pattern").matches();
+        assertThat(headerMatcher).as("Expecting header to match pattern").matches(Matcher::matches);
         var boundary = headerMatcher.group(1);
         assertThat(dirContent).isNotEmpty()
                 .isEqualTo("Content-Type: multipart/mixed; charset=UTF-8; boundary=%s\r\n" +
