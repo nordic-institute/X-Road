@@ -39,4 +39,6 @@ public interface ConfigurationService {
     ConfigurationAnchor getConfigurationAnchor(String sourceType);
 
     GlobalConfDownloadUrl getGlobalDownloadUrl(String sourceType);
+
+    void saveConfigurationPart(String contentIdentifier, String fileName, byte[] data, int version);
 }

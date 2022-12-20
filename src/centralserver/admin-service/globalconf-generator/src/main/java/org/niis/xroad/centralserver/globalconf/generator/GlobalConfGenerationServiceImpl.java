@@ -35,10 +35,12 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -60,20 +62,26 @@ import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANC
 @Slf4j
 @AllArgsConstructor
 public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationService {
+    private static final int CONFIGURATION_VERSION = 2;
+
     private SignerProxyFacade signerProxyFacade;
     private SystemParameterService systemParameterService;
+    private ConfigurationService configurationService;
 
     @SneakyThrows
     @Override
     @Scheduled(fixedRate = 60, timeUnit = SECONDS) // TODO make configurable
-    // TODO @Transactional
+    @Transactional
     public void generate() {
         log.debug("Generating global configuration");
 
         var configurationParts = generateConfiguration();
         var configGenerationTime = Instant.now();
 
-        // TODO write to DB
+        configurationParts.forEach(gp ->
+            configurationService.saveConfigurationPart(gp.getContentIdentifier(), gp.getFilename(), gp.getData(), CONFIGURATION_VERSION));
+
+
 
         // TODO split internal and external
 
@@ -81,7 +89,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
         var generatedConfDir = Path.of(SystemProperties.getCenterGeneratedConfDir());
 
-        var configDistributor = new ConfigurationDistributor(generatedConfDir, 2, configGenerationTime);
+        var configDistributor = new ConfigurationDistributor(generatedConfDir, CONFIGURATION_VERSION, configGenerationTime);
         configDistributor.initConfLocation();
         configDistributor.writeConfigurationFiles(configurationParts);
 
@@ -103,9 +111,9 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
         var keyId = "F397AF7369B15D42D7190E90ECA9508D48275FAB";
         var signedDirectory = directoryContentSigner.createSignedDirectory(directoryContent, keyId, "fixme".getBytes());
 
-        // FIXME write to temp and move atomically
-        configDistributor.writeDirectoryContentFile("internalconf", signedDirectory.getBytes(UTF_8));
 
+        configDistributor.writeDirectoryContentFile("internalconf.tmp", signedDirectory.getBytes(UTF_8));
+        configDistributor.moveDirectoryContentFile("internalconf.tmp", "internalconf");
 
 
         // TODO write local copy
@@ -137,7 +145,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     }
 
 
-    // TODO replace with real configuration generator
+    // TODO replace with real configuration generator. When done, also fix fileData saving in ConfigurationServiceImpl.
     private List<ConfigurationPart> generateConfiguration() {
         return List.of(
                 ConfigurationPart.builder()

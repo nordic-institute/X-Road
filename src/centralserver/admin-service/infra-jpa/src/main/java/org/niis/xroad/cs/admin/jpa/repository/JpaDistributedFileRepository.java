@@ -27,13 +27,27 @@ package org.niis.xroad.cs.admin.jpa.repository;
 
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
 import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.Set;
+
+import static org.niis.xroad.cs.admin.core.entity.DistributedFileEntity_.HA_NODE_NAME;
+import static org.niis.xroad.cs.admin.core.entity.DistributedFileEntity_.ID;
 
 @Repository
 public interface JpaDistributedFileRepository extends JpaRepository<DistributedFileEntity, Integer>, DistributedFileRepository {
     
     Set<DistributedFileEntity> findAllByHaNodeName(String haNodeName);
+
+    default Optional<DistributedFileEntity> findByContentIdAndVersion(String contentIdentifier, int version, String haNodeName) {
+        var exampleDistributedFile = new DistributedFileEntity(contentIdentifier, version, haNodeName);
+        return findBy(Example.of(exampleDistributedFile, ExampleMatcher.matching().withIgnorePaths(ID)),
+                q -> q.sortBy(Sort.by(HA_NODE_NAME, ID))
+                        .first());
+    }
 }
