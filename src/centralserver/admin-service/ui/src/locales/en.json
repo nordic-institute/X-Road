@@ -215,7 +215,13 @@
   "globalConf": {
     "globalConf": "Global Configuration",
     "internalConf": "Internal Configuration",
-    "trustedAnchors": "Trusted Anchor"
+    "trustedAnchors": "Trusted Anchor",
+    "cfgParts": {
+      "file": "FILE",
+      "contentIdentifier": "CONTENT IDENTIFIER",
+      "version": "VERSION",
+      "updated": "UPDATED"
+    }
   },
   "globalGroup": {
     "added": "Added",

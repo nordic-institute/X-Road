@@ -51,7 +51,7 @@
 
     <!-- Internal configuration -->
     <div class="header-row mt-7">
-      <div class="xrd-view-title">{{ title }}</div>
+      <div class="xrd-view-title">{{ title }}X</div>
     </div>
 
     <!-- Anchor -->
@@ -106,62 +106,7 @@
     </div>
 
     <!-- Configuration parts -->
-    <div id="global-groups" class="mt-5">
-      <v-card flat>
-        <div class="card-top">
-          <div class="card-main-title">Configuration parts</div>
-        </div>
-
-        <v-card-text class="px-0">
-          <xrd-table id="global-groups-table">
-            <thead>
-              <tr>
-                <th>File</th>
-                <th>Content identifier</th>
-                <th>Version</th>
-                <th>Updated</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <v-icon class="internal-conf-icon"
-                    >mdi-file-document-outline</v-icon
-                  >
-
-                  fetchinterval-params.xml
-                </td>
-                <td>FETCHINTERVAL</td>
-                <td>All versions</td>
-                <td>2020-11-10 18:00</td>
-                <td class="td-align-right">
-                  <xrd-button :outlined="false" text
-                    >{{ $t('action.download') }}
-                  </xrd-button>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <v-icon class="internal-conf-icon"
-                    >mdi-file-document-outline</v-icon
-                  >
-                  monitoring-params.xml
-                </td>
-                <td>MONITORING</td>
-                <td>All versions</td>
-                <td>2021-09-04 10:15</td>
-                <td class="td-align-right">
-                  <xrd-button :outlined="false" text
-                    >{{ $t('action.upload') }}
-                  </xrd-button>
-                </td>
-              </tr>
-            </tbody>
-          </xrd-table>
-        </v-card-text>
-      </v-card>
-    </div>
+    <configuration-parts-list :configuration-type="configurationType"></configuration-parts-list>
   </div>
 </template>
 
@@ -171,17 +116,27 @@
  */
 import Vue from 'vue';
 import TokenExpandable from './TokenExpandable.vue';
+import ConfigurationPartsList from './ConfigurationPartsList.vue';
 import { mapState } from 'pinia';
 import { tokenStore } from '@/store/modules/tokens';
+import { ConfigurationType } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
+    ConfigurationPartsList,
     TokenExpandable,
   },
   props: {
     title: {
       type: String,
       required: true,
+    },
+    configurationType: {
+      type: String,
+      required: true,
+      validator(val) {
+        return Object.values(ConfigurationType).includes(val as ConfigurationType);
+      },
     },
   },
   data() {
