@@ -68,17 +68,17 @@ public class TimestampingServicesPageObj {
     }
 
     public SelenideElement btnViewTimestampingService(String url) {
-        var xpath = "./../..//td/div/button[@data-test='view-timestamping-service-certificate']";
+        var xpath = "./..//td/div/button[@data-test='view-timestamping-service-certificate']";
         return tableServicesRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnEditTimestampingService(String url) {
-        var xpath = "./../..//td/div/button[@data-test='edit-timestamping-service']";
+        var xpath = "./..//td/div/button[@data-test='edit-timestamping-service']";
         return tableServicesRowOf(url).find(xpath(xpath));
     }
 
     public SelenideElement btnDeleteTimestampingService(String url) {
-        var xpath = "./../..//td/div/button[@data-test='delete-timestamping-service']";
+        var xpath = "./..//td/div/button[@data-test='delete-timestamping-service']";
         return tableServicesRowOf(url).find(xpath(xpath));
     }
 

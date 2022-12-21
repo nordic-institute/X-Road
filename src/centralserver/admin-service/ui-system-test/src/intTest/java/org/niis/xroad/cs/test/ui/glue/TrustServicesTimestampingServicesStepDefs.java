@@ -28,20 +28,10 @@
 package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.page.TimestampingServicesPageObj;
 import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.remote.Command;
-import org.openqa.selenium.remote.CommandExecutor;
-import org.openqa.selenium.remote.Response;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.visible;
@@ -67,11 +57,6 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
-    }
-
-    @Step("Loading check")
-    public void loadingCheck() {
-        timestampingServicesPageObj.tableLoading().should(appear);
     }
 
     @Step("Timestamping service with URL {} is visible in the Timestamping Services list")
@@ -105,26 +90,10 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         timestampingServicesPageObj.btnEditTimestampingService(url).click();
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     @Step("User is able view the certificate of Timestamping service")
-    public void userIsAbleViewTheCertificate() throws IOException {
+    public void userIsAbleViewTheCertificate() {
         timestampingServicesPageObj.addEditDialog.btnViewCertificate().click();
         timestampingServicesPageObj.certificateView.certificateDetails().shouldBe(visible);
-
-       //TODO right now Network throttling don't work
-        Map map = new HashMap();
-        map.put("offline", false);
-        map.put("latency", 5);
-        map.put("download_throughput",  1024);
-        map.put("upload_throughput",  1024);
-
-          var chromedriver = (ChromeDriver) Selenide.webdriver().object();
-           CommandExecutor executor = chromedriver.getCommandExecutor();
-
-           Response response = executor.execute(
-               new Command(chromedriver.getSessionId(), "setNetworkConnection",
-                      ImmutableMap.of("network_connection", ImmutableMap.copyOf(map)))
-        );
 
         timestampingServicesPageObj.certificateView.btnClose().click();
         timestampingServicesPageObj.tableLoading().should(appear);
@@ -161,7 +130,6 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     @Step("User is able to click delete button in Timestamping service with URL {}")
     public void userIsAbleToDeleteTimestampingService(String url) {
         timestampingServicesPageObj.btnDeleteTimestampingService(url).click();

@@ -4,7 +4,7 @@ Feature: CS: Trust Services: Timestamping Services
 
   Background:
     Given CentralServer login page is open
-    And Page is prepared to be tested
+    And Page is prepared to be loading tested
     And User xrd logs in to CentralServer with password secret
     And TrustServices tab is selected
 
