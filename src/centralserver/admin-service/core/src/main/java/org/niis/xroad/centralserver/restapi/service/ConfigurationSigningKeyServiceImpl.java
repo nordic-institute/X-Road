@@ -36,7 +36,6 @@ import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.SignerProxyException;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.KeyLabel;
-import org.niis.xroad.cs.admin.api.dto.PossibleAction;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeyService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
@@ -55,6 +54,7 @@ import java.util.UUID;
 
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.KEY_GENERATION_FAILED;
+import static org.niis.xroad.cs.admin.api.dto.PossibleAction.GENERATE_KEY;
 
 @Service
 @Transactional
@@ -78,7 +78,7 @@ public class ConfigurationSigningKeyServiceImpl implements ConfigurationSigningK
                 findConfigurationSourceBySourceType(sourceType.toLowerCase());
 
         final TokenInfo tokenInfo = tokensService.getToken(tokenId);
-        tokenActionsResolver.requireAction(PossibleAction.GENERATE_KEY, tokenInfo);
+        tokenActionsResolver.requireAction(GENERATE_KEY, tokenInfo);
 
         KeyInfo keyInfo;
         try {

@@ -49,11 +49,7 @@ public class TokenActionsResolver {
     public EnumSet<PossibleAction> resolveActions(TokenInfo tokenInfo) {
         EnumSet<PossibleAction> actions = noneOf(PossibleAction.class);
 
-//        if (tokenInfo.isActive() && tokenInfo.getKeyInfo().size() < 2) {
-//            actions.add(GENERATE_KEY);
-//        }
-
-        if (tokenInfo.isActive()) {
+        if (tokenInfo.isActive() && tokenInfo.getKeyInfo().size() < 2) {
             actions.add(GENERATE_KEY);
         }
 
