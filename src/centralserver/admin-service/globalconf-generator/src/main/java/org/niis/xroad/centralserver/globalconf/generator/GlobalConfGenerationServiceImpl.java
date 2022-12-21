@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
@@ -45,6 +46,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
@@ -74,6 +76,7 @@ import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANC
 @RequiredArgsConstructor
 public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationService {
     private static final int CONFIGURATION_VERSION = 2;
+    private static final int OLD_CONF_PRESERVING_SECONDS = 600;
 
     private static final Set<String> EXTERNAL_SOURCE_CONTENT_IDENTIFIERS = Set.of(
             CONTENT_ID_SHARED_PARAMETERS);
@@ -114,9 +117,30 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
         configDistributor.moveDirectoryContentFile(getTmpInternalDirectory(), getCenterInternalDirectory());
         configDistributor.moveDirectoryContentFile(getTmpExternalDirectory(), getCenterExternalDirectory());
 
-        // TODO write local copy
+        cleanUpOldConfigurations(generatedConfDir.resolve(configDistributor.getVersionSubPath()));
 
-        // TODO remove old configs
+        // TODO write local copy
+    }
+
+    @SneakyThrows
+    private static boolean isExpiredConfDir(Path dirPath) {
+        return Files.isDirectory(dirPath)
+                && dirPath.getFileName().toString().matches("\\A\\d+\\z")
+                && Files.getLastModifiedTime(dirPath).toInstant().isBefore(
+                        Instant.now().minusSeconds(OLD_CONF_PRESERVING_SECONDS));
+    }
+
+    @SneakyThrows
+    private static void deleteExpiredConfigDir(Path dirPath) {
+        log.trace("Deleting expired global configuration directory {}", dirPath);
+        FileUtils.deleteDirectory(dirPath.toFile());
+    }
+
+    @SneakyThrows
+    private void cleanUpOldConfigurations(Path versionDir) {
+        Files.list(versionDir)
+                .filter(GlobalConfGenerationServiceImpl::isExpiredConfDir)
+                .forEach(GlobalConfGenerationServiceImpl::deleteExpiredConfigDir);
     }
 
     private static String getTmpExternalDirectory() {
