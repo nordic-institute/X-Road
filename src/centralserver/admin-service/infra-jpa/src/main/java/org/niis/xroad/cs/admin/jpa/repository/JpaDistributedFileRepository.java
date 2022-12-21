@@ -44,6 +44,8 @@ public interface JpaDistributedFileRepository extends JpaRepository<DistributedF
     
     Set<DistributedFileEntity> findAllByHaNodeName(String haNodeName);
 
+    Set<DistributedFileEntity> findAllByVersion(int version);
+
     default Optional<DistributedFileEntity> findByContentIdAndVersion(String contentIdentifier, int version, String haNodeName) {
         var exampleDistributedFile = new DistributedFileEntity(contentIdentifier, version, haNodeName);
         return findBy(Example.of(exampleDistributedFile, ExampleMatcher.matching().withIgnorePaths(ID)),

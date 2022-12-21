@@ -27,8 +27,6 @@
 
 package org.niis.xroad.centralserver.restapi.service;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -56,6 +54,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -78,7 +77,7 @@ class ConfigurationServiceImplTest {
     private static final Instant FILE_UPDATED_AT = Instant.now();
     private static final String HASH = "F5:1B:1F:9C:07:23:4C:DA:E6:4C:99:CB:FC:D8:EE:0E:C5:5F:A4:AF";
     private static final byte[] FILE_DATA = "file-data".getBytes(UTF_8);
-    private static final String NODE_LOCAL_CONTENT_ID = ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+    private static final String NODE_LOCAL_CONTENT_ID = CONTENT_ID_PRIVATE_PARAMETERS;
 
 
     @Mock
@@ -93,10 +92,12 @@ class ConfigurationServiceImplTest {
     private DistributedFileMapper distributedFileMapper = new DistributedFileMapperImpl();
 
     private ConfigurationServiceImpl configurationService;
+    private ConfigurationServiceImpl configurationServiceHa;
 
     @BeforeEach
     void initConfigurationService() {
         configurationService = createConfigurationService(new HAConfigStatus(HA_NODE_NAME, false));
+        configurationServiceHa = createConfigurationService(new HAConfigStatus(HA_NODE_NAME, true));
     }
 
     @Test
@@ -202,15 +203,8 @@ class ConfigurationServiceImplTest {
 
     @Nested
     class SaveConfigurationPart {
-        private ConfigurationServiceImpl configurationServiceHa;
-
         @Captor
         private ArgumentCaptor<DistributedFileEntity> distributedFileCaptor;
-
-        @BeforeEach
-        void setUp() {
-            configurationServiceHa = createConfigurationService(new HAConfigStatus(HA_NODE_NAME, true));
-        }
 
         @Test
         void shouldCreateNew() {
@@ -220,7 +214,6 @@ class ConfigurationServiceImplTest {
             var df = distributedFileCaptor.getValue();
             assertFieldsChanged(df);
         }
-
 
         @Test
         void shouldUpdateExisting() {
@@ -259,9 +252,7 @@ class ConfigurationServiceImplTest {
                     // FIXME after configuration generation is done
                     // () -> assertThat(df.getFileData()).as("file data").isEqualTo(FILE_DATA)
                     () -> assertThat(df.getFileData()).as("file data").isNull()
-
             );
         }
-
     }
 }

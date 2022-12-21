@@ -29,9 +29,18 @@ package org.niis.xroad.cs.admin.jpa.repository;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public interface JpaConfigurationSigningKeyRepository
         extends JpaRepository<ConfigurationSigningKeyEntity, Integer>, ConfigurationSigningKeyRepository {
+
+    @Override
+    @Query("SELECT cs.configurationSigningKey FROM ConfigurationSourceEntity cs " +
+            "WHERE cs.sourceType = :sourceType " +
+            "AND (:haNodeName is null OR cs.haNodeName = :haNodeName)")
+    Optional<ConfigurationSigningKeyEntity> findActiveForSource(String sourceType, String haNodeName);
 }

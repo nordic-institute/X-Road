@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,4 +52,10 @@ public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigning
                 .map(configurationSigningKeyMapper::toTarget).collect(Collectors.toList());
     }
 
+    @Override
+    public Optional<ConfigurationSigningKey> findActiveForSource(String sourceType) {
+        // TODO pass haNodeName if HA enabled
+        return configurationSigningKeyRepository.findActiveForSource(sourceType, null)
+                .map(configurationSigningKeyMapper::toTarget);
+    }
 }

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
@@ -41,4 +42,6 @@ public interface ConfigurationService {
     GlobalConfDownloadUrl getGlobalDownloadUrl(String sourceType);
 
     void saveConfigurationPart(String contentIdentifier, String fileName, byte[] data, int version);
+
+    Set<DistributedFile> getAllConfigurationFiles(int version);
 }

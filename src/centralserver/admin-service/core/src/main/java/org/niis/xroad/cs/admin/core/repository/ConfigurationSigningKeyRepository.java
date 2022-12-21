@@ -29,9 +29,11 @@ package org.niis.xroad.cs.admin.core.repository;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ConfigurationSigningKeyRepository extends GenericRepository<ConfigurationSigningKeyEntity, Integer> {
 
     List<ConfigurationSigningKeyEntity> findByTokenIdentifier(String tokenIdentifier);
 
+    Optional<ConfigurationSigningKeyEntity> findActiveForSource(String sourceType, String haNodeName);
 }

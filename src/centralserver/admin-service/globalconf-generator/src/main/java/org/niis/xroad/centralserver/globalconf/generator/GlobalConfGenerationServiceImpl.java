@@ -31,11 +31,14 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
+import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -45,9 +48,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
+import static ee.ria.xroad.common.SystemProperties.getCenterExternalDirectory;
+import static ee.ria.xroad.common.SystemProperties.getCenterInternalDirectory;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toSet;
+import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_EXTERNAL;
+import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_INTERNAL;
 import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CONF_EXPIRE_INTERVAL_SECONDS;
 import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CONF_HASH_ALGO_URI;
 import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CONF_SIGN_CERT_HASH_ALGO_URI;
@@ -60,44 +71,85 @@ import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANC
 
 @Component
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationService {
     private static final int CONFIGURATION_VERSION = 2;
 
-    private SignerProxyFacade signerProxyFacade;
-    private SystemParameterService systemParameterService;
-    private ConfigurationService configurationService;
+    private static final Set<String> EXTERNAL_SOURCE_CONTENT_IDENTIFIERS = Set.of(
+            CONTENT_ID_SHARED_PARAMETERS);
+    private static final Set<String> INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS = Set.of(
+            CONTENT_ID_PRIVATE_PARAMETERS,
+            CONTENT_ID_SHARED_PARAMETERS);
+
+    private final SignerProxyFacade signerProxyFacade;
+    private final SystemParameterService systemParameterService;
+    private final ConfigurationService configurationService;
+    private final ConfigurationSigningKeysService configurationSigningKeysService;
 
     @SneakyThrows
     @Override
     @Scheduled(fixedRate = 60, timeUnit = SECONDS) // TODO make configurable
     @Transactional
     public void generate() {
-        log.debug("Generating global configuration");
+        log.debug(getTmpInternalDirectory());
 
-        var configurationParts = generateConfiguration();
+        generateAndSaveConfiguration();
         var configGenerationTime = Instant.now();
 
-        configurationParts.forEach(gp ->
-            configurationService.saveConfigurationPart(gp.getContentIdentifier(), gp.getFilename(), gp.getData(), CONFIGURATION_VERSION));
-
-
-
-        // TODO split internal and external
-
-        // TODO add optional configuration parts
+        var allConfigurationParts = toConfigurationParts(configurationService.getAllConfigurationFiles(CONFIGURATION_VERSION));
+        var internalConfigurationParts = internalConfigurationParts(allConfigurationParts);
+        var externalConfigurationParts = externalConfigurationParts(allConfigurationParts);
 
         var generatedConfDir = Path.of(SystemProperties.getCenterGeneratedConfDir());
-
         var configDistributor = new ConfigurationDistributor(generatedConfDir, CONFIGURATION_VERSION, configGenerationTime);
         configDistributor.initConfLocation();
-        configDistributor.writeConfigurationFiles(configurationParts);
+        configDistributor.writeConfigurationFiles(allConfigurationParts);
 
+        var internalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL).orElseThrow();
+        var externalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL).orElseThrow();
 
+        writeDirectoryContentFile(configDistributor, internalConfigurationParts, internalSigningKey, getTmpInternalDirectory());
+        writeDirectoryContentFile(configDistributor, externalConfigurationParts, externalSigningKey, getTmpExternalDirectory());
+
+        configDistributor.moveDirectoryContentFile(getTmpInternalDirectory(), getCenterInternalDirectory());
+        configDistributor.moveDirectoryContentFile(getTmpExternalDirectory(), getCenterExternalDirectory());
+
+        // TODO write local copy
+
+        // TODO remove old configs
+    }
+
+    private static String getTmpExternalDirectory() {
+        return getCenterExternalDirectory() + ".tmp";
+    }
+
+    private static String getTmpInternalDirectory() {
+        return getCenterInternalDirectory() + ".tmp";
+    }
+
+    private static Set<ConfigurationPart> internalConfigurationParts(Set<ConfigurationPart> configurationParts) {
+        return configurationParts.stream()
+                // TODO: add optional parts
+                .filter(cp -> INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS.contains(cp.getContentIdentifier()))
+                .collect(toSet());
+    }
+
+    private static Set<ConfigurationPart> externalConfigurationParts(Set<ConfigurationPart> configurationParts) {
+        return configurationParts.stream()
+                .filter(cp -> EXTERNAL_SOURCE_CONTENT_IDENTIFIERS.contains(cp.getContentIdentifier()))
+                .collect(toSet());
+    }
+
+    private void writeDirectoryContentFile(ConfigurationDistributor configDistributor, Set<ConfigurationPart> internalConfigurationParts, ConfigurationSigningKey internalSigningKey, String fileName) {
+        String signedDirectory = createSignedDirectory(internalConfigurationParts, getTmpExternalDirectory() + configDistributor.getSubPath().toString(), internalSigningKey);
+        configDistributor.writeDirectoryContentFile(fileName, signedDirectory.getBytes(UTF_8));
+    }
+
+    private String createSignedDirectory(Set<ConfigurationPart> configurationParts, String pathPrefix, ConfigurationSigningKey signingKey) {
         var directoryContentBuilder = new DirectoryContentBuilder(
                 getConfHashAlgoId(),
                 Instant.now().plusSeconds(getConfExpireIntervalSeconds()),
-                "/" + configDistributor.getSubPath().toString(),
+                pathPrefix,
                 getInstanceIdentifier())
                 .contentParts(configurationParts);
         var directoryContent = directoryContentBuilder.build();
@@ -107,18 +159,27 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
                 getConfSignDigestAlgoId(),
                 getConfSignCertHashAlgoId());
 
+        return directoryContentSigner.createSignedDirectory(directoryContent, signingKey.getKeyIdentifier(), signingKey.getCert());
+    }
 
-        var keyId = "F397AF7369B15D42D7190E90ECA9508D48275FAB";
-        var signedDirectory = directoryContentSigner.createSignedDirectory(directoryContent, keyId, "fixme".getBytes());
+    private List<ConfigurationPart> generateAndSaveConfiguration() {
+        var configurationParts = generateConfiguration();
+        configurationParts.forEach(gp ->
+                configurationService.saveConfigurationPart(gp.getContentIdentifier(), gp.getFilename(), gp.getData(), CONFIGURATION_VERSION));
+        return configurationParts;
+    }
 
+    private Set<ConfigurationPart> toConfigurationParts(Set<DistributedFile> configurationFiles) {
+        return configurationFiles
+                .stream().map(this::toConfigurationPart)
+                .collect(toSet());
+    }
 
-        configDistributor.writeDirectoryContentFile("internalconf.tmp", signedDirectory.getBytes(UTF_8));
-        configDistributor.moveDirectoryContentFile("internalconf.tmp", "internalconf");
-
-
-        // TODO write local copy
-
-        // TODO remove old configs
+    private ConfigurationPart toConfigurationPart(DistributedFile df) {
+        return ConfigurationPart.builder().filename(df.getFileName())
+                .contentIdentifier(df.getContentIdentifier())
+                .data(df.getFileData())
+                .build();
     }
 
     @SneakyThrows

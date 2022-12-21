@@ -49,10 +49,10 @@ import javax.transaction.Transactional;
 
 import java.time.Instant;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
 
@@ -80,11 +80,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .findAllByHaNodeName(configurationSource.getHaNodeName())
                 .stream()
                 .map(distributedFileMapper::toTarget)
-                .collect(Collectors.toSet());
+                .collect(toSet());
 
         return distributedFiles.stream()
                 .map(this::createConfParts)
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     @Override
@@ -115,6 +115,23 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         // distributedFileEntity.setFileData(data);
         distributedFileEntity.setFileUpdatedAt(Instant.now());
         distributedFileRepository.save(distributedFileEntity);
+    }
+
+    @Override
+    public Set<DistributedFile> getAllConfigurationFiles(int version) {
+        return distributedFileRepository.findAllByVersion(version)
+                .stream()
+                .filter(this::isForCurrentNode)
+                .map(distributedFileMapper::toTarget)
+                .collect(toSet());
+    }
+
+    private boolean isForCurrentNode(DistributedFileEntity distributedFile) {
+        if (haConfigStatus.isHaConfigured()
+                && NODE_LOCAL_CONTENT_IDS.contains(distributedFile.getContentIdentifier())) {
+            return haConfigStatus.getCurrentHaNodeName().equals(distributedFile.getHaNodeName());
+        }
+        return true;
     }
 
     private DistributedFileEntity findOrCreate(String contentIdentifier, int version) {

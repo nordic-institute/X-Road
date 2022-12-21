@@ -35,5 +35,7 @@ public interface DistributedFileRepository extends GenericRepository<Distributed
 
     Set<DistributedFileEntity> findAllByHaNodeName(String haNodeName);
 
+    Set<DistributedFileEntity> findAllByVersion(int version);
+
     Optional<DistributedFileEntity> findByContentIdAndVersion(String contentIdentifier, int version, String haNodeName);
 }
