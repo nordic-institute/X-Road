@@ -34,7 +34,7 @@
 
     <XrdEmptyPlaceholder
       :data="tokens"
-      :loading="loading"
+      :loading="tokensLoading"
       :no-items-text="$t('noData.noTokens')"
       skeleton-type="table-heading"
     />
@@ -43,9 +43,8 @@
       v-for="token in tokens"
       :key="token.id"
       :token="token"
-      @refresh-list="fetchData"
-      @token-logout="logoutDialog = true"
-      @token-login="loginDialog = true"
+      @token-login="fetchData"
+      @token-logout="fetchData"
       @add-key="addKey"
     />
 
@@ -61,30 +60,30 @@
           <div class="card-main-title">Anchor</div>
           <div class="card-corner-button pr-4">
             <xrd-button outlined class="mr-4">
-              <xrd-icon-base class="xrd-large-button-icon"
-                ><XrdIconAdd
-              /></xrd-icon-base>
+              <xrd-icon-base class="xrd-large-button-icon">
+                <XrdIconAdd />
+              </xrd-icon-base>
 
               Re-create
             </xrd-button>
             <xrd-button outlined>
-              <xrd-icon-base class="xrd-large-button-icon"
-                ><XrdIconDownload
-              /></xrd-icon-base>
+              <xrd-icon-base class="xrd-large-button-icon">
+                <XrdIconDownload />
+              </xrd-icon-base>
               Download
             </xrd-button>
           </div>
         </div>
         <v-card-title class="card-title"
-          >Certificate Hash (SHA-224)</v-card-title
-        >
+          >Certificate Hash (SHA-224)
+        </v-card-title>
         <v-divider></v-divider>
         <v-card-text>
-          <xrd-icon-base class="internal-conf-icon"
-            ><XrdIconCertificate
-          /></xrd-icon-base>
-          42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F</v-card-text
-        >
+          <xrd-icon-base class="internal-conf-icon">
+            <XrdIconCertificate />
+          </xrd-icon-base>
+          42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F
+        </v-card-text>
         <v-divider class="pb-4"></v-divider>
       </v-card>
     </div>
@@ -98,9 +97,9 @@
         <v-card-title class="card-title">URL Address</v-card-title>
         <v-divider></v-divider>
         <v-card-text>
-          <v-icon class="internal-conf-icon">mdi-link</v-icon
-          >http://dev-cs-i.x-road.rocks/internalconf</v-card-text
-        >
+          <v-icon class="internal-conf-icon">mdi-link </v-icon>
+          http://dev-cs-i.x-road.rocks/internalconf
+        </v-card-text>
         <v-divider class="pb-4"></v-divider>
       </v-card>
     </div>
@@ -127,8 +126,8 @@
               <tr>
                 <td>
                   <v-icon class="internal-conf-icon"
-                    >mdi-file-document-outline</v-icon
-                  >
+                    >mdi-file-document-outline
+                  </v-icon>
 
                   fetchinterval-params.xml
                 </td>
@@ -144,8 +143,8 @@
               <tr>
                 <td>
                   <v-icon class="internal-conf-icon"
-                    >mdi-file-document-outline</v-icon
-                  >
+                    >mdi-file-document-outline
+                  </v-icon>
                   monitoring-params.xml
                 </td>
                 <td>MONITORING</td>
@@ -170,9 +169,9 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import TokenExpandable from './TokenExpandable.vue';
-import { mapState } from 'pinia';
+import { mapActions, mapState } from 'pinia';
 import { tokenStore } from '@/store/modules/tokens';
+import TokenExpandable from '@/components/tokens/TokenExpandable.vue';
 
 export default Vue.extend({
   components: {
@@ -186,7 +185,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      loading: false,
+      tokensLoading: false,
       creatingBackup: false,
       uploadingBackup: false,
       needsConfirmation: false,
@@ -196,19 +195,15 @@ export default Vue.extend({
   computed: {
     ...mapState(tokenStore, { tokens: 'getSortedTokens' }),
   },
-
+  created() {
+    this.fetchData();
+  },
   methods: {
-    toggleChangePinOpen(): void {
-      // TODO
-    },
-
-    isTokenLoggedIn(): boolean {
-      // TODO
-      return true;
-    },
+    ...mapActions(tokenStore, ['fetchTokens']),
 
     fetchData(): void {
-      // TODO
+      this.tokensLoading = true;
+      this.fetchTokens().finally(() => (this.tokensLoading = false));
     },
 
     addKey(): void {

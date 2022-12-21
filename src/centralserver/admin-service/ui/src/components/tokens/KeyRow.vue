@@ -24,51 +24,58 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-
 <template>
-  <div>
-    <xrd-button
-      v-if="!token.logged_in"
-      min-width="120px"
-      :outlined="false"
-      text
-      :disabled="!token.available"
-      data-test="token-login-button"
-      @click="confirmLogin()"
-      >{{ $t('keys.logIn') }}
-    </xrd-button>
+  <tr>
+    <td class="pl-8">
+      <div class="name-wrap-top">
+        <xrd-icon-base class="key-icon">
+          <XrdIconKey />
+        </xrd-icon-base>
 
-    <xrd-button
-      v-if="token.logged_in"
-      min-width="120px"
-      :outlined="false"
-      text
-      data-test="token-logout-button"
-      @click="confirmLogout()"
-      >{{ $t('keys.logOut') }}
-    </xrd-button>
-  </div>
+        <div class="identifier-wrap">
+          <span v-if="!tokenKey.label || tokenKey.label.label === ''">
+            {{ tokenKey.id }}
+          </span>
+          <span v-else>{{ tokenKey.label.label }}</span>
+        </div>
+      </div>
+    </td>
+    <td>{{ tokenKey.created_at | formatDateTime }}</td>
+  </tr>
 </template>
 
 <script lang="ts">
+/**
+ * Table component for an array of keys
+ */
 import Vue from 'vue';
-import { Token } from '@/mock-openapi-types';
 import { Prop } from 'vue/types/options';
+import { ConfigurationSigningKey } from '@/openapi-types';
 
 export default Vue.extend({
   props: {
-    token: {
-      type: Object as Prop<Token>,
+    tokenKey: {
+      type: Object as Prop<ConfigurationSigningKey>,
       required: true,
-    },
-  },
-  methods: {
-    confirmLogout(): void {
-      this.$emit('token-logout');
-    },
-    confirmLogin(): void {
-      this.$emit('token-login');
     },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+@import '~styles/tables';
+
+.key-icon {
+  margin-right: 18px;
+  color: $XRoad-Purple100;
+}
+
+.name-wrap-top {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+</style>

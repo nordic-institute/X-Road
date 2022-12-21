@@ -26,74 +26,16 @@
  */
 
 import { defineStore } from 'pinia';
-
-import {
-  Token,
-  TokenType,
-  TokenStatus,
-  KeyUsageType,
-} from '@/mock-openapi-types';
 import { deepClone } from '@/util/helpers';
+import axios from 'axios';
+import { Token, TokenPassword } from '@/openapi-types';
 
 export const tokenStore = defineStore('tokenStore', {
   state: () => {
     return {
       expandedTokens: [] as string[],
-      tokens: [
-        {
-          id: '87768768678768',
-          name: 'this is a token name',
-          type: TokenType.SOFTWARE,
-          keys: [
-            {
-              id: 'sdfsdf9384',
-              name: 'keyone',
-              label: 'ready label one',
-              certificates: [],
-              certificate_signing_requests: [],
-              usage: KeyUsageType.SIGNING,
-            },
-            {
-              id: '32123123321',
-              name: 'keytwo',
-              label: 'ready label two',
-              certificates: [],
-              certificate_signing_requests: [],
-              usage: KeyUsageType.SIGNING,
-            },
-          ], // Array<Key>;
-          status: TokenStatus.USER_PIN_EXPIRED,
-          logged_in: false,
-          available: true,
-          saved_to_configuration: true,
-          read_only: false,
-          serial_number: 'jdjhkfjhkdfs',
-        },
-        {
-          id: '09896745443678768',
-          name: 'kuuioi',
-          type: TokenType.SOFTWARE,
-          keys: [
-            {
-              id: '323223232',
-              name: 'key3',
-              label: 'ready label 3',
-              certificates: [],
-              certificate_signing_requests: [],
-              usage: KeyUsageType.SIGNING,
-            },
-          ],
-          status: TokenStatus.USER_PIN_EXPIRED,
-          logged_in: true,
-          available: true,
-          saved_to_configuration: true,
-          read_only: false,
-          serial_number: 'yfjhgjghgfhs',
-        },
-      ] as Token[],
+      tokens: [] as Token[],
       selectedToken: undefined as Token | undefined,
-
-      count: 20,
     };
   },
   getters: {
@@ -151,12 +93,39 @@ export const tokenStore = defineStore('tokenStore', {
       }
     },
 
-    setTokens(tokens: Token[]) {
-      this.tokens = tokens;
-    },
-
     setSelectedToken(token: Token) {
       this.selectedToken = token;
+    },
+
+    fetchTokens() {
+      return axios
+        .get<Token[]>(`/tokens`)
+        .then((resp) => {
+          this.tokens = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    loginToken(id: string, tokenPassword: TokenPassword) {
+      return axios
+        .put<Token>(`/tokens/${id}/login`, tokenPassword)
+        .then((resp) => {
+          this.selectedToken = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    logoutToken(id: string) {
+      return axios
+        .put<Token>(`/tokens/${id}/logout`)
+        .then((resp) => {
+          this.selectedToken = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
     },
   },
 });

@@ -24,86 +24,62 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<template>
-  <tr>
-    <td class="pl-8">
-      <div class="name-wrap-top">
-        <xrd-icon-base class="key-icon"><XrdIconKey /></xrd-icon-base>
 
-        <div class="clickable-link identifier-wrap" @click="keyClick">
-          <span v-if="!tokenKey.name || tokenKey.name === ''">{{
-            tokenKey.id
-          }}</span>
-          <span v-else>{{ tokenKey.name }}</span>
-        </div>
-      </div>
-    </td>
-    <td class="td-align-right"></td>
-  </tr>
+<template>
+  <xrd-confirm-dialog
+    :dialog="true"
+    :loading="loading"
+    accept-button-text="tokens.logout.confirmButton"
+    title="tokens.logout.title"
+    text="tokens.logout.text"
+    @cancel="cancel"
+    @accept="confirmLogout"
+  />
 </template>
 
 <script lang="ts">
-/**
- * Table component for an array of keys
- */
 import Vue from 'vue';
+import { mapActions } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
+import { tokenStore } from '@/store/modules/tokens';
+import { Token } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
-import { Key } from '@/mock-openapi-types';
+
 export default Vue.extend({
   props: {
-    tokenKey: {
-      type: Object as Prop<Key>,
+    token: {
+      type: Object as Prop<Token>,
       required: true,
     },
-    tokenLoggedIn: {
-      type: Boolean,
-    },
   },
-  computed: {
-    showGenerateCsr(): boolean {
-      // TODO
-      return true;
-    },
-
-    disableGenerateCsr(): boolean {
-      // TODO
-      return false;
-    },
+  data() {
+    return {
+      showConfirmLogout: false,
+      loading: false,
+    };
   },
   methods: {
-    keyClick(): void {
-      this.$emit('key-click');
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(tokenStore, ['logoutToken']),
+    cancel(): void {
+      this.$emit('cancel');
     },
-    generateCsr(): void {
-      this.$emit('generate-csr');
+    confirmLogout(): void {
+      this.loading = true;
+      this.logoutToken(this.token.id)
+        .then(() => {
+          this.showSuccess(this.$t('tokens.logout.success'));
+          this.$emit('token-logout');
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-@import '~styles/tables';
-
-.td-align-right {
-  text-align: right;
-}
-
-.clickable-link {
-  color: $XRoad-Purple100;
-  cursor: pointer;
-}
-
-.key-icon {
-  margin-right: 18px;
-  color: $XRoad-Purple100;
-}
-
-.name-wrap-top {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  align-content: center;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-</style>
+<style lang="scss" scoped></style>
