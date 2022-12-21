@@ -238,7 +238,7 @@ class ConfigurationServiceImplTest {
         }
 
         @Test
-        void shouldNotFindByNodeNameInHaConf_whenNotNodeLocalContentId() {
+        void shouldNotFindByNodeNameInHaConfWhenNotNodeLocalContentId() {
             configurationServiceHa.saveConfigurationPart(CONTENT_IDENTIFIER, FILE_NAME, FILE_DATA, VERSION);
 
             verify(distributedFileRepository).findByContentIdAndVersion(CONTENT_IDENTIFIER, VERSION, null);

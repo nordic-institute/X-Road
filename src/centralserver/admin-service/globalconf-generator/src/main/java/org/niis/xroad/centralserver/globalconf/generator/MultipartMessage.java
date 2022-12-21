@@ -37,6 +37,7 @@ import java.util.List;
 @Builder
 class MultipartMessage {
     private static final String CRLF = "\r\n";
+    public static final int BOUNDARY_LENGTH = 20;
     @Singular
     List<Part> parts;
     String boundary;
@@ -47,7 +48,7 @@ class MultipartMessage {
             throw new RuntimeException("At least one part is required");
         }
         this.parts = parts;
-        this.boundary = boundary != null ? boundary : RandomStringUtils.randomAlphanumeric(20);
+        this.boundary = boundary != null ? boundary : RandomStringUtils.randomAlphanumeric(BOUNDARY_LENGTH);
         this.contentType = contentType != null ? contentType : "multipart/mixed";
     }
 

@@ -70,8 +70,8 @@ public class DirectoryContentBuilder {
         return this;
     }
 
-    DirectoryContentBuilder contentParts(Collection<ConfigurationPart> configurationParts) {
-        this.configurationParts.addAll(configurationParts);
+    DirectoryContentBuilder contentParts(Collection<ConfigurationPart> parts) {
+        this.configurationParts.addAll(parts);
         return this;
     }
 
