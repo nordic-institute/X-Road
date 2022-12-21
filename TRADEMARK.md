@@ -67,7 +67,7 @@ is permitted only by a license agreement between X-ROAD and the aforementioned l
 5. You may reference X-ROAD services using the X-ROAD trademark, so long as such references are: (1) truthful, fair,
    and not misleading, and (2) comply with the agreement and these guidelines.
 6. The trademarks should never be used in a way that could wrongly cause anyone to believe that your products or
-   services are offered, endorsed, or sponsored by NIIS, X-ROAD, or Harmony eDelivery Access. You must avoid confusion
+   services are offered, endorsed, or sponsored by NIIS or X-ROAD. You must avoid confusion
    regarding the NIIS products and the trademarks.
 7. You may use the trademarks only as adjectives followed by the appropriate generic noun. The trademarks should not be
    used in the plural or possessive form or as verbs.
@@ -97,15 +97,15 @@ is permitted only by a license agreement between X-ROAD and the aforementioned l
 |NIIS                                                        |X-ROAD                                                                                                                                |
 |:----------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------:|
 |![NIIS logo example 1](./doc/trademark_imgs/niis_logo_1.png)| The X-ROAD logo is a graphic whole consisting of a logotype and logomark.<br>The registered trademark symbol forms part of the logo. |
-|![NIIS logo example 2](./doc/trademark_imgs/niis_logo_2.png)|![X-Road logo example](./doc/trademark_imgs/xrd_logo_1.png)                                                                           |
+|![NIIS logo example 2](./doc/trademark_imgs/niis_logo_2.png)|![X-Road logo example](./doc/trademark_imgs/xrd_logo_1.jpg)                                                                           |
 |![NIIS logo example 3](./doc/trademark_imgs/niis_logo_3.png)|                                                                                                                                      |
 
 ## 3 Here are examples of incorrect logos. The logo should not be altered in any way. Do not add, remove, or resize any elements or colours of the existing logo, X-ROAD logo, for example:
 
 |                                                                                                                             |                                                                                                                          |                                                                                                                                     |                                                                                                                                                 |
 |:---------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------:|
-| ![Bad example 1](./doc/trademark_imgs/bad_example_1.png)<br>Don’t add outlines, special effects, or other graphic elements. | ![Bad example 2](./doc/trademark_imgs/bad_example_2.png)<br>Don’t alter or add copy to the logo. Don’t change the fonts. | ![Bad example 3](./doc/trademark_imgs/bad_example_3.png)<br>Make sure the logo is entirely legible and on a contrasting background. | ![Bad example 4](./doc/trademark_imgs/bad_example_4.png)<br>Don’t distort the logo.                                                             |
-| ![Bad example 5](./doc/trademark_imgs/bad_example_5.png)<br>Don’t change or remove logo elements.                           |	![Bad example 6](./doc/trademark_imgs/bad_example_6.png)<br>Don’t change the colours of the logo.                        | ![Bad example 7](./doc/trademark_imgs/bad_example_7.png)<br>Don’t put the logo in shape.                                            | ![Bad example 8](./doc/trademark_imgs/bad_example_8.png)<br>Don’t allow the logo to get cut off or be covered. The entire logo must be visible. |
+| ![Bad example 1](./doc/trademark_imgs/bad_example_1.jpg)<br>Don’t add outlines, special effects, or other graphic elements. | ![Bad example 2](./doc/trademark_imgs/bad_example_2.jpg)<br>Don’t alter or add copy to the logo. Don’t change the fonts. | ![Bad example 3](./doc/trademark_imgs/bad_example_3.jpg)<br>Make sure the logo is entirely legible and on a contrasting background. | ![Bad example 4](./doc/trademark_imgs/bad_example_4.jpg)<br>Don’t distort the logo.                                                             |
+| ![Bad example 5](./doc/trademark_imgs/bad_example_5.jpg)<br>Don’t change or remove logo elements.                           |	![Bad example 6](./doc/trademark_imgs/bad_example_6.jpg)<br>Don’t change the colours of the logo.                        | ![Bad example 7](./doc/trademark_imgs/bad_example_7.jpg)<br>Don’t put the logo in shape.                                            | ![Bad example 8](./doc/trademark_imgs/bad_example_8.jpg)<br>Don’t allow the logo to get cut off or be covered. The entire logo must be visible. |
 
 ## 4 Questions and Comments
 
@@ -114,7 +114,7 @@ report concerns regarding the use or misuse of the trademarks of NIIS, contact u
 
 ## 5 Updates of Guidelines
 
-The NIIS®, X-ROAD® and Harmony eDelivery Access® Trademark Usage Guidelines may be modified from time to time by NIIS
+The NIIS® and X-ROAD® Trademark Usage Guidelines may be modified from time to time by NIIS
 at our sole discretion and release new versions without notice. The current version is 2022 v1, published in December
 2022.
 
