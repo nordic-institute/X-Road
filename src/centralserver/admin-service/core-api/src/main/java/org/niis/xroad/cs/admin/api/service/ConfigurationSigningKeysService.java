@@ -29,9 +29,14 @@ package org.niis.xroad.cs.admin.api.service;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ConfigurationSigningKeysService {
+    String SOURCE_TYPE_INTERNAL = "internal";
+    String SOURCE_TYPE_EXTERNAL = "external";
 
     List<ConfigurationSigningKey> findByTokenIdentifier(String tokenIdentifier);
+
+    Optional<ConfigurationSigningKey> findActiveForSource(String sourceType);
 
 }

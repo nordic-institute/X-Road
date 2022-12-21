@@ -37,7 +37,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.Collection;
 
 @Slf4j
 public class ConfigurationDistributor {
@@ -69,7 +69,7 @@ public class ConfigurationDistributor {
         }
     }
 
-    public void writeConfigurationFiles(List<ConfigurationPart> configurationParts) {
+    public void writeConfigurationFiles(Collection<ConfigurationPart> configurationParts) {
         configurationParts.forEach(this::writeConfigurationFile);
     }
 
