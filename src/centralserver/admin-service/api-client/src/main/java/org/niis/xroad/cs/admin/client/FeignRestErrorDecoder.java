@@ -52,7 +52,7 @@ public class FeignRestErrorDecoder implements ErrorDecoder {
         try (var inputStream = response.body().asInputStream()) {
             var errorInfo = mapper.readValue(inputStream, ErrorInfoDto.class);
             var detail = errorInfo.getError() != null ? errorInfo.getError().getCode() : REQUEST_FAILED;
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "%s", detail);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "%s with statusCode %s", detail, errorInfo.getStatus());
         } catch (IOException ex) {
             throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, ex, REQUEST_FAILED);
         }

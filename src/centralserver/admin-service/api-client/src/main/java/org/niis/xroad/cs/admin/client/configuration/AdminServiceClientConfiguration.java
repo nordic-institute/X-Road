@@ -43,6 +43,7 @@ import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.ssl.SSLContexts;
+import org.niis.xroad.cs.admin.client.AuthFeignClientInterceptor;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.niis.xroad.cs.admin.client.FeignRestErrorDecoder;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -77,13 +78,14 @@ public class AdminServiceClientConfiguration {
                                                                  Encoder encoder,
                                                                  ErrorDecoder errorDecoder,
                                                                  Contract contract,
-                                                                 AdminServiceClientPropertyProvider adminServiceClientPropertyProvider) {
+                                                                 AdminServiceClientPropertyProvider propertyProvider) {
         return Feign.builder().client(client)
                 .encoder(encoder)
                 .decoder(decoder)
                 .errorDecoder(errorDecoder)
+                .requestInterceptor(new AuthFeignClientInterceptor(propertyProvider))
                 .contract(contract)
-                .target(FeignManagementRequestsApi.class, adminServiceClientPropertyProvider.getApiBaseUrl().toString());
+                .target(FeignManagementRequestsApi.class, propertyProvider.getApiBaseUrl().toString());
     }
 
     @Bean("adminServiceFeignClient")

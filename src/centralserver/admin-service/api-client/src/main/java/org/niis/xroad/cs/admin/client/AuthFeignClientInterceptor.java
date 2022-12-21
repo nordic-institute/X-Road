@@ -30,9 +30,7 @@ import feign.RequestTemplate;
 import lombok.RequiredArgsConstructor;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.niis.xroad.cs.admin.client.configuration.AdminServiceClientPropertyProvider;
-import org.springframework.stereotype.Component;
 
-@Component
 @RequiredArgsConstructor
 public class AuthFeignClientInterceptor implements RequestInterceptor {
     private final AdminServiceClientPropertyProvider adminServiceClientPropertyProvider;

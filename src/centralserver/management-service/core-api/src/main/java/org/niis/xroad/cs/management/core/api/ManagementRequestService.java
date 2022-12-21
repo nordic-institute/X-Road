@@ -31,5 +31,5 @@ import ee.ria.xroad.common.request.ClientRequestType;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
 public interface ManagementRequestService {
-    int addManagementRequest(ClientRequestType request, ManagementRequestType requestType);
+    Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType);
 }

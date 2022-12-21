@@ -33,11 +33,15 @@ import ee.ria.xroad.common.request.ClientRequestType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.centralserver.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.niis.xroad.cs.management.core.api.ManagementRequestService;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.stereotype.Service;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
@@ -47,37 +51,40 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 @RequiredArgsConstructor
 public class ManagementRequestServiceImpl implements ManagementRequestService {
     private final FeignManagementRequestsApi managementRequestsApi;
+    private final SecurityServerIdConverter securityServerIdConverter;
+    private final ClientIdConverter clientIdConverter;
 
     @Override
-    public int addManagementRequest(ClientRequestType request, ManagementRequestType requestType) {
-        var managementRequest = new ClientRegistrationRequestDto();
-
-        managementRequest.setType(mapRequestType(requestType));
-        managementRequest.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
-        //TODO fill
-        //managementRequest.setClientId(request.getClient());
+    public Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType) {
+        var managementRequest = createRequestDto(request, requestType);
 
         var result = managementRequestsApi.addManagementRequest(managementRequest);
-
         if (!result.hasBody()) {
             throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
         } else {
-            return result.getBody().getId();
+            return result.getBody() != null ? result.getBody().getId() : null;
         }
-
-
     }
 
-    private ManagementRequestTypeDto mapRequestType(ManagementRequestType requestType) {
+    private ManagementRequestDto createRequestDto(ClientRequestType request, ManagementRequestType requestType) {
+        ManagementRequestDto managementRequest;
         switch (requestType) {
-            case AUTH_CERT_REGISTRATION_REQUEST:
-                return ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
             case CLIENT_REGISTRATION_REQUEST:
-                return ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
+                managementRequest = new ClientRegistrationRequestDto()
+                        .clientId(clientIdConverter.convertId(request.getClient()))
+                        .type(ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST);
+                break;
             case OWNER_CHANGE_REQUEST:
-                return ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
+                managementRequest = new OwnerChangeRequestDto()
+                        .clientId(clientIdConverter.convertId(request.getClient()))
+                        .type(ManagementRequestTypeDto.OWNER_CHANGE_REQUEST);
+                break;
             default:
                 throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
         }
+
+        managementRequest.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
+        managementRequest.setSecurityServerId(securityServerIdConverter.convertId(request.getServer()));
+        return managementRequest;
     }
 }

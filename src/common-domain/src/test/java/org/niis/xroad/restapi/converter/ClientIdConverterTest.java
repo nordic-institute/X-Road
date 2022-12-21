@@ -54,8 +54,8 @@ public class ClientIdConverterTest {
         clientId = clientIdConverter.convertId("XRD2:GOV:M4");
         assertNull(clientId.getSubsystemCode());
     }
-    @Test
 
+    @Test
     public void convertDifficultStringId() throws Exception {
         String difficultSubsystemId = "FOO SS-;/?@=&-X<!-- o -->BAR";
         ClientId clientId = clientIdConverter.convertId("XRD2:GOV:M4:" + difficultSubsystemId);

@@ -32,7 +32,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-@SpringBootApplication(scanBasePackages = "org.niis.xroad.cs.management")
+@SpringBootApplication(scanBasePackages = {"org.niis.xroad.cs.management", "org.niis.xroad.restapi"})
 public class ManagementServiceMain {
     public static void main(String[] args) {
         var app = new SpringApplication(ManagementServiceMain.class);
