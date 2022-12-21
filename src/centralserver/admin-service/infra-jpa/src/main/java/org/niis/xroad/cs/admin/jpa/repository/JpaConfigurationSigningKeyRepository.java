@@ -39,8 +39,8 @@ public interface JpaConfigurationSigningKeyRepository
         extends JpaRepository<ConfigurationSigningKeyEntity, Integer>, ConfigurationSigningKeyRepository {
 
     @Override
-    @Query("SELECT cs.configurationSigningKey FROM ConfigurationSourceEntity cs " +
-            "WHERE cs.sourceType = :sourceType " +
-            "AND (:haNodeName is null OR cs.haNodeName = :haNodeName)")
+    @Query("SELECT cs.configurationSigningKey FROM ConfigurationSourceEntity cs "
+            + "WHERE cs.sourceType = :sourceType "
+            + "AND (:haNodeName is null OR cs.haNodeName = :haNodeName)")
     Optional<ConfigurationSigningKeyEntity> findActiveForSource(String sourceType, String haNodeName);
 }

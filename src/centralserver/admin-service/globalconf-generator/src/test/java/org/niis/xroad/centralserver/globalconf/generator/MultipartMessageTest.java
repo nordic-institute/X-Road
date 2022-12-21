@@ -38,7 +38,7 @@ import static org.niis.xroad.centralserver.globalconf.generator.MultipartMessage
 class MultipartMessageTest {
 
     @Test
-    void partToString_noContent() {
+    void partToStringNoContent() {
         var part = partBuilder()
                 .header(header("Header", "value"))
                 .build();
@@ -57,21 +57,21 @@ class MultipartMessageTest {
         var partAsString = part.toString();
 
         assertThat(partAsString)
-                .isEqualTo("Header: value\r\n" +
-                        "\r\n" +
-                        "content");
+                .isEqualTo("Header: value\r\n"
+                        + "\r\n"
+                        + "content");
     }
 
     @Test
-    void partToString_noHeader() {
+    void partToStringNoHeader() {
         var part = partBuilder()
                 .content("content")
                 .build();
         var partAsString = part.toString();
 
         assertThat(partAsString)
-                .isEqualTo("\r\n" +
-                        "content");
+                .isEqualTo("\r\n"
+                        + "content");
     }
 
     @Test
@@ -84,7 +84,7 @@ class MultipartMessageTest {
     }
 
     @Test
-    void write_toString() {
+    void writeToString() {
         var multipartMessage = MultipartMessage.builder()
                 .boundary("message_part_boundary")
                 .part(partBuilder()
@@ -100,21 +100,21 @@ class MultipartMessageTest {
         var messageAsString = multipartMessage.toString();
 
         assertThat(messageAsString)
-                .isEqualTo("Content-Type: multipart/mixed; charset=UTF-8; boundary=message_part_boundary\r\n" +
-                        "\r\n" +
-                        "--message_part_boundary\r\n" +
-                        "Version: 2\r\n" +
-                        "Expire-date: 2022-12-08T08:05:01Z\r\n" +
-                        "\r\n" +
-                        "--message_part_boundary\r\n" +
-                        "Content-id: some-id\r\n" +
-                        "\r\n" +
-                        "content body\r\n" +
-                        "--message_part_boundary--\r\n");
+                .isEqualTo("Content-Type: multipart/mixed; charset=UTF-8; boundary=message_part_boundary\r\n"
+                        + "\r\n"
+                        + "--message_part_boundary\r\n"
+                        + "Version: 2\r\n"
+                        + "Expire-date: 2022-12-08T08:05:01Z\r\n"
+                        + "\r\n"
+                        + "--message_part_boundary\r\n"
+                        + "Content-id: some-id\r\n"
+                        + "\r\n"
+                        + "content body\r\n"
+                        + "--message_part_boundary--\r\n");
     }
 
     @Test
-    void empty_cannot_build() {
+    void emptyCannotBuild() {
         assertThatThrownBy(() -> MultipartMessage.builder().build())
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("At least one part is required");

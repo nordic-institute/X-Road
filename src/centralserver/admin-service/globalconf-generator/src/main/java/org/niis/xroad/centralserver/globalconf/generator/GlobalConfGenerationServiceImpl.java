@@ -153,7 +153,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
     private static Set<ConfigurationPart> internalConfigurationParts(Set<ConfigurationPart> configurationParts) {
         return configurationParts.stream()
-                // TODO: add optional parts
+                // TODO add optional parts
                 .filter(cp -> INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS.contains(cp.getContentIdentifier()))
                 .collect(toSet());
     }
@@ -164,8 +164,13 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
                 .collect(toSet());
     }
 
-    private void writeDirectoryContentFile(ConfigurationDistributor configDistributor, Set<ConfigurationPart> internalConfigurationParts, ConfigurationSigningKey internalSigningKey, String fileName) {
-        String signedDirectory = createSignedDirectory(internalConfigurationParts, getTmpExternalDirectory() + configDistributor.getSubPath().toString(), internalSigningKey);
+    private void writeDirectoryContentFile(ConfigurationDistributor configDistributor,
+                                           Set<ConfigurationPart> internalConfigurationParts,
+                                           ConfigurationSigningKey internalSigningKey,
+                                           String fileName) {
+        String signedDirectory = createSignedDirectory(internalConfigurationParts,
+                "/" + configDistributor.getSubPath().toString(),
+                internalSigningKey);
         configDistributor.writeDirectoryContentFile(fileName, signedDirectory.getBytes(UTF_8));
     }
 
@@ -188,8 +193,8 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
     private List<ConfigurationPart> generateAndSaveConfiguration() {
         var configurationParts = generateConfiguration();
-        configurationParts.forEach(gp ->
-                configurationService.saveConfigurationPart(gp.getContentIdentifier(), gp.getFilename(), gp.getData(), CONFIGURATION_VERSION));
+        configurationParts.forEach(gp -> configurationService
+                .saveConfigurationPart(gp.getContentIdentifier(), gp.getFilename(), gp.getData(), CONFIGURATION_VERSION));
         return configurationParts;
     }
 
@@ -208,7 +213,8 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
     @SneakyThrows
     private String getConfSignCertHashAlgoId() {
-        return CryptoUtils.getAlgorithmId(systemParameterService.getParameterValue(CONF_SIGN_CERT_HASH_ALGO_URI, DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI));
+        return CryptoUtils.getAlgorithmId(
+                systemParameterService.getParameterValue(CONF_SIGN_CERT_HASH_ALGO_URI, DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI));
     }
 
     private String getConfSignDigestAlgoId() {

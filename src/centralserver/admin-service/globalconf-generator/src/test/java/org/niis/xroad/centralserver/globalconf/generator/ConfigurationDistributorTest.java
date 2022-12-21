@@ -88,7 +88,7 @@ public class ConfigurationDistributorTest {
     }
 
     @Test
-    void writeFilesBeforeInit_shouldThrow() {
+    void writeFilesBeforeInitShouldThrow() {
         ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, Instant.now());
         // initConfLocation omitted
 
