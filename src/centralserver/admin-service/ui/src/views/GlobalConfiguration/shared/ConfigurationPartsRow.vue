@@ -25,29 +25,49 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <Configuration
-      :title="$t('tab.globalConf.externalConf')"
-      configuration-type="EXTERNAL"
-    />
-  </div>
+  <tr>
+    <td>
+      <v-icon class="internal-conf-icon"> mdi-file-document-outline</v-icon>
+      {{ configurationPart.fileName }}
+    </td>
+    <td>{{ configurationPart.content_identifier }}</td>
+    <td>{{ configurationPart.version }}</td>
+    <td>{{ configurationPart.file_updated_at | formatDateTime }}</td>
+    <td class="td-align-right">
+      <xrd-button :outlined="false" text>
+        {{ $t('action.download') }}
+      </xrd-button>
+    </td>
+  </tr>
 </template>
 
 <script lang="ts">
 /**
- * View for 'External configuration' tab
+ * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import Configuration from '../shared/Configuration.vue';
+import { ConfigurationPart } from '@/openapi-types';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
-  components: {
-    Configuration,
+  props: {
+    configurationPart: {
+      type: Object as Prop<ConfigurationPart>,
+      required: true,
+    },
   },
-  data() {
-    return {};
-  },
-
-  methods: {},
 });
 </script>
+
+<style lang="scss" scoped>
+@import '~styles/tables';
+
+.internal-conf-icon {
+  margin-right: 15px;
+  color: $XRoad-Purple100;
+}
+
+.td-align-right {
+  text-align: right;
+}
+</style>

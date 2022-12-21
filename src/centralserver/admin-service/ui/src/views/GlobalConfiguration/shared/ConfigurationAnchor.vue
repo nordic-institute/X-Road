@@ -26,29 +26,44 @@
  -->
 <template>
   <!-- Configuration parts list -->
-  <div id="global-groups" class="mt-5">
+  <div id="anchor" class="mt-4">
     <v-card flat>
       <div class="card-top">
-        <div class="card-main-title">{{ $t('globalConf.cfgParts.title') }}</div>
-      </div>
+        <div class="card-main-title">Anchor</div>
+        <div class="card-corner-button pr-4">
+          <xrd-button outlined class="mr-4">
+            <xrd-icon-base class="xrd-large-button-icon">
+              <XrdIconAdd />
+            </xrd-icon-base>
 
+            Re-create
+          </xrd-button>
+          <xrd-button outlined>
+            <xrd-icon-base class="xrd-large-button-icon">
+              <XrdIconDownload />
+            </xrd-icon-base>
+            Download
+          </xrd-button>
+        </div>
+      </div>
       <v-card-text class="px-0">
         <xrd-table id="global-groups-table">
           <thead>
             <tr>
-              <th>{{ $t('globalConf.cfgParts.file') }}</th>
-              <th>{{ $t('globalConf.cfgParts.contentIdentifier') }}</th>
-              <th>{{ $t('globalConf.cfgParts.version') }}</th>
-              <th>{{ $t('globalConf.cfgParts.updated') }}</th>
-              <th></th>
+              <th>{{ $t('globalConf.anchor.certificateHash') }}</th>
+              <th>{{ $t('globalConf.anchor.created') }}</th>
             </tr>
           </thead>
           <tbody>
-            <configuration-parts-row
-              v-for="item in configurationParts"
-              :key="item.content_identifier"
-              :configuration-part="item"
-            />
+            <tr>
+              <td>
+                <xrd-icon-base class="internal-conf-icon">
+                  <XrdIconCertificate />
+                </xrd-icon-base>
+                {{ configurationAnchor.hash }}
+              </td>
+              <td>{{ configurationAnchor.created_at | formatDateTime }}</td>
+            </tr>
           </tbody>
         </xrd-table>
       </v-card-text>
@@ -62,13 +77,11 @@
  */
 import Vue from 'vue';
 import { mapStores } from 'pinia';
-import { useConfigurationPartStore } from '@/store/modules/configuration-parts';
-import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
-import ConfigurationPartsRow from './ConfigurationPartsRow.vue';
+import { ConfigurationAnchor, ConfigurationType } from '@/openapi-types';
+import { useConfigurationAnchorStore } from '@/store/modules/configuration-anchors';
 import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
-  components: { ConfigurationPartsRow },
   props: {
     configurationType: {
       type: String as Prop<ConfigurationType>,
@@ -78,25 +91,22 @@ export default Vue.extend({
   data() {
     return {
       loading: false,
-      search: '' as string,
     };
   },
   computed: {
-    ...mapStores(useConfigurationPartStore),
-    configurationParts(): ConfigurationPart[] {
-      return this.configurationPartStore.getConfigurationParts(
-        this.configurationType,
-      );
+    ...mapStores(useConfigurationAnchorStore),
+    configurationAnchor(): ConfigurationAnchor | null {
+      return this.configurationAnchorStore.getAnchor(this.configurationType);
     },
   },
   created() {
-    this.fetchConfigurationParts();
+    this.fetchConfigurationAnchor();
   },
   methods: {
-    fetchConfigurationParts() {
+    fetchConfigurationAnchor() {
       this.loading = true;
-      this.configurationPartStore
-        .fetchConfigurationParts(this.configurationType)
+      this.configurationAnchorStore
+        .fetchConfigurationAnchor(this.configurationType)
         .finally(() => (this.loading = false));
     },
   },
@@ -104,7 +114,25 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '~styles/colors';
+
+.card-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: $XRoad-Black70;
+  font-weight: bold;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.card-main-title {
+  color: $XRoad-Black100;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 24px;
+  margin-left: 16px;
+}
 
 .card-top {
   padding-top: 15px;
@@ -116,12 +144,8 @@ export default Vue.extend({
   justify-content: space-between;
 }
 
-.card-main-title {
-  color: $XRoad-Black100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
-  margin-left: 16px;
+.internal-conf-icon {
+  margin-right: 15px;
+  color: $XRoad-Purple100;
 }
 </style>

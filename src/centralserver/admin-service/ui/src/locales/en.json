@@ -217,10 +217,16 @@
     "internalConf": "Internal Configuration",
     "trustedAnchors": "Trusted Anchor",
     "cfgParts": {
-      "file": "FILE",
-      "contentIdentifier": "CONTENT IDENTIFIER",
-      "version": "VERSION",
-      "updated": "UPDATED"
+      "title": "Configuration parts",
+      "file": "File",
+      "contentIdentifier": "Content Identifier",
+      "version": "Version",
+      "updated": "Updated"
+    },
+    "anchor": {
+      "title": "Anchor",
+      "certificateHash": "Certificate Hash (SHA-224)",
+      "created": "Created"
     }
   },
   "globalGroup": {

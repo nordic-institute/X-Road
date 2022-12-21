@@ -51,43 +51,11 @@
 
     <!-- Internal configuration -->
     <div class="header-row mt-7">
-      <div class="xrd-view-title">{{ title }}X</div>
+      <div class="xrd-view-title">{{ title }}</div>
     </div>
 
     <!-- Anchor -->
-    <div id="anchor" class="mt-4">
-      <v-card flat>
-        <div class="card-top">
-          <div class="card-main-title">Anchor</div>
-          <div class="card-corner-button pr-4">
-            <xrd-button outlined class="mr-4">
-              <xrd-icon-base class="xrd-large-button-icon"
-                ><XrdIconAdd
-              /></xrd-icon-base>
-
-              Re-create
-            </xrd-button>
-            <xrd-button outlined>
-              <xrd-icon-base class="xrd-large-button-icon"
-                ><XrdIconDownload
-              /></xrd-icon-base>
-              Download
-            </xrd-button>
-          </div>
-        </div>
-        <v-card-title class="card-title"
-          >Certificate Hash (SHA-224)</v-card-title
-        >
-        <v-divider></v-divider>
-        <v-card-text>
-          <xrd-icon-base class="internal-conf-icon"
-            ><XrdIconCertificate
-          /></xrd-icon-base>
-          42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F</v-card-text
-        >
-        <v-divider class="pb-4"></v-divider>
-      </v-card>
-    </div>
+    <configuration-anchor :configuration-type="configurationType" />
 
     <!-- Download URL -->
     <div id="download-url" class="mt-5">
@@ -98,15 +66,15 @@
         <v-card-title class="card-title">URL Address</v-card-title>
         <v-divider></v-divider>
         <v-card-text>
-          <v-icon class="internal-conf-icon">mdi-link</v-icon
-          >http://dev-cs-i.x-road.rocks/internalconf</v-card-text
-        >
+          <v-icon class="internal-conf-icon">mdi-link</v-icon>
+          http://dev-cs-i.x-road.rocks/internalconf
+        </v-card-text>
         <v-divider class="pb-4"></v-divider>
       </v-card>
     </div>
 
     <!-- Configuration parts -->
-    <configuration-parts-list :configuration-type="configurationType"></configuration-parts-list>
+    <configuration-parts-list :configuration-type="configurationType" />
   </div>
 </template>
 
@@ -116,13 +84,16 @@
  */
 import Vue from 'vue';
 import TokenExpandable from './TokenExpandable.vue';
+import ConfigurationAnchor from './ConfigurationAnchor.vue';
 import ConfigurationPartsList from './ConfigurationPartsList.vue';
 import { mapState } from 'pinia';
 import { tokenStore } from '@/store/modules/tokens';
 import { ConfigurationType } from '@/openapi-types';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
   components: {
+    ConfigurationAnchor,
     ConfigurationPartsList,
     TokenExpandable,
   },
@@ -132,11 +103,8 @@ export default Vue.extend({
       required: true,
     },
     configurationType: {
-      type: String,
+      type: String as Prop<ConfigurationType>,
       required: true,
-      validator(val) {
-        return Object.values(ConfigurationType).includes(val as ConfigurationType);
-      },
     },
   },
   data() {

@@ -28,7 +28,7 @@
   <div>
     <Configuration
       :title="$t('tab.globalConf.internalConf')"
-      :configuration-type="type"
+      configuration-type="INTERNAL"
     />
   </div>
 </template>
@@ -39,7 +39,6 @@
  */
 import Vue from 'vue';
 import Configuration from '../shared/Configuration.vue';
-import { ConfigurationType } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -47,11 +46,6 @@ export default Vue.extend({
   },
   data() {
     return {};
-  },
-  computed: {
-    type() {
-      return ConfigurationType.INTERNAL as string;
-    },
   },
 
   methods: {},
