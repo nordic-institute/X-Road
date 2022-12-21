@@ -35,49 +35,133 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.centralserver.restapi.service.exception.SigningKeyException;
+import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
 
 @ExtendWith(MockitoExtension.class)
 class ConfigurationSigningKeysServiceImplTest {
 
     @Mock
+    private AuditEventHelper auditEventHelper;
+    @Mock
     private ConfigurationSigningKeyRepository configurationSigningKeyRepository;
+    @Mock
+    private AuditDataHelper auditDataHelper;
+    @Mock
+    private SignerProxyFacade signerProxyFacade;
+
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
 
     private ConfigurationSigningKeysServiceImpl configurationSigningKeysServiceImpl;
 
     @BeforeEach
     public void setup() {
-        configurationSigningKeysServiceImpl =
-                new ConfigurationSigningKeysServiceImpl(configurationSigningKeyRepository, configurationSigningKeyMapper);
+        configurationSigningKeysServiceImpl = new ConfigurationSigningKeysServiceImpl(configurationSigningKeyRepository,
+                configurationSigningKeyMapper, auditEventHelper, auditDataHelper, signerProxyFacade);
     }
 
     @Test
-    void findByTokenIdentifier() {
-        TokenInfo tokenInfo = createTokenInfo(true, true, List.of(createKeyInfo()));
-        ConfigurationSigningKeyEntity configurationSigningKeyEntity = mock(ConfigurationSigningKeyEntity.class);
-        ConfigurationSourceEntity configurationSourceEntity = mock(ConfigurationSourceEntity.class);
-        when(configurationSigningKeyRepository.findByTokenIdentifier(tokenInfo.getId()))
-                .thenReturn(List.of(configurationSigningKeyEntity));
-        when(configurationSigningKeyEntity.getConfigurationSource()).thenReturn(configurationSourceEntity);
-        when(configurationSourceEntity.getConfigurationSigningKey()).thenReturn(configurationSigningKeyEntity);
+    void deleteKeyNotFoundShouldThrowException() {
+        assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey("some_random_id"))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Signing key not found");
+    }
 
-        List<ConfigurationSigningKey> configurationSigningKeys =
-                configurationSigningKeysServiceImpl.findByTokenIdentifier(tokenInfo.getId());
-        assertThat(configurationSigningKeys).hasSize(1);
+    @Test
+    void deleteActiveKeyShouldThrowException() {
+        ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", true);
+        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
+                .thenReturn(Optional.of(signingKeyEntity));
+
+        assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
+                .isInstanceOf(SigningKeyException.class)
+                .hasMessage("Active configuration signing key cannot be deleted");
+    }
+
+    @Test
+    void deleteKeyErrorGettingTokenFromSignerProxyShouldThrowException() throws Exception {
+        ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", false);
+        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
+                .thenReturn(Optional.of(signingKeyEntity));
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenThrow(new Exception());
+
+        assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
+                .isInstanceOf(SigningKeyException.class)
+                .hasMessage("Error deleting signing key");
+    }
+
+    @Test
+    void deleteKeyErrorDeletingKeyThroughSignerShouldThrowException() throws Exception {
+        ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", false);
+        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
+                .thenReturn(Optional.of(signingKeyEntity));
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenReturn(createTokenInfo(true, true, List.of()));
+        doThrow(new Exception()).when(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
+
+        assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
+                .isInstanceOf(SigningKeyException.class)
+                .hasMessage("Error deleting signing key");
+        verify(configurationSigningKeyRepository).deleteByKeyIdentifier(signingKeyEntity.getKeyIdentifier());
+    }
+
+    @Test
+    void deleteInternalConfigurationSigningKey() throws Exception {
+        ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", false);
+        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
+                .thenReturn(Optional.of(signingKeyEntity));
+        TokenInfo tokenInfo = createTokenInfo(true, true, List.of());
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenReturn(tokenInfo);
+
+        configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier());
+
+        verify(auditEventHelper).changeRequestScopedEvent(DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY);
+        verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_ID, signingKeyEntity.getTokenIdentifier());
+        verify(auditDataHelper).put(RestApiAuditProperty.KEY_ID, signingKeyEntity.getKeyIdentifier());
+        verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
+        verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
+        verify(configurationSigningKeyRepository).deleteByKeyIdentifier(signingKeyEntity.getKeyIdentifier());
+        verify(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
+    }
+
+    @Test
+    void deleteExternalConfigurationSigningKey() throws Exception {
+        ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("EXTERNAL", false);
+        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
+                .thenReturn(Optional.of(signingKeyEntity));
+        TokenInfo tokenInfo = createTokenInfo(true, true, List.of());
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenReturn(tokenInfo);
+
+        configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier());
+
+        verify(auditEventHelper).changeRequestScopedEvent(DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY);
+        verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_ID, signingKeyEntity.getTokenIdentifier());
+        verify(auditDataHelper).put(RestApiAuditProperty.KEY_ID, signingKeyEntity.getKeyIdentifier());
+        verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
+        verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
+        verify(configurationSigningKeyRepository).deleteByKeyIdentifier(signingKeyEntity.getKeyIdentifier());
+        verify(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
     }
 
 
@@ -91,6 +175,24 @@ class ConfigurationSigningKeysServiceImplTest {
                 "type", "TOKEN_FRIENDLY_NAME", "TOKEN_ID", false, available,
                 active, "TOKEN_SERIAL_NUMBER", "label", 13, OK, keyInfos, Map.of()
         );
+    }
+
+    private ConfigurationSigningKeyEntity createConfigurationSigningEntity(
+            String sourceType, boolean activeSigningKey) {
+        ConfigurationSigningKeyEntity configurationSigningKey = new ConfigurationSigningKeyEntity(10);
+        configurationSigningKey.setKeyIdentifier("keyIdentifier");
+        configurationSigningKey.setCert("keyCert".getBytes());
+        configurationSigningKey.setKeyGeneratedAt(Instant.now());
+        configurationSigningKey.setTokenIdentifier("tokenIdentifier");
+
+        ConfigurationSourceEntity configurationSource = new ConfigurationSourceEntity();
+        configurationSource.setSourceType(sourceType);
+        if (activeSigningKey) {
+            configurationSource.setConfigurationSigningKey(configurationSigningKey);
+        }
+
+        configurationSigningKey.setConfigurationSource(configurationSource);
+        return configurationSigningKey;
     }
 
 }

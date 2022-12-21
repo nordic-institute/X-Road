@@ -27,25 +27,7 @@
 
 package org.niis.xroad.cs.admin.api.domain;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-import java.time.Instant;
-
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ConfigurationSigningKey {
-    private int id;
-    private String keyIdentifier;
-    private byte[] cert;
-    private Instant keyGeneratedAt;
-    private String tokenIdentifier;
-
-    private ConfigurationSourceType sourceType;
-    private boolean activeSourceSigningKey;
-
+public enum ConfigurationSourceType {
+    INTERNAL,
+    EXTERNAL
 }
-
-

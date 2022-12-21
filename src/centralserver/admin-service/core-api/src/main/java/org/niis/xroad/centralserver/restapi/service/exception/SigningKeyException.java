@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -25,27 +25,16 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.centralserver.restapi.service.exception;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+public class SigningKeyException extends UncheckedServiceException {
 
-import java.time.Instant;
+    public SigningKeyException(ErrorMessage code, String... metadata) {
+        super(code, metadata);
+    }
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ConfigurationSigningKey {
-    private int id;
-    private String keyIdentifier;
-    private byte[] cert;
-    private Instant keyGeneratedAt;
-    private String tokenIdentifier;
-
-    private ConfigurationSourceType sourceType;
-    private boolean activeSourceSigningKey;
+    public SigningKeyException(ErrorMessage code, Throwable cause, String... metadata) {
+        super(code, cause, metadata);
+    }
 
 }
-
-

@@ -78,7 +78,6 @@ class TokenMapperTest {
         assertThat(result.getConfigurationSigningKeys().get(0).getCreatedAt()).isNotNull();
         assertThat(result.getConfigurationSigningKeys().get(0).getActive())
                 .isEqualTo(tokenInfo.getConfigurationSigningKeys().get(0).isActiveSourceSigningKey());
-
     }
 
     private TokenInfo tokenInfo() {

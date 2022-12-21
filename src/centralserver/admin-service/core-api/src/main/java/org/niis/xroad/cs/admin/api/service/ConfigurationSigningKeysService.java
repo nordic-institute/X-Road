@@ -34,4 +34,6 @@ public interface ConfigurationSigningKeysService {
 
     List<ConfigurationSigningKey> findByTokenIdentifier(String tokenIdentifier);
 
+    void deleteKey(String id);
+
 }

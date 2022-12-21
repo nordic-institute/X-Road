@@ -85,6 +85,10 @@ public class ConfigurationSigningKeyEntity {
         //JPA
     }
 
+    public ConfigurationSigningKeyEntity(int id) {
+        this.id = id;
+    }
+
 }
 
 

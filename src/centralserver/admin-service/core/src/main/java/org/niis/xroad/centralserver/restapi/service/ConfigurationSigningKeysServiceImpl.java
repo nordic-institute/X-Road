@@ -26,17 +26,33 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.centralserver.restapi.service.exception.SigningKeyException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ERROR_DELETING_SIGNING_KEY;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SIGNING_KEY_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
 
 @Service
 @Transactional
@@ -45,10 +61,45 @@ public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigning
 
     private final ConfigurationSigningKeyRepository configurationSigningKeyRepository;
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
+    private final AuditEventHelper auditEventHelper;
+    private final AuditDataHelper auditDataHelper;
+    private final SignerProxyFacade signerProxyFacade;
 
+    @Override
     public List<ConfigurationSigningKey> findByTokenIdentifier(String tokenIdentifier) {
         return configurationSigningKeyRepository.findByTokenIdentifier(tokenIdentifier).stream()
                 .map(configurationSigningKeyMapper::toTarget).collect(Collectors.toList());
     }
+
+    @Override
+    public void deleteKey(String identifier) {
+        ConfigurationSigningKey signingKey = configurationSigningKeyRepository.findByKeyIdentifier(identifier)
+                .map(configurationSigningKeyMapper::toTarget)
+                .orElseThrow(() -> new NotFoundException(SIGNING_KEY_NOT_FOUND));
+
+        if (signingKey.isActiveSourceSigningKey()) {
+            throw new SigningKeyException(ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED);
+        }
+
+        if (signingKey.getSourceType() == INTERNAL) {
+            auditEventHelper.changeRequestScopedEvent(DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY);
+        } else if (signingKey.getSourceType() == EXTERNAL) {
+            auditEventHelper.changeRequestScopedEvent(DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY);
+        }
+        auditDataHelper.put(RestApiAuditProperty.TOKEN_ID, signingKey.getTokenIdentifier());
+        auditDataHelper.put(RestApiAuditProperty.KEY_ID, signingKey.getKeyIdentifier());
+        try {
+            TokenInfo tokenInfo = signerProxyFacade.getToken(signingKey.getTokenIdentifier());
+            auditDataHelper.put(RestApiAuditProperty.TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
+            auditDataHelper.put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
+
+            configurationSigningKeyRepository.deleteByKeyIdentifier(identifier);
+            signerProxyFacade.deleteKey(signingKey.getKeyIdentifier(), true);
+        } catch (Exception e) {
+            throw new SigningKeyException(ERROR_DELETING_SIGNING_KEY, e);
+        }
+
+    }
+
 
 }
