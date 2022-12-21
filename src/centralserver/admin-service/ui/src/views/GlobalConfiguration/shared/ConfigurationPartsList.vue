@@ -25,7 +25,6 @@
    THE SOFTWARE.
  -->
 <template>
-  <!-- Configuration parts list -->
   <div id="global-groups" class="mt-5">
     <v-card flat>
       <div class="card-top">
@@ -62,7 +61,7 @@
  */
 import Vue from 'vue';
 import { mapStores } from 'pinia';
-import { useConfigurationPartStore } from '@/store/modules/configuration-parts';
+import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
 import ConfigurationPartsRow from './ConfigurationPartsRow.vue';
 import { Prop } from 'vue/types/options';
@@ -82,9 +81,9 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useConfigurationPartStore),
+    ...mapStores(useConfigurationSourceStore),
     configurationParts(): ConfigurationPart[] {
-      return this.configurationPartStore.getConfigurationParts(
+      return this.configurationSourceStore.getConfigurationParts(
         this.configurationType,
       );
     },
@@ -95,7 +94,7 @@ export default Vue.extend({
   methods: {
     fetchConfigurationParts() {
       this.loading = true;
-      this.configurationPartStore
+      this.configurationSourceStore
         .fetchConfigurationParts(this.configurationType)
         .finally(() => (this.loading = false));
     },

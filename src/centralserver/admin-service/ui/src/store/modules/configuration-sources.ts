@@ -25,25 +25,81 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { ConfigurationAnchor, ConfigurationType } from '@/openapi-types';
+import {
+  ConfigurationAnchor,
+  ConfigurationPart,
+  ConfigurationType,
+  GlobalConfDownloadUrl,
+} from '@/openapi-types';
 import { defineStore } from 'pinia';
 
 export interface State {
-  internal: ConfigurationAnchor;
-  external: ConfigurationAnchor;
+  internal: Source;
+  external: Source;
 }
 
-export const useConfigurationAnchorStore = defineStore('configurationAnchor', {
+export interface Source {
+  downloadUrl: GlobalConfDownloadUrl;
+  anchor: ConfigurationAnchor;
+  parts: ConfigurationPart[];
+}
+
+export const useConfigurationSourceStore = defineStore('configurationSource', {
   state: (): State => ({
-    internal: {} as ConfigurationAnchor,
-    external: {} as ConfigurationAnchor,
+    internal: {
+      downloadUrl: {} as GlobalConfDownloadUrl,
+      anchor: {} as ConfigurationAnchor,
+      parts: [],
+    },
+    external: {
+      downloadUrl: {} as GlobalConfDownloadUrl,
+      anchor: {} as ConfigurationAnchor,
+      parts: [],
+    },
   }),
 
   actions: {
-    getAnchor(configurationType: ConfigurationType): ConfigurationAnchor {
+    getSource(configurationType: ConfigurationType): Source {
       return ConfigurationType.INTERNAL == configurationType
         ? this.internal
         : this.external;
+    },
+    getDownloadUrl(
+      configurationType: ConfigurationType,
+    ): GlobalConfDownloadUrl {
+      return this.getSource(configurationType).downloadUrl;
+    },
+    fetchDownloadUrl(configurationType: ConfigurationType) {
+      return axios
+        .get<GlobalConfDownloadUrl>(
+          `/configuration-sources/${configurationType}/download-url`,
+        )
+        .then((resp) => {
+          this.getSource(configurationType).downloadUrl = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    getConfigurationParts(
+      configurationType: ConfigurationType,
+    ): ConfigurationPart[] {
+      return this.getSource(configurationType).parts;
+    },
+    fetchConfigurationParts(configurationType: ConfigurationType) {
+      return axios
+        .get<ConfigurationPart[]>(
+          `/configuration-sources/${configurationType}/configuration-parts`,
+        )
+        .then((resp) => {
+          this.getSource(configurationType).parts = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    getAnchor(configurationType: ConfigurationType): ConfigurationAnchor {
+      return this.getSource(configurationType).anchor;
     },
     fetchConfigurationAnchor(configurationType: ConfigurationType) {
       return axios
@@ -51,11 +107,7 @@ export const useConfigurationAnchorStore = defineStore('configurationAnchor', {
           `/configuration-sources/${configurationType}/anchor`,
         )
         .then((resp) => {
-          if (ConfigurationType.INTERNAL == configurationType) {
-            this.internal = resp.data;
-          } else {
-            this.external = resp.data;
-          }
+          this.getSource(configurationType).anchor = resp.data;
         })
         .catch((error) => {
           throw error;

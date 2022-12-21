@@ -226,7 +226,13 @@
     "anchor": {
       "title": "Anchor",
       "certificateHash": "Certificate Hash (SHA-224)",
-      "created": "Created"
+      "created": "Created",
+      "download": "Download",
+      "recreate": "Re-create"
+    },
+    "downloadUrl": {
+      "title": "Download URL",
+      "urlAddress": "URL Address"
     }
   },
   "globalGroup": {

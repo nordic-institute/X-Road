@@ -25,43 +25,23 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">Signing Keys</div>
+  <div id="download-url" class="mt-5">
+    <v-card flat>
+      <div class="card-top">
+        <div class="card-main-title">
+          {{ $t('globalConf.downloadUrl.title') }}
+        </div>
       </div>
-    </div>
-
-    <XrdEmptyPlaceholder
-      :data="tokens"
-      :loading="loading"
-      :no-items-text="$t('noData.noTokens')"
-      skeleton-type="table-heading"
-    />
-
-    <token-expandable
-      v-for="token in tokens"
-      :key="token.id"
-      :token="token"
-      @refresh-list="fetchData"
-      @token-logout="logoutDialog = true"
-      @token-login="loginDialog = true"
-      @add-key="addKey"
-    />
-
-    <!-- Internal configuration -->
-    <div class="header-row mt-7">
-      <div class="xrd-view-title">{{ title }}</div>
-    </div>
-
-    <!-- Anchor -->
-    <configuration-anchor :configuration-type="configurationType" />
-
-    <!-- Download URL -->
-    <configuration-download-url :configuration-type="configurationType" />
-
-    <!-- Configuration parts -->
-    <configuration-parts-list :configuration-type="configurationType" />
+      <v-card-title class="card-title">
+        {{ $t('globalConf.downloadUrl.urlAddress') }}
+      </v-card-title>
+      <v-divider></v-divider>
+      <v-card-text>
+        <v-icon class="internal-conf-icon">mdi-link</v-icon>
+        {{ downloadUrl.url }}
+      </v-card-text>
+      <v-divider class="pb-4"></v-divider>
+    </v-card>
   </div>
 </template>
 
@@ -70,61 +50,32 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import TokenExpandable from './TokenExpandable.vue';
-import ConfigurationAnchor from './ConfigurationAnchor.vue';
-import ConfigurationPartsList from './ConfigurationPartsList.vue';
-import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
-import { mapState } from 'pinia';
-import { tokenStore } from '@/store/modules/tokens';
-import { ConfigurationType } from '@/openapi-types';
+import { mapStores } from 'pinia';
+import { ConfigurationType, GlobalConfDownloadUrl } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
+import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
 
 export default Vue.extend({
-  components: {
-    ConfigurationDownloadUrl,
-    ConfigurationAnchor,
-    ConfigurationPartsList,
-    TokenExpandable,
-  },
   props: {
-    title: {
-      type: String,
-      required: true,
-    },
     configurationType: {
       type: String as Prop<ConfigurationType>,
       required: true,
     },
   },
-  data() {
-    return {
-      loading: false,
-      creatingBackup: false,
-      uploadingBackup: false,
-      needsConfirmation: false,
-      uploadedFile: null as File | null,
-    };
-  },
   computed: {
-    ...mapState(tokenStore, { tokens: 'getSortedTokens' }),
+    ...mapStores(useConfigurationSourceStore),
+    downloadUrl(): GlobalConfDownloadUrl {
+      return this.configurationSourceStore.getDownloadUrl(
+        this.configurationType,
+      );
+    },
   },
-
+  created() {
+    this.fetchDownloadUrl();
+  },
   methods: {
-    toggleChangePinOpen(): void {
-      // TODO
-    },
-
-    isTokenLoggedIn(): boolean {
-      // TODO
-      return true;
-    },
-
-    fetchData(): void {
-      // TODO
-    },
-
-    addKey(): void {
-      // TODO
+    fetchDownloadUrl() {
+      this.configurationSourceStore.fetchDownloadUrl(this.configurationType);
     },
   },
 });
@@ -142,8 +93,13 @@ export default Vue.extend({
   padding-bottom: 5px;
 }
 
-.card-corner-button {
-  display: flex;
+.card-main-title {
+  color: $XRoad-Black100;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 24px;
+  margin-left: 16px;
 }
 
 .card-top {
@@ -156,21 +112,8 @@ export default Vue.extend({
   justify-content: space-between;
 }
 
-.card-main-title {
-  color: $XRoad-Black100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
-  margin-left: 16px;
-}
-
 .internal-conf-icon {
   margin-right: 15px;
   color: $XRoad-Purple100;
-}
-
-.td-align-right {
-  text-align: right;
 }
 </style>

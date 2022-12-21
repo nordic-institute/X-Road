@@ -25,24 +25,23 @@
    THE SOFTWARE.
  -->
 <template>
-  <!-- Configuration parts list -->
   <div id="anchor" class="mt-4">
     <v-card flat>
       <div class="card-top">
-        <div class="card-main-title">Anchor</div>
+        <div class="card-main-title">{{ $t('globalConf.anchor.title') }}</div>
         <div class="card-corner-button pr-4">
           <xrd-button outlined class="mr-4">
             <xrd-icon-base class="xrd-large-button-icon">
               <XrdIconAdd />
             </xrd-icon-base>
 
-            Re-create
+            {{ $t('globalConf.anchor.recreate') }}
           </xrd-button>
           <xrd-button outlined>
             <xrd-icon-base class="xrd-large-button-icon">
               <XrdIconDownload />
             </xrd-icon-base>
-            Download
+            {{ $t('globalConf.anchor.download') }}
           </xrd-button>
         </div>
       </div>
@@ -78,7 +77,7 @@
 import Vue from 'vue';
 import { mapStores } from 'pinia';
 import { ConfigurationAnchor, ConfigurationType } from '@/openapi-types';
-import { useConfigurationAnchorStore } from '@/store/modules/configuration-anchors';
+import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
 import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
@@ -88,15 +87,10 @@ export default Vue.extend({
       required: true,
     },
   },
-  data() {
-    return {
-      loading: false,
-    };
-  },
   computed: {
-    ...mapStores(useConfigurationAnchorStore),
-    configurationAnchor(): ConfigurationAnchor | null {
-      return this.configurationAnchorStore.getAnchor(this.configurationType);
+    ...mapStores(useConfigurationSourceStore),
+    configurationAnchor(): ConfigurationAnchor {
+      return this.configurationSourceStore.getAnchor(this.configurationType);
     },
   },
   created() {
@@ -104,10 +98,9 @@ export default Vue.extend({
   },
   methods: {
     fetchConfigurationAnchor() {
-      this.loading = true;
-      this.configurationAnchorStore
-        .fetchConfigurationAnchor(this.configurationType)
-        .finally(() => (this.loading = false));
+      this.configurationSourceStore.fetchConfigurationAnchor(
+        this.configurationType,
+      );
     },
   },
 });
