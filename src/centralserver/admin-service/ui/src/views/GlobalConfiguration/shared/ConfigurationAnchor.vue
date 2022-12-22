@@ -25,42 +25,48 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">Signing Keys</div>
+  <div id="anchor" class="mt-4">
+    <v-card flat>
+      <div class="card-top">
+        <div class="card-main-title">{{ $t('globalConf.anchor.title') }}</div>
+        <div class="card-corner-button pr-4">
+          <xrd-button outlined class="mr-4">
+            <xrd-icon-base class="xrd-large-button-icon">
+              <XrdIconAdd />
+            </xrd-icon-base>
+
+            {{ $t('globalConf.anchor.recreate') }}
+          </xrd-button>
+          <xrd-button outlined>
+            <xrd-icon-base class="xrd-large-button-icon">
+              <XrdIconDownload />
+            </xrd-icon-base>
+            {{ $t('globalConf.anchor.download') }}
+          </xrd-button>
+        </div>
       </div>
-    </div>
-
-    <XrdEmptyPlaceholder
-      :data="tokens"
-      :loading="tokensLoading"
-      :no-items-text="$t('noData.noTokens')"
-      skeleton-type="table-heading"
-    />
-
-    <token-expandable
-      v-for="token in tokens"
-      :key="token.id"
-      :token="token"
-      @token-login="fetchData"
-      @token-logout="fetchData"
-      @add-key="addKey"
-    />
-
-    <!-- Internal configuration -->
-    <div class="header-row mt-7">
-      <div class="xrd-view-title">{{ title }}</div>
-    </div>
-
-    <!-- Anchor -->
-    <configuration-anchor :configuration-type="configurationType" />
-
-    <!-- Download URL -->
-    <configuration-download-url :configuration-type="configurationType" />
-
-    <!-- Configuration parts -->
-    <configuration-parts-list :configuration-type="configurationType" />
+      <v-card-text class="px-0">
+        <xrd-table id="global-groups-table">
+          <thead>
+            <tr>
+              <th>{{ $t('globalConf.anchor.certificateHash') }}</th>
+              <th>{{ $t('globalConf.anchor.created') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <xrd-icon-base class="internal-conf-icon">
+                  <XrdIconCertificate />
+                </xrd-icon-base>
+                {{ configurationAnchor.hash }}
+              </td>
+              <td>{{ configurationAnchor.created_at | formatDateTime }}</td>
+            </tr>
+          </tbody>
+        </xrd-table>
+      </v-card-text>
+    </v-card>
   </div>
 </template>
 
@@ -69,57 +75,32 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import { mapActions, mapState } from 'pinia';
-import TokenExpandable from './TokenExpandable.vue';
-import ConfigurationAnchor from './ConfigurationAnchor.vue';
-import ConfigurationPartsList from './ConfigurationPartsList.vue';
-import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
-import { tokenStore } from '@/store/modules/tokens';
-import { ConfigurationType } from '@/openapi-types';
+import { mapStores } from 'pinia';
+import { ConfigurationAnchor, ConfigurationType } from '@/openapi-types';
+import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
 import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
-  components: {
-    ConfigurationDownloadUrl,
-    ConfigurationAnchor,
-    ConfigurationPartsList,
-    TokenExpandable,
-  },
   props: {
-    title: {
-      type: String,
-      required: true,
-    },
     configurationType: {
       type: String as Prop<ConfigurationType>,
       required: true,
     },
   },
-  data() {
-    return {
-      tokensLoading: false,
-      creatingBackup: false,
-      uploadingBackup: false,
-      needsConfirmation: false,
-      uploadedFile: null as File | null,
-    };
-  },
   computed: {
-    ...mapState(tokenStore, { tokens: 'getSortedTokens' }),
+    ...mapStores(useConfigurationSourceStore),
+    configurationAnchor(): ConfigurationAnchor {
+      return this.configurationSourceStore.getAnchor(this.configurationType);
+    },
   },
   created() {
-    this.fetchData();
+    this.fetchConfigurationAnchor();
   },
   methods: {
-    ...mapActions(tokenStore, ['fetchTokens']),
-
-    fetchData(): void {
-      this.tokensLoading = true;
-      this.fetchTokens().finally(() => (this.tokensLoading = false));
-    },
-
-    addKey(): void {
-      // TODO
+    fetchConfigurationAnchor() {
+      this.configurationSourceStore.fetchConfigurationAnchor(
+        this.configurationType,
+      );
     },
   },
 });
@@ -137,8 +118,13 @@ export default Vue.extend({
   padding-bottom: 5px;
 }
 
-.card-corner-button {
-  display: flex;
+.card-main-title {
+  color: $XRoad-Black100;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 24px;
+  margin-left: 16px;
 }
 
 .card-top {
@@ -151,21 +137,8 @@ export default Vue.extend({
   justify-content: space-between;
 }
 
-.card-main-title {
-  color: $XRoad-Black100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
-  margin-left: 16px;
-}
-
 .internal-conf-icon {
   margin-right: 15px;
   color: $XRoad-Purple100;
-}
-
-.td-align-right {
-  text-align: right;
 }
 </style>
