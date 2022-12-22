@@ -82,7 +82,6 @@
         <!-- SIGN keys table -->
         <div v-if="token.configuration_signing_keys">
           <keys-table
-            v-if="signKeysOpen"
             class="keys-table"
             :keys="token.configuration_signing_keys"
           />
@@ -116,9 +115,6 @@ export default Vue.extend({
   data() {
     return {
       colors: Colors,
-      authKeysOpen: true,
-      signKeysOpen: true,
-      unknownKeysOpen: true,
     };
   },
   computed: {
