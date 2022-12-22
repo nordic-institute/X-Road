@@ -4,7 +4,7 @@ Feature: CS: Trust Services: Timestamping Services
 
   Background:
     Given CentralServer login page is open
-    And Page is prepared to be loading tested
+    Then Browser is set in CELLULAR2G network speed
     And User xrd logs in to CentralServer with password secret
     And TrustServices tab is selected
 
@@ -20,6 +20,7 @@ Feature: CS: Trust Services: Timestamping Services
     And user is able to sort the table by column 3
     And User is able to view the certificate of Timestamping service with URL http://e2e-test-timestamping-service2.com
 
+  @LoadingTesting
   Scenario: Timestamping service can be edit in list
     When Timestamping service with URL http://e2e-test-timestamping-service3.com is added
     And User is able click Edit button in Timestamping service with URL http://e2e-test-timestamping-service3.com
@@ -30,6 +31,7 @@ Feature: CS: Trust Services: Timestamping Services
     And User is able change the URL of Timestamping service to new URL http://new-e2e-test-timestamping-service3.com
     Then Timestamping service with URL http://new-e2e-test-timestamping-service3.com is visible in the Timestamping Services list
 
+  @LoadingTesting
   Scenario: Timestamping service can be delete in list
     When Timestamping service with URL http://e2e-test-timestamping-service4.com is added
     Then User is able to click delete button in Timestamping service with URL http://e2e-test-timestamping-service4.com
