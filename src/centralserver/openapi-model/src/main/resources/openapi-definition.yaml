@@ -85,8 +85,8 @@ paths:
       description:
         <h3>Generates a new central server backup.</h3>
         <p>
-        This endpoint can also return metadata in the error response.
-        The metadata array contains the output of a failed backup generation script.
+          This endpoint can also return metadata in the error response.
+          The metadata array contains the output of a failed backup generation script.
         </p>
       operationId: addBackup
       responses:
@@ -125,19 +125,19 @@ paths:
       description:
         <h3>Uploads new central server backup to the system.</h3>
         <p>
-        Note that it is possible to overwrite an existing backup file with the same name.
-        <ul>
-        <li>Attempt to upload a new backup file having the same name with an existing backup and with query
-        parameter <code>ignore_warnings</code> = false causes the operation to fail with a warning in
-        response's ErrorInfo object.
-        </li>
-        <li>Attempt to upload a new backup file having the same name with an existing backup and with query
-        parameter <code>ignore_warnings</code> = true will overwrite the existing backup.
-        </li>
-        </ul>
+          Note that it is possible to overwrite an existing backup file with the same name.
+          <ul>
+            <li>Attempt to upload a new backup file having the same name with an existing backup and with query
+                parameter <code>ignore_warnings</code> = false causes the operation to fail with a warning in
+                response's ErrorInfo object.
+            </li>
+            <li>Attempt to upload a new backup file having the same name with an existing backup and with query
+                parameter <code>ignore_warnings</code> = true will overwrite the existing backup.
+            </li>
+          </ul>
         </p>
         <p>The warning response has a warning code <code>warning_file_already_exists</code> and the metadata field
-        contains the name of the existing backup
+          contains the name of the existing backup
         </p>
       operationId: uploadBackup
       parameters:
@@ -710,7 +710,7 @@ paths:
       description:
         <h3>CS administrator deletes a global group.</h3>
         <p>The access rights that were granted for the group will not be available for the X-Road members and
-        subsystems that were the members of this group.
+          subsystems that were the members of this group.
         </p>
       operationId: deleteGlobalGroup
       parameters:
@@ -1517,29 +1517,29 @@ paths:
       description:
         <h3>Administrator initializes a new Central Server with the provided initial configuration.</h3>
         <p> This endpoint can also return metadata in the error response. The metadata array can contain error
-        messages about why the init did not succeed. If the pin code is too weak, the error code <code>weak_pin</code>
-        is used and the entries in the metadata array are always ordered in following way
-        <ul>
-        <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
-        <li>x = the minimum length of the pin code</li>
-        <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
-        </ul>
-        Other possible error code are
-        <ul>
-        <li><code>invalid_init_params</code> for "business" logic problems which can have any one or more of the
-        following strings in the metadata field. There "_exists" -entries are returned if parameter has been
-        given already in partially succeeded initialization. The "_not_provided"-entries are returned if these
-        parameters is needed still for the initialization,  but it is not given in the request.
-        </li>
-        <li>pin_code_exists</li>
-        <li>pin_code_not_provided</li>
-        <li>server_address_exists</li>
-        <li>server_address_not_provided</li>
-        <li>instance_identifier_exists</li>
-        <li>instance_identifier_not_provided</li>
-        <li><code>validation_failure</code> for parameter format errors
-        </ul>
-        <strong>See the '400' response examples</strong>
+          messages about why the init did not succeed. If the pin code is too weak, the error code <code>weak_pin</code>
+          is used and the entries in the metadata array are always ordered in following way
+          <ul>
+            <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
+            <li>x = the minimum length of the pin code</li>
+            <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
+          </ul>
+          Other possible error code are
+          <ul>
+            <li><code>invalid_init_params</code> for "business" logic problems which can have any one or more of the
+              following strings in the metadata field. There "_exists" -entries are returned if parameter has been
+              given already in partially succeeded initialization. The "_not_provided"-entries are returned if these
+              parameters is needed still for the initialization,  but it is not given in the request.
+            </li>
+            <li>pin_code_exists</li>
+            <li>pin_code_not_provided</li>
+            <li>server_address_exists</li>
+            <li>server_address_not_provided</li>
+            <li>instance_identifier_exists</li>
+            <li>instance_identifier_not_provided</li>
+            <li><code>validation_failure</code> for parameter format errors
+          </ul>
+          <strong>See the '400' response examples</strong>
         </p>
       operationId: initCentralServer
       requestBody:
@@ -2622,7 +2622,7 @@ paths:
     delete:
       description:
         <h3>CS administrator deletes a security server. System generates deletion requests for the clients
-        and authentication certificates registered for the deleted server.
+          and authentication certificates registered for the deleted server.
         </h3>
       operationId: deleteSecurityServer
       parameters:
@@ -4454,14 +4454,14 @@ components:
           format: int32
         limit:
           description: >
-            Indicates the maximum number of items for the returned page.
+              Indicates the maximum number of items for the returned page.
           default: 25
           type: integer
           format: int32
         offset:
           description: >
-            Offset in pages from the beginning of the query result after filtering and sorting
-            parameters are taken into account.
+              Offset in pages from the beginning of the query result after filtering and sorting
+              parameters are taken into account.
           default: 0
           type: integer
           format: int32
@@ -4485,22 +4485,22 @@ components:
         # https://stackoverflow.com/questions/35628974/when-post-spring-is-ignoring-jsonproperty#comment58939524_35628974
         desc:
           description: >
-            Used sorting direction. Value 'true'  indicates descending and 'false' or omitted
-            parameter indicates ascending direction.
+              Used sorting direction. Value 'true'  indicates descending and 'false' or omitted
+              parameter indicates ascending direction.
           default: false
           type: boolean
         limit:
           description: >
-            Indicates the maximum number of items for the returned page.   If parameter is
-            omitted, then the default amount of 25   is returned.
+              Indicates the maximum number of items for the returned page.   If parameter is
+              omitted, then the default amount of 25   is returned.
           default: 25
           type: integer
           format: int32
         offset:
           description: >
-            Offset in pages from the beginning of the query result after filtering and sorting
-            parameters are taken into account.  If the parameter omitted or the value 0 (zero)
-            is given, the first page is returned.
+              Offset in pages from the beginning of the query result after filtering and sorting
+              parameters are taken into account.  If the parameter omitted or the value 0 (zero)
+              is given, the first page is returned.
           default: 0
           type: integer
           format: int32
@@ -4908,7 +4908,7 @@ components:
           description: management request type
           nullable: true
           items:
-            $ref: '#/components/schemas/ManagementRequestType'
+           $ref: '#/components/schemas/ManagementRequestType'
         status:
           description: request status
           nullable: true
