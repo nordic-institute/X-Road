@@ -27,7 +27,6 @@ package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Selenide;
 import io.cucumber.java.After;
-import io.cucumber.java.Before;
 import io.cucumber.java.en.Step;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.devtools.DevTools;
@@ -37,15 +36,6 @@ import org.openqa.selenium.devtools.v105.network.model.ConnectionType;
 import java.util.Optional;
 
 public class CommonUiStepDefs extends BaseUiStepDefs {
-
-    @Before(value = "@LoadingTesting")
-    public void loadingTestingBefore() {
-        Selenide.open(targetHostUrlProvider.getUrl());
-        var chromedriver = (ChromeDriver) Selenide.webdriver().driver().getWebDriver();
-        DevTools devTools = (chromedriver).getDevTools();
-        devTools.createSession();
-        devTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
-    }
 
     @After(value = "@LoadingTesting")
     public void loadingTestingAfter() {
@@ -73,6 +63,7 @@ public class CommonUiStepDefs extends BaseUiStepDefs {
         var chromedriver = (ChromeDriver) Selenide.webdriver().driver().getWebDriver();
         DevTools devTools = (chromedriver).getDevTools();
         devTools.createSession();
+        devTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
         devTools.send(Network.emulateNetworkConditions(
                 false,
                 5,
