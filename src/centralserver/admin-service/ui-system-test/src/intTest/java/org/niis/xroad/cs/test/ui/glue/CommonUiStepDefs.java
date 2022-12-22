@@ -75,7 +75,7 @@ public class CommonUiStepDefs extends BaseUiStepDefs {
         devTools.createSession();
         devTools.send(Network.emulateNetworkConditions(
                 false,
-                0,
+                5,
                 32 * 1024,
                 64 * 1024,
                 Optional.of(ConnectionType.fromString(connectionType))
