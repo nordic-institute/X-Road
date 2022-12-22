@@ -27,11 +27,13 @@
 <template>
   <div>
     <v-data-table
+      v-if="keys"
       :headers="headers"
       :items="keys"
       :items-per-page="-1"
       item-key="id"
       hide-default-footer
+      class="keys-table"
     >
       <template #[`item.id`]="{ item }">
         <xrd-icon-base class="key-icon">
@@ -92,5 +94,10 @@ export default Vue.extend({
 .key-icon {
   margin-right: 18px;
   color: $XRoad-Purple100;
+}
+
+.keys-table {
+  transform-origin: top;
+  transition: transform 0.4s ease-in-out;
 }
 </style>

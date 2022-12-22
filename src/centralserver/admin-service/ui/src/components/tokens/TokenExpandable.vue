@@ -81,10 +81,7 @@
 
         <!-- SIGN keys table -->
         <div v-if="token.configuration_signing_keys">
-          <keys-table
-            class="keys-table"
-            :keys="token.configuration_signing_keys"
-          />
+          <keys-table :keys="token.configuration_signing_keys" />
         </div>
       </div>
     </template>
@@ -201,14 +198,6 @@ export default Vue.extend({
   align-items: center;
 }
 
-.token-status {
-  display: flex;
-  flex-direction: row;
-  height: 100%;
-  align-items: center;
-  font-weight: 700;
-}
-
 .button-wrap {
   margin-top: 10px;
   padding-left: 16px;
@@ -216,18 +205,5 @@ export default Vue.extend({
   width: 100%;
   display: flex;
   justify-content: space-between;
-}
-
-.button-spacing {
-  margin-left: 20px;
-}
-
-.keys-table {
-  transform-origin: top;
-  transition: transform 0.4s ease-in-out;
-}
-
-.button-icon {
-  margin-top: -14px; // fix for icon position
 }
 </style>

@@ -43,10 +43,6 @@ export const tokenStore = defineStore('tokenStore', {
       return state.expandedTokens.includes(id);
     },
 
-    getTokens(state) {
-      return state.tokens;
-    },
-
     getSortedTokens(state) {
       if (!state.tokens || state.tokens.length === 0) {
         return [];
@@ -66,9 +62,6 @@ export const tokenStore = defineStore('tokenStore', {
       });
 
       return arr;
-    },
-    getSelectedToken(state) {
-      return state.selectedToken;
     },
   },
 
@@ -110,22 +103,14 @@ export const tokenStore = defineStore('tokenStore', {
     loginToken(id: string, tokenPassword: TokenPassword) {
       return axios
         .put<Token>(`/tokens/${id}/login`, tokenPassword)
-        .then((resp) => {
-          this.selectedToken = resp.data;
-        })
         .catch((error) => {
           throw error;
         });
     },
     logoutToken(id: string) {
-      return axios
-        .put<Token>(`/tokens/${id}/logout`)
-        .then((resp) => {
-          this.selectedToken = resp.data;
-        })
-        .catch((error) => {
-          throw error;
-        });
+      return axios.put<Token>(`/tokens/${id}/logout`).catch((error) => {
+        throw error;
+      });
     },
   },
 });
