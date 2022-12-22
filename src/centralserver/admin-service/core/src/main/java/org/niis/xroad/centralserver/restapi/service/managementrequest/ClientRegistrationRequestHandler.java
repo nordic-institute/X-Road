@@ -91,6 +91,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
 
     @Override
     public ClientRegistrationRequest add(ClientRegistrationRequest request) {
+        //TODO is it ok to create identifiers if they're not found?
         final SecurityServerIdEntity serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final ClientIdEntity clientId = clientIds.findOrCreate(ClientIdEntity.ensure(request.getClientId()));
         final Origin origin = request.getOrigin();

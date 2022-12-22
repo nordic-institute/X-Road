@@ -28,12 +28,14 @@ package org.niis.xroad.cs.admin.api.domain;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class ClientDeletionRequest extends Request {
     private ClientId clientId;

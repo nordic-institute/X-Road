@@ -35,6 +35,7 @@ import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityExcep
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -58,6 +59,7 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     private final SecurityServerClientRepository<SecurityServerClientEntity> clients;
     private final SecurityServerRepository servers;
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
+    private final IdentifierRepository<ClientIdEntity> clientIds;
     private final RequestRepository<ClientDeletionRequestEntity> requests;
     private final RequestMapper requestMapper;
 
@@ -69,10 +71,10 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     @Override
     public ClientDeletionRequest add(ClientDeletionRequest request) {
         var requestEntity = requestMapper.fromDto(request);
-        SecurityServerIdEntity securityServerId = requestEntity.getSecurityServerId();
-        ClientId clientId = requestEntity.getClientId();
+        final SecurityServerIdEntity serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
+        final ClientIdEntity clientId = clientIds.findOrCreate(ClientIdEntity.ensure(request.getClientId()));
 
-        SecurityServerEntity securityServer = servers.findBy(securityServerId, clientId).getOrElseThrow(() ->
+        SecurityServerEntity securityServer = servers.findBy(serverId, clientId).getOrElseThrow(() ->
                 new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND));
 
         //todo: somewhat inefficient, could also directly delete the association entity
@@ -94,7 +96,7 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
          */
         return Option.of(requestEntity)
                 .map(RequestEntity::getOrigin)
-                .flatMap(origin -> Option.of(securityServerId)
+                .flatMap(origin -> Option.of(serverId)
                         .map(serverIds::findOrCreate)
                         .map(dbSecurityServerId -> new ClientDeletionRequestEntity(origin, dbSecurityServerId, clientId)))
                 .map(requests::save)
