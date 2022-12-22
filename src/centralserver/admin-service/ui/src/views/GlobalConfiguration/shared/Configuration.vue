@@ -70,13 +70,13 @@
  */
 import Vue from 'vue';
 import { mapActions, mapState } from 'pinia';
-import TokenExpandable from './TokenExpandable.vue';
 import ConfigurationAnchor from './ConfigurationAnchor.vue';
 import ConfigurationPartsList from './ConfigurationPartsList.vue';
 import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
 import { tokenStore } from '@/store/modules/tokens';
 import { ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
+import TokenExpandable from '@/components/tokens/TokenExpandable.vue';
 
 export default Vue.extend({
   components: {
