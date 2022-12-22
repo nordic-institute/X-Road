@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,15 +24,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.management.core.api;
+package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 
-public interface ManagementRequestService {
-    Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType);
+import java.io.InputStream;
+import java.util.Map;
 
-    Integer addManagementRequest(AuthCertDeletionRequestType request);
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+
+@Slf4j
+@RequiredArgsConstructor
+public class ClientDeletionRequestCallback implements ManagementRequestDecoderCallback {
+    private final ManagementRequestVerifier.DecoderCallback rootCallback;
+
+    private ClientRequestType clientRequestType;
+
+    @Override
+    public void attachment(InputStream content, Map<String, String> additionalHeaders) {
+        //do nothing
+    }
+
+    @Override
+    public void onCompleted() {
+        try {
+            clientRequestType = ManagementRequestParser.parseRequest(rootCallback.getSoapMessage(),
+                    ManagementRequestType.CLIENT_DELETION_REQUEST.getServiceCode());
+        } catch (Exception e) {
+            log.error("Failed to verify owner change request", e);
+
+            throw translateException(e);
+        }
+    }
+
+    @Override
+    public Object getRequest() {
+        return clientRequestType;
+    }
+
+
 }

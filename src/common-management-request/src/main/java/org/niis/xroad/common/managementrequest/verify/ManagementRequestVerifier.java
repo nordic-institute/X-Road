@@ -31,6 +31,7 @@ import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 
@@ -38,7 +39,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.verify.decode.AuthCertDeletionRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.AuthCertRegRequestDecoderCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.ClientDeletionRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ClientRegRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ManagementRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.OwnerChangeRequestCallback;
@@ -64,23 +67,41 @@ public final class ManagementRequestVerifier {
         private final SoapMessageImpl soapMessage;
         @Getter
         private final ManagementRequestType requestType;
+
         private final AuthCertRegRequestType authCertRegRequest;
+        private final AuthCertDeletionRequestType authCertDeletionRequestType;
         private final ClientRequestType clientRequest;
 
-        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType,
-                      AuthCertRegRequestType authCertRegRequest, ClientRequestType clientRequest) {
+        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, AuthCertRegRequestType authCertRegRequest) {
             this.soapMessage = soapMessage;
             this.requestType = requestType;
             this.authCertRegRequest = authCertRegRequest;
-            this.clientRequest = clientRequest;
+            this.authCertDeletionRequestType = null;
+            this.clientRequest = null;
+        }
 
-            if (authCertRegRequest != null && clientRequest != null) {
-                throw new IllegalArgumentException("Cannot have multiple requests present in a single result");
-            }
+        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, AuthCertDeletionRequestType authCertDeletionRequestType) {
+            this.soapMessage = soapMessage;
+            this.requestType = requestType;
+            this.authCertRegRequest = null;
+            this.authCertDeletionRequestType = authCertDeletionRequestType;
+            this.clientRequest = null;
+        }
+
+        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, ClientRequestType clientRequest) {
+            this.soapMessage = soapMessage;
+            this.requestType = requestType;
+            this.authCertRegRequest = null;
+            this.authCertDeletionRequestType = null;
+            this.clientRequest = clientRequest;
         }
 
         public Optional<AuthCertRegRequestType> getAuthCertRegRequest() {
             return Optional.ofNullable(authCertRegRequest);
+        }
+
+        public Optional<AuthCertDeletionRequestType> getAuthCertDeletionRequest() {
+            return Optional.ofNullable(authCertDeletionRequestType);
         }
 
         public Optional<ClientRequestType> getClientRequest() {
@@ -120,10 +141,13 @@ public final class ManagementRequestVerifier {
         }
 
         if (request instanceof AuthCertRegRequestType) {
-            return new Result(cb.getSoapMessage(), cb.getRequestType(), (AuthCertRegRequestType) request, null);
+            return new Result(cb.getSoapMessage(), cb.getRequestType(), (AuthCertRegRequestType) request);
+        }
+        if (request instanceof AuthCertDeletionRequestType) {
+            return new Result(cb.getSoapMessage(), cb.getRequestType(), (AuthCertDeletionRequestType) request);
         }
         if (request instanceof ClientRequestType) {
-            return new Result(cb.getSoapMessage(), cb.getRequestType(), null, (ClientRequestType) request);
+            return new Result(cb.getSoapMessage(), cb.getRequestType(), (ClientRequestType) request);
         }
 
         throw new CodedException(X_INVALID_REQUEST, "Unrecognized soap request of type '%s'",
@@ -151,6 +175,12 @@ public final class ManagementRequestVerifier {
                     break;
                 case OWNER_CHANGE_REQUEST:
                     managementRequestDecoderCallback = new OwnerChangeRequestCallback(this);
+                    break;
+                case CLIENT_DELETION_REQUEST:
+                    managementRequestDecoderCallback = new ClientDeletionRequestCallback(this);
+                    break;
+                case AUTH_CERT_DELETION_REQUEST:
+                    managementRequestDecoderCallback = new AuthCertDeletionRequestDecoderCallback(this);
                     break;
                 default:
                     throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);

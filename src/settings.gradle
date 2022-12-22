@@ -16,6 +16,7 @@ include "monitoring-conf"
 include "common-op-monitoring"
 include "common-rest-api"
 include 'common-management-request'
+include 'common-domain'
 
 // Main projects
 include "proxy"

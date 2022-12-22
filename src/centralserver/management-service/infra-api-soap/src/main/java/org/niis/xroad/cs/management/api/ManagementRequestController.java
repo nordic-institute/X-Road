@@ -31,6 +31,7 @@ import ee.ria.xroad.common.CodedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.management.core.api.ManagementRequestService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -57,12 +58,19 @@ public class ManagementRequestController {
     public ResponseEntity<String> register(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {
         return ManagementRequestSoapExecutor.process(contentType, body,
                 result -> {
-                    var clientRequest = result.getClientRequest()
-                            .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "ClientRequest is missing"));
+                    Integer requestId;
+                    if (ManagementRequestType.AUTH_CERT_DELETION_REQUEST == result.getRequestType()) {
+                        var authCertDeletionRequest = result.getAuthCertDeletionRequest()
+                                .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "ClientRequest is missing"));
 
-                    var requestId = managementRequestService.addManagementRequest(clientRequest, result.getRequestType());
+                        requestId = managementRequestService.addManagementRequest(authCertDeletionRequest);
+                    } else {
+                        var clientRequest = result.getClientRequest()
+                                .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "ClientRequest is missing"));
 
-                    log.info("Processed management request {} of body {}", requestId, clientRequest);
+                        requestId = managementRequestService.addManagementRequest(clientRequest, result.getRequestType());
+                    }
+                    log.info("Added new management request with id {}", requestId);
                     return requestId;
                 });
     }

@@ -26,6 +26,7 @@
 package org.niis.xroad.common.managementrequest.verify;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 import ee.ria.xroad.common.request.ObjectFactory;
@@ -89,6 +90,17 @@ public final class ManagementRequestParser {
             log.error(msg);
             throw new SOAPException(msg, e);
         }
+    }
+
+    /**
+     * Parses an authentication certificate deletion request.
+     * @param message the request SOAP message
+     * @return the authentication certificate deletion request
+     * @throws Exception in case of any errors
+     */
+    public static AuthCertDeletionRequestType parseAuthCertDeletionRequest(
+            SoapMessageImpl message) throws Exception {
+        return parse(message, ManagementRequestType.AUTH_CERT_DELETION_REQUEST.getServiceCode());
     }
 
     /**

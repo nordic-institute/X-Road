@@ -28,10 +28,13 @@ package org.niis.xroad.cs.management.core.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateDeletionRequestDto;
+import org.niis.xroad.centralserver.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto;
@@ -66,6 +69,22 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         }
     }
 
+    @Override
+    public Integer addManagementRequest(AuthCertDeletionRequestType request) {
+        var managementRequest = new AuthenticationCertificateDeletionRequestDto()
+                .authenticationCertificate(request.getAuthCert())
+                .type(ManagementRequestTypeDto.AUTH_CERT_DELETION_REQUEST)
+                .origin(ManagementRequestOriginDto.SECURITY_SERVER)
+                .securityServerId(securityServerIdConverter.convertId(request.getServer()));
+
+        var result = managementRequestsApi.addManagementRequest(managementRequest);
+        if (!result.hasBody()) {
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
+        } else {
+            return result.getBody() != null ? result.getBody().getId() : null;
+        }
+    }
+
     private ManagementRequestDto createRequestDto(ClientRequestType request, ManagementRequestType requestType) {
         ManagementRequestDto managementRequest;
         switch (requestType) {
@@ -78,6 +97,11 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
                 managementRequest = new OwnerChangeRequestDto()
                         .clientId(clientIdConverter.convertId(request.getClient()))
                         .type(ManagementRequestTypeDto.OWNER_CHANGE_REQUEST);
+                break;
+            case CLIENT_DELETION_REQUEST:
+                managementRequest = new ClientDeletionRequestDto()
+                        .clientId(clientIdConverter.convertId(request.getClient()))
+                        .type(ManagementRequestTypeDto.CLIENT_DELETION_REQUEST);
                 break;
             default:
                 throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
