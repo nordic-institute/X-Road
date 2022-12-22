@@ -32,24 +32,29 @@
       </div>
 
       <v-card-text class="px-0">
-        <xrd-table id="global-groups-table">
-          <thead>
-            <tr>
-              <th>{{ $t('globalConf.cfgParts.file') }}</th>
-              <th>{{ $t('globalConf.cfgParts.contentIdentifier') }}</th>
-              <th>{{ $t('globalConf.cfgParts.version') }}</th>
-              <th>{{ $t('globalConf.cfgParts.updated') }}</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <configuration-parts-row
-              v-for="item in configurationParts"
-              :key="item.content_identifier"
-              :configuration-part="item"
-            />
-          </tbody>
-        </xrd-table>
+        <v-data-table
+          :loading="loading"
+          :headers="headers"
+          :items="configurationParts"
+          :search="search"
+          :must-sort="true"
+          :items-per-page="-1"
+          item-key="content_identifier"
+          :loader-height="2"
+          hide-default-footer
+        >
+          <template #[`item.file_updated_at`]="{ item }">
+            {{ item.file_updated_at | formatDateTime }}
+          </template>
+          <template #[`item.actions`]="{ item }">
+            <xrd-button :outlined="false" text>
+              {{ $t('action.download') }}
+            </xrd-button>
+          </template>
+          <template #footer>
+            <div class="custom-footer"></div>
+          </template>
+        </v-data-table>
       </v-card-text>
     </v-card>
   </div>
@@ -63,11 +68,10 @@ import Vue from 'vue';
 import { mapStores } from 'pinia';
 import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
-import ConfigurationPartsRow from './ConfigurationPartsRow.vue';
 import { Prop } from 'vue/types/options';
+import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
-  components: { ConfigurationPartsRow },
   props: {
     configurationType: {
       type: String as Prop<ConfigurationType>,
@@ -86,6 +90,36 @@ export default Vue.extend({
       return this.configurationSourceStore.getConfigurationParts(
         this.configurationType,
       );
+    },
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('globalConf.cfgParts.file') as string,
+          value: 'fileName',
+          class: 'xrd-table-header ts-table-header-server-code text-uppercase',
+        },
+        {
+          text: this.$t('globalConf.cfgParts.contentIdentifier') as string,
+          value: 'content_identifier',
+          class: 'xrd-table-header ts-table-header-valid-from text-uppercase',
+        },
+        {
+          text: this.$t('globalConf.cfgParts.version') as string,
+          value: 'version',
+          class: 'xrd-table-header ts-table-header-valid-to text-uppercase',
+        },
+        {
+          text: this.$t('globalConf.cfgParts.updated') as string,
+          value: 'file_updated_at',
+          class: 'xrd-table-header ts-table-header-valid-to text-uppercase',
+        },
+        {
+          text: '',
+          value: 'actions',
+          class: 'xrd-table-header ts-table-header-valid-to text-uppercase',
+          align: 'end',
+        },
+      ];
     },
   },
   created() {
@@ -122,5 +156,15 @@ export default Vue.extend({
   font-size: 18px;
   line-height: 24px;
   margin-left: 16px;
+}
+
+.internal-conf-icon {
+  margin-right: 15px;
+  color: $XRoad-Purple100;
+}
+
+.custom-footer {
+  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
+  height: 16px;
 }
 </style>

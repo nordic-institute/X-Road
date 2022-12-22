@@ -37,8 +37,10 @@
       </v-card-title>
       <v-divider></v-divider>
       <v-card-text>
-        <v-icon class="internal-conf-icon">mdi-link</v-icon>
-        {{ downloadUrl.url }}
+        <div class="xrd-clickable" @click="openInNewTab">
+          <v-icon class="internal-conf-icon">mdi-link</v-icon>
+          {{ downloadUrl.url }}
+        </div>
       </v-card-text>
       <v-divider class="pb-4"></v-divider>
     </v-card>
@@ -76,6 +78,9 @@ export default Vue.extend({
   methods: {
     fetchDownloadUrl() {
       this.configurationSourceStore.fetchDownloadUrl(this.configurationType);
+    },
+    openInNewTab() {
+      window.open(this.downloadUrl.url, '_blank', 'noreferrer');
     },
   },
 });
