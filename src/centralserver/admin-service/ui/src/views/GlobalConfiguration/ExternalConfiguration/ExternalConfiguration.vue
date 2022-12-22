@@ -26,7 +26,10 @@
  -->
 <template>
   <div>
-    <Configuration :title="$t('tab.globalConf.externalConf')" />
+    <Configuration
+      :title="$t('tab.globalConf.externalConf')"
+      configuration-type="EXTERNAL"
+    />
   </div>
 </template>
 
@@ -44,7 +47,6 @@ export default Vue.extend({
   data() {
     return {};
   },
-  computed: {},
 
   methods: {},
 });

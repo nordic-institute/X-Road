@@ -215,7 +215,25 @@
   "globalConf": {
     "globalConf": "Global Configuration",
     "internalConf": "Internal Configuration",
-    "trustedAnchors": "Trusted Anchor"
+    "trustedAnchors": "Trusted Anchor",
+    "cfgParts": {
+      "title": "Configuration parts",
+      "file": "File",
+      "contentIdentifier": "Content Identifier",
+      "version": "Version",
+      "updated": "Updated"
+    },
+    "anchor": {
+      "title": "Anchor",
+      "certificateHash": "Certificate Hash (SHA-224)",
+      "created": "Created",
+      "download": "Download",
+      "recreate": "Re-create"
+    },
+    "downloadUrl": {
+      "title": "Download URL",
+      "urlAddress": "URL Address"
+    }
   },
   "globalGroup": {
     "added": "Added",
