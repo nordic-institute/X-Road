@@ -62,13 +62,13 @@ import java.util.Map;
 @ConditionalOnProperty(value = "signerProxyMockUri")
 @Component
 @Slf4j
-public class SignerProxyFacadeHttpImpl implements SignerProxyFacade {
+public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    public SignerProxyFacadeHttpImpl(RestTemplateBuilder builder, @Value("${signerProxyMockUri}") String signerProxyMockUri,
-                                     ObjectMapper objectMapper) {
+    public SignerProxyFacadeMockHttpImpl(RestTemplateBuilder builder, @Value("${signerProxyMockUri}") String signerProxyMockUri,
+                                         ObjectMapper objectMapper) {
         log.info("Creating mocked SignerProxyFacade");
 
         final CloseableHttpClient client = HttpClients.custom()
@@ -90,7 +90,6 @@ public class SignerProxyFacadeHttpImpl implements SignerProxyFacade {
 
         this.objectMapper = objectMapper;
     }
-
 
     @Override
     public void initSoftwareToken(char[] password) throws Exception {
