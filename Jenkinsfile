@@ -4,6 +4,12 @@ pipeline {
         DOCKER_GID = """${sh(returnStdout: true, script: 'getent group docker | cut -d: -f3')}""".trim()
     }
     stages {
+        when {
+            anyOf {
+                changeset "src/**"
+                changeset "Jenkinsfile"
+            }
+        }
         stage('Output build parameters') {
             steps {
                 sh 'env'
