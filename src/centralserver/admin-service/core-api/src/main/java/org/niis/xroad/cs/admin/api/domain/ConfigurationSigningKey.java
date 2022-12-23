@@ -29,10 +29,15 @@ package org.niis.xroad.cs.admin.api.domain;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+import org.niis.xroad.cs.admin.api.dto.KeyLabel;
+import org.niis.xroad.cs.admin.api.dto.PossibleAction;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
+@Accessors(chain = true)
 @NoArgsConstructor
 @EqualsAndHashCode
 public class ConfigurationSigningKey {
@@ -44,6 +49,10 @@ public class ConfigurationSigningKey {
 
     private String sourceType;
     private boolean activeSourceSigningKey;
+
+    private Boolean available;
+    private KeyLabel label;
+    private List<PossibleAction> possibleActions = null;
 
 }
 

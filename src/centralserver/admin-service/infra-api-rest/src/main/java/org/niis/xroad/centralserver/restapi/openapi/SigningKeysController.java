@@ -33,8 +33,8 @@ import org.niis.xroad.centralserver.openapi.SigningKeysApi;
 import org.niis.xroad.centralserver.openapi.model.ConfigurationSigningKeyAddDto;
 import org.niis.xroad.centralserver.openapi.model.ConfigurationSigningKeyDto;
 import org.niis.xroad.centralserver.openapi.model.ConfigurationTypeDto;
-import org.niis.xroad.centralserver.restapi.converter.ConfigurationSigningKeysDtoConverter;
-import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeyService;
+import org.niis.xroad.centralserver.restapi.mapper.ConfigurationSigningKeyDtoMapper;
+import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -51,8 +51,8 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequiredArgsConstructor
 public class SigningKeysController implements SigningKeysApi {
 
-    private final ConfigurationSigningKeyService signingKeyService;
-    private final ConfigurationSigningKeysDtoConverter configurationSigningKeysDtoConverter;
+    private final ConfigurationSigningKeysService configurationSigningKeysService;
+    private final ConfigurationSigningKeyDtoMapper configurationSigningKeyDtoMapper;
 
     @Override
     public ResponseEntity<Void> activateKey(String id) {
@@ -64,8 +64,8 @@ public class SigningKeysController implements SigningKeysApi {
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_KEY)
     public ResponseEntity<ConfigurationSigningKeyDto> addKey(ConfigurationTypeDto configurationType,
                                                              ConfigurationSigningKeyAddDto configurationSigningKeyAddDto) {
-        return ok(configurationSigningKeysDtoConverter.convert(
-                signingKeyService.addKey(configurationType.getValue(),
+        return ok(configurationSigningKeyDtoMapper.toTarget(
+                configurationSigningKeysService.addKey(configurationType.getValue(),
                         configurationSigningKeyAddDto.getTokenId(),
                         configurationSigningKeyAddDto.getKeyLabel())
         ));

@@ -37,6 +37,8 @@ public interface ConfigurationSigningKeysService {
 
     List<ConfigurationSigningKey> findByTokenIdentifier(String tokenIdentifier);
 
+    ConfigurationSigningKey addKey(String sourceType, String tokenId, String keyLabel);
+
     Optional<ConfigurationSigningKey> findActiveForSource(String sourceType);
 
 }
