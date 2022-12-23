@@ -10,10 +10,6 @@ pipeline {
                 echo '--------------'
                 echo "${currentBuild.changeSets}"
                 echo '-------------'
-                script {
-                    showChangeLogs(currentBuild.changeSets)
-                }
-                echo '-------------'
             }
         }        
         stage('Clean and clone repository') {
@@ -22,7 +18,9 @@ pipeline {
                         $class                           : 'GitSCM',
                         branches                         : [[name: ghprbSourceBranch]],
                         doGenerateSubmoduleConfigurations: false,
-                        extensions                       : [[$class: 'CleanBeforeCheckout']],
+                        extensions                       : [[$class: 'CleanBeforeCheckout'],
+                                                            [$class: 'ChangelogToBranch', options: [compareRemote: 'origin', compareTarget: 'ghprbTargetBranch']],
+                                                           ],
                         gitTool                          : 'Default',
                         submoduleCfg                     : [],
                         userRemoteConfigs                : [
@@ -161,11 +159,11 @@ def showChangeLogs(changeLogSets) {
         for (int j = 0; j < entries.length; j++) {
             def entry = entries[j]
             echo "${entry.commitId} by ${entry.author} on ${new Date(entry.timestamp)}: ${entry.msg}"
-            def files = new ArrayList(entry.affectedFiles)
-            for (int k = 0; k < files.size(); k++) {
-                def file = files[k]
-                echo "${file.editType.name} ${file.path}"
-            }
+//            def files = new ArrayList(entry.affectedFiles)
+//            for (int k = 0; k < files.size(); k++) {
+//                def file = files[k]
+//                echo "${file.editType.name} ${file.path}"
+//            }
         }
     }
 }
