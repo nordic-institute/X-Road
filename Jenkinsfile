@@ -7,6 +7,9 @@ pipeline {
         stage('Output build parameters') {
             steps {
                 sh 'env'
+                echo '--------------'
+                echo ${currentBuild.changeSets}
+                echo '--------------'
             }
         }        
         stage('Clean and clone repository') {
@@ -31,6 +34,9 @@ pipeline {
                             ]
                         ]
                 ])
+                echo '--------------'
+                echo ${currentBuild.changeSets}
+                echo '--------------'
             }
         }
         stage('Compile Code') {
