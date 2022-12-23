@@ -55,7 +55,7 @@ public class ManagementRequestController {
     @PostMapping(path = "/managementservice/manage",
             produces = {MediaType.TEXT_XML_VALUE},
             consumes = {MediaType.MULTIPART_RELATED_VALUE, MediaType.TEXT_XML_VALUE + ";charset=UTF-8"})
-    public ResponseEntity<String> register(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {
+    public ResponseEntity<String> addManagementRequest(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {
         return ManagementRequestSoapExecutor.process(contentType, body,
                 result -> {
                     Integer requestId;
