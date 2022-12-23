@@ -65,7 +65,7 @@ public class ConfigurationDistributor {
             return configLocation;
         } catch (IOException e) {
             log.error("Failed to create config dir", e);
-            throw new RuntimeException(e);
+            throw new ConfGeneratorException(e);
         }
     }
 
@@ -98,7 +98,7 @@ public class ConfigurationDistributor {
             Files.write(fileFullPath, data);
         } catch (IOException e) {
             log.error("Failed to write file {}", fileFullPath, e);
-            throw new RuntimeException(e);
+            throw new ConfGeneratorException(e);
         }
     }
 
@@ -117,7 +117,7 @@ public class ConfigurationDistributor {
 
     private void checkInitialized() {
         if (!initialized) {
-            throw new RuntimeException("Config location not initialized.");
+            throw new ConfGeneratorException("Config location not initialized.");
         }
     }
 

@@ -56,7 +56,7 @@ public class DirectoryContentSigner {
     public String createSignedDirectory(String directoryContent, String keyId, byte[] signingCert) {
         var signAlgorithmId = getSignAlgorithmId(keyId, signDigestAlgorithmId);
         var certHashCalculator = new HashCalculator(CryptoUtils.getDigestAlgorithmURI(certDigestAlgorithmId));
-        MultipartMessage multipartMessage = MultipartMessage.builder()
+        return MultipartMessage.builder()
                 .contentType("multipart/related")
                 .part(rawPart(directoryContent))
                 .part(partBuilder()
@@ -67,9 +67,7 @@ public class DirectoryContentSigner {
                                 certHashCalculator.calculateFromBytes(signingCert), certHashCalculator.getAlgoURI())))
                         .content(CryptoUtils.encodeBase64(sign(keyId, directoryContent.getBytes(StandardCharsets.UTF_8))))
                         .build())
-                .build();
-
-        return multipartMessage.toString();
+                .build().toString();
     }
 
     @SneakyThrows

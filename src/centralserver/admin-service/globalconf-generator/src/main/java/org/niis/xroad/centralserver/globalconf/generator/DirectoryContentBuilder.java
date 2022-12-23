@@ -82,9 +82,7 @@ public class DirectoryContentBuilder {
                 .header(header("Expire-date", EXPIRE_DATE_FORMATTER.format(expireDate)))
                 .header(header("Version", "2"))
                 .build());
-        configurationParts.forEach(confPart -> {
-            builder.part(buildPart(confPart));
-        });
+        configurationParts.forEach(confPart -> builder.part(buildPart(confPart)));
         return builder.build().toString();
 
     }

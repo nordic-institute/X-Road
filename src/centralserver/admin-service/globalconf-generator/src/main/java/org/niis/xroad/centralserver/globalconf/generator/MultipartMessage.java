@@ -45,7 +45,7 @@ class MultipartMessage {
 
     MultipartMessage(List<Part> parts, String boundary, String contentType) {
         if (parts == null || parts.isEmpty()) {
-            throw new RuntimeException("At least one part is required");
+            throw new ConfGeneratorException("At least one part is required");
         }
         this.parts = parts;
         this.boundary = boundary != null ? boundary : RandomStringUtils.randomAlphanumeric(BOUNDARY_LENGTH);
@@ -100,7 +100,7 @@ class MultipartMessage {
         String content;
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             headers.forEach(h -> sb.append(h).append(CRLF));
 
             if (content != null) {

@@ -116,7 +116,7 @@ class MultipartMessageTest {
     @Test
     void emptyCannotBuild() {
         assertThatThrownBy(() -> MultipartMessage.builder().build())
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(ConfGeneratorException.class)
                 .hasMessage("At least one part is required");
     }
 }
