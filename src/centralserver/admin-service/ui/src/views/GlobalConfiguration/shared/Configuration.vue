@@ -34,7 +34,7 @@
 
     <XrdEmptyPlaceholder
       :data="tokens"
-      :loading="loading"
+      :loading="tokensLoading"
       :no-items-text="$t('noData.noTokens')"
       skeleton-type="table-heading"
     />
@@ -43,9 +43,8 @@
       v-for="token in tokens"
       :key="token.id"
       :token="token"
-      @refresh-list="fetchData"
-      @token-logout="logoutDialog = true"
-      @token-login="loginDialog = true"
+      @token-login="fetchData"
+      @token-logout="fetchData"
       @add-key="addKey"
     />
 
@@ -70,14 +69,14 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import TokenExpandable from './TokenExpandable.vue';
+import { mapActions, mapState } from 'pinia';
 import ConfigurationAnchor from './ConfigurationAnchor.vue';
 import ConfigurationPartsList from './ConfigurationPartsList.vue';
 import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
-import { mapState } from 'pinia';
 import { tokenStore } from '@/store/modules/tokens';
 import { ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
+import TokenExpandable from '@/components/tokens/TokenExpandable.vue';
 
 export default Vue.extend({
   components: {
@@ -98,7 +97,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      loading: false,
+      tokensLoading: false,
       creatingBackup: false,
       uploadingBackup: false,
       needsConfirmation: false,
@@ -108,19 +107,15 @@ export default Vue.extend({
   computed: {
     ...mapState(tokenStore, { tokens: 'getSortedTokens' }),
   },
-
+  created() {
+    this.fetchData();
+  },
   methods: {
-    toggleChangePinOpen(): void {
-      // TODO
-    },
-
-    isTokenLoggedIn(): boolean {
-      // TODO
-      return true;
-    },
+    ...mapActions(tokenStore, ['fetchTokens']),
 
     fetchData(): void {
-      // TODO
+      this.tokensLoading = true;
+      this.fetchTokens().finally(() => (this.tokensLoading = false));
     },
 
     addKey(): void {

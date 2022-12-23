@@ -134,7 +134,8 @@
     "global_group_not_found": "Global group by the given id not found.",
     "owners_global_group_cannot_be_deleted": "Cannot perform delete action on server owners group.",
     "global_group_exists": "Global group with the same code already exists.",
-    "invalid_url": "Invalid URL"
+    "invalid_url": "Invalid URL",
+    "token_activation_failed": "Token activation failed"
   },
   "fields": {
     "init": {
@@ -150,7 +151,8 @@
     },
     "password": "Password",
     "username": "Username",
-    "url": "URL"
+    "url": "URL",
+    "tokenPin": "Token PIN"
   },
   "filters": {
     "apply": "Apply",
@@ -293,6 +295,26 @@
     "logOut": "Log out",
     "signKey": "Sign key",
     "token": "Token:"
+  },
+  "tokens": {
+    "keysInfoMessage": "A maximum of two configuration source signing keys is allowed on a security token",
+    "logIn": "Log in",
+    "pin": "Token PIN",
+    "loginDialog": {
+      "title": "Log in",
+      "success": "Logged in token"
+    },
+    "logout": {
+      "title": "Log out",
+      "confirmButton": "Log out",
+      "text": "Are you sure you want to log out from the token?",
+      "success": "Logged out of token"
+    },
+    "errors": {
+      "Signer": {
+        "PinIncorrect": "Invalid PIN"
+      }
+    }
   },
   "cert" : {
     "certificate": "Certificate",

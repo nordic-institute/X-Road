@@ -25,21 +25,30 @@
    THE SOFTWARE.
  -->
 <template>
-  <tr>
-    <td class="pl-8">
-      <div class="name-wrap-top">
-        <xrd-icon-base class="key-icon"><XrdIconKey /></xrd-icon-base>
-
-        <div class="clickable-link identifier-wrap" @click="keyClick">
-          <span v-if="!tokenKey.name || tokenKey.name === ''">{{
-            tokenKey.id
-          }}</span>
-          <span v-else>{{ tokenKey.name }}</span>
-        </div>
-      </div>
-    </td>
-    <td class="td-align-right"></td>
-  </tr>
+  <div>
+    <v-data-table
+      v-if="keys"
+      :headers="headers"
+      :items="keys"
+      :items-per-page="-1"
+      item-key="id"
+      hide-default-footer
+      class="keys-table"
+    >
+      <template #[`item.id`]="{ item }">
+        <xrd-icon-base class="key-icon">
+          <XrdIconKey />
+        </xrd-icon-base>
+        <span v-if="!item.label || item.label.label === ''">
+          {{ item.id }}
+        </span>
+        <span v-else>{{ item.label.label }}</span>
+      </template>
+      <template #[`item.createdAt`]="{ item }">
+        {{ item.created_at | formatDateTime }}
+      </template>
+    </v-data-table>
+  </div>
 </template>
 
 <script lang="ts">
@@ -48,34 +57,32 @@
  */
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import { Key } from '@/mock-openapi-types';
+import { ConfigurationSigningKey } from '@/openapi-types';
+import { DataTableHeader } from 'vuetify';
+
 export default Vue.extend({
   props: {
-    tokenKey: {
-      type: Object as Prop<Key>,
+    keys: {
+      type: Array as Prop<ConfigurationSigningKey[]>,
       required: true,
-    },
-    tokenLoggedIn: {
-      type: Boolean,
     },
   },
   computed: {
-    showGenerateCsr(): boolean {
-      // TODO
-      return true;
-    },
-
-    disableGenerateCsr(): boolean {
-      // TODO
-      return false;
-    },
-  },
-  methods: {
-    keyClick(): void {
-      this.$emit('key-click');
-    },
-    generateCsr(): void {
-      this.$emit('generate-csr');
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('keys.signKey') as string,
+          align: 'start',
+          value: 'id',
+          class: 'xrd-table-header text-uppercase',
+        },
+        {
+          text: this.$t('keys.created') as string,
+          align: 'start',
+          value: 'createdAt',
+          class: 'xrd-table-header text-uppercase',
+        },
+      ];
     },
   },
 });
@@ -84,26 +91,13 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/tables';
 
-.td-align-right {
-  text-align: right;
-}
-
-.clickable-link {
-  color: $XRoad-Purple100;
-  cursor: pointer;
-}
-
 .key-icon {
   margin-right: 18px;
   color: $XRoad-Purple100;
 }
 
-.name-wrap-top {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  align-content: center;
-  margin-top: 5px;
-  margin-bottom: 5px;
+.keys-table {
+  transform-origin: top;
+  transition: transform 0.4s ease-in-out;
 }
 </style>

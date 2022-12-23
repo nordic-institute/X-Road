@@ -49,14 +49,12 @@
 
     <template #action>
       <div class="action-slot-wrapper">
-        <template v-if="canActivateToken">
-          <TokenLoggingButton
-            class="token-logging-button"
-            :token="token"
-            @token-logout="logout()"
-            @token-login="login()"
-          />
-        </template>
+        <TokenLoggingButton
+          class="token-logging-button"
+          :token="token"
+          @token-logout="$emit('token-logout')"
+          @token-login="$emit('token-login')"
+        />
       </div>
     </template>
 
@@ -64,8 +62,7 @@
       <div>
         <div class="button-wrap mb-6">
           <div>
-            A maximum of two configuration source signing keys is allowed on a
-            security token
+            {{ $t('tokens.keysInfoMessage') }}
           </div>
 
           <xrd-button
@@ -75,24 +72,16 @@
             data-test="token-add-key-button"
             @click="addKey()"
           >
-            <xrd-icon-base class="xrd-large-button-icon"
-              ><XrdIconAdd
-            /></xrd-icon-base>
-            {{ $t('keys.addKey') }}</xrd-button
-          >
+            <xrd-icon-base class="xrd-large-button-icon">
+              <XrdIconAdd />
+            </xrd-icon-base>
+            {{ $t('keys.addKey') }}
+          </xrd-button>
         </div>
 
         <!-- SIGN keys table -->
-        <div v-if="getSignKeys(token.keys).length > 0">
-          <keys-table
-            v-if="signKeysOpen"
-            class="keys-table"
-            :keys="getSignKeys(token.keys)"
-            :token-logged-in="token.logged_in"
-            :token-type="token.type"
-            @key-click="keyClick"
-            @refresh-list="fetchData"
-          />
+        <div v-if="token.configuration_signing_keys">
+          <keys-table :keys="token.configuration_signing_keys" />
         </div>
       </div>
     </template>
@@ -100,16 +89,14 @@
 </template>
 
 <script lang="ts">
-// View for a token
 import Vue from 'vue';
-import KeysTable from './KeysTable.vue';
-import { Key, KeyUsageType, Token } from '@/mock-openapi-types';
-import TokenLoggingButton from './TokenLoggingButton.vue';
 import { Prop } from 'vue/types/options';
 import { Colors } from '@/global';
-import { getTokenUIStatus, TokenUIStatus } from './TokenStatusHelper';
 import { mapActions, mapState } from 'pinia';
 import { tokenStore } from '@/store/modules/tokens';
+import { Token } from '@/openapi-types';
+import KeysTable from '@/components/tokens/KeysTable.vue';
+import TokenLoggingButton from '@/components/tokens/TokenLoggingButton.vue';
 
 export default Vue.extend({
   components: {
@@ -125,54 +112,15 @@ export default Vue.extend({
   data() {
     return {
       colors: Colors,
-      authKeysOpen: true,
-      signKeysOpen: true,
-      unknownKeysOpen: true,
     };
   },
   computed: {
     ...mapState(tokenStore, {
       isExpanded: 'tokenExpanded',
     }),
-    canActivateToken(): boolean {
-      return true;
-      /* return userStore.hasPermission(Permissions.MOCK_PERMISSION1); */
-    },
-    canImportCertificate(): boolean {
-      return true;
-      // Add permission check from store
-    },
     canAddKey(): boolean {
       return true;
       // Add permission check from store
-    },
-
-    tokenLabelKey(): string {
-      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
-
-      if (status === TokenUIStatus.Inactive) {
-        return 'keys.tokenStatus.inactive';
-      } else if (status === TokenUIStatus.Unavailable) {
-        return 'keys.tokenStatus.unavailable';
-      } else if (status === TokenUIStatus.Unsaved) {
-        return 'keys.tokenStatus.unsaved';
-      }
-
-      return ''; // if TokenUIStatus is Active or Available or unknown return empty string
-    },
-
-    tokenIcon(): string {
-      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
-
-      if (status === TokenUIStatus.Inactive) {
-        return 'icon-Cancel';
-      } else if (status === TokenUIStatus.Unavailable) {
-        return 'icon-Error';
-      } else if (status === TokenUIStatus.Unsaved) {
-        return 'icon-Error';
-      }
-
-      return '';
     },
     tokenStatusClass(): string {
       return this.token.logged_in ? 'logged-out' : 'logged-in';
@@ -181,7 +129,6 @@ export default Vue.extend({
       return this.token.logged_in ? this.colors.Black100 : this.colors.Purple20;
     },
   },
-
   methods: {
     ...mapActions(tokenStore, [
       'setSelectedToken',
@@ -194,42 +141,10 @@ export default Vue.extend({
       this.$emit('add-key');
     },
 
-    login(): void {
-      this.setSelectedToken(this.token);
-      //this.$store.commit(StoreTypes.mutations.SET_SELECTED_TOKEN, this.token);
-      this.$emit('token-login');
-    },
-
-    logout(): void {
-      this.setSelectedToken(this.token);
-      //this.$store.commit(StoreTypes.mutations.SET_SELECTED_TOKEN, this.token);
-      this.$emit('token-logout');
-    },
-
     tokenNameClick(): void {
       this.isExpanded(this.token.id)
         ? this.descClose(this.token.id)
         : this.descOpen(this.token.id);
-    },
-
-    tokenClick(token: Token): void {
-      /*this.$router.push({
-        name: RouteName.Token,
-        params: { id: token.id },
-      });
-      */
-    },
-
-    keyClick(key: Key): void {
-      /* this.$router.push({
-        name: RouteName.Key,
-        params: { id: key.id },
-      });
-      */
-    },
-
-    getSignKeys(keys: Key[]): Key[] {
-      return keys.filter((key: Key) => key.usage === KeyUsageType.SIGNING);
     },
 
     descClose(tokenId: string) {
@@ -237,10 +152,6 @@ export default Vue.extend({
     },
     descOpen(tokenId: string) {
       this.setTokenExpanded(tokenId);
-    },
-    fetchData(): void {
-      // Fetch tokens from backend
-      this.$emit('refresh-list');
     },
   },
 });
@@ -287,14 +198,6 @@ export default Vue.extend({
   align-items: center;
 }
 
-.token-status {
-  display: flex;
-  flex-direction: row;
-  height: 100%;
-  align-items: center;
-  font-weight: 700;
-}
-
 .button-wrap {
   margin-top: 10px;
   padding-left: 16px;
@@ -302,18 +205,5 @@ export default Vue.extend({
   width: 100%;
   display: flex;
   justify-content: space-between;
-}
-
-.button-spacing {
-  margin-left: 20px;
-}
-
-.keys-table {
-  transform-origin: top;
-  transition: transform 0.4s ease-in-out;
-}
-
-.button-icon {
-  margin-top: -14px; // fix for icon position
 }
 </style>

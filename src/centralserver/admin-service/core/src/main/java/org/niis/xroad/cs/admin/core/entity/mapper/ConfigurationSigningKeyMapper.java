@@ -39,8 +39,6 @@ public abstract class ConfigurationSigningKeyMapper implements
         GenericUniDirectionalMapper<ConfigurationSigningKeyEntity, ConfigurationSigningKey> {
 
     @Override
-    @Mapping(source = "keyIdentifier", target = "id")
-    @Mapping(source = "tokenIdentifier", target = "tokenIdentifier")
     @Mapping(target = "sourceType", source = "entity", qualifiedByName = "mapSourceType")
     @Mapping(target = "activeSourceSigningKey", source = "entity", qualifiedByName = "mapActiveSourceSigningKey")
     public abstract ConfigurationSigningKey toTarget(ConfigurationSigningKeyEntity entity);
