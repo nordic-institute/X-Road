@@ -37,7 +37,6 @@ import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import javax.persistence.Version;
 
 import java.time.Instant;
 
@@ -55,7 +54,6 @@ public class DistributedFileEntity {
     @Getter
     private int id;
 
-    @Version
     @Column(name = "version", nullable = false)
     @Getter
     @Setter
@@ -95,6 +93,12 @@ public class DistributedFileEntity {
         this.fileName = fileName;
         this.contentIdentifier = contentIdentifier;
         this.fileUpdatedAt = fileUpdatedAt;
+    }
+
+    public DistributedFileEntity(String contentIdentifier, int version, String haNodeName) {
+        this.contentIdentifier = contentIdentifier;
+        this.version = version;
+        this.haNodeName = haNodeName;
     }
 }
 

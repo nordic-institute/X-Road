@@ -26,7 +26,10 @@
  -->
 <template>
   <div>
-    <Configuration :title="$t('tab.globalConf.internalConf')" />
+    <Configuration
+      :title="$t('tab.globalConf.internalConf')"
+      configuration-type="INTERNAL"
+    />
   </div>
 </template>
 
@@ -44,7 +47,6 @@ export default Vue.extend({
   data() {
     return {};
   },
-  computed: {},
 
   methods: {},
 });

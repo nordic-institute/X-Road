@@ -19,6 +19,7 @@ dependencies {
     implementation project(":centralserver:admin-service:core-api")
     implementation project(":centralserver:admin-service:infra-api-rest")
     implementation project(":centralserver:admin-service:infra-jpa")
+    implementation project(":centralserver:admin-service:globalconf-generator")
     implementation project(':centralserver:openapi-model')
 
 

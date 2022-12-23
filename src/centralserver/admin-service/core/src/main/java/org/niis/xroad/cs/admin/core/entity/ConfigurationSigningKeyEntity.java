@@ -55,7 +55,7 @@ public class ConfigurationSigningKeyEntity {
     @Getter
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "configuration_source_id")
     @Getter
     @Setter

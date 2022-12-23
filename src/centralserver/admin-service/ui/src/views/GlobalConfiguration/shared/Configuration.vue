@@ -34,7 +34,7 @@
 
     <XrdEmptyPlaceholder
       :data="tokens"
-      :loading="loading"
+      :loading="tokensLoading"
       :no-items-text="$t('noData.noTokens')"
       skeleton-type="table-heading"
     />
@@ -43,9 +43,8 @@
       v-for="token in tokens"
       :key="token.id"
       :token="token"
-      @refresh-list="fetchData"
-      @token-logout="logoutDialog = true"
-      @token-login="loginDialog = true"
+      @token-login="fetchData"
+      @token-logout="fetchData"
       @add-key="addKey"
     />
 
@@ -55,113 +54,13 @@
     </div>
 
     <!-- Anchor -->
-    <div id="anchor" class="mt-4">
-      <v-card flat>
-        <div class="card-top">
-          <div class="card-main-title">Anchor</div>
-          <div class="card-corner-button pr-4">
-            <xrd-button outlined class="mr-4">
-              <xrd-icon-base class="xrd-large-button-icon"
-                ><XrdIconAdd
-              /></xrd-icon-base>
-
-              Re-create
-            </xrd-button>
-            <xrd-button outlined>
-              <xrd-icon-base class="xrd-large-button-icon"
-                ><XrdIconDownload
-              /></xrd-icon-base>
-              Download
-            </xrd-button>
-          </div>
-        </div>
-        <v-card-title class="card-title"
-          >Certificate Hash (SHA-224)</v-card-title
-        >
-        <v-divider></v-divider>
-        <v-card-text>
-          <xrd-icon-base class="internal-conf-icon"
-            ><XrdIconCertificate
-          /></xrd-icon-base>
-          42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F</v-card-text
-        >
-        <v-divider class="pb-4"></v-divider>
-      </v-card>
-    </div>
+    <configuration-anchor :configuration-type="configurationType" />
 
     <!-- Download URL -->
-    <div id="download-url" class="mt-5">
-      <v-card flat>
-        <div class="card-top">
-          <div class="card-main-title">Download URL</div>
-        </div>
-        <v-card-title class="card-title">URL Address</v-card-title>
-        <v-divider></v-divider>
-        <v-card-text>
-          <v-icon class="internal-conf-icon">mdi-link</v-icon
-          >http://dev-cs-i.x-road.rocks/internalconf</v-card-text
-        >
-        <v-divider class="pb-4"></v-divider>
-      </v-card>
-    </div>
+    <configuration-download-url :configuration-type="configurationType" />
 
     <!-- Configuration parts -->
-    <div id="global-groups" class="mt-5">
-      <v-card flat>
-        <div class="card-top">
-          <div class="card-main-title">Configuration parts</div>
-        </div>
-
-        <v-card-text class="px-0">
-          <xrd-table id="global-groups-table">
-            <thead>
-              <tr>
-                <th>File</th>
-                <th>Content identifier</th>
-                <th>Version</th>
-                <th>Updated</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <v-icon class="internal-conf-icon"
-                    >mdi-file-document-outline</v-icon
-                  >
-
-                  fetchinterval-params.xml
-                </td>
-                <td>FETCHINTERVAL</td>
-                <td>All versions</td>
-                <td>2020-11-10 18:00</td>
-                <td class="td-align-right">
-                  <xrd-button :outlined="false" text
-                    >{{ $t('action.download') }}
-                  </xrd-button>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <v-icon class="internal-conf-icon"
-                    >mdi-file-document-outline</v-icon
-                  >
-                  monitoring-params.xml
-                </td>
-                <td>MONITORING</td>
-                <td>All versions</td>
-                <td>2021-09-04 10:15</td>
-                <td class="td-align-right">
-                  <xrd-button :outlined="false" text
-                    >{{ $t('action.upload') }}
-                  </xrd-button>
-                </td>
-              </tr>
-            </tbody>
-          </xrd-table>
-        </v-card-text>
-      </v-card>
-    </div>
+    <configuration-parts-list :configuration-type="configurationType" />
   </div>
 </template>
 
@@ -170,12 +69,20 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import TokenExpandable from './TokenExpandable.vue';
-import { mapState } from 'pinia';
+import { mapActions, mapState } from 'pinia';
+import ConfigurationAnchor from './ConfigurationAnchor.vue';
+import ConfigurationPartsList from './ConfigurationPartsList.vue';
+import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
 import { tokenStore } from '@/store/modules/tokens';
+import { ConfigurationType } from '@/openapi-types';
+import { Prop } from 'vue/types/options';
+import TokenExpandable from '@/components/tokens/TokenExpandable.vue';
 
 export default Vue.extend({
   components: {
+    ConfigurationDownloadUrl,
+    ConfigurationAnchor,
+    ConfigurationPartsList,
     TokenExpandable,
   },
   props: {
@@ -183,10 +90,14 @@ export default Vue.extend({
       type: String,
       required: true,
     },
+    configurationType: {
+      type: String as Prop<ConfigurationType>,
+      required: true,
+    },
   },
   data() {
     return {
-      loading: false,
+      tokensLoading: false,
       creatingBackup: false,
       uploadingBackup: false,
       needsConfirmation: false,
@@ -196,19 +107,15 @@ export default Vue.extend({
   computed: {
     ...mapState(tokenStore, { tokens: 'getSortedTokens' }),
   },
-
+  created() {
+    this.fetchData();
+  },
   methods: {
-    toggleChangePinOpen(): void {
-      // TODO
-    },
-
-    isTokenLoggedIn(): boolean {
-      // TODO
-      return true;
-    },
+    ...mapActions(tokenStore, ['fetchTokens']),
 
     fetchData(): void {
-      // TODO
+      this.tokensLoading = true;
+      this.fetchTokens().finally(() => (this.tokensLoading = false));
     },
 
     addKey(): void {

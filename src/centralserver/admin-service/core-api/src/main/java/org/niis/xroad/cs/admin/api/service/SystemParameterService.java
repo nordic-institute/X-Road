@@ -26,7 +26,11 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import org.niis.xroad.cs.admin.api.domain.SystemParameter;
+
+import javax.xml.crypto.dsig.DigestMethod;
 
 /**
  * Class for handling SystemParameter taking HA-setup into account
@@ -34,6 +38,18 @@ import org.niis.xroad.cs.admin.api.domain.SystemParameter;
 public interface SystemParameterService {
     String INSTANCE_IDENTIFIER = "instanceIdentifier";
     String CENTRAL_SERVER_ADDRESS = "centralServerAddress";
+
+    String CONF_SIGN_DIGEST_ALGO_ID = "confSignDigestAlgoId";
+    String DEFAULT_CONF_SIGN_DIGEST_ALGO_ID = CryptoUtils.SHA512_ID;
+
+    String CONF_HASH_ALGO_URI = "confHashAlgoUri";
+    String DEFAULT_CONF_HASH_ALGO_URI = DigestMethod.SHA512;
+
+    String CONF_SIGN_CERT_HASH_ALGO_URI = "confSignCertHashAlgoUri";
+    String DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI = DigestMethod.SHA512;
+
+    String CONF_EXPIRE_INTERVAL_SECONDS = "confExpireIntervalSeconds";
+    Integer DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS = 600;
 
     String getParameterValue(String key, String defaultValue);
 

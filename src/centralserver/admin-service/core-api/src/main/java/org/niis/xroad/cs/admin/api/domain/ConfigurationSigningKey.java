@@ -37,11 +37,14 @@ import java.time.Instant;
 @EqualsAndHashCode
 public class ConfigurationSigningKey {
     private int id;
-    private ConfigurationSource configurationSource;
     private String keyIdentifier;
     private byte[] cert;
     private Instant keyGeneratedAt;
     private String tokenIdentifier;
+
+    private String sourceType;
+    private boolean activeSourceSigningKey;
+
 }
 
 

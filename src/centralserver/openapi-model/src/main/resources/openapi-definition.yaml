@@ -4348,6 +4348,11 @@ components:
       example: DELETE
       format: enum
       type: string
+    ConfigurationSigningKeys:
+      description: array containing the configuration signing keys
+      items:
+        $ref: '#/components/schemas/ConfigurationSigningKey'
+      type: array
     PossibleActions:
       description: array containing the possible actions that can be done for this item # potential-common-api
       items:
@@ -4626,6 +4631,8 @@ components:
           type: string
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
+        configuration_signing_keys:
+          $ref: '#/components/schemas/ConfigurationSigningKeys'
         serial_number:
           description: serial number of the token
           example: 12345

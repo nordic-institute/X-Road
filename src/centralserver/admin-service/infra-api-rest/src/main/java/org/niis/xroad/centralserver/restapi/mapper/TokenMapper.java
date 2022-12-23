@@ -36,11 +36,12 @@ import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 import static org.mapstruct.ReportingPolicy.IGNORE;
 
-@Mapper(componentModel = SPRING, unmappedTargetPolicy = IGNORE)
+@Mapper(componentModel = SPRING, unmappedTargetPolicy = IGNORE, uses = ConfigurationSigningKeyDtoMapper.class)
 public interface TokenMapper extends GenericUniDirectionalMapper<TokenInfo, TokenDto> {
 
     @Override
     @Mapping(source = "friendlyName", target = "name")
     @Mapping(source = "active", target = "loggedIn")
     TokenDto toTarget(TokenInfo tokenInfo);
+
 }

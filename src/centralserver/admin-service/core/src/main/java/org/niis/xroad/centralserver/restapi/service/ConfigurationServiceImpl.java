@@ -28,15 +28,18 @@ package org.niis.xroad.centralserver.restapi.service;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
+import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
+import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
@@ -44,9 +47,12 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.time.Instant;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
 
@@ -54,16 +60,19 @@ import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CENTRAL
 @Transactional
 @RequiredArgsConstructor
 public class ConfigurationServiceImpl implements ConfigurationService {
-
     private static final String INTERNAL_CONFIGURATION = "INTERNAL";
+    private static final Set<String> NODE_LOCAL_CONTENT_IDS = Set.of(
+            CONTENT_ID_PRIVATE_PARAMETERS,
+            CONTENT_ID_SHARED_PARAMETERS);
+
     private final SystemParameterService systemParameterService;
+    private final HAConfigStatus haConfigStatus;
     private final ConfigurationSourceRepository configurationSourceRepository;
     private final DistributedFileRepository distributedFileRepository;
     private final DistributedFileMapper distributedFileMapper;
 
     @Override
     public Set<ConfigurationParts> getConfigurationParts(String sourceType) {
-
         final ConfigurationSourceEntity configurationSource = findConfigurationSourceBySourceType(
                 sourceType.toLowerCase());
 
@@ -71,11 +80,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .findAllByHaNodeName(configurationSource.getHaNodeName())
                 .stream()
                 .map(distributedFileMapper::toTarget)
-                .collect(Collectors.toSet());
+                .collect(toSet());
 
         return distributedFiles.stream()
                 .map(this::createConfParts)
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     @Override
@@ -96,6 +105,45 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         final String downloadUrl = "http://" + csAddress + "/" + sourceDirectory;
 
         return new GlobalConfDownloadUrl(downloadUrl);
+    }
+
+    @Override
+    public void saveConfigurationPart(String contentIdentifier, String fileName, byte[] data, int version) {
+        var distributedFileEntity = findOrCreate(contentIdentifier, version);
+        distributedFileEntity.setFileName(fileName);
+        // FIXME: uncomment when configuration generation is done
+        // distributedFileEntity.setFileData(data);
+        distributedFileEntity.setFileUpdatedAt(Instant.now());
+        distributedFileRepository.save(distributedFileEntity);
+    }
+
+    @Override
+    public Set<DistributedFile> getAllConfigurationFiles(int version) {
+        return distributedFileRepository.findAllByVersion(version)
+                .stream()
+                .filter(this::isForCurrentNode)
+                .map(distributedFileMapper::toTarget)
+                .collect(toSet());
+    }
+
+    private boolean isForCurrentNode(DistributedFileEntity distributedFile) {
+        if (haConfigStatus.isHaConfigured()
+                && NODE_LOCAL_CONTENT_IDS.contains(distributedFile.getContentIdentifier())) {
+            return haConfigStatus.getCurrentHaNodeName().equals(distributedFile.getHaNodeName());
+        }
+        return true;
+    }
+
+    private DistributedFileEntity findOrCreate(String contentIdentifier, int version) {
+        String dfHaNodeName = haConfigStatus.isHaConfigured() && isNodeLocalContentId(contentIdentifier)
+                ? haConfigStatus.getCurrentHaNodeName()
+                : null;
+        return distributedFileRepository.findByContentIdAndVersion(contentIdentifier, version, dfHaNodeName)
+                .orElseGet(() -> new DistributedFileEntity(contentIdentifier, version, dfHaNodeName));
+    }
+
+    private boolean isNodeLocalContentId(@NonNull String contentId) {
+        return NODE_LOCAL_CONTENT_IDS.contains(contentId);
     }
 
     private ConfigurationSourceEntity findConfigurationSourceBySourceType(String sourceType) {

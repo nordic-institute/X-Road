@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -58,6 +59,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
+@Profile("!int-test")
 public class SignerProxyFacadeImpl implements SignerProxyFacade {
 
     private final String signerIp;
