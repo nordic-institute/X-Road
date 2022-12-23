@@ -28,8 +28,8 @@
 package org.niis.xroad.cs.test.glue;
 
 import io.cucumber.java.en.Step;
-import org.niis.xroad.centralserver.openapi.model.TokenDto;
-import org.niis.xroad.centralserver.openapi.model.TokenPasswordDto;
+import org.niis.xroad.cs.openapi.model.TokenDto;
+import org.niis.xroad.cs.openapi.model.TokenPasswordDto;
 import org.niis.xroad.cs.test.api.FeignTokensApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

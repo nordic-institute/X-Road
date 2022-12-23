@@ -26,7 +26,7 @@
 package org.niis.xroad.cs.test.glue;
 
 import io.cucumber.java.en.Then;
-import org.niis.xroad.centralserver.openapi.model.SystemStatusDto;
+import org.niis.xroad.cs.openapi.model.SystemStatusDto;
 import org.niis.xroad.cs.test.api.FeignSystemApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

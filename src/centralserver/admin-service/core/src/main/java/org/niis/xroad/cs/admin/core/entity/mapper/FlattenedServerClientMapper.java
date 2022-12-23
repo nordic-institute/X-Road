@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.FlattenedServerClient;
 import org.niis.xroad.cs.admin.core.entity.FlattenedServerClientEntity;
 

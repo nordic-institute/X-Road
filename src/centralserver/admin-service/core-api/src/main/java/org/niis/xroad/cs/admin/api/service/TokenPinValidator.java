@@ -25,8 +25,8 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.centralserver.restapi.service.exception.InvalidCharactersException;
-import org.niis.xroad.centralserver.restapi.service.exception.WeakPinException;
+import org.niis.xroad.cs.admin.api.exception.InvalidCharactersException;
+import org.niis.xroad.cs.admin.api.exception.WeakPinException;
 
 public interface TokenPinValidator {
 

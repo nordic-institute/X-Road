@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.repository;
 
-import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 
 public interface FindOrCreateAwareRepository<ENTITY, ID> extends GenericRepository<ENTITY, ID> {
 

@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.test.api;
 
-import org.niis.xroad.centralserver.openapi.CertificationServicesApi;
+import org.niis.xroad.cs.openapi.CertificationServicesApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
 @FeignClient(name = "certificationServicesApi", path = "/api/v1")

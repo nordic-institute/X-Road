@@ -28,9 +28,9 @@ package org.niis.xroad.cs.admin.api.service;
 
 import io.vavr.collection.Seq;
 import io.vavr.control.Option;
-import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
-import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
+import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
+import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 
 /**
  * MemberClass Service

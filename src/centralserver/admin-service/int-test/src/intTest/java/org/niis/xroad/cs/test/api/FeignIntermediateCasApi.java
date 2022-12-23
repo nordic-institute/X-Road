@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.test.api;
 
-import org.niis.xroad.centralserver.openapi.IntermediateCasApi;
+import org.niis.xroad.cs.openapi.IntermediateCasApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
 @FeignClient(name = "intermediateCasApi", path = "/api/v1")

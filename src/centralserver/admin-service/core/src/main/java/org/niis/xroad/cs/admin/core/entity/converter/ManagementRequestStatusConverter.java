@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.entity.converter;
 
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

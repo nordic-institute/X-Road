@@ -29,7 +29,7 @@ package org.niis.xroad.cs.admin.core.repository;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 
 import java.util.List;

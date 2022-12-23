@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.application.openapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.MemberClassDto;
+import org.niis.xroad.cs.openapi.model.MemberClassDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;

@@ -29,8 +29,6 @@ package org.niis.xroad.cs.admin.api.domain;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
 
 //@Data
 //@EqualsAndHashCode(callSuper = true)

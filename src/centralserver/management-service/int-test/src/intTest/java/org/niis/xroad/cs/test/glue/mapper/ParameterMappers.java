@@ -27,7 +27,7 @@
 package org.niis.xroad.cs.test.glue.mapper;
 
 import io.cucumber.java.ParameterType;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 
 public class ParameterMappers {
 

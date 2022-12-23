@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.api.domain;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;

@@ -29,7 +29,7 @@ package org.niis.xroad.cs.admin.jpa.repository;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.repository.OwnerChangeRequestRepository;
 import org.springframework.data.jpa.repository.JpaRepository;

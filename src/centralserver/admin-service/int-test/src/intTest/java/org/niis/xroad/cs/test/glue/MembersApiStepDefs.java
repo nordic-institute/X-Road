@@ -28,9 +28,9 @@
 package org.niis.xroad.cs.test.glue;
 
 import io.cucumber.java.en.Step;
-import org.niis.xroad.centralserver.openapi.model.ClientDto;
-import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
-import org.niis.xroad.centralserver.openapi.model.MemberGlobalGroupDto;
+import org.niis.xroad.cs.openapi.model.ClientDto;
+import org.niis.xroad.cs.openapi.model.ClientIdDto;
+import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.cs.test.api.FeignMembersApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +39,7 @@ import java.util.Set;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.apache.commons.lang3.StringUtils.split;
-import static org.niis.xroad.centralserver.openapi.model.XRoadIdDto.TypeEnum.MEMBER;
+import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.MEMBER;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 

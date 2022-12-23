@@ -13,7 +13,7 @@
     <logger name="ee.ria.xroad" level="DEBUG"/>
     <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF"/>
     <logger name="org.niis.xroad" level="DEBUG"/>
-    <logger name="org.niis.xroad.centralserver" level="TRACE" />
+    <logger name="org.niis.xroad.cs" level="TRACE" />
     <logger name="org.hibernate.sql" level="INFO" />
 
     <root level="INFO">

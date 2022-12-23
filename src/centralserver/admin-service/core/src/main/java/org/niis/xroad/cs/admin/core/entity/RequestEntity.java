@@ -29,9 +29,9 @@ package org.niis.xroad.cs.admin.core.entity;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.Origin;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;

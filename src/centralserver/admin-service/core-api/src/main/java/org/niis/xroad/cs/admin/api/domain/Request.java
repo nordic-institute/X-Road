@@ -30,8 +30,6 @@ package org.niis.xroad.cs.admin.api.domain;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
 @Data

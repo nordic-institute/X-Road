@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.cs.admin.application.openapi;
 
-import org.niis.xroad.centralserver.restapi.config.BootstrapConfiguration;
+import org.niis.xroad.cs.admin.core.config.BootstrapConfiguration;
 import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
