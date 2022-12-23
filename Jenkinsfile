@@ -9,7 +9,7 @@ pipeline {
                 sh 'env'
                 echo '--------------'
                 echo "${currentBuild.changeSets}"
-                echo '--------------'
+                echo '-------------'
             }
         }        
         stage('Clean and clone repository') {
