@@ -19,7 +19,7 @@ pipeline {
                         branches                         : [[name: ghprbSourceBranch]],
                         doGenerateSubmoduleConfigurations: false,
                         extensions                       : [[$class: 'CleanBeforeCheckout'],
-                                                            [$class: 'ChangelogToBranch', options: [compareRemote: 'origin', compareTarget: 'ghprbTargetBranch']],
+                                                            [$class: 'ChangelogToBranch', options: [compareRemote: 'origin', compareTarget: '${ghprbTargetBranch}']],
                                                            ],
                         gitTool                          : 'Default',
                         submoduleCfg                     : [],
@@ -161,7 +161,7 @@ def showChangeLogs(changeLogSets) {
             echo "${entry.commitId} by ${entry.author} on ${new Date(entry.timestamp)}: ${entry.msg}"
 //            def files = new ArrayList(entry.affectedFiles)
 //            for (int k = 0; k < files.size(); k++) {
-//                def file = files[k] 
+//                def file = files[k]
 //                echo "${file.editType.name} ${file.path}"
 //            }
         }
