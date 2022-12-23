@@ -52,6 +52,7 @@ include 'centralserver:management-service:application'
 include 'centralserver:management-service:core'
 include 'centralserver:management-service:infra-api-soap'
 include 'centralserver:management-service:core-api'
+ include 'centralserver:management-service:int-test'
 
 include "centralserver:registration-service"
 

@@ -1,5 +1,6 @@
 plugins {
     id "java-library"
+    id 'java-test-fixtures'
 }
 
 dependencies {
@@ -11,4 +12,11 @@ dependencies {
 
     testImplementation project(":common-test")
     testImplementation project(path: ":common-util", configuration: "testArtifacts")
+
+    testFixturesApi project(":common-util")
+    testFixturesApi project(":signer-protocol")
+    testFixturesApi project(":common-verifier")
+
+    testFixturesCompileOnly("org.projectlombok:lombok:${lombokVersion}")
+    testFixturesAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 }
