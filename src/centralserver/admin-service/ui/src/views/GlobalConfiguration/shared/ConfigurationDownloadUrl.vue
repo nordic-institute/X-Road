@@ -25,85 +25,100 @@
    THE SOFTWARE.
  -->
 <template>
-  <tr>
-    <td class="pl-8">
-      <div class="name-wrap-top">
-        <xrd-icon-base class="key-icon"><XrdIconKey /></xrd-icon-base>
-
-        <div class="clickable-link identifier-wrap" @click="keyClick">
-          <span v-if="!tokenKey.name || tokenKey.name === ''">{{
-            tokenKey.id
-          }}</span>
-          <span v-else>{{ tokenKey.name }}</span>
+  <div id="download-url" class="mt-5">
+    <v-card flat>
+      <div class="card-top">
+        <div class="card-main-title">
+          {{ $t('globalConf.downloadUrl.title') }}
         </div>
       </div>
-    </td>
-    <td class="td-align-right"></td>
-  </tr>
+      <v-card-title class="card-title">
+        {{ $t('globalConf.downloadUrl.urlAddress') }}
+      </v-card-title>
+      <v-divider></v-divider>
+      <v-card-text>
+        <div class="xrd-clickable" @click="openInNewTab">
+          <v-icon class="internal-conf-icon">mdi-link</v-icon>
+          {{ downloadUrl.url }}
+        </div>
+      </v-card-text>
+      <v-divider class="pb-4"></v-divider>
+    </v-card>
+  </div>
 </template>
 
 <script lang="ts">
 /**
- * Table component for an array of keys
+ * View for 'backup and restore' tab
  */
 import Vue from 'vue';
+import { mapStores } from 'pinia';
+import { ConfigurationType, GlobalConfDownloadUrl } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
-import { Key } from '@/mock-openapi-types';
+import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
+
 export default Vue.extend({
   props: {
-    tokenKey: {
-      type: Object as Prop<Key>,
+    configurationType: {
+      type: String as Prop<ConfigurationType>,
       required: true,
-    },
-    tokenLoggedIn: {
-      type: Boolean,
     },
   },
   computed: {
-    showGenerateCsr(): boolean {
-      // TODO
-      return true;
-    },
-
-    disableGenerateCsr(): boolean {
-      // TODO
-      return false;
+    ...mapStores(useConfigurationSourceStore),
+    downloadUrl(): GlobalConfDownloadUrl {
+      return this.configurationSourceStore.getDownloadUrl(
+        this.configurationType,
+      );
     },
   },
+  created() {
+    this.fetchDownloadUrl();
+  },
   methods: {
-    keyClick(): void {
-      this.$emit('key-click');
+    fetchDownloadUrl() {
+      this.configurationSourceStore.fetchDownloadUrl(this.configurationType);
     },
-    generateCsr(): void {
-      this.$emit('generate-csr');
+    openInNewTab() {
+      window.open(this.downloadUrl.url, '_blank', 'noreferrer');
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '~styles/colors';
 
-.td-align-right {
-  text-align: right;
+.card-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: $XRoad-Black70;
+  font-weight: bold;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
-.clickable-link {
-  color: $XRoad-Purple100;
-  cursor: pointer;
+.card-main-title {
+  color: $XRoad-Black100;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 24px;
+  margin-left: 16px;
 }
 
-.key-icon {
-  margin-right: 18px;
-  color: $XRoad-Purple100;
-}
-
-.name-wrap-top {
+.card-top {
+  padding-top: 15px;
+  margin-bottom: 10px;
+  width: 100%;
   display: flex;
   flex-direction: row;
   align-items: center;
-  align-content: center;
-  margin-top: 5px;
-  margin-bottom: 5px;
+  justify-content: space-between;
+}
+
+.internal-conf-icon {
+  margin-right: 15px;
+  color: $XRoad-Purple100;
 }
 </style>

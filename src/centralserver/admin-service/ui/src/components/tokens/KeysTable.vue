@@ -26,28 +26,78 @@
  -->
 <template>
   <div>
-    <Configuration
-      :title="$t('tab.globalConf.externalConf')"
-      configuration-type="EXTERNAL"
-    />
+    <v-data-table
+      v-if="keys"
+      :headers="headers"
+      :items="keys"
+      :items-per-page="-1"
+      item-key="id"
+      hide-default-footer
+      class="keys-table"
+    >
+      <template #[`item.id`]="{ item }">
+        <xrd-icon-base class="key-icon">
+          <XrdIconKey />
+        </xrd-icon-base>
+        <span v-if="!item.label || item.label.label === ''">
+          {{ item.id }}
+        </span>
+        <span v-else>{{ item.label.label }}</span>
+      </template>
+      <template #[`item.createdAt`]="{ item }">
+        {{ item.created_at | formatDateTime }}
+      </template>
+    </v-data-table>
   </div>
 </template>
 
 <script lang="ts">
 /**
- * View for 'External configuration' tab
+ * Table component for an array of keys
  */
 import Vue from 'vue';
-import Configuration from '../shared/Configuration.vue';
+import { Prop } from 'vue/types/options';
+import { ConfigurationSigningKey } from '@/openapi-types';
+import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
-  components: {
-    Configuration,
+  props: {
+    keys: {
+      type: Array as Prop<ConfigurationSigningKey[]>,
+      required: true,
+    },
   },
-  data() {
-    return {};
+  computed: {
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('keys.signKey') as string,
+          align: 'start',
+          value: 'id',
+          class: 'xrd-table-header text-uppercase',
+        },
+        {
+          text: this.$t('keys.created') as string,
+          align: 'start',
+          value: 'createdAt',
+          class: 'xrd-table-header text-uppercase',
+        },
+      ];
+    },
   },
-
-  methods: {},
 });
 </script>
+
+<style lang="scss" scoped>
+@import '~styles/tables';
+
+.key-icon {
+  margin-right: 18px;
+  color: $XRoad-Purple100;
+}
+
+.keys-table {
+  transform-origin: top;
+  transition: transform 0.4s ease-in-out;
+}
+</style>

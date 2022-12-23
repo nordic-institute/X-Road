@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,27 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.centralserver.restapi.mapper;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.niis.xroad.centralserver.openapi.model.ConfigurationSigningKeyDto;
+import org.niis.xroad.centralserver.restapi.dto.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 
-import java.time.Instant;
+import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+import static org.mapstruct.ReportingPolicy.IGNORE;
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ConfigurationSigningKey {
-    private int id;
-    private String keyIdentifier;
-    private byte[] cert;
-    private Instant keyGeneratedAt;
-    private String tokenIdentifier;
+@Mapper(componentModel = SPRING, unmappedTargetPolicy = IGNORE)
+public abstract class ConfigurationSigningKeyDtoMapper implements
+        GenericUniDirectionalMapper<ConfigurationSigningKey,
+        ConfigurationSigningKeyDto> {
 
-    private String sourceType;
-    private boolean activeSourceSigningKey;
+    @Override
+    @Mapping(source = "keyIdentifier", target = "id")
+    @Mapping(source = "tokenIdentifier", target = "tokenId")
+    @Mapping(source = "keyGeneratedAt", target = "createdAt")
+    @Mapping(source = "activeSourceSigningKey", target = "active")
+    public abstract ConfigurationSigningKeyDto toTarget(ConfigurationSigningKey model);
 
 }
-
-

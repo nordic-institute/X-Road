@@ -239,7 +239,8 @@ export const timestampingServicesStore = defineStore('timestampingServices', {
         .then((resp) => (this.timestampingServices = resp.data));
     },
     delete(id: number) {
-      return axios.delete(`/timestamping-services/${id}`);
+      return axios.delete(`/timestamping-services/${id}`)
+        .finally(() => this.fetchTimestampingServices());
     },
     addTimestampingService(url: string, certificate: File) {
       const formData = new FormData();

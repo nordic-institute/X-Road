@@ -39,6 +39,12 @@
                     '4D:72:A8:60:90:88:A2:5B:9C:6B:91:86:3C:D7:44:CE:9E:E1:1C:27:8E:33:F4:E5:31:68:F2:EC',
                     '2022-01-01 01:00:00.000000', 'node_0');
 
+            INSERT INTO configuration_sources
+            (source_type, active_key_id, anchor_file, anchor_file_hash, anchor_generated_at, ha_node_name)
+            VALUES ('external', null, null,
+                    '4D:72:A8:60:90:88:A2:5B:9C:6B:91:86:3C:D7:44:CE:9E:E1:1C:27:8E:33:F4:E5:31:68:F2:EC',
+                    '2022-01-01 01:00:00.000000', 'node_0');
+
             INSERT INTO distributed_files
             (version, file_name, file_data, content_identifier, file_updated_at, ha_node_name)
             VALUES (2, 'file.xml', null, 'SHARED-ID', '2022-01-01 01:00:00.000000', 'node_0');

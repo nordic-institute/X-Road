@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,27 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.cs.admin.api.service;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 
-import java.time.Instant;
+import java.util.List;
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ConfigurationSigningKey {
-    private int id;
-    private String keyIdentifier;
-    private byte[] cert;
-    private Instant keyGeneratedAt;
-    private String tokenIdentifier;
+public interface ConfigurationSigningKeysService {
 
-    private String sourceType;
-    private boolean activeSourceSigningKey;
+    List<ConfigurationSigningKey> findByTokenIdentifier(String tokenIdentifier);
 
 }
-
-

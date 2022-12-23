@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,27 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.centralserver.restapi.service;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
+import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
+import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
+import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import javax.transaction.Transactional;
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ConfigurationSigningKey {
-    private int id;
-    private String keyIdentifier;
-    private byte[] cert;
-    private Instant keyGeneratedAt;
-    private String tokenIdentifier;
+import java.util.List;
+import java.util.stream.Collectors;
 
-    private String sourceType;
-    private boolean activeSourceSigningKey;
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigningKeysService {
+
+    private final ConfigurationSigningKeyRepository configurationSigningKeyRepository;
+    private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
+
+    public List<ConfigurationSigningKey> findByTokenIdentifier(String tokenIdentifier) {
+        return configurationSigningKeyRepository.findByTokenIdentifier(tokenIdentifier).stream()
+                .map(configurationSigningKeyMapper::toTarget).collect(Collectors.toList());
+    }
 
 }
-
-

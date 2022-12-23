@@ -24,30 +24,62 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
-  <div>
-    <Configuration
-      :title="$t('tab.globalConf.externalConf')"
-      configuration-type="EXTERNAL"
-    />
-  </div>
+  <xrd-confirm-dialog
+    :dialog="true"
+    :loading="loading"
+    accept-button-text="tokens.logout.confirmButton"
+    title="tokens.logout.title"
+    text="tokens.logout.text"
+    @cancel="cancel"
+    @accept="confirmLogout"
+  />
 </template>
 
 <script lang="ts">
-/**
- * View for 'External configuration' tab
- */
 import Vue from 'vue';
-import Configuration from '../shared/Configuration.vue';
+import { mapActions } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
+import { tokenStore } from '@/store/modules/tokens';
+import { Token } from '@/openapi-types';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
-  components: {
-    Configuration,
+  props: {
+    token: {
+      type: Object as Prop<Token>,
+      required: true,
+    },
   },
   data() {
-    return {};
+    return {
+      showConfirmLogout: false,
+      loading: false,
+    };
   },
-
-  methods: {},
+  methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(tokenStore, ['logoutToken']),
+    cancel(): void {
+      this.$emit('cancel');
+    },
+    confirmLogout(): void {
+      this.loading = true;
+      this.logoutToken(this.token.id)
+        .then(() => {
+          this.showSuccess(this.$t('tokens.logout.success'));
+          this.$emit('token-logout');
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+  },
 });
 </script>
+
+<style lang="scss" scoped></style>
