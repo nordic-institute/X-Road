@@ -13,12 +13,6 @@ pipeline {
             }
         }        
         stage('Clean and clone repository') {
-            when {
-                anyOf {
-                    changeset "src/**"
-                    changeset "Jenkinsfile"
-                }
-            }
             steps {
                 checkout([
                         $class                           : 'GitSCM',
