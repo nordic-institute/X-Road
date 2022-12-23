@@ -143,7 +143,8 @@ class ConfigurationSigningKeysServiceImplTest {
         ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", false);
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
                 .thenReturn(Optional.of(signingKeyEntity));
-        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenReturn(createTokenInfo(true, true, List.of()));
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier()))
+                .thenReturn(createTokenInfo(true, true, List.of()));
         doThrow(new Exception()).when(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
@@ -247,7 +248,8 @@ class ConfigurationSigningKeysServiceImplTest {
     void activateKeyShouldFailWhenTokenNotLoggedIn() throws Exception {
         final var tokenInfo = createTokenInfo(FALSE, TRUE, List.of());
         final var signingKeyEntity = createConfigurationSigningEntity("EXTERNAL", TRUE);
-        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier())).thenReturn(Optional.of(signingKeyEntity));
+        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
+                .thenReturn(Optional.of(signingKeyEntity));
         when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenReturn(tokenInfo);
 
 
@@ -260,7 +262,8 @@ class ConfigurationSigningKeysServiceImplTest {
     void activateKeyShouldSucceed() throws Exception {
         final var tokenInfo = createTokenInfo(TRUE, TRUE, List.of());
         final var signingKeyEntity = createConfigurationSigningEntity("EXTERNAL", FALSE);
-        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier())).thenReturn(Optional.of(signingKeyEntity));
+        when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
+                .thenReturn(Optional.of(signingKeyEntity));
         when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenReturn(tokenInfo);
 
         configurationSigningKeysServiceImpl.activateKey(signingKeyEntity.getKeyIdentifier());

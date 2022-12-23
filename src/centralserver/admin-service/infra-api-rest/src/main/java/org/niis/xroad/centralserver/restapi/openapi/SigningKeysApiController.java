@@ -44,9 +44,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ACTIVATE_SIGNING_KEY;
-import static org.springframework.http.ResponseEntity.noContent;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SIGNING_KEY;
 import static org.springframework.http.ResponseEntity.ok;
+import static org.springframework.http.ResponseEntity.noContent;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
