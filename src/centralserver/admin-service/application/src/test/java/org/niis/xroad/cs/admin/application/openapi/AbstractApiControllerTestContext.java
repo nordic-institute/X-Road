@@ -27,9 +27,9 @@ package org.niis.xroad.cs.admin.application.openapi;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.niis.xroad.centralserver.restapi.config.BootstrapConfiguration;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.application.util.TestUtils;
+import org.niis.xroad.cs.admin.core.config.BootstrapConfiguration;
 import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;

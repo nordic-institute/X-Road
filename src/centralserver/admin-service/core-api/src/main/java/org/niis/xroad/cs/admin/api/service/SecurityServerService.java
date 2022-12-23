@@ -29,7 +29,7 @@ package org.niis.xroad.cs.admin.api.service;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import io.vavr.control.Option;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.springframework.data.domain.Page;

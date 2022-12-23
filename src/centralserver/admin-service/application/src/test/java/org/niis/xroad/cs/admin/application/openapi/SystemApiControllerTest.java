@@ -30,12 +30,12 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.CentralServerAddressDto;
-import org.niis.xroad.centralserver.openapi.model.SystemStatusDto;
-import org.niis.xroad.centralserver.openapi.model.TokenInitStatusDto;
-import org.niis.xroad.centralserver.openapi.model.VersionDto;
-import org.niis.xroad.centralserver.restapi.openapi.SystemApiController;
 import org.niis.xroad.cs.admin.application.util.TokenTestUtils;
+import org.niis.xroad.cs.admin.rest.api.openapi.SystemApiController;
+import org.niis.xroad.cs.openapi.model.CentralServerAddressDto;
+import org.niis.xroad.cs.openapi.model.SystemStatusDto;
+import org.niis.xroad.cs.openapi.model.TokenInitStatusDto;
+import org.niis.xroad.cs.openapi.model.VersionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;

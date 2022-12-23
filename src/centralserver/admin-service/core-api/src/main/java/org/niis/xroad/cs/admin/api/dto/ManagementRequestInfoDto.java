@@ -30,9 +30,9 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.Origin;
 
 import java.time.Instant;
 

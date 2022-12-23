@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.test.api;
 
-import org.niis.xroad.centralserver.openapi.TimestampingServicesApi;
+import org.niis.xroad.cs.openapi.TimestampingServicesApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
 @FeignClient(name = "timestampingServicesApi", path = "/api/v1")

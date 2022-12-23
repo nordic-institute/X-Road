@@ -27,10 +27,10 @@
 
 package org.niis.xroad.cs.admin.client;
 
-import org.niis.xroad.centralserver.openapi.ManagementRequestsApi;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestsFilterDto;
-import org.niis.xroad.centralserver.openapi.model.PagedManagementRequestsDto;
-import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
+import org.niis.xroad.cs.openapi.ManagementRequestsApi;
+import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
+import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
+import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.http.ResponseEntity;

@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.cs.test.api;
 
-import org.niis.xroad.centralserver.openapi.SecurityServersApi;
+import org.niis.xroad.cs.openapi.SecurityServersApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
 @FeignClient(name = "securityServerApi", path = "/api/v1")

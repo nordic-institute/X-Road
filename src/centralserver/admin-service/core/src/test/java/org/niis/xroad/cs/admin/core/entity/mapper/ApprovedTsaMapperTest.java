@@ -30,9 +30,9 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 import ee.ria.xroad.common.TestCertUtil;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.restapi.dto.converter.CertificateConverter;
-import org.niis.xroad.centralserver.restapi.dto.converter.KeyUsageConverter;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
+import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
+import org.niis.xroad.cs.admin.core.converter.KeyUsageConverter;
 import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

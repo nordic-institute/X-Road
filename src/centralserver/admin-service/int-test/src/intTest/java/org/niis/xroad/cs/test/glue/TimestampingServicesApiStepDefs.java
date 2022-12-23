@@ -29,8 +29,8 @@ package org.niis.xroad.cs.test.glue;
 
 import feign.FeignException;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.centralserver.openapi.TimestampingServicesApi;
-import org.niis.xroad.centralserver.openapi.model.TimestampingServiceDto;
+import org.niis.xroad.cs.openapi.TimestampingServicesApi;
+import org.niis.xroad.cs.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

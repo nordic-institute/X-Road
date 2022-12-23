@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.cs.test.api;
 
-import org.niis.xroad.centralserver.openapi.ConfigurationSourcesApi;
+import org.niis.xroad.cs.openapi.ConfigurationSourcesApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
 @FeignClient(name = "configurationSourcesApi", path = "/api/v1")

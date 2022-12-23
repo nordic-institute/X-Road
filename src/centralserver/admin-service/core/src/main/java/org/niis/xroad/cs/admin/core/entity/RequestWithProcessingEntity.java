@@ -29,8 +29,8 @@ package org.niis.xroad.cs.admin.core.entity;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Getter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.Origin;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;

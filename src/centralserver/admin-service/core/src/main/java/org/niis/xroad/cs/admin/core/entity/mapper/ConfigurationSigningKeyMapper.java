@@ -30,7 +30,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;

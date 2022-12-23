@@ -33,7 +33,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.ValueMapping;
 import org.mapstruct.ValueMappings;
-import org.niis.xroad.centralserver.restapi.dto.converter.DtoConverter;
+import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

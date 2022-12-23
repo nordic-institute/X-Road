@@ -32,9 +32,9 @@ import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.springframework.data.annotation.Immutable;
 
 import javax.persistence.Access;

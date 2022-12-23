@@ -30,12 +30,12 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.InitialServerConfDto;
-import org.niis.xroad.centralserver.openapi.model.InitializationStatusDto;
-import org.niis.xroad.centralserver.openapi.model.TokenInitStatusDto;
-import org.niis.xroad.centralserver.restapi.openapi.ConflictException;
-import org.niis.xroad.centralserver.restapi.openapi.InitializationApiController;
 import org.niis.xroad.cs.admin.application.util.TokenTestUtils;
+import org.niis.xroad.cs.admin.rest.api.openapi.ConflictException;
+import org.niis.xroad.cs.admin.rest.api.openapi.InitializationApiController;
+import org.niis.xroad.cs.openapi.model.InitialServerConfDto;
+import org.niis.xroad.cs.openapi.model.InitializationStatusDto;
+import org.niis.xroad.cs.openapi.model.TokenInitStatusDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;

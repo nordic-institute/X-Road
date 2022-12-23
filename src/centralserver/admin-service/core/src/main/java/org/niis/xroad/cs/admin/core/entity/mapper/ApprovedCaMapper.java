@@ -29,7 +29,7 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.ReportingPolicy;
-import org.niis.xroad.centralserver.restapi.dto.converter.GenericBiDirectionalMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericBiDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ApprovedCa;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 

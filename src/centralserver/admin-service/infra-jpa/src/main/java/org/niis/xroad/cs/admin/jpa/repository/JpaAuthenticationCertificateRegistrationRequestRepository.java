@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository;
 
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.repository.AuthenticationCertificateRegistrationRequestRepository;
 import org.springframework.data.jpa.repository.Query;

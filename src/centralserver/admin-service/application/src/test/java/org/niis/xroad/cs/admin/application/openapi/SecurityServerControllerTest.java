@@ -27,10 +27,10 @@
 package org.niis.xroad.cs.admin.application.openapi;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.PagedSecurityServersDto;
-import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
-import org.niis.xroad.centralserver.openapi.model.SecurityServerDto;
-import org.niis.xroad.centralserver.restapi.openapi.SecurityServersApiController;
+import org.niis.xroad.cs.admin.rest.api.openapi.SecurityServersApiController;
+import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
+import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
+import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -29,22 +29,22 @@ package org.niis.xroad.cs.test.glue;
 
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequestDto;
-import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
-import org.niis.xroad.centralserver.openapi.model.OwnerChangeRequestDto;
+import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
+import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto.SECURITY_SERVER;
-import static org.niis.xroad.centralserver.openapi.model.ManagementRequestStatusDto.APPROVED;
-import static org.niis.xroad.centralserver.openapi.model.ManagementRequestStatusDto.WAITING;
-import static org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
-import static org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
-import static org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto.SECURITY_SERVER;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.APPROVED;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.WAITING;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.OK;
 

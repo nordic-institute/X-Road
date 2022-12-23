@@ -27,8 +27,8 @@
 package org.niis.xroad.cs.admin.jpa.repository;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.niis.xroad.centralserver.restapi.service.exception.EntityExistsException;
-import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
+import org.niis.xroad.cs.admin.api.exception.EntityExistsException;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.core.entity.AuditableEntity;
 import org.niis.xroad.cs.admin.core.entity.AuditableEntity_;
 import org.niis.xroad.cs.admin.core.entity.EntityExistsAwareEntity;

@@ -29,8 +29,8 @@ package org.niis.xroad.cs.test.glue;
 
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.niis.xroad.centralserver.openapi.model.CertificateAuthorityDto;
-import org.niis.xroad.centralserver.openapi.model.OcspResponderDto;
+import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
+import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.niis.xroad.cs.test.api.FeignCertificationServicesApi;
 import org.niis.xroad.cs.test.api.FeignIntermediateCasApi;
 import org.springframework.beans.factory.annotation.Autowired;

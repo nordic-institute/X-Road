@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.test.api;
 
-import org.niis.xroad.centralserver.openapi.TokensApi;
+import org.niis.xroad.cs.openapi.TokensApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
 @FeignClient(name = "tokensApi", path = "/api/v1")

@@ -26,13 +26,13 @@
 package org.niis.xroad.cs.admin.application.openapi;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroupCodeAndDescriptionDto;
-import org.niis.xroad.centralserver.openapi.model.GlobalGroupResourceDto;
-import org.niis.xroad.centralserver.openapi.model.GroupMembersFilterDto;
-import org.niis.xroad.centralserver.openapi.model.GroupMembersFilterModelDto;
-import org.niis.xroad.centralserver.openapi.model.PagedGroupMemberDto;
-import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.admin.application.util.TestUtils;
+import org.niis.xroad.cs.openapi.model.GlobalGroupCodeAndDescriptionDto;
+import org.niis.xroad.cs.openapi.model.GlobalGroupResourceDto;
+import org.niis.xroad.cs.openapi.model.GroupMembersFilterDto;
+import org.niis.xroad.cs.openapi.model.GroupMembersFilterModelDto;
+import org.niis.xroad.cs.openapi.model.PagedGroupMemberDto;
+import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
@@ -47,8 +47,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.centralserver.openapi.model.ClientTypeDto.MEMBER;
-import static org.niis.xroad.centralserver.openapi.model.ClientTypeDto.SUBSYSTEM;
+import static org.niis.xroad.cs.openapi.model.ClientTypeDto.MEMBER;
+import static org.niis.xroad.cs.openapi.model.ClientTypeDto.SUBSYSTEM;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;

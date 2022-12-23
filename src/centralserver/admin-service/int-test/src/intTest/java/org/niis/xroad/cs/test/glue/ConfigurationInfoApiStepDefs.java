@@ -27,10 +27,10 @@
 package org.niis.xroad.cs.test.glue;
 
 import io.cucumber.java.en.Step;
-import org.niis.xroad.centralserver.openapi.model.ConfigurationAnchorDto;
-import org.niis.xroad.centralserver.openapi.model.ConfigurationPartDto;
-import org.niis.xroad.centralserver.openapi.model.ConfigurationTypeDto;
-import org.niis.xroad.centralserver.openapi.model.GlobalConfDownloadUrlDto;
+import org.niis.xroad.cs.openapi.model.ConfigurationAnchorDto;
+import org.niis.xroad.cs.openapi.model.ConfigurationPartDto;
+import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
+import org.niis.xroad.cs.openapi.model.GlobalConfDownloadUrlDto;
 import org.niis.xroad.cs.test.api.FeignConfigurationPartsApi;
 import org.niis.xroad.cs.test.api.FeignConfigurationSourceAnchorApi;
 import org.niis.xroad.cs.test.api.FeignConfigurationSourcesApi;

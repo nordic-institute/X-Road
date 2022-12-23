@@ -23,8 +23,8 @@ openApiGenerate {
     generatorName = "spring"
     inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml"
     outputDir = "$buildDir/generated-sources/openapi"
-    apiPackage = "org.niis.xroad.centralserver.openapi"
-    modelPackage = "org.niis.xroad.centralserver.openapi.model"
+    apiPackage = "org.niis.xroad.cs.openapi"
+    modelPackage = "org.niis.xroad.cs.openapi.model"
     modelNameSuffix = "Dto"
     importMappings = [
         User           : "org.niis.xroad.restapi.openapi.model.User",

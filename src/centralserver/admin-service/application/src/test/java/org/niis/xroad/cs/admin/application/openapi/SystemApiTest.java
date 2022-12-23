@@ -27,9 +27,9 @@
 package org.niis.xroad.cs.admin.application.openapi;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.centralserver.openapi.model.SystemStatusDto;
-import org.niis.xroad.centralserver.openapi.model.VersionDto;
 import org.niis.xroad.cs.admin.application.util.TestUtils;
+import org.niis.xroad.cs.openapi.model.SystemStatusDto;
+import org.niis.xroad.cs.openapi.model.VersionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
