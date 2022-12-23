@@ -4,18 +4,18 @@ pipeline {
         DOCKER_GID = """${sh(returnStdout: true, script: 'getent group docker | cut -d: -f3')}""".trim()
     }
     stages {
-        when {
-            anyOf {
-                changeset "src/**"
-                changeset "Jenkinsfile"
-            }
-        }
         stage('Output build parameters') {
             steps {
                 sh 'env'
             }
         }        
         stage('Clean and clone repository') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             steps {
                 checkout([
                         $class                           : 'GitSCM',
@@ -34,6 +34,12 @@ pipeline {
             }
         }
         stage('Compile Code') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker-jenkins-compile'
@@ -56,6 +62,10 @@ pipeline {
             when {
                 beforeAgent true
                 expression { return fileExists('src/packages/docker/deb-focal/Dockerfile') }
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
             }
             agent {
                 dockerfile {
@@ -74,6 +84,10 @@ pipeline {
             when {
                 beforeAgent true
                 expression { return fileExists('src/packages/docker/deb-jammy/Dockerfile') }
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
             }
             agent {
                 dockerfile {
@@ -89,6 +103,12 @@ pipeline {
             }
         }
         stage('RHEL 7 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker/rpm'
@@ -103,6 +123,12 @@ pipeline {
             }
         }
         stage('RHEL 8 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker/rpm-el8'
