@@ -36,7 +36,9 @@ import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = ConfigurationSigningKeyMapper.class)
+import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+
+@Mapper(componentModel = SPRING, uses = ConfigurationSigningKeyMapper.class)
 public abstract class TokenInfoMapper implements GenericUniDirectionalMapper<ee.ria.xroad.signer.protocol.dto.TokenInfo, TokenInfo> {
 
     @Autowired
