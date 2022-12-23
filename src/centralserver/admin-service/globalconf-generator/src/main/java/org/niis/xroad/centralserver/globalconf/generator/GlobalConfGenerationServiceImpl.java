@@ -138,9 +138,11 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
     @SneakyThrows
     private void cleanUpOldConfigurations(Path versionDir) {
-        Files.list(versionDir)
-                .filter(GlobalConfGenerationServiceImpl::isExpiredConfDir)
-                .forEach(GlobalConfGenerationServiceImpl::deleteExpiredConfigDir);
+        try (var filesStream = Files.list(versionDir)) {
+            filesStream
+                    .filter(GlobalConfGenerationServiceImpl::isExpiredConfDir)
+                    .forEach(GlobalConfGenerationServiceImpl::deleteExpiredConfigDir);
+        }
     }
 
     private static String getTmpExternalDirectory() {
@@ -183,7 +185,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
                 .contentParts(configurationParts);
         var directoryContent = directoryContentBuilder.build();
 
-        DirectoryContentSigner directoryContentSigner = new DirectoryContentSigner(
+        var directoryContentSigner = new DirectoryContentSigner(
                 signerProxyFacade,
                 getConfSignDigestAlgoId(),
                 getConfSignCertHashAlgoId());

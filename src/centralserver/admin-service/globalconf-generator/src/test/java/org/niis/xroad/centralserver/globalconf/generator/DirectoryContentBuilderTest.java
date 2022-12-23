@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DirectoryContentBuilderTest {
+class DirectoryContentBuilderTest {
     public static final Pattern HEADER_PATTERN = Pattern.compile(
             "^Content-Type: multipart/mixed; charset=UTF-8; boundary=(\\w+)\r\n.*", Pattern.DOTALL);
 

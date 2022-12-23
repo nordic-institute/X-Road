@@ -37,7 +37,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class ConfigurationDistributorTest {
+class ConfigurationDistributorTest {
 
     public static final int VERSION = 2;
     public static final String CONF_DIRECTORY = "internalconf";
@@ -93,7 +93,7 @@ public class ConfigurationDistributorTest {
         // initConfLocation omitted
 
         assertThatThrownBy(() -> configurationDistributor.writeConfigurationFiles(List.of(CONFIGURATION_PART1)))
-                .isExactlyInstanceOf(RuntimeException.class)
+                .isExactlyInstanceOf(ConfGeneratorException.class)
                 .hasMessage("Config location not initialized.");
     }
 
