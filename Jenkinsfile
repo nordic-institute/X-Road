@@ -8,7 +8,7 @@ pipeline {
             steps {
                 sh 'env'
                 echo '--------------'
-                echo ${currentBuild.changeSets}
+                echo "${currentBuild.changeSets}"
                 echo '--------------'
             }
         }        
@@ -35,7 +35,7 @@ pipeline {
                         ]
                 ])
                 echo '--------------'
-                echo ${currentBuild.changeSets}
+                echo "${currentBuild.changeSets}"
                 echo '--------------'
             }
         }
