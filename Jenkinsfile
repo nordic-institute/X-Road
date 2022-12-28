@@ -64,91 +64,87 @@ pipeline {
                 }
             }
         }
-        stage('Packaging') {
-            parallel {
-                stage('Ubuntu focal packaging') {
-                    when {
-                        beforeAgent true
-                        expression { return fileExists('src/packages/docker/deb-focal/Dockerfile') }
-                        anyOf {
-                            changeset "src/**"
-                            changeset "Jenkinsfile"
-                        }
-                    }
-                    agent {
-                        dockerfile {
-                            dir 'src/packages/docker/deb-focal'
-                            args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        script {
-                            sh './src/packages/build-deb.sh focal'
-                        }
-                    }
+        stage('Ubuntu focal packaging') {
+            when {
+                beforeAgent true
+                expression { return fileExists('src/packages/docker/deb-focal/Dockerfile') }
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
                 }
-                stage('Ubuntu jammy packaging') {
-                    when {
-                        beforeAgent true
-                        expression { return fileExists('src/packages/docker/deb-jammy/Dockerfile') }
-                        anyOf {
-                            changeset "src/**"
-                            changeset "Jenkinsfile"
-                        }
-                    }
-                    agent {
-                        dockerfile {
-                            dir 'src/packages/docker/deb-jammy'
-                            args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        script {
-                            sh './src/packages/build-deb.sh jammy'
-                        }
-                    }
+            }
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/deb-focal'
+                    args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
+                    reuseNode true
                 }
-                stage('RHEL 7 packaging') {
-                    when {
-                        anyOf {
-                            changeset "src/**"
-                            changeset "Jenkinsfile"
-                        }
-                    }
-                    agent {
-                        dockerfile {
-                            dir 'src/packages/docker/rpm'
-                            args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/workspace/src/packages'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        script {
-                            sh './src/packages/build-rpm.sh'
-                        }
-                    }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-deb.sh focal'
                 }
-                stage('RHEL 8 packaging') {
-                    when {
-                        anyOf {
-                            changeset "src/**"
-                            changeset "Jenkinsfile"
-                        }
-                    }
-                    agent {
-                        dockerfile {
-                            dir 'src/packages/docker/rpm-el8'
-                            args '-e HOME=/workspace/src/packages'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        script {
-                            sh './src/packages/build-rpm.sh'
-                        }
-                    }
+            }
+        }
+        stage('Ubuntu jammy packaging') {
+            when {
+                beforeAgent true
+                expression { return fileExists('src/packages/docker/deb-jammy/Dockerfile') }
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/deb-jammy'
+                    args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
+                    reuseNode true
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-deb.sh jammy'
+                }
+            }
+        }
+        stage('RHEL 7 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/rpm'
+                    args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/workspace/src/packages'
+                    reuseNode true
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-rpm.sh'
+                }
+            }
+        }
+        stage('RHEL 8 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/rpm-el8'
+                    args '-e HOME=/workspace/src/packages'
+                    reuseNode true
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-rpm.sh'
                 }
             }
         }
