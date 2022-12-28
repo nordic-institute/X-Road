@@ -18,9 +18,7 @@ pipeline {
                         $class                           : 'GitSCM',
                         branches                         : [[name: ghprbSourceBranch]],
                         doGenerateSubmoduleConfigurations: false,
-                        extensions                       : [[$class: 'CleanBeforeCheckout'],
-                                                            [$class: 'ChangelogToBranch', options: [compareRemote: 'origin', compareTarget: '${ghprbTargetBranch}']],
-                                                           ],
+                        extensions                       : [[$class: 'CleanBeforeCheckout']],
                         gitTool                          : 'Default',
                         submoduleCfg                     : [],
                         userRemoteConfigs                : [
