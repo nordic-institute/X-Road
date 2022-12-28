@@ -15,7 +15,9 @@ pipeline {
                         $class                           : 'GitSCM',
                         branches                         : [[name: ghprbSourceBranch]],
                         doGenerateSubmoduleConfigurations: false,
-                        extensions                       : [[$class: 'CleanBeforeCheckout']],
+                        extensions                       : [[$class: 'CleanBeforeCheckout'],
+                                                            [$class: 'ChangelogToBranch', options: [compareRemote: 'origin', compareTarget: '${ghprbTargetBranch}']],
+                                                           ],
                         gitTool                          : 'Default',
                         submoduleCfg                     : [],
                         userRemoteConfigs                : [
@@ -28,6 +30,12 @@ pipeline {
             }
         }
         stage('Compile Code') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker-jenkins-compile'
@@ -50,6 +58,10 @@ pipeline {
             when {
                 beforeAgent true
                 expression { return fileExists('src/packages/docker/deb-focal/Dockerfile') }
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
             }
             agent {
                 dockerfile {
@@ -68,6 +80,10 @@ pipeline {
             when {
                 beforeAgent true
                 expression { return fileExists('src/packages/docker/deb-jammy/Dockerfile') }
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
             }
             agent {
                 dockerfile {
@@ -83,6 +99,12 @@ pipeline {
             }
         }
         stage('RHEL 7 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker/rpm'
@@ -97,6 +119,12 @@ pipeline {
             }
         }
         stage('RHEL 8 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker/rpm-el8'
