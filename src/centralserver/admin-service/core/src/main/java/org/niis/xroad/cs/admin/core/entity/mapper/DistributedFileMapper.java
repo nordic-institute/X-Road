@@ -27,13 +27,12 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
 import org.niis.xroad.centralserver.restapi.dto.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
 
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
-
-@Mapper(componentModel = SPRING)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface DistributedFileMapper extends GenericUniDirectionalMapper<DistributedFileEntity, DistributedFile> {
 
 }
