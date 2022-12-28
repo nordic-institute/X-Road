@@ -29,7 +29,6 @@ package org.niis.xroad.centralserver.restapi.dto.converter;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
 import org.niis.xroad.centralserver.restapi.service.TokenActionsResolver;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
