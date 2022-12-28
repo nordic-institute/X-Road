@@ -7,6 +7,9 @@ pipeline {
         stage('Output build parameters') {
             steps {
                 sh 'env'
+                echo '---------------'
+                echo "${currentBuild.changeSets}"
+                echo '--------------'
             }
         }        
         stage('Clean and clone repository') {
@@ -15,7 +18,9 @@ pipeline {
                         $class                           : 'GitSCM',
                         branches                         : [[name: ghprbSourceBranch]],
                         doGenerateSubmoduleConfigurations: false,
-                        extensions                       : [[$class: 'CleanBeforeCheckout']],
+                        extensions                       : [[$class: 'CleanBeforeCheckout'],
+                                                            [$class: 'ChangelogToBranch', options: [compareRemote: 'origin', compareTarget: '${ghprbTargetBranch}']],
+                                                           ],
                         gitTool                          : 'Default',
                         submoduleCfg                     : [],
                         userRemoteConfigs                : [
@@ -25,9 +30,22 @@ pipeline {
                             ]
                         ]
                 ])
+                echo '--------------'
+                echo "${currentBuild.changeSets}"
+                echo '-------------'
+                script {
+                    showChangeLogs(currentBuild.changeSets)
+                }
+                echo '--------------'
             }
         }
         stage('Compile Code') {
+            when {
+                anyOf {
+                    changeset "src/**"
+//                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker-jenkins-compile'
@@ -50,6 +68,10 @@ pipeline {
             when {
                 beforeAgent true
                 expression { return fileExists('src/packages/docker/deb-focal/Dockerfile') }
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
             }
             agent {
                 dockerfile {
@@ -68,6 +90,10 @@ pipeline {
             when {
                 beforeAgent true
                 expression { return fileExists('src/packages/docker/deb-jammy/Dockerfile') }
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
             }
             agent {
                 dockerfile {
@@ -83,6 +109,12 @@ pipeline {
             }
         }
         stage('RHEL 7 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker/rpm'
@@ -97,6 +129,12 @@ pipeline {
             }
         }
         stage('RHEL 8 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker/rpm-el8'
@@ -109,6 +147,23 @@ pipeline {
                     sh './src/packages/build-rpm.sh'
                 }
             }
+        }
+    }
+}
+
+@NonCPS
+// showChangeLogs(currentBuild.changeSets)
+def showChangeLogs(changeLogSets) {
+    for (int i = 0; i < changeLogSets.size(); i++) {
+        def entries = changeLogSets[i].items
+        for (int j = 0; j < entries.length; j++) {
+            def entry = entries[j]
+            echo "${entry.commitId} by ${entry.author} on ${new Date(entry.timestamp)}: ${entry.msg}"
+//            def files = new ArrayList(entry.affectedFiles)
+//            for (int k = 0; k < files.size(); k++) {
+//                def file = files[k]
+//                echo "${file.editType.name} ${file.path}"
+//            }
         }
     }
 }
