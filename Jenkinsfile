@@ -7,9 +7,9 @@ pipeline {
         stage('Output build parameters') {
             steps {
                 sh 'env'
-                echo '--------------'
+                echo '---------------'
                 echo "${currentBuild.changeSets}"
-                echo '-------------'
+                echo '--------------'
             }
         }        
         stage('Clean and clone repository') {
