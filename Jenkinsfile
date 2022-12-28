@@ -70,7 +70,7 @@ pipeline {
                 expression { return fileExists('src/packages/docker/deb-focal/Dockerfile') }
                 anyOf {
                     changeset "src/**"
-                    changeset "Jenkinsfile"
+//                    changeset "Jenkinsfile"
                 }
             }
             agent {
@@ -92,7 +92,7 @@ pipeline {
                 expression { return fileExists('src/packages/docker/deb-jammy/Dockerfile') }
                 anyOf {
                     changeset "src/**"
-                    changeset "Jenkinsfile"
+//                    changeset "Jenkinsfile"
                 }
             }
             agent {
@@ -112,7 +112,7 @@ pipeline {
             when {
                 anyOf {
                     changeset "src/**"
-                    changeset "Jenkinsfile"
+//                    changeset "Jenkinsfile"
                 }
             }
             agent {
@@ -132,7 +132,7 @@ pipeline {
             when {
                 anyOf {
                     changeset "src/**"
-                    changeset "Jenkinsfile"
+//                    changeset "Jenkinsfile"
                 }
             }
             agent {
