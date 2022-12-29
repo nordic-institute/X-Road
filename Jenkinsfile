@@ -9,24 +9,24 @@ pipeline {
                 sh 'env'
             }
         }        
-        stage('Clean and clone repository') {
-            steps {
-                checkout([
-                        $class                           : 'GitSCM',
-                        branches                         : [[name: ghprbSourceBranch]],
-                        doGenerateSubmoduleConfigurations: false,
-                        extensions                       : [[$class: 'CleanBeforeCheckout']],
-                        gitTool                          : 'Default',
-                        submoduleCfg                     : [],
-                        userRemoteConfigs                : [
-                            [
-                                url: 'https://github.com/nordic-institute/X-Road.git',
-                                refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pull/*'
-                            ]
-                        ]
-                ])
-            }
-        }
+//        stage('Clean and clone repository') {
+//            steps {
+//                checkout([
+//                        $class                           : 'GitSCM',
+//                        branches                         : [[name: ghprbSourceBranch]],
+//                        doGenerateSubmoduleConfigurations: false,
+//                        extensions                       : [[$class: 'CleanBeforeCheckout']],
+//                        gitTool                          : 'Default',
+//                        submoduleCfg                     : [],
+//                        userRemoteConfigs                : [
+//                            [
+//                                url: 'https://github.com/nordic-institute/X-Road.git',
+//                                refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pull/*'
+//                            ]
+//                        ]
+//                ])
+//            }
+//        }
         stage('Compile Code') {
             agent {
                 dockerfile {
@@ -42,7 +42,7 @@ pipeline {
             }
             steps {
                 withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
-                    sh 'cd src && ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${ghprbPullId} -Dsonar.pullrequest.branch=${ghprbSourceBranch} -Dsonar.pullrequest.base=${ghprbTargetBranch} --stacktrace --no-daemon build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate sonarqube -Pfrontend-unit-tests -Pfrontend-npm-audit -PintTestProfilesInclude="ci"'
+                    sh 'cd src && ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${CHANGE_ID} -Dsonar.pullrequest.branch=${CHANGE_BRANCH} -Dsonar.pullrequest.base=${CHANGE_TARGET} --stacktrace --no-daemon build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate sonarqube -Pfrontend-unit-tests -Pfrontend-npm-audit -PintTestProfilesInclude="ci"'
                 }
             }
         }
