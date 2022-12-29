@@ -10,24 +10,24 @@ pipeline {
             }
         }        
         stage('Clean and clone repository') {
-            steps {
-                checkout([
-                        $class                           : 'GitSCM',
-                        branches                         : [[name: CHANGE_BRANCH]],
-                        doGenerateSubmoduleConfigurations: false,
-                        extensions                       : [[$class: 'CleanBeforeCheckout'],
-                                                            [$class: 'ChangelogToBranch', options: [compareRemote: 'origin', compareTarget: '${CHANGE_TARGET}']],
-                        ],
-                        gitTool                          : 'Default',
-                        submoduleCfg                     : [],
-                        userRemoteConfigs                : [
-                            [
-                                url: 'https://github.com/nordic-institute/X-Road.git',
-                                refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pull/*'
-                            ]
-                        ]
-                ])
-            }
+//            steps {
+//                checkout([
+//                        $class                           : 'GitSCM',
+//                        branches                         : [[name: CHANGE_BRANCH]],
+//                        doGenerateSubmoduleConfigurations: false,
+//                        extensions                       : [[$class: 'CleanBeforeCheckout'],
+//                                                            [$class: 'ChangelogToBranch', options: [compareRemote: 'origin', compareTarget: '${CHANGE_TARGET}']],
+//                        ],
+//                        gitTool                          : 'Default',
+//                        submoduleCfg                     : [],
+//                        userRemoteConfigs                : [
+//                            [
+//                                url: 'https://github.com/nordic-institute/X-Road.git',
+//                                refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pull/*'
+//                            ]
+//                        ]
+//                ])
+//            }
         }
         stage('Compile Code') {
             agent {
