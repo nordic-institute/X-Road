@@ -9,7 +9,7 @@ pipeline {
                 sh 'env'
             }
         }        
-        stage('Clean and clone repository') {
+//        stage('Clean and clone repository') {
 //            steps {
 //                checkout([
 //                        $class                           : 'GitSCM',
@@ -28,7 +28,7 @@ pipeline {
 //                        ]
 //                ])
 //            }
-        }
+//        }
         stage('Compile Code') {
             agent {
                 dockerfile {
