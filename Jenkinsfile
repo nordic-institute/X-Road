@@ -13,7 +13,7 @@ pipeline {
             steps {
                 checkout([
                         $class                           : 'GitSCM',
-                        branches                         : [[name: ${CHANGE_BRANCH}]],
+                        branches                         : [[name: CHANGE_BRANCH]],
                         doGenerateSubmoduleConfigurations: false,
                         extensions                       : [[$class: 'CleanBeforeCheckout'],
                                                             [$class: 'ChangelogToBranch', options: [compareRemote: 'origin', compareTarget: '${CHANGE_TARGET}']],
