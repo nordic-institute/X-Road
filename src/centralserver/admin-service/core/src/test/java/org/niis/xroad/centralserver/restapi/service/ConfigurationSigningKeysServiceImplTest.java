@@ -30,10 +30,11 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.SigningKeyException;
@@ -71,16 +72,11 @@ class ConfigurationSigningKeysServiceImplTest {
     private AuditDataHelper auditDataHelper;
     @Mock
     private SignerProxyFacade signerProxyFacade;
-
+    @Spy
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
 
+    @InjectMocks
     private ConfigurationSigningKeysServiceImpl configurationSigningKeysServiceImpl;
-
-    @BeforeEach
-    public void setup() {
-        configurationSigningKeysServiceImpl = new ConfigurationSigningKeysServiceImpl(configurationSigningKeyRepository,
-                configurationSigningKeyMapper, auditEventHelper, auditDataHelper, signerProxyFacade);
-    }
 
     @Test
     void deleteKeyNotFoundShouldThrowException() {
@@ -179,7 +175,7 @@ class ConfigurationSigningKeysServiceImplTest {
 
     private ConfigurationSigningKeyEntity createConfigurationSigningEntity(
             String sourceType, boolean activeSigningKey) {
-        ConfigurationSigningKeyEntity configurationSigningKey = new ConfigurationSigningKeyEntity(10);
+        ConfigurationSigningKeyEntity configurationSigningKey = new ConfigurationSigningKeyEntity();
         configurationSigningKey.setKeyIdentifier("keyIdentifier");
         configurationSigningKey.setCert("keyCert".getBytes());
         configurationSigningKey.setKeyGeneratedAt(Instant.now());

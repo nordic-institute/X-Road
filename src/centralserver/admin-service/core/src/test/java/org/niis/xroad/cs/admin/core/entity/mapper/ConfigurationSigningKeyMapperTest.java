@@ -48,7 +48,6 @@ class ConfigurationSigningKeyMapperTest {
 
         ConfigurationSigningKey target = configurationSigningKeyMapper.toTarget(entity);
 
-        assertThat(target.getId()).isEqualTo(entity.getId());
         assertThat(target.getKeyIdentifier()).isEqualTo(entity.getKeyIdentifier());
         assertThat(target.getCert()).isEqualTo(entity.getCert());
         assertThat(target.getKeyGeneratedAt()).isEqualTo(entity.getKeyGeneratedAt());
@@ -70,7 +69,7 @@ class ConfigurationSigningKeyMapperTest {
 
     private ConfigurationSigningKeyEntity createConfigurationSigningEntity(
             String sourceType, boolean activeSigningKey) {
-        ConfigurationSigningKeyEntity configurationSigningKey = new ConfigurationSigningKeyEntity(10);
+        ConfigurationSigningKeyEntity configurationSigningKey = new ConfigurationSigningKeyEntity();
         configurationSigningKey.setKeyIdentifier("keyIdentifier");
         configurationSigningKey.setCert("keyCert".getBytes());
         configurationSigningKey.setKeyGeneratedAt(Instant.now());
