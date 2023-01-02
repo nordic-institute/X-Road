@@ -56,6 +56,7 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
+      data-test="timestamping-services-table"
     >
       <template #[`item.timestamping_interval`]="{ item }">
         {{
@@ -78,6 +79,7 @@
           <xrd-button
             text
             :outlined="false"
+            data-test="view-timestamping-service-certificate"
             @click="navigateToCertificateDetails(item)"
           >
             {{ $t('trustServices.viewCertificate') }}
@@ -86,6 +88,7 @@
             v-if="showEditTsaButton"
             text
             :outlined="false"
+            data-test="edit-timestamping-service"
             @click="openEditDialog(item)"
           >
             {{ $t('action.edit') }}
@@ -94,6 +97,7 @@
             v-if="showDeleteTsaButton"
             text
             :outlined="false"
+            data-test="delete-timestamping-service"
             @click="showDeleteDialog(item)"
           >
             {{ $t('action.delete') }}
@@ -253,7 +257,6 @@ export default Vue.extend({
           this.showSuccess(this.$t('trustServices.trustService.timestampingService.delete.success'));
           this.confirmDelete = false;
           this.deletingTimestampingService = false;
-          this.fetchTimestampingServices();
         })
         .catch((error) => {
           this.showError(error);

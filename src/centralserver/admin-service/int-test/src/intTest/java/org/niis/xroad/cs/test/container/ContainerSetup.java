@@ -43,6 +43,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
     private final PostgresContextualContainer postgresContextualContainer;
+    private final ExtMockServerContainer mockServerContainer;
     private final LiquibaseExecutor liquibaseExecutor;
 
     @NotNull
@@ -88,6 +89,7 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
         envConfig.put("spring.datasource.url", postgresContextualContainer.getJdbcUrl());
         envConfig.put("spring.datasource.username", "xrd");
         envConfig.put("spring.datasource.password", "secret");
+        envConfig.put("signerProxyMockUri", mockServerContainer.getEndpoint());
         return envConfig;
     }
 

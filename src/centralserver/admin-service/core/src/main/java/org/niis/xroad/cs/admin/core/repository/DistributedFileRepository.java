@@ -28,9 +28,14 @@ package org.niis.xroad.cs.admin.core.repository;
 
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
 
+import java.util.Optional;
 import java.util.Set;
 
 public interface DistributedFileRepository extends GenericRepository<DistributedFileEntity, Integer> {
 
     Set<DistributedFileEntity> findAllByHaNodeName(String haNodeName);
+
+    Set<DistributedFileEntity> findAllByVersion(int version);
+
+    Optional<DistributedFileEntity> findByContentIdAndVersion(String contentIdentifier, int version, String haNodeName);
 }

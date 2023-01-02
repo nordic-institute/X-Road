@@ -28,47 +28,96 @@
 <template>
   <div>
     <xrd-button
-      v-if="!token.logged_in"
+      v-if="showLogin"
       min-width="120px"
       :outlined="false"
       text
       :disabled="!token.available"
       data-test="token-login-button"
-      @click="confirmLogin()"
+      @click="showLoginDialog = true"
       >{{ $t('keys.logIn') }}
     </xrd-button>
 
     <xrd-button
-      v-if="token.logged_in"
+      v-if="showLogout"
       min-width="120px"
       :outlined="false"
       text
       data-test="token-logout-button"
-      @click="confirmLogout()"
+      @click="showLogoutDialog = true"
       >{{ $t('keys.logOut') }}
     </xrd-button>
+
+    <TokenLoginDialog
+      v-if="showLoginDialog"
+      :token="token"
+      @cancel="showLoginDialog = false"
+      @token-login="tokenLoggedIn"
+    />
+
+    <TokenLogoutDialog
+      v-if="showLogoutDialog"
+      :token="token"
+      @cancel="showLogoutDialog = false"
+      @token-logout="tokenLoggedOut"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { Token } from '@/mock-openapi-types';
 import { Prop } from 'vue/types/options';
+import TokenLogoutDialog from '@/components/tokens/TokenLogoutDialog.vue';
+import TokenLoginDialog from '@/components/tokens/TokenLoginDialog.vue';
+import { PossibleAction, Token } from '@/openapi-types';
+import { mapState } from 'pinia';
+import { userStore } from '@/store/modules/user';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
+  components: { TokenLogoutDialog, TokenLoginDialog },
   props: {
     token: {
       type: Object as Prop<Token>,
       required: true,
     },
   },
-  methods: {
-    confirmLogout(): void {
-      this.$emit('token-logout');
+  computed: {
+    ...mapState(userStore, ['hasPermission']),
+    showLogin(): boolean {
+      if (!this.token.possible_actions) {
+        return false;
+      }
+      return (
+        this.hasPermission(Permissions.ACTIVATE_TOKEN) &&
+        this.token.possible_actions.includes(PossibleAction.LOGIN)
+      );
     },
-    confirmLogin(): void {
+    showLogout(): boolean {
+      if (!this.token.possible_actions) {
+        return false;
+      }
+      return (
+        this.hasPermission(Permissions.DEACTIVATE_TOKEN) &&
+        this.token.possible_actions.includes(PossibleAction.LOGOUT)
+      );
+    },
+  },
+  data() {
+    return {
+      showLoginDialog: false,
+      showLogoutDialog: false,
+    };
+  },
+  methods: {
+    tokenLoggedIn(): void {
+      this.showLoginDialog = false;
       this.$emit('token-login');
     },
+    tokenLoggedOut(): void {
+      this.showLogoutDialog = false;
+      this.$emit('token-logout');
+    }
   },
 });
 </script>

@@ -67,7 +67,7 @@
             </xrd-button>
             <xrd-button
               text
-              data-test="upload-timestamping-certificate"
+              data-test="upload-timestamping-service-certificate"
               @click="certUploadActive = true"
             >
               <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>

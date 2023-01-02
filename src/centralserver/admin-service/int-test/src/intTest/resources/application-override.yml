@@ -34,3 +34,6 @@ test-automation:
       xrd-db :
         enabled: true
         reuse-between-runs: false
+      mock-server:
+        enabled: true
+        reuse-between-runs: false

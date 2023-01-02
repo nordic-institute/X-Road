@@ -44,6 +44,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED;
@@ -101,5 +102,9 @@ public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigning
 
     }
 
-
+    public Optional<ConfigurationSigningKey> findActiveForSource(String sourceType) {
+        // TODO pass haNodeName if HA enabled
+        return configurationSigningKeyRepository.findActiveForSource(sourceType, null)
+                .map(configurationSigningKeyMapper::toTarget);
+    }
 }
