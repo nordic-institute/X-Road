@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
@@ -44,6 +45,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = ConfigurationSigningKeyEntity.TABLE_NAME)
+@NoArgsConstructor
 public class ConfigurationSigningKeyEntity {
 
     public static final String TABLE_NAME = "configuration_signing_keys";
@@ -80,10 +82,6 @@ public class ConfigurationSigningKeyEntity {
     @Getter
     @Setter
     private String tokenIdentifier;
-
-    protected ConfigurationSigningKeyEntity() {
-        //JPA
-    }
 
 }
 

@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
@@ -47,6 +48,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@NoArgsConstructor
 @Table(name = ConfigurationSourceEntity.TABLE_NAME,
         uniqueConstraints = @UniqueConstraint(columnNames = {"source_type", "ha_node_name"}))
 public class ConfigurationSourceEntity {
@@ -95,10 +97,6 @@ public class ConfigurationSourceEntity {
     @Getter
     @Setter
     private Set<ConfigurationSigningKeyEntity> configurationSigningKeys = new HashSet<>(0);
-
-    protected ConfigurationSourceEntity() {
-        //JPA
-    }
 
     public ConfigurationSourceEntity(String anchorFileHash, Instant anchorGeneratedAt) {
         this.anchorFileHash = anchorFileHash;

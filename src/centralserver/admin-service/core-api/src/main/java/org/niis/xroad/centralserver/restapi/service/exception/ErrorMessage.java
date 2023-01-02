@@ -80,7 +80,10 @@ public enum ErrorMessage {
     TOKEN_PIN_FINAL_TRY("Tries left: 1"),
     SIGNER_PROXY_ERROR("Signer proxy exception"),
     TOKEN_INCORRECT_PIN_FORMAT("Incorrect PIN format"),
-    TOKEN_ACTION_NOT_POSSIBLE("Token action not possible");
+    TOKEN_ACTION_NOT_POSSIBLE("Token action not possible"),
+    SIGNING_KEY_NOT_FOUND("Signing key not found"),
+    ERROR_DELETING_SIGNING_KEY("Error deleting signing key"),
+    ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED("Active configuration signing key cannot be deleted");
 
     @Getter
     final String description;
