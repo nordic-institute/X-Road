@@ -99,7 +99,8 @@ class ConfigurationSigningKeysServiceImplTest {
     @Spy
     private TokenActionsResolver tokenActionsResolver;
     @Mock
-    private ConfigurationSourceEntity configurationSource;
+    private ConfigurationSourceEntity configurationSourceEntity;
+    @Mock
     private AuditDataHelper auditDataHelper;
     @Mock
     private SignerProxyFacade signerProxyFacade;
@@ -196,7 +197,7 @@ class ConfigurationSigningKeysServiceImplTest {
     void shouldAddSigningKey() throws Exception {
         when(tokensServiceProvider.getObject()).thenReturn(tokensService);
         when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
-                .thenReturn(Optional.of(configurationSource));
+                .thenReturn(Optional.of(configurationSourceEntity));
         when(tokensService.getToken(TOKEN_ID)).thenReturn(createToken(new ArrayList<>()));
         when(signerProxyFacade.generateKey(TOKEN_ID, KEY_LABEL)).thenReturn(createKeyInfo());
         when(signerProxyFacade.generateSelfSignedCert(eq(KEY_ID), isA(ClientId.Conf.class),
@@ -209,7 +210,7 @@ class ConfigurationSigningKeysServiceImplTest {
         var result = configurationSigningKeysServiceImpl.addKey(INTERNAL_CONFIGURATION,
                 TOKEN_ID, KEY_LABEL);
 
-        verify(configurationSourceRepository, times(1)).save(configurationSource);
+        verify(configurationSourceRepository, times(1)).save(configurationSourceEntity);
 
         assertThat(result.isActiveSourceSigningKey()).isEqualTo(Boolean.TRUE);
         assertThat(result.getAvailable()).isEqualTo(Boolean.TRUE);
@@ -222,7 +223,7 @@ class ConfigurationSigningKeysServiceImplTest {
     void shouldNotAddMoreThanTwoSingingKeys() {
         when(tokensServiceProvider.getObject()).thenReturn(tokensService);
         when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
-                .thenReturn(Optional.of(configurationSource));
+                .thenReturn(Optional.of(configurationSourceEntity));
         when(tokensService.getToken(TOKEN_ID)).thenReturn(createToken(Arrays.asList(
                 createKeyInfo(),
                 createKeyInfo()
