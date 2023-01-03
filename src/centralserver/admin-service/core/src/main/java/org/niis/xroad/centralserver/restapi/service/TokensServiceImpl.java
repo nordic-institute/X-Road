@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.dto.converter.TokenInfoMapper;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.SignerProxyException;
+import org.niis.xroad.centralserver.restapi.service.exception.TokenException;
 import org.niis.xroad.centralserver.restapi.service.exception.TokenPinFinalTryException;
 import org.niis.xroad.centralserver.restapi.service.exception.TokenPinLockedException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
@@ -88,7 +89,7 @@ public class TokensServiceImpl implements TokensService {
                     .map(tokenInfoMapper::toTarget)
                     .collect(Collectors.toSet());
         } catch (Exception e) {
-            throw new SignerProxyException(ERROR_GETTING_TOKENS, e);
+            throw new TokenException(ERROR_GETTING_TOKENS, e);
         }
     }
 

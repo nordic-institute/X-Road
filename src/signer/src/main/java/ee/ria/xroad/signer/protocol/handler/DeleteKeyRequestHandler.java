@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.message.DeleteKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
@@ -58,11 +60,11 @@ public class DeleteKeyRequestHandler
         }
     }
 
-    private static void removeCertsFromKey(KeyInfo keyInfo) throws Exception {
-        keyInfo.getCerts().stream().filter(c -> c.isSavedToConfiguration())
-            .map(c -> c.getId()).forEach(TokenManager::removeCert);
+    private static void removeCertsFromKey(KeyInfo keyInfo) {
+        keyInfo.getCerts().stream().filter(CertificateInfo::isSavedToConfiguration)
+            .map(CertificateInfo::getId).forEach(TokenManager::removeCert);
 
         keyInfo.getCertRequests().stream()
-            .map(c -> c.getId()).forEach(TokenManager::removeCertRequest);
+            .map(CertRequestInfo::getId).forEach(TokenManager::removeCertRequest);
     }
 }

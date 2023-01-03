@@ -24,20 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.repository;
 
-import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
+package org.niis.xroad.centralserver.restapi.service.exception;
 
-import java.util.List;
-import java.util.Optional;
+public class TokenException extends UncheckedServiceException {
 
-public interface ConfigurationSigningKeyRepository extends GenericRepository<ConfigurationSigningKeyEntity, Integer> {
+    public TokenException(ErrorMessage code, String... metadata) {
+        super(code, metadata);
+    }
 
-    List<ConfigurationSigningKeyEntity> findByTokenIdentifier(String tokenIdentifier);
+    public TokenException(ErrorMessage code, Throwable cause, String... metadata) {
+        super(code, cause, metadata);
+    }
 
-    Optional<ConfigurationSigningKeyEntity> findByKeyIdentifier(String keyIdentifier);
-
-    void deleteByKeyIdentifier(String identifier);
-
-    Optional<ConfigurationSigningKeyEntity> findActiveForSource(String sourceType, String haNodeName);
 }

@@ -34,6 +34,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.SignerProxyException;
+import org.niis.xroad.centralserver.restapi.service.exception.SigningKeyException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.KeyLabel;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
@@ -45,6 +46,9 @@ import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
@@ -58,9 +62,17 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ERROR_DELETING_SIGNING_KEY;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.KEY_GENERATION_FAILED;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SIGNING_KEY_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.dto.PossibleAction.GENERATE_KEY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
+
 
 @Service
 @Transactional
@@ -74,13 +86,46 @@ public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigning
     private final ObjectProvider<TokensService> tokensService;
     private final SignerProxyFacade signerProxyFacade;
     private final TokenActionsResolver tokenActionsResolver;
+    private final AuditEventHelper auditEventHelper;
+    private final AuditDataHelper auditDataHelper;
 
+
+    @Override
     public List<ConfigurationSigningKey> findByTokenIdentifier(String tokenIdentifier) {
         return configurationSigningKeyRepository.findByTokenIdentifier(tokenIdentifier).stream()
                 .map(configurationSigningKeyMapper::toTarget).collect(Collectors.toList());
     }
 
     @Override
+    public void deleteKey(String identifier) {
+        ConfigurationSigningKey signingKey = configurationSigningKeyRepository.findByKeyIdentifier(identifier)
+                .map(configurationSigningKeyMapper::toTarget)
+                .orElseThrow(() -> new NotFoundException(SIGNING_KEY_NOT_FOUND));
+
+        if (signingKey.isActiveSourceSigningKey()) {
+            throw new SigningKeyException(ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED);
+        }
+
+        if (signingKey.getSourceType() == INTERNAL) {
+            auditEventHelper.changeRequestScopedEvent(DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY);
+        } else if (signingKey.getSourceType() == EXTERNAL) {
+            auditEventHelper.changeRequestScopedEvent(DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY);
+        }
+        auditDataHelper.put(RestApiAuditProperty.TOKEN_ID, signingKey.getTokenIdentifier());
+        auditDataHelper.put(RestApiAuditProperty.KEY_ID, signingKey.getKeyIdentifier());
+        try {
+            TokenInfo tokenInfo = signerProxyFacade.getToken(signingKey.getTokenIdentifier());
+            auditDataHelper.put(RestApiAuditProperty.TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
+            auditDataHelper.put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
+
+            configurationSigningKeyRepository.deleteByKeyIdentifier(identifier);
+            signerProxyFacade.deleteKey(signingKey.getKeyIdentifier(), true);
+        } catch (Exception e) {
+            throw new SigningKeyException(ERROR_DELETING_SIGNING_KEY, e);
+        }
+
+    }
+
     public Optional<ConfigurationSigningKey> findActiveForSource(String sourceType) {
         // TODO pass haNodeName if HA enabled
         return configurationSigningKeyRepository.findActiveForSource(sourceType, null)
@@ -139,14 +184,6 @@ public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigning
                 .setKeyGeneratedAt(generatedAt)
                 .setPossibleActions(new ArrayList<>(tokenActionsResolver.resolveActions(tokenInfo)))
                 .setTokenIdentifier(tokenId);
-    }
-
-    private void deleteKey(String keyId) {
-        try {
-            signerProxyFacade.deleteKey(keyId, true);
-        } catch (Exception e) {
-            throw new SignerProxyException(KEY_GENERATION_FAILED);
-        }
     }
 
     private ConfigurationSourceEntity findConfigurationSourceBySourceType(String sourceType) {

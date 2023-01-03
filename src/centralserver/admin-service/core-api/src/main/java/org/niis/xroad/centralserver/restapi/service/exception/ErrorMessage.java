@@ -83,7 +83,11 @@ public enum ErrorMessage {
     TOKEN_ACTION_NOT_POSSIBLE("Token action not possible"),
     TOKEN_FULL("2 keys already exist on this token"),
     KEY_GENERATION_FAILED("Singing key generation failed"),
-    KEY_DELETE_FAILED("Singing key delete failed");
+    KEY_DELETE_FAILED("Singing key delete failed"),
+    SIGNING_KEY_NOT_FOUND("Signing key not found"),
+    ERROR_DELETING_SIGNING_KEY("Error deleting signing key"),
+    ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED("Active configuration signing key cannot be deleted");
+
 
     @Getter
     final String description;

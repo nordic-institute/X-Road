@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,20 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.repository;
 
-import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
+package org.niis.xroad.cs.admin.api.domain;
 
-import java.util.List;
-import java.util.Optional;
-
-public interface ConfigurationSigningKeyRepository extends GenericRepository<ConfigurationSigningKeyEntity, Integer> {
-
-    List<ConfigurationSigningKeyEntity> findByTokenIdentifier(String tokenIdentifier);
-
-    Optional<ConfigurationSigningKeyEntity> findByKeyIdentifier(String keyIdentifier);
-
-    void deleteByKeyIdentifier(String identifier);
-
-    Optional<ConfigurationSigningKeyEntity> findActiveForSource(String sourceType, String haNodeName);
+public enum ConfigurationSourceType {
+    INTERNAL,
+    EXTERNAL
 }

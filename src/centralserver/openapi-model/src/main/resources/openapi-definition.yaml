@@ -1177,13 +1177,6 @@ paths:
             format: text
             minLength: 1
             type: string
-        - description: if true, any ignorable warnings are ignored. if false (or missing), any warnings cause request to fail
-          in: query
-          name: ignore_warnings
-          required: false
-          schema:
-            default: false
-            type: boolean
       responses:
         '204':
           description: key deletion was successful

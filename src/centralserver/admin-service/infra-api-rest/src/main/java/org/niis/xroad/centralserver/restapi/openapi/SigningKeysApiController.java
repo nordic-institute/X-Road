@@ -1,6 +1,6 @@
 /*
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -43,13 +43,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SIGNING_KEY;
 import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
-public class SigningKeysController implements SigningKeysApi {
+public class SigningKeysApiController implements SigningKeysApi {
 
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final ConfigurationSigningKeyDtoMapper configurationSigningKeyDtoMapper;
@@ -72,7 +73,10 @@ public class SigningKeysController implements SigningKeysApi {
     }
 
     @Override
-    public ResponseEntity<Void> deleteKey(String id, Boolean ignoreWarnings) {
-        throw new NotImplementedException("deleteKey not implemented yet");
+    @AuditEventMethod(event = DELETE_SIGNING_KEY)
+    @PreAuthorize("hasAuthority('DELETE_SIGNING_KEY')")
+    public ResponseEntity<Void> deleteKey(String id) {
+        configurationSigningKeysService.deleteKey(id);
+        return ResponseEntity.noContent().build();
     }
 }

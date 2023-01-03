@@ -122,7 +122,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         }
     }
 
-    private void handleGenerateKey(GenerateKey message) throws Exception {
+    private void handleGenerateKey(GenerateKey message) {
         GenerateKeyResult result;
 
         try {
@@ -147,7 +147,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         sendResponse(TokenManager.findKeyInfo(keyId));
     }
 
-    private void handleDeleteKey(DeleteKey message) throws Exception {
+    private void handleDeleteKey(DeleteKey message) {
         try {
             deleteKey(message.getKeyId());
         } catch (Exception e) {
@@ -161,7 +161,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         sendSuccessResponse();
     }
 
-    private void handleDeleteCert(DeleteCert message) throws Exception {
+    private void handleDeleteCert(DeleteCert message) {
         try {
             deleteCert(message.getCertId());
         } catch (Exception e) {
@@ -173,7 +173,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         sendSuccessResponse();
     }
 
-    private void handleCalculateSignature(CalculateSignature signRequest) throws Exception {
+    private void handleCalculateSignature(CalculateSignature signRequest) {
         try {
             byte data[] = SignerUtil.createDataToSign(signRequest.getDigest(), signRequest.getSignatureAlgorithmId());
 
