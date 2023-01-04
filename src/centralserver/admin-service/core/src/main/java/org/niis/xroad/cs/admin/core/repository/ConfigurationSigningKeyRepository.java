@@ -35,5 +35,9 @@ public interface ConfigurationSigningKeyRepository extends GenericRepository<Con
 
     List<ConfigurationSigningKeyEntity> findByTokenIdentifier(String tokenIdentifier);
 
+    Optional<ConfigurationSigningKeyEntity> findByKeyIdentifier(String keyIdentifier);
+
+    void deleteByKeyIdentifier(String identifier);
+
     Optional<ConfigurationSigningKeyEntity> findActiveForSource(String sourceType, String haNodeName);
 }

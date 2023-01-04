@@ -94,6 +94,9 @@ public enum RestApiAuditEvent {
     GENERATE_CSR("Generate CSR"),
     DELETE_CSR("Delete CSR"),
     GENERATE_KEY_AND_CSR("Generate key and CSR"),
+    DELETE_SIGNING_KEY("Delete signing key"),
+    DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY("Delete internal configuration signing key"),
+    DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY("Delete external configuration signing key"),
 
     IMPORT_CERT_FILE("Import certificate from file"),
     IMPORT_CERT_TOKEN("Import certificate from token"),

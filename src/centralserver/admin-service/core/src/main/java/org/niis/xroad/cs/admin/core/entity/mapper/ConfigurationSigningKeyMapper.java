@@ -32,6 +32,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 import org.niis.xroad.centralserver.restapi.dto.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
@@ -44,9 +45,13 @@ public abstract class ConfigurationSigningKeyMapper implements
     public abstract ConfigurationSigningKey toTarget(ConfigurationSigningKeyEntity entity);
 
     @Named("mapSourceType")
-    String mapSourceType(ConfigurationSigningKeyEntity entity) {
+    ConfigurationSourceType mapSourceType(ConfigurationSigningKeyEntity entity) {
         if (entity.getConfigurationSource() != null) {
-            return entity.getConfigurationSource().getSourceType();
+            for (ConfigurationSourceType sourceType : ConfigurationSourceType.values()) {
+                if (sourceType.name().equalsIgnoreCase(entity.getConfigurationSource().getSourceType())) {
+                    return sourceType;
+                }
+            }
         }
         return null;
     }

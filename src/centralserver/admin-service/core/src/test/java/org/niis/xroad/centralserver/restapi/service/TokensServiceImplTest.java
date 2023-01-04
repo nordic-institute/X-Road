@@ -39,6 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.centralserver.restapi.dto.converter.TokenInfoMapper;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.SignerProxyException;
+import org.niis.xroad.centralserver.restapi.service.exception.TokenException;
 import org.niis.xroad.centralserver.restapi.service.exception.TokenPinFinalTryException;
 import org.niis.xroad.centralserver.restapi.service.exception.TokenPinLockedException;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
@@ -106,7 +107,7 @@ class TokensServiceImplTest {
         doThrow(new Exception()).when(signerProxyFacade).getTokens();
 
         assertThatThrownBy(() ->  tokensService.getTokens())
-                .isInstanceOf(SignerProxyException.class)
+                .isInstanceOf(TokenException.class)
                 .hasMessage("Error getting tokens");
     }
 

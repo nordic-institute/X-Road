@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,21 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+package org.niis.xroad.cs.admin.api.domain;
 
-import java.util.List;
-import java.util.Optional;
-
-public interface ConfigurationSigningKeysService {
-    String SOURCE_TYPE_INTERNAL = "internal";
-    String SOURCE_TYPE_EXTERNAL = "external";
-
-    List<ConfigurationSigningKey> findByTokenIdentifier(String tokenIdentifier);
-
-    void deleteKey(String id);
-
-    Optional<ConfigurationSigningKey> findActiveForSource(String sourceType);
-
+public enum ConfigurationSourceType {
+    INTERNAL,
+    EXTERNAL
 }

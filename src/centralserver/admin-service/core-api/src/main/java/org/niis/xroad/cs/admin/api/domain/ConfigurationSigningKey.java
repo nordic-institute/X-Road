@@ -24,6 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.cs.admin.api.domain;
 
 import lombok.Data;
@@ -36,13 +37,12 @@ import java.time.Instant;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class ConfigurationSigningKey {
-    private int id;
     private String keyIdentifier;
     private byte[] cert;
     private Instant keyGeneratedAt;
     private String tokenIdentifier;
 
-    private String sourceType;
+    private ConfigurationSourceType sourceType;
     private boolean activeSourceSigningKey;
 
 }

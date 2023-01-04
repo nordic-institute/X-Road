@@ -58,7 +58,7 @@ abstract class AbstractDeleteFromKeyInfo<T> extends AbstractRequestHandler<T> {
         tellToken(message, tokenId);
     }
 
-    protected Object deleteCertRequest(String certId) throws Exception {
+    protected Object deleteCertRequest(String certId) {
         String keyId = TokenManager.removeCertRequest(certId);
         if (keyId != null) {
             log.info("Deleted certificate request under key '{}'", keyId);

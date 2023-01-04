@@ -88,7 +88,7 @@ public final class TokenManager {
      *
      * @throws Exception if an error occurs
      */
-    public static void init() throws Exception {
+    public static void init() {
         try {
             TokenConf.getInstance().load();
         } catch (Exception e) {

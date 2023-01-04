@@ -120,7 +120,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected void onUpdate() throws Exception {
+    protected void onUpdate() {
         log.trace("onUpdate()");
 
         updateStatus();
@@ -151,7 +151,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected void activateToken(ActivateToken message) throws Exception {
+    protected void activateToken(ActivateToken message) {
         if (message.isActivate()) {
             if (!isTokenLoginAllowed) {
                 throw loginFailed("PIN change in progress – token login not allowed");
@@ -199,7 +199,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected void deleteCert(String certId) throws Exception {
+    protected void deleteCert(String certId) {
         TokenManager.removeCert(certId);
     }
 
@@ -268,7 +268,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void updateKeys() throws Exception {
+    private void updateKeys() {
         for (KeyInfo keyInfo : listKeys(tokenId)) {
             String keyId = keyInfo.getId();
 
@@ -288,7 +288,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void findKeysNotInConf() throws Exception {
+    private void findKeysNotInConf() {
         log.debug("Searching for new software keys from '{}'", getKeyDir());
 
         for (String keyId : listKeysOnDisk()) {
@@ -437,7 +437,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void activateToken() throws Exception {
+    private void activateToken() {
         try {
             verifyPin(PasswordStore.getPassword(tokenId));
 
