@@ -53,7 +53,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ManagementRequestVerificationUtils {
-    private static final CharMatcher MATCHER = CharMatcher.javaIsoControl()
+    private static final CharMatcher IDENTIFIER_PART_MATCHER = CharMatcher.javaIsoControl()
             .or(CharMatcher.anyOf(":;%/\\\ufeff\u200b"));
 
     public static boolean verifySignature(X509Certificate cert, byte[] signatureData,
@@ -127,6 +127,6 @@ public final class ManagementRequestVerificationUtils {
         return part != null
                 && !part.isEmpty()
                 && part.length() <= 255
-                && !MATCHER.matchesAnyOf(part);
+                && !IDENTIFIER_PART_MATCHER.matchesAnyOf(part);
     }
 }
