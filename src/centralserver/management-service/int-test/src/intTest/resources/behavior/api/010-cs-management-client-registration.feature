@@ -49,17 +49,3 @@ Feature: Management requests API
     When Client Registration request with ClientId "EE:CLASS:___" was sent
     Then Response of status code 500 and soap fault "InvalidRequest" is returned
     And Admin api has not received any request
-
-  @Skip # Might not be relevant scenario as it passed on migrated code.
-  Scenario: Client registration fails with invalid serverId
-    Given Admin api is mocked with a response with status-code 200, type CLIENT_REGISTRATION_REQUEST and id 1122
-    When Client Registration request with ClientId "EE:CLASS:MEMBER" and serverId "EE:CLASS:MEMBER:WRONG" and receiverId "EE:BUSINESS:servicemember2" was sent
-    Then Response of status code 500 and soap fault "InvalidRequest" is returned
-    And Admin api has not received any request
-
-  @Skip # Might not be relevant scenario as it passed on migrated code.
-  Scenario: Client registration fails with invalid receiverId
-    Given Admin api is mocked with a response with status-code 200, type CLIENT_REGISTRATION_REQUEST and id 1122
-    When Client Registration request with ClientId "EE:CLASS:MEMBER" and serverId "EE:CLASS:MEMBER:SS1" and receiverId "EE:BUSINESS:WRONG" was sent
-    Then Response of status code 500 and soap fault "InvalidRequest" is returned
-    And Admin api has not received any request

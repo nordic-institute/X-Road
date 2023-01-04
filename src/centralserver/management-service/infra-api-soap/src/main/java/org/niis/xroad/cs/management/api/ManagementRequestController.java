@@ -61,7 +61,7 @@ public class ManagementRequestController {
                     Integer requestId;
                     if (ManagementRequestType.AUTH_CERT_DELETION_REQUEST == result.getRequestType()) {
                         var authCertDeletionRequest = result.getAuthCertDeletionRequest()
-                                .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "ClientRequest is missing"));
+                                .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "AuthCertDeletionRequest is missing"));
 
                         requestId = managementRequestService.addManagementRequest(authCertDeletionRequest);
                     } else {
