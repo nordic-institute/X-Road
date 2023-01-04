@@ -53,7 +53,7 @@ class LocalCopyWriter {
     private final Path localConfDirectory; // defaults to /etc/xroad/globalconf
     private final Instant confExpireTime;
 
-    public LocalCopyWriter(String instanceIdentifier, Path localConfDirectory, Instant confExpireTime) {
+    LocalCopyWriter(String instanceIdentifier, Path localConfDirectory, Instant confExpireTime) {
         this.instanceIdentifier = instanceIdentifier;
         this.localConfDirectory = localConfDirectory;
         this.confExpireTime = confExpireTime;
@@ -84,10 +84,10 @@ class LocalCopyWriter {
     }
 
     private String configurationMetadataJson() {
-        return String.format("{\"contentIdentifier\":\"DUMMY\","+
-                "\"instanceIdentifier\":\"%s\",\"contentFileName\":null,"+
-                "\"contentLocation\":\"\""+
-                ",\"expirationDate\":\"%s\"}", instanceIdentifier, EXPIRE_TIME_FORMAT.format(confExpireTime));
+        return String.format("{\"contentIdentifier\":\"DUMMY\","
+                + "\"instanceIdentifier\":\"%s\",\"contentFileName\":null,"
+                + "\"contentLocation\":\"\""
+                + ",\"expirationDate\":\"%s\"}", instanceIdentifier, EXPIRE_TIME_FORMAT.format(confExpireTime));
     }
 
     @SneakyThrows

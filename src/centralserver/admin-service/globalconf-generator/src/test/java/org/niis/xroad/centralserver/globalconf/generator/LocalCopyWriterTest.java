@@ -91,10 +91,10 @@ class LocalCopyWriterTest {
         CONFIGURATION_PARTS.forEach(part ->
                 assertThat(localConfDir.resolve(INSTANCE).resolve(part.getFilename() + ".metadata"))
                         .exists()
-                        .content().isEqualTo("{\"contentIdentifier\":\"DUMMY\"," +
-                                "\"instanceIdentifier\":\"%s\",\"contentFileName\":null," +
-                                "\"contentLocation\":\"\"" +
-                                ",\"expirationDate\":\"%s\"}", INSTANCE, CONF_EXPIRE_TIME)
+                        .content().isEqualTo("{\"contentIdentifier\":\"DUMMY\","
+                                + "\"instanceIdentifier\":\"%s\",\"contentFileName\":null,"
+                                + "\"contentLocation\":\"\""
+                                + ",\"expirationDate\":\"%s\"}", INSTANCE, CONF_EXPIRE_TIME)
         );
     }
 
