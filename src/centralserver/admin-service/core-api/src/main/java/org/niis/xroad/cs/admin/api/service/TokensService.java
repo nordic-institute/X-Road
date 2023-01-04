@@ -40,4 +40,6 @@ public interface TokensService {
 
     Set<TokenInfo> getTokens();
 
+    ee.ria.xroad.signer.protocol.dto.TokenInfo getToken(String tokenId);
+
 }

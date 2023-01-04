@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -62,7 +63,7 @@ public class ConfigurationSourceEntity {
     @Getter
     private int id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "active_key_id")
     @Getter
     @Setter
@@ -93,7 +94,7 @@ public class ConfigurationSourceEntity {
     @Setter
     private String haNodeName;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "configurationSource")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "configurationSource")
     @Getter
     @Setter
     private Set<ConfigurationSigningKeyEntity> configurationSigningKeys = new HashSet<>(0);

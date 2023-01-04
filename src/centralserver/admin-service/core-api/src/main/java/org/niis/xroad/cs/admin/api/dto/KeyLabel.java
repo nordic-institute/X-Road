@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,36 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.api.dto;
 
-package org.niis.xroad.cs.admin.api.domain;
-
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import org.niis.xroad.cs.admin.api.dto.KeyLabel;
-import org.niis.xroad.cs.admin.api.dto.PossibleAction;
-
-import java.time.Instant;
-import java.util.List;
 
 @Data
 @Accessors(chain = true)
+@AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
-public class ConfigurationSigningKey {
-    private String keyIdentifier;
-    private byte[] cert;
-    private Instant keyGeneratedAt;
-    private String tokenIdentifier;
+public class KeyLabel {
 
-    private ConfigurationSourceType sourceType;
-    private boolean activeSourceSigningKey;
-
-    private Boolean available;
-    private KeyLabel label;
-    private List<PossibleAction> possibleActions = null;
-
+    private String label;
 }
-
-

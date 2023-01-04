@@ -33,8 +33,10 @@ import org.niis.xroad.centralserver.openapi.SigningKeysApi;
 import org.niis.xroad.centralserver.openapi.model.ConfigurationSigningKeyAddDto;
 import org.niis.xroad.centralserver.openapi.model.ConfigurationSigningKeyDto;
 import org.niis.xroad.centralserver.openapi.model.ConfigurationTypeDto;
+import org.niis.xroad.centralserver.restapi.mapper.ConfigurationSigningKeyDtoMapper;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,6 +44,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SIGNING_KEY;
+import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -50,6 +53,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SIGNI
 public class SigningKeysApiController implements SigningKeysApi {
 
     private final ConfigurationSigningKeysService configurationSigningKeysService;
+    private final ConfigurationSigningKeyDtoMapper configurationSigningKeyDtoMapper;
 
     @Override
     public ResponseEntity<Void> activateKey(String id) {
@@ -57,10 +61,15 @@ public class SigningKeysApiController implements SigningKeysApi {
     }
 
     @Override
-    public ResponseEntity<ConfigurationSigningKeyDto> addKey(
-            ConfigurationTypeDto configurationType,
-            ConfigurationSigningKeyAddDto configurationSigningKeyAddDto) {
-        throw new NotImplementedException("addKey not implemented yet");
+    @PreAuthorize("hasAuthority('GENERATE_SIGNING_KEY')")
+    @AuditEventMethod(event = RestApiAuditEvent.GENERATE_KEY)
+    public ResponseEntity<ConfigurationSigningKeyDto> addKey(ConfigurationTypeDto configurationType,
+                                                             ConfigurationSigningKeyAddDto configurationSigningKeyAddDto) {
+        return ok(configurationSigningKeyDtoMapper.toTarget(
+                configurationSigningKeysService.addKey(configurationType.getValue(),
+                        configurationSigningKeyAddDto.getTokenId(),
+                        configurationSigningKeyAddDto.getKeyLabel())
+        ));
     }
 
     @Override

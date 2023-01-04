@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -57,7 +58,7 @@ public class ConfigurationSigningKeyEntity {
     @Getter
     private int id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "configuration_source_id")
     @Getter
     @Setter
@@ -83,6 +84,12 @@ public class ConfigurationSigningKeyEntity {
     @Setter
     private String tokenIdentifier;
 
+    public ConfigurationSigningKeyEntity(String keyIdentifier, byte[] cert, Instant keyGeneratedAt, String tokenIdentifier) {
+        this.keyIdentifier = keyIdentifier;
+        this.cert = cert;
+        this.keyGeneratedAt = keyGeneratedAt;
+        this.tokenIdentifier = tokenIdentifier;
+    }
 }
 
 
