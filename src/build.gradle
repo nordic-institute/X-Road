@@ -45,7 +45,8 @@ dependencyCheck {
     skipProjects = [
         ":e2e-tests",
         ":centralserver:admin-service:ui-system-test",
-        ":centralserver:admin-service:int-test"
+        ":centralserver:admin-service:int-test",
+        ":centralserver:management-service:int-test"
     ]
     analyzers {
         experimentalEnabled = false
