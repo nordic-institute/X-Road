@@ -42,6 +42,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -78,8 +79,7 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
     private AuthCertRegRequestType authCertRegRequestType;
 
     @Override
-    public void attachment(InputStream content, Map<String, String> additionalHeaders)
-            throws Exception {
+    public void attachment(InputStream content, Map<String, String> additionalHeaders) throws IOException {
         if (authSignatureBytes == null) {
             authSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
             authSignatureBytes = IOUtils.toByteArray(content);

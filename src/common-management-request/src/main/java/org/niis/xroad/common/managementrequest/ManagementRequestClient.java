@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -130,6 +130,7 @@ public final class ManagementRequestClient implements StartStop {
 
     // -- Helper methods ------------------------------------------------------
 
+    @SuppressWarnings("java:S4830")
     private void createCentralHttpClient() throws Exception {
         log.trace("createCentralHttpClient()");
 
@@ -171,6 +172,7 @@ public final class ManagementRequestClient implements StartStop {
         centralHttpClient = createHttpClient(null, tm);
     }
 
+    @SuppressWarnings("java:S4830")
     private void createProxyHttpClient() throws Exception {
         log.trace("createProxyHttpClient()");
 
@@ -179,10 +181,12 @@ public final class ManagementRequestClient implements StartStop {
             public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
                 // never called as this is trustmanager of a client
             }
+
             @Override
             public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
                 // localhost called so server is trusted
             }
+
             @Override
             public X509Certificate[] getAcceptedIssuers() {
                 return null;
@@ -209,7 +213,7 @@ public final class ManagementRequestClient implements StartStop {
                     return InternalSSLKey.load().getCertChain();
                 } catch (Exception e) {
                     log.error("Failed to load internal TLS key", e);
-                    return new X509Certificate[] {};
+                    return new X509Certificate[]{};
                 }
             }
 
@@ -254,7 +258,7 @@ public final class ManagementRequestClient implements StartStop {
         sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(km != null ? new KeyManager[] {km} : null, tm != null ? new TrustManager[] {tm} : null,
+        ctx.init(km != null ? new KeyManager[]{km} : null, tm != null ? new TrustManager[]{tm} : null,
                 new SecureRandom());
 
         SSLConnectionSocketFactory sf = new SSLConnectionSocketFactory(ctx,

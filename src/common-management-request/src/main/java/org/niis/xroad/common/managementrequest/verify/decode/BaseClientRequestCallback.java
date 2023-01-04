@@ -41,6 +41,7 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
 import java.util.Map;
@@ -70,7 +71,7 @@ public abstract class BaseClientRequestCallback implements ManagementRequestDeco
     private ClientRequestType clientRequestType;
 
     @Override
-    public void attachment(InputStream content, Map<String, String> additionalHeaders) throws Exception {
+    public void attachment(InputStream content, Map<String, String> additionalHeaders) throws IOException {
         if (clientSignatureBytes == null) {
             log.info("Reading client signature");
 

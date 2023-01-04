@@ -42,7 +42,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 import java.io.InputStream;
-import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -50,11 +50,11 @@ public class ManagementRequestSoapExecutor {
     public static final int MAX_REQUEST_SIZE = 100_000;
 
     public static ResponseEntity<String> process(String contentType, InputStream body,
-                                          Function<ManagementRequestVerifier.Result, Integer> onSuccess) {
+                                          ToIntFunction<ManagementRequestVerifier.Result> onSuccess) {
         try (var bos = new BoundedInputStream(body, MAX_REQUEST_SIZE)) {
             var verificationResult = ManagementRequestVerifier.readRequest(contentType, bos);
 
-            var createdRequestId = onSuccess.apply(verificationResult);
+            var createdRequestId = onSuccess.applyAsInt(verificationResult);
 
             var responseBody = ManagementRequestUtil.toResponse(verificationResult.getSoapMessage(), createdRequestId).getXml();
             return disableCache(ResponseEntity.ok())

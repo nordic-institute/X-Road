@@ -12,4 +12,6 @@ dependencies {
         exclude module: "spring-webmvc"
         exclude module: "spring-boot-starter-json"
     }
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

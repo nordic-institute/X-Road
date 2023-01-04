@@ -33,9 +33,6 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 
-import java.io.InputStream;
-import java.util.Map;
-
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 @Getter
@@ -44,11 +41,6 @@ public class AuthCertDeletionRequestDecoderCallback implements ManagementRequest
     private final ManagementRequestVerifier.DecoderCallback rootCallback;
 
     private AuthCertDeletionRequestType authCertDeletionRequestType;
-
-    @Override
-    public void attachment(InputStream content, Map<String, String> additionalHeaders) {
-        //do nothing
-    }
 
     @Override
     public void onCompleted() {

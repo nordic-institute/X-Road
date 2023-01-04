@@ -34,9 +34,6 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 
-import java.io.InputStream;
-import java.util.Map;
-
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 @Slf4j
@@ -45,11 +42,6 @@ public class ClientDeletionRequestCallback implements ManagementRequestDecoderCa
     private final ManagementRequestVerifier.DecoderCallback rootCallback;
 
     private ClientRequestType clientRequestType;
-
-    @Override
-    public void attachment(InputStream content, Map<String, String> additionalHeaders) {
-        //do nothing
-    }
 
     @Override
     public void onCompleted() {
