@@ -94,7 +94,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     @Scheduled(fixedRate = 60, timeUnit = SECONDS) // TODO make configurable
     @Transactional
     public void generate() {
-        log.debug(getTmpInternalDirectory());
+        log.debug("Starting global conf generation");
 
         generateAndSaveConfiguration();
         var configGenerationTime = Instant.now();
@@ -119,7 +119,9 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
         cleanUpOldConfigurations(generatedConfDir.resolve(configDistributor.getVersionSubPath()));
 
-        // TODO write local copy
+        writeLocalCopy(allConfigurationParts);
+
+        log.debug("Global conf generated");
     }
 
     @SneakyThrows
@@ -127,7 +129,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
         return Files.isDirectory(dirPath)
                 && dirPath.getFileName().toString().matches("\\A\\d+\\z")
                 && Files.getLastModifiedTime(dirPath).toInstant().isBefore(
-                        Instant.now().minusSeconds(OLD_CONF_PRESERVING_SECONDS));
+                Instant.now().minusSeconds(OLD_CONF_PRESERVING_SECONDS));
     }
 
     @SneakyThrows
@@ -235,6 +237,13 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     @SneakyThrows
     private String getConfHashAlgoId() {
         return CryptoUtils.getAlgorithmId(systemParameterService.getParameterValue(CONF_HASH_ALGO_URI, DEFAULT_CONF_HASH_ALGO_URI));
+    }
+
+    private void writeLocalCopy(Set<ConfigurationPart> allConfigurationParts) {
+        new LocalCopyWriter(getInstanceIdentifier(),
+                Path.of(SystemProperties.getConfigurationPath()),
+                Instant.now().plusSeconds(getConfExpireIntervalSeconds()))
+                .write(allConfigurationParts);
     }
 
 
