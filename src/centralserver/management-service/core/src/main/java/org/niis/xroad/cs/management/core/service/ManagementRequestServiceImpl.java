@@ -47,6 +47,8 @@ import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 
 @Slf4j
@@ -65,7 +67,9 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         if (!result.hasBody()) {
             throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
         } else {
-            return result.getBody() != null ? result.getBody().getId() : null;
+            return Optional.ofNullable(result.getBody())
+                    .map(ManagementRequestDto::getId)
+                    .orElse(null);
         }
     }
 
@@ -81,7 +85,9 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         if (!result.hasBody()) {
             throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
         } else {
-            return result.getBody() != null ? result.getBody().getId() : null;
+            return Optional.ofNullable(result.getBody())
+                    .map(ManagementRequestDto::getId)
+                    .orElse(null);
         }
     }
 

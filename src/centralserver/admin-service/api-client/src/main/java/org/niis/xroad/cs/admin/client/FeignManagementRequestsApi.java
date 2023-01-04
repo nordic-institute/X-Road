@@ -34,8 +34,7 @@ import org.niis.xroad.centralserver.openapi.model.PagingSortingParametersDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @FeignClient(name = "managementRequestsApi", path = "/api/v1")
 public interface FeignManagementRequestsApi extends ManagementRequestsApi {
@@ -43,8 +42,7 @@ public interface FeignManagementRequestsApi extends ManagementRequestsApi {
     /**
      * An overridden method with additional annotations.
      */
-    @RequestMapping(
-            method = RequestMethod.GET,
+    @GetMapping(
             value = "/management-requests",
             produces = {"application/json"}
     )

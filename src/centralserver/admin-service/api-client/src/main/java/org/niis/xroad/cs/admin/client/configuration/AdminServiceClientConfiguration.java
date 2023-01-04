@@ -113,14 +113,14 @@ public class AdminServiceClientConfiguration {
 
     private HttpClientConnectionManager buildConnectionManager(final AdminServiceClientPropertyProvider propertyProvider)
             throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
-        final SSLContext sslcontext = SSLContexts.custom()
+        final var sslcontext = SSLContexts.custom()
                 .setProtocol("TLSv1.3")
                 .loadTrustMaterial(
                         propertyProvider.getApiTrustStore().toFile(),
                         propertyProvider.getApiTrustStorePassword().toCharArray())
                 .build();
 
-        final SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
+        final var sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
                 .setHostnameVerifier(new NoopHostnameVerifier())
                 .setSslContext(sslcontext)
                 .build();
