@@ -1,0 +1,8 @@
+server:
+  address: 0.0.0.0
+
+logging:
+  level:
+    ROOT: DEBUG
+    org:
+      springframework: INFO

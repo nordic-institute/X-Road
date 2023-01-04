@@ -41,16 +41,20 @@ import org.niis.xroad.centralserver.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestDtoTypeConverter;
 import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestOriginDtoConverter;
 import org.niis.xroad.centralserver.restapi.converter.model.ManagementRequestStatusConverter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.dto.converter.DtoConverter;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
+import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
+import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
+import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.stereotype.Service;
@@ -72,7 +76,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
 
     private final SecurityServerIdConverter securityServerIdMapper;
     private final ManagementRequestOriginDtoConverter.Service originMapper;
-    private final ClientIdDtoConverter clientIdDtoMapper;
+    private final ClientIdConverter clientIdConverter;
     private final ManagementRequestStatusConverter.Service statusMapper;
     private final ManagementRequestDtoTypeConverter.Service requestTypeConverter;
 
@@ -95,18 +99,18 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         } else if (request instanceof ClientRegistrationRequest) {
             ClientRegistrationRequest req = (ClientRegistrationRequest) request;
             result = self(new ClientRegistrationRequestDto(), self -> {
-                self.setClientId(clientIdDtoMapper.toDto(req.getClientId()));
+                self.setClientId(clientIdConverter.convertId(req.getClientId()));
             });
 
         } else if (request instanceof ClientDeletionRequest) {
             ClientDeletionRequest req = (ClientDeletionRequest) request;
             result = self(new ClientDeletionRequestDto(), self -> {
-                self.setClientId(clientIdDtoMapper.toDto(req.getClientId()));
+                self.setClientId(clientIdConverter.convertId(req.getClientId()));
             });
 
         } else if (request instanceof OwnerChangeRequest) {
             OwnerChangeRequest req = (OwnerChangeRequest) request;
-            result = self(new OwnerChangeRequestDto(), self -> self.setClientId(clientIdDtoMapper.toDto(req.getClientId())));
+            result = self(new OwnerChangeRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
 
         } else {
             throw new BadRequestException("Unknown request type");
@@ -148,24 +152,40 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     originMapper.fromDto(req.getOrigin()),
 
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
-                    clientIdDtoMapper.fromDto(req.getClientId()));
+                    fromEncodedId(req.getClientId()));
 
         } else if (request instanceof ClientDeletionRequestDto) {
             ClientDeletionRequestDto req = (ClientDeletionRequestDto) request;
             return new ClientDeletionRequest(
                     originMapper.fromDto(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
-                    clientIdDtoMapper.fromDto(req.getClientId()));
+                    fromEncodedId(req.getClientId()));
 
         } else if (request instanceof OwnerChangeRequestDto) {
             OwnerChangeRequestDto req = (OwnerChangeRequestDto) request;
             return new OwnerChangeRequest(
                     originMapper.fromDto(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
-                    clientIdDtoMapper.fromDto(req.getClientId()));
+                    fromEncodedId(req.getClientId()));
 
         } else {
             throw new BadRequestException("Unknown request type");
+        }
+    }
+
+    public ClientId fromEncodedId(String encodedId) {
+        var clientId = clientIdConverter.convertId(encodedId);
+        if (clientId.getSubsystemCode() != null) {
+            return SubsystemId.create(
+                    clientId.getXRoadInstance(),
+                    clientId.getMemberClass(),
+                    clientId.getMemberCode(),
+                    clientId.getSubsystemCode());
+        } else {
+            return MemberId.create(
+                    clientId.getXRoadInstance(),
+                    clientId.getMemberClass(),
+                    clientId.getMemberCode());
         }
     }
 

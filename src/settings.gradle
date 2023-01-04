@@ -15,6 +15,8 @@ include "serverconf"
 include "monitoring-conf"
 include "common-op-monitoring"
 include "common-rest-api"
+include 'common-management-request'
+include 'common-domain'
 
 // Main projects
 include "proxy"
@@ -43,7 +45,15 @@ include "centralserver:admin-service:infra-jpa"
 include 'centralserver:admin-service:globalconf-generator'
 include "centralserver:admin-service:ui-system-test"
 include "centralserver:admin-service:int-test"
+include 'centralserver:admin-service:api-client'
+
 include "centralserver:management-service"
+include 'centralserver:management-service:application'
+include 'centralserver:management-service:core'
+include 'centralserver:management-service:infra-api-soap'
+include 'centralserver:management-service:core-api'
+ include 'centralserver:management-service:int-test'
+
 include "centralserver:registration-service"
 
 // Utils

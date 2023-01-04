@@ -15,7 +15,7 @@ Description: Monitoring client configuration for X-Road central
 Package: xroad-centralserver
 Conflicts: xroad-securityserver, xtee55-center
 Architecture: all
-Depends: xroad-center (=${binary:Version}), xroad-centralserver-monitoring (=${binary:Version}), xroad-center-registration-service (=${binary:Version})
+Depends: xroad-center (=${binary:Version}), xroad-centralserver-monitoring (=${binary:Version}), xroad-center-registration-service (=${binary:Version}), xroad-center-management-service (=${binary:Version})
 Description: X-Road central server
  This is meta-package of X-Road central server.
 
@@ -202,3 +202,11 @@ Pre-depends: xroad-base (=${binary:Version})
 Recommends: xroad-center (=${binary:Version})
 Description: X-Road Central Server Registration Service
  X-Road Central Server registration service component
+
+Package: xroad-center-management-service
+Architecture: all
+Depends: ${misc:Depends}, xroad-confclient (=${binary:Version})
+Pre-depends: xroad-base (=${binary:Version})
+Recommends: xroad-center (=${binary:Version})
+Description: X-Road Central Server Management Service
+ X-Road Central Server management service component

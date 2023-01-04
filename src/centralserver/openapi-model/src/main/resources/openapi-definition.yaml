@@ -5009,7 +5009,8 @@ components:
       type: object
       properties:
         clientId:
-          $ref: '#/components/schemas/ClientId'
+          type: string
+          description: Encoded Client ID
       required:
         - clientId
     ClientDeletionRequest:
@@ -5018,7 +5019,8 @@ components:
       type: object
       properties:
         clientId:
-          $ref: '#/components/schemas/ClientId'
+          type: string
+          description: Encoded Client ID
       required:
         - clientId
     OwnerChangeRequest:
@@ -5027,7 +5029,8 @@ components:
       type: object
       properties:
         clientId:
-          $ref: '#/components/schemas/ClientId'
+          type: string
+          description: Encoded Client ID
       required:
         - clientId
   securitySchemes:

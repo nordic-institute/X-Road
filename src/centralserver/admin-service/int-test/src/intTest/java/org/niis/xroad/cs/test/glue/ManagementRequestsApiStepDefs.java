@@ -30,11 +30,9 @@ package org.niis.xroad.cs.test.glue;
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequestDto;
-import org.niis.xroad.centralserver.openapi.model.ClientIdDto;
 import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
 import org.niis.xroad.centralserver.openapi.model.OwnerChangeRequestDto;
-import org.niis.xroad.centralserver.openapi.model.XRoadIdDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +92,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         managementRequest.setType(CLIENT_REGISTRATION_REQUEST);
         managementRequest.setOrigin(SECURITY_SERVER);
         managementRequest.setSecurityServerId(securityServerId);
-        managementRequest.setClientId(toMemberId(memberId));
+        managementRequest.setClientId(memberId);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
@@ -105,25 +103,13 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    private ClientIdDto toMemberId(String clientId) {
-        final String[] idParts = StringUtils.split(clientId, ':');
-
-        ClientIdDto dto = new ClientIdDto();
-        dto.setType(XRoadIdDto.TypeEnum.MEMBER);
-        dto.setInstanceId(idParts[0]);
-        dto.memberClass(idParts[1]);
-        dto.setMemberCode(idParts[2]);
-
-        return dto;
-    }
-
     @Step("owner of security server {string} can be changed to {string}")
     public void ownedOfSecurityServerCanBeSetToMember(String securityServerId, String memberId) {
         final OwnerChangeRequestDto managementRequest = new OwnerChangeRequestDto();
         managementRequest.setType(OWNER_CHANGE_REQUEST);
         managementRequest.setOrigin(SECURITY_SERVER);
         managementRequest.setSecurityServerId(securityServerId);
-        managementRequest.setClientId(toMemberId(memberId));
+        managementRequest.setClientId(memberId);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();

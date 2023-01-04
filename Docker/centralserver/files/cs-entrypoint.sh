@@ -69,6 +69,7 @@ END
 EOF
   pg_ctlcluster 14 main stop
   crudini --set /etc/xroad/conf.d/local.ini registration-service api-token "$TOKEN"
+  crudini --set /etc/xroad/conf.d/local.ini management-service api-token "$TOKEN"
 fi
 
 log "Making sure that token pin policy is enforced by default"

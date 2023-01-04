@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -39,9 +39,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.centralserver.registrationservice.service.AdminApiService;
-import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthCertRegRequest;
-import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthRegRequestBuilder;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestGlobalConf;
+import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
+import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -109,18 +109,18 @@ public class RegistrationRequestControllerTest {
                 TestCertUtil.getOcspSigner().key,
                 CertificateStatus.GOOD);
 
-        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), serverId.getOwner());
+        var builder = new TestManagementRequestBuilder(serverId.getOwner(), serverId.getOwner());
         var req = builder.buildAuthCertRegRequest(serverId, "ss1.example.org", authCert);
 
-        var envelope = new TestAuthCertRegRequest(authCert,
+        var envelope = new TestAuthRegTypeRequest(authCert,
                 ownerCert.getEncoded(),
                 ownerOcsp.getEncoded(),
                 req,
                 ownerKeyPair.getPrivate(),
                 ownerKeyPair.getPrivate());
 
-        var is = envelope.getRequestContent();
-        var result = controller.register(envelope.getRequestContentType(), is);
+        var payload = envelope.createPayload();
+        var result = controller.register(payload.getContentType(), payload.getPayloadAsStream());
 
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "InvalidSignatureValue");
@@ -137,18 +137,18 @@ public class RegistrationRequestControllerTest {
                 TestCertUtil.getOcspSigner().key,
                 CertificateStatus.GOOD);
 
-        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), serverId.getOwner());
+        var builder = new TestManagementRequestBuilder(serverId.getOwner(), serverId.getOwner());
         var req = builder.buildAuthCertRegRequest(serverId, "ss1.example.org", authCert);
 
-        var envelope = new TestAuthCertRegRequest(authCert,
+        var envelope = new TestAuthRegTypeRequest(authCert,
                 ownerCert.getEncoded(),
                 ownerOcsp.getEncoded(),
                 req,
                 authKeyPair.getPrivate(),
                 authKeyPair.getPrivate());
 
-        var is = envelope.getRequestContent();
-        var result = controller.register(envelope.getRequestContentType(), is);
+        var payload = envelope.createPayload();
+        var result = controller.register(payload.getContentType(), payload.getPayloadAsStream());
 
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "InvalidSignatureValue");
@@ -165,18 +165,18 @@ public class RegistrationRequestControllerTest {
                 TestCertUtil.getOcspSigner().key,
                 new RevokedStatus(Date.from(Instant.now().minusSeconds(3600)), CRLReason.unspecified));
 
-        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), serverId.getOwner());
+        var builder = new TestManagementRequestBuilder(serverId.getOwner(), serverId.getOwner());
         var req = builder.buildAuthCertRegRequest(serverId, "ss1.example.org", authCert);
 
-        var envelope = new TestAuthCertRegRequest(authCert,
+        var envelope = new TestAuthRegTypeRequest(authCert,
                 ownerCert.getEncoded(),
                 ownerOcsp.getEncoded(),
                 req,
                 authKeyPair.getPrivate(),
                 authKeyPair.getPrivate());
 
-        var is = envelope.getRequestContent();
-        var result = controller.register(envelope.getRequestContentType(), is);
+        var payload = envelope.createPayload();
+        var result = controller.register(payload.getContentType(), payload.getPayloadAsStream());
 
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "CertValidation");
@@ -193,18 +193,18 @@ public class RegistrationRequestControllerTest {
                 TestCertUtil.getOcspSigner().key,
                 CertificateStatus.GOOD);
 
-        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), GlobalConf.getManagementRequestService());
+        var builder = new TestManagementRequestBuilder(serverId.getOwner(), GlobalConf.getManagementRequestService());
         var req = builder.buildAuthCertRegRequest(serverId, "ss1.example.org", new byte[authCert.length]);
 
-        var envelope = new TestAuthCertRegRequest(authCert,
+        var envelope = new TestAuthRegTypeRequest(authCert,
                 ownerCert.getEncoded(),
                 ownerOcsp.getEncoded(),
                 req,
                 authKeyPair.getPrivate(),
                 ownerKeyPair.getPrivate());
 
-        var is = envelope.getRequestContent();
-        var result = controller.register(envelope.getRequestContentType(), is);
+        var payload = envelope.createPayload();
+        var result = controller.register(payload.getContentType(), payload.getPayloadAsStream());
 
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "CertValidation");
@@ -256,18 +256,18 @@ public class RegistrationRequestControllerTest {
                 TestCertUtil.getOcspSigner().key,
                 CertificateStatus.GOOD);
 
-        var builder = new TestAuthRegRequestBuilder(sid.getOwner(), GlobalConf.getManagementRequestService());
+        var builder = new TestManagementRequestBuilder(sid.getOwner(), GlobalConf.getManagementRequestService());
         var req = builder.buildAuthCertRegRequest(sid, address, authCert);
 
-        var envelope = new TestAuthCertRegRequest(authCert,
+        var envelope = new TestAuthRegTypeRequest(authCert,
                 ownerCert.getEncoded(),
                 ownerOcsp.getEncoded(),
                 req,
                 authKeyPair.getPrivate(),
                 ownerKeyPair.getPrivate());
 
-        var is = envelope.getRequestContent();
-        return controller.register(envelope.getRequestContentType(), is);
+        var payload = envelope.createPayload();
+        return controller.register(payload.getContentType(), payload.getPayloadAsStream());
     }
 
     private ResponseEntity<String> registerWithInvalidCerts(SecurityServerId.Conf sid)
@@ -276,18 +276,18 @@ public class RegistrationRequestControllerTest {
         var mockData = new byte[1024];
         new Random().nextBytes(mockData);
 
-        var builder = new TestAuthRegRequestBuilder(sid.getOwner(), GlobalConf.getManagementRequestService());
+        var builder = new TestManagementRequestBuilder(sid.getOwner(), GlobalConf.getManagementRequestService());
         var req = builder.buildAuthCertRegRequest(sid, "ss1.example.org", mockData);
 
-        var envelope = new TestAuthCertRegRequest(mockData,
+        var envelope = new TestAuthRegTypeRequest(mockData,
                 mockData,
                 mockData,
                 req,
                 authKeyPair.getPrivate(),
                 ownerKeyPair.getPrivate());
 
-        var is = envelope.getRequestContent();
-        return controller.register(envelope.getRequestContentType(), is);
+        var payload = envelope.createPayload();
+        return controller.register(payload.getContentType(), payload.getPayloadAsStream());
     }
 
     private static void assertFault(String message, String code) throws SOAPException, IOException {

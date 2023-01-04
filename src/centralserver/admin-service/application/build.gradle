@@ -43,13 +43,6 @@ bootRun {
     }
 }
 
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
-}
-
 task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
     from configurations.dist
     into "${buildDir}/admin-service/ui/public"

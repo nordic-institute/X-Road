@@ -28,8 +28,8 @@ package org.niis.xroad.cs.admin.core.entity;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;

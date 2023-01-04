@@ -1,0 +1,18 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+
+dependencies {
+    implementation project(':common-util')
+    implementation project(':serverconf')
+
+    implementation("org.springframework:spring-web")
+    implementation("org.springframework:spring-context")
+}
+
+bootJar {
+    enabled = false
+}

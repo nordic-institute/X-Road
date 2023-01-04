@@ -15,7 +15,7 @@ plugins {
     id 'jacoco'
     id 'java'
     id 'idea'
-    id "io.spring.dependency-management" version "1.0.14.RELEASE" apply false
+    id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
     id 'org.springframework.boot' version "${springBootVersion}" apply false
     //id "com.dorongold.task-tree" version "2.1.0"
 }

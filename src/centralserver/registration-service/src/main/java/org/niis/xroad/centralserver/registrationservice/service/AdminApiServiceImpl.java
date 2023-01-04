@@ -30,83 +30,19 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContexts;
 import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequestDto;
-import org.niis.xroad.centralserver.openapi.model.ErrorInfoDto;
-import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestTypeDto;
-import org.niis.xroad.centralserver.registrationservice.config.RegistrationServiceProperties;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.RestTemplate;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 class AdminApiServiceImpl implements AdminApiService {
-
-    public static final String REQUEST_FAILED = "Registration request failed";
-    private final RestTemplate restTemplate;
-    private final ObjectMapper mapper;
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    AdminApiServiceImpl(RegistrationServiceProperties properties, RestTemplateBuilder builder, ObjectMapper mapper) {
-
-        CloseableHttpClient client;
-        try {
-            client = HttpClients.custom()
-                    .setSSLHostnameVerifier(new NoopHostnameVerifier())
-                    .setSSLContext(SSLContexts.custom()
-                            .setProtocol("TLSv1.3")
-                            .loadTrustMaterial(
-                                    properties.getApiTrustStore().toFile(),
-                                    properties.getApiTrustStorePassword().toCharArray())
-                            .build())
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectTimeout(1000)
-                            .setSocketTimeout(5000)
-                            .setConnectionRequestTimeout(10000)
-                            .build())
-                    .disableAutomaticRetries()
-                    .disableCookieManagement()
-                    .disableRedirectHandling()
-                    .setUserAgent("X-Road Registration Service/7")
-                    .build();
-        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException | CertificateException e) {
-            throw new IllegalStateException("Unable to create HTTP clients", e);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Unable to load trust material", e);
-        }
-
-        if (Strings.isNullOrEmpty(properties.getApiToken())) {
-            log.warn("API token not provided");
-        }
-
-        this.mapper = mapper;
-        this.restTemplate = builder
-                .requestFactory(() -> new HttpComponentsClientHttpRequestFactory(client))
-                .rootUri(properties.getApiBaseUrl().toString())
-                .defaultHeader("Authorization", "X-ROAD-APIKEY TOKEN=" + properties.getApiToken())
-                .build();
-    }
+    private final FeignManagementRequestsApi managementRequestsApi;
 
     @Override
     public int addRegistrationRequest(SecurityServerId serverId, String address, byte[] certificate) {
@@ -118,28 +54,12 @@ class AdminApiServiceImpl implements AdminApiService {
         request.setAuthenticationCertificate(certificate);
         request.setSecurityServerId(serverId.asEncodedId());
 
-        try {
-            var result = restTemplate.exchange(
-                    RequestEntity.post("/management-requests").body(request),
-                    ManagementRequestDto.class
-            );
+        var result = managementRequestsApi.addManagementRequest(request);
 
-            if (!result.hasBody()) {
-                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
-            } else {
-                return result.getBody().getId();
-            }
-        } catch (RestClientResponseException e) {
-            var response = e.getResponseBodyAsByteArray();
-            try {
-                var errorInfo = mapper.readValue(response, ErrorInfoDto.class);
-                var detail = errorInfo.getError() != null ? errorInfo.getError().getCode() : REQUEST_FAILED;
-                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e, "%s", detail);
-            } catch (IOException ex) {
-                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, ex, REQUEST_FAILED);
-            }
-        } catch (RestClientException e) {
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e, REQUEST_FAILED);
+        if (!result.hasBody()) {
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
+        } else {
+            return result.getBody().getId();
         }
     }
 }

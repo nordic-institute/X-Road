@@ -30,7 +30,7 @@ import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegis
 import org.niis.xroad.centralserver.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.centralserver.openapi.model.OwnerChangeRequestDto;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;

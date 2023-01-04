@@ -96,7 +96,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
      * @throws DataIntegrityException     if request violates data integrity rules
      */
     public AuthenticationCertificateRegistrationRequest add(AuthenticationCertificateRegistrationRequest request) {
-        final SecurityServerIdEntity serverId = SecurityServerIdEntity.create(request.getSecurityServerId());
+        final SecurityServerIdEntity serverId = identifiers.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final Origin origin = request.getOrigin();
 
         if (CENTER.equals(origin)) {
