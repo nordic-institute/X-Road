@@ -50,10 +50,10 @@ dependencies {
     implementation('javax.validation:validation-api')
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:7.4.0')
 
-    testImplementation "junit:junit:$junitVersion"
     testImplementation project(':common-test')
+    testImplementation(testFixtures(project(":common-management-request")))
+    testImplementation "junit:junit:$junitVersion"
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('com.github.tomakehurst:wiremock-jre8:2.33.1')
-
 }
 
