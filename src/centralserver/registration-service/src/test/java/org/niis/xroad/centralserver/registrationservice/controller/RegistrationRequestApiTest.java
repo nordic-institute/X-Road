@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,7 +34,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -44,9 +43,10 @@ import org.niis.xroad.centralserver.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.centralserver.openapi.model.ErrorInfoDto;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestDto;
 import org.niis.xroad.centralserver.registrationservice.config.RegistrationServiceProperties;
-import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthCertRegRequest;
-import org.niis.xroad.centralserver.registrationservice.testutil.TestAuthRegRequestBuilder;
 import org.niis.xroad.centralserver.registrationservice.testutil.TestGlobalConf;
+import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
+import org.niis.xroad.common.managemenetrequest.test.TestBaseManagementRequest;
+import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
@@ -102,11 +102,10 @@ public class RegistrationRequestApiTest {
         wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
                 .willReturn(WireMock.jsonResponse(response, 202)));
 
-        var req = generateRequest();
-        var content = IOUtils.toByteArray(req.getRequestContent());
+        var payload = generateRequest().createPayload();
         mvc.perform(post(ENDPOINT)
-                        .contentType(req.getRequestContentType())
-                        .content(content))
+                        .contentType(payload.getContentType())
+                        .content(payload.getPayload()))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
                 .andExpect(MockMvcResultMatchers
                         .xpath("//xroad:requestId",
@@ -125,11 +124,10 @@ public class RegistrationRequestApiTest {
         wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
                 .willReturn(WireMock.jsonResponse(response, 409)));
 
-        var req = generateRequest();
-        var content = IOUtils.toByteArray(req.getRequestContent());
+        var payload = generateRequest().createPayload();
         mvc.perform(post(ENDPOINT)
-                        .contentType(req.getRequestContentType())
-                        .content(content))
+                        .contentType(payload.getContentType())
+                        .content(payload.getPayload()))
                 .andExpect(MockMvcResultMatchers.status().is5xxServerError())
                 .andExpect(MockMvcResultMatchers
                         .xpath("//soap:Fault",
@@ -137,7 +135,7 @@ public class RegistrationRequestApiTest {
                         .exists());
     }
 
-    private TestAuthCertRegRequest generateRequest() throws Exception {
+    private TestBaseManagementRequest generateRequest() throws Exception {
         var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(1024);
 
@@ -155,13 +153,13 @@ public class RegistrationRequestApiTest {
                 TestCertUtil.getOcspSigner().key,
                 CertificateStatus.GOOD);
 
-        var builder = new TestAuthRegRequestBuilder(serverId.getOwner(), receiver);
+        var builder = new TestManagementRequestBuilder(serverId.getOwner(), receiver);
         var req = builder.buildAuthCertRegRequest(
                 serverId,
                 "ss1.example.org",
                 authCert);
 
-        return new TestAuthCertRegRequest(authCert,
+        return new TestAuthRegTypeRequest(authCert,
                 ownerCert.getEncoded(),
                 ownerOcsp.getEncoded(),
                 req,

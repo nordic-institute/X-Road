@@ -29,17 +29,20 @@ import com.nortal.test.testcontainers.AbstractTestableSpringBootContainerSetup;
 import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.cs.test.constants.CommonTestData;
 import org.springframework.stereotype.Component;
 import org.testcontainers.images.builder.dockerfile.DockerfileBuilder;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
+    private final MockServerAuxContainer mockServerAuxContainer;
 
     @NotNull
     @Override
@@ -60,9 +63,7 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
 
     @Override
     public void additionalBuilderConfiguration(@NotNull DockerfileBuilder dockerfileBuilder) {
-        dockerfileBuilder.copy(".",".");
-//        dockerfileBuilder.copy("/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
-//                "/etc/xroad/conf.d/centralserver-admin-service-logback.xml");
+        dockerfileBuilder.copy(".", ".");
     }
 
     @NotNull
@@ -71,13 +72,19 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
         return Collections.emptyList();
     }
 
+    @NotNull
+    @Override
+    public Map<String, String> getTargetContainerEnvConfig() {
+        Map<String, String> envConfig = new HashMap<>(super.getTargetContainerEnvConfig());
+        envConfig.put("xroad.management-service.api-base-url", mockServerAuxContainer.getEndpoint());
+        envConfig.put("xroad.management-service.api-token", CommonTestData.API_KEY_TOKEN_WITH_ALL_ROLES);
+        return envConfig;
+    }
+
     @Override
     public void additionalImageFromDockerfileConfiguration(@NotNull ImageFromDockerfile imageFromDockerfile) {
-//        Path csDockerRoot = Paths.get("../container-files/");
-        imageFromDockerfile.withFileFromFile(".", Paths.get("src/intTest/resources/container-files/").toFile());
-        /*imageFromDockerfile.withFileFromClasspath(
-                "/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
-                "container-files/etc/xroad/conf.d/centralserver-admin-service-logback.xml");*/
+        var filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
+        imageFromDockerfile.withFileFromFile(".", filesToAdd);
     }
 
     @Override

@@ -13,8 +13,7 @@ test-automation:
   cucumber:
     execution:
       parallel:
-        enabled: true
-        executor-count: 3
+        enabled: false
     glue-append: "org.niis.xroad.cs.test.glue"
     filter:
       tags: "not @Skip"

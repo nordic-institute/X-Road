@@ -72,7 +72,8 @@ public final class ManagementRequestVerifier {
         private final AuthCertDeletionRequestType authCertDeletionRequestType;
         private final ClientRequestType clientRequest;
 
-        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, AuthCertRegRequestType authCertRegRequest) {
+        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType,
+                      AuthCertRegRequestType authCertRegRequest) {
             this.soapMessage = soapMessage;
             this.requestType = requestType;
             this.authCertRegRequest = authCertRegRequest;
@@ -80,7 +81,8 @@ public final class ManagementRequestVerifier {
             this.clientRequest = null;
         }
 
-        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, AuthCertDeletionRequestType authCertDeletionRequestType) {
+        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType,
+                      AuthCertDeletionRequestType authCertDeletionRequestType) {
             this.soapMessage = soapMessage;
             this.requestType = requestType;
             this.authCertRegRequest = null;
@@ -193,7 +195,7 @@ public final class ManagementRequestVerifier {
             if (managementRequestDecoderCallback != null) {
                 managementRequestDecoderCallback.attachment(content, additionalHeaders);
             } else {
-                log.warn("attachment was called but decoder callback is not initialized.");
+                log.error("attachment was called but decoder callback is not initialized.");
             }
         }
 
@@ -202,7 +204,7 @@ public final class ManagementRequestVerifier {
             if (managementRequestDecoderCallback != null) {
                 managementRequestDecoderCallback.onCompleted();
             } else {
-                log.warn("OnCompleted was called but decoder callback is not initialized.");
+                log.error("OnCompleted was called but decoder callback is not initialized.");
             }
         }
 

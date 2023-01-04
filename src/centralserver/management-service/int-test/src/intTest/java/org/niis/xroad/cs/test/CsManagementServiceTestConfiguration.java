@@ -32,16 +32,18 @@ import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.hc5.ApacheHttp5Client;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.mockserver.client.MockServerClient;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
+import org.niis.xroad.cs.test.container.MockServerAuxContainer;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration
 @Import(FeignClientsConfiguration.class)
 public class CsManagementServiceTestConfiguration {
-
 
     @Bean
     public FeignManagementRequestsApi feignManagementRequestsApi(Decoder decoder,
@@ -51,11 +53,18 @@ public class CsManagementServiceTestConfiguration {
                 .client(new ApacheHttp5Client(HttpClients.createDefault()))
                 .encoder(new Encoder.Default())
                 .decoder(decoder)
-                .requestInterceptor(requestTemplate -> {
-                    requestTemplate.target(String.format("http://%s:%s", applicationInfoProvider.getHost(), applicationInfoProvider.getPort()));
-                })
+                .requestInterceptor(requestTemplate -> requestTemplate.target(String.format("http://%s:%s",
+                        applicationInfoProvider.getHost(),
+                        applicationInfoProvider.getPort())))
                 .contract(contract)
                 .target(FeignManagementRequestsApi.class, "http://localhost");
+    }
+
+    @Bean
+    @Lazy
+    public MockServerClient mockServerClient(final MockServerAuxContainer mockServerAuxContainer) {
+        return new MockServerClient(mockServerAuxContainer.getTestContainer().getHost(),
+                mockServerAuxContainer.getTestContainer().getServerPort());
     }
 
 }

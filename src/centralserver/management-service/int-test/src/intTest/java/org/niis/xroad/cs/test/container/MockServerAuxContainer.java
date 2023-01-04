@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,26 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.repository;
 
-import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
+package org.niis.xroad.cs.test.container;
 
-public interface FindOrCreateAwareRepository<ENTITY, ID> extends GenericRepository<ENTITY, ID> {
+import com.nortal.test.testcontainers.AbstractAuxiliaryContainer;
+import org.jetbrains.annotations.NotNull;
+import org.mockserver.client.MockServerClient;
+import org.springframework.stereotype.Component;
+import org.testcontainers.utility.DockerImageName;
 
-    /**
-     * Return or create an equivalent model from the repository.
-     * <p>
-     * todo: this should use findOne (old data model does not guarantee unique identifiers)
-     */
-    ENTITY findOrCreate(ENTITY model);
+@Component
+public class MockServerAuxContainer extends AbstractAuxiliaryContainer<org.testcontainers.containers.MockServerContainer> {
 
-    /**
-     * Create an equivalent model to the repository.
-     *
-     * @param model        the model to create
-     * @param errorMessage the error message to use if the model already exists
-     * @return a persisted model
-     */
-    ENTITY create(ENTITY model, ErrorMessage errorMessage);
+    private static final String DOCKER_IMAGE = "mockserver/mockserver";
+    private static final String NETWORK_ALIAS = "mock-server";
+
+    @NotNull
+    @Override
+    public org.testcontainers.containers.MockServerContainer configure() {
+        final DockerImageName mockserverImage = DockerImageName
+                .parse(DOCKER_IMAGE)
+                .withTag("mockserver-" + MockServerClient.class.getPackage().getImplementationVersion());
+
+        return new org.testcontainers.containers.MockServerContainer(mockserverImage)
+                .withNetworkAliases(NETWORK_ALIAS);
+    }
+
+    @NotNull
+    @Override
+    public String getConfigurationKey() {
+        return "mock-server";
+    }
+
+    public String getEndpoint() {
+        return "http://" + NETWORK_ALIAS + ":" + org.testcontainers.containers.MockServerContainer.PORT;
+    }
 
 }

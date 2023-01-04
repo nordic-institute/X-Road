@@ -32,8 +32,12 @@ import ee.ria.xroad.common.message.ProtocolVersion;
 import ee.ria.xroad.common.message.SoapBuilder;
 import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
+import ee.ria.xroad.common.request.ClientRequestType;
 import ee.ria.xroad.common.request.ObjectFactory;
+
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
@@ -41,25 +45,23 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
+
 import java.util.UUID;
 
 @Slf4j
-public class TestAuthRegRequestBuilder {
+public class TestManagementRequestBuilder {
     private static final ObjectFactory FACTORY = new ObjectFactory();
     private static final JAXBContext JAXB_CTX = initJaxbContext();
 
     private final ClientId sender;
     private final ClientId receiver;
 
-    public TestAuthRegRequestBuilder(ClientId sender, ClientId receiver) {
+    public TestManagementRequestBuilder(ClientId sender, ClientId receiver) {
         this.sender = sender;
         this.receiver = receiver;
     }
 
-    // -- Public API methods --------------------------------------------------
-
-    public SoapMessageImpl buildAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
-            throws Exception {
+    public SoapMessageImpl buildAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert) {
         log.debug("buildAuthCertRegRequest(server: {}, address: {})", securityServer, address);
 
         AuthCertRegRequestType request = FACTORY.createAuthCertRegRequestType();
@@ -70,9 +72,40 @@ public class TestAuthRegRequestBuilder {
         return buildMessage(element(ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST, AuthCertRegRequestType.class, request));
     }
 
-    // -- Private helper methods ----------------------------------------------
 
-    SoapMessageImpl buildMessage(final JAXBElement<?> bodyJaxbElement) throws Exception {
+    public SoapMessageImpl buildAuthCertDeletionRequest(SecurityServerId.Conf securityServer, byte[] authCert) {
+        AuthCertDeletionRequestType request = FACTORY.createAuthCertDeletionRequestType();
+        request.setServer(securityServer);
+        request.setAuthCert(authCert);
+
+        return buildMessage(element(ManagementRequestType.AUTH_CERT_DELETION_REQUEST, AuthCertDeletionRequestType.class, request));
+    }
+
+    public SoapMessageImpl buildClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) {
+        return buildGenericClientRequestType(ManagementRequestType.CLIENT_REGISTRATION_REQUEST, securityServer, clientId);
+    }
+
+    public SoapMessageImpl buildOwnerChangeRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) {
+        return buildGenericClientRequestType(ManagementRequestType.OWNER_CHANGE_REQUEST, securityServer, clientId);
+    }
+
+    public SoapMessageImpl buildClientDeletionRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) {
+        return buildGenericClientRequestType(ManagementRequestType.CLIENT_DELETION_REQUEST, securityServer, clientId);
+    }
+
+    private SoapMessageImpl buildGenericClientRequestType(ManagementRequestType type, SecurityServerId.Conf securityServer,
+                                                          ClientId.Conf clientId) {
+        log.debug("buildClientRegRequest(server: {}, clientId: {})", securityServer, clientId);
+
+        ClientRequestType request = FACTORY.createClientRequestType();
+        request.setServer(securityServer);
+        request.setClient(clientId);
+
+        return buildMessage(element(type, ClientRequestType.class, request));
+    }
+
+    @SneakyThrows
+    SoapMessageImpl buildMessage(final JAXBElement<?> bodyJaxbElement) {
         String serviceCode = bodyJaxbElement.getName().getLocalPart();
         ServiceId.Conf service = ServiceId.Conf.create(receiver, serviceCode);
 

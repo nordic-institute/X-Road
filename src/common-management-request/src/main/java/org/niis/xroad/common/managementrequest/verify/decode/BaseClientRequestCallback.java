@@ -85,7 +85,7 @@ public abstract class BaseClientRequestCallback implements ManagementRequestDeco
 
             clientCertOcspBytes = IOUtils.toByteArray(content);
         } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Unexpected content in multipart");
+            throw new CodedException(X_INTERNAL_ERROR, "Unexpected content in multipart while reading request of type %s", requestType);
         }
     }
 
@@ -99,8 +99,7 @@ public abstract class BaseClientRequestCallback implements ManagementRequestDeco
             clientRequestType = ManagementRequestParser.parseRequest(rootCallback.getSoapMessage(), requestType.getServiceCode());
             verifyClientRequestTypeRequest();
         } catch (Exception e) {
-            log.error("Failed to verify owner change request", e);
-
+            log.error("Failed to verify management request of type {}", requestType, e);
             throw translateException(e);
         }
     }

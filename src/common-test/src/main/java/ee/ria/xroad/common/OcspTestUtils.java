@@ -27,6 +27,7 @@ package ee.ria.xroad.common;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import lombok.SneakyThrows;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.BasicOCSPRespBuilder;
@@ -59,10 +60,11 @@ public final class OcspTestUtils {
      * @return OCSPResp
      * @throws Exception in case of any errors
      */
+    @SneakyThrows
     public static OCSPResp createOCSPResponse(X509Certificate subject,
             X509Certificate issuer,
             X509Certificate signer, PrivateKey signerKey,
-            CertificateStatus certStatus) throws Exception {
+            CertificateStatus certStatus) {
         return createOCSPResponse(subject, issuer, signer, signerKey,
                 certStatus, null, null);
     }

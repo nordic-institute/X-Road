@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,66 +24,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.registrationservice.testutil;
+package org.niis.xroad.common.managemenetrequest.test;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 
-import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.PrivateKey;
-import java.security.Signature;
 
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
-import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 
-@Slf4j
-public class TestAuthCertRegRequest {
-
+public class TestAuthRegTypeRequest extends TestBaseManagementRequest {
     private final byte[] authCert;
     private final PrivateKey ownerKey;
     private final PrivateKey authKey;
     private final byte[] ownerCert;
     private final byte[] ownerCertOcsp;
 
-    private final byte[] dataToSign;
-
-    private MultiPartOutputStream multipart;
-
-    public TestAuthCertRegRequest(byte[] authCert, byte[] ownerCert, byte[] ownerCertOcsp, SoapMessageImpl request,
-            PrivateKey authKey, PrivateKey ownerKey) {
+    public TestAuthRegTypeRequest(byte[] authCert, byte[] ownerCert, byte[] ownerCertOcsp, SoapMessageImpl request,
+                                  PrivateKey authKey, PrivateKey ownerKey) {
+        super(request.getBytes());
         this.authCert = authCert;
-        this.dataToSign = request.getBytes();
+
         this.ownerCert = ownerCert;
         this.ownerCertOcsp = ownerCertOcsp;
         this.ownerKey = ownerKey;
         this.authKey = authKey;
     }
 
-    public String getRequestContentType() {
-        return mpRelatedContentType(multipart.getBoundary(), MimeTypes.BINARY);
+    @Override
+    protected void writeMultipart(MultiPartOutputStream multipart) throws Exception {
+        writeSignatures(multipart);
+        writeCerts(multipart);
     }
 
-    public InputStream getRequestContent() throws Exception {
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        multipart = new MultiPartOutputStream(out);
-
-        writeSoap();
-        writeSignatures();
-        writeCerts();
-
-        multipart.close();
-        return new ByteArrayInputStream(out.toByteArray());
-    }
-
-    private void writeCerts() throws Exception {
+    private void writeCerts(MultiPartOutputStream multipart) throws Exception {
         // Write authentication certificate
         multipart.startPart(MimeTypes.BINARY);
         multipart.write(authCert);
@@ -94,27 +72,15 @@ public class TestAuthCertRegRequest {
         multipart.write(ownerCertOcsp);
     }
 
-    private void writeSignatures() throws Exception {
+    private void writeSignatures(MultiPartOutputStream multipart) throws Exception {
         String signAlgoId = CryptoUtils.SHA512WITHRSA_ID;
         String[] authSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + signAlgoId};
         String[] ownerSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + signAlgoId};
 
         multipart.startPart(MimeTypes.BINARY, authSignaturePartHeaders);
-        multipart.write(createSignature(authKey, signAlgoId, dataToSign));
+        multipart.write(createSignature(authKey, signAlgoId));
 
         multipart.startPart(MimeTypes.BINARY, ownerSignaturePartHeaders);
-        multipart.write(createSignature(ownerKey, signAlgoId, dataToSign));
-    }
-
-    private void writeSoap() throws IOException {
-        multipart.startPart(MimeTypes.TEXT_XML_UTF8);
-        multipart.write(dataToSign);
-    }
-
-    private static byte[] createSignature(PrivateKey key, String signAlgoId, byte[] data) throws Exception {
-        var sig = Signature.getInstance(signAlgoId);
-        sig.initSign(key);
-        sig.update(data);
-        return sig.sign();
+        multipart.write(createSignature(ownerKey, signAlgoId));
     }
 }

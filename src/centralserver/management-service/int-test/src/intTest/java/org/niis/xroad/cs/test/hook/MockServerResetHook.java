@@ -24,26 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.repository;
+package org.niis.xroad.cs.test.hook;
 
-import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
+import com.nortal.test.core.services.CucumberScenarioProvider;
+import com.nortal.test.core.services.hooks.AfterScenarioHook;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.mockserver.client.MockServerClient;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.stereotype.Component;
 
-public interface FindOrCreateAwareRepository<ENTITY, ID> extends GenericRepository<ENTITY, ID> {
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class MockServerResetHook implements AfterScenarioHook {
+    private final ObjectFactory<MockServerClient> mockServerClient;
 
-    /**
-     * Return or create an equivalent model from the repository.
-     * <p>
-     * todo: this should use findOne (old data model does not guarantee unique identifiers)
-     */
-    ENTITY findOrCreate(ENTITY model);
-
-    /**
-     * Create an equivalent model to the repository.
-     *
-     * @param model        the model to create
-     * @param errorMessage the error message to use if the model already exists
-     * @return a persisted model
-     */
-    ENTITY create(ENTITY model, ErrorMessage errorMessage);
-
+    @Override
+    public void after(CucumberScenarioProvider cucumberScenarioProvider) {
+        // if needed we can clear per scenario.
+        mockServerClient.getObject().reset();
+    }
 }

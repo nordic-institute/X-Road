@@ -27,8 +27,6 @@
 package org.niis.xroad.centralserver.restapi.service.managementrequest;
 
 
-import ee.ria.xroad.common.identifier.ClientId;
-
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;

@@ -25,28 +25,55 @@
  */
 package org.niis.xroad.cs.test.glue;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import com.nortal.test.asserts.Assertion;
+import com.nortal.test.asserts.AssertionOperation;
 import com.nortal.test.asserts.ValidationHelper;
 import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
+import feign.FeignException;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.mockserver.client.MockServerClient;
+import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestPayload;
+import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.xml.SimpleNamespaceContext;
+import org.xml.sax.InputSource;
 
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Optional;
 
 /**
  * Base class for all step definitions. Provides convenience methods and most commonly used beans.
  */
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
+@Slf4j
+@SuppressWarnings({"SpringJavaAutowiredMembersInspection", "checkstyle:MagicNumber"})
 public abstract class BaseStepDefs {
+    protected static MessageFactory messageFactory;
+
     @Autowired
     private ScenarioContext scenarioContext;
     @Autowired
     protected CucumberScenarioProvider cucumberScenarioProvider;
     @Autowired
     protected ValidationService validationService;
+    @Autowired
+    protected MockServerClient mockServerClient;
+    @Autowired
+    private FeignManagementRequestsApi managementRequestsApi;
 
     protected Assertion equalsStatusCodeAssertion(HttpStatus expected) {
         return new Assertion.Builder()
@@ -67,6 +94,61 @@ public abstract class BaseStepDefs {
 
     protected ValidationHelper validate(Object context) {
         return new ValidationHelper(validationService, context, "Validate response");
+    }
+
+    protected Assertion xpathExists(String body, String expression) {
+        return new Assertion.Builder()
+                .expression("=")
+                .operation(AssertionOperation.NOT_NULL)
+                .actualValue(evalXpath(body, expression))
+                .message("XPATH: " + expression)
+                .build();
+    }
+
+    protected Assertion xpath(String body, String expression, String expectedValue) {
+        return new Assertion.Builder()
+                .expression("=")
+                .expectedValue(expectedValue)
+                .actualValue(evalXpath(body, expression))
+                .message("XPATH: " + expression)
+                .build();
+    }
+
+    @SneakyThrows
+    private String evalXpath(String body, String xpath) {
+        InputStream is = new ByteArrayInputStream(body.getBytes());
+
+        XPath xpathEvaluator = XPathFactory.newInstance().newXPath();
+
+        var namespace = new SimpleNamespaceContext();
+        namespace.bindNamespaceUri("soap", "http://schemas.xmlsoap.org/soap/envelope/");
+        namespace.bindNamespaceUri("xroad", "http://x-road.eu/xsd/xroad.xsd");
+        xpathEvaluator.setNamespaceContext(namespace);
+
+        InputSource inputSource = new InputSource(is);
+        return xpathEvaluator.evaluate(xpath, inputSource);
+    }
+
+    protected void executeRequest(TestManagementRequestPayload payload) {
+        ResponseEntity<String> responseEntity = null;
+        try {
+            responseEntity = managementRequestsApi.addManagementRequest(payload.getContentType(), payload.getPayload());
+        } catch (FeignException e) {
+            responseEntity = ResponseEntity.status(e.status()).body(e.contentUTF8());
+        } catch (Exception e) {
+            log.error("Unexpected feign client failure.", e);
+        }
+        putStepData(StepDataKey.RESPONSE, responseEntity);
+    }
+
+    protected ClientId.Conf resolveClientIdFromEncodedStr(String clientIdStr) {
+        String[] clientIdSplit = clientIdStr.split(":");
+        return ClientId.Conf.create(clientIdSplit[0], clientIdSplit[1], clientIdSplit[2]);
+    }
+
+    protected SecurityServerId.Conf resolveServerIdFromEncodedStr(String serverIdStr) {
+        String[] serverIdSplit = serverIdStr.split(":");
+        return SecurityServerId.Conf.create(serverIdSplit[0], serverIdSplit[1], serverIdSplit[2], serverIdSplit[3]);
     }
 
     /**
@@ -110,5 +192,14 @@ public abstract class BaseStepDefs {
         CERTIFICATION_SERVICE_ID,
         OCSP_RESPONDER_ID,
         NEW_OCSP_RESPONDER_URL
+    }
+
+
+    static {
+        try {
+            messageFactory = MessageFactory.newInstance();
+        } catch (SOAPException e) {
+            log.error("Unexpected error", e);
+        }
     }
 }

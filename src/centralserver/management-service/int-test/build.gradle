@@ -1,6 +1,7 @@
 
 dependencies {
     intTestImplementation project(':common-test')
+    intTestImplementation project(":centralserver:admin-service:api-client")
     intTestImplementation(testFixtures(project(":common-management-request")))
     intTestImplementation ("io.github.openfeign:feign-hc5:$openFeignVersion")
 
