@@ -32,7 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.centralserver.openapi.model.PossibleActionDto;
+import org.niis.xroad.centralserver.openapi.model.PossibleTokenActionDto;
 import org.niis.xroad.centralserver.openapi.model.TokenDto;
 import org.niis.xroad.centralserver.openapi.model.TokenStatusDto;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
@@ -44,8 +44,8 @@ import java.util.EnumSet;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGIN;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGOUT;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
 
 @ExtendWith(MockitoExtension.class)
 class TokenMapperTest {
@@ -67,7 +67,7 @@ class TokenMapperTest {
         assertThat(result.getLoggedIn()).isTrue();
         assertThat(result.getName()).isEqualTo("friendlyName");
         assertThat(result.getPossibleActions())
-                .containsExactlyInAnyOrder(PossibleActionDto.LOGIN, PossibleActionDto.LOGOUT);
+                .containsExactlyInAnyOrder(PossibleTokenActionDto.LOGIN, PossibleTokenActionDto.LOGOUT);
         assertThat(result.getSerialNumber()).isEqualTo("serialNumber");
         assertThat(result.getStatus()).isEqualTo(TokenStatusDto.OK);
 
