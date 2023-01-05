@@ -28,7 +28,6 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.SigningKeysApi;
 import org.niis.xroad.centralserver.openapi.model.ConfigurationSigningKeyAddDto;
 import org.niis.xroad.centralserver.openapi.model.ConfigurationSigningKeyDto;
@@ -45,8 +44,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ACTIVATE_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SIGNING_KEY;
-import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.noContent;
+import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
