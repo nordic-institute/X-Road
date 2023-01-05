@@ -30,32 +30,42 @@ package org.niis.xroad.centralserver.restapi.service;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
-import org.niis.xroad.cs.admin.api.dto.PossibleAction;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
+import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
+import java.util.List;
 
 import static java.util.EnumSet.noneOf;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_ACTION_NOT_POSSIBLE;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.CHANGE_PIN;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.EDIT_FRIENDLY_NAME;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.GENERATE_KEY;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGIN;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGOUT;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.CHANGE_PIN;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.EDIT_FRIENDLY_NAME;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_EXTERNAL_KEY;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_INTERNAL_KEY;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
 
 @Component
 public class TokenActionsResolver {
 
-    public EnumSet<PossibleAction> resolveActions(TokenInfo tokenInfo) {
-        EnumSet<PossibleAction> actions = noneOf(PossibleAction.class);
+    private static final int MAX_KEYS_PER_SOURCE_TYPE = 2;
 
-        if (tokenInfo.isActive() && tokenInfo.getKeyInfo().size() < 2) {
-            actions.add(GENERATE_KEY);
-        }
+    public EnumSet<PossibleTokenAction> resolveActions(TokenInfo tokenInfo, List<ConfigurationSigningKey> keys) {
+        EnumSet<PossibleTokenAction> actions = noneOf(PossibleTokenAction.class);
 
         if (tokenInfo.isActive()) {
             actions.add(LOGOUT);
             actions.add(CHANGE_PIN);
+
+            if (isGenerateKeyAllowedFor(ConfigurationSourceType.EXTERNAL, keys)) {
+                actions.add(GENERATE_EXTERNAL_KEY);
+            }
+
+            if (isGenerateKeyAllowedFor(ConfigurationSourceType.INTERNAL, keys)) {
+                actions.add(GENERATE_INTERNAL_KEY);
+            }
         } else {
             if (tokenInfo.isAvailable()) {
                 actions.add(LOGIN);
@@ -69,9 +79,19 @@ public class TokenActionsResolver {
         return actions;
     }
 
-    public void requireAction(PossibleAction action, TokenInfo tokenInfo) {
-        final EnumSet<PossibleAction> possibleActions = resolveActions(tokenInfo);
+    public void requireAction(PossibleTokenAction action, TokenInfo tokenInfo, List<ConfigurationSigningKey> keys) {
+        requireAction(action, resolveActions(tokenInfo, keys));
+    }
+
+    public void requireAction(PossibleTokenAction action, final EnumSet<PossibleTokenAction> possibleActions) {
         if (!possibleActions.contains(action))
             throw new ValidationFailureException(TOKEN_ACTION_NOT_POSSIBLE);
+    }
+
+    private boolean isGenerateKeyAllowedFor(final ConfigurationSourceType sourceType, final List<ConfigurationSigningKey> configurationSigningKeys) {
+        return configurationSigningKeys.stream()
+                .map(ConfigurationSigningKey::getSourceType)
+                .filter(sourceType::equals)
+                .count() < MAX_KEYS_PER_SOURCE_TYPE;
     }
 }

@@ -28,7 +28,6 @@
 package org.niis.xroad.centralserver.restapi.dto.converter;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.niis.xroad.centralserver.restapi.service.TokenActionsResolver;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
@@ -44,11 +43,5 @@ public abstract class TokenInfoMapper implements GenericUniDirectionalMapper<ee.
 
     @Autowired
     protected TokenActionsResolver tokenActionsResolver;
-
-    @Override
-    @Mapping(target = "possibleActions", expression = "java(tokenActionsResolver.resolveActions(tokenInfo))")
-    @Mapping(target = "configurationSigningKeys",
-            expression = "java(configurationSigningKeysService.findByTokenIdentifier(tokenInfo.getId()))")
-    public abstract TokenInfo toTarget(ee.ria.xroad.signer.protocol.dto.TokenInfo tokenInfo);
 
 }

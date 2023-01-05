@@ -46,6 +46,7 @@ import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureE
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
@@ -65,8 +66,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGIN;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGOUT;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
 
 @ExtendWith(MockitoExtension.class)
 class TokensServiceImplTest {
@@ -76,6 +77,8 @@ class TokensServiceImplTest {
     private static final String TOKEN_SERIAL_NUMBER = "serialNumber";
     private static final String TOKEN_FRIENDLY_NAME = "friendlyName";
 
+    @Mock
+    private ConfigurationSigningKeysService configurationSigningKeysService;
     @Mock
     private AuditDataHelper auditDataHelper;
     @Mock
@@ -106,7 +109,7 @@ class TokensServiceImplTest {
     void getTokensShouldThrowException() throws Exception {
         doThrow(new Exception()).when(signerProxyFacade).getTokens();
 
-        assertThatThrownBy(() ->  tokensService.getTokens())
+        assertThatThrownBy(() -> tokensService.getTokens())
                 .isInstanceOf(TokenException.class)
                 .hasMessage("Error getting tokens");
     }
@@ -203,7 +206,7 @@ class TokensServiceImplTest {
         assertThat(result).isEqualTo(tokenInfo);
         verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);
         verify(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
-        verify(tokenActionsResolver).requireAction(LOGIN, signerTokenInfo);
+        verify(tokenActionsResolver).requireAction(LOGIN, signerTokenInfo, List.of());
 
         assertAuditMessages();
     }
@@ -219,7 +222,7 @@ class TokensServiceImplTest {
         assertThat(result).isEqualTo(tokenInfo);
         verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);
         verify(signerProxyFacade).deactivateToken(TOKEN_ID);
-        verify(tokenActionsResolver).requireAction(LOGOUT, signerTokenInfo);
+        verify(tokenActionsResolver).requireAction(LOGOUT, signerTokenInfo, List.of());
 
         assertAuditMessages();
     }
@@ -276,5 +279,4 @@ class TokensServiceImplTest {
         verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_SERIAL_NUMBER, TOKEN_SERIAL_NUMBER);
         verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, TOKEN_FRIENDLY_NAME);
     }
-
 }

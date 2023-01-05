@@ -31,7 +31,9 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
-import org.niis.xroad.cs.admin.api.dto.PossibleAction;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
+import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -40,10 +42,13 @@ import java.util.Map;
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.CHANGE_PIN;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.GENERATE_KEY;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGIN;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGOUT;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.CHANGE_PIN;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_EXTERNAL_KEY;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_INTERNAL_KEY;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
 
 class TokenActionsResolverTest {
 
@@ -51,30 +56,42 @@ class TokenActionsResolverTest {
 
     @Test
     void resolve() {
-        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(true, true)))
-                .containsExactlyInAnyOrder(GENERATE_KEY, LOGOUT, CHANGE_PIN);
+        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(true, true), List.of()))
+                .containsExactlyInAnyOrder(GENERATE_INTERNAL_KEY, GENERATE_EXTERNAL_KEY, LOGOUT, CHANGE_PIN);
 
-        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(true, false)))
-                .containsExactlyInAnyOrder(GENERATE_KEY, LOGOUT, CHANGE_PIN);
+        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(true, false), List.of()))
+                .containsExactlyInAnyOrder(GENERATE_EXTERNAL_KEY, GENERATE_INTERNAL_KEY, LOGOUT, CHANGE_PIN);
 
-        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(false, true)))
+        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(false, true), List.of()))
                 .containsExactlyInAnyOrder(LOGIN);
 
-        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(false, false)))
+        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(false, false), List.of()))
                 .isEmpty();
+
+        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(true, true), List.of(key(INTERNAL))))
+                .containsExactlyInAnyOrder(GENERATE_INTERNAL_KEY, GENERATE_EXTERNAL_KEY, LOGOUT, CHANGE_PIN);
+
+        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(true, true), List.of(key(INTERNAL), key(INTERNAL))))
+                .containsExactlyInAnyOrder(GENERATE_EXTERNAL_KEY, LOGOUT, CHANGE_PIN);
+
+        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(true, true), List.of(key(EXTERNAL))))
+                .containsExactlyInAnyOrder(GENERATE_INTERNAL_KEY, GENERATE_EXTERNAL_KEY, LOGOUT, CHANGE_PIN);
+
+        assertThat(tokenActionsResolver.resolveActions(createTokenInfo(true, true), List.of(key(EXTERNAL), key(EXTERNAL))))
+                .containsExactlyInAnyOrder(GENERATE_INTERNAL_KEY, LOGOUT, CHANGE_PIN);
     }
 
     @Test
     void requireAction() {
         final TokenInfo tokenInfo = createTokenInfo(true, true);
-        final EnumSet<PossibleAction> possibleActions = tokenActionsResolver.resolveActions(tokenInfo);
+        final EnumSet<PossibleTokenAction> possibleActions = tokenActionsResolver.resolveActions(tokenInfo, List.of());
         possibleActions.forEach(
-                action -> tokenActionsResolver.requireAction(action, tokenInfo)
+                action -> tokenActionsResolver.requireAction(action, tokenInfo, List.of())
         );
 
-        EnumSet<PossibleAction> otherActions = EnumSet.complementOf(possibleActions);
+        EnumSet<PossibleTokenAction> otherActions = EnumSet.complementOf(possibleActions);
         otherActions.forEach(
-                action -> assertThatThrownBy(() -> tokenActionsResolver.requireAction(action, tokenInfo))
+                action -> assertThatThrownBy(() -> tokenActionsResolver.requireAction(action, tokenInfo, List.of()))
                         .isInstanceOf(ValidationFailureException.class)
         );
     }
@@ -86,4 +103,9 @@ class TokenActionsResolverTest {
         );
     }
 
+    private ConfigurationSigningKey key(final ConfigurationSourceType sourceType) {
+        var key = new ConfigurationSigningKey();
+        key.setSourceType(sourceType);
+        return key;
+    }
 }

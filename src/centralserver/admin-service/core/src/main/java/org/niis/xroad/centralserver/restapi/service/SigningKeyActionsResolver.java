@@ -25,28 +25,37 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.api.dto;
+package org.niis.xroad.centralserver.restapi.service;
 
-import lombok.Data;
+import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.dto.PossibleKeyAction;
+import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
-import java.util.List;
 
-@Data
-public class TokenInfo {
+import static java.util.EnumSet.noneOf;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SIGNING_KEY_ACTION_NOT_POSSIBLE;
+import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.ACTIVATE;
+import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.DELETE;
 
-    private String type;
-    private String friendlyName;
-    private String id;
-    private boolean readOnly;
-    private boolean available;
-    private boolean active;
-    private String serialNumber;
-    private String label;
-    private int slotIndex;
-    private TokenStatus status;
-    private EnumSet<PossibleTokenAction> possibleActions;
-    private List<ConfigurationSigningKey> configurationSigningKeys;
+@Component
+public class SigningKeyActionsResolver {
 
+    public EnumSet<PossibleKeyAction> resolveActions(final ConfigurationSigningKey signingKey) {
+        EnumSet<PossibleKeyAction> actions = noneOf(PossibleKeyAction.class);
+
+        if (!signingKey.isActiveSourceSigningKey()) {
+            actions.add(ACTIVATE);
+            actions.add(DELETE);
+        }
+
+        return actions;
+    }
+
+    public void requireAction(final PossibleKeyAction action,
+                              final ConfigurationSigningKey signingKey) {
+        if (!resolveActions(signingKey).contains(action))
+            throw new ValidationFailureException(SIGNING_KEY_ACTION_NOT_POSSIBLE);
+    }
 }

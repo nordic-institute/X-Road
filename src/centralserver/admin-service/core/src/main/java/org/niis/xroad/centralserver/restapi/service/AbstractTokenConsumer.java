@@ -25,35 +25,36 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.centralserver.restapi.service;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-import org.niis.xroad.cs.admin.api.dto.KeyLabel;
-import org.niis.xroad.cs.admin.api.dto.PossibleKeyAction;
+import ee.ria.xroad.common.CodedException;
 
-import java.time.Instant;
-import java.util.List;
+import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.niis.xroad.centralserver.restapi.service.exception.SignerProxyException;
+import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 
-@Data
-@Accessors(chain = true)
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ConfigurationSigningKey {
-    private String keyIdentifier;
-    private byte[] cert;
-    private Instant keyGeneratedAt;
-    private String tokenIdentifier;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SIGNER_PROXY_ERROR;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_NOT_FOUND;
 
-    private ConfigurationSourceType sourceType;
-    private boolean activeSourceSigningKey;
+public abstract class AbstractTokenConsumer {
+    private static final String TOKEN_NOT_FOUND_FAULT_CODE = "Signer.TokenNotFound";
 
-    private Boolean available;
-    private KeyLabel label;
-    private List<PossibleKeyAction> possibleActions = null;
+    abstract protected SignerProxyFacade getSignerProxyFacade();
 
+    protected ee.ria.xroad.signer.protocol.dto.TokenInfo getToken(String tokenId) {
+        try {
+            return getSignerProxyFacade().getToken(tokenId);
+        } catch (CodedException codedException) {
+            if (causedByNotFound(codedException)) {
+                throw new NotFoundException(TOKEN_NOT_FOUND);
+            }
+            throw new SignerProxyException(SIGNER_PROXY_ERROR, codedException, codedException.getFaultCode());
+        } catch (Exception exception) {
+            throw new SignerProxyException(SIGNER_PROXY_ERROR, exception);
+        }
+    }
+
+    private boolean causedByNotFound(CodedException codedException) {
+        return TOKEN_NOT_FOUND_FAULT_CODE.equals(codedException.getFaultCode());
+    }
 }
-
-

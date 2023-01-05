@@ -27,26 +27,7 @@
 
 package org.niis.xroad.cs.admin.api.dto;
 
-import lombok.Data;
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+public enum PossibleAnchorAction {
 
-import java.util.EnumSet;
-import java.util.List;
-
-@Data
-public class TokenInfo {
-
-    private String type;
-    private String friendlyName;
-    private String id;
-    private boolean readOnly;
-    private boolean available;
-    private boolean active;
-    private String serialNumber;
-    private String label;
-    private int slotIndex;
-    private TokenStatus status;
-    private EnumSet<PossibleTokenAction> possibleActions;
-    private List<ConfigurationSigningKey> configurationSigningKeys;
-
+    DOWNLOAD,
 }

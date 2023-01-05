@@ -4052,13 +4052,19 @@ components:
         label:
           $ref: '#/components/schemas/KeyLabel'
         possible_actions:
-          $ref: '#/components/schemas/PossibleActions'
+          description: array containing the possible actions that can be done for this item # potential-common-api
+          items:
+            $ref: '#/components/schemas/PossibleKeyAction'
+          type: array
+        sourceType:
+            $ref: '#/components/schemas/ConfigurationType'
       required:
         - id
         - label
         - created_at
         - active
         - available
+        - possible_actions
       type: object
     KeyLabel:
       properties:
@@ -4327,17 +4333,30 @@ components:
       required:
         - url
       type: object
-    PossibleAction:
-      description: an action to change state or edit anchors, keys or configuration parts # set of values not final or complete
+    PossibleTokenAction:
+      description: an action to change state or edit tokens # set of values not final or complete
       enum:
-        - DELETE
-        - DOWNLOAD
-        - ACTIVATE
         - LOGIN
         - LOGOUT
-        - GENERATE_KEY
+        - GENERATE_INTERNAL_KEY
+        - GENERATE_EXTERNAL_KEY
         - CHANGE_PIN
         - EDIT_FRIENDLY_NAME
+      example: LOGIN
+      format: enum
+      type: string
+    PossibleAnchorAction:
+      description: an action to change state or edit anchors # set of values not final or complete
+      enum:
+        - DOWNLOAD
+      example: LOGIN
+      format: enum
+      type: string
+    PossibleKeyAction:
+      description: an action to change state or edit keys # set of values not final or complete
+      enum:
+        - DELETE
+        - ACTIVATE
       example: DELETE
       format: enum
       type: string
@@ -4345,11 +4364,6 @@ components:
       description: array containing the configuration signing keys
       items:
         $ref: '#/components/schemas/ConfigurationSigningKey'
-      type: array
-    PossibleActions:
-      description: array containing the possible actions that can be done for this item # potential-common-api
-      items:
-        $ref: '#/components/schemas/PossibleAction'
       type: array
     SecurityServer:
       allOf:
@@ -4623,7 +4637,10 @@ components:
           minLength: 1
           type: string
         possible_actions:
-          $ref: '#/components/schemas/PossibleActions'
+          description: array containing the possible actions that can be done for this item # potential-common-api
+          items:
+            $ref: '#/components/schemas/PossibleTokenAction'
+          type: array
         configuration_signing_keys:
           $ref: '#/components/schemas/ConfigurationSigningKeys'
         serial_number:
@@ -4697,7 +4714,10 @@ components:
           minLength: 1
           type: string
         possible_actions:
-          $ref: '#/components/schemas/PossibleActions'
+          description: array containing the possible actions that can be done for this item # potential-common-api
+          items:
+            $ref: '#/components/schemas/PossibleAnchorAction'
+          type: array
       required:
         - hash
         - created_at

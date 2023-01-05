@@ -69,7 +69,7 @@ import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import TokenLogoutDialog from '@/components/tokens/TokenLogoutDialog.vue';
 import TokenLoginDialog from '@/components/tokens/TokenLoginDialog.vue';
-import { PossibleAction, Token } from '@/openapi-types';
+import { PossibleTokenAction, Token } from '@/openapi-types';
 import { mapState } from 'pinia';
 import { userStore } from '@/store/modules/user';
 import { Permissions } from '@/global';
@@ -90,7 +90,7 @@ export default Vue.extend({
       }
       return (
         this.hasPermission(Permissions.ACTIVATE_TOKEN) &&
-        this.token.possible_actions.includes(PossibleAction.LOGIN)
+        this.token.possible_actions.includes(PossibleTokenAction.LOGIN)
       );
     },
     showLogout(): boolean {
@@ -99,7 +99,7 @@ export default Vue.extend({
       }
       return (
         this.hasPermission(Permissions.DEACTIVATE_TOKEN) &&
-        this.token.possible_actions.includes(PossibleAction.LOGOUT)
+        this.token.possible_actions.includes(PossibleTokenAction.LOGOUT)
       );
     },
   },

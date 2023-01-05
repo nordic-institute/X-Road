@@ -31,7 +31,6 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.dto.converter.TokenInfoMapper;
-import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.SignerProxyException;
 import org.niis.xroad.centralserver.restapi.service.exception.TokenException;
 import org.niis.xroad.centralserver.restapi.service.exception.TokenPinFinalTryException;
@@ -40,6 +39,7 @@ import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureE
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
@@ -54,15 +54,13 @@ import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_FINAL_TR
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_LOCKED;
 import static java.lang.Integer.parseInt;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ERROR_GETTING_TOKENS;
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SIGNER_PROXY_ERROR;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_ACTIVATION_FAILED;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_DEACTIVATION_FAILED;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_INCORRECT_PIN_FORMAT;
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_NOT_FOUND;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_PIN_FINAL_TRY;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_PIN_LOCKED;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGIN;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.LOGOUT;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_FRIENDLY_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_SERIAL_NUMBER;
@@ -70,27 +68,34 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_SER
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class TokensServiceImpl implements TokensService {
+public class TokensServiceImpl extends AbstractTokenConsumer implements TokensService {
 
-    private static final String TOKEN_NOT_FOUND_FAULT_CODE = "Signer.TokenNotFound";
+
     private static final String KEY_MIN_PIN_LENGTH = "Min PIN length";
     private static final String KEY_MAX_PIN_LENGTH = "Max PIN length";
-
+    private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final AuditDataHelper auditDataHelper;
     private final SignerProxyFacade signerProxyFacade;
     private final TokenActionsResolver tokenActionsResolver;
-
     private final TokenInfoMapper tokenInfoMapper;
 
     @Override
     public Set<TokenInfo> getTokens() {
         try {
             return signerProxyFacade.getTokens().stream()
-                    .map(tokenInfoMapper::toTarget)
+                    .map(this::enrichToken)
                     .collect(Collectors.toSet());
         } catch (Exception e) {
             throw new TokenException(ERROR_GETTING_TOKENS, e);
         }
+    }
+
+    public TokenInfo enrichToken(final ee.ria.xroad.signer.protocol.dto.TokenInfo source) {
+        var target = tokenInfoMapper.toTarget(source);
+        target.setConfigurationSigningKeys(configurationSigningKeysService.findByTokenIdentifier(source.getId()));
+        target.setPossibleActions(tokenActionsResolver.resolveActions(source, target.getConfigurationSigningKeys()));
+
+        return target;
     }
 
     @Override
@@ -102,7 +107,7 @@ public class TokensServiceImpl implements TokensService {
             throw new TokenPinLockedException(TOKEN_PIN_LOCKED);
         }
 
-        tokenActionsResolver.requireAction(LOGIN, token);
+        tokenActionsResolver.requireAction(LOGIN, token, configurationSigningKeysService.findByTokenIdentifier(token.getId()));
         validatePinMeetsTheTokenRequirements(token, tokenLoginRequest.getPassword());
 
         try {
@@ -126,7 +131,7 @@ public class TokensServiceImpl implements TokensService {
     public TokenInfo logout(String tokenId) {
         final ee.ria.xroad.signer.protocol.dto.TokenInfo token = getToken(tokenId);
         addAuditData(token);
-        tokenActionsResolver.requireAction(LOGOUT, token);
+        tokenActionsResolver.requireAction(LOGOUT, token, configurationSigningKeysService.findByTokenIdentifier(token.getId()));
         try {
             signerProxyFacade.deactivateToken(tokenId);
         } catch (CodedException codedException) {
@@ -157,21 +162,8 @@ public class TokensServiceImpl implements TokensService {
     }
 
     @Override
-    public ee.ria.xroad.signer.protocol.dto.TokenInfo getToken(String tokenId) {
-        try {
-            return signerProxyFacade.getToken(tokenId);
-        } catch (CodedException codedException) {
-            if (causedByNotFound(codedException)) {
-                throw new NotFoundException(TOKEN_NOT_FOUND);
-            }
-            throw new SignerProxyException(SIGNER_PROXY_ERROR, codedException, codedException.getFaultCode());
-        } catch (Exception exception) {
-            throw new SignerProxyException(SIGNER_PROXY_ERROR, exception);
-        }
-    }
-
-    private boolean causedByNotFound(CodedException codedException) {
-        return TOKEN_NOT_FOUND_FAULT_CODE.equals(codedException.getFaultCode());
+    protected SignerProxyFacade getSignerProxyFacade() {
+        return signerProxyFacade;
     }
 
     private boolean isInt(String value) {
@@ -182,5 +174,4 @@ public class TokensServiceImpl implements TokensService {
             return false;
         }
     }
-
 }

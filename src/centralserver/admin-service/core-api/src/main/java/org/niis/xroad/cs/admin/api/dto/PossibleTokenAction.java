@@ -27,15 +27,12 @@
 
 package org.niis.xroad.cs.admin.api.dto;
 
-public enum PossibleAction {
+public enum PossibleTokenAction {
 
-    DELETE,
-    DOWNLOAD,
-    ACTIVATE,
     LOGIN,
     LOGOUT,
-    GENERATE_KEY,
+    GENERATE_INTERNAL_KEY,
+    GENERATE_EXTERNAL_KEY,
     CHANGE_PIN,
     EDIT_FRIENDLY_NAME,
-
 }
