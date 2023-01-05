@@ -152,6 +152,12 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "ui"].contains(it.nam
                     require("$jacksonBomVersion")
                 }
             }
+            add('implementation', 'org.yaml:snakeyaml') {
+                because("Vulnerability fix regarding CVE-2022-25857")
+                version {
+                    require("$snakeyamlVersion")
+                }
+            }
         }
 
         testImplementation 'org.hamcrest:hamcrest:2.2'
