@@ -88,7 +88,8 @@ public class TokenActionsResolver {
             throw new ValidationFailureException(TOKEN_ACTION_NOT_POSSIBLE);
     }
 
-    private boolean isGenerateKeyAllowedFor(final ConfigurationSourceType sourceType, final List<ConfigurationSigningKey> configurationSigningKeys) {
+    private boolean isGenerateKeyAllowedFor(final ConfigurationSourceType sourceType,
+                                            final List<ConfigurationSigningKey> configurationSigningKeys) {
         return configurationSigningKeys.stream()
                 .map(ConfigurationSigningKey::getSourceType)
                 .filter(sourceType::equals)
