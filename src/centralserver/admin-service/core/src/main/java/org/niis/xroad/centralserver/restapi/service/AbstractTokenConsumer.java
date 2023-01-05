@@ -39,7 +39,7 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 public abstract class AbstractTokenConsumer {
     private static final String TOKEN_NOT_FOUND_FAULT_CODE = "Signer.TokenNotFound";
 
-    abstract protected SignerProxyFacade getSignerProxyFacade();
+    protected abstract SignerProxyFacade getSignerProxyFacade();
 
     protected ee.ria.xroad.signer.protocol.dto.TokenInfo getToken(String tokenId) {
         try {
