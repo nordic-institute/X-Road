@@ -43,7 +43,6 @@ import org.niis.xroad.centralserver.restapi.service.exception.SigningKeyExceptio
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.KeyLabel;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
-import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
@@ -53,11 +52,8 @@ import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -74,6 +70,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
@@ -92,12 +89,10 @@ class ConfigurationSigningKeysServiceImplTest {
     private ConfigurationSigningKeyRepository configurationSigningKeyRepository;
     @Mock
     private ConfigurationSourceRepository configurationSourceRepository;
-    @Mock
-    private ObjectProvider<TokensService> tokensServiceProvider;
-    @Mock
-    private TokensService tokensService;
     @Spy
     private TokenActionsResolver tokenActionsResolver;
+    @Spy
+    private SigningKeyActionsResolver signingKeyActionsResolver;
     @Mock
     private ConfigurationSourceEntity configurationSourceEntity;
     @Mock
@@ -125,8 +120,8 @@ class ConfigurationSigningKeysServiceImplTest {
                 .thenReturn(Optional.of(signingKeyEntity));
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
-                .isInstanceOf(SigningKeyException.class)
-                .hasMessage("Active configuration signing key cannot be deleted");
+                .isInstanceOf(ValidationFailureException.class)
+                .hasMessage("Singing key action not possible");
     }
 
     @Test
@@ -195,10 +190,9 @@ class ConfigurationSigningKeysServiceImplTest {
 
     @Test
     void shouldAddSigningKey() throws Exception {
-        when(tokensServiceProvider.getObject()).thenReturn(tokensService);
         when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
                 .thenReturn(Optional.of(configurationSourceEntity));
-        when(tokensService.getToken(TOKEN_ID)).thenReturn(createToken(new ArrayList<>()));
+        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of()));
         when(signerProxyFacade.generateKey(TOKEN_ID, KEY_LABEL)).thenReturn(createKeyInfo());
         when(signerProxyFacade.generateSelfSignedCert(eq(KEY_ID), isA(ClientId.Conf.class),
                 eq(KeyUsageInfo.SIGNING),
@@ -220,18 +214,18 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     @Test
-    void shouldNotAddMoreThanTwoSingingKeys() {
-        when(tokensServiceProvider.getObject()).thenReturn(tokensService);
+    void shouldNotAddMoreThanTwoSingingKeys() throws Exception {
+        ConfigurationSigningKeyEntity key1 = createConfigurationSigningEntity(INTERNAL_CONFIGURATION, true);
+        ConfigurationSigningKeyEntity key2 = createConfigurationSigningEntity(INTERNAL_CONFIGURATION, false);
         when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
                 .thenReturn(Optional.of(configurationSourceEntity));
-        when(tokensService.getToken(TOKEN_ID)).thenReturn(createToken(Arrays.asList(
-                createKeyInfo(),
-                createKeyInfo()
-        )));
+        when(configurationSigningKeyRepository.findByTokenIdentifier(TOKEN_ID)).thenReturn(List.of(key1, key2));
+        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of(createKeyInfo())));
 
         assertThrows(ValidationFailureException.class, () ->
                 configurationSigningKeysServiceImpl.addKey(INTERNAL_CONFIGURATION, TOKEN_ID, KEY_LABEL));
-        verifyNoInteractions(signerProxyFacade);
+        verify(signerProxyFacade).getToken(TOKEN_ID);
+        verifyNoMoreInteractions(signerProxyFacade);
     }
 
     private TokenInfo createToken(List<KeyInfo> keys) {

@@ -32,15 +32,16 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.niis.xroad.centralserver.restapi.service.exception.SignerProxyException;
 import org.niis.xroad.centralserver.restapi.service.exception.SigningKeyException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.KeyLabel;
+import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
-import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
@@ -49,27 +50,26 @@ import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ERROR_DELETING_SIGNING_KEY;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.KEY_GENERATION_FAILED;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SIGNING_KEY_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
-import static org.niis.xroad.cs.admin.api.dto.PossibleAction.GENERATE_KEY;
+import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.DELETE;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_EXTERNAL_KEY;
+import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_INTERNAL_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
 
@@ -77,15 +77,15 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTER
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigningKeysService {
+public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer implements ConfigurationSigningKeysService {
     private static final Date SIGNING_KEY_CERT_NOT_BEFORE = Date.from(Instant.EPOCH);
     private static final Date SIGNING_KEY_CERT_NOT_AFTER = Date.from(Instant.parse("2038-01-01T00:00:00Z"));
     private final ConfigurationSigningKeyRepository configurationSigningKeyRepository;
     private final ConfigurationSourceRepository configurationSourceRepository;
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
-    private final ObjectProvider<TokensService> tokensService;
     private final SignerProxyFacade signerProxyFacade;
     private final TokenActionsResolver tokenActionsResolver;
+    private final SigningKeyActionsResolver signingKeyActionsResolver;
     private final AuditEventHelper auditEventHelper;
     private final AuditDataHelper auditDataHelper;
 
@@ -93,7 +93,9 @@ public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigning
     @Override
     public List<ConfigurationSigningKey> findByTokenIdentifier(String tokenIdentifier) {
         return configurationSigningKeyRepository.findByTokenIdentifier(tokenIdentifier).stream()
-                .map(configurationSigningKeyMapper::toTarget).collect(Collectors.toList());
+                .map(configurationSigningKeyMapper::toTarget)
+                .map(this::resolvePossibleKeyActions)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -102,9 +104,7 @@ public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigning
                 .map(configurationSigningKeyMapper::toTarget)
                 .orElseThrow(() -> new NotFoundException(SIGNING_KEY_NOT_FOUND));
 
-        if (signingKey.isActiveSourceSigningKey()) {
-            throw new SigningKeyException(ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED);
-        }
+        signingKeyActionsResolver.requireAction(DELETE, signingKey);
 
         if (signingKey.getSourceType() == INTERNAL) {
             auditEventHelper.changeRequestScopedEvent(DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY);
@@ -123,13 +123,13 @@ public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigning
         } catch (Exception e) {
             throw new SigningKeyException(ERROR_DELETING_SIGNING_KEY, e);
         }
-
     }
 
     public Optional<ConfigurationSigningKey> findActiveForSource(String sourceType) {
         // TODO pass haNodeName if HA enabled
         return configurationSigningKeyRepository.findActiveForSource(sourceType, null)
-                .map(configurationSigningKeyMapper::toTarget);
+                .map(configurationSigningKeyMapper::toTarget)
+                .map(this::resolvePossibleKeyActions);
     }
 
     @Override
@@ -141,8 +141,11 @@ public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigning
         ConfigurationSourceEntity configurationSourceEntity =
                 findConfigurationSourceBySourceType(sourceType.toLowerCase());
 
-        final TokenInfo tokenInfo = tokensService.getObject().getToken(tokenId);
-        tokenActionsResolver.requireAction(GENERATE_KEY, tokenInfo);
+        final TokenInfo tokenInfo = getToken(tokenId);
+        final PossibleTokenAction action = StringUtils.endsWithIgnoreCase(SOURCE_TYPE_INTERNAL, sourceType)
+                ? GENERATE_INTERNAL_KEY
+                : GENERATE_EXTERNAL_KEY;
+        tokenActionsResolver.requireAction(action, tokenInfo, findByTokenIdentifier(tokenId));
 
         KeyInfo keyInfo;
         try {
@@ -178,16 +181,27 @@ public class ConfigurationSigningKeysServiceImpl implements ConfigurationSigning
             deleteKey(keyInfo.getId());
         }
 
-        return response.setKeyIdentifier(keyInfo.getId())
-                .setLabel(new KeyLabel(keyInfo.getLabel()))
-                .setAvailable(keyInfo.isAvailable())
-                .setKeyGeneratedAt(generatedAt)
-                .setPossibleActions(new ArrayList<>(tokenActionsResolver.resolveActions(tokenInfo)))
-                .setTokenIdentifier(tokenId);
+        return resolvePossibleKeyActions(
+                response.setKeyIdentifier(keyInfo.getId())
+                        .setLabel(new KeyLabel(keyInfo.getLabel()))
+                        .setAvailable(keyInfo.isAvailable())
+                        .setKeyGeneratedAt(generatedAt)
+                        .setTokenIdentifier(tokenId)
+        );
     }
 
     private ConfigurationSourceEntity findConfigurationSourceBySourceType(String sourceType) {
         return configurationSourceRepository.findBySourceType(sourceType)
                 .orElseThrow(() -> new NotFoundException(CONFIGURATION_NOT_FOUND));
+    }
+
+    private ConfigurationSigningKey resolvePossibleKeyActions(final ConfigurationSigningKey key) {
+        key.setPossibleActions(List.copyOf(signingKeyActionsResolver.resolveActions(key)));
+        return key;
+    }
+
+    @Override
+    protected SignerProxyFacade getSignerProxyFacade() {
+        return signerProxyFacade;
     }
 }

@@ -34,12 +34,9 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.centralserver.restapi.service.ConfigurationSigningKeysServiceImpl;
-import org.niis.xroad.centralserver.restapi.service.TokenActionsResolver;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
-import org.niis.xroad.cs.admin.api.dto.PossibleAction;
+import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 import org.niis.xroad.cs.admin.api.dto.TokenStatus;
 
 import java.util.EnumSet;
@@ -49,17 +46,9 @@ import java.util.Map;
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TokenInfoMapperTest {
-
-    @Mock
-    private TokenActionsResolver tokenActionsResolver;
-
-    @Mock
-    private ConfigurationSigningKeysServiceImpl configurationSigningKeysServiceImpl;
 
     @InjectMocks
     private final TokenInfoMapper tokenInfoMapper = new TokenInfoMapperImpl();
@@ -67,10 +56,8 @@ class TokenInfoMapperTest {
     @Test
     void toTarget() {
         final TokenInfo tokenInfo = createTokenInfo();
-        final EnumSet<PossibleAction> possibleActions = mock(EnumSet.class);
+        final EnumSet<PossibleTokenAction> possibleActions = mock(EnumSet.class);
         final List<ConfigurationSigningKey> configurationSigningKeys = mock(List.class);
-        when(tokenActionsResolver.resolveActions(tokenInfo)).thenReturn(possibleActions);
-        when(configurationSigningKeysServiceImpl.findByTokenIdentifier(tokenInfo.getId())).thenReturn(configurationSigningKeys);
 
         final org.niis.xroad.cs.admin.api.dto.TokenInfo result = tokenInfoMapper.toTarget(tokenInfo);
 
@@ -84,11 +71,6 @@ class TokenInfoMapperTest {
         assertThat(result.isReadOnly()).isFalse();
         assertThat(result.isAvailable()).isTrue();
         assertThat(result.isActive()).isFalse();
-        assertThat(result.getPossibleActions()).isEqualTo(possibleActions);
-        assertThat(result.getConfigurationSigningKeys()).isEqualTo(configurationSigningKeys);
-
-        verify(tokenActionsResolver).resolveActions(tokenInfo);
-        verify(configurationSigningKeysServiceImpl).findByTokenIdentifier(tokenInfo.getId());
     }
 
     private TokenInfo createTokenInfo() {
@@ -102,5 +84,4 @@ class TokenInfoMapperTest {
         return new ee.ria.xroad.signer.protocol.dto.KeyInfo(true, KeyUsageInfo.SIGNING, "keyFriendlyName",
                 "keyId", "keyLabel", "keyPublicKey", List.of(), List.of(), "keySignMechanismName");
     }
-
 }

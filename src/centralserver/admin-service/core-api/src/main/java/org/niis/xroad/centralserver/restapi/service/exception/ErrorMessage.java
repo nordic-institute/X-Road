@@ -81,10 +81,10 @@ public enum ErrorMessage {
     SIGNER_PROXY_ERROR("Signer proxy exception"),
     TOKEN_INCORRECT_PIN_FORMAT("Incorrect PIN format"),
     TOKEN_ACTION_NOT_POSSIBLE("Token action not possible"),
+    SIGNING_KEY_ACTION_NOT_POSSIBLE("Singing key action not possible"),
     KEY_GENERATION_FAILED("Singing key generation failed"),
     SIGNING_KEY_NOT_FOUND("Signing key not found"),
-    ERROR_DELETING_SIGNING_KEY("Error deleting signing key"),
-    ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED("Active configuration signing key cannot be deleted");
+    ERROR_DELETING_SIGNING_KEY("Error deleting signing key");
 
 
     @Getter
