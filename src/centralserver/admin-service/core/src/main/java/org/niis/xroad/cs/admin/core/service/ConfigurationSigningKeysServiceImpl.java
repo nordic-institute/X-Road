@@ -61,21 +61,17 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ERROR_ACTIVATING_SIGNING_KEY;
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.ERROR_DELETING_SIGNING_KEY;
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.KEY_GENERATION_FAILED;
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.SIGNING_KEY_NOT_FOUND;
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.TOKEN_MUST_BE_LOGGED_IN;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.DELETE;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_EXTERNAL_KEY;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_INTERNAL_KEY;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_ACTIVATING_SIGNING_KEY;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_DELETING_SIGNING_KEY;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.KEY_GENERATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNING_KEY_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_MUST_BE_LOGGED_IN;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
 
