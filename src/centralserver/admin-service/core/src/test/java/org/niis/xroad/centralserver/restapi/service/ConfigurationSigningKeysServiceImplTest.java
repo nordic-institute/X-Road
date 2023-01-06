@@ -65,8 +65,6 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
@@ -225,8 +223,10 @@ class ConfigurationSigningKeysServiceImplTest {
         when(configurationSigningKeyRepository.findByTokenIdentifier(TOKEN_ID)).thenReturn(List.of(key1, key2));
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of(createKeyInfo())));
 
-        assertThrows(ValidationFailureException.class, () ->
-                configurationSigningKeysServiceImpl.addKey(INTERNAL_CONFIGURATION, TOKEN_ID, KEY_LABEL));
+        assertThatThrownBy(() -> configurationSigningKeysServiceImpl.addKey(INTERNAL_CONFIGURATION, TOKEN_ID, KEY_LABEL))
+                .isInstanceOf(ValidationFailureException.class)
+                .hasMessage("Token action not possible");
+
         verify(signerProxyFacade).getToken(TOKEN_ID);
         verifyNoMoreInteractions(signerProxyFacade);
     }
@@ -268,7 +268,8 @@ class ConfigurationSigningKeysServiceImplTest {
 
         configurationSigningKeysServiceImpl.activateKey(signingKeyEntity.getKeyIdentifier());
 
-        assertEquals(signingKeyEntity, signingKeyEntity.getConfigurationSource().getConfigurationSigningKey());
+        assertThat(signingKeyEntity.getConfigurationSource().getConfigurationSigningKey()).isEqualTo(signingKeyEntity);
+
         verify(configurationSigningKeyRepository).save(signingKeyEntity);
     }
 
