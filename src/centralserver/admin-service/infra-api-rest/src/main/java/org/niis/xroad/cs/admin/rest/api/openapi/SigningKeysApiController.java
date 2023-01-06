@@ -28,11 +28,6 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.openapi.SigningKeysApi;
-import org.niis.xroad.centralserver.openapi.model.ConfigurationSigningKeyAddDto;
-import org.niis.xroad.centralserver.openapi.model.ConfigurationSigningKeyDto;
-import org.niis.xroad.centralserver.openapi.model.ConfigurationTypeDto;
-import org.niis.xroad.centralserver.restapi.mapper.ConfigurationSigningKeyDtoMapper;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.rest.api.mapper.ConfigurationSigningKeyDtoMapper;
 import org.niis.xroad.cs.openapi.SigningKeysApi;
