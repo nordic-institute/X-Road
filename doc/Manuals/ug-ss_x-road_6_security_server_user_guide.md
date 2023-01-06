@@ -177,7 +177,11 @@ Doc. ID: UG-SS
   * [8.2 Displaying and Changing the Members of a Local Group](#82-displaying-and-changing-the-members-of-a-local-group)
   * [8.3 Changing the description of a Local Group](#83-changing-the-description-of-a-local-group)
   * [8.4 Deleting a Local Group](#84-deleting-a-local-group)
-* [9 Communication with the Client Information Systems](#9-communication-with-the-client-information-systems)
+* [9 Communication with Information Systems](#9-communication-with-information-systems)
+  * [9.1 Communicating with security server as a service consumer](#91-communicating-with-security-server-as-a-service-consumer)
+  * [9.2 Communicating with security server as a service provider](#92-communicating-with-security-server-as-a-service-provider)
+  * [9.3 Managing Information System TLS certificates](#93-managing-information-system-tls-certificates)
+
 * [10 System Parameters](#10-system-parameters)
   * [10.1 Managing the Configuration Anchor](#101-managing-the-configuration-anchor)
   * [10.2 Managing the Timestamping Services](#102-managing-the-timestamping-services)
@@ -1382,35 +1386,49 @@ To delete a local group, follow these steps.
 3.  In the group detail view, click **DELETE** and confirm the deletion by clicking **YES** in the dialog that opens.
 
 
-## 9 Communication with the Client Information Systems
+## 9 Communication with Information Systems
 
 **Access rights:** [Registration Officer](#xroad-registration-officer), [Service Administrator](#xroad-service-administrator)
 
-A security server can use either the HTTP, HTTPS, or HTTPS NOAUTH protocol to communicate with information system servers which provide and use services.
 
--   The HTTP protocol should be used if the information system server and the security server communicate in a private network segment where no other computers are connected to. Furthermore, the information system server must not allow interactive log-in.
+### 9.1 Communicating with security server as a service consumer
 
--   The HTTPS protocol (**default for new clients**) should be used if it is not possible to provide a separate network segment for the communication between the information system server and the security server. In that case, cryptographic methods are used to protect their communication against potential eavesdropping and interception. Before HTTPS can be used, internal TLS certificates must be created for the information system server(s) and uploaded to the security server.
+A security server can be configured to require either the HTTP, HTTPS, or HTTPS with Client Authentication (i.e. HTTP over mTLS) protocol from the consumer role information systems for communication.
 
--   The HTTPS NOAUTH protocol should be used if you want the security server to skip the verification of the information system TLS certificate.
+- HTTP protocol should be used if the consumer information system and the security server communicate in a private network segment where no other computers are connected to. Furthermore, the information system must not allow interactive log-in.
 
-   *Note:* If the HTTP connection method is selected, but the information system connects to the security server over HTTPS, then the connection is accepted, but the client's internal TLS certificate is not verified (same behavior as with HTTPS NOAUTH).
+
+- HTTPS NOAUTH - a.k.a plain HTTPS protocol should be used if it is not possible to provide a separate network segment for the communication between the information system and the security server. In that case, cryptographic methods are used to protect their communication against potential eavesdropping and interception.
+
+
+- HTTPS - a.k.a. HTTPS with Client Authentication protocol (**default for new clients**) should be used to protect against unauthorised communication in addition to potential eavesdropping and interception. Before HTTPS can be used, internal TLS certificates must be created for the information systems and uploaded to the security server.
 
 **By default the connection type for all the security server clients is set to HTTPS to prevent unauthorised use of the clients.**
 
 **It is strongly recommended to keep the connection type of the security server owner as HTTPS to prevent security server clients from making operational monitoring data requests as a security server owner.**
 
-To set the connection method for internal network servers in the **service consumer role**, follow these steps.
+To set the connection method for information systems in the **service consumer role**, follow these steps:
 
-1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
+1. In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
 
-2.  In the view that opens, select the **INTERNAL SERVERS** tab
+2. In the view that opens, select the **INTERNAL SERVERS** tab
  
-3.  On the **Connection type** drop-down, select the connection method. The changes will be saved immediately on selecting the new method and a "Connection type updated" message is displayed.
+3. On the **Connection type** drop-down, select the connection method between HTTP, HTTPS NOAUTH or HTTPS. The changes will be saved immediately on selecting the new method and a "Connection type updated" message is displayed.
+
+
+   **Note:** If the HTTP connection method is selected, but the information system connects to the security server over HTTPS, then the connection is accepted, but the client's internal TLS certificate is not verified (same behavior as with HTTPS NOAUTH).
+
+   **Note:** If HTTPS NOAUTH method is selected keep in mind that the consumer information system must trust the security server's TLS certificate. This can be achieved by exporting security server's internal TLS certificate into information system's truststore (see section [9.3](#93-managing-information-system-tls-certificates)).
+
+   **Note:** If HTTPS method is selected then additionally the client information system's TLS certificate must be trusted. In order to accomplish that the certificate must be added into security server's **Information System TLS certificate** list (see section [9.3](#93-managing-information-system-tls-certificates)).
+
+
+### 9.2 Communicating with security server as a service provider
+
 
 Depending on the configured connection method, the request URL for information system is **`http://SECURITYSERVER/`** or **`https://SECURITYSERVER/`**. When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the security server.
 
-The connection method for internal network servers in the **service provider role** is determined by the protocol in the URL. To change the connection method, follow these steps.
+The connection method for information systems in the **service provider role** is determined by the protocol in the URL. To change the connection method, follow these steps.
 
 1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
 
@@ -1420,14 +1438,19 @@ The connection method for internal network servers in the **service provider rol
 
 4.  Click on a service code in the table.
     
-5.  In the view that opens, change the protocol in the service URL to HTTP, HTTPS or HTTPS NO AUTH.
-    If the HTTPS protocol was selected, select the **Verify TLS certificate** checkbox if needed (see section [6.6](#66-changing-the-parameters-of-a-service)). According to the service parameters, the connection with the internal network server is created using one the following protocols:
+5.  In the view that opens, change the protocol (a.k.a. scheme) part in the Service URL to either **http://** or **https://**.
 
--   HTTP – the service/adapter URL begins with "**http:**//...".
+- HTTP – the service/adapter URL begins with "**http:**//...".
 
--   HTTPS – the service/adapter URL begins with "**https**://" and the **Verify TLS certificate** checkbox is selected.
+- HTTPS – the service/adapter URL begins with "**https**://".
+  - If **Verify TLS certificate** checkbox is left unchecked this means that service provider information system's TLS certificate is not verified and is trusted by default.
+  - If **Verify TLS certificate** checkbox is checked this means that service provider information system's TLS certificate trust is verified.
+    In order to accomplish the trust the information system's TLS certificate must be added into security server's **Information System TLS certificate** list (see section [9.3](#93-managing-information-system-tls-certificates)).
 
--   HTTPS NO AUTH – the service/adapter URL begins with "**https**://" and the **Verify TLS certificate** checkbox is not selected.
+- HTTPS with Client Authentication (i.e. HTTP over mTLS) – In addition to plain HTTPS the service provider information system must have mTLS enabled & trust the security server's TLS certificate. The latter can be achieved by exporting security server's internal TLS certificate into information system's truststore (see section [9.3](#93-managing-information-system-tls-certificates)).
+
+
+### 9.3 Managing Information System TLS certificates
 
 To add an internal TLS certificate for a security server owner or security server client (for HTTPS connections), follow these steps.
 
