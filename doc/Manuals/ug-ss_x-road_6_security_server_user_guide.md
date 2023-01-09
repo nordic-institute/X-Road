@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.72 
+Version: 2.73
 Doc. ID: UG-SS
 
 ---
@@ -105,6 +105,7 @@ Doc. ID: UG-SS
  03.05.2022 | 2.70   | Minor updates to system services                                                                                                                                                                                                                                                                                                                                                                            | Petteri Kivimäki
  17.05.2022 | 2.71   | Updates to Diagnostics section, minor updates to backup encryption, message log database encryption and archive encryption and grouping                                                                                                                                                                                                                                                                     | Petteri Kivimäki
  13.07.2022 | 2.72   | Updated chapter [21](#21-adding-command-line-arguments) and added `XROAD_MESSAGELOG_ARCHIVER_PARAMS` argument                                                                                                                                                                                                                                                                                               | Petteri Kivimäki
+ 09.01.2023 | 2.73   | Improved chapter [9](#9-communication-with-information-systems)                                                                                                                                                                                                                                                                                                                                            | Andres Rosenthal
 
 ## Table of Contents <!-- omit in toc -->
 
