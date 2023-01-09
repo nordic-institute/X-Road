@@ -47,7 +47,37 @@
       <template #[`item.createdAt`]="{ item }">
         {{ item.created_at | formatDateTime }}
       </template>
+      <template #[`item.actions`]="{ item }">
+        <xrd-button
+          v-if="canActivateKey(item)"
+          :outlined="false"
+          text
+          @click="openActivateKeyDialog(item)"
+        >
+          {{ $t('action.activate') }}
+        </xrd-button>
+        <xrd-button
+          v-if="canDeleteKey(item)"
+          :outlined="false"
+          text
+          @click="openDeleteKeyDialog(item)"
+        >
+          {{ $t('action.delete') }}
+        </xrd-button>
+      </template>
     </v-data-table>
+    <signing-key-delete-dialog
+      v-if="showDeleteKeyDialog"
+      :signing-key="selectedKey"
+      @cancel="closeDialogs"
+      @key-delete="refreshTokenData"
+    />
+    <signing-key-activate-dialog
+      v-if="showActivateKeyDialog"
+      :signing-key="selectedKey"
+      @cancel="closeDialogs"
+      @key-activate="refreshTokenData"
+    />
   </div>
 </template>
 
@@ -57,17 +87,38 @@
  */
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import { ConfigurationSigningKey } from '@/openapi-types';
+import { ConfigurationSigningKey, PossibleKeyAction } from '@/openapi-types';
 import { DataTableHeader } from 'vuetify';
+import { mapActions, mapState } from 'pinia';
+import { userStore } from '@/store/modules/user';
+import { Permissions } from '@/global';
+import SigningKeyDeleteDialog from '@/components/signingKeys/SigningKeyDeleteDialog.vue';
+import { tokenStore } from '@/store/modules/tokens';
+import SigningKeyActivateDialog from '@/components/signingKeys/SigningKeyActivateDialog.vue';
 
 export default Vue.extend({
+  components: { SigningKeyActivateDialog, SigningKeyDeleteDialog },
   props: {
     keys: {
       type: Array as Prop<ConfigurationSigningKey[]>,
       required: true,
     },
   },
+  data() {
+    return {
+      selectedKey: {},
+      showDeleteKeyDialog: false,
+      showActivateKeyDialog: false,
+    };
+  },
   computed: {
+    ...mapState(userStore, ['hasPermission']),
+    canDeleteKeys(): boolean {
+      return this.hasPermission(Permissions.DELETE_SIGNING_KEY);
+    },
+    canActivateKeys(): boolean {
+      return this.hasPermission(Permissions.ACTIVATE_SIGNING_KEY);
+    },
     headers(): DataTableHeader[] {
       return [
         {
@@ -82,7 +133,45 @@ export default Vue.extend({
           value: 'createdAt',
           class: 'xrd-table-header text-uppercase',
         },
+        {
+          text: '',
+          align: 'end',
+          value: 'actions',
+          class: 'xrd-table-header text-uppercase',
+        },
       ];
+    },
+  },
+  methods: {
+    ...mapActions(tokenStore, ['fetchTokens']),
+    canDeleteKey(key: ConfigurationSigningKey): boolean {
+      return (
+        this.canDeleteKeys &&
+        key.possible_actions.includes(PossibleKeyAction.DELETE)
+      );
+    },
+    canActivateKey(key: ConfigurationSigningKey): boolean {
+      return (
+        this.canActivateKeys &&
+        key.possible_actions.includes(PossibleKeyAction.ACTIVATE)
+      );
+    },
+    openDeleteKeyDialog(key: ConfigurationSigningKey) {
+      this.showDeleteKeyDialog = true;
+      this.selectedKey = key;
+    },
+    openActivateKeyDialog(key: ConfigurationSigningKey) {
+      this.showActivateKeyDialog = true;
+      this.selectedKey = key;
+    },
+    refreshTokenData() {
+      this.closeDialogs();
+      this.fetchTokens();
+    },
+    closeDialogs() {
+      this.showDeleteKeyDialog = false;
+      this.showActivateKeyDialog = false;
+      this.selectedKey = {};
     },
   },
 });

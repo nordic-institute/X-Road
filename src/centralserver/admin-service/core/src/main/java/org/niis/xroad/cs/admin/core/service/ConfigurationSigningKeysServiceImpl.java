@@ -184,6 +184,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                 configurationSourceEntity.setConfigurationSigningKey(signingKey);
                 response.setActiveSourceSigningKey(Boolean.TRUE);
             }
+            signingKey.setConfigurationSource(configurationSourceEntity);
 
             configurationSourceEntity.getConfigurationSigningKeys().add(signingKey);
 

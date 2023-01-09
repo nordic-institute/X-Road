@@ -58,7 +58,7 @@ public class ConfigurationSigningKeyEntity {
     @Getter
     private int id;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "configuration_source_id")
     @Getter
     @Setter
