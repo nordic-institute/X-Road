@@ -66,11 +66,11 @@
           </div>
 
           <xrd-button
-            v-if="canAddKey"
+            v-if="showAddKey"
             outlined
-            :disabled="!token.logged_in"
+            :disabled="!canAddKey"
             data-test="token-add-key-button"
-            @click="addKey()"
+            @click="showAddKeyDialog = true"
           >
             <xrd-icon-base class="xrd-large-button-icon">
               <XrdIconAdd />
@@ -81,9 +81,16 @@
 
         <!-- SIGN keys table -->
         <div v-if="token.configuration_signing_keys">
-          <keys-table :keys="token.configuration_signing_keys" />
+          <keys-table :keys="signingKeys" />
         </div>
       </div>
+      <signing-key-add-dialog
+        v-if="showAddKeyDialog"
+        :configuration-type="configurationType"
+        :token-id="token.id"
+        @cancel="showAddKeyDialog = false"
+        @key-add="addKey"
+      />
     </template>
   </xrd-expandable>
 </template>
@@ -91,15 +98,23 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import { Colors } from '@/global';
+import { Colors, Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { tokenStore } from '@/store/modules/tokens';
-import { Token } from '@/openapi-types';
+import { userStore } from '@/store/modules/user';
+import {
+  ConfigurationSigningKey,
+  ConfigurationType,
+  PossibleTokenAction,
+  Token,
+} from '@/openapi-types';
 import KeysTable from '@/components/tokens/KeysTable.vue';
 import TokenLoggingButton from '@/components/tokens/TokenLoggingButton.vue';
+import SigningKeyAddDialog from '@/components/signingKeys/SigningKeyAddDialog.vue';
 
 export default Vue.extend({
   components: {
+    SigningKeyAddDialog,
     KeysTable,
     TokenLoggingButton,
   },
@@ -108,19 +123,33 @@ export default Vue.extend({
       type: Object as Prop<Token>,
       required: true,
     },
+    configurationType: {
+      type: String as Prop<ConfigurationType>,
+      required: true,
+    },
   },
   data() {
     return {
       colors: Colors,
+      showAddKeyDialog: false,
     };
   },
   computed: {
+    ...mapState(userStore, ['hasPermission']),
     ...mapState(tokenStore, {
       isExpanded: 'tokenExpanded',
     }),
+    showAddKey(): boolean {
+      return this.hasPermission(Permissions.GENERATE_SIGNING_KEY);
+    },
     canAddKey(): boolean {
-      return true;
-      // Add permission check from store
+      return (
+        this.token.possible_actions?.includes(
+          ConfigurationType.INTERNAL == this.configurationType
+            ? PossibleTokenAction.GENERATE_INTERNAL_KEY
+            : PossibleTokenAction.GENERATE_EXTERNAL_KEY,
+        ) || false
+      );
     },
     tokenStatusClass(): string {
       return this.token.logged_in ? 'logged-out' : 'logged-in';
@@ -128,25 +157,30 @@ export default Vue.extend({
     tokenStatusColor(): string {
       return this.token.logged_in ? this.colors.Black100 : this.colors.Purple20;
     },
+    signingKeys(): ConfigurationSigningKey[] {
+      return (
+        this.token.configuration_signing_keys?.filter(
+          (key) => key.sourceType === this.configurationType,
+        ) || []
+      );
+    },
   },
   methods: {
     ...mapActions(tokenStore, [
       'setSelectedToken',
       'setTokenHidden',
       'setTokenExpanded',
+      'fetchTokens',
     ]),
     addKey(): void {
-      this.setSelectedToken(this.token);
-      //this.$store.commit(StoreTypes.mutations.SET_SELECTED_TOKEN, this.token);
-      this.$emit('add-key');
+      this.showAddKeyDialog = false;
+      this.fetchTokens();
     },
-
     tokenNameClick(): void {
       this.isExpanded(this.token.id)
         ? this.descClose(this.token.id)
         : this.descOpen(this.token.id);
     },
-
     descClose(tokenId: string) {
       this.setTokenHidden(tokenId);
     },

@@ -26,103 +26,79 @@
  -->
 <template>
   <div>
-    <div class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">Signing Keys</div>
-      </div>
-    </div>
+    <XrdEmptyPlaceholder
+      :data="tokens"
+      :loading="tokensLoading"
+      :no-items-text="$t('noData.noTokens')"
+      skeleton-type="table-heading"
+    />
 
-    <tokens :configuration-type="configurationType" />
-
-    <!-- Internal configuration -->
-    <div class="header-row mt-7">
-      <div class="xrd-view-title">{{ title }}</div>
-    </div>
-
-    <!-- Anchor -->
-    <configuration-anchor :configuration-type="configurationType" />
-
-    <!-- Download URL -->
-    <configuration-download-url :configuration-type="configurationType" />
-
-    <!-- Configuration parts -->
-    <configuration-parts-list :configuration-type="configurationType" />
+    <template v-if="!tokensLoading">
+      <token-expandable
+        v-for="token in tokens"
+        :key="token.id"
+        :token="token"
+        :configuration-type="configurationType"
+        @token-login="fetchData"
+        @token-logout="fetchData"
+        @add-key="addKey"
+        @token-updated="fetchData"
+      />
+    </template>
   </div>
 </template>
 
 <script lang="ts">
 /**
- * View for 'backup and restore' tab
+ * Table component for an array of keys
  */
 import Vue from 'vue';
-import ConfigurationAnchor from './ConfigurationAnchor.vue';
-import ConfigurationPartsList from './ConfigurationPartsList.vue';
-import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
-import { ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
-import Tokens from '@/components/tokens/Tokens.vue';
+import { ConfigurationType } from '@/openapi-types';
+import { mapActions, mapState } from 'pinia';
+import { tokenStore } from '@/store/modules/tokens';
+import TokenExpandable from '@/components/tokens/TokenExpandable.vue';
 
 export default Vue.extend({
-  components: {
-    Tokens,
-    ConfigurationDownloadUrl,
-    ConfigurationAnchor,
-    ConfigurationPartsList,
-  },
+  components: { TokenExpandable },
   props: {
-    title: {
-      type: String,
-      required: true,
-    },
     configurationType: {
       type: String as Prop<ConfigurationType>,
       required: true,
+    },
+  },
+  data() {
+    return {
+      tokensLoading: false,
+    };
+  },
+  computed: {
+    ...mapState(tokenStore, { tokens: 'getSortedTokens' }),
+  },
+  created() {
+    this.fetchData();
+  },
+  methods: {
+    ...mapActions(tokenStore, ['fetchTokens']),
+
+    fetchData(): void {
+      this.tokensLoading = true;
+      this.fetchTokens().finally(() => (this.tokensLoading = false));
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '~styles/tables';
 
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: $XRoad-Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.card-corner-button {
-  display: flex;
-}
-
-.card-top {
-  padding-top: 15px;
-  margin-bottom: 10px;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-main-title {
-  color: $XRoad-Black100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
-  margin-left: 16px;
-}
-
-.internal-conf-icon {
-  margin-right: 15px;
+.key-icon {
+  margin-right: 18px;
   color: $XRoad-Purple100;
 }
 
-.td-align-right {
-  text-align: right;
+.keys-table {
+  transform-origin: top;
+  transition: transform 0.4s ease-in-out;
 }
 </style>

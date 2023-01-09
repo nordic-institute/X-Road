@@ -24,42 +24,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { extend, configure } from 'vee-validate';
-import { required, min, max, between, is } from 'vee-validate/dist/rules';
-import i18n from '../i18n';
-import * as Helpers from '@/util/helpers';
+import axios from 'axios';
+import {
+  ConfigurationSigningKey,
+  ConfigurationSigningKeyAdd,
+  ConfigurationType,
+} from '@/openapi-types';
+import { defineStore } from 'pinia';
 
-configure({
-  // This should be ok, as it is the vee-validate contract
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultMessage: (field, values: any): string => {
-    // override the field name.
-    values._field_ = i18n.t(`fields.${field}`);
-
-    return i18n.t(`validation.${values._rule_}`, values) as string;
-  },
-});
-
-// Install required rule and message.
-extend('required', required);
-
-// Install min rule and message.
-extend('min', min);
-
-// Install max rule and message.
-extend('max', max);
-
-// Install between rule and message.
-extend('between', between);
-
-// Install is rule and message.
-extend('is', is);
-
-extend('url', {
-  validate: (value) => {
-    return Helpers.isValidUrl(value);
-  },
-  message() {
-    return i18n.t('customValidation.invalidUrl') as string;
+export const useSigningKeyStore = defineStore('signingKey', {
+  actions: {
+    addSigningKey(
+      configurationType: ConfigurationType,
+      key: ConfigurationSigningKeyAdd,
+    ) {
+      return axios
+        .post<ConfigurationSigningKey>(
+          `/configuration-sources/${configurationType}/signing-keys`,
+          key,
+        )
+        .catch((error) => {
+          throw error;
+        });
+    },
+    deleteSigningKey(keyId: string) {
+      return axios.delete(`/signing-keys/${keyId}`).catch((error) => {
+        throw error;
+      });
+    },
+    activateSigningKey(keyId: string) {
+      return axios.put(`/signing-keys/${keyId}/activate`).catch((error) => {
+        throw error;
+      });
+    },
   },
 });

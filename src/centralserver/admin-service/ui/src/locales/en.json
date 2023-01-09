@@ -152,7 +152,8 @@
     "password": "Password",
     "username": "Username",
     "url": "URL",
-    "tokenPin": "Token PIN"
+    "tokenPin": "Token PIN",
+    "keyLabel": "Key friendly name"
   },
   "filters": {
     "apply": "Apply",
@@ -294,7 +295,27 @@
     "logIn": "Log in",
     "logOut": "Log out",
     "signKey": "Sign key",
-    "token": "Token:"
+    "token": "Token:",
+    "dialog": {
+      "delete": {
+        "title": "Delete key",
+        "text": "Delete key '{label}'?",
+        "confirmButton": "Delete",
+        "success": "Signing key deleted successfully"
+      },
+      "add": {
+        "title": "Add key",
+        "labelField": "Key friendly name",
+        "confirmButton": "Add",
+        "success": "Sign Key '{label}' added successfully"
+      },
+      "activate": {
+        "title": "Activate key",
+        "text": "Activate key '{label}'?",
+        "confirmButton": "Activate",
+        "success": "Sign Key '{label}' activated successfully"
+      }
+    }
   },
   "tokens": {
     "keysInfoMessage": "A maximum of two configuration source signing keys is allowed on a security token",
