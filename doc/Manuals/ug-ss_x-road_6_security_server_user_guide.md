@@ -178,9 +178,9 @@ Doc. ID: UG-SS
   * [8.3 Changing the description of a Local Group](#83-changing-the-description-of-a-local-group)
   * [8.4 Deleting a Local Group](#84-deleting-a-local-group)
 * [9 Communication with Information Systems](#9-communication-with-information-systems)
-  * [9.1 Communicating with security server as a service consumer](#91-communicating-with-security-server-as-a-service-consumer)
-  * [9.2 Communicating with security server as a service provider](#92-communicating-with-security-server-as-a-service-provider)
-  * [9.3 Managing Information System TLS certificates](#93-managing-information-system-tls-certificates)
+  * [9.1 Communication with Service Consumer Information Systems](#91-communication-with-service-consumer-information-systems)
+  * [9.2 Communication with Service Provider Information Systems](#92-communication-with-service-provider-information-systems)
+  * [9.3 Managing Information System TLS Certificates](#93-managing-information-system-tls-certificates)
 
 * [10 System Parameters](#10-system-parameters)
   * [10.1 Managing the Configuration Anchor](#101-managing-the-configuration-anchor)
@@ -1391,7 +1391,7 @@ To delete a local group, follow these steps.
 **Access rights:** [Registration Officer](#xroad-registration-officer), [Service Administrator](#xroad-service-administrator)
 
 
-### 9.1 Communicating with security server as a service consumer
+### 9.1 Communication with Service Consumer Information Systems
 
 A security server can be configured to require either the HTTP, HTTPS, or HTTPS with Client Authentication (i.e. HTTP over mTLS) protocol from the consumer role information systems for communication.
 
@@ -1422,19 +1422,18 @@ To set the connection method for information systems in the **service consumer r
 
    **Note:** If HTTPS method is selected then additionally the client information system's TLS certificate must be trusted. In order to accomplish that the certificate must be added into security server's **Information System TLS certificate** list (see section [9.3](#93-managing-information-system-tls-certificates)).
 
-
-### 9.2 Communicating with security server as a service provider
-
-
 Depending on the configured connection method, the request URL for information system is **`http://SECURITYSERVER/`** or **`https://SECURITYSERVER/`**. When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the security server.
+
+### 9.2 Communication with Service Provider Information Systems
+
 
 The connection method for information systems in the **service provider role** is determined by the protocol in the URL. To change the connection method, follow these steps.
 
-1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
+1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table.
 
-2.  In the view that opens, select the **SERVICES** tab
+2.  In the view that opens, select the **SERVICES** tab.
     
-3.  Click the caret next to the desired service description to show all services related to it
+3.  Click the caret next to the desired service description to show all services related to it.
 
 4.  Click on a service code in the table.
     
@@ -1443,14 +1442,11 @@ The connection method for information systems in the **service provider role** i
 - HTTP – the service/adapter URL begins with "**http:**//...".
 
 - HTTPS – the service/adapter URL begins with "**https**://".
-  - If **Verify TLS certificate** checkbox is left unchecked this means that service provider information system's TLS certificate is not verified and is trusted by default.
-  - If **Verify TLS certificate** checkbox is checked this means that service provider information system's TLS certificate trust is verified.
-    In order to accomplish the trust the information system's TLS certificate must be added into security server's **Information System TLS certificate** list (see section [9.3](#93-managing-information-system-tls-certificates)).
+  - If **Verify TLS certificate** checkbox is left unchecked it means that service provider information system's TLS certificate is not verified and trusted by default.
+  - If **Verify TLS certificate** checkbox is checked it means that service provider information system's TLS certificate is verified. In order to make the information system's TLS certificate trusted, it must be added into security server's **Information System TLS certificate** list (see section [9.3](#93-managing-information-system-tls-certificates)).
+  - When the service provider information system needs to verify the Security Server's internal TLS certificate, the certificate must be first exported and then imported into the service provider information system's truststore (see section [9.3](#93-managing-information-system-tls-certificates)).
 
-- HTTPS with Client Authentication (i.e. HTTP over mTLS) – In addition to plain HTTPS the service provider information system must have mTLS enabled & trust the security server's TLS certificate. The latter can be achieved by exporting security server's internal TLS certificate into information system's truststore (see section [9.3](#93-managing-information-system-tls-certificates)).
-
-
-### 9.3 Managing Information System TLS certificates
+### 9.3 Managing Information System TLS Certificates
 
 To add an internal TLS certificate for a security server owner or security server client (for HTTPS connections), follow these steps.
 
