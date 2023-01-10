@@ -62,7 +62,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
 
 @ExtendWith(MockitoExtension.class)
 class ConfigurationServiceImplTest {
@@ -156,7 +155,7 @@ class ConfigurationServiceImplTest {
 
     @Test
     void shouldGetInternalGlobalDownloadUrl() {
-        when(systemParameterService.getParameterValue(CENTRAL_SERVER_ADDRESS, ""))
+        when(systemParameterService.getCentralServerAddress())
                 .thenReturn(CENTRAL_SERVICE);
 
         final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl("INTERNAL");
@@ -165,7 +164,7 @@ class ConfigurationServiceImplTest {
     }
     @Test
     void shouldGetExternalGlobalDownloadUrl() {
-        when(systemParameterService.getParameterValue(CENTRAL_SERVER_ADDRESS, ""))
+        when(systemParameterService.getCentralServerAddress())
                 .thenReturn(CENTRAL_SERVICE);
 
         final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl("EXTERNAL");

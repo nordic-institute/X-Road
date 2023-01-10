@@ -84,8 +84,8 @@ public class InitializationServiceImpl implements InitializationService {
         TokenInitStatus initStatusInfo = getTokenInitStatusInfo();
         InitializationStatusDto statusDto = new InitializationStatusDto();
 
-        statusDto.setInstanceIdentifier(getStoredInstanceIdentifier());
-        statusDto.setCentralServerAddress(getStoredCentralServerAddress());
+        statusDto.setInstanceIdentifier(systemParameterService.getInstanceIdentifier());
+        statusDto.setCentralServerAddress(systemParameterService.getCentralServerAddress());
         statusDto.setSoftwareTokenInitStatus(initStatusInfo);
         return statusDto;
     }
@@ -131,8 +131,8 @@ public class InitializationServiceImpl implements InitializationService {
         }
 
         final boolean isSWTokenInitialized = TokenInitStatus.INITIALIZED == getTokenInitStatusInfo();
-        final boolean isServerAddressInitialized = !getStoredCentralServerAddress().isEmpty();
-        final boolean isInstanceIdentifierInitialized = !getStoredInstanceIdentifier().isEmpty();
+        final boolean isServerAddressInitialized = !systemParameterService.getCentralServerAddress().isEmpty();
+        final boolean isInstanceIdentifierInitialized = !systemParameterService.getInstanceIdentifier().isEmpty();
         validateConfigParameters(configDto,
                 isSWTokenInitialized,
                 isServerAddressInitialized,
@@ -215,16 +215,16 @@ public class InitializationServiceImpl implements InitializationService {
 
     private void initializeCsSystemParameters() {
         systemParameterService.updateOrCreateParameter(
-                SystemParameterService.CONF_SIGN_DIGEST_ALGO_ID,
-                SystemParameterService.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID
+                SystemParameterServiceImpl.CONF_SIGN_DIGEST_ALGO_ID,
+                SystemParameterServiceImpl.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID
         );
         systemParameterService.updateOrCreateParameter(
-                SystemParameterService.CONF_HASH_ALGO_URI,
-                SystemParameterService.DEFAULT_CONF_HASH_ALGO_URI
+                SystemParameterServiceImpl.CONF_HASH_ALGO_URI,
+                SystemParameterServiceImpl.DEFAULT_CONF_HASH_ALGO_URI
         );
         systemParameterService.updateOrCreateParameter(
-                SystemParameterService.CONF_SIGN_CERT_HASH_ALGO_URI,
-                SystemParameterService.DEFAULT_CONF_HASH_ALGO_URI
+                SystemParameterServiceImpl.CONF_SIGN_CERT_HASH_ALGO_URI,
+                SystemParameterServiceImpl.DEFAULT_CONF_HASH_ALGO_URI
         );
         systemParameterService.updateOrCreateParameter(
                 SystemParameterServiceImpl.SECURITY_SERVER_OWNERS_GROUP,
@@ -259,20 +259,6 @@ public class InitializationServiceImpl implements InitializationService {
             }
         }
         return isSWTokenInitialized;
-    }
-
-
-    private String getStoredInstanceIdentifier() {
-        return systemParameterService.getParameterValue(
-                SystemParameterService.INSTANCE_IDENTIFIER,
-                ""
-        );
-    }
-
-    private String getStoredCentralServerAddress() {
-        return systemParameterService.getParameterValue(
-                SystemParameterService.CENTRAL_SERVER_ADDRESS,
-                "");
     }
 
 }

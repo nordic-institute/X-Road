@@ -82,6 +82,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTER
 public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer implements ConfigurationSigningKeysService {
     private static final Date SIGNING_KEY_CERT_NOT_BEFORE = Date.from(Instant.EPOCH);
     private static final Date SIGNING_KEY_CERT_NOT_AFTER = Date.from(Instant.parse("2038-01-01T00:00:00Z"));
+    private final SystemParameterService systemParameterService;
     private final ConfigurationSigningKeyRepository configurationSigningKeyRepository;
     private final ConfigurationSourceRepository configurationSourceRepository;
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
@@ -167,7 +168,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
 
         final Instant generatedAt = Instant.now();
 
-        final ClientId.Conf clientId = ClientId.Conf.create(SystemParameterService.INSTANCE_IDENTIFIER,
+        final ClientId.Conf clientId = ClientId.Conf.create(systemParameterService.getInstanceIdentifier(),
                 "selfsigned", UUID.randomUUID().toString());
 
         try {

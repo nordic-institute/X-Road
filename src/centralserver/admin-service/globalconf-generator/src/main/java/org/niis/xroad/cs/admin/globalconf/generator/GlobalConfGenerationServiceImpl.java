@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -61,15 +60,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_EXTERNAL;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_INTERNAL;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CONF_EXPIRE_INTERVAL_SECONDS;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CONF_HASH_ALGO_URI;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CONF_SIGN_CERT_HASH_ALGO_URI;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CONF_SIGN_DIGEST_ALGO_ID;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.DEFAULT_CONF_HASH_ALGO_URI;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANCE_IDENTIFIER;
 
 @Component
 @Slf4j
@@ -181,15 +171,16 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private String createSignedDirectory(Set<ConfigurationPart> configurationParts, String pathPrefix, ConfigurationSigningKey signingKey) {
         var directoryContentBuilder = new DirectoryContentBuilder(
                 getConfHashAlgoId(),
-                Instant.now().plusSeconds(getConfExpireIntervalSeconds()),
+                Instant.now().plusSeconds(systemParameterService.getConfExpireIntervalSeconds()),
                 pathPrefix,
-                getInstanceIdentifier())
+                systemParameterService.getInstanceIdentifier())
                 .contentParts(configurationParts);
         var directoryContent = directoryContentBuilder.build();
 
         var directoryContentSigner = new DirectoryContentSigner(
                 signerProxyFacade,
-                getConfSignDigestAlgoId(),
+                systemParameterService
+                        .getConfSignDigestAlgoId(),
                 getConfSignCertHashAlgoId());
 
         return directoryContentSigner.createSignedDirectory(directoryContent, signingKey.getKeyIdentifier(), signingKey.getCert());
@@ -217,32 +208,18 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
     @SneakyThrows
     private String getConfSignCertHashAlgoId() {
-        return CryptoUtils.getAlgorithmId(
-                systemParameterService.getParameterValue(CONF_SIGN_CERT_HASH_ALGO_URI, DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI));
-    }
-
-    private String getConfSignDigestAlgoId() {
-        return systemParameterService.getParameterValue(CONF_SIGN_DIGEST_ALGO_ID, DEFAULT_CONF_SIGN_DIGEST_ALGO_ID);
-    }
-
-    private String getInstanceIdentifier() {
-        return systemParameterService.getParameterValue(INSTANCE_IDENTIFIER, null);
-    }
-
-    private int getConfExpireIntervalSeconds() {
-        return Integer.parseInt(systemParameterService
-                .getParameterValue(CONF_EXPIRE_INTERVAL_SECONDS, DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS.toString()));
+        return CryptoUtils.getAlgorithmId(systemParameterService.getConfSignCertHashAlgoUri());
     }
 
     @SneakyThrows
     private String getConfHashAlgoId() {
-        return CryptoUtils.getAlgorithmId(systemParameterService.getParameterValue(CONF_HASH_ALGO_URI, DEFAULT_CONF_HASH_ALGO_URI));
+        return CryptoUtils.getAlgorithmId(systemParameterService.getConfHashAlgoUri());
     }
 
     private void writeLocalCopy(Set<ConfigurationPart> allConfigurationParts) {
-        new LocalCopyWriter(getInstanceIdentifier(),
+        new LocalCopyWriter(systemParameterService.getInstanceIdentifier(),
                 Path.of(SystemProperties.getConfigurationPath()),
-                Instant.now().plusSeconds(getConfExpireIntervalSeconds()))
+                Instant.now().plusSeconds(systemParameterService.getConfExpireIntervalSeconds()))
                 .write(allConfigurationParts);
     }
 
