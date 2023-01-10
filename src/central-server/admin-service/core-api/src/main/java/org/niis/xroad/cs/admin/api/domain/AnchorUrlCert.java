@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -31,7 +31,6 @@ import lombok.Data;
 @Data
 public class AnchorUrlCert {
     private int id;
-    private AnchorUrl anchorUrl;
     private byte[] cert;
 }
 

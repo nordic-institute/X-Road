@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
@@ -42,6 +43,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = AnchorUrlCertEntity.TABLE_NAME)
+@NoArgsConstructor
 public class AnchorUrlCertEntity {
 
     public static final String TABLE_NAME = "anchor_url_certs";
@@ -63,10 +65,6 @@ public class AnchorUrlCertEntity {
     @Getter
     @Setter
     private byte[] cert;
-
-    protected AnchorUrlCertEntity() {
-        //JPA
-    }
 
 }
 
