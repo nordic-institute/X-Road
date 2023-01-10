@@ -46,25 +46,29 @@
         </div>
       </div>
       <v-card-text class="px-0">
-        <xrd-table id="global-groups-table">
-          <thead>
-            <tr>
-              <th>{{ $t('globalConf.anchor.certificateHash') }}</th>
-              <th>{{ $t('globalConf.anchor.created') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <xrd-icon-base class="internal-conf-icon">
-                  <XrdIconCertificate />
-                </xrd-icon-base>
-                {{ configurationAnchor.hash }}
-              </td>
-              <td>{{ configurationAnchor.created_at | formatDateTime }}</td>
-            </tr>
-          </tbody>
-        </xrd-table>
+        <v-data-table
+          v-if="anchors"
+          :headers="headers"
+          :items="anchors"
+          :items-per-page="-1"
+          :loading="loading"
+          item-key="hash"
+          hide-default-footer
+          class="anchors-table"
+        >
+          <template #[`item.hash`]="{ item }">
+            <xrd-icon-base class="internal-conf-icon">
+              <XrdIconCertificate />
+            </xrd-icon-base>
+            {{ item.hash }}
+          </template>
+          <template #[`item.created_at`]="{ item }">
+            {{ item.created_at | formatDateTime }}
+          </template>
+          <template #footer>
+            <div class="custom-footer"></div>
+          </template>
+        </v-data-table>
       </v-card-text>
     </v-card>
   </div>
@@ -79,6 +83,7 @@ import { mapStores } from 'pinia';
 import { ConfigurationAnchor, ConfigurationType } from '@/openapi-types';
 import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
 import { Prop } from 'vue/types/options';
+import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
   props: {
@@ -87,10 +92,31 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      loading: false,
+    };
+  },
   computed: {
     ...mapStores(useConfigurationSourceStore),
-    configurationAnchor(): ConfigurationAnchor {
-      return this.configurationSourceStore.getAnchor(this.configurationType);
+    anchors(): ConfigurationAnchor[] {
+      return [this.configurationSourceStore.getAnchor(this.configurationType)];
+    },
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('globalConf.anchor.certificateHash') as string,
+          align: 'start',
+          value: 'hash',
+          class: 'xrd-table-header text-uppercase',
+        },
+        {
+          text: this.$t('globalConf.anchor.created') as string,
+          align: 'start',
+          value: 'created_at',
+          class: 'xrd-table-header text-uppercase',
+        },
+      ];
     },
   },
   created() {
@@ -98,9 +124,10 @@ export default Vue.extend({
   },
   methods: {
     fetchConfigurationAnchor() {
-      this.configurationSourceStore.fetchConfigurationAnchor(
-        this.configurationType,
-      );
+      this.loading = true;
+      this.configurationSourceStore
+        .fetchConfigurationAnchor(this.configurationType)
+        .finally(() => (this.loading = false));
     },
   },
 });
@@ -140,5 +167,10 @@ export default Vue.extend({
 .internal-conf-icon {
   margin-right: 15px;
   color: $XRoad-Purple100;
+}
+
+.custom-footer {
+  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
+  height: 16px;
 }
 </style>
