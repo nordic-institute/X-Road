@@ -118,8 +118,9 @@ class ConfigurationSigningKeysServiceImplTest {
 
 
     @Test
-    void deleteActiveKeyShouldThrowException() {
+    void deleteActiveKeyShouldThrowException() throws Exception {
         ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", true);
+        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of()));
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
                 .thenReturn(Optional.of(signingKeyEntity));
 
@@ -259,8 +260,8 @@ class ConfigurationSigningKeysServiceImplTest {
 
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.activateKey(signingKeyEntity.getKeyIdentifier()))
-                .isInstanceOf(SigningKeyException.class)
-                .hasMessage("Signing Key cannot be activated on not logged in token");
+                .isInstanceOf(ValidationFailureException.class)
+                .hasMessage("Singing key action not possible");
     }
 
     @Test
@@ -308,7 +309,7 @@ class ConfigurationSigningKeysServiceImplTest {
         configurationSigningKey.setKeyIdentifier("keyIdentifier");
         configurationSigningKey.setCert("keyCert".getBytes());
         configurationSigningKey.setKeyGeneratedAt(Instant.now());
-        configurationSigningKey.setTokenIdentifier("tokenIdentifier");
+        configurationSigningKey.setTokenIdentifier(TOKEN_ID);
 
         ConfigurationSourceEntity configurationSource = new ConfigurationSourceEntity();
         configurationSource.setSourceType(sourceType);

@@ -39,10 +39,10 @@
         :key="token.id"
         :token="token"
         :configuration-type="configurationType"
+        :loading-keys="loadingKeys"
         @token-login="fetchData"
         @token-logout="fetchData"
-        @add-key="addKey"
-        @token-updated="fetchData"
+        @update-keys="fetchKeys"
       />
     </template>
   </div>
@@ -70,6 +70,7 @@ export default Vue.extend({
   data() {
     return {
       tokensLoading: false,
+      loadingKeys: false,
     };
   },
   computed: {
@@ -84,6 +85,10 @@ export default Vue.extend({
     fetchData(): void {
       this.tokensLoading = true;
       this.fetchTokens().finally(() => (this.tokensLoading = false));
+    },
+    fetchKeys(): void {
+      this.loadingKeys = true;
+      this.fetchTokens().finally(() => (this.loadingKeys = false));
     },
   },
 });
