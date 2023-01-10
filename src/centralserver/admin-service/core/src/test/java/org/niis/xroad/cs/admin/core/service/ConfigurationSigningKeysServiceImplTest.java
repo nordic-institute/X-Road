@@ -43,6 +43,7 @@ import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.exception.SigningKeyException;
 import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
@@ -83,6 +84,7 @@ class ConfigurationSigningKeysServiceImplTest {
     private static final String KEY_ID = "keyId";
     private static final Date SIGNING_KEY_CERT_NOT_BEFORE = Date.from(Instant.EPOCH);
     private static final Date SIGNING_KEY_CERT_NOT_AFTER = Date.from(Instant.parse("2038-01-01T00:00:00Z"));
+    public static final String INSTANCE = "XROAD-INSTANCE";
     @Mock
     private AuditEventHelper auditEventHelper;
     @Mock
@@ -99,6 +101,8 @@ class ConfigurationSigningKeysServiceImplTest {
     private AuditDataHelper auditDataHelper;
     @Mock
     private SignerProxyFacade signerProxyFacade;
+    @Mock
+    private SystemParameterService systemParameterService;
     @Spy
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
 
@@ -201,6 +205,7 @@ class ConfigurationSigningKeysServiceImplTest {
                 eq(SIGNING_KEY_CERT_NOT_BEFORE),
                 eq(SIGNING_KEY_CERT_NOT_AFTER))
         ).thenReturn(new byte[0]);
+        when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE);
 
         var result = configurationSigningKeysServiceImpl.addKey(INTERNAL_CONFIGURATION,
                 TOKEN_ID, KEY_LABEL);

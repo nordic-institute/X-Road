@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.SystemParameter;
@@ -38,6 +40,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import javax.xml.crypto.dsig.DigestMethod;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -61,17 +64,59 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     public static final Integer DEFAULT_OCSP_FRESHNESS_SECONDS = 3600;
     public static final String TIME_STAMPING_INTERVAL_SECONDS = "timeStampingIntervalSeconds";
     public static final Integer DEFAULT_TIME_STAMPING_INTERVAL_SECONDS = 60;
-    private static final String[] NODE_LOCAL_PARAMETERS = {CENTRAL_SERVER_ADDRESS};
+
+    public static final String CONF_SIGN_DIGEST_ALGO_ID = "confSignDigestAlgoId";
+    public static final String DEFAULT_CONF_SIGN_DIGEST_ALGO_ID = CryptoUtils.SHA512_ID;
+
+    public static final String CONF_HASH_ALGO_URI = "confHashAlgoUri";
+    public static final String DEFAULT_CONF_HASH_ALGO_URI = DigestMethod.SHA512;
+
+    public static final String CONF_SIGN_CERT_HASH_ALGO_URI = "confSignCertHashAlgoUri";
+    public static final String DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI = DigestMethod.SHA512;
+
+    public static final String CONF_EXPIRE_INTERVAL_SECONDS = "confExpireIntervalSeconds";
+    public static final Integer DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS = 600;
+
+    private static final String[] NODE_LOCAL_PARAMETERS = {SystemParameterService.CENTRAL_SERVER_ADDRESS};
 
     private final SystemParameterRepository systemParameterRepository;
     private final HAConfigStatus currentHaConfigStatus;
     private final SystemParameterMapper systemParameterMapper;
 
-    @Override
-    public String getParameterValue(String key, String defaultValue) {
+    private String getParameterValue(String key, String defaultValue) {
         log.debug("getParameterValue() - getting value for key:{} with default value:{}", key, defaultValue);
         Optional<SystemParameter> valueInDb = getSystemParameterOptional(key).map(systemParameterMapper::toTarget);
         return valueInDb.map(SystemParameter::getValue).orElse(defaultValue);
+    }
+
+    @Override
+    public String getCentralServerAddress() {
+        return getParameterValue(SystemParameterService.CENTRAL_SERVER_ADDRESS, "");
+    }
+
+    @Override
+    public String getInstanceIdentifier() {
+        return getParameterValue(INSTANCE_IDENTIFIER, "");
+    }
+
+    @Override
+    public String getConfSignCertHashAlgoUri() {
+        return getParameterValue(CONF_SIGN_CERT_HASH_ALGO_URI, DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI);
+    }
+
+    @Override
+    public String getConfSignDigestAlgoId() {
+        return getParameterValue(CONF_SIGN_DIGEST_ALGO_ID, DEFAULT_CONF_SIGN_DIGEST_ALGO_ID);
+    }
+
+    @Override
+    public int getConfExpireIntervalSeconds() {
+        return Integer.parseInt(getParameterValue(CONF_EXPIRE_INTERVAL_SECONDS, DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS.toString()));
+    }
+
+    @Override
+    public String getConfHashAlgoUri() {
+        return getParameterValue(CONF_HASH_ALGO_URI, DEFAULT_CONF_HASH_ALGO_URI);
     }
 
     @PreAuthorize("isAuthenticated()")

@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.api.domain.SystemParameter;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,9 +38,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
 import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANCE_IDENTIFIER;
 
 @Disabled
@@ -61,7 +60,6 @@ class SystemParameterServiceImplTest {
 
     @Test
     void systemParameterValueStored() {
-
         final String instanceTestValue = "VALID_INSTANCE";
         SystemParameter systemParameter = systemParameterService
                 .updateOrCreateParameter(
@@ -69,11 +67,7 @@ class SystemParameterServiceImplTest {
                         instanceTestValue
                 );
         assertEquals(instanceTestValue, systemParameter.getValue());
-        String storedSystemParameterValue = systemParameterService
-                .getParameterValue(
-                        INSTANCE_IDENTIFIER,
-                        "not-from-db");
-        assertNotEquals("not-from-db", storedSystemParameterValue);
+        String storedSystemParameterValue = systemParameterService.getInstanceIdentifier();
         assertEquals(instanceTestValue, storedSystemParameterValue);
     }
 
@@ -84,15 +78,11 @@ class SystemParameterServiceImplTest {
         final String centralServerAddress = "example.org";
         SystemParameter systemParameter = systemParameterService
                 .updateOrCreateParameter(
-                        CENTRAL_SERVER_ADDRESS,
+                        SystemParameterService.CENTRAL_SERVER_ADDRESS,
                         centralServerAddress
                 );
         assertEquals(centralServerAddress, systemParameter.getValue());
-        String storedSystemParameterValue = systemParameterService
-                .getParameterValue(
-                        CENTRAL_SERVER_ADDRESS,
-                        "not-from-db");
-        assertNotEquals("not-from-db", storedSystemParameterValue);
+        String storedSystemParameterValue = systemParameterService.getCentralServerAddress();
         assertEquals(centralServerAddress, storedSystemParameterValue);
     }
 
@@ -102,8 +92,5 @@ class SystemParameterServiceImplTest {
         HAConfigStatus createTestHaConfig() {
             return new HAConfigStatus("node_1", true);
         }
-
-
     }
-
 }

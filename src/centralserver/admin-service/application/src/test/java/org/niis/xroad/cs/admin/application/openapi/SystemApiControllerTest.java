@@ -53,7 +53,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANCE_IDENTIFIER;
 
 public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
@@ -103,11 +102,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     public void testUpdateCentralServerAddress() throws Exception {
         when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(
                 testSWToken); // for the getInitializationStatus
-        when(systemParameterService.getParameterValue(
-                eq(INSTANCE_IDENTIFIER),
-                any()
-        )).thenReturn("VALID_CS_ADDRESS_UPDATE_TEST_INSTANCE");
-        when(systemParameterService.getParameterValue(eq(CENTRAL_SERVER_ADDRESS), any())).thenReturn(
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("VALID_CS_ADDRESS_UPDATE_TEST_INSTANCE");
+        when(systemParameterService.getCentralServerAddress()).thenReturn(
                 "original.server.address.example.com");
         CentralServerAddressDto centralServerAddress = new CentralServerAddressDto()
                 .centralServerAddress("updated.server.address.example.com");

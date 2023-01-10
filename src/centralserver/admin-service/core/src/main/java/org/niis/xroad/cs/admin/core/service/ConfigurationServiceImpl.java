@@ -54,7 +54,6 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
 
 @Service
 @Transactional
@@ -97,7 +96,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public GlobalConfDownloadUrl getGlobalDownloadUrl(String sourceType) {
-        final String csAddress = systemParameterService.getParameterValue(CENTRAL_SERVER_ADDRESS, "");
+        final String csAddress = systemParameterService.getCentralServerAddress();
         final String sourceDirectory = sourceType.equals(INTERNAL_CONFIGURATION)
                 ? SystemProperties.getCenterInternalDirectory()
                 : SystemProperties.getCenterExternalDirectory();
