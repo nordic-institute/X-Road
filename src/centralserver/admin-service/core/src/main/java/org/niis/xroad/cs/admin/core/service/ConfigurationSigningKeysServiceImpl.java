@@ -39,6 +39,7 @@ import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.exception.SignerProxyException;
 import org.niis.xroad.cs.admin.api.exception.SigningKeyException;
+import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
@@ -59,10 +60,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
+import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.ACTIVATE;
 import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.DELETE;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_EXTERNAL_KEY;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_INTERNAL_KEY;
@@ -93,10 +96,11 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
 
 
     @Override
-    public List<ConfigurationSigningKey> findByTokenIdentifier(String tokenIdentifier) {
-        return configurationSigningKeyRepository.findByTokenIdentifier(tokenIdentifier).stream()
+    public List<ConfigurationSigningKey> findByTokenIdentifier(final ee.ria.xroad.signer.protocol.dto.TokenInfo token) {
+        return configurationSigningKeyRepository.findByTokenIdentifier(token.getId()).stream()
                 .map(configurationSigningKeyMapper::toTarget)
-                .map(this::resolvePossibleKeyActions)
+                .map(resolvePossibleKeyActions(token))
+                .map(addLabel(token))
                 .collect(Collectors.toList());
     }
 
@@ -106,7 +110,6 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                 .map(configurationSigningKeyMapper::toTarget)
                 .orElseThrow(ConfigurationSigningKeysServiceImpl::notFoundException);
 
-        signingKeyActionsResolver.requireAction(DELETE, signingKey);
 
         if (signingKey.getSourceType() == INTERNAL) {
             auditEventHelper.changeRequestScopedEvent(DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY);
@@ -117,11 +120,15 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         auditDataHelper.put(RestApiAuditProperty.KEY_ID, signingKey.getKeyIdentifier());
         try {
             TokenInfo tokenInfo = signerProxyFacade.getToken(signingKey.getTokenIdentifier());
+            signingKeyActionsResolver.requireAction(DELETE, tokenInfo, signingKey);
+
             auditDataHelper.put(RestApiAuditProperty.TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
             auditDataHelper.put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
 
             configurationSigningKeyRepository.deleteByKeyIdentifier(identifier);
             signerProxyFacade.deleteKey(signingKey.getKeyIdentifier(), true);
+        } catch (ValidationFailureException e) {
+            throw e;
         } catch (Exception e) {
             throw new SigningKeyException(ERROR_DELETING_SIGNING_KEY, e);
         }
@@ -132,15 +139,28 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         final var signingKey = configurationSigningKeyRepository.findByKeyIdentifier(keyIdentifier)
                 .orElseThrow(ConfigurationSigningKeysServiceImpl::notFoundException);
 
-        validateForActivation(signingKey);
-        activateKey(signingKey);
+        auditDataHelper.put(RestApiAuditProperty.TOKEN_ID, signingKey.getTokenIdentifier());
+        auditDataHelper.put(RestApiAuditProperty.KEY_ID, signingKey.getKeyIdentifier());
+
+        try {
+            TokenInfo tokenInfo = signerProxyFacade.getToken(signingKey.getTokenIdentifier());
+            signingKeyActionsResolver.requireAction(ACTIVATE, tokenInfo, configurationSigningKeyMapper.toTarget(signingKey));
+
+            auditDataHelper.put(RestApiAuditProperty.TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
+            auditDataHelper.put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
+
+            activateKey(signingKey);
+        } catch (ValidationFailureException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SigningKeyException(ERROR_ACTIVATING_SIGNING_KEY, e);
+        }
     }
 
     public Optional<ConfigurationSigningKey> findActiveForSource(String sourceType) {
         // TODO pass haNodeName if HA enabled
         return configurationSigningKeyRepository.findActiveForSource(sourceType, null)
-                .map(configurationSigningKeyMapper::toTarget)
-                .map(this::resolvePossibleKeyActions);
+                .map(configurationSigningKeyMapper::toTarget);
     }
 
     @Override
@@ -156,7 +176,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         final PossibleTokenAction action = StringUtils.endsWithIgnoreCase(SOURCE_TYPE_INTERNAL, sourceType)
                 ? GENERATE_INTERNAL_KEY
                 : GENERATE_EXTERNAL_KEY;
-        tokenActionsResolver.requireAction(action, tokenInfo, findByTokenIdentifier(tokenId));
+        tokenActionsResolver.requireAction(action, tokenInfo, findByTokenIdentifier(tokenInfo));
 
         KeyInfo keyInfo;
         try {
@@ -193,7 +213,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             deleteKey(keyInfo.getId());
         }
 
-        return resolvePossibleKeyActions(
+        return resolvePossibleKeyActions(tokenInfo).apply(
                 response.setKeyIdentifier(keyInfo.getId())
                         .setLabel(new KeyLabel(keyInfo.getLabel()))
                         .setAvailable(keyInfo.isAvailable())
@@ -202,9 +222,25 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         );
     }
 
-    private ConfigurationSigningKey resolvePossibleKeyActions(final ConfigurationSigningKey key) {
-        key.setPossibleActions(List.copyOf(signingKeyActionsResolver.resolveActions(key)));
-        return key;
+    private Function<ConfigurationSigningKey, ConfigurationSigningKey> resolvePossibleKeyActions(
+            final ee.ria.xroad.signer.protocol.dto.TokenInfo token) {
+
+        return key -> {
+            key.setPossibleActions(List.copyOf(signingKeyActionsResolver.resolveActions(token, key)));
+            return key;
+        };
+    }
+
+    private Function<ConfigurationSigningKey, ConfigurationSigningKey> addLabel(final ee.ria.xroad.signer.protocol.dto.TokenInfo token) {
+        var mappedLabels = Optional.ofNullable(token.getKeyInfo())
+                .orElseGet(List::of).stream()
+                .filter(key -> StringUtils.isNotEmpty(key.getLabel()))
+                .collect(Collectors.toMap(KeyInfo::getId, key -> new KeyLabel(key.getLabel())));
+
+        return key -> {
+            key.setLabel(mappedLabels.get(key.getKeyIdentifier()));
+            return key;
+        };
     }
 
     @Override

@@ -42,10 +42,11 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNING_KEY_ACT
 @Component
 public class SigningKeyActionsResolver {
 
-    public EnumSet<PossibleKeyAction> resolveActions(final ConfigurationSigningKey signingKey) {
+    public EnumSet<PossibleKeyAction> resolveActions(final ee.ria.xroad.signer.protocol.dto.TokenInfo token,
+                                                     final ConfigurationSigningKey signingKey) {
         EnumSet<PossibleKeyAction> actions = noneOf(PossibleKeyAction.class);
 
-        if (!signingKey.isActiveSourceSigningKey()) {
+        if (token.isActive() && !signingKey.isActiveSourceSigningKey()) {
             actions.add(ACTIVATE);
             actions.add(DELETE);
         }
@@ -54,8 +55,9 @@ public class SigningKeyActionsResolver {
     }
 
     public void requireAction(final PossibleKeyAction action,
+                              final ee.ria.xroad.signer.protocol.dto.TokenInfo token,
                               final ConfigurationSigningKey signingKey) {
-        if (!resolveActions(signingKey).contains(action))
+        if (!resolveActions(token, signingKey).contains(action))
             throw new ValidationFailureException(SIGNING_KEY_ACTION_NOT_POSSIBLE);
     }
 }

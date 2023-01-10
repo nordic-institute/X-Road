@@ -35,7 +35,7 @@ public interface ConfigurationSigningKeysService {
     String SOURCE_TYPE_INTERNAL = "internal";
     String SOURCE_TYPE_EXTERNAL = "external";
 
-    List<ConfigurationSigningKey> findByTokenIdentifier(String tokenIdentifier);
+    List<ConfigurationSigningKey> findByTokenIdentifier(ee.ria.xroad.signer.protocol.dto.TokenInfo token);
 
     ConfigurationSigningKey addKey(String sourceType, String tokenId, String keyLabel);
 

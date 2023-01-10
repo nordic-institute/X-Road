@@ -81,7 +81,11 @@
 
         <!-- SIGN keys table -->
         <div v-if="token.configuration_signing_keys">
-          <keys-table :keys="signingKeys" />
+          <keys-table
+            :keys="signingKeys"
+            :loading-keys="loadingKeys"
+            @update-keys="$emit('update-keys')"
+          />
         </div>
       </div>
       <signing-key-add-dialog
@@ -127,6 +131,10 @@ export default Vue.extend({
       type: String as Prop<ConfigurationType>,
       required: true,
     },
+    loadingKeys: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -170,11 +178,10 @@ export default Vue.extend({
       'setSelectedToken',
       'setTokenHidden',
       'setTokenExpanded',
-      'fetchTokens',
     ]),
     addKey(): void {
       this.showAddKeyDialog = false;
-      this.fetchTokens();
+      this.$emit('update-keys');
     },
     tokenNameClick(): void {
       this.isExpanded(this.token.id)

@@ -31,6 +31,7 @@
       :headers="headers"
       :items="keys"
       :items-per-page="-1"
+      :loading="loadingKeys"
       item-key="id"
       hide-default-footer
       class="keys-table"
@@ -70,13 +71,13 @@
       v-if="showDeleteKeyDialog"
       :signing-key="selectedKey"
       @cancel="closeDialogs"
-      @key-delete="refreshTokenData"
+      @key-delete="updateKeys"
     />
     <signing-key-activate-dialog
       v-if="showActivateKeyDialog"
       :signing-key="selectedKey"
       @cancel="closeDialogs"
-      @key-activate="refreshTokenData"
+      @key-activate="updateKeys"
     />
   </div>
 </template>
@@ -89,11 +90,10 @@ import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import { ConfigurationSigningKey, PossibleKeyAction } from '@/openapi-types';
 import { DataTableHeader } from 'vuetify';
-import { mapActions, mapState } from 'pinia';
+import { mapState } from 'pinia';
 import { userStore } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import SigningKeyDeleteDialog from '@/components/signingKeys/SigningKeyDeleteDialog.vue';
-import { tokenStore } from '@/store/modules/tokens';
 import SigningKeyActivateDialog from '@/components/signingKeys/SigningKeyActivateDialog.vue';
 
 export default Vue.extend({
@@ -102,6 +102,10 @@ export default Vue.extend({
     keys: {
       type: Array as Prop<ConfigurationSigningKey[]>,
       required: true,
+    },
+    loadingKeys: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
@@ -143,7 +147,6 @@ export default Vue.extend({
     },
   },
   methods: {
-    ...mapActions(tokenStore, ['fetchTokens']),
     canDeleteKey(key: ConfigurationSigningKey): boolean {
       return (
         this.canDeleteKeys &&
@@ -164,9 +167,9 @@ export default Vue.extend({
       this.showActivateKeyDialog = true;
       this.selectedKey = key;
     },
-    refreshTokenData() {
+    updateKeys() {
       this.closeDialogs();
-      this.fetchTokens();
+      this.$emit('update-keys');
     },
     closeDialogs() {
       this.showDeleteKeyDialog = false;

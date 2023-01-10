@@ -26,12 +26,17 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 
+import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.ACTIVATE;
@@ -42,25 +47,28 @@ class SigningKeyActionsResolverTest {
 
     @Test
     void resolveActions() {
-        assertThat(signingKeyActionsResolver.resolveActions(createKey(true)))
+        assertThat(signingKeyActionsResolver.resolveActions(createTokenInfo(true), createKey(true)))
                 .isEmpty();
 
-        assertThat(signingKeyActionsResolver.resolveActions(createKey(false)))
+        assertThat(signingKeyActionsResolver.resolveActions(createTokenInfo(true), createKey(false)))
                 .containsExactlyInAnyOrder(DELETE, ACTIVATE);
+
+        assertThat(signingKeyActionsResolver.resolveActions(createTokenInfo(false), createKey(false)))
+                .isEmpty();
     }
 
     @Test
     void requireActionForInactiveKey() {
         var inactiveKey = createKey(false);
 
-        var allowed = signingKeyActionsResolver.resolveActions(inactiveKey);
+        var allowed = signingKeyActionsResolver.resolveActions(createTokenInfo(true), inactiveKey);
         allowed.forEach(
-                action -> signingKeyActionsResolver.requireAction(action, inactiveKey)
+                action -> signingKeyActionsResolver.requireAction(action, createTokenInfo(true), inactiveKey)
         );
 
         var otherActions = EnumSet.complementOf(allowed);
         otherActions.forEach(
-                action -> assertThatThrownBy(() -> signingKeyActionsResolver.requireAction(action, inactiveKey))
+                action -> assertThatThrownBy(() -> signingKeyActionsResolver.requireAction(action, createTokenInfo(true), inactiveKey))
                         .isInstanceOf(ValidationFailureException.class)
         );
     }
@@ -69,14 +77,14 @@ class SigningKeyActionsResolverTest {
     void requireActionForActiveKey() {
         var activeKey = createKey(true);
 
-        var allowed = signingKeyActionsResolver.resolveActions(activeKey);
+        var allowed = signingKeyActionsResolver.resolveActions(createTokenInfo(true), activeKey);
         allowed.forEach(
-                action -> signingKeyActionsResolver.requireAction(action, activeKey)
+                action -> signingKeyActionsResolver.requireAction(action, createTokenInfo(true), activeKey)
         );
 
         var otherActions = EnumSet.complementOf(allowed);
         otherActions.forEach(
-                action -> assertThatThrownBy(() -> signingKeyActionsResolver.requireAction(action, activeKey))
+                action -> assertThatThrownBy(() -> signingKeyActionsResolver.requireAction(action, createTokenInfo(true), activeKey))
                         .isInstanceOf(ValidationFailureException.class)
         );
     }
@@ -85,5 +93,12 @@ class SigningKeyActionsResolverTest {
         var key = new ConfigurationSigningKey();
         key.setActiveSourceSigningKey(active);
         return key;
+    }
+
+    private TokenInfo createTokenInfo(boolean active) {
+        return new TokenInfo(
+                "type", "TOKEN_FRIENDLY_NAME", "TOKEN_ID", false, true,
+                active, "TOKEN_SERIAL_NUMBER", "label", 13, OK, List.of(), Map.of()
+        );
     }
 }
