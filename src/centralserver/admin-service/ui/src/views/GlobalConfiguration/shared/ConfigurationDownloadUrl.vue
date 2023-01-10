@@ -32,17 +32,26 @@
           {{ $t('globalConf.downloadUrl.title') }}
         </div>
       </div>
-      <v-card-title class="card-title">
-        {{ $t('globalConf.downloadUrl.urlAddress') }}
-      </v-card-title>
-      <v-divider></v-divider>
-      <v-card-text>
-        <div class="xrd-clickable" @click="openInNewTab">
-          <v-icon class="internal-conf-icon">mdi-link</v-icon>
-          {{ downloadUrl.url }}
-        </div>
-      </v-card-text>
-      <v-divider class="pb-4"></v-divider>
+      <v-data-table
+        v-if="urls"
+        :headers="headers"
+        :items="urls"
+        :items-per-page="-1"
+        :loading="loading"
+        item-key="url"
+        hide-default-footer
+        class="anchors-table"
+      >
+        <template #[`item.url`]="{ item }">
+          <div class="xrd-clickable" @click="openInNewTab(item.url)">
+            <v-icon class="internal-conf-icon">mdi-link</v-icon>
+            {{ item.url }}
+          </div>
+        </template>
+        <template #footer>
+          <div class="custom-footer"></div>
+        </template>
+      </v-data-table>
     </v-card>
   </div>
 </template>
@@ -56,6 +65,7 @@ import { mapStores } from 'pinia';
 import { ConfigurationType, GlobalConfDownloadUrl } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
+import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
   props: {
@@ -64,12 +74,27 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      loading: false,
+    };
+  },
   computed: {
     ...mapStores(useConfigurationSourceStore),
-    downloadUrl(): GlobalConfDownloadUrl {
-      return this.configurationSourceStore.getDownloadUrl(
-        this.configurationType,
-      );
+    urls(): GlobalConfDownloadUrl[] {
+      return [
+        this.configurationSourceStore.getDownloadUrl(this.configurationType),
+      ];
+    },
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('globalConf.downloadUrl.urlAddress') as string,
+          align: 'start',
+          value: 'url',
+          class: 'xrd-table-header text-uppercase',
+        },
+      ];
     },
   },
   created() {
@@ -77,10 +102,13 @@ export default Vue.extend({
   },
   methods: {
     fetchDownloadUrl() {
-      this.configurationSourceStore.fetchDownloadUrl(this.configurationType);
+      this.loading = true;
+      this.configurationSourceStore
+        .fetchDownloadUrl(this.configurationType)
+        .finally(() => (this.loading = false));
     },
-    openInNewTab() {
-      window.open(this.downloadUrl.url, '_blank', 'noreferrer');
+    openInNewTab(url: string) {
+      window.open(url, '_blank', 'noreferrer');
     },
   },
 });
@@ -120,5 +148,10 @@ export default Vue.extend({
 .internal-conf-icon {
   margin-right: 15px;
   color: $XRoad-Purple100;
+}
+
+.custom-footer {
+  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
+  height: 16px;
 }
 </style>
