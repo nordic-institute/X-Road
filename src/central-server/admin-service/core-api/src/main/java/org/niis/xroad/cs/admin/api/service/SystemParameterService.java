@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.niis.xroad.cs.admin.api.domain.SystemParameter;
 
 /**
@@ -46,6 +48,12 @@ public interface SystemParameterService {
     int getConfExpireIntervalSeconds();
 
     String getConfHashAlgoUri();
+
+    ClientId getManagementServiceProviderId();
+
+    Integer getTimeStampingIntervalSeconds();
+
+    String getAuthCertRegUrl();
 
     SystemParameter updateOrCreateParameter(String lookupKey, String updateValue);
 

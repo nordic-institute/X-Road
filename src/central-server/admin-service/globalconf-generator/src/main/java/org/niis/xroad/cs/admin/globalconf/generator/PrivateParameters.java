@@ -38,7 +38,7 @@ class PrivateParameters {
     private String instanceIdentifier;
     private List<ConfigurationAnchor> configurationAnchors;
     private ManagementService managementService;
-    private Long timeStampingIntervalSeconds;
+    private Integer timeStampingIntervalSeconds;
 
     @Data
     public static class ConfigurationAnchor {

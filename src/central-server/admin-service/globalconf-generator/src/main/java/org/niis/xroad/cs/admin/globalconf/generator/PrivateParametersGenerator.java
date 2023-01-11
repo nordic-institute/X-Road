@@ -24,12 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.admin.globalconf.generator;
 
-import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-public interface TrustedAnchorService {
-    List<TrustedAnchor> findAll();
+import javax.xml.bind.JAXBContext;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class PrivateParametersGenerator {
+    private final PrivateParametersMarshaller marshaller;
+    private final PrivateParametersLoader loader;
+
+
+    String generate() {
+        log.debug("Generating private parameters");
+        var parameters = loader.load();
+        return marshaller.marshall(parameters);
+    }
 }

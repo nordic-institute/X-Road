@@ -78,6 +78,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private final SystemParameterService systemParameterService;
     private final ConfigurationService configurationService;
     private final ConfigurationSigningKeysService configurationSigningKeysService;
+    private final PrivateParametersGenerator privateParametersGenerator;
 
     @SneakyThrows
     @Override
@@ -224,13 +225,13 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     }
 
 
-    // TODO replace with real configuration generator. When done, also fix fileData saving in ConfigurationServiceImpl.
+    // TODO replace with real configuration generator.
     private List<ConfigurationPart> generateConfiguration() {
         return List.of(
                 ConfigurationPart.builder()
                         .contentIdentifier(ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS)
                         .filename(ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS)
-                        .data("<data>Private parameter file placeholder</data>".getBytes(UTF_8))
+                        .data(privateParametersGenerator.generate().getBytes(UTF_8))
                         .build(),
                 ConfigurationPart.builder()
                         .contentIdentifier(ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS)

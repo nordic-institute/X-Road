@@ -110,8 +110,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void saveConfigurationPart(String contentIdentifier, String fileName, byte[] data, int version) {
         var distributedFileEntity = findOrCreate(contentIdentifier, version);
         distributedFileEntity.setFileName(fileName);
-        // FIXME: uncomment when configuration generation is done
-        // distributedFileEntity.setFileData(data);
+        distributedFileEntity.setFileData(data);
         distributedFileEntity.setFileUpdatedAt(Instant.now());
         distributedFileRepository.save(distributedFileEntity);
     }

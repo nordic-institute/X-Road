@@ -33,8 +33,6 @@ import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParameter
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.cs.admin.globalconf.generator.PrivateParameters;
-import org.niis.xroad.cs.admin.globalconf.generator.PrivateParametersConverter;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -52,7 +50,7 @@ class PrivateParametersConverterTest {
     private static final String OTHER_INSTANCE = "OTHER_INSTANCE";
     private static final ClientId SERVICE_PROVIDER_ID = ClientId.Conf.create(INSTANCE, "MEMBER-CLASS", "SERVICE-PROVIDER");
     private static final String AUTH_CERT_REG_SERVICE_ADDRESS = "http://getAuthCertReg.example.com";
-    private static final long TIMESTAMPING_INTERVAL = 123L;
+    private static final Integer TIMESTAMPING_INTERVAL = 123;
 
     @Test
     void shouldMapAllProperties() {

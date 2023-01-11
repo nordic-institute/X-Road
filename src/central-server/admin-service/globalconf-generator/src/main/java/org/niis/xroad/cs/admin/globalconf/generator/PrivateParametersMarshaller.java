@@ -24,12 +24,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.admin.globalconf.generator;
 
-import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
 
-import java.util.List;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 
-public interface TrustedAnchorService {
-    List<TrustedAnchor> findAll();
+import lombok.SneakyThrows;
+import org.springframework.stereotype.Component;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+
+import java.io.StringWriter;
+
+@Component
+class PrivateParametersMarshaller {
+    private JAXBContext jaxbContext = createJaxbContext();
+
+    @SneakyThrows
+    String marshall(PrivateParameters parameters) {
+        jaxbContext = createJaxbContext();
+        var writer = new StringWriter();
+        var marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.marshal(new ObjectFactory().createConf(PrivateParametersConverter.INSTANCE.convert(parameters)), writer);
+        return writer.toString();
+    }
+
+    @SneakyThrows
+    private JAXBContext createJaxbContext() {
+        return JAXBContext.newInstance(ObjectFactory.class);
+    }
+
 }
