@@ -128,7 +128,26 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
         intTestRuntimeOnly.extendsFrom runtimeOnly
     }
 
+    //Defining version overrides for spring dependency plugin
+    ext['snakeyaml.version'] = "$snakeyamlVersion"
+    ext['tomcat.version'] = "$tomcatVersion"
+
     dependencies {
+        constraints {
+            add('implementation', 'org.yaml:snakeyaml') {
+                because("Vulnerability fix regarding CVE-2022-25857")
+                version {
+                    require("$snakeyamlVersion")
+                }
+            }
+            add('implementation', 'org.apache.tomcat.embed:tomcat-embed-core') {
+                because("Vulnerability fix regarding CVE-2022-45143")
+                version {
+                    require("$tomcatVersion")
+                }
+            }
+        }
+
         testImplementation 'org.hamcrest:hamcrest:2.2'
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
         testImplementation "junit:junit:${junitVersion}"
