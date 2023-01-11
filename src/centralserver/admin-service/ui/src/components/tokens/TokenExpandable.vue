@@ -27,6 +27,7 @@
 <template>
   <xrd-expandable
     class="expandable"
+    data-test="token-expandable"
     :is-open="isExpanded(token.id)"
     :color="tokenStatusColor"
     @open="descOpen(token.id)"

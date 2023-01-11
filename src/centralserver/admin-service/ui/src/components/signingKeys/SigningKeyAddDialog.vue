@@ -46,11 +46,12 @@
         >
           <v-text-field
             v-model="label"
-            outlined
-            autofocus
             :label="$t('keys.dialog.add.labelField')"
             :error-messages="errors"
             name="keyLabel"
+            data-test="signing-key-label-input"
+            outlined
+            autofocus
           />
         </ValidationProvider>
       </div>

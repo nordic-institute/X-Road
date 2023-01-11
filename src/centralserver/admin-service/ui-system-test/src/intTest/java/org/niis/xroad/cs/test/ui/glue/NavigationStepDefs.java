@@ -43,6 +43,11 @@ public class NavigationStepDefs extends BaseUiStepDefs {
         commonPageObj.menu.trustServices().click();
     }
 
+    @Step("Global configuration tab is selected")
+    public void globalConfigurationTabIsSelected() {
+        commonPageObj.menu.globalConfiguration().click();
+    }
+
     @Step("CentralServer Settings tab is selected")
     public void navigateSettingsTab() {
         commonPageObj.menu.settingsTab().click();

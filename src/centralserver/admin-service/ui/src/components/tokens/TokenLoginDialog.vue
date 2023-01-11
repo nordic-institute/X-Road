@@ -46,12 +46,13 @@
         >
           <v-text-field
             v-model="pin"
-            type="password"
-            outlined
             :label="$t('tokens.pin')"
-            autofocus
-            name="tokenPin"
             :error-messages="errors"
+            type="password"
+            name="tokenPin"
+            data-test="token-pin-input"
+            outlined
+            autofocus
           ></v-text-field>
         </ValidationProvider>
       </div>
