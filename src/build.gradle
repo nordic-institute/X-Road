@@ -143,6 +143,7 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "ui"].contains(it.nam
 
     //Defining version overrides for spring dependency plugin
     ext['snakeyaml.version'] = "$snakeyamlVersion"
+    ext['tomcat.version'] = "$tomcatVersion"
 
     dependencies {
         constraints {
@@ -156,6 +157,12 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "ui"].contains(it.nam
                 because("Vulnerability fix regarding CVE-2022-25857")
                 version {
                     require("$snakeyamlVersion")
+                }
+            }
+            add('implementation', 'org.apache.tomcat.embed:tomcat-embed-core') {
+                because("Vulnerability fix regarding CVE-2022-45143")
+                version {
+                    require("$tomcatVersion")
                 }
             }
         }
