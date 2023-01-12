@@ -33,4 +33,6 @@ import java.util.Optional;
 public interface ConfigurationSourceRepository extends GenericRepository<ConfigurationSourceEntity, Integer> {
 
     Optional<ConfigurationSourceEntity> findBySourceType(String source);
+
+    ConfigurationSourceEntity findBySourceTypeOrCreate(String source);
 }

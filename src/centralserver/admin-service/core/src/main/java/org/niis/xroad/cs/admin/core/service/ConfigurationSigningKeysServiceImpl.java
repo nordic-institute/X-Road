@@ -66,7 +66,6 @@ import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNA
 import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.DELETE;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_EXTERNAL_KEY;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_INTERNAL_KEY;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_ACTIVATING_SIGNING_KEY;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_DELETING_SIGNING_KEY;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.KEY_GENERATION_FAILED;
@@ -150,8 +149,8 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         var response = new ConfigurationSigningKey();
         response.setActiveSourceSigningKey(Boolean.FALSE);
 
-        ConfigurationSourceEntity configurationSourceEntity =
-                findConfigurationSourceBySourceType(sourceType.toLowerCase());
+        ConfigurationSourceEntity configurationSourceEntity = configurationSourceRepository
+                .findBySourceTypeOrCreate(sourceType.toLowerCase());
 
         final TokenInfo tokenInfo = getToken(tokenId);
         final PossibleTokenAction action = StringUtils.endsWithIgnoreCase(SOURCE_TYPE_INTERNAL, sourceType)
@@ -200,11 +199,6 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                         .setKeyGeneratedAt(generatedAt)
                         .setTokenIdentifier(tokenId)
         );
-    }
-
-    private ConfigurationSourceEntity findConfigurationSourceBySourceType(String sourceType) {
-        return configurationSourceRepository.findBySourceType(sourceType)
-                .orElseThrow(() -> new NotFoundException(CONFIGURATION_NOT_FOUND));
     }
 
     private ConfigurationSigningKey resolvePossibleKeyActions(final ConfigurationSigningKey key) {

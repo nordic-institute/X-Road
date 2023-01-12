@@ -195,8 +195,8 @@ class ConfigurationSigningKeysServiceImplTest {
 
     @Test
     void shouldAddSigningKey() throws Exception {
-        when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
-                .thenReturn(Optional.of(configurationSourceEntity));
+        when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION))
+                .thenReturn(configurationSourceEntity);
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of()));
         when(signerProxyFacade.generateKey(TOKEN_ID, KEY_LABEL)).thenReturn(createKeyInfo());
         when(signerProxyFacade.generateSelfSignedCert(eq(KEY_ID), isA(ClientId.Conf.class),
@@ -223,8 +223,8 @@ class ConfigurationSigningKeysServiceImplTest {
     void shouldNotAddMoreThanTwoSingingKeys() throws Exception {
         ConfigurationSigningKeyEntity key1 = createConfigurationSigningEntity(INTERNAL_CONFIGURATION, true);
         ConfigurationSigningKeyEntity key2 = createConfigurationSigningEntity(INTERNAL_CONFIGURATION, false);
-        when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
-                .thenReturn(Optional.of(configurationSourceEntity));
+        when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION))
+                .thenReturn(configurationSourceEntity);
         when(configurationSigningKeyRepository.findByTokenIdentifier(TOKEN_ID)).thenReturn(List.of(key1, key2));
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of(createKeyInfo())));
 

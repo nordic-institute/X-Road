@@ -36,4 +36,14 @@ import java.util.Optional;
 public interface JpaConfigurationSourceRepository extends JpaRepository<ConfigurationSourceEntity, Integer>, ConfigurationSourceRepository {
 
     Optional<ConfigurationSourceEntity> findBySourceType(String source);
+
+    default ConfigurationSourceEntity findBySourceTypeOrCreate(final String source) {
+        return findBySourceType(source).orElseGet(() -> createForSourceType(source));
+    }
+
+    private ConfigurationSourceEntity createForSourceType(String source) {
+        var configSource = new ConfigurationSourceEntity();
+        configSource.setSourceType(source);
+        return save(configSource);
+    }
 }
