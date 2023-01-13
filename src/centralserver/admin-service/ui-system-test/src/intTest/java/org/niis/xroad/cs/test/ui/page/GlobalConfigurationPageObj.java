@@ -28,32 +28,54 @@ package org.niis.xroad.cs.test.ui.page;
 
 
 import com.codeborne.selenide.SelenideElement;
+import lombok.Value;
 
 import static com.codeborne.selenide.Selenide.$x;
 
 @SuppressWarnings("InnerClassMayBeStatic")
 public class GlobalConfigurationPageObj {
+    private static final String X_TOKEN_EXPANDABLE = "//div[@data-test='token-%s-expandable']";
     public final TokenLoginDialog tokenLoginDialog = new TokenLoginDialog();
+    public final TokenLogoutDialog tokenLogoutDialog = new TokenLogoutDialog();
     public final AddSigningKeyDialog addSigningKeyDialog = new AddSigningKeyDialog();
+    public final ActivateSigningKeyDialog activateSigningKeyDialog = new ActivateSigningKeyDialog();
+    public final DeleteSigningKeyDialog deleteSigningKeyDialog = new DeleteSigningKeyDialog();
 
-    public SelenideElement tokenLabel(final String tokenKey) {
-        return $x(String.format("//div[@data-test='token-name']/span[contains(text(), 'Token: %s')]", tokenKey));
+
+    public SelenideElement tokenLabel(final String tokenName) {
+        return $x(String.format(X_TOKEN_EXPANDABLE + "//div[@data-test='token-name']", tokenName));
     }
 
-    public SelenideElement loginButton(final String tokenKey) {
-        return tokenLabel(tokenKey)
-                .ancestor("[class=exp-header]")
-                .$("button[data-test=token-login-button]");
+    public SelenideElement loginButton(final String tokenName) {
+        return $x(String.format(X_TOKEN_EXPANDABLE + "//button[@data-test='token-login-button']", tokenName));
     }
 
-    public SelenideElement addSigningKey(final String tokenKey) {
-        return tokenLabel(tokenKey)
-                .ancestor(".exp-wrapper")
-                .$("button[data-test=token-add-key-button]");
+    public SelenideElement logoutButton(final String tokenName) {
+        return $x(String.format(X_TOKEN_EXPANDABLE + "//button[@data-test='token-logout-button']", tokenName));
+    }
+
+    public SelenideElement addSigningKey(final String tokenName) {
+        return $x(String.format(X_TOKEN_EXPANDABLE + "//button[@data-test='token-add-key-button']", tokenName));
+    }
+
+    public SelenideElement signingKeyLabel(final String tokenName, final String keyLabel) {
+        return $x(String.format(X_TOKEN_EXPANDABLE + "//span[@data-test='key-label-text'][contains(text(), '%s')]", tokenName, keyLabel));
+    }
+
+    public SelenideElement btnActivateSigningKey(final String tokenName, final String keyLabel) {
+        return $x(String.format(X_TOKEN_EXPANDABLE + "//button[@data-test='key-%s-activate-button']", tokenName, keyLabel));
+    }
+
+    public SelenideElement btnDeleteSigningKey(final String tokenName, final String keyLabel) {
+        return $x(String.format(X_TOKEN_EXPANDABLE + "//button[@data-test='key-%s-delete-button']", tokenName, keyLabel));
     }
 
     public SelenideElement internalConfiguration() {
         return $x("//a[@data-test='internal-conf-tab-button']");
+    }
+
+    public SelenideElement externalConfiguration() {
+        return $x("//a[@data-test='external-conf-tab-button']");
     }
 
     public class TokenLoginDialog {
@@ -72,6 +94,24 @@ public class GlobalConfigurationPageObj {
         }
 
         public SelenideElement btnSave() {
+            return $x("//button[@data-test='dialog-save-button']");
+        }
+    }
+
+    public class ActivateSigningKeyDialog {
+        public SelenideElement btnActivate() {
+            return $x("//button[@data-test='dialog-save-button']");
+        }
+    }
+
+    public class DeleteSigningKeyDialog {
+        public SelenideElement btnDelete() {
+            return $x("//button[@data-test='dialog-save-button']");
+        }
+    }
+
+    public class TokenLogoutDialog {
+        public SelenideElement btnLogout() {
             return $x("//button[@data-test='dialog-save-button']");
         }
     }
