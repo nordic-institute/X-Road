@@ -28,7 +28,6 @@ package org.niis.xroad.cs.test.ui.page;
 
 
 import com.codeborne.selenide.SelenideElement;
-import lombok.Value;
 
 import static com.codeborne.selenide.Selenide.$x;
 
