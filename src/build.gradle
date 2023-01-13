@@ -165,6 +165,12 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "ui"].contains(it.nam
                     require("$tomcatVersion")
                 }
             }
+            add('implementation', 'org.apache.tomcat.embed:tomcat-embed-websocket') {
+                because("Vulnerability fix regarding CVE-2022-45143")
+                version {
+                    require("$tomcatVersion")
+                }
+            }
         }
 
         testImplementation 'org.hamcrest:hamcrest:2.2'
