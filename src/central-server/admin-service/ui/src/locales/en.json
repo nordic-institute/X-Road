@@ -388,7 +388,19 @@
     "removeClient": "Remove Client",
     "securityServerId": "Server Identifier",
     "securityServerOwnerName": "Server Owner Name",
-    "showOnlyPending": "Show only pending requests"
+    "showOnlyPending": "Show only pending requests",
+    "dialog": {
+      "approve": {
+        "title": "Approve management request",
+        "bodyMessage": "Are you sure you want to approve the management request ID {id} from server {serverId}?",
+        "successMessage": "Management request ID {id} from {serverId} approved"
+      },
+      "decline": {
+        "title": "Decline management request",
+        "bodyMessage": "Are you sure you want to decline the management request ID {id} from server {serverId}?",
+        "successMessage": "Management request ID {id} from {serverId} declined"
+      }
+    }
   },
   "members": {
     "addMember": "Add member",

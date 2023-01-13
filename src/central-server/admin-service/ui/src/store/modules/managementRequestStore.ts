@@ -71,5 +71,13 @@ export const managementRequestsStore = defineStore('managementRequests', {
           this.pagingOptions = resp.data.paging_metadata;
         });
     },
+    approve(id: number) {
+      return axios.post<ManagementRequest>(
+        `/management-requests/${id}/approval`,
+      );
+    },
+    decline(id: number) {
+      return axios.delete(`/management-requests/${id}`);
+    },
   },
 });
