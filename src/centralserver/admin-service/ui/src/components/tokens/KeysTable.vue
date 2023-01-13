@@ -40,10 +40,7 @@
         <xrd-icon-base class="key-icon">
           <XrdIconKey />
         </xrd-icon-base>
-        <span v-if="!item.label || item.label.label === ''">
-          {{ item.id }}
-        </span>
-        <span v-else>{{ item.label.label }}</span>
+        <span :data-test="`key-label-text`">{{keyLabel(item)}}</span>
       </template>
       <template #[`item.createdAt`]="{ item }">
         {{ item.created_at | formatDateTime }}
@@ -52,6 +49,7 @@
         <xrd-button
           v-if="canActivateKey(item)"
           :outlined="false"
+          :data-test="`key-${keyLabel(item)}-activate-button`"
           text
           @click="openActivateKeyDialog(item)"
         >
@@ -60,6 +58,7 @@
         <xrd-button
           v-if="canDeleteKey(item)"
           :outlined="false"
+          :data-test="`key-${keyLabel(item)}-delete-button`"
           text
           @click="openDeleteKeyDialog(item)"
         >
@@ -147,6 +146,9 @@ export default Vue.extend({
     },
   },
   methods: {
+    keyLabel(key: ConfigurationSigningKey): string {
+      return key?.label?.label || key.id;
+    },
     canDeleteKey(key: ConfigurationSigningKey): boolean {
       return (
         this.canDeleteKeys &&
