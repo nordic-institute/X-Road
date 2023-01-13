@@ -94,16 +94,4 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
-@import '~styles/tables';
-
-.key-icon {
-  margin-right: 18px;
-  color: $XRoad-Purple100;
-}
-
-.keys-table {
-  transform-origin: top;
-  transition: transform 0.4s ease-in-out;
-}
-</style>
+<style lang="scss" scoped></style>
