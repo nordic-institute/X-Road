@@ -33,8 +33,8 @@ test-automation:
     proxy-host: 127.0.0.1
     file-download: proxy
   custom:
-    package-host: https://s3-eu-west-1.amazonaws.com/niis-xroad-development
+    package-host: "replace-me"
     package-source: develop-7.x
     package-repo: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/debian"
     package-repo-key: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/jenkins@niis.org.gpg"
-    central-server-url-override: https://localhost:4000
+    #central-server-url-override: "replace-me" #Use when you want to run against custom target.
