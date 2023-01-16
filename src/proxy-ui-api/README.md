@@ -1,8 +1,8 @@
 # Building
 
 Default build does frontend `npm run build` and packages the built frontend assets from `frontend/dist`
-inside the spring boot jar. 
-Build installs project-local versions of `node` and `npm` using 
+inside the spring boot jar.
+Build installs project-local versions of `node` and `npm` using
 https://github.com/srs/gradle-node-plugin, and uses those to build the package.
 
 ```
@@ -47,7 +47,6 @@ server {
 
 - `development` profile toggles some "safe" development aspects. It enables more logging and supports
 accessing signer from a remote IP.
-- other development profiles exist in a separate module, which is not included in a regular build. See [proxy-ui-api-devtools](../proxy-ui-api-devtools/README.md)
 
 # TLS
 
@@ -56,7 +55,7 @@ Application listens to https in port 4000.
 Since it uses a self-signed certificate, clients need to trust this certificate. In browser access this means manually allow exception for
 "your connection is not secure" warning. For `curl` commands this means `-k` parameter (which you can see used in the examples).
 
-By default the certificate is read from keystore `/etc/xroad/ssl/proxy-ui-api.p12`. 
+By default the certificate is read from keystore `/etc/xroad/ssl/proxy-ui-api.p12`.
 This keystore is automatically created when linux packages are installed.
 If this does not suit you (for example in local development environment), you can do one of:
 
@@ -68,7 +67,7 @@ If this does not suit you (for example in local development environment), you ca
 
 # Api key administration
 
-Api keys can be created, listed and revoked through an administration API. 
+Api keys can be created, listed and revoked through an administration API.
 
 For details and example commands, see
 [Security server user guide](https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#19-management-rest-apis)
@@ -77,7 +76,6 @@ For details and example commands, see
 
 There are two possible authentication mechanims
 - PAM authentication
-- Development authentication with static users. See [proxy-ui-api-devtools](../proxy-ui-api-devtools/README.md)
 
 ## PAM authentication
 
@@ -116,11 +114,11 @@ sudo passwd xrd-system-admin
 
 # CSRF protection
 
-When using session cookie authentication for /test-api apis, 
+When using session cookie authentication for /test-api apis,
 [Spring's CSRF prevention](https://docs.spring.io/spring-security/site/docs/5.1.1.RELEASE/reference/htmlsingle/#csrf)
 mechanism is used.
 
-CSRF prevention checks that http header `X-XSRF-TOKEN` matches cookie `XSRF-TOKEN`. This way attacker cannot execute 
+CSRF prevention checks that http header `X-XSRF-TOKEN` matches cookie `XSRF-TOKEN`. This way attacker cannot execute
 unwanted requests against the apis just by triggering hostile requests from browser to rest apis and relying on the fact
 that browser will send session cookie automatically.
 
@@ -130,9 +128,9 @@ Frontend would use CSRF token like so:
  - JESSIONID cookie for session
  - XSRF-TOKEN with original csrf token value
  - http header X-XSRF-TOKEN with original csrf token value
- 
-Implementation uses CookieCsrfTokenRepository and token does not have to be the original token as long as cookie 
-and header match. We could also use HttpSessionCsrfTokenRepository but the security level would not be 
+
+Implementation uses CookieCsrfTokenRepository and token does not have to be the original token as long as cookie
+and header match. We could also use HttpSessionCsrfTokenRepository but the security level would not be
 substantially different and it would probably make Vue+Login+RestAPI integration more complex.
 
 This implements [Cookie-to-Header token pattern](https://medium.com/spektrakel-blog/angular2-and-spring-a-friend-in-security-need-is-a-friend-against-csrf-indeed-9f83eaa9ca2e)
@@ -142,36 +140,36 @@ Examples:
 Login
 ```
 curl -X POST -k -d "username=admin&password=password" -D - https://localhost:4000/login
-HTTP/1.1 200 
+HTTP/1.1 200
 Set-Cookie: XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335; Path=/
 Set-Cookie: JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4; Path=/; HttpOnly
 ```
 Using the cookies and CSRF header correctly
 ```
 curl -D -k - https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=45eeef1e-3d0a-4dea-9a65-b84f9a505335" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
-HTTP/1.1 200 
+HTTP/1.1 200
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 Actual CSRF token value does not matter
 ```
 curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: foo"
-HTTP/1.1 200 
+HTTP/1.1 200
 [{"id":999,"name":"Admincity, from a method which requires 'ADMIN' role"},{"id":1,"name":"Tampere"},{"id":2,"name":"Ylojarvi"},{"id":3,"name":"Helsinki"},{"id":4,"name":"Vantaa"},{"id":5,"name":"Nurmes"}]
 ```
 
 But it needs to exist and match the value from cookie
 ```
 curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo" --header "X-XSRF-TOKEN: bar"
-HTTP/1.1 403 
+HTTP/1.1 403
 ```
 
 ```
 curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4;XSRF-TOKEN=foo"
-HTTP/1.1 403 
+HTTP/1.1 403
 ```
 
 ```
 curl -D - -k https://localhost:4000/api/adminCities --cookie "JSESSIONID=1BE8A92CFAD40516BA4E6008646882E4" --header "X-XSRF-TOKEN: 45eeef1e-3d0a-4dea-9a65-b84f9a505335"
-HTTP/1.1 403 
+HTTP/1.1 403
 ```

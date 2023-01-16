@@ -21,7 +21,6 @@ include 'common-domain'
 // Main projects
 include "proxy"
 include "proxy-ui-api"
-include "proxy-ui-api-devtools"
 include "signer"
 include "configuration-proxy"
 include "configuration-client"
