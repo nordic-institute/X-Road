@@ -19,10 +19,10 @@ bootJar {
 
 
 dependencies {
-    implementation(project(":centralserver:management-service:core")) {
+    implementation(project(":central-server:management-service:core")) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
-    implementation(project(":centralserver:management-service:infra-api-soap")) {
+    implementation(project(":central-server:management-service:infra-api-soap")) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
 

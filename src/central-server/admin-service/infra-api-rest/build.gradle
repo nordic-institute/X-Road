@@ -2,8 +2,8 @@
 dependencies {
     annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
 
-    implementation project(':centralserver:admin-service:core-api')
-    implementation project(':centralserver:openapi-model')
+    implementation project(':central-server:admin-service:core-api')
+    implementation project(':central-server:openapi-model')
     implementation project(':common-util')
     implementation project(':common-verifier')
     implementation project(':signer-protocol')

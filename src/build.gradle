@@ -44,9 +44,9 @@ dependencyCheck {
     format = "ALL"
     skipProjects = [
         ":e2e-tests",
-        ":centralserver:admin-service:ui-system-test",
-        ":centralserver:admin-service:int-test",
-        ":centralserver:management-service:int-test"
+        ":central-server:admin-service:ui-system-test",
+        ":central-server:admin-service:int-test",
+        ":central-server:management-service:int-test"
     ]
     analyzers {
         experimentalEnabled = false
@@ -273,4 +273,8 @@ jacocoTestReport {
     classDirectories.setFrom files(javaProjects.sourceSets.main.java.classesDirectory)
     sourceDirectories.setFrom files(javaProjects.sourceSets.main.java.srcDirs)
     executionData.setFrom fileTree(dir: '.', include: "**/build/jacoco/*.exec")
+}
+
+tasks.withType(Jar).configureEach {
+    enabled = false
 }

@@ -24,10 +24,10 @@ dependencies {
     annotationProcessor "org.springframework:spring-context-indexer"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-    implementation(project(":centralserver:admin-service:api-client")) {
+    implementation(project(":central-server:admin-service:api-client")) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
-    implementation(project(':centralserver:openapi-model'))
+    implementation(project(':central-server:openapi-model'))
     implementation(project(':common-util')) {
         exclude group: 'com.typesafe.akka'
         exclude group: 'org.eclipse.jetty'

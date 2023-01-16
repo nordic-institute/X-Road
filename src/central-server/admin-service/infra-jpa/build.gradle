@@ -6,7 +6,7 @@ dependencies {
     annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
     annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
 
-    implementation project(':centralserver:admin-service:core')
+    implementation project(':central-server:admin-service:core')
     implementation project(':common-util')
 
     api('org.springframework.boot:spring-boot-starter-data-jpa')

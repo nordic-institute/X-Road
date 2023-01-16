@@ -15,7 +15,7 @@ dependencies {
     annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
 
 
-    api project(':centralserver:admin-service:core-api')
+    api project(':central-server:admin-service:core-api')
 //    implementation project(':common-util')
 //    implementation project(':common-verifier')
 //    implementation project(':signer-protocol')

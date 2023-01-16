@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api project(':centralserver:openapi-model')
+    api project(':central-server:openapi-model')
 
     implementation project(':common-util')
     implementation project(':common-verifier')

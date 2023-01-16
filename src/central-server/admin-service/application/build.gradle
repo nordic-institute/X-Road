@@ -13,14 +13,14 @@ configurations {
     }
 }
 dependencies {
-    dist(project(path: ":centralserver:admin-service:ui", configuration: "dist"))
+    dist(project(path: ":central-server:admin-service:ui", configuration: "dist"))
 
-    implementation project(":centralserver:admin-service:core")
-    implementation project(":centralserver:admin-service:core-api")
-    implementation project(":centralserver:admin-service:infra-api-rest")
-    implementation project(":centralserver:admin-service:infra-jpa")
-    implementation project(":centralserver:admin-service:globalconf-generator")
-    implementation project(':centralserver:openapi-model')
+    implementation project(":central-server:admin-service:core")
+    implementation project(":central-server:admin-service:core-api")
+    implementation project(":central-server:admin-service:infra-api-rest")
+    implementation project(":central-server:admin-service:infra-jpa")
+    implementation project(":central-server:admin-service:globalconf-generator")
+    implementation project(':central-server:openapi-model')
 
 
     testImplementation project(":common-test")

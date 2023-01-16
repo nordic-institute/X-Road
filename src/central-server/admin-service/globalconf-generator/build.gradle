@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':centralserver:admin-service:core-api')
+    implementation project(':central-server:admin-service:core-api')
     implementation project(':common-util')
 
     implementation('org.springframework:spring-context')

@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    api project(":centralserver:management-service:core-api")
+    api project(":central-server:management-service:core-api")
 
-    api project(":centralserver:admin-service:api-client")
+    api project(":central-server:admin-service:api-client")
     implementation project(":common-verifier")
     implementation project(":common-domain")
     implementation("org.springframework.boot:spring-boot-starter-web") {
