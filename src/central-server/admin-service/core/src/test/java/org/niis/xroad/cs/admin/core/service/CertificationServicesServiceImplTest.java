@@ -28,18 +28,17 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.TestCertUtil;
 
 import lombok.SneakyThrows;
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
-import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.core.converter.ApprovedCaConverter;
@@ -50,8 +49,6 @@ import org.niis.xroad.cs.admin.core.converter.OcspResponderConverter;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
-import org.niis.xroad.cs.admin.core.entity.mapper.ApprovedCaMapper;
-import org.niis.xroad.cs.admin.core.entity.mapper.ApprovedCaMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.niis.xroad.cs.admin.core.repository.CaInfoRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
@@ -72,6 +69,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -101,22 +99,29 @@ class CertificationServicesServiceImplTest {
     private CaInfoRepository caInfoRepository;
     @Mock
     private OcspInfoRepository ocspInfoRepository;
-    @Spy
-    private ApprovedCaConverter approvedCaConverter = new ApprovedCaConverter();
-    @Mock
-    private OcspResponderConverter ocspResponderConverter;
     @Mock
     private AuditDataHelper auditDataHelper;
-    @Spy
-    private CaInfoConverter caInfoConverter = new CaInfoConverter(new CertificateConverter(new KeyUsageConverter()));
-    @Spy
-    private CertificateConverter certConverter = new CertificateConverter(new KeyUsageConverter());
 
-    @Spy
-    private ApprovedCaMapper approvedCaMapper = new ApprovedCaMapperImpl();
-
-    @InjectMocks
     private CertificationServicesServiceImpl service;
+
+    @BeforeEach
+    void setup() {
+        OcspResponderConverter ocspResponderConverter = new OcspResponderConverter(approvedCaRepository);
+        CertificateConverter certConverter = new CertificateConverter(new KeyUsageConverter());
+        CaInfoConverter caInfoConverter = new CaInfoConverter(certConverter, ocspResponderConverter);
+        ApprovedCaConverter approvedCaConverter = new ApprovedCaConverter(ocspResponderConverter, caInfoConverter);
+
+        service = new CertificationServicesServiceImpl(
+                approvedCaRepository,
+                ocspInfoRepository,
+                caInfoRepository,
+                auditDataHelper,
+                approvedCaConverter,
+                ocspResponderConverter,
+                caInfoConverter,
+                certConverter);
+    }
+
 
     @Test
     void getCertificationServices() {
@@ -154,15 +159,17 @@ class CertificationServicesServiceImplTest {
     @Test
     void addCertificationServiceOcspResponder() throws Exception {
         var mockOcspResponderRequest = ocspResponderAddRequest();
-        var mockOcspResponder = mock(OcspResponder.class);
         var mockOcspInfo = ocspInfo();
-        when(ocspResponderConverter.toEntity(mockOcspResponderRequest)).thenReturn(mockOcspInfo);
-        when(ocspInfoRepository.save(mockOcspInfo)).thenReturn(mockOcspInfo);
-        when(ocspResponderConverter.toModel(mockOcspInfo)).thenReturn(mockOcspResponder);
+        when(approvedCaRepository.findById(mockOcspResponderRequest.getCaId()))
+                .thenReturn(Optional.of(approvedCa()));
+        when(ocspInfoRepository.save(any())).thenReturn(mockOcspInfo);
 
         var result = service.addOcspResponder(mockOcspResponderRequest);
 
-        assertThat(result).isEqualTo(mockOcspResponder);
+        assertThat(result).usingRecursiveComparison(RecursiveComparisonConfiguration.builder()
+                        .withIgnoredFields("caId", "certificate")
+                        .build())
+                .isEqualTo(mockOcspInfo);
         verify(auditDataHelper).put(CA_ID, mockOcspInfo.getCaInfo().getId());
         verify(auditDataHelper).put(OCSP_ID, mockOcspInfo.getId());
         verify(auditDataHelper).put(OCSP_URL, mockOcspInfo.getUrl());

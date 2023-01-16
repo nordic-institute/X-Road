@@ -31,14 +31,14 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @Accessors(chain = true)
 public class CertificateAuthority {
-
     private Integer id;
     private CertificateDetails caCertificate;
+    private List<OcspResponder> ocspResponders;
     private Instant createdAt;
     private Instant updatedAt;
-
 }

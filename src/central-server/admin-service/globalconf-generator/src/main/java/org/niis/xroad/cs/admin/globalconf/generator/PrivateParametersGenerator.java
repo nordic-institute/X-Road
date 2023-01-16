@@ -26,15 +26,9 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
-
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBContext;
 
 @Component
 @RequiredArgsConstructor
@@ -42,7 +36,6 @@ import javax.xml.bind.JAXBContext;
 public class PrivateParametersGenerator {
     private final PrivateParametersMarshaller marshaller;
     private final PrivateParametersLoader loader;
-
 
     String generate() {
         log.debug("Generating private parameters");

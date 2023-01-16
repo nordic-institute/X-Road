@@ -28,19 +28,25 @@ package org.niis.xroad.cs.admin.api.service;
 
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * Service for searching {@link FlattenedSecurityServerClientView}s
  */
 public interface ClientService {
 
-    Page<FlattenedSecurityServerClientView> find(
-            ClientService.SearchParameters params,
-            Pageable pageable);
+    Page<FlattenedSecurityServerClientView> find(ClientService.SearchParameters params, Pageable pageable);
+
+    List<FlattenedSecurityServerClientView> find(ClientService.SearchParameters params);
+
+    List<FlattenedSecurityServerClientView> findAll();
 
     /**
      * Parameters that defined which clients are returned.
@@ -48,6 +54,8 @@ public interface ClientService {
      * with memberClass = GOV, memberCode = 456). Null / undefined parameters are ignored.
      */
     @Getter
+    @EqualsAndHashCode
+    @ToString
     class SearchParameters {
         private String multifieldSearch;
         private String instanceSearch;

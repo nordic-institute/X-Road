@@ -60,7 +60,7 @@ public class ConfigurationDistributor {
     public Path initConfLocation() {
         try {
             var configLocation = getConfigLocationPath();
-            Files.createDirectories(configLocation);
+            FileUtils.createDirectories(configLocation);
             initialized = true;
             return configLocation;
         } catch (IOException e) {
@@ -80,7 +80,8 @@ public class ConfigurationDistributor {
     @SneakyThrows
     public void moveDirectoryContentFile(String source, String target) {
         var versionPath = generatedConfDir.resolve(getVersionSubPath());
-        Files.move(versionPath.resolve(source), versionPath.resolve(target), StandardCopyOption.ATOMIC_MOVE);
+        var sourcePath = versionPath.resolve(source);
+        Files.move(sourcePath, versionPath.resolve(target), StandardCopyOption.ATOMIC_MOVE);
     }
 
     private void writeConfigurationFile(ConfigurationPart configurationPart) {
@@ -95,13 +96,12 @@ public class ConfigurationDistributor {
         checkInitialized();
         var fileFullPath = generatedConfDir.resolve(fileSubPath);
         try {
-            Files.write(fileFullPath, data);
+            FileUtils.write(fileFullPath, data);
         } catch (IOException e) {
             log.error("Failed to write file {}", fileFullPath, e);
             throw new ConfGeneratorException(e);
         }
     }
-
 
     public Path getVersionSubPath() {
         return Path.of("V" + version);

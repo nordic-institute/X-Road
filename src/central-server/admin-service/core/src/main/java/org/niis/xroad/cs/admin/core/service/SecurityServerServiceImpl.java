@@ -48,6 +48,9 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Transactional
@@ -91,5 +94,12 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         //TODO we should map back to entities just for lookups.
         return securityServerRepository.findByOwnerIdAndServerCode(owner.getId(), serverCode)
                 .map(securityServerMapper::toTarget);
+    }
+
+    @Override
+    public List<SecurityServer> findAll() {
+        return securityServerRepository.findAll().stream()
+                .map(securityServerMapper::toTarget)
+                .collect(toList());
     }
 }

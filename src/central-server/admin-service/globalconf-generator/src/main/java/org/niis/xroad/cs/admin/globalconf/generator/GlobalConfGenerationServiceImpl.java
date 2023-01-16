@@ -79,6 +79,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private final ConfigurationService configurationService;
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final PrivateParametersGenerator privateParametersGenerator;
+    private final SharedParametersGenerator sharedParametersGenerator;
 
     @SneakyThrows
     @Override
@@ -224,8 +225,6 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
                 .write(allConfigurationParts);
     }
 
-
-    // TODO replace with real configuration generator.
     private List<ConfigurationPart> generateConfiguration() {
         return List.of(
                 ConfigurationPart.builder()
@@ -234,9 +233,9 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
                         .data(privateParametersGenerator.generate().getBytes(UTF_8))
                         .build(),
                 ConfigurationPart.builder()
-                        .contentIdentifier(ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS)
+                        .contentIdentifier(CONTENT_ID_SHARED_PARAMETERS)
                         .filename(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS)
-                        .data("<data>Shared parameter file placeholder</data>".getBytes(UTF_8))
+                        .data(sharedParametersGenerator.generate().getBytes(UTF_8))
                         .build());
 
     }

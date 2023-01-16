@@ -54,5 +54,6 @@ public class CertificateDetails {
     private String subjectCommonName;
     private String subjectDistinguishedName;
     private Integer version;
+    private byte[] encoded;
 
 }

@@ -69,7 +69,8 @@ public class CertificateConverter {
                 .setSubjectAlternativeNames(getSubjectAlternativeNames(certificate))
                 .setSignature(CryptoUtils.encodeHex(certificate.getSignature()))
                 .setIssuerCommonName(getIssuerCommonName(certificate))
-                .setSubjectCommonName(getSubjectCommonName(certificate));
+                .setSubjectCommonName(getSubjectCommonName(certificate))
+                .setEncoded(cert);
 
         final PublicKey publicKey = certificate.getPublicKey();
         if (publicKey instanceof RSAPublicKey) {

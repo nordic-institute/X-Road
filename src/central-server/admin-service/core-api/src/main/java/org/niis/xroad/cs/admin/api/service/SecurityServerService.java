@@ -35,6 +35,8 @@ import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface SecurityServerService {
 
     Page<SecurityServer> findSecurityServers(String q, Pageable pageable);
@@ -44,5 +46,7 @@ public interface SecurityServerService {
     ManagementRequestStatus findSecurityServerRegistrationStatus(SecurityServerId serverId);
 
     Option<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
+
+    List<SecurityServer> findAll();
 
 }

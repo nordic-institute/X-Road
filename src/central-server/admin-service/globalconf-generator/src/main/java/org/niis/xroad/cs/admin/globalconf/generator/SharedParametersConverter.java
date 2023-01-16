@@ -111,6 +111,9 @@ abstract class SharedParametersConverter {
     }
 
     private Map<ClientId, Object> createClientIdMap(SharedParameters sharedParameters) {
+        if (sharedParameters.getMembers() == null) {
+            return Map.of();
+        }
         Map<ClientId, Object> clientMap = new HashMap<>();
         var sequence = new IdSequence();
 

@@ -247,10 +247,7 @@ class ConfigurationServiceImplTest {
             assertAll(
                     () -> assertThat(df.getContentIdentifier()).as("content identifier").isEqualTo(CONTENT_IDENTIFIER),
                     () -> assertThat(df.getFileName()).as("file name").isEqualTo(FILE_NAME),
-
-                    // FIXME after configuration generation is done
-                    // () -> assertThat(df.getFileData()).as("file data").isEqualTo(FILE_DATA)
-                    () -> assertThat(df.getFileData()).as("file data").isNull()
+                    () -> assertThat(df.getFileData()).as("file data").isEqualTo(FILE_DATA)
             );
         }
     }
