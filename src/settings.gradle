@@ -77,5 +77,7 @@ project(":addons:proxymonitor-metaservice").projectDir = file('addons/proxymonit
 
 include "addons:op-monitoring"
 include "addons:wsdlvalidator"
+include 'signer-rpc'
+
 
 

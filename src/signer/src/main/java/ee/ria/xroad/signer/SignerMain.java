@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,6 +32,7 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
+import ee.ria.xroad.signer.protocol.handler.ListTokensRequestHandler;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import akka.actor.ActorSystem;
@@ -40,6 +41,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.grpc.RpcClient;
+import org.niis.xroad.signer.grpc.RpcServer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -84,6 +87,7 @@ public final class SignerMain {
 
     /**
      * Entry point to Signer.
+     *
      * @param args the arguments
      * @throws Exception if an error occurs
      */
@@ -107,6 +111,16 @@ public final class SignerMain {
         CoordinatedShutdown.get(actorSystem).addJvmShutdownHook(SignerMain::shutdown);
         signer.start();
         adminPort.start();
+
+        initGrpc();
+    }
+
+    private static void initGrpc() throws Exception {
+        int port = 5560;
+        RpcServer.init(port, builder -> {
+            builder.addService(new ListTokensRequestHandler());
+        });
+        RpcClient.init(port);
     }
 
     private static void shutdown() {

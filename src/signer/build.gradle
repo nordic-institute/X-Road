@@ -17,6 +17,7 @@ dependencies {
     implementation project(':common-util')
     implementation project(':common-verifier')
     implementation project(':signer-protocol')
+    implementation project(':signer-rpc')
 
     // Necessary since there are jars with no adequate Maven dependencies
     implementation fileTree(dir: '../libs', include: '*.jar')

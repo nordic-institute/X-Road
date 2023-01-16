@@ -1,0 +1,52 @@
+plugins {
+    id 'java-library'
+    id 'com.google.protobuf' version '0.9.2'
+}
+
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java'
+            , 'build/generated-sources'
+            , 'build/generated/source/proto/main/grpc'
+            , 'build/generated/source/proto/main/java']
+    }
+}
+
+def grpcVersion = '1.52.0' // CURRENT_GRPC_VERSION
+def protocVersion = '3.21.7'
+dependencies {
+    implementation "com.google.guava:guava:$guavaVersion"
+    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
+    api("io.grpc:grpc-protobuf:${grpcVersion}") {
+        exclude group: 'com.google.guava', module: 'guava'
+    }
+    api("io.grpc:grpc-stub:${grpcVersion}") {
+        exclude group: 'com.google.guava', module: 'guava'
+    }
+    runtimeOnly("io.grpc:grpc-netty-shaded:${grpcVersion}") {
+        exclude group: 'com.google.guava', module: 'guava'
+    }
+    compileOnly "org.apache.tomcat:annotations-api:6.0.53"
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${protocVersion}" }
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc {} }
+    }
+}
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${protocVersion}" }
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc {} }
+    }
+}
+
+compileJava.dependsOn generateProto

@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.niis.xroad.signer.proto";
+option java_outer_classname = "OcspClientJob";
+option objc_class_prefix = "HLW";
+
+import "google/protobuf/empty.proto";
+
+package actions;
+
+service SignerApi {
+
+  rpc listTokens (google.protobuf.Empty) returns (ListTokensResponse) {}
+}
+
+message OcspClientJobRequest {
+  string task = 1;
+}
+
+message ListTokensResponse {
+  repeated TokenInfo tokens = 1;
+}
+
+message TokenInfo {
+  string type = 1;
+  string friendlyName = 2;
+  string id = 3;
+  bool readOnly = 4;
+  bool available = 5;
+  bool active = 6;
+  string serialNumber = 7;
+  string label = 8;
+  int32 slotIndex = 9;
+  TokenStatusInfo status = 10;
+  repeated KeyInfo keyInfo = 11;
+  map<string, string> tokenInfo = 12;
+}
+
+enum TokenStatusInfo {
+  OK = 0;
+  USER_PIN_LOCKED = 1;
+  USER_PIN_INCORRECT = 2;
+  USER_PIN_INVALID = 3;
+  USER_PIN_EXPIRED = 4;
+  USER_PIN_COUNT_LOW = 5;
+  USER_PIN_FINAL_TRY = 6;
+  NOT_INITIALIZED = 7;
+}
+
+message KeyInfo {
+//  bool available = 1;
+//  KeyUsageInfo usage = 2;
+//  string friendlyName = 3;
+//  string id = 4;
+//  string label = 5;
+//  string publicKey = 6;
+//  repeated CertificateInfo certs = 7;
+//  repeated CertRequestInfo certRequests = 8;
+//  string signMechanismName = 9;
+}

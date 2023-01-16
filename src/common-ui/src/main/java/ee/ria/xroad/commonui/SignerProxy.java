@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,6 +33,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
+import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.protocol.message.ActivateCert;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
@@ -57,7 +58,6 @@ import ee.ria.xroad.signer.protocol.message.GetTokenInfoForKeyId;
 import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
-import ee.ria.xroad.signer.protocol.message.ListTokens;
 import ee.ria.xroad.signer.protocol.message.RegenerateCertRequest;
 import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.SetCertStatus;
@@ -65,11 +65,16 @@ import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
 import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
 import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
+import com.google.protobuf.Empty;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.grpc.RpcClient;
+import org.niis.xroad.signer.proto.ListTokensResponse;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,6 +83,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public final class SignerProxy {
+    private static RpcClient signerClient;
 
     private SignerProxy() {
     }
@@ -86,6 +92,7 @@ public final class SignerProxy {
 
     /**
      * Initialize the software token with the given password.
+     *
      * @param password software token password
      * @throws Exception if any errors occur
      */
@@ -97,15 +104,51 @@ public final class SignerProxy {
 
     /**
      * Gets information about all configured tokens.
+     *
      * @return a List of TokenInfo objects
      * @throws Exception if any errors occur
      */
     public static List<TokenInfo> getTokens() throws Exception {
-        return execute(new ListTokens());
+        ListTokensResponse response = getSignerClient().getSignerApiBlockingStub().listTokens(Empty.newBuilder().build());
+
+        KeyInfo keyInfo = new KeyInfo(true,
+                null, "friendlyName", "id",
+                "label", "publickey", new ArrayList<>(),
+                new ArrayList<>(), "mechanismName");
+
+        //TODO if we fully move to generated dtos, additional mapping will not be needed.
+        return response.getTokensList().stream()
+                .map(token -> new TokenInfo(
+                        token.getType(),
+                        token.getFriendlyName(),
+                        token.getId(),
+                        token.getReadOnly(),
+                        token.getAvailable(),
+                        token.getActive(),
+                        token.getSerialNumber(),
+                        token.getLabel(),
+                        token.getSlotIndex(),
+                        TokenStatusInfo.valueOf(token.getStatus().name()),
+                        List.of(keyInfo), new HashMap<>()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    private static RpcClient getSignerClient() {
+        //TODO this is unsafe, but works for poc.
+        if (signerClient == null) {
+            try {
+                signerClient = RpcClient.init(5560);
+            } catch (Exception e) {
+                log.error("Failed to init client", e);
+            }
+        }
+        return signerClient;
     }
 
     /**
      * Gets information about the token with the specified token ID.
+     *
      * @param tokenId ID of the token
      * @return TokenInfo
      * @throws Exception if any errors occur
@@ -116,7 +159,8 @@ public final class SignerProxy {
 
     /**
      * Activates the token with the given ID using the provided password.
-     * @param tokenId ID of the token
+     *
+     * @param tokenId  ID of the token
      * @param password token password
      * @throws Exception if any errors occur
      */
@@ -130,9 +174,10 @@ public final class SignerProxy {
 
     /**
      * Updates the token pin with the provided new one
+     *
      * @param tokenId ID of the token
-     * @param oldPin the old (current) pin of the token
-     * @param newPin the new pin
+     * @param oldPin  the old (current) pin of the token
+     * @param newPin  the new pin
      * @throws Exception if any errors occur
      */
     public static void updateTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
@@ -143,6 +188,7 @@ public final class SignerProxy {
 
     /**
      * Deactivates the token with the given ID.
+     *
      * @param tokenId ID of the token
      * @throws Exception if any errors occur
      */
@@ -156,7 +202,8 @@ public final class SignerProxy {
 
     /**
      * Sets the friendly name of the token with the given ID.
-     * @param tokenId ID of the token
+     *
+     * @param tokenId      ID of the token
      * @param friendlyName new friendly name of the token
      * @throws Exception if any errors occur
      */
@@ -168,7 +215,8 @@ public final class SignerProxy {
 
     /**
      * Sets the friendly name of the key with the given ID.
-     * @param keyId ID of the key
+     *
+     * @param keyId        ID of the key
      * @param friendlyName new friendly name of the key
      * @throws Exception if any errors occur
      */
@@ -180,7 +228,8 @@ public final class SignerProxy {
 
     /**
      * Generate a new key for the token with the given ID.
-     * @param tokenId ID of the token
+     *
+     * @param tokenId  ID of the token
      * @param keyLabel label of the key
      * @return generated key KeyInfo object
      * @throws Exception if any errors occur
@@ -197,17 +246,18 @@ public final class SignerProxy {
 
     /**
      * Generate a self-signed certificate for the key with the given ID.
-     * @param keyId ID of the key
-     * @param memberId client ID of the certificate owner
-     * @param keyUsage specifies whether the certificate is for signing or authentication
+     *
+     * @param keyId      ID of the key
+     * @param memberId   client ID of the certificate owner
+     * @param keyUsage   specifies whether the certificate is for signing or authentication
      * @param commonName common name of the certificate
-     * @param notBefore date the certificate becomes valid
-     * @param notAfter date the certificate becomes invalid
+     * @param notBefore  date the certificate becomes valid
+     * @param notAfter   date the certificate becomes invalid
      * @return byte content of the generated certificate
      * @throws Exception if any errors occur
      */
     public static byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-            String commonName, Date notBefore, Date notAfter) throws Exception {
+                                                String commonName, Date notBefore, Date notAfter) throws Exception {
         log.trace("Generate self-signed cert for key '{}'", keyId);
 
         GenerateSelfSignedCertResponse response = execute(new GenerateSelfSignedCert(keyId, commonName,
@@ -222,7 +272,8 @@ public final class SignerProxy {
 
     /**
      * Imports the given byte array as a new certificate with the provided initial status.
-     * @param certBytes byte content of the new certificate
+     *
+     * @param certBytes     byte content of the new certificate
      * @param initialStatus initial status of the certificate
      * @return key ID of the new certificate as a String
      * @throws Exception if any errors occur
@@ -233,9 +284,10 @@ public final class SignerProxy {
 
     /**
      * Imports the given byte array as a new certificate with the provided initial status and owner client ID.
-     * @param certBytes byte content of the new certificate
+     *
+     * @param certBytes     byte content of the new certificate
      * @param initialStatus initial status of the certificate
-     * @param clientId client ID of the certificate owner
+     * @param clientId      client ID of the certificate owner
      * @return key ID of the new certificate as a String
      * @throws Exception if any errors occur
      */
@@ -251,6 +303,7 @@ public final class SignerProxy {
 
     /**
      * Activates the certificate with the given ID.
+     *
      * @param certId ID of the certificate
      * @throws Exception if any errors occur
      */
@@ -262,6 +315,7 @@ public final class SignerProxy {
 
     /**
      * Deactivates the certificate with the given ID.
+     *
      * @param certId ID of the certificate
      * @throws Exception if any errors occur
      */
@@ -273,17 +327,18 @@ public final class SignerProxy {
 
     /**
      * Generates a certificate request for the given key and with provided parameters.
-     * @param keyId ID of the key
-     * @param memberId client ID of the certificate owner
-     * @param keyUsage specifies whether the certificate is for signing or authentication
+     *
+     * @param keyId       ID of the key
+     * @param memberId    client ID of the certificate owner
+     * @param keyUsage    specifies whether the certificate is for signing or authentication
      * @param subjectName subject name of the certificate
-     * @param format the format of the request
+     * @param format      the format of the request
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
     public static GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId,
-            KeyUsageInfo keyUsage, String subjectName,
-            CertificateRequestFormat format) throws Exception {
+                                                               KeyUsageInfo keyUsage, String subjectName,
+                                                               CertificateRequestFormat format) throws Exception {
 
         GenerateCertRequestResponse response = execute(new GenerateCertRequest(keyId, memberId, keyUsage, subjectName,
                 format));
@@ -302,13 +357,14 @@ public final class SignerProxy {
 
     /**
      * Regenerates a certificate request for the given csr id
+     *
      * @param certRequestId csr ID
-     * @param format the format of the request
+     * @param format        the format of the request
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
     public static GeneratedCertRequestInfo regenerateCertRequest(String certRequestId,
-            CertificateRequestFormat format) throws Exception {
+                                                                 CertificateRequestFormat format) throws Exception {
         RegenerateCertRequestResponse response = execute(new RegenerateCertRequest(certRequestId, format));
 
         log.trace("Cert request with length of {} bytes generated", response.getCertRequest().length);
@@ -335,6 +391,7 @@ public final class SignerProxy {
 
     /**
      * Delete the certificate request with the given ID.
+     *
      * @param certRequestId ID of the certificate request
      * @throws Exception if any errors occur
      */
@@ -346,6 +403,7 @@ public final class SignerProxy {
 
     /**
      * Delete the certificate with the given ID.
+     *
      * @param certId ID of the certificate
      * @throws Exception if any errors occur
      */
@@ -358,7 +416,8 @@ public final class SignerProxy {
     /**
      * Delete the key with the given ID from the signer database. Optionally,
      * deletes it from the token as well.
-     * @param keyId ID of the certificate request
+     *
+     * @param keyId           ID of the certificate request
      * @param deleteFromToken whether the key should be deleted from the token
      * @throws Exception if any errors occur
      */
@@ -370,6 +429,7 @@ public final class SignerProxy {
 
     /**
      * Sets the status of the certificate with the given ID.
+     *
      * @param certId ID of the certificate
      * @param status new status of the certificate
      * @throws Exception if any errors occur
@@ -382,6 +442,7 @@ public final class SignerProxy {
 
     /**
      * Get a cert by it's hash
+     *
      * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      * @return CertificateInfo
      * @throws Exception
@@ -400,6 +461,7 @@ public final class SignerProxy {
 
     /**
      * Get key for a given cert hash
+     *
      * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      * @return CertificateInfo
      * @throws Exception
@@ -418,8 +480,8 @@ public final class SignerProxy {
 
     /**
      * Get TokenInfoAndKeyId for a given cert hash
-     * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      *
+     * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      * @return TokenInfoAndKeyId
      * @throws Exception
      */
@@ -436,6 +498,7 @@ public final class SignerProxy {
 
     /**
      * Get OCSP responses for certs with given hashes. Hashes are converted to lowercase
+     *
      * @param certHashes cert hashes to find OCSP responses for
      * @return base64 encoded OCSP responses. Each array item is OCSP response for
      * corresponding cert in {@code certHashes}
@@ -456,6 +519,7 @@ public final class SignerProxy {
 
     /**
      * Get TokenInfoAndKeyId for a given cert hash
+     *
      * @param certRequestId
      * @return TokenInfoAndKeyId
      * @throws Exception
@@ -472,6 +536,7 @@ public final class SignerProxy {
 
     /**
      * Gets information about the token which has the specified key.
+     *
      * @param keyId id of the key
      * @return TokenInfo
      * @throws Exception if any errors occur
