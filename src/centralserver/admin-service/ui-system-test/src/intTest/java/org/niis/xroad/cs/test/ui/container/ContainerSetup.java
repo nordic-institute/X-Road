@@ -27,6 +27,7 @@ package org.niis.xroad.cs.test.ui.container;
 
 import com.nortal.test.testcontainers.AbstractTestableContainerSetup;
 import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -102,8 +103,10 @@ public class ContainerSetup extends AbstractTestableContainerSetup {
             log.warn("Target host url override is set. Container initialization is disabled.");
         } else {
             super.initialize();
-
         }
+
+        WebDriverManager.chromedriver().driverVersion("108").setup();
+
     }
 
     @Override

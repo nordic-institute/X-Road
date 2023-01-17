@@ -32,7 +32,6 @@ test-automation:
     proxy-enabled: true # Proxy is required for file downloads.
     proxy-host: 127.0.0.1
     file-download: proxy
-    browser-version: 108.0.5359.71
   custom:
     package-host: "replace-me"
     package-source: develop-7.x
