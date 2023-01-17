@@ -21,7 +21,6 @@ include 'common-domain'
 // Main projects
 include "proxy"
 include "proxy-ui-api"
-include "proxy-ui-api-devtools"
 include "signer"
 include "configuration-proxy"
 include "configuration-client"
@@ -33,28 +32,28 @@ include "monitor-test"
 include "op-monitor-daemon"
 include "shared-ui"
 
-include "centralserver"
-include "centralserver:openapi-model"
-include "centralserver:admin-service"
-include "centralserver:admin-service:core"
-include "centralserver:admin-service:core-api"
-include "centralserver:admin-service:infra-api-rest"
-include "centralserver:admin-service:application"
-include "centralserver:admin-service:ui"
-include "centralserver:admin-service:infra-jpa"
-include 'centralserver:admin-service:globalconf-generator'
-include "centralserver:admin-service:ui-system-test"
-include "centralserver:admin-service:int-test"
-include 'centralserver:admin-service:api-client'
+include "central-server"
+include "central-server:openapi-model"
+include "central-server:admin-service"
+include "central-server:admin-service:core"
+include "central-server:admin-service:core-api"
+include "central-server:admin-service:infra-api-rest"
+include "central-server:admin-service:application"
+include "central-server:admin-service:ui"
+include "central-server:admin-service:infra-jpa"
+include 'central-server:admin-service:globalconf-generator'
+include "central-server:admin-service:ui-system-test"
+include "central-server:admin-service:int-test"
+include 'central-server:admin-service:api-client'
 
-include "centralserver:management-service"
-include 'centralserver:management-service:application'
-include 'centralserver:management-service:core'
-include 'centralserver:management-service:infra-api-soap'
-include 'centralserver:management-service:core-api'
- include 'centralserver:management-service:int-test'
+include "central-server:management-service"
+include 'central-server:management-service:application'
+include 'central-server:management-service:core'
+include 'central-server:management-service:infra-api-soap'
+include 'central-server:management-service:core-api'
+include 'central-server:management-service:int-test'
 
-include "centralserver:registration-service"
+include "central-server:registration-service"
 
 // Utils
 include "signer-console"
