@@ -36,16 +36,22 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.api.domain.AuthCert;
+import org.niis.xroad.cs.admin.api.domain.CentralService;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.ServiceId;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
+import org.niis.xroad.cs.admin.api.service.CentralServicesService;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
@@ -77,6 +83,10 @@ class SharedParametersLoaderTest {
     public static final String SECURITY_SERVER_CODE = "SS1";
     public static final int SECURITY_SERVER_ID = 1;
     public static final byte[] SECURITY_SERVER_AUTH_CERT = "auth cert".getBytes(UTF_8);
+    public static final String GLOBAL_GROUP_CODE = "GG";
+    public static final String GLOBAL_GROUP_DESCRIPTION = "GG description";
+    public static final int GLOBAL_GROUP_ID = 2;
+    public static final String CENTRAL_SERVICE_CODE = "service-code";
     @Mock
     SystemParameterService systemParameterService;
     @Mock
@@ -87,6 +97,10 @@ class SharedParametersLoaderTest {
     ClientService clientService;
     @Mock
     SecurityServerService securityServerService;
+    @Mock
+    GlobalGroupService globalGroupService;
+    @Mock
+    CentralServicesService centralServicesService;
 
     @InjectMocks
     SharedParametersLoader sharedParametersLoader;
@@ -97,9 +111,16 @@ class SharedParametersLoaderTest {
         when(certificationServicesService.findAll()).thenReturn(List.of(getCertificationService()));
         when(timestampingServicesService.getTimestampingServices()).thenReturn(Set.of(getApprovedTsa()));
         when(clientService.findAll()).thenReturn(getClients());
+
         when(securityServerService.findAll()).thenReturn(getSecurityServers());
         when(clientService.find(new ClientService.SearchParameters().setSecurityServerId(SECURITY_SERVER_ID)))
                 .thenReturn(List.of(getFlattenedSecurityServerClientView("M2", "S1")));
+
+        when(globalGroupService.findGlobalGroups()).thenReturn(List.of(getGlobalGroup()));
+        when(globalGroupService.getGroupMembersFilterModel(GLOBAL_GROUP_ID)).thenReturn(List.of(
+                new GlobalGroupMember(null, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S2"))));
+
+        when(centralServicesService.findAll()).thenReturn(List.of(getCentralService()));
 
         var parameters = sharedParametersLoader.load();
         assertThat(parameters).isNotNull();
@@ -142,7 +163,19 @@ class SharedParametersLoaderTest {
                     .isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S1"));
             assertThat(ss.getAuthCertHashes()).singleElement().isEqualTo(CryptoUtils.certHash(SECURITY_SERVER_AUTH_CERT));
         });
+
+        assertThat(parameters.getGlobalGroups()).singleElement().satisfies(gg -> {
+            assertThat(gg.getGroupCode()).isEqualTo(GLOBAL_GROUP_CODE);
+            assertThat(gg.getDescription()).isEqualTo(GLOBAL_GROUP_DESCRIPTION);
+            assertThat(gg.getGroupMembers()).singleElement().isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S2"));
+        });
+
+        assertThat(parameters.getCentralServices()).singleElement().satisfies(centralService -> {
+            assertThat(centralService.getServiceCode()).isEqualTo(CENTRAL_SERVICE_CODE);
+            assertThat(centralService.getImplementingService()).isEqualTo(ServiceId.create(XROAD_INSTANCE, "CLASS", "M1", "S1", CENTRAL_SERVICE_CODE));
+        });
     }
+
 
     private CertificationService getCertificationService() {
         var certificationService = new CertificationService();
@@ -185,7 +218,7 @@ class SharedParametersLoaderTest {
         var clients = getClients();
         var members = new SharedParametersLoader.MemberMapper().map(clients);
 
-        assertThat(members).hasSize(2);
+        assertThat(members).hasSize(GLOBAL_GROUP_ID);
         assertThat(members).satisfiesExactly(
                 member -> {
                     assertThat(member.getMemberCode()).isEqualTo("M1");
@@ -242,4 +275,18 @@ class SharedParametersLoaderTest {
         return List.of(securityServer);
     }
 
+    private GlobalGroup getGlobalGroup() {
+        var globalGroup = new GlobalGroup();
+        globalGroup.setId(GLOBAL_GROUP_ID);
+        globalGroup.setGroupCode(GLOBAL_GROUP_CODE);
+        globalGroup.setDescription(GLOBAL_GROUP_DESCRIPTION);
+        return globalGroup;
+    }
+
+    private CentralService getCentralService() {
+        var centralService = new CentralService();
+        centralService.setServiceCode(CENTRAL_SERVICE_CODE);
+        centralService.setIdentifier(ServiceId.create(XROAD_INSTANCE, "CLASS","M1", "S1", CENTRAL_SERVICE_CODE));
+        return centralService;
+    }
 }
