@@ -3,5 +3,5 @@
 
 ../../../../src/xroad/default-configuration/proxy-ui-api.ini etc/xroad/conf.d/
 ../../../../src/xroad/default-configuration/proxy-ui-api-logback.xml etc/xroad/conf.d
-../../../../../proxy-ui-api/build/libs/proxy-ui-api-1.0.jar usr/share/xroad/jlib/
+../../../../../security-server/admin-service/application/build/libs/proxy-ui-api-1.0.jar usr/share/xroad/jlib/
 ../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-proxy-ui-api
