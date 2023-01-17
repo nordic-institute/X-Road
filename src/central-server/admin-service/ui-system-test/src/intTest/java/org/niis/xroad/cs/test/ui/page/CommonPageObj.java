@@ -50,6 +50,10 @@ public class CommonPageObj {
             return $x(getTabXpath("Trust Services"));
         }
 
+        public SelenideElement globalConfiguration() {
+            return $x(getTabXpath("Global configuration"));
+        }
+
         public SelenideElement settingsTab() {
             return $x(getTabXpath("Settings"));
         }
