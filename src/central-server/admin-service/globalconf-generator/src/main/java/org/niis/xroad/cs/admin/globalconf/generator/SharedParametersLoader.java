@@ -44,6 +44,7 @@ import org.niis.xroad.cs.admin.api.service.CentralServicesService;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
+import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
@@ -67,6 +68,8 @@ class SharedParametersLoader {
     private final SecurityServerService securityServerService;
     private final GlobalGroupService globalGroupService;
     private final CentralServicesService centralServicesService;
+    private final MemberClassService memberClassService;
+
 
     SharedParameters load() {
         var parameters = new SharedParameters();
@@ -77,6 +80,7 @@ class SharedParametersLoader {
         parameters.setSecurityServers(getSecurityServers());
         parameters.setGlobalGroups(getGlobalGroups());
         parameters.setCentralServices(getCentralServices());
+        parameters.setGlobalSettings(getGlobalSettings());
         return parameters;
     }
 
@@ -187,9 +191,15 @@ class SharedParametersLoader {
                 .collect(toList());
     }
 
+    private SharedParameters.GlobalSettings getGlobalSettings() {
+        var memberClasses = memberClassService.findAll().stream()
+                .map(memberClass -> new SharedParameters.MemberClass(memberClass.getCode(), memberClass.getDescription()))
+                .collect(toList());
+
+        return new SharedParameters.GlobalSettings(memberClasses, systemParameterService.getOcspFreshnessSeconds());
+    }
+
     static class MemberMapper {
-
-
         private Map<ClientId, List<SharedParameters.Subsystem>> subsystems;
 
         List<SharedParameters.Member> map(List<FlattenedSecurityServerClientView> flattenedClients) {

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import io.vavr.collection.Seq;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
@@ -43,10 +42,12 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_IS_IN_USE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
@@ -65,10 +66,11 @@ public class MemberClassServiceImpl implements MemberClassService {
     private final MemberClassMapper memberClassMapper;
 
     @Override
-    public Seq<MemberClass> findAll() {
+    public List<MemberClass> findAll() {
         Sort sort = Sort.by(Sort.Order.asc("code").ignoreCase());
-        return memberClassRepository.findAllSortedBy(sort)
-                .map(memberClassMapper::toTarget);
+        return memberClassRepository.findAllSortedBy(sort).stream()
+                .map(memberClassMapper::toTarget)
+                .collect(toList());
     }
 
     @Override

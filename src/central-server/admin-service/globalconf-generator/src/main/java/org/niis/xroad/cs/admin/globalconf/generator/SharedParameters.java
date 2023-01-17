@@ -120,7 +120,7 @@ class SharedParameters {
     @AllArgsConstructor
     public static class GlobalSettings {
         private List<MemberClass> memberClasses;
-        private Long ocspFreshnessSeconds;
+        private Integer ocspFreshnessSeconds;
     }
 
     @Data

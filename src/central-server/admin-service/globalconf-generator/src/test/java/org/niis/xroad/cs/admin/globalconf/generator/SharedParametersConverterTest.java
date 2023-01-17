@@ -148,7 +148,7 @@ class SharedParametersConverterTest {
                 List.of(subsystemId(memberId(), "SUB1")))));
         parameters.setCentralServices(List.of(new SharedParameters.CentralService("service-code",
                 ServiceId.Conf.create(subsystemId(memberId(), "SUB1"), "service", "v1"))));
-        parameters.setGlobalSettings(new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333L));
+        parameters.setGlobalSettings(new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
         return parameters;
     }
 

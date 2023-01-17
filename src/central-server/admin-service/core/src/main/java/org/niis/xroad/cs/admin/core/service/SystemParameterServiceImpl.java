@@ -113,13 +113,32 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     }
 
     @Override
-    public int getConfExpireIntervalSeconds() {
+    public String getConfHashAlgoUri() {
+        return getParameterValue(CONF_HASH_ALGO_URI, DEFAULT_CONF_HASH_ALGO_URI);
+    }
+
+    @Override
+    public String getAuthCertRegUrl() {
+        var urlTemplate = getParameterValue(AUTH_CERT_REG_URL);
+        if (StringUtils.isBlank(urlTemplate)) {
+            return null;
+        }
+        return urlTemplate.replace("%{centralServerAddress}", getCentralServerAddress());
+    }
+
+    @Override
+    public Integer getConfExpireIntervalSeconds() {
         return getParameterValue(CONF_EXPIRE_INTERVAL_SECONDS, DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS, Integer::parseInt);
     }
 
     @Override
-    public String getConfHashAlgoUri() {
-        return getParameterValue(CONF_HASH_ALGO_URI, DEFAULT_CONF_HASH_ALGO_URI);
+    public Integer getTimeStampingIntervalSeconds() {
+        return getParameterValue(TIME_STAMPING_INTERVAL_SECONDS, DEFAULT_TIME_STAMPING_INTERVAL_SECONDS, Integer::parseInt);
+    }
+
+    @Override
+    public Integer getOcspFreshnessSeconds() {
+        return getParameterValue(OCSP_FRESHNESS_SECONDS, DEFAULT_OCSP_FRESHNESS_SECONDS, Integer::parseInt);
     }
 
     @Override
@@ -131,20 +150,6 @@ public class SystemParameterServiceImpl implements SystemParameterService {
             return null;
         }
         return ClientId.Conf.create(getInstanceIdentifier(), providerClass, providerCode, getParameterValue(MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM));
-    }
-
-    @Override
-    public Integer getTimeStampingIntervalSeconds() {
-        return getParameterValue(TIME_STAMPING_INTERVAL_SECONDS, DEFAULT_TIME_STAMPING_INTERVAL_SECONDS, Integer::parseInt);
-    }
-
-    @Override
-    public String getAuthCertRegUrl() {
-        var urlTemplate = getParameterValue(AUTH_CERT_REG_URL);
-        if (StringUtils.isBlank(urlTemplate)) {
-            return null;
-        }
-        return urlTemplate.replace("%{centralServerAddress}", getCentralServerAddress());
     }
 
     @PreAuthorize("isAuthenticated()")

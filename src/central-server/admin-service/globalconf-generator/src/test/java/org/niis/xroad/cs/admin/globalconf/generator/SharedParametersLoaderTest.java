@@ -52,6 +52,7 @@ import org.niis.xroad.cs.admin.api.service.CentralServicesService;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
+import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
@@ -87,6 +88,9 @@ class SharedParametersLoaderTest {
     public static final String GLOBAL_GROUP_DESCRIPTION = "GG description";
     public static final int GLOBAL_GROUP_ID = 2;
     public static final String CENTRAL_SERVICE_CODE = "service-code";
+    public static final String MEMBER_CLASS_CODE = "MCLASS";
+    public static final String MEMBER_CLASS_DESCRIPTION = "Member class description";
+    public static final int OCSP_FRESHNESS_SECONDS = 333;
     @Mock
     SystemParameterService systemParameterService;
     @Mock
@@ -101,6 +105,8 @@ class SharedParametersLoaderTest {
     GlobalGroupService globalGroupService;
     @Mock
     CentralServicesService centralServicesService;
+    @Mock
+    MemberClassService memberClassService;
 
     @InjectMocks
     SharedParametersLoader sharedParametersLoader;
@@ -109,6 +115,7 @@ class SharedParametersLoaderTest {
     void loadSharedParameters() {
         when(systemParameterService.getInstanceIdentifier()).thenReturn(XROAD_INSTANCE);
         when(certificationServicesService.findAll()).thenReturn(List.of(getCertificationService()));
+
         when(timestampingServicesService.getTimestampingServices()).thenReturn(Set.of(getApprovedTsa()));
         when(clientService.findAll()).thenReturn(getClients());
 
@@ -122,10 +129,64 @@ class SharedParametersLoaderTest {
 
         when(centralServicesService.findAll()).thenReturn(List.of(getCentralService()));
 
+        when(memberClassService.findAll()).thenReturn(List.of(new MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION)));
+        when(systemParameterService.getOcspFreshnessSeconds()).thenReturn(OCSP_FRESHNESS_SECONDS);
+
         var parameters = sharedParametersLoader.load();
+
         assertThat(parameters).isNotNull();
         assertThat(parameters.getInstanceIdentifier()).isEqualTo(XROAD_INSTANCE);
+        assertApprovedCa(parameters);
+        assertApproveTsa(parameters);
+        assertSecurityServers(parameters);
+        assertGlobalGroups(parameters);
+        assertCentralServices(parameters);
+        assertGlobalSettings(parameters);
+    }
 
+    private void assertGlobalSettings(SharedParameters parameters) {
+        assertThat(parameters.getGlobalSettings()).isNotNull();
+        assertThat(parameters.getGlobalSettings().getMemberClasses()).singleElement().isEqualTo(
+                new SharedParameters.MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION));
+
+        assertThat(parameters.getGlobalSettings().getOcspFreshnessSeconds()).isEqualTo(OCSP_FRESHNESS_SECONDS);
+    }
+
+    private void assertCentralServices(SharedParameters parameters) {
+        assertThat(parameters.getCentralServices()).singleElement().satisfies(centralService -> {
+            assertThat(centralService.getServiceCode()).isEqualTo(CENTRAL_SERVICE_CODE);
+            assertThat(centralService.getImplementingService()).isEqualTo(ServiceId.create(XROAD_INSTANCE, "CLASS", "M1", "S1", CENTRAL_SERVICE_CODE));
+        });
+    }
+
+    private void assertGlobalGroups(SharedParameters parameters) {
+        assertThat(parameters.getGlobalGroups()).singleElement().satisfies(gg -> {
+            assertThat(gg.getGroupCode()).isEqualTo(GLOBAL_GROUP_CODE);
+            assertThat(gg.getDescription()).isEqualTo(GLOBAL_GROUP_DESCRIPTION);
+            assertThat(gg.getGroupMembers()).singleElement().isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S2"));
+        });
+    }
+
+    private void assertSecurityServers(SharedParameters parameters) {
+        assertThat(parameters.getSecurityServers()).singleElement().satisfies(ss -> {
+            assertThat(ss.getOwner()).isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"));
+            assertThat(ss.getAddress()).isEqualTo(SECURITY_SERVER_ADDRESS);
+            assertThat(ss.getServerCode()).isEqualTo(SECURITY_SERVER_CODE);
+            assertThat(ss.getClients()).singleElement()
+                    .isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S1"));
+            assertThat(ss.getAuthCertHashes()).singleElement().isEqualTo(CryptoUtils.certHash(SECURITY_SERVER_AUTH_CERT));
+        });
+    }
+
+    private void assertApproveTsa(SharedParameters parameters) {
+        assertThat(parameters.getApprovedTSAs()).singleElement().satisfies(tsa -> {
+            assertThat(tsa.getName()).isEqualTo(TSA_NAME);
+            assertThat(tsa.getUrl()).isEqualTo(TSA_URL);
+            assertThat(tsa.getCert()).isEqualTo(TSA_CERT);
+        });
+    }
+
+    private void assertApprovedCa(SharedParameters parameters) {
         assertThat(parameters.getApprovedCAs()).singleElement().satisfies(approvedCA -> {
             assertThat(approvedCA.getName()).isEqualTo(CA_NAME);
             assertThat(approvedCA.getCertificateProfileInfo()).isEqualTo(CA_PROFILE_INFO);
@@ -147,32 +208,6 @@ class SharedParametersLoaderTest {
                             assertThat(ocsp.getCert()).isEqualTo(INTERMEDIATE_CA_OCSP_CERT);
                         });
                     });
-        });
-
-        assertThat(parameters.getApprovedTSAs()).singleElement().satisfies(tsa -> {
-            assertThat(tsa.getName()).isEqualTo(TSA_NAME);
-            assertThat(tsa.getUrl()).isEqualTo(TSA_URL);
-            assertThat(tsa.getCert()).isEqualTo(TSA_CERT);
-        });
-
-        assertThat(parameters.getSecurityServers()).singleElement().satisfies(ss -> {
-            assertThat(ss.getOwner()).isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"));
-            assertThat(ss.getAddress()).isEqualTo(SECURITY_SERVER_ADDRESS);
-            assertThat(ss.getServerCode()).isEqualTo(SECURITY_SERVER_CODE);
-            assertThat(ss.getClients()).singleElement()
-                    .isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S1"));
-            assertThat(ss.getAuthCertHashes()).singleElement().isEqualTo(CryptoUtils.certHash(SECURITY_SERVER_AUTH_CERT));
-        });
-
-        assertThat(parameters.getGlobalGroups()).singleElement().satisfies(gg -> {
-            assertThat(gg.getGroupCode()).isEqualTo(GLOBAL_GROUP_CODE);
-            assertThat(gg.getDescription()).isEqualTo(GLOBAL_GROUP_DESCRIPTION);
-            assertThat(gg.getGroupMembers()).singleElement().isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S2"));
-        });
-
-        assertThat(parameters.getCentralServices()).singleElement().satisfies(centralService -> {
-            assertThat(centralService.getServiceCode()).isEqualTo(CENTRAL_SERVICE_CODE);
-            assertThat(centralService.getImplementingService()).isEqualTo(ServiceId.create(XROAD_INSTANCE, "CLASS", "M1", "S1", CENTRAL_SERVICE_CODE));
         });
     }
 

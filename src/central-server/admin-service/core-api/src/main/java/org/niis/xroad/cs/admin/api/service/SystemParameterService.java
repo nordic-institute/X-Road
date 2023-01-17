@@ -45,15 +45,17 @@ public interface SystemParameterService {
 
     String getConfSignDigestAlgoId();
 
-    int getConfExpireIntervalSeconds();
-
     String getConfHashAlgoUri();
+
+    String getAuthCertRegUrl();
 
     ClientId getManagementServiceProviderId();
 
+    Integer getConfExpireIntervalSeconds();
+
     Integer getTimeStampingIntervalSeconds();
 
-    String getAuthCertRegUrl();
+    Integer getOcspFreshnessSeconds();
 
     SystemParameter updateOrCreateParameter(String lookupKey, String updateValue);
 

@@ -26,11 +26,12 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
-import io.vavr.collection.Seq;
 import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
+
+import java.util.List;
 
 /**
  * MemberClass Service
@@ -40,7 +41,7 @@ public interface MemberClassService {
     /**
      * List all member classes
      */
-    Seq<MemberClass> findAll();
+    List<MemberClass> findAll();
 
     /**
      * Find a member class corresponding to the code
