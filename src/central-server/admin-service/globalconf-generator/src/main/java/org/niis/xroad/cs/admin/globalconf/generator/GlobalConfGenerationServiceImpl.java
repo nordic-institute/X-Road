@@ -29,6 +29,8 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.commonui.OptionalConfPart;
+import ee.ria.xroad.commonui.OptionalPartsConf;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -58,6 +60,7 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.concat;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_EXTERNAL;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_INTERNAL;
 
@@ -148,9 +151,9 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     }
 
     private static Set<ConfigurationPart> internalConfigurationParts(Set<ConfigurationPart> configurationParts) {
+        var contentIdentifiers = getInternalSourceContentIdentifiers();
         return configurationParts.stream()
-                // TODO add optional parts
-                .filter(cp -> INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS.contains(cp.getContentIdentifier()))
+                .filter(cp -> contentIdentifiers.contains(cp.getContentIdentifier()))
                 .collect(toSet());
     }
 
@@ -237,6 +240,17 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
                         .filename(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS)
                         .data(sharedParametersGenerator.generate().getBytes(UTF_8))
                         .build());
+    }
 
+    private static Set<String> getInternalSourceContentIdentifiers() {
+        return concat(INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS.stream(),
+                getOptionalPartsConf().getAllParts().stream()
+                        .map(OptionalConfPart::getContentIdentifier))
+                .collect(toSet());
+    }
+
+    @SneakyThrows
+    private static OptionalPartsConf getOptionalPartsConf() {
+        return new OptionalPartsConf(SystemProperties.getConfPath() + "/configuration-parts");
     }
 }
