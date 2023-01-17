@@ -6,7 +6,7 @@ dependencies {
     intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
     intTestImplementation("org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}")
-    implementation("org.seleniumhq.selenium:selenium-devtools-v108:4.2")
+    implementation("org.seleniumhq.selenium:selenium-devtools-v108:4.7.2")
 }
 
 task systemTest(type: Test) {
