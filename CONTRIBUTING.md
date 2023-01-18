@@ -206,7 +206,8 @@ The latest development version is always available in the `develop` branch and t
 
 Pull requests made against the `X-Road/develop` branch MUST follow these conventions:
 
-- Pull request name format is `<ISSUE_ID> <SHORT_DESCRIPTION>`, for example: `XRDDEV-1669 Allow overriding startup parameters`
+- Pull request name format is `<TYPE>: <ISSUE_ID> <SHORT_DESCRIPTION>`, for example: `XRDDEV-1669 Allow overriding startup parameters`
+  - `TYPE` = conventional commit type. One of: build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test
   - `ISSUE_ID` = id of the feature's / bug's backlog item. If the pull request is not related to any backlog item,
     `ISSUE_ID` can be omitted. If the issue is a GitHub issue, it can be `ISSUE1669 Allow overriding startup parameters`
     instead.
