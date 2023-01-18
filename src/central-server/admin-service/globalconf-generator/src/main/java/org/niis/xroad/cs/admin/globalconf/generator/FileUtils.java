@@ -54,7 +54,7 @@ class FileUtils {
     }
 
     public static void createDirectory(Path dir) throws IOException {
-        log.debug("createDirectory({})", dir);
+        log.trace("createDirectory({})", dir);
         Files.createDirectory(dir, asFileAttribute(DIRECTORY_PERMISSIONS));
         // explicitly setting permissions, because attributes have no effect when process is running under umask
         Files.setPosixFilePermissions(dir, DIRECTORY_PERMISSIONS);
