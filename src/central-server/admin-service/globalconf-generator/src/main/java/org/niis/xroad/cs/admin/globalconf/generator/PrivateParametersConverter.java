@@ -36,8 +36,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
-import org.niis.xroad.cs.admin.globalconf.generator.MappingUtils;
-import org.niis.xroad.cs.admin.globalconf.generator.PrivateParameters;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class},
         unmappedTargetPolicy = ReportingPolicy.ERROR)

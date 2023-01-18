@@ -35,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.recursive.comparison.ComparingNormalizedFields;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.cs.admin.globalconf.generator.SharedParametersConverter;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -121,10 +120,10 @@ class SharedParametersConverterTest {
 
         assertThat(xmlType.getSecurityServer()).singleElement()
                 .satisfies(ss -> {
-                   assertThat(ss.getOwner()).isSameAs(ownerMember);
-                   assertThat(ss.getClient())
-                           .map(JAXBElement::getValue)
-                           .singleElement().isSameAs(client);
+                    assertThat(ss.getOwner()).isSameAs(ownerMember);
+                    assertThat(ss.getClient())
+                            .map(JAXBElement::getValue)
+                            .singleElement().isSameAs(client);
                 });
     }
 
@@ -163,7 +162,8 @@ class SharedParametersConverterTest {
     }
 
     private static SharedParameters.CaInfo getCaInfo() {
-        return new SharedParameters.CaInfo(List.of(new SharedParameters.OcspInfo("ocsp:url", "ocsp-cert".getBytes(UTF_8))), "ca-cert".getBytes(UTF_8));
+        return new SharedParameters.CaInfo(List.of(
+                new SharedParameters.OcspInfo("ocsp:url", "ocsp-cert".getBytes(UTF_8))), "ca-cert".getBytes(UTF_8));
     }
 
     private static List<SharedParameters.Member> getMembers() {

@@ -149,7 +149,11 @@ public class SystemParameterServiceImpl implements SystemParameterService {
         if (isEmpty(providerCode) || isEmpty(providerCode)) {
             return null;
         }
-        return ClientId.Conf.create(getInstanceIdentifier(), providerClass, providerCode, getParameterValue(MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM));
+        return ClientId.Conf.create(
+                getInstanceIdentifier(),
+                providerClass,
+                providerCode,
+                getParameterValue(MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM));
     }
 
     @PreAuthorize("isAuthenticated()")

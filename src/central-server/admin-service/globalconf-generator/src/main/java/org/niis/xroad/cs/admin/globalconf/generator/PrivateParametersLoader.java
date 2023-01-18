@@ -62,8 +62,8 @@ class PrivateParametersLoader {
     @SneakyThrows
     private PrivateParameters.ManagementService getManagementService() {
         var managementService = new PrivateParameters.ManagementService();
-        managementService.setAuthCertRegServiceAddress(systemParameterService.getAuthCertRegUrl()); // TODO check for blank
-        managementService.setAuthCertRegServiceCert(internalTlsCertificateService.getInternalTlsCertificate().getEncoded()); // TODO check for blank
+        managementService.setAuthCertRegServiceAddress(systemParameterService.getAuthCertRegUrl());
+        managementService.setAuthCertRegServiceCert(internalTlsCertificateService.getInternalTlsCertificate().getEncoded());
         managementService.setManagementRequestServiceProviderId(systemParameterService.getManagementServiceProviderId());
         return managementService;
     }

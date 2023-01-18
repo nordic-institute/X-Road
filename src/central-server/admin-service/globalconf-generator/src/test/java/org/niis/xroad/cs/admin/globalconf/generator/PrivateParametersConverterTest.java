@@ -78,7 +78,8 @@ class PrivateParametersConverterTest {
                 () -> assertThat(privateParameters.getInstanceIdentifier()).isEqualTo(INSTANCE),
                 () -> assertThat(privateParameters.getConfigurationAnchor())
                         .satisfiesExactly(PrivateParametersConverterTest::assertConfigurationAnchor),
-                () -> assertThat(privateParameters.getManagementService()).satisfies(PrivateParametersConverterTest::assertManagementService),
+                () -> assertThat(privateParameters.getManagementService()).satisfies(
+                        PrivateParametersConverterTest::assertManagementService),
                 () -> assertThat(privateParameters.getTimeStampingIntervalSeconds()).isEqualTo(BigInteger.valueOf(TIMESTAMPING_INTERVAL)),
                 () -> assertThat(privateParameters).hasNoNullFieldsOrProperties()
         );

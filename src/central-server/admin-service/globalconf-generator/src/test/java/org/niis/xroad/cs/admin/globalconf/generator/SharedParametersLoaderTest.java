@@ -155,7 +155,8 @@ class SharedParametersLoaderTest {
     private void assertCentralServices(SharedParameters parameters) {
         assertThat(parameters.getCentralServices()).singleElement().satisfies(centralService -> {
             assertThat(centralService.getServiceCode()).isEqualTo(CENTRAL_SERVICE_CODE);
-            assertThat(centralService.getImplementingService()).isEqualTo(ServiceId.create(XROAD_INSTANCE, "CLASS", "M1", "S1", CENTRAL_SERVICE_CODE));
+            assertThat(centralService.getImplementingService())
+                    .isEqualTo(ServiceId.create(XROAD_INSTANCE, "CLASS", "M1", "S1", CENTRAL_SERVICE_CODE));
         });
     }
 
@@ -321,7 +322,7 @@ class SharedParametersLoaderTest {
     private CentralService getCentralService() {
         var centralService = new CentralService();
         centralService.setServiceCode(CENTRAL_SERVICE_CODE);
-        centralService.setIdentifier(ServiceId.create(XROAD_INSTANCE, "CLASS","M1", "S1", CENTRAL_SERVICE_CODE));
+        centralService.setIdentifier(ServiceId.create(XROAD_INSTANCE, "CLASS", "M1", "S1", CENTRAL_SERVICE_CODE));
         return centralService;
     }
 }

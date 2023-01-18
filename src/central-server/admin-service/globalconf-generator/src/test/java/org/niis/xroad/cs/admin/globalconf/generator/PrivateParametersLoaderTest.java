@@ -81,21 +81,21 @@ class PrivateParametersLoaderTest {
 
         assertThat(parameters.getInstanceIdentifier()).isEqualTo("XRD");
         assertThat(parameters.getConfigurationAnchors()).singleElement().satisfies(configurationAnchor -> {
-           assertThat(configurationAnchor.getInstanceIdentifier()).isEqualTo("INSTANCE");
-           assertThat(configurationAnchor.getGeneratedAt()).isEqualTo(Instant.EPOCH);
-           assertThat(configurationAnchor.getSources()).singleElement().satisfies(
-                   source -> {
-                       assertThat(source.getDownloadURL()).isEqualTo(ANCHOR_URL);
-                       assertThat(source.getVerificationCerts())
-                               .singleElement()
-                               .isEqualTo(ANCHOR_URL_CERT);
-                   }
-           );
+            assertThat(configurationAnchor.getInstanceIdentifier()).isEqualTo("INSTANCE");
+            assertThat(configurationAnchor.getGeneratedAt()).isEqualTo(Instant.EPOCH);
+            assertThat(configurationAnchor.getSources()).singleElement().satisfies(
+                    source -> {
+                        assertThat(source.getDownloadURL()).isEqualTo(ANCHOR_URL);
+                        assertThat(source.getVerificationCerts())
+                                .singleElement()
+                                .isEqualTo(ANCHOR_URL_CERT);
+                    }
+            );
         });
         assertThat(parameters.getManagementService()).satisfies(managementService -> {
-           assertThat(managementService.getAuthCertRegServiceAddress()).isEqualTo(AUTH_REG_CERT_URL);
-           assertThat(managementService.getManagementRequestServiceProviderId()).isEqualTo(MANAGEMENT_REQUEST_SERVICE_PROVIDER_ID);
-           assertThat(managementService.getAuthCertRegServiceCert()).isEqualTo(AUTH_CERT_REG_SERVICE_CERT.getEncoded());
+            assertThat(managementService.getAuthCertRegServiceAddress()).isEqualTo(AUTH_REG_CERT_URL);
+            assertThat(managementService.getManagementRequestServiceProviderId()).isEqualTo(MANAGEMENT_REQUEST_SERVICE_PROVIDER_ID);
+            assertThat(managementService.getAuthCertRegServiceCert()).isEqualTo(AUTH_CERT_REG_SERVICE_CERT.getEncoded());
         });
         assertThat(parameters.getTimeStampingIntervalSeconds()).isEqualTo(TIMESTAMPING_INTERVAL_SECONDS);
     }

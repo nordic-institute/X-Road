@@ -42,15 +42,14 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
-import org.niis.xroad.cs.admin.globalconf.generator.MappingUtils;
-import org.niis.xroad.cs.admin.globalconf.generator.SharedParameters;
 
 import javax.xml.bind.JAXBElement;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
 abstract class SharedParametersConverter {
@@ -107,7 +106,9 @@ abstract class SharedParametersConverter {
         if (clientIds == null) {
             return null;
         }
-        return clientIds.stream().map(clientId -> OBJECT_FACTORY.createSecurityServerTypeClient(xmlClientId(clientId, clientMap))).collect(Collectors.toList());
+        return clientIds.stream()
+                .map(clientId -> OBJECT_FACTORY.createSecurityServerTypeClient(xmlClientId(clientId, clientMap)))
+                .collect(toList());
     }
 
     private Map<ClientId, Object> createClientIdMap(SharedParameters sharedParameters) {

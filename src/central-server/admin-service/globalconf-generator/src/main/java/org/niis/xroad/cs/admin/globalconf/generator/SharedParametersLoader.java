@@ -119,7 +119,7 @@ class SharedParametersLoader {
 
     private List<SharedParameters.ApprovedTSA> getApprovedTSAs() {
         return timestampingServicesService.getTimestampingServices().stream()
-                .map(tsa ->new SharedParameters.ApprovedTSA(tsa.getName(), tsa.getUrl(), tsa.getCertificate().getEncoded()))
+                .map(tsa -> new SharedParameters.ApprovedTSA(tsa.getName(), tsa.getUrl(), tsa.getCertificate().getEncoded()))
                 .collect(toList());
     }
 
@@ -224,7 +224,8 @@ class SharedParametersLoader {
             var clientId = toClientId(client);
             var member = new SharedParameters.Member();
             member.setId(clientId);
-            member.setMemberClass(new SharedParameters.MemberClass(client.getMemberClass().getCode(), client.getMemberClass().getDescription()));
+            member.setMemberClass(
+                    new SharedParameters.MemberClass(client.getMemberClass().getCode(), client.getMemberClass().getDescription()));
             member.setMemberCode(client.getMemberCode());
             member.setName(client.getMemberName());
             member.setSubsystems(getSubsystemList(clientId));

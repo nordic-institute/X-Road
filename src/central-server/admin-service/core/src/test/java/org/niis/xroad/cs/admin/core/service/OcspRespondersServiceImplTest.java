@@ -91,7 +91,8 @@ class OcspRespondersServiceImplTest {
     private OcspResponderConverter ocspResponderConverter = new OcspResponderConverter(mock(ApprovedCaRepository.class));
 
     @Spy
-    private CaInfoConverter caInfoConverter = new CaInfoConverter(new CertificateConverter(new KeyUsageConverter()), ocspResponderConverter);
+    private CaInfoConverter caInfoConverter = new CaInfoConverter(
+            new CertificateConverter(new KeyUsageConverter()), ocspResponderConverter);
 
     @Spy
     private CertificateConverter certConverter = new CertificateConverter(new KeyUsageConverter());

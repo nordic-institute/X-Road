@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import io.vavr.collection.Seq;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;

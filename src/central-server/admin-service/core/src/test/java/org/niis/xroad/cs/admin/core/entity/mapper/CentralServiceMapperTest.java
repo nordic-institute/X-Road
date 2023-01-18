@@ -47,7 +47,7 @@ class CentralServiceMapperTest {
     private CentralServiceEntity getCentralServiceEntity() {
         var centralService = new CentralServiceEntity();
         centralService.setServiceCode("service-code");
-        centralService.setIdentifier(ServiceIdEntity.create("XROAD_INSTANCE", "CLASS","M1", "S1", "service-code"));
+        centralService.setIdentifier(ServiceIdEntity.create("XROAD_INSTANCE", "CLASS", "M1", "S1", "service-code"));
         return centralService;
     }
 

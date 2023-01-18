@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.api.domain;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 

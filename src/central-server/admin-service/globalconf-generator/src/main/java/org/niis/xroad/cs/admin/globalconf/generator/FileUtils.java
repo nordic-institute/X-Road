@@ -38,9 +38,12 @@ import java.util.Set;
 import static java.nio.file.attribute.PosixFilePermissions.asFileAttribute;
 
 @Slf4j
-class FileUtils {
+final class FileUtils {
     private static final Set<PosixFilePermission> DIRECTORY_PERMISSIONS = PosixFilePermissions.fromString("rwxr-xr-x");
     private static final Set<PosixFilePermission> FILE_PERMISSIONS = PosixFilePermissions.fromString("rw-r--r--");
+
+    private FileUtils() {
+    }
 
     public static void createDirectories(Path dir) throws IOException {
         if (Files.exists(dir)) {
