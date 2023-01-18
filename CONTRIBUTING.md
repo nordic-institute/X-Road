@@ -227,8 +227,9 @@ The commit message should be structured as follows:
 [optional footer(s)]
 ```
 
-message should be formatted below:
+The message should be formatted as follows:
 
+- Separate subject from body with a blank line.
 - Do not end the line with a period.
 - Capitalize the line and each paragraph.
 - Use the imperative mood in the subject line.
