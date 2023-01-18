@@ -1,0 +1,5 @@
+#!/bin/sh
+if ! head -1 "$1" | grep -qE "  ^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test){1}(\([[:alnum:]._-]+\))?(!)?: ([[:alnum:]])+([[:space:][:print:]]*)"; then
+  echo "Aborting commit. Your commit message does match our conventions. See: https://github.com/nordic-institute/X-Road/blob/develop/CONTRIBUTING.md#commit-messages" >&2
+  exit 1
+fi

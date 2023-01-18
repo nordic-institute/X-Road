@@ -298,3 +298,11 @@ jacocoTestReport {
     sourceDirectories.setFrom files(javaProjects.sourceSets.main.java.srcDirs)
     executionData.setFrom fileTree(dir: '.', include: '**/build/jacoco/*.exec')
 }
+
+//Register git-hooks
+tasks.register("installGitHooks", Copy) {
+    from file("$rootDir/../.githooks")
+    into file("$rootDir/../.git/hooks")
+    fileMode 0775
+}
+assemble.dependsOn installGitHooks
