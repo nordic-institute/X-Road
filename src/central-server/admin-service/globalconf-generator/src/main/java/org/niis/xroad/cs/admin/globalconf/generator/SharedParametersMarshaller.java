@@ -42,7 +42,6 @@ class SharedParametersMarshaller {
 
     @SneakyThrows
     String marshall(SharedParameters parameters) {
-        jaxbContext = createJaxbContext();
         var writer = new StringWriter();
         var marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);

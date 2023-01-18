@@ -102,9 +102,9 @@ abstract class SharedParametersConverter {
     }
 
     @Named("clientsById")
-    List<JAXBElement<Object>> xmlClientsId(List<ClientId> clientIds, @Context Map<ClientId, Object> clientMap) {
+    List<JAXBElement<Object>> xmlClientIds(List<ClientId> clientIds, @Context Map<ClientId, Object> clientMap) {
         if (clientIds == null) {
-            return null;
+            return List.of();
         }
         return clientIds.stream()
                 .map(clientId -> OBJECT_FACTORY.createSecurityServerTypeClient(xmlClientId(clientId, clientMap)))

@@ -146,7 +146,7 @@ public class SystemParameterServiceImpl implements SystemParameterService {
         var providerClass = getParameterValue(MANAGEMENT_SERVICE_PROVIDER_CLASS);
         var providerCode = getParameterValue(MANAGEMENT_SERVICE_PROVIDER_CODE);
 
-        if (isEmpty(providerCode) || isEmpty(providerCode)) {
+        if (isEmpty(providerClass) || isEmpty(providerCode)) {
             return null;
         }
         return ClientId.Conf.create(

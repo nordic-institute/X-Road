@@ -50,6 +50,7 @@ import java.util.Objects;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 @Slf4j
 class SharedParametersConverterTest {
@@ -106,7 +107,9 @@ class SharedParametersConverterTest {
         var writer = new StringWriter();
         var marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.marshal(new ObjectFactory().createConf(xmlType), writer);
+        var conf = new ObjectFactory().createConf(xmlType);
+
+        assertThatNoException().isThrownBy(() -> marshaller.marshal(conf, writer));
 
         log.info(writer.toString());
     }

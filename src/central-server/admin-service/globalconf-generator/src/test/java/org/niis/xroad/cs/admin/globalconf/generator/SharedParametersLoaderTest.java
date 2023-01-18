@@ -254,8 +254,9 @@ class SharedParametersLoaderTest {
         var clients = getClients();
         var members = new SharedParametersLoader.MemberMapper().map(clients);
 
-        assertThat(members).hasSize(GLOBAL_GROUP_ID);
-        assertThat(members).satisfiesExactly(
+        assertThat(members)
+                .hasSize(2)
+                .satisfiesExactly(
                 member -> {
                     assertThat(member.getMemberCode()).isEqualTo("M1");
                     assertThat(member.getSubsystems()).map(SharedParameters.Subsystem::getSubsystemCode)
