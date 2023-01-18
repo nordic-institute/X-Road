@@ -215,21 +215,34 @@ Pull requests made against the `X-Road/develop` branch MUST follow these convent
 
 ### Commit Messages
 
-Git commit messages SHOULD follow the guidelines described below:
+Git commit messages MUST follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
 
-- Separate subject from body with a blank line.
-- Do not end the subject line with a period.
-- Capitalize the subject line and each paragraph.
+The commit message should be structured as follows:
+
+```
+<type>[optional scope]: <subject>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+message should be formatted below:
+
+- Do not end the line with a period.
+- Capitalize the line and each paragraph.
 - Use the imperative mood in the subject line.
 - Wrap lines at 72 characters.
 - Use the body to explain what and why you have done something. In most cases, you can leave out details about how a change has been implemented.
 
-If a commit refers to an issue, add the issue ID before the subject. For example:
+If a commit refers to an issue, add the issue ID should be referenced. For example:
 
 ```
-$ git commit -m "XRDDEV-123 Subject line
+$ git commit -m "fix: Subject line
  
-More detailed description."
+More detailed description.
+
+Refs: XRDDEV-123"
 ```
 
 If the commit is not related to any backlog item, the issue ID can be omitted.
