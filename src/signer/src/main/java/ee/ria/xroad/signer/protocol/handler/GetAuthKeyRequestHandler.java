@@ -178,7 +178,7 @@ public class GetAuthKeyRequestHandler
         X509Certificate issuer =
                 GlobalConf.getCaCert(instanceIdentifier, subject);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false), verifierOptions);
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), verifierOptions);
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 

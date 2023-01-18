@@ -104,7 +104,7 @@ public class TestSuiteKeyConf extends EmptyKeyConf {
                         GlobalConf.getCaCert("EE", cert), getOcspSignerCert(),
                         getOcspRequestKey(), CertificateStatus.GOOD,
                         thisUpdate, null);
-                OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
+                OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
                         new OcspVerifierOptions(true));
                 verifier.verifyValidityAndStatus(resp, cert,
                         GlobalConf.getCaCert("EE", cert));
