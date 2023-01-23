@@ -43,6 +43,8 @@ public interface CertificationServicesService {
 
     CertificationService update(CertificationService approvedCa);
 
+    List<CertificationService> findAll();
+
     CertificateDetails getCertificateDetails(Integer id);
 
     CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert);
@@ -50,7 +52,6 @@ public interface CertificationServicesService {
     Set<CertificateAuthority> getIntermediateCas(Integer certificationServiceId);
 
     List<CertificationServiceListItem> getCertificationServices();
-
 
     OcspResponder addOcspResponder(OcspResponderAddRequest ocspResponder);
 

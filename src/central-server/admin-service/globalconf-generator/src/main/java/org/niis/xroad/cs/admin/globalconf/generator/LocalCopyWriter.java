@@ -61,7 +61,7 @@ class LocalCopyWriter {
 
     @SneakyThrows
     public void write(Collection<ConfigurationPart> configurationParts) {
-        Files.createDirectories(getTargetDir());
+        FileUtils.createDirectories(getTargetDir());
 
         configurationParts.forEach(this::writePart);
 
@@ -75,8 +75,8 @@ class LocalCopyWriter {
     private void writePart(ConfigurationPart configurationPart) {
         var filePath = getFilePath(configurationPart);
         var metadataFilePath = metadataFilePath(filePath);
-        Files.write(filePath, configurationPart.getData());
-        Files.writeString(metadataFilePath, configurationMetadataJson());
+        FileUtils.write(filePath, configurationPart.getData());
+        FileUtils.writeString(metadataFilePath, configurationMetadataJson());
     }
 
     private Path getFilePath(ConfigurationPart configurationPart) {
@@ -99,11 +99,11 @@ class LocalCopyWriter {
                 .sorted()
                 .collect(Collectors.joining("\n"));
 
-        Files.writeString(fileListPath(), fileList);
+        FileUtils.writeString(fileListPath(), fileList);
     }
 
-    private Path writeInstanceIdentifier() throws IOException {
-        return Files.writeString(instanceIdentifierPath(), instanceIdentifier);
+    private void writeInstanceIdentifier() throws IOException {
+        FileUtils.writeString(instanceIdentifierPath(), instanceIdentifier);
     }
 
     private void deleteStaleConfigFiles(Collection<ConfigurationPart> configurationParts) throws IOException {

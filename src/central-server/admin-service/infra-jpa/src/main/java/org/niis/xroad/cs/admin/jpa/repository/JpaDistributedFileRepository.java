@@ -31,6 +31,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -41,9 +42,9 @@ import static org.niis.xroad.cs.admin.core.entity.DistributedFileEntity_.ID;
 
 @Repository
 public interface JpaDistributedFileRepository extends JpaRepository<DistributedFileEntity, Integer>, DistributedFileRepository {
-    
     Set<DistributedFileEntity> findAllByHaNodeName(String haNodeName);
 
+    @Query("FROM DistributedFileEntity WHERE version in (:version, 0)")
     Set<DistributedFileEntity> findAllByVersion(int version);
 
     default Optional<DistributedFileEntity> findByContentIdAndVersion(String contentIdentifier, int version, String haNodeName) {

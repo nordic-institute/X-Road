@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -34,7 +34,6 @@ import java.util.Set;
 @Data
 public class AnchorUrl {
     private int id;
-    private TrustedAnchor trustedAnchor;
     private String url;
     private Set<AnchorUrlCert> anchorUrlCerts = new HashSet<>(0);
 }

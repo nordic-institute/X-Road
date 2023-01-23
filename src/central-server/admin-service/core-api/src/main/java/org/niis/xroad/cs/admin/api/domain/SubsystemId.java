@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.api.domain;
 
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,7 +39,6 @@ import static ee.ria.xroad.common.util.Validation.validateArgument;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class SubsystemId extends ClientId {
 
     protected SubsystemId(String xRoadInstance, String memberClass, String memberCode, String subsystemCode) {

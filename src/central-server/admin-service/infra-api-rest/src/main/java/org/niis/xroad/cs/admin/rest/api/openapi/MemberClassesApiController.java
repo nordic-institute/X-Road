@@ -84,7 +84,7 @@ public class MemberClassesApiController implements MemberClassesApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public ResponseEntity<Set<MemberClassDto>> getMemberClasses() {
-        return ResponseEntity.ok(service.findAll().map(memberClassDtoConverter::toDto).collect(toSet()));
+        return ResponseEntity.ok(service.findAll().stream().map(memberClassDtoConverter::toDto).collect(toSet()));
     }
 
     @Override

@@ -26,10 +26,12 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.domain.SystemParameter;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
@@ -44,6 +46,9 @@ import javax.xml.crypto.dsig.DigestMethod;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Function;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 
 /**
@@ -77,17 +82,15 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     public static final String CONF_EXPIRE_INTERVAL_SECONDS = "confExpireIntervalSeconds";
     public static final Integer DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS = 600;
 
+    public static final String MANAGEMENT_SERVICE_PROVIDER_CLASS = "managementServiceProviderClass";
+    public static final String MANAGEMENT_SERVICE_PROVIDER_CODE = "managementServiceProviderCode";
+    public static final String MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM = "managementServiceProviderSubsystem";
+
     private static final String[] NODE_LOCAL_PARAMETERS = {SystemParameterService.CENTRAL_SERVER_ADDRESS};
 
     private final SystemParameterRepository systemParameterRepository;
     private final HAConfigStatus currentHaConfigStatus;
     private final SystemParameterMapper systemParameterMapper;
-
-    private String getParameterValue(String key, String defaultValue) {
-        log.debug("getParameterValue() - getting value for key:{} with default value:{}", key, defaultValue);
-        Optional<SystemParameter> valueInDb = getSystemParameterOptional(key).map(systemParameterMapper::toTarget);
-        return valueInDb.map(SystemParameter::getValue).orElse(defaultValue);
-    }
 
     @Override
     public String getCentralServerAddress() {
@@ -110,13 +113,47 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     }
 
     @Override
-    public int getConfExpireIntervalSeconds() {
-        return Integer.parseInt(getParameterValue(CONF_EXPIRE_INTERVAL_SECONDS, DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS.toString()));
+    public String getConfHashAlgoUri() {
+        return getParameterValue(CONF_HASH_ALGO_URI, DEFAULT_CONF_HASH_ALGO_URI);
     }
 
     @Override
-    public String getConfHashAlgoUri() {
-        return getParameterValue(CONF_HASH_ALGO_URI, DEFAULT_CONF_HASH_ALGO_URI);
+    public String getAuthCertRegUrl() {
+        var urlTemplate = getParameterValue(AUTH_CERT_REG_URL);
+        if (StringUtils.isBlank(urlTemplate)) {
+            return null;
+        }
+        return urlTemplate.replace("%{centralServerAddress}", getCentralServerAddress());
+    }
+
+    @Override
+    public Integer getConfExpireIntervalSeconds() {
+        return getParameterValue(CONF_EXPIRE_INTERVAL_SECONDS, DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS, Integer::parseInt);
+    }
+
+    @Override
+    public Integer getTimeStampingIntervalSeconds() {
+        return getParameterValue(TIME_STAMPING_INTERVAL_SECONDS, DEFAULT_TIME_STAMPING_INTERVAL_SECONDS, Integer::parseInt);
+    }
+
+    @Override
+    public Integer getOcspFreshnessSeconds() {
+        return getParameterValue(OCSP_FRESHNESS_SECONDS, DEFAULT_OCSP_FRESHNESS_SECONDS, Integer::parseInt);
+    }
+
+    @Override
+    public ClientId getManagementServiceProviderId() {
+        var providerClass = getParameterValue(MANAGEMENT_SERVICE_PROVIDER_CLASS);
+        var providerCode = getParameterValue(MANAGEMENT_SERVICE_PROVIDER_CODE);
+
+        if (isEmpty(providerClass) || isEmpty(providerCode)) {
+            return null;
+        }
+        return ClientId.Conf.create(
+                getInstanceIdentifier(),
+                providerClass,
+                providerCode,
+                getParameterValue(MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -140,6 +177,22 @@ public class SystemParameterServiceImpl implements SystemParameterService {
 
         systemParameterToStore = systemParameterRepository.save(systemParameterToStore);
         return systemParameterMapper.toTarget(systemParameterToStore);
+    }
+
+    private String getParameterValue(String key) {
+        return getParameterValue(key, null);
+    }
+
+    private String getParameterValue(String key, String defaultValue) {
+        return getParameterValue(key, defaultValue, Function.identity());
+    }
+
+    private <T> T getParameterValue(String key, T defaultValue, Function<String, T> valueMapper) {
+        log.debug("getParameterValue() - getting value for key:{} with default value:{}", key, defaultValue);
+        Optional<SystemParameter> valueInDb = getSystemParameterOptional(key).map(systemParameterMapper::toTarget);
+        return valueInDb.map(SystemParameter::getValue)
+                .map(valueMapper)
+                .orElse(defaultValue);
     }
 
     private Optional<SystemParameterEntity> getSystemParameterOptional(String lookupKey) {

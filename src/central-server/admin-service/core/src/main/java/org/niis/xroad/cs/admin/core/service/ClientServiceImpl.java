@@ -38,6 +38,10 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
+
 /**
  * Service for searching {@link FlattenedSecurityServerClientView}s
  */
@@ -56,6 +60,20 @@ public class ClientServiceImpl implements ClientService {
 
         return flattenedClientRepository.findAll(params, pageable)
                 .map(flattenedSecurityServerClientViewMapper::toTarget);
+    }
+
+    @Override
+    public List<FlattenedSecurityServerClientView> find(SearchParameters params) {
+        return flattenedClientRepository.findAll(params).stream()
+                .map(flattenedSecurityServerClientViewMapper::toTarget)
+                .collect(toList());
+    }
+
+    @Override
+    public List<FlattenedSecurityServerClientView> findAll() {
+        return flattenedClientRepository.findAll().stream()
+                .map(flattenedSecurityServerClientViewMapper::toTarget)
+                .collect(toList());
     }
 
 }

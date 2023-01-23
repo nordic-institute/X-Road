@@ -65,6 +65,10 @@ public interface JpaFlattenedSecurityServerClientRepository extends
         return findAll(multiParameterSearch(params), pageable);
     }
 
+    default List<FlattenedSecurityServerClientViewEntity> findAll(ClientService.SearchParameters params) {
+        return findAll(multiParameterSearch(params));
+    }
+
     Page<FlattenedSecurityServerClientViewEntity> findAll(
             Specification<FlattenedSecurityServerClientViewEntity> spec,
             Pageable pageable);

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.api.domain;
 
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,11 +34,77 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import static ee.ria.xroad.common.util.Validation.validateArgument;
+
 @Getter
 @Setter
 @ToString
 @SuppressWarnings("java:S2176")
 public class ServiceId extends XRoadId implements ee.ria.xroad.common.identifier.ServiceId {
+
+    public static ServiceId create(ee.ria.xroad.common.identifier.ClientId client,
+                                   String serviceCode) {
+        return create(client.getXRoadInstance(), client.getMemberClass(),
+                client.getMemberCode(), client.getSubsystemCode(), serviceCode);
+    }
+
+    public static ServiceId create(ee.ria.xroad.common.identifier.ClientId client,
+                                   String serviceCode,
+                                   String serviceVersion) {
+        return create(client.getXRoadInstance(), client.getMemberClass(),
+                client.getMemberCode(), client.getSubsystemCode(), serviceCode,
+                serviceVersion);
+    }
+
+    public static ServiceId create(String xRoadInstance,
+                                   String memberClass,
+                                   String memberCode,
+                                   String subsystemCode,
+                                   String serviceCode) {
+        return create(xRoadInstance, memberClass, memberCode, subsystemCode,
+                serviceCode, null);
+    }
+
+    public static ServiceId create(String xRoadInstance,
+                                   String memberClass,
+                                   String memberCode,
+                                   String subsystemCode,
+                                   String serviceCode,
+                                   String serviceVersion) {
+        validateArgument("xRoadInstance", xRoadInstance);
+        validateArgument("memberClass", memberClass);
+        validateArgument("memberCode", memberCode);
+        validateArgument("serviceCode", serviceCode);
+        return new ServiceId(XRoadObjectType.SERVICE, xRoadInstance, memberClass,
+                memberCode, subsystemCode, serviceCode, serviceVersion);
+    }
+
+    public static ServiceId create(ee.ria.xroad.common.identifier.ServiceId identifier) {
+        validateArgument("identifier", identifier);
+
+        return create(identifier.getXRoadInstance(),
+                identifier.getMemberClass(),
+                identifier.getMemberCode(),
+                identifier.getSubsystemCode(),
+                identifier.getServiceCode(),
+                identifier.getServiceVersion());
+    }
+
+
+    protected ServiceId(XRoadObjectType type,
+                        String xRoadInstance,
+                        String memberClass,
+                        String memberCode,
+                        String subsystemCode,
+                        String serviceCode,
+                        String serviceVersion) {
+        super(type, xRoadInstance, memberClass);
+        setMemberCode(memberCode);
+        setSubsystemCode(subsystemCode);
+        setServiceCode(serviceCode);
+        setServiceVersion(serviceVersion);
+    }
+
 
     @JsonIgnore
     public ClientId getClientId() {

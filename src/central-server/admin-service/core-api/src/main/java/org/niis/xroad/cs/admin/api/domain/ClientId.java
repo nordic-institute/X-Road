@@ -28,11 +28,13 @@ package org.niis.xroad.cs.admin.api.domain;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Optional;
 
-@Data
+@Getter
+@Setter
 public abstract class ClientId extends XRoadId implements ee.ria.xroad.common.identifier.ClientId {
 
     protected ClientId() {

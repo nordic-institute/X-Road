@@ -29,15 +29,15 @@ package org.niis.xroad.cs.admin.api.domain;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.Validation;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Optional;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class MemberId extends ClientId {
 
     protected MemberId(String xRoadInstance, String memberClass, String memberCode) {

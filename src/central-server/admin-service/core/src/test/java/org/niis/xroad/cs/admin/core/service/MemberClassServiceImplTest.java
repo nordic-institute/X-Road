@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import io.vavr.collection.Seq;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
@@ -49,7 +48,7 @@ public class MemberClassServiceImplTest {
     public void testService() {
         service.add(new MemberClass("TEST", "Description"));
         service.add(new MemberClass("TEST2", "Description"));
-        final Seq<MemberClass> all = service.findAll();
+        var all = service.findAll();
         assertEquals((MEMBER_CLASSES_IN_IMPORT_SQL + 2), all.size());
         service.delete("TEST");
         service.update(new MemberClass("TEST2", "Description2"));

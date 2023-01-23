@@ -44,7 +44,6 @@ import java.time.Instant;
 @Table(name = DistributedFileEntity.TABLE_NAME,
         uniqueConstraints = @UniqueConstraint(columnNames = {"content_identifier", "version", "ha_node_name"}))
 public class DistributedFileEntity {
-
     public static final String TABLE_NAME = "distributed_files";
 
     @Id

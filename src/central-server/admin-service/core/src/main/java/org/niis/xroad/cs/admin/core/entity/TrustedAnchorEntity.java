@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.CascadeType;
@@ -46,6 +47,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = TrustedAnchorEntity.TABLE_NAME)
+@NoArgsConstructor
 public class TrustedAnchorEntity extends AuditableEntity {
 
     public static final String TABLE_NAME = "trusted_anchors";
@@ -81,11 +83,6 @@ public class TrustedAnchorEntity extends AuditableEntity {
     @Getter
     @Setter
     private Set<AnchorUrlEntity> anchorUrls = new HashSet<>(0);
-
-    protected TrustedAnchorEntity() {
-        //JPA
-    }
-
 }
 
 

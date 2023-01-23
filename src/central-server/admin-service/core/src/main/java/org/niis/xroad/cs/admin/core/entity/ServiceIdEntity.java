@@ -26,18 +26,94 @@
  */
 package org.niis.xroad.cs.admin.core.entity;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.Transient;
+
+import static ee.ria.xroad.common.util.Validation.validateArgument;
+import static org.niis.xroad.cs.admin.core.entity.ServiceIdEntity.DISCRIMINATOR_VALUE;
 
 @Entity
-@DiscriminatorValue("SERVICE")
+@DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class ServiceIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.ServiceId {
 
+    public static final String DISCRIMINATOR_VALUE = "SERVICE";
+
+    public static ServiceIdEntity create(ClientId client,
+                                         String serviceCode) {
+        return create(client.getXRoadInstance(), client.getMemberClass(),
+                client.getMemberCode(), client.getSubsystemCode(), serviceCode);
+    }
+
+    public static ServiceIdEntity create(ClientId client,
+                                         String serviceCode,
+                                         String serviceVersion) {
+        return create(client.getXRoadInstance(), client.getMemberClass(),
+                client.getMemberCode(), client.getSubsystemCode(), serviceCode,
+                serviceVersion);
+    }
+
+    public static ServiceIdEntity create(String xRoadInstance,
+                                         String memberClass,
+                                         String memberCode,
+                                         String subsystemCode,
+                                         String serviceCode) {
+        return create(xRoadInstance, memberClass, memberCode, subsystemCode,
+                serviceCode, null);
+    }
+
+    public static ServiceIdEntity create(String xRoadInstance,
+                                         String memberClass,
+                                         String memberCode,
+                                         String subsystemCode,
+                                         String serviceCode,
+                                         String serviceVersion) {
+        validateArgument("xRoadInstance", xRoadInstance);
+        validateArgument("memberClass", memberClass);
+        validateArgument("memberCode", memberCode);
+        validateArgument("serviceCode", serviceCode);
+        return new ServiceIdEntity(XRoadObjectType.SERVICE, xRoadInstance, memberClass,
+                memberCode, subsystemCode, serviceCode, serviceVersion);
+    }
+
+    public static ServiceIdEntity create(ServiceId identifier) {
+        validateArgument("identifier", identifier);
+
+        return create(identifier.getXRoadInstance(),
+                identifier.getMemberClass(),
+                identifier.getMemberCode(),
+                identifier.getSubsystemCode(),
+                identifier.getServiceCode(),
+                identifier.getServiceVersion());
+    }
+
+    protected ServiceIdEntity() {
+        // JPA
+    }
+
+    protected ServiceIdEntity(XRoadObjectType type,
+                              String xRoadInstance,
+                              String memberClass,
+                              String memberCode,
+                              String subsystemCode,
+                              String serviceCode,
+                              String serviceVersion) {
+        super(type, xRoadInstance, memberClass);
+        setMemberCode(memberCode);
+        setSubsystemCode(subsystemCode);
+        setServiceCode(serviceCode);
+        setServiceVersion(serviceVersion);
+    }
+
     @JsonIgnore
+    @Transient
     public ClientIdEntity getClientId() {
         return SubsystemIdEntity.create(getXRoadInstance(), getMemberClass(), getMemberCode(), getSubsystemCode());
     }

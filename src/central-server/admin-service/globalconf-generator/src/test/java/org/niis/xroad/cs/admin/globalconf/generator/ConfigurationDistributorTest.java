@@ -92,7 +92,8 @@ class ConfigurationDistributorTest {
         ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, Instant.now());
         // initConfLocation omitted
 
-        assertThatThrownBy(() -> configurationDistributor.writeConfigurationFiles(List.of(CONFIGURATION_PART1)))
+        var configurationParts = List.of(CONFIGURATION_PART1);
+        assertThatThrownBy(() -> configurationDistributor.writeConfigurationFiles(configurationParts))
                 .isExactlyInstanceOf(ConfGeneratorException.class)
                 .hasMessage("Config location not initialized.");
     }

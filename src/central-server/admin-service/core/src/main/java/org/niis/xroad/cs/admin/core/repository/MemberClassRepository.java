@@ -26,11 +26,11 @@
  */
 package org.niis.xroad.cs.admin.core.repository;
 
-import io.vavr.collection.Seq;
 import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.springframework.data.domain.Sort;
 
+import java.util.List;
 
 public interface MemberClassRepository extends
         GenericRepository<MemberClassEntity, Long>,
@@ -38,5 +38,5 @@ public interface MemberClassRepository extends
 
     Option<MemberClassEntity> findByCode(String code);
 
-    Seq<MemberClassEntity> findAllSortedBy(Sort sort);
+    List<MemberClassEntity> findAllSortedBy(Sort sort);
 }

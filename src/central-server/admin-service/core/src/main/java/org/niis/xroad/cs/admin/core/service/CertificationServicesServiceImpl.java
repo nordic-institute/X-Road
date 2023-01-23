@@ -171,6 +171,14 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
                 .collect(Collectors.toSet());
     }
 
+    @Override
+    public List<CertificationService> findAll() {
+        return approvedCaRepository.findAll()
+                .stream()
+                .map(approvedCaConverter::convert)
+                .collect(Collectors.toList());
+    }
+
     private void addAuditData(ApprovedCaEntity approvedCa) {
         auditDataHelper.putCertificateData(Integer.toString(approvedCa.getId()), approvedCa.getCaInfo().getCert());
         auditDataHelper.put(AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.core.converter;
 
 import ee.ria.xroad.common.util.CertUtils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
@@ -40,12 +41,15 @@ import org.springframework.stereotype.Component;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_CERTIFICATE;
 
 @Component
+@RequiredArgsConstructor
 public class ApprovedCaConverter {
+    private final OcspResponderConverter ocspResponderConverter;
+    private final CaInfoConverter caInfoConverter;
 
     public ApprovedCaEntity toEntity(ApprovedCertificationService certificationService) {
         var caEntity = new ApprovedCaEntity();
@@ -84,6 +88,13 @@ public class ApprovedCaConverter {
                 .setSubjectDistinguishedName(certificate.getSubjectDN().getName())
                 .setNotBefore(entity.getCaInfo().getValidFrom())
                 .setNotAfter(entity.getCaInfo().getValidTo())
+                .setCertificate(entity.getCaInfo().getCert())
+                .setOcspResponders(entity.getCaInfo().getOcspInfos().stream()
+                        .map(ocspResponderConverter::toModel)
+                        .collect(toList()))
+                .setIntermediateCas(entity.getIntermediateCaInfos().stream()
+                        .map(caInfoConverter::toCertificateAuthority)
+                        .collect(toList()))
                 .setCreatedAt(entity.getCreatedAt())
                 .setUpdatedAt(entity.getUpdatedAt());
     }
@@ -91,7 +102,7 @@ public class ApprovedCaConverter {
     public List<CertificationServiceListItem> toListItems(Collection<ApprovedCaEntity> entities) {
         return entities.stream()
                 .map(this::toListItem)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private CertificationServiceListItem toListItem(final ApprovedCaEntity approvedCa) {

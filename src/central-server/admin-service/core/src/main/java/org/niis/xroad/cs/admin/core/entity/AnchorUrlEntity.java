@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.CascadeType;
@@ -47,6 +48,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = AnchorUrlEntity.TABLE_NAME)
+@NoArgsConstructor
 public class AnchorUrlEntity {
 
     public static final String TABLE_NAME = "anchor_urls";
@@ -73,10 +75,6 @@ public class AnchorUrlEntity {
     @Getter
     @Setter
     private Set<AnchorUrlCertEntity> anchorUrlCerts = new HashSet<>(0);
-
-    protected AnchorUrlEntity() {
-        //JPA
-    }
 
 }
 

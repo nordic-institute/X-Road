@@ -38,9 +38,9 @@ import java.util.List;
 public interface FlattenedSecurityServerClientRepository extends
         PagingAndSortingRepository<FlattenedSecurityServerClientViewEntity, Long> {
 
-    Page<FlattenedSecurityServerClientViewEntity> findAll(
-            ClientService.SearchParameters params,
-            Pageable pageable);
+    Page<FlattenedSecurityServerClientViewEntity> findAll(ClientService.SearchParameters params, Pageable pageable);
+
+    List<FlattenedSecurityServerClientViewEntity> findAll(ClientService.SearchParameters params);
 
     List<FlattenedSecurityServerClientViewEntity> findAll();
 
