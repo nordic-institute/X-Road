@@ -24,40 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
+package org.niis.xroad.cs.admin.api.exception;
 
-import org.niis.xroad.cs.admin.api.domain.SystemParameter;
+public class ConfigurationSourceException extends UncheckedServiceException {
 
-/**
- * Class for handling SystemParameter taking HA-setup into account
- */
-public interface SystemParameterService {
-    String CENTRAL_SERVER_ADDRESS = "centralServerAddress";
-    String INSTANCE_IDENTIFIER = "instanceIdentifier";
+    public ConfigurationSourceException(final ErrorMessage code, final String... metadata) {
+        super(code, metadata);
+    }
 
-    String getCentralServerAddress();
-    String getCentralServerAddress(String haNodeName);
-
-    String getInstanceIdentifier();
-
-    String getConfSignCertHashAlgoUri();
-
-    String getConfSignDigestAlgoId();
-
-    String getConfHashAlgoUri();
-
-    String getAuthCertRegUrl();
-
-    ClientId getManagementServiceProviderId();
-
-    Integer getConfExpireIntervalSeconds();
-
-    Integer getTimeStampingIntervalSeconds();
-
-    Integer getOcspFreshnessSeconds();
-
-    SystemParameter updateOrCreateParameter(String lookupKey, String updateValue);
+    public ConfigurationSourceException(final ErrorMessage code, final Throwable cause, final String... metadata) {
+        super(code, cause, metadata);
+    }
 
 }

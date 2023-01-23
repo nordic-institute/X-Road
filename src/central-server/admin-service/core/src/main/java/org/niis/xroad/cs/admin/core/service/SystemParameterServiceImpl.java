@@ -47,6 +47,7 @@ import javax.xml.crypto.dsig.DigestMethod;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -95,6 +96,11 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     @Override
     public String getCentralServerAddress() {
         return getParameterValue(SystemParameterService.CENTRAL_SERVER_ADDRESS, "");
+    }
+
+    @Override
+    public String getCentralServerAddress(final String haNodeName) {
+        return getParameterValue(SystemParameterService.CENTRAL_SERVER_ADDRESS, haNodeName, "");
     }
 
     @Override
@@ -195,10 +201,10 @@ public class SystemParameterServiceImpl implements SystemParameterService {
                 .orElse(defaultValue);
     }
 
-    private Optional<SystemParameterEntity> getSystemParameterOptional(String lookupKey) {
+    private Optional<SystemParameterEntity> getSystemParameterOptional(String lookupKey, Supplier<String> haNodeNameSupplier) {
         Optional<SystemParameterEntity> systemParameter;
         if (currentHaConfigStatus.isHaConfigured() && isNodeLocalParameter(lookupKey)) {
-            String haNodeName = currentHaConfigStatus.getCurrentHaNodeName();
+            String haNodeName = haNodeNameSupplier.get();
             systemParameter = systemParameterRepository.findByKeyAndHaNodeName(lookupKey, haNodeName)
                     .stream().findFirst();
         } else {
@@ -206,6 +212,10 @@ public class SystemParameterServiceImpl implements SystemParameterService {
                     .stream().findFirst();
         }
         return systemParameter;
+    }
+
+    private Optional<SystemParameterEntity> getSystemParameterOptional(String lookupKey) {
+        return getSystemParameterOptional(lookupKey, currentHaConfigStatus::getCurrentHaNodeName);
     }
 
     private boolean isNodeLocalParameter(String key) {

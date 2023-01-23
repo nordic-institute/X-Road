@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.core.repository;
 
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ConfigurationSourceRepository extends GenericRepository<ConfigurationSourceEntity, Integer> {
@@ -35,4 +36,6 @@ public interface ConfigurationSourceRepository extends GenericRepository<Configu
     Optional<ConfigurationSourceEntity> findBySourceType(String source);
 
     ConfigurationSourceEntity findBySourceTypeOrCreate(String source);
+
+    List<ConfigurationSourceEntity> findAllBySourceType(String source);
 }

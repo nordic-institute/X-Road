@@ -30,12 +30,15 @@ import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface JpaConfigurationSourceRepository extends JpaRepository<ConfigurationSourceEntity, Integer>, ConfigurationSourceRepository {
 
     Optional<ConfigurationSourceEntity> findBySourceType(String source);
+
+    List<ConfigurationSourceEntity> findAllBySourceType(String source);
 
     default ConfigurationSourceEntity findBySourceTypeOrCreate(final String source) {
         return findBySourceType(source).orElseGet(() -> createForSourceType(source));
