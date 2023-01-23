@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'docker' }
     environment {
         DOCKER_GID = """${sh(returnStdout: true, script: 'getent group docker | cut -d: -f3')}""".trim()
     }
