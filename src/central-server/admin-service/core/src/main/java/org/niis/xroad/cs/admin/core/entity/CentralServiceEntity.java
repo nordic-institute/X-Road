@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
@@ -40,6 +41,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+@NoArgsConstructor
 @Entity
 @Table(name = CentralServiceEntity.TABLE_NAME)
 public class CentralServiceEntity extends AuditableEntity {
@@ -64,9 +66,6 @@ public class CentralServiceEntity extends AuditableEntity {
     @Setter
     private String serviceCode;
 
-    public CentralServiceEntity() {
-        //JPA
-    }
 }
 
 
