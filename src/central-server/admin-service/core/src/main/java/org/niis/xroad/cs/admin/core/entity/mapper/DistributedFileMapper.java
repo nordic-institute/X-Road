@@ -48,7 +48,6 @@ public interface DistributedFileMapper extends GenericUniDirectionalMapper<Distr
                 ofPattern("yyyy-MM-dd_HH mm ss").format(distributedFileEntity.getFileUpdatedAt().atZone(UTC)),
                 getExtension(distributedFileEntity.getFileName()));
 
-
         return new File(filename, copyOf(distributedFileEntity.getFileData(), distributedFileEntity.getFileData().length));
     }
 
