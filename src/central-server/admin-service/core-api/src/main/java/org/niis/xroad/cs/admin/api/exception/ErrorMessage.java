@@ -89,6 +89,10 @@ public enum ErrorMessage {
     ERROR_ACTIVATING_SIGNING_KEY("Error activating signing key"),
     ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED("Active configuration signing key cannot be deleted"),
     TOKEN_MUST_BE_LOGGED_IN("Signing Key cannot be activated on not logged in token"),
+    NO_CONFIGURATION_SIGNING_KEYS_CONFIGURED("No configuration signing keys configured"),
+    INSTANCE_IDENTIFIER_NOT_SET("System parameter for instance identifier not set"),
+    CENTRAL_SERVER_ADDRESS_NOT_SET("System parameter for central server address not set"),
+    ERROR_RECREATING_ANCHOR("Error re-creating anchor file"),
     CONFIGURATION_SIGNING_KEY_NOT_FOUND("Configuration Signing Key not found");
 
 

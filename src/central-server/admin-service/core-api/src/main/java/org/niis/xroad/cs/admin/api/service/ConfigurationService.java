@@ -47,4 +47,6 @@ public interface ConfigurationService {
     void saveConfigurationPart(String contentIdentifier, String fileName, byte[] data, int version);
 
     Set<DistributedFile> getAllConfigurationFiles(int version);
+
+    ConfigurationAnchor recreateAnchor(String sourceType);
 }

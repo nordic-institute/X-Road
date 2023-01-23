@@ -66,7 +66,10 @@ public class ConfigurationSourceAnchorsController implements ConfigurationSource
     }
 
     @Override
+    @PreAuthorize("(hasAuthority('GENERATE_SOURCE_ANCHOR'))")
     public ResponseEntity<ConfigurationAnchorDto> reCreateAnchor(ConfigurationTypeDto configurationType) {
-        throw new NotImplementedException("reCreateAnchor not implemented yet");
+        return ok(configurationAnchorDtoConverter.convert(
+                configurationService.recreateAnchor(configurationType.getValue())
+        ));
     }
 }
