@@ -35,13 +35,17 @@ import org.niis.xroad.cs.test.api.FeignConfigurationPartsApi;
 import org.niis.xroad.cs.test.api.FeignConfigurationSourceAnchorApi;
 import org.niis.xroad.cs.test.api.FeignConfigurationSourcesApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 import java.time.OffsetDateTime;
 import java.util.Set;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.APPLICATION_XML;
 
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
@@ -97,5 +101,19 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                         "Response contains global download url"))
                 .execute();
     }
+
+    @Step("User can download {} configuration part {} version {}")
+    public void downloadConfigurationPart(String configurationType, String contentIdentifier, int version) {
+        final ResponseEntity<Resource> response = configurationPartsApi.downloadConfigurationParts(
+                ConfigurationTypeDto.valueOf(configurationType), contentIdentifier, version);
+
+        final HttpHeaders headers = response.getHeaders();
+
+        assertEquals(OK, response.getStatusCode());
+        assertEquals("file_2022-01-01_01 00 00.xml", headers.getContentDisposition().getFilename());
+        assertEquals("attachment", headers.getContentDisposition().getType());
+        assertEquals(APPLICATION_XML, headers.getContentType());
+    }
+
 
 }
