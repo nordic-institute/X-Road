@@ -27,6 +27,8 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -52,6 +54,9 @@ import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.util.Base64Utils;
 import org.xmlunit.assertj3.XmlAssert;
 
@@ -74,6 +79,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR;
 
 @ExtendWith(MockitoExtension.class)
 class ConfigurationServiceImplTest {
@@ -99,6 +105,10 @@ class ConfigurationServiceImplTest {
     private DistributedFileRepository distributedFileRepository;
     @Mock
     private ConfigurationSourceEntity configurationSource;
+    @Mock
+    private AuditDataHelper auditDataHelper;
+    @Mock
+    private AuditEventHelper auditEventHelper;
     @Spy
     private DistributedFileMapper distributedFileMapper = new DistributedFileMapperImpl();
 
@@ -200,7 +210,9 @@ class ConfigurationServiceImplTest {
                 haConfigStatus,
                 configurationSourceRepository,
                 distributedFileRepository,
-                distributedFileMapper);
+                distributedFileMapper,
+                auditEventHelper,
+                auditDataHelper);
     }
 
     private Set<DistributedFileEntity> distributedFileEntitySet() {
@@ -259,6 +271,9 @@ class ConfigurationServiceImplTest {
             verify(configurationSource).setAnchorFile(xmlCaptor.capture());
             verify(configurationSource).setAnchorFileHash(result.getAnchorFileHash());
             verify(configurationSource).setAnchorGeneratedAt(result.getAnchorGeneratedAt());
+            verify(auditEventHelper).changeRequestScopedEvent(RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR);
+            verify(auditDataHelper).put(RestApiAuditProperty.ANCHOR_FILE_HASH, result.getAnchorFileHash());
+            verify(auditDataHelper).put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID);
 
             assertThat(result.getAnchorGeneratedAt().truncatedTo(ChronoUnit.MINUTES))
                     .isEqualTo(Instant.now().truncatedTo(ChronoUnit.MINUTES));

@@ -53,6 +53,9 @@ import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -83,6 +86,8 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_P
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_RECREATING_ANCHOR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INSTANCE_IDENTIFIER_NOT_SET;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.NO_CONFIGURATION_SIGNING_KEYS_CONFIGURED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_INTERNAL_CONFIGURATION_ANCHOR;
 
 @Slf4j
 @Service
@@ -99,6 +104,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final ConfigurationSourceRepository configurationSourceRepository;
     private final DistributedFileRepository distributedFileRepository;
     private final DistributedFileMapper distributedFileMapper;
+    private final AuditEventHelper auditEventHelper;
+    private final AuditDataHelper auditDataHelper;
 
     @Override
     public Set<ConfigurationParts> getConfigurationParts(String sourceType) {
@@ -134,6 +141,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public ConfigurationAnchor recreateAnchor(String configurationType) {
+        auditEventHelper.changeRequestScopedEvent(configurationType.equals(INTERNAL_CONFIGURATION)
+                ? RE_CREATE_INTERNAL_CONFIGURATION_ANCHOR
+                : RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR);
+
         final var instanceIdentifier = Optional.ofNullable(systemParameterService.getInstanceIdentifier())
                 .filter(StringUtils::isNotEmpty)
                 .orElseThrow(() -> new ConfigurationSourceException(INSTANCE_IDENTIFIER_NOT_SET));
@@ -150,7 +161,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         final var anchorXml = buildAnchorXml(configurationType, instanceIdentifier, now, sources);
         final var anchorXmlBytes = anchorXml.getBytes(StandardCharsets.UTF_8);
         final var anchorXmlHash = calculateAnchorHexHash(anchorXmlBytes);
-        for (final var src : configurationSourceRepository.findAllBySourceType(configurationType)) {
+        for (final var src : sources) {
             if (src.getConfigurationSigningKey() != null) {
                 src.setAnchorGeneratedAt(now.toInstant());
                 src.setAnchorFileHash(anchorXmlHash);
@@ -282,9 +293,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private String calculateAnchorHexHash(byte[] anchor) {
+        final var algorithm = CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
+        auditDataHelper.put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, algorithm);
         try {
-            final var hash = CryptoUtils.hexDigest(CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID, anchor).toUpperCase();
-            return String.join(":", Splitter.fixedLength(2).split(hash));
+            final var hash = CryptoUtils.hexDigest(algorithm, anchor);
+            final var formattedHash = String.join(":", Splitter.fixedLength(2).split(hash)).toUpperCase();
+            auditDataHelper.put(RestApiAuditProperty.ANCHOR_FILE_HASH, formattedHash);
+            return formattedHash;
         } catch (final Exception e) {
             log.error("can't create hex digest for anchor file");
             throw new ConfigurationSourceException(ERROR_RECREATING_ANCHOR);

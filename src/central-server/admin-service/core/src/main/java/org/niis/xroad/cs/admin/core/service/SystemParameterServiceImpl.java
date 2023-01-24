@@ -193,12 +193,20 @@ public class SystemParameterServiceImpl implements SystemParameterService {
         return getParameterValue(key, defaultValue, Function.identity());
     }
 
-    private <T> T getParameterValue(String key, T defaultValue, Function<String, T> valueMapper) {
+    private String getParameterValue(String key, String haNodeName, String defaultValue) {
+        return getParameterValue(key, defaultValue, () -> haNodeName, Function.identity());
+    }
+
+    private <T> T getParameterValue(String key, T defaultValue, Supplier<String> haNodeNameSupplier, Function<String, T> valueMapper) {
         log.debug("getParameterValue() - getting value for key:{} with default value:{}", key, defaultValue);
-        Optional<SystemParameter> valueInDb = getSystemParameterOptional(key).map(systemParameterMapper::toTarget);
+        Optional<SystemParameter> valueInDb = getSystemParameterOptional(key, haNodeNameSupplier).map(systemParameterMapper::toTarget);
         return valueInDb.map(SystemParameter::getValue)
                 .map(valueMapper)
                 .orElse(defaultValue);
+    }
+
+    private <T> T getParameterValue(String key, T defaultValue, Function<String, T> valueMapper) {
+        return getParameterValue(key, defaultValue, currentHaConfigStatus::getCurrentHaNodeName, valueMapper);
     }
 
     private Optional<SystemParameterEntity> getSystemParameterOptional(String lookupKey, Supplier<String> haNodeNameSupplier) {
