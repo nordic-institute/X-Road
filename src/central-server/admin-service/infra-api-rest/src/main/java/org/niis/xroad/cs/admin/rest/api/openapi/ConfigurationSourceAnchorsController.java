@@ -33,6 +33,7 @@ import org.niis.xroad.cs.admin.rest.api.converter.ConfigurationAnchorDtoConverte
 import org.niis.xroad.cs.openapi.ConfigurationSourceAnchorsApi;
 import org.niis.xroad.cs.openapi.model.ConfigurationAnchorDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_ANCHOR;
 import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
@@ -67,6 +69,7 @@ public class ConfigurationSourceAnchorsController implements ConfigurationSource
 
     @Override
     @PreAuthorize("(hasAuthority('GENERATE_SOURCE_ANCHOR'))")
+    @AuditEventMethod(event = RE_CREATE_ANCHOR)
     public ResponseEntity<ConfigurationAnchorDto> reCreateAnchor(ConfigurationTypeDto configurationType) {
         return ok(configurationAnchorDtoConverter.convert(
                 configurationService.recreateAnchor(configurationType.getValue())
