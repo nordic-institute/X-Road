@@ -75,6 +75,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -272,8 +273,7 @@ class ConfigurationServiceImplTest {
             verify(configurationSource).setAnchorFileHash(result.getAnchorFileHash());
             verify(configurationSource).setAnchorGeneratedAt(result.getAnchorGeneratedAt());
             verify(auditEventHelper).changeRequestScopedEvent(RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR);
-            verify(auditDataHelper).put(RestApiAuditProperty.ANCHOR_FILE_HASH, result.getAnchorFileHash());
-            verify(auditDataHelper).put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID);
+            verify(auditDataHelper).putAnchorHash(any());
 
             assertThat(result.getAnchorGeneratedAt().truncatedTo(ChronoUnit.MINUTES))
                     .isEqualTo(Instant.now().truncatedTo(ChronoUnit.MINUTES));

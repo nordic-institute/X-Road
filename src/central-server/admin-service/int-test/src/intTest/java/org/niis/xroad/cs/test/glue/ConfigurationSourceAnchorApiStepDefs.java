@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.test.glue;
 
-import io.cucumber.java.en.When;
+import io.cucumber.java.en.Step;
 import org.assertj.core.api.Assertions;
 import org.niis.xroad.cs.openapi.ConfigurationSourceAnchorsApi;
 import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
@@ -48,7 +48,7 @@ public class ConfigurationSourceAnchorApiStepDefs extends BaseStepDefs {
     private OffsetDateTime createdAt;
     private String hash;
 
-    @When("user gets the {string} configuration source anchor")
+    @Step("user gets the {string} configuration source anchor")
     public void getAnchor(String configType) {
         configurationTypeDto = ConfigurationTypeDto.fromValue(configType.toUpperCase());
         final var response = configurationSourceAnchorsApi.getAnchor(configurationTypeDto);
@@ -61,12 +61,9 @@ public class ConfigurationSourceAnchorApiStepDefs extends BaseStepDefs {
 
         createdAt = response.getBody().getCreatedAt();
         hash = response.getBody().getHash();
-
-        System.out.println("getAnchor");
-        System.out.println(response.getBody().getHash());
     }
 
-    @When("user recreates the {string} configuration source anchor")
+    @Step("user recreates the {string} configuration source anchor")
     public void recreateAnchor(String configType) {
         configurationTypeDto = ConfigurationTypeDto.fromValue(configType.toUpperCase());
         final var response = configurationSourceAnchorsApi.reCreateAnchor(configurationTypeDto);
@@ -82,17 +79,11 @@ public class ConfigurationSourceAnchorApiStepDefs extends BaseStepDefs {
 
         createdAt = response.getBody().getCreatedAt();
         hash = response.getBody().getHash();
-
-        System.out.println("recreateAnchor");
-        System.out.println(response.getBody().getHash());
     }
 
-    @When("recreated anchor matches returned from GET API")
+    @Step("recreated anchor matches returned from GET API")
     public void matchesDataFromGet() {
         final var response = configurationSourceAnchorsApi.getAnchor(configurationTypeDto);
-
-        System.out.println("matchesDataFromGet");
-        System.out.println(response.getBody().getHash());
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))

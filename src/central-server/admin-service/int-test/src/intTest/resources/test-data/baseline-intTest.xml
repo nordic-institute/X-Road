@@ -60,7 +60,7 @@
             VALUES ('security-server-owners','Security server owners', now(), now());
         </sql>
     </changeSet>
-    <changeSet id="security-server-identifier" author="ovidijus">
+    <changeSet id="add-central-server-identifier" author="ovidijus">
         <comment>Add instance identifier to system parameters.</comment>
         <sql>
             INSERT INTO system_parameters

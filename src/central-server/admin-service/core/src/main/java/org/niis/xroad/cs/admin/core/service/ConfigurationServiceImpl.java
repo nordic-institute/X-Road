@@ -55,7 +55,6 @@ import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -94,6 +93,16 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_IN
 @Transactional
 @RequiredArgsConstructor
 public class ConfigurationServiceImpl implements ConfigurationService {
+    private static final JAXBContext JAXB_CTX;
+
+    static {
+        try {
+            JAXB_CTX = JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw new RuntimeException("Failed to initialize JAXB context", e);
+        }
+    }
+
     private static final String INTERNAL_CONFIGURATION = "INTERNAL";
     private static final Set<String> NODE_LOCAL_CONTENT_IDS = Set.of(
             CONTENT_ID_PRIVATE_PARAMETERS,
@@ -178,8 +187,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                                   final ZonedDateTime now,
                                   final List<ConfigurationSourceEntity> sources) {
         try {
-            JAXBContext jaxbCtx = JAXBContext.newInstance(ObjectFactory.class);
-            Marshaller marshaller = jaxbCtx.createMarshaller();
+
+            Marshaller marshaller = JAXB_CTX.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 
 
@@ -294,12 +303,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private String calculateAnchorHexHash(byte[] anchor) {
         final var algorithm = CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
-        auditDataHelper.put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, algorithm);
         try {
             final var hash = CryptoUtils.hexDigest(algorithm, anchor);
-            final var formattedHash = String.join(":", Splitter.fixedLength(2).split(hash)).toUpperCase();
-            auditDataHelper.put(RestApiAuditProperty.ANCHOR_FILE_HASH, formattedHash);
-            return formattedHash;
+            auditDataHelper.putAnchorHash(anchor);
+            return String.join(":", Splitter.fixedLength(2).split(hash)).toUpperCase();
         } catch (final Exception e) {
             log.error("can't create hex digest for anchor file");
             throw new ConfigurationSourceException(ERROR_RECREATING_ANCHOR);
