@@ -72,6 +72,7 @@ public enum ErrorMessage {
     OCSP_RESPONDER_NOT_FOUND("OCSP Responder not found"),
     INVALID_URL("Invalid url"),
     CONFIGURATION_NOT_FOUND("Configuration Source not found"),
+    CONFIGURATION_PART_FILE_NOT_FOUND("Configuration part file not found"),
     ERROR_GETTING_TOKENS("Error getting tokens"),
     TOKEN_NOT_FOUND("Token not found"),
     TOKEN_ACTIVATION_FAILED("Token activation failed"),

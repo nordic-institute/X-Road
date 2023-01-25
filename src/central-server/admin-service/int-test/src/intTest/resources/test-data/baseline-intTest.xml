@@ -28,6 +28,7 @@
         <comment>Test data for configuration info apis testing
         </comment>
         <sql>
+            <![CDATA[
             -- noinspection SqlResolve
             INSERT INTO system_parameters
                 (key, value, created_at, updated_at, ha_node_name)
@@ -47,8 +48,8 @@
 
             INSERT INTO distributed_files
             (version, file_name, file_data, content_identifier, file_updated_at, ha_node_name)
-            VALUES (2, 'file.xml', null, 'SHARED-ID', '2022-01-01 01:00:00.000000', 'node_0');
-
+            VALUES (2, 'file.xml', '<conf/>', 'SHARED-ID', '2022-01-01 01:00:00.000000', 'node_0');
+            ]]>
         </sql>
     </changeSet>
 

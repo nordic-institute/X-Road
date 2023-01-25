@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
+import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
@@ -54,6 +55,7 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_PART_FILE_NOT_FOUND;
 
 @Service
 @Transactional
@@ -84,6 +86,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return distributedFiles.stream()
                 .map(this::createConfParts)
                 .collect(toSet());
+    }
+
+    @Override
+    public File getConfigurationPartFile(String contentIdentifier, int version) {
+        return distributedFileRepository
+                .findByContentIdAndVersion(contentIdentifier, version, getHaNodeName(contentIdentifier))
+                .map(distributedFileMapper::toFile)
+                .orElseThrow(() -> new NotFoundException(CONFIGURATION_PART_FILE_NOT_FOUND));
     }
 
     @Override
@@ -133,11 +143,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private DistributedFileEntity findOrCreate(String contentIdentifier, int version) {
-        String dfHaNodeName = haConfigStatus.isHaConfigured() && isNodeLocalContentId(contentIdentifier)
-                ? haConfigStatus.getCurrentHaNodeName()
-                : null;
+        String dfHaNodeName = getHaNodeName(contentIdentifier);
         return distributedFileRepository.findByContentIdAndVersion(contentIdentifier, version, dfHaNodeName)
                 .orElseGet(() -> new DistributedFileEntity(contentIdentifier, version, dfHaNodeName));
+    }
+
+    private String getHaNodeName(String contentIdentifier) {
+        return haConfigStatus.isHaConfigured() && isNodeLocalContentId(contentIdentifier)
+                ? haConfigStatus.getCurrentHaNodeName()
+                : null;
     }
 
     private boolean isNodeLocalContentId(@NonNull String contentId) {

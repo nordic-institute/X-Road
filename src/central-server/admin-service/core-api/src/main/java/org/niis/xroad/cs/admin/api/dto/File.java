@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,31 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.entity.mapper;
 
-import org.mapstruct.Mapper;
-import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
-import org.niis.xroad.cs.admin.api.domain.DistributedFile;
-import org.niis.xroad.cs.admin.api.dto.File;
-import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
+package org.niis.xroad.cs.admin.api.dto;
 
-import static java.lang.String.format;
-import static java.time.ZoneOffset.UTC;
-import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Arrays.copyOf;
-import static org.apache.commons.io.FilenameUtils.getBaseName;
-import static org.apache.commons.io.FilenameUtils.getExtension;
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+import lombok.Data;
 
-@Mapper(componentModel = SPRING)
-public interface DistributedFileMapper extends GenericUniDirectionalMapper<DistributedFileEntity, DistributedFile> {
+@Data
+public class File {
 
-    default File toFile(DistributedFileEntity distributedFileEntity) {
-        final String filename = format("%s_%s.%s", getBaseName(distributedFileEntity.getFileName()),
-                ofPattern("yyyy-MM-dd_HH mm ss").format(distributedFileEntity.getFileUpdatedAt().atZone(UTC)),
-                getExtension(distributedFileEntity.getFileName()));
-
-        return new File(filename, copyOf(distributedFileEntity.getFileData(), distributedFileEntity.getFileData().length));
-    }
+    private final String filename;
+    private final byte[] data;
 
 }

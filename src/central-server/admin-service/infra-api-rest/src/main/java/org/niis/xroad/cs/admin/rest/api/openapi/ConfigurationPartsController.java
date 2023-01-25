@@ -45,6 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.openapi.ControllerUtil.createAttachmentResourceResponse;
 import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
@@ -57,9 +58,13 @@ public class ConfigurationPartsController implements ConfigurationPartsApi {
     private final ConfigurationPartsDtoConverter configurationPartsDtoConverter;
 
     @Override
+    @PreAuthorize("hasAuthority('DOWNLOAD_CONFIGURATION_PART')")
     public ResponseEntity<Resource> downloadConfigurationParts(ConfigurationTypeDto configurationType,
                                                                String contentIdentifier, Integer version) {
-        throw new NotImplementedException("downloadConfigurationParts not implemented yet");
+
+        var file = configurationService.getConfigurationPartFile(contentIdentifier, version);
+
+        return createAttachmentResourceResponse(file.getData(), file.getFilename());
     }
 
     @Override

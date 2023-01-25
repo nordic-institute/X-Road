@@ -38,6 +38,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
+import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
@@ -57,6 +58,7 @@ import java.util.Set;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
@@ -249,6 +251,33 @@ class ConfigurationServiceImplTest {
                     () -> assertThat(df.getFileName()).as("file name").isEqualTo(FILE_NAME),
                     () -> assertThat(df.getFileData()).as("file data").isEqualTo(FILE_DATA)
             );
+        }
+    }
+
+    @Nested
+    class GetConfigurationPartFile {
+
+        @Test
+        void getConfigurationPartFile() {
+            var fileEntity = new DistributedFileEntity(VERSION, FILE_NAME, CONTENT_IDENTIFIER, Instant.now());
+            fileEntity.setFileData(new byte[]{1, 2, 3});
+
+            when(distributedFileRepository.findByContentIdAndVersion(CONTENT_IDENTIFIER, VERSION, null))
+                    .thenReturn(Optional.of(fileEntity));
+
+            final File configurationPartFile = configurationService.getConfigurationPartFile(CONTENT_IDENTIFIER, VERSION);
+
+            assertThat(configurationPartFile.getData()).isEqualTo(new byte[]{1, 2, 3});
+        }
+
+        @Test
+        void getConfigurationPartFileThrowsNotFound() {
+            when(distributedFileRepository.findByContentIdAndVersion(CONTENT_IDENTIFIER, VERSION, null))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> configurationService.getConfigurationPartFile(CONTENT_IDENTIFIER, VERSION))
+                    .isInstanceOf(NotFoundException.class)
+                    .hasMessage("Configuration part file not found");
         }
     }
 }

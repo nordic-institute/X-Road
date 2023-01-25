@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.api.service;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
+import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 
 import java.util.Set;
@@ -36,6 +37,8 @@ import java.util.Set;
 public interface ConfigurationService {
 
     Set<ConfigurationParts> getConfigurationParts(String sourceType);
+
+    File getConfigurationPartFile(String contentIdentifier, int version);
 
     ConfigurationAnchor getConfigurationAnchor(String sourceType);
 
