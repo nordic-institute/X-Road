@@ -32,12 +32,13 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.KeyLabel;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.exception.SigningKeyException;
@@ -105,9 +106,23 @@ class ConfigurationSigningKeysServiceImplTest {
     private SystemParameterService systemParameterService;
     @Spy
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
-
-    @InjectMocks
+    
     private ConfigurationSigningKeysServiceImpl configurationSigningKeysServiceImpl;
+    private HAConfigStatus haConfigStatus = new HAConfigStatus("haNodeName", false);
+
+    @BeforeEach
+    void beforeEach() {
+        configurationSigningKeysServiceImpl = new ConfigurationSigningKeysServiceImpl(systemParameterService,
+                configurationSigningKeyRepository,
+                configurationSourceRepository,
+                configurationSigningKeyMapper,
+                signerProxyFacade,
+                tokenActionsResolver,
+                signingKeyActionsResolver,
+                auditEventHelper,
+                auditDataHelper,
+                haConfigStatus);
+    }
 
     @Test
     void deleteKeyNotFoundShouldThrowException() {
@@ -196,7 +211,7 @@ class ConfigurationSigningKeysServiceImplTest {
 
     @Test
     void shouldAddSigningKey() throws Exception {
-        when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION))
+        when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION, haConfigStatus))
                 .thenReturn(configurationSourceEntity);
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of()));
         when(signerProxyFacade.generateKey(TOKEN_ID, KEY_LABEL)).thenReturn(createKeyInfo());
@@ -224,7 +239,7 @@ class ConfigurationSigningKeysServiceImplTest {
     void shouldNotAddMoreThanTwoSingingKeys() throws Exception {
         ConfigurationSigningKeyEntity key1 = createConfigurationSigningEntity(INTERNAL_CONFIGURATION, true);
         ConfigurationSigningKeyEntity key2 = createConfigurationSigningEntity(INTERNAL_CONFIGURATION, false);
-        when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION))
+        when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION, haConfigStatus))
                 .thenReturn(configurationSourceEntity);
         when(configurationSigningKeyRepository.findByTokenIdentifier(TOKEN_ID)).thenReturn(List.of(key1, key2));
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of(createKeyInfo())));
@@ -243,6 +258,7 @@ class ConfigurationSigningKeysServiceImplTest {
                 1, TokenStatusInfo.OK, keys, new HashMap<>()
         );
     }
+
     @Test
     void activateKeyShouldFailWhenKeyNotFound() {
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.activateKey("some_random_id"))

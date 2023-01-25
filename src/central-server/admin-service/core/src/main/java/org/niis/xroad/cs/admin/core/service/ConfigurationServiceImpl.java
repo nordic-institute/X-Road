@@ -158,8 +158,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .filter(StringUtils::isNotEmpty)
                 .orElseThrow(() -> new ConfigurationSourceException(INSTANCE_IDENTIFIER_NOT_SET));
 
-        final var configurationSource = configurationSourceRepository.findBySourceType(configurationType.toLowerCase())
-                .orElseThrow(ConfigurationServiceImpl::notFoundException);
+        final var configurationSource = configurationSourceRepository.findBySourceTypeOrCreate(
+                configurationType.toLowerCase(),
+                haConfigStatus);
 
         if (CollectionUtils.isEmpty(configurationSource.getConfigurationSigningKeys())) {
             throw new ConfigurationSourceException(NO_CONFIGURATION_SIGNING_KEYS_CONFIGURED);

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository;
 
+import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -38,15 +39,32 @@ public interface JpaConfigurationSourceRepository extends JpaRepository<Configur
 
     Optional<ConfigurationSourceEntity> findBySourceType(String source);
 
+    Optional<ConfigurationSourceEntity> findBySourceTypeAndHaNodeName(String source, String haNodeName);
+
     List<ConfigurationSourceEntity> findAllBySourceType(String source);
+
+    default ConfigurationSourceEntity findBySourceTypeOrCreate(final String source, final HAConfigStatus haConfigStatus) {
+        return haConfigStatus.isHaConfigured()
+                ? findBySourceTypeAndHaNodeNameOrCreate(source, haConfigStatus.getCurrentHaNodeName())
+                : findBySourceTypeOrCreate(source);
+    }
 
     default ConfigurationSourceEntity findBySourceTypeOrCreate(final String source) {
         return findBySourceType(source).orElseGet(() -> createForSourceType(source));
     }
 
+    default ConfigurationSourceEntity findBySourceTypeAndHaNodeNameOrCreate(final String source, final String haNodeName) {
+        return findBySourceTypeAndHaNodeName(source, haNodeName).orElseGet(() -> createForSourceType(source, haNodeName));
+    }
+
     private ConfigurationSourceEntity createForSourceType(String source) {
+        return createForSourceType(source, null);
+    }
+
+    private ConfigurationSourceEntity createForSourceType(String source, final String haNodeName) {
         var configSource = new ConfigurationSourceEntity();
         configSource.setSourceType(source);
+        configSource.setHaNodeName(haNodeName);
         return save(configSource);
     }
 }

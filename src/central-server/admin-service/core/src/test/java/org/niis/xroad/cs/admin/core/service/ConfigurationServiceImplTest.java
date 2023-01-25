@@ -27,8 +27,6 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.util.CryptoUtils;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -56,7 +54,6 @@ import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.util.Base64Utils;
 import org.xmlunit.assertj3.XmlAssert;
 
@@ -97,7 +94,6 @@ class ConfigurationServiceImplTest {
     private static final byte[] FILE_DATA = "file-data".getBytes(UTF_8);
     private static final String NODE_LOCAL_CONTENT_ID = CONTENT_ID_PRIVATE_PARAMETERS;
 
-
     @Mock
     private SystemParameterService systemParameterService;
     @Mock
@@ -112,7 +108,6 @@ class ConfigurationServiceImplTest {
     private AuditEventHelper auditEventHelper;
     @Spy
     private DistributedFileMapper distributedFileMapper = new DistributedFileMapperImpl();
-
     private ConfigurationServiceImpl configurationService;
     private ConfigurationServiceImpl configurationServiceHa;
 
@@ -250,8 +245,9 @@ class ConfigurationServiceImplTest {
             when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
             when(systemParameterService.getCentralServerAddress(HA_NODE_NAME)).thenReturn(CENTRAL_SERVICE);
             when(systemParameterService.getCentralServerAddress(HA_NODE_NAME2)).thenReturn(CENTRAL_SERVICE2);
-            when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION.toLowerCase()))
-                    .thenReturn(Optional.of(configurationSource));
+            when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION.toLowerCase(),
+                    new HAConfigStatus(HA_NODE_NAME, false)))
+                    .thenReturn(configurationSource);
             when(configurationSourceRepository.findAllBySourceType(INTERNAL_CONFIGURATION.toLowerCase()))
                     .thenReturn(List.of(configurationSource, configurationSource2));
             when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
@@ -311,20 +307,11 @@ class ConfigurationServiceImplTest {
         }
 
         @Test
-        void shouldFailIfSourceNotFound() {
-            when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-            when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION.toLowerCase())).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> configurationService.recreateAnchor(INTERNAL_CONFIGURATION))
-                    .isInstanceOf(NotFoundException.class)
-                    .hasMessage("Configuration Source not found");
-        }
-
-        @Test
         void shouldFailIfCfgSourceDoesntHaveSigningKeys() {
             when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-            when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION.toLowerCase()))
-                    .thenReturn(Optional.of(configurationSource));
+            when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION.toLowerCase(),
+                    new HAConfigStatus(HA_NODE_NAME, false)))
+                    .thenReturn(configurationSource);
             when(configurationSource.getConfigurationSigningKeys()).thenReturn(Set.of());
 
             assertThatThrownBy(() -> configurationService.recreateAnchor(INTERNAL_CONFIGURATION))

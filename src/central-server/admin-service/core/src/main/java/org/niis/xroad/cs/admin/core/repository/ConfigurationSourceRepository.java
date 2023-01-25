@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.repository;
 
+import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 
 import java.util.List;
@@ -35,7 +36,13 @@ public interface ConfigurationSourceRepository extends GenericRepository<Configu
 
     Optional<ConfigurationSourceEntity> findBySourceType(String source);
 
+    Optional<ConfigurationSourceEntity> findBySourceTypeAndHaNodeName(String source, String haNodeName);
+
+    ConfigurationSourceEntity findBySourceTypeOrCreate(String source, HAConfigStatus haConfigStatus);
+
     ConfigurationSourceEntity findBySourceTypeOrCreate(String source);
+
+    ConfigurationSourceEntity findBySourceTypeAndHaNodeNameOrCreate(String source, String haNodeName);
 
     List<ConfigurationSourceEntity> findAllBySourceType(String source);
 }

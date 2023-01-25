@@ -34,6 +34,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.KeyLabel;
 import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
@@ -93,6 +94,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     private final SigningKeyActionsResolver signingKeyActionsResolver;
     private final AuditEventHelper auditEventHelper;
     private final AuditDataHelper auditDataHelper;
+    private final HAConfigStatus haConfigStatus;
 
 
     @Override
@@ -170,7 +172,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         response.setActiveSourceSigningKey(Boolean.FALSE);
 
         ConfigurationSourceEntity configurationSourceEntity = configurationSourceRepository
-                .findBySourceTypeOrCreate(sourceType.toLowerCase());
+                .findBySourceTypeOrCreate(sourceType.toLowerCase(), haConfigStatus);
 
         final TokenInfo tokenInfo = getToken(tokenId);
         final PossibleTokenAction action = StringUtils.endsWithIgnoreCase(SOURCE_TYPE_INTERNAL, sourceType)
