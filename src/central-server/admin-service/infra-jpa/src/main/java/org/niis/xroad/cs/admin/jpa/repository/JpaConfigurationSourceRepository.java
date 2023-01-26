@@ -37,28 +37,16 @@ import java.util.Optional;
 @Repository
 public interface JpaConfigurationSourceRepository extends JpaRepository<ConfigurationSourceEntity, Integer>, ConfigurationSourceRepository {
 
-    Optional<ConfigurationSourceEntity> findBySourceType(String source);
-
     Optional<ConfigurationSourceEntity> findBySourceTypeAndHaNodeName(String source, String haNodeName);
 
     List<ConfigurationSourceEntity> findAllBySourceType(String source);
 
     default ConfigurationSourceEntity findBySourceTypeOrCreate(final String source, final HAConfigStatus haConfigStatus) {
-        return haConfigStatus.isHaConfigured()
-                ? findBySourceTypeAndHaNodeNameOrCreate(source, haConfigStatus.getCurrentHaNodeName())
-                : findBySourceTypeOrCreate(source);
-    }
-
-    default ConfigurationSourceEntity findBySourceTypeOrCreate(final String source) {
-        return findBySourceType(source).orElseGet(() -> createForSourceType(source));
+        return findBySourceTypeAndHaNodeNameOrCreate(source, haConfigStatus.getCurrentHaNodeName());
     }
 
     default ConfigurationSourceEntity findBySourceTypeAndHaNodeNameOrCreate(final String source, final String haNodeName) {
         return findBySourceTypeAndHaNodeName(source, haNodeName).orElseGet(() -> createForSourceType(source, haNodeName));
-    }
-
-    private ConfigurationSourceEntity createForSourceType(String source) {
-        return createForSourceType(source, null);
     }
 
     private ConfigurationSourceEntity createForSourceType(String source, final String haNodeName) {

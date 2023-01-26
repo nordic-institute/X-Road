@@ -30,9 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.util.CryptoUtils;
 
-import com.google.common.base.Splitter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -170,7 +168,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         final var now = ZonedDateTime.now(ZoneId.of("UTC"));
         final var anchorXml = buildAnchorXml(configurationType, instanceIdentifier, now, sources);
         final var anchorXmlBytes = anchorXml.getBytes(StandardCharsets.UTF_8);
-        final var anchorXmlHash = calculateAnchorHexHash(anchorXmlBytes);
+        final var anchorXmlHash = auditDataHelper.putAnchorHash(anchorXmlBytes);
         for (final var src : sources) {
             if (src.getConfigurationSigningKey() != null) {
                 src.setAnchorGeneratedAt(now.toInstant());
@@ -267,7 +265,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private ConfigurationSourceEntity findConfigurationSourceBySourceType(String sourceType) {
-        return configurationSourceRepository.findBySourceType(sourceType)
+        return configurationSourceRepository.findBySourceTypeAndHaNodeName(sourceType, haConfigStatus.getCurrentHaNodeName())
                 .orElseThrow(ConfigurationServiceImpl::notFoundException);
     }
 
@@ -300,17 +298,5 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private static NotFoundException notFoundException() {
         return new NotFoundException(CONFIGURATION_NOT_FOUND);
-    }
-
-    private String calculateAnchorHexHash(byte[] anchor) {
-        final var algorithm = CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
-        try {
-            final var hash = CryptoUtils.hexDigest(algorithm, anchor);
-            auditDataHelper.putAnchorHash(anchor);
-            return String.join(":", Splitter.fixedLength(2).split(hash)).toUpperCase();
-        } catch (final Exception e) {
-            log.error("can't create hex digest for anchor file");
-            throw new ConfigurationSourceException(ERROR_RECREATING_ANCHOR);
-        }
     }
 }

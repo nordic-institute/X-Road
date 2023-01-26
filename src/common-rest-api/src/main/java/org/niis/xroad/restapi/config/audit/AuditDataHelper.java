@@ -54,6 +54,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 
@@ -212,8 +213,9 @@ public class AuditDataHelper {
     /**
      * calculates hash, formats it according to audit log format, and puts hash and hash algorithm properties
      * @param bytes anchor bytes
+     * @return calculated formatted hash
      */
-    public void putAnchorHash(byte[] bytes) {
+    public String putAnchorHash(byte[] bytes) {
         String algorithm = CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
         String hash = null;
         try {
@@ -221,8 +223,10 @@ public class AuditDataHelper {
         } catch (Exception e) {
             log.error("audit logging certificate hash forming failed", e);
         }
-        put(RestApiAuditProperty.ANCHOR_FILE_HASH, formatHash(hash));
+        String formattedHash = formatHash(hash);
+        put(RestApiAuditProperty.ANCHOR_FILE_HASH, formattedHash);
         put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, algorithm);
+        return formattedHash;
     }
 
     /**

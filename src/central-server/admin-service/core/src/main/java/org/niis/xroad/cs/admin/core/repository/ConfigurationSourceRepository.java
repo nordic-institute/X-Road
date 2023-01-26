@@ -34,13 +34,9 @@ import java.util.Optional;
 
 public interface ConfigurationSourceRepository extends GenericRepository<ConfigurationSourceEntity, Integer> {
 
-    Optional<ConfigurationSourceEntity> findBySourceType(String source);
-
     Optional<ConfigurationSourceEntity> findBySourceTypeAndHaNodeName(String source, String haNodeName);
 
     ConfigurationSourceEntity findBySourceTypeOrCreate(String source, HAConfigStatus haConfigStatus);
-
-    ConfigurationSourceEntity findBySourceTypeOrCreate(String source);
 
     ConfigurationSourceEntity findBySourceTypeAndHaNodeNameOrCreate(String source, String haNodeName);
 

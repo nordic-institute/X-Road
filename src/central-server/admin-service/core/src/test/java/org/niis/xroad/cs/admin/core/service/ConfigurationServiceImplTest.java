@@ -119,7 +119,7 @@ class ConfigurationServiceImplTest {
 
     @Test
     void shouldGetInternalConfigurationParts() {
-        when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
+        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
                 .thenReturn(Optional.of(configurationSource));
         when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
         when(distributedFileRepository.findAllByHaNodeName(HA_NODE_NAME)).thenReturn(distributedFileEntitySet());
@@ -135,7 +135,7 @@ class ConfigurationServiceImplTest {
 
     @Test
     void shouldGetExternalConfigurationParts() {
-        when(configurationSourceRepository.findBySourceType(EXTERNAL_CONFIGURATION))
+        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
                 .thenReturn(Optional.of(configurationSource));
         when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
         when(distributedFileRepository.findAllByHaNodeName(HA_NODE_NAME)).thenReturn(distributedFileEntitySet());
@@ -151,7 +151,7 @@ class ConfigurationServiceImplTest {
 
     @Test
     void shouldGetInternalConfigurationAnchor() {
-        when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
+        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
                 .thenReturn(Optional.of(configurationSourceEntity()));
 
         final ConfigurationAnchor result = configurationService.getConfigurationAnchor(INTERNAL_CONFIGURATION);
@@ -162,7 +162,7 @@ class ConfigurationServiceImplTest {
 
     @Test
     void shouldGetExternalConfigurationAnchor() {
-        when(configurationSourceRepository.findBySourceType(EXTERNAL_CONFIGURATION))
+        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
                 .thenReturn(Optional.of(configurationSourceEntity()));
 
         final ConfigurationAnchor result = configurationService.getConfigurationAnchor(EXTERNAL_CONFIGURATION);
@@ -193,7 +193,7 @@ class ConfigurationServiceImplTest {
 
     @Test
     void shouldThrowNotFoundExceptionWhenSourceNotFound() {
-        when(configurationSourceRepository.findBySourceType(INTERNAL_CONFIGURATION))
+        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> configurationService.getConfigurationParts(INTERNAL_CONFIGURATION));
