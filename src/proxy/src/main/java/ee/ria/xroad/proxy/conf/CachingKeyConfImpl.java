@@ -187,7 +187,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
      * (thisUpdate + ocspFresnessSeconds) if nextUpdate is not enforced or missing
      */
     static Date calculateNotAfter(List<OCSPResp> ocspResponses, Date notAfter) throws OCSPException {
-        final long freshnessMillis = 1000L * GlobalConf.getOcspFreshnessSeconds(false);
+        final long freshnessMillis = 1000L * GlobalConf.getOcspFreshnessSeconds();
         final boolean verifyNextUpdate = GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate();
 
         for (OCSPResp resp : ocspResponses) {

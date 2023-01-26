@@ -195,7 +195,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public int getOcspFreshnessSeconds(boolean smallestValue) {
+    public int getOcspFreshnessSeconds() {
         return DEFAULT_OCSP_FRESHNESS;
     }
 
