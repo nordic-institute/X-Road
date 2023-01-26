@@ -98,6 +98,20 @@ export const useConfigurationSourceStore = defineStore('configurationSource', {
           throw error;
         });
     },
+    downloadConfigurationPartDownloadUrl(
+      configurationType: ConfigurationType,
+      contentIdentifier: string,
+      version: number,
+    ) {
+      return axios
+        .get(
+          `/configuration-sources/${configurationType}/configuration-parts/${contentIdentifier}/${version}/download`,
+          { responseType: 'blob' },
+        )
+        .catch((error) => {
+          throw error;
+        });
+    },
     getAnchor(configurationType: ConfigurationType): ConfigurationAnchor {
       return this.getSource(configurationType).anchor;
     },

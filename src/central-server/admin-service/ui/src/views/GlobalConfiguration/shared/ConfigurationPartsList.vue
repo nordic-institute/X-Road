@@ -30,6 +30,7 @@
       <div class="card-top">
         <div class="card-main-title">{{ $t('globalConf.cfgParts.title') }}</div>
       </div>
+      <a ref="downloadRef" hidden>download</a>
 
       <v-card-text class="px-0">
         <v-data-table
@@ -47,8 +48,16 @@
             {{ item.file_updated_at | formatDateTime }}
           </template>
           <template #[`item.actions`]="{ item }">
-            <xrd-button :outlined="false" text>
+            <xrd-button
+              v-if="showDownloadButton"
+              :outlined="false"
+              text
+              @click="download(item)"
+            >
               {{ $t('action.download') }}
+            </xrd-button>
+            <xrd-button :outlined="false" text>
+              {{ $t('action.upload') }}
             </xrd-button>
           </template>
           <template #footer>
@@ -65,11 +74,14 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import { mapStores } from 'pinia';
+import { mapState, mapStores } from 'pinia';
 import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 import { DataTableHeader } from 'vuetify';
+import { userStore } from '@/store/modules/user';
+import { Permissions } from '@/global';
+import { AxiosResponse } from 'axios';
 
 export default Vue.extend({
   props: {
@@ -86,10 +98,14 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(useConfigurationSourceStore),
+    ...mapState(userStore, ['hasPermission']),
     configurationParts(): ConfigurationPart[] {
       return this.configurationSourceStore.getConfigurationParts(
         this.configurationType,
       );
+    },
+    showDownloadButton(): boolean {
+      return this.hasPermission(Permissions.DOWNLOAD_CONFIGURATION_PART);
     },
     headers(): DataTableHeader[] {
       return [
@@ -126,11 +142,37 @@ export default Vue.extend({
     this.fetchConfigurationParts();
   },
   methods: {
+    download(item: ConfigurationPart) {
+      this.configurationSourceStore
+        .downloadConfigurationPartDownloadUrl(
+          this.configurationType,
+          item.content_identifier,
+          item.version,
+        )
+        .then((res) => {
+          const downloadRef = this.$refs.downloadRef as HTMLAnchorElement;
+          downloadRef.href = window.URL.createObjectURL(new Blob([res.data]));
+          downloadRef.setAttribute('download', this.buildFileName(item, res));
+          downloadRef.click();
+        });
+    },
     fetchConfigurationParts() {
       this.loading = true;
       this.configurationSourceStore
         .fetchConfigurationParts(this.configurationType)
         .finally(() => (this.loading = false));
+    },
+    buildFileName(item: ConfigurationPart, response: AxiosResponse): string {
+      return (
+        response.headers['content-disposition']
+          ?.split(';')
+          .find((part) => part.includes('filename='))
+          ?.replace('filename=', '')
+          .replace('"', '')
+          .trim() ||
+        item.fileName ||
+        'configuration.xml'
+      );
     },
   },
 });
