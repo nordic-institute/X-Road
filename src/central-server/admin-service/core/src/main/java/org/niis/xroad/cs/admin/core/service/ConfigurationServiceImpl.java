@@ -143,7 +143,18 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         final ConfigurationSourceEntity configurationSource = findConfigurationSourceBySourceType(
                 sourceType.toLowerCase());
 
-        return new ConfigurationAnchor(configurationSource.getAnchorFileHash(), configurationSource.getAnchorGeneratedAt());
+        return new ConfigurationAnchor(configurationSource.getAnchorFileHash(),
+                                       configurationSource.getAnchorGeneratedAt());
+    }
+
+    @Override
+    public ConfigurationAnchor getConfigurationAnchorWithFile(String sourceType) {
+        final ConfigurationSourceEntity configurationSource = findConfigurationSourceBySourceType(
+                sourceType.toLowerCase());
+
+        return new ConfigurationAnchor(configurationSource.getAnchorFile(),
+                                       configurationSource.getAnchorFileHash(),
+                                       configurationSource.getAnchorGeneratedAt());
     }
 
     @Override

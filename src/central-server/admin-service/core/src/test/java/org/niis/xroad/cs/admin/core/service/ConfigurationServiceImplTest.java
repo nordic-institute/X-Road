@@ -161,12 +161,36 @@ class ConfigurationServiceImplTest {
     }
 
     @Test
+    void shouldGetInternalConfigurationAnchorWithFile() {
+        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
+                .thenReturn(Optional.of(configurationSourceEntityWithFile()));
+
+        final ConfigurationAnchor result = configurationService.getConfigurationAnchorWithFile(INTERNAL_CONFIGURATION);
+
+        assertThat(result.getAnchorFile()).isEqualTo(FILE_DATA);
+        assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
+        assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
+    }
+
+    @Test
     void shouldGetExternalConfigurationAnchor() {
         when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
                 .thenReturn(Optional.of(configurationSourceEntity()));
 
         final ConfigurationAnchor result = configurationService.getConfigurationAnchor(EXTERNAL_CONFIGURATION);
 
+        assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
+        assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
+    }
+
+    @Test
+    void shouldGetExternalConfigurationAnchorWithFile() {
+        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
+                .thenReturn(Optional.of(configurationSourceEntityWithFile()));
+
+        final ConfigurationAnchor result = configurationService.getConfigurationAnchorWithFile(EXTERNAL_CONFIGURATION);
+
+        assertThat(result.getAnchorFile()).isEqualTo(FILE_DATA);
         assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
         assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
     }
@@ -219,6 +243,10 @@ class ConfigurationServiceImplTest {
 
     private ConfigurationSourceEntity configurationSourceEntity() {
         return new ConfigurationSourceEntity(HASH, FILE_UPDATED_AT);
+    }
+
+    private ConfigurationSourceEntity configurationSourceEntityWithFile() {
+        return new ConfigurationSourceEntity(FILE_DATA, HASH, FILE_UPDATED_AT);
     }
 
     @Nested
