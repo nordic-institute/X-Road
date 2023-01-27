@@ -25,88 +25,97 @@
    THE SOFTWARE.
  -->
 <template>
-  <div style="display: inline-block">
-    <a ref="downloadRef" hidden>download</a>
-    <xrd-button
-      v-if="showDownloadButton"
-      :outlined="false"
-      :loading="loading"
-      text
-      @click="download"
-    >
-      {{ $t('action.download') }}
-    </xrd-button>
-  </div>
+  <xrd-simple-dialog
+    :dialog="true"
+    title="globalConf.cfgParts.dialog.upload.title"
+    save-button-text="action.upload"
+    cancel-button-text="action.cancel"
+    :loading="loading"
+    :disable-save="!partFile || !partFileTitle"
+    @save="save"
+    @cancel="$emit('cancel')"
+  >
+    <template #content>
+      <div class="dlg-input-width">
+        <xrd-file-upload
+          v-slot="{ upload }"
+          accepts=".xml"
+          @file-changed="onFileUploaded"
+        >
+          <v-text-field
+            v-model="partFileTitle"
+            outlined
+            :label="$t('globalConf.cfgParts.dialog.upload.uploadConfigurationPart')"
+            append-icon="icon-Upload"
+            data-test="timestamping-service-file-input"
+            @click="upload"
+          ></v-text-field>
+        </xrd-file-upload>
+      </div>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapState, mapStores } from 'pinia';
+import { FileUploadResult } from '@niis/shared-ui';
+import { mapActions, mapStores } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
 import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
-import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
-import { userStore } from '@/store/modules/user';
-import { Permissions } from '@/global';
-import { AxiosResponse } from 'axios';
+import {
+  ConfigurationPartContentIdentifier,
+  ConfigurationType,
+} from '@/openapi-types';
 
 export default Vue.extend({
+  name: 'UploadConfigurationPartDialog',
   props: {
     configurationType: {
       type: String as Prop<ConfigurationType>,
       required: true,
     },
-    configurationPart: {
-      type: Object as Prop<ConfigurationPart>,
+    contentIdentifier: {
+      type: String as Prop<ConfigurationPartContentIdentifier>,
       required: true,
     },
   },
   data() {
     return {
+      partFile: null as File | null,
+      partFileTitle: '',
       loading: false,
     };
   },
   computed: {
     ...mapStores(useConfigurationSourceStore),
-    ...mapState(userStore, ['hasPermission']),
-
-    showDownloadButton(): boolean {
-      return (
-        this.hasPermission(Permissions.DOWNLOAD_CONFIGURATION_PART) &&
-        (this.configurationPart.file_updated_at?.length || 0) > 0
-      );
-    },
   },
   methods: {
-    download() {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    onFileUploaded(result: FileUploadResult): void {
+      this.partFile = result.file;
+      this.partFileTitle = result.file.name;
+    },
+    save(): void {
+      if (!this.partFile) return;
+
       this.loading = true;
       this.configurationSourceStore
-        .downloadConfigurationPartDownloadUrl(
+        .uploadConfigurationFile(
           this.configurationType,
-          this.configurationPart.content_identifier,
-          this.configurationPart.version,
+          this.contentIdentifier,
+          this.partFile,
         )
-        .then((res) => {
-          const downloadRef = this.$refs.downloadRef as HTMLAnchorElement;
-          downloadRef.href = window.URL.createObjectURL(new Blob([res.data]));
-          downloadRef.setAttribute(
-            'download',
-            this.buildFileName(this.configurationPart, res),
+        .then(() => {
+          this.showSuccess(
+            this.$t('globalConf.cfgParts.dialog.upload.success'),
           );
-          downloadRef.click();
+          this.$emit('save');
+        })
+        .catch((error) => {
+          this.showError(error);
         })
         .finally(() => (this.loading = false));
-    },
-    buildFileName(item: ConfigurationPart, response: AxiosResponse): string {
-      return (
-        response.headers['content-disposition']
-          ?.split(';')
-          .find((part) => part.includes('filename='))
-          ?.replace('filename=', '')
-          .replace('"', '')
-          .trim() ||
-        item.fileName ||
-        'configuration.xml'
-      );
     },
   },
 });

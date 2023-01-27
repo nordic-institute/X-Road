@@ -112,6 +112,19 @@ export const useConfigurationSourceStore = defineStore('configurationSource', {
           throw error;
         });
     },
+    uploadConfigurationFile(
+      configurationType: ConfigurationType,
+      contentIdentifier: string,
+      partFile: File,
+    ) {
+      const formData = new FormData();
+      formData.append('content_identifier', contentIdentifier);
+      formData.append('file', partFile);
+      return axios.post(
+        `/configuration-sources/${configurationType}/configuration-parts`,
+        formData,
+      );
+    },
     getAnchor(configurationType: ConfigurationType): ConfigurationAnchor {
       return this.getSource(configurationType).anchor;
     },

@@ -224,7 +224,14 @@
       "file": "File",
       "contentIdentifier": "Content Identifier",
       "version": "Version",
-      "updated": "Updated"
+      "updated": "Updated",
+      "dialog": {
+        "upload": {
+          "title": "Upload Configuration Part",
+          "uploadConfigurationPart": "Upload the configuration file from your computer",
+          "success": "Configuration Part uploaded successfully."
+        }
+      }
     },
     "anchor": {
       "title": "Anchor",
