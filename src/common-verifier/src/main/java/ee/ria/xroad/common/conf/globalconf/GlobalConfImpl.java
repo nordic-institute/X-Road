@@ -54,7 +54,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 
-import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -81,9 +80,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
  */
 @Slf4j
 public class GlobalConfImpl implements GlobalConfProvider {
-
-    // Default value used when no configurations are available
-    private static final int DEFAULT_OCSP_FRESHNESS = 3600;
 
     private volatile ConfigurationDirectoryV2 confDir;
 
@@ -643,16 +639,9 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public int getOcspFreshnessSeconds(boolean smallestValue) {
-        if (smallestValue) {
-            return getSharedParameters().stream()
-                    .map(p -> p.getGlobalSettings().getOcspFreshnessSeconds())
-                    .filter(Objects::nonNull).map(BigInteger::intValue)
-                    .min(Integer::compare).orElse(DEFAULT_OCSP_FRESHNESS);
-        } else {
-            return getSharedParameters(getInstanceIdentifier())
-                    .getGlobalSettings().getOcspFreshnessSeconds().intValue();
-        }
+    public int getOcspFreshnessSeconds() {
+        return getSharedParameters(getInstanceIdentifier())
+                .getGlobalSettings().getOcspFreshnessSeconds().intValue();
     }
 
     @Override

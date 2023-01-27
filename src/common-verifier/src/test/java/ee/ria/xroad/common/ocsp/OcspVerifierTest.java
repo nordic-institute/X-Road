@@ -86,7 +86,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, subject);
     }
 
@@ -102,7 +102,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, issuer, issuer);
     }
 
@@ -117,7 +117,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, issuer, signer);
     }
 
@@ -139,7 +139,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -156,7 +156,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -173,7 +173,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -189,7 +189,7 @@ public class OcspVerifierTest {
                 signer, signerKey, CertificateStatus.GOOD,
                 new Date(), nextUpdate);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(false));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(false));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -205,7 +205,7 @@ public class OcspVerifierTest {
                 thisUpdate, null);
 
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -223,7 +223,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_CERT_VALIDATION);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -240,7 +240,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_CERT_VALIDATION);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -252,7 +252,7 @@ public class OcspVerifierTest {
                 thisUpdate, null);
 
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
         verifier.verifyValidity(ocsp, subject, issuer);
         Field field = OcspVerifier.class.getDeclaredField("RESPONSE_VALIDITY_CACHE");
         field.setAccessible(true);

@@ -340,14 +340,11 @@ public interface GlobalConfProvider {
     X509Certificate getCentralServerSslCertificate() throws Exception;
 
     /**
-     * @param smallestValue if true, the smallest value computed over all
-     * known instances is returned. Otherwise the value of the current instance
-     * is returned.
      * @return maximum allowed validity time of OCSP responses. If thisUpdate
      * field of an OCSP response is older than ocspFreshnessSeconds seconds,
      * it is no longer valid.
      */
-    int getOcspFreshnessSeconds(boolean smallestValue);
+    int getOcspFreshnessSeconds();
 
     /**
      * @return the timestamping interval in seconds

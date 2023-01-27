@@ -404,7 +404,7 @@ public class GlobalConfTest {
 
         assertEquals("http://mgmt.com:1234", serviceAddr);
         assertEquals(newClientId("servicemember2"), GlobalConf.getManagementRequestService());
-        assertEquals(42, GlobalConf.getOcspFreshnessSeconds(true));
+        assertEquals(42, GlobalConf.getOcspFreshnessSeconds());
     }
 
     /**

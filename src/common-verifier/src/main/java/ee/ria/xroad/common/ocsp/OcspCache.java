@@ -114,7 +114,7 @@ public class OcspCache {
 
     protected static boolean isExpired(OCSPResp response, Date atDate)
             throws Exception {
-        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true),
+        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
                 new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
         return verifier.isExpired(response, atDate);
     }
