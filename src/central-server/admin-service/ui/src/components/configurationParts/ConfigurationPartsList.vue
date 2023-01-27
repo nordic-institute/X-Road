@@ -30,7 +30,6 @@
       <div class="card-top">
         <div class="card-main-title">{{ $t('globalConf.cfgParts.title') }}</div>
       </div>
-      <a ref="downloadRef" hidden>download</a>
 
       <v-card-text class="px-0">
         <v-data-table
@@ -55,6 +54,7 @@
             <configuration-part-upload-button
               :configuration-type="configurationType"
               :configuration-part="item"
+              @save="fetchConfigurationParts"
             />
           </template>
           <template #footer>
@@ -81,7 +81,10 @@ import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.v
 import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
 
 export default Vue.extend({
-  components: { ConfigurationPartUploadButton, ConfigurationPartDownloadButton },
+  components: {
+    ConfigurationPartUploadButton,
+    ConfigurationPartDownloadButton,
+  },
   props: {
     configurationType: {
       type: String as Prop<ConfigurationType>,

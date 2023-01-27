@@ -25,21 +25,39 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button v-if="showUploadButton" :outlined="false" text>
-    {{ $t('action.upload') }}
-  </xrd-button>
+  <div style="display: inline-block">
+    <xrd-button
+      v-if="showUploadButton"
+      :outlined="false"
+      text
+      @click="showUploadDialog = true"
+    >
+      {{ $t('action.upload') }}
+    </xrd-button>
+    <upload-configuration-part-dialog
+      v-if="showUploadDialog"
+      :configuration-type="configurationType"
+      :content-identifier="configurationPart.content_identifier"
+      @cancel="showUploadDialog = false"
+      @save="
+        showUploadDialog = false;
+        $emit('save');
+      "
+    />
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapState, mapStores } from 'pinia';
-import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
+import { mapState } from 'pinia';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 import { userStore } from '@/store/modules/user';
 import { Permissions } from '@/global';
+import UploadConfigurationPartDialog from '@/components/configurationParts/UploadConfigurationPartDialog.vue';
 
 export default Vue.extend({
+  components: { UploadConfigurationPartDialog },
   props: {
     configurationType: {
       type: String as Prop<ConfigurationType>,
@@ -50,14 +68,18 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      showUploadDialog: false,
+    };
+  },
   computed: {
-    ...mapStores(useConfigurationSourceStore),
     ...mapState(userStore, ['hasPermission']),
 
     showUploadButton(): boolean {
       return (
-        this.hasPermission(Permissions.UPLOAD_CONFIGURATION_PART) //&&
-        //this.configurationPart.optional
+        this.hasPermission(Permissions.UPLOAD_CONFIGURATION_PART) &&
+        this.configurationPart.optional
       );
     },
   },
