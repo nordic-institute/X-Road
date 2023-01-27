@@ -47,7 +47,7 @@ public class TestGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public int getOcspFreshnessSeconds(boolean smallestValue) {
+    public int getOcspFreshnessSeconds() {
         return Integer.MAX_VALUE / 2;
     }
 
