@@ -48,17 +48,14 @@
             {{ item.file_updated_at | formatDateTime }}
           </template>
           <template #[`item.actions`]="{ item }">
-            <xrd-button
-              v-if="showDownloadButton"
-              :outlined="false"
-              text
-              @click="download(item)"
-            >
-              {{ $t('action.download') }}
-            </xrd-button>
-            <xrd-button :outlined="false" text>
-              {{ $t('action.upload') }}
-            </xrd-button>
+            <configuration-part-download-button
+              :configuration-type="configurationType"
+              :configuration-part="item"
+            />
+            <configuration-part-upload-button
+              :configuration-type="configurationType"
+              :configuration-part="item"
+            />
           </template>
           <template #footer>
             <div class="custom-footer"></div>
@@ -81,9 +78,11 @@ import { Prop } from 'vue/types/options';
 import { DataTableHeader } from 'vuetify';
 import { userStore } from '@/store/modules/user';
 import { Permissions } from '@/global';
-import { AxiosResponse } from 'axios';
+import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.vue';
+import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
 
 export default Vue.extend({
+  components: { ConfigurationPartUploadButton, ConfigurationPartDownloadButton },
   props: {
     configurationType: {
       type: String as Prop<ConfigurationType>,
@@ -104,9 +103,7 @@ export default Vue.extend({
         this.configurationType,
       );
     },
-    showDownloadButton(): boolean {
-      return this.hasPermission(Permissions.DOWNLOAD_CONFIGURATION_PART);
-    },
+
     headers(): DataTableHeader[] {
       return [
         {
@@ -142,37 +139,11 @@ export default Vue.extend({
     this.fetchConfigurationParts();
   },
   methods: {
-    download(item: ConfigurationPart) {
-      this.configurationSourceStore
-        .downloadConfigurationPartDownloadUrl(
-          this.configurationType,
-          item.content_identifier,
-          item.version,
-        )
-        .then((res) => {
-          const downloadRef = this.$refs.downloadRef as HTMLAnchorElement;
-          downloadRef.href = window.URL.createObjectURL(new Blob([res.data]));
-          downloadRef.setAttribute('download', this.buildFileName(item, res));
-          downloadRef.click();
-        });
-    },
     fetchConfigurationParts() {
       this.loading = true;
       this.configurationSourceStore
         .fetchConfigurationParts(this.configurationType)
         .finally(() => (this.loading = false));
-    },
-    buildFileName(item: ConfigurationPart, response: AxiosResponse): string {
-      return (
-        response.headers['content-disposition']
-          ?.split(';')
-          .find((part) => part.includes('filename='))
-          ?.replace('filename=', '')
-          .replace('"', '')
-          .trim() ||
-        item.fileName ||
-        'configuration.xml'
-      );
     },
   },
 });
