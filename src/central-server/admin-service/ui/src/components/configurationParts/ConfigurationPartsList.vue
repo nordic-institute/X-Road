@@ -77,7 +77,6 @@ import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 import { DataTableHeader } from 'vuetify';
 import { userStore } from '@/store/modules/user';
-import { Permissions } from '@/global';
 import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.vue';
 import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
 
@@ -150,7 +149,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '~@/assets/tables';
 
 .card-top {
   padding-top: 15px;

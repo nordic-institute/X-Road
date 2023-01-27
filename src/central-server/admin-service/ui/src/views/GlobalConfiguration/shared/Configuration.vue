@@ -56,7 +56,7 @@
  */
 import Vue from 'vue';
 import ConfigurationAnchor from './ConfigurationAnchor.vue';
-import ConfigurationPartsList from './ConfigurationPartsList.vue';
+import ConfigurationPartsList from '@/components/configurationParts/ConfigurationPartsList.vue';
 import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
 import { ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
