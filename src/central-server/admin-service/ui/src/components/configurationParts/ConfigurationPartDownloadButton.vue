@@ -88,21 +88,19 @@ export default Vue.extend({
         .then((res) => {
           const downloadRef = this.$refs.downloadRef as HTMLAnchorElement;
           downloadRef.href = window.URL.createObjectURL(new Blob([res.data]));
-          downloadRef.setAttribute(
-            'download',
-            this.buildFileName(this.configurationPart, res),
+          downloadRef.download = this.buildFileName(
+            this.configurationPart,
+            res,
           );
           downloadRef.click();
         })
         .finally(() => (this.loading = false));
     },
     buildFileName(item: ConfigurationPart, response: AxiosResponse): string {
+      const fileNameRx = /filename="(.+)"$/;
       return (
         response.headers['content-disposition']
-          ?.split(';')
-          .find((part) => part.includes('filename='))
-          ?.replace('filename=', '')
-          .replace('"', '')
+          ?.match(fileNameRx)?.[1]
           .trim() ||
         item.fileName ||
         'configuration.xml'
