@@ -103,6 +103,12 @@ public class ConfigurationSourceEntity {
         this.anchorFileHash = anchorFileHash;
         this.anchorGeneratedAt = anchorGeneratedAt;
     }
+
+    public ConfigurationSourceEntity(byte[] anchorFile, String anchorFileHash, Instant anchorGeneratedAt) {
+        this.anchorFileHash = anchorFileHash;
+        this.anchorGeneratedAt = anchorGeneratedAt;
+        this.anchorFile = anchorFile;
+    }
 }
 
 

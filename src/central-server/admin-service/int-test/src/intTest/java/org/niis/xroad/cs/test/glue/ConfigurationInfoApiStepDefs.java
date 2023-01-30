@@ -27,6 +27,9 @@
 package org.niis.xroad.cs.test.glue;
 
 import io.cucumber.java.en.Step;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import org.apache.commons.io.IOUtils;
 import org.niis.xroad.cs.openapi.model.ConfigurationAnchorDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationPartDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
@@ -39,6 +42,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.Set;
 
@@ -50,12 +55,16 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
+    public static final long EXPECTED_INTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH = 1348L;
+    public static final long EXPECTED_EXTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH = 1331L;
     @Autowired
     private FeignConfigurationSourceAnchorApi configurationSourceAnchorApi;
     @Autowired
     private FeignConfigurationSourcesApi configurationSourcesApi;
     @Autowired
     private FeignConfigurationPartsApi configurationPartsApi;
+
+    private ResponseEntity<Resource> downloadedAnchor;
 
     @Step("{} configuration parts exists")
     public void viewConfParts(String configurationType) {
@@ -99,6 +108,44 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion("http://cs/" + configurationType.toLowerCase() + "conf", "body.url",
                         "Response contains global download url"))
+                .execute();
+    }
+
+    @When("user downloads {} configuration source anchor")
+    public void downloadConfigurationSource(String configurationType) {
+        downloadedAnchor = configurationSourceAnchorApi
+                .downloadAnchor(ConfigurationTypeDto.fromValue(configurationType));
+    }
+
+    @Then("it should return internal configuration source anchor file")
+    public void validateInternalDownloadedAnchor() throws IOException {
+        String expectedAnchorContent = IOUtils.resourceToString("/test-data/internal-configuration-anchor.xml",
+                                                                StandardCharsets.UTF_8);
+        validate(downloadedAnchor)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(EXPECTED_INTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH, "body.contentLength",
+                                           "Response contains configuration anchor has correct content length"))
+                .assertion(equalsAssertion("configuration_anchor_UTC_2022-01-01_01_00_00.xml", "body.filename",
+                                           "Configuration anchor file has correct name"))
+                .assertion(equalsAssertion(expectedAnchorContent,
+                                           "T(org.apache.commons.io.IOUtils).toString(body.inputStream, 'UTF-8')",
+                                           "Configuration anchor file content"))
+                .execute();
+    }
+
+    @Then("it should return external configuration source anchor file")
+    public void validateExternalDownloadedAnchor() throws IOException {
+        String expectedAnchorContent = IOUtils.resourceToString("/test-data/external-configuration-anchor.xml",
+                                                                StandardCharsets.UTF_8);
+        validate(downloadedAnchor)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(EXPECTED_EXTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH, "body.contentLength",
+                                           "Response contains configuration anchor has correct content length"))
+                .assertion(equalsAssertion("configuration_anchor_UTC_2022-01-01_01_00_00.xml", "body.filename",
+                                           "Configuration anchor file has correct name"))
+                .assertion(equalsAssertion(expectedAnchorContent,
+                                           "T(org.apache.commons.io.IOUtils).toString(body.inputStream, 'UTF-8')",
+                                           "Configuration anchor file content"))
                 .execute();
     }
 
