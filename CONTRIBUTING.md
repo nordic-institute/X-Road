@@ -206,7 +206,8 @@ The latest development version is always available in the `develop` branch and t
 
 Pull requests made against the `X-Road/develop` branch MUST follow these conventions:
 
-- Pull request name format is `<ISSUE_ID> <SHORT_DESCRIPTION>`, for example: `XRDDEV-1669 Allow overriding startup parameters`
+- Pull request name format is `<TYPE>: <ISSUE_ID> <SHORT_DESCRIPTION>`, for example: `feat: XRDDEV-1669 Allow overriding startup parameters`
+  - `TYPE` = conventional commit type. One of: build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test
   - `ISSUE_ID` = id of the feature's / bug's backlog item. If the pull request is not related to any backlog item,
     `ISSUE_ID` can be omitted. If the issue is a GitHub issue, it can be `ISSUE1669 Allow overriding startup parameters`
     instead.
@@ -215,7 +216,19 @@ Pull requests made against the `X-Road/develop` branch MUST follow these convent
 
 ### Commit Messages
 
-Git commit messages SHOULD follow the guidelines described below:
+Git commit messages MUST follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
+
+The commit message should be structured as follows:
+
+```
+<type>[optional scope]: <subject>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+The message should be formatted as follows:
 
 - Separate subject from body with a blank line.
 - Do not end the subject line with a period.
@@ -224,12 +237,14 @@ Git commit messages SHOULD follow the guidelines described below:
 - Wrap lines at 72 characters.
 - Use the body to explain what and why you have done something. In most cases, you can leave out details about how a change has been implemented.
 
-If a commit refers to an issue, add the issue ID before the subject. For example:
+If a commit refers to an issue, the issue ID must be referenced. For example:
 
 ```
-$ git commit -m "XRDDEV-123 Subject line
+$ git commit -m "fix: Subject line
  
-More detailed description."
+More detailed description.
+
+Refs: XRDDEV-123"
 ```
 
 If the commit is not related to any backlog item, the issue ID can be omitted.
