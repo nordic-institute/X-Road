@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.commonui;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 
@@ -41,6 +42,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -91,6 +93,23 @@ public class OptionalPartsConfBehavior {
         String expectedContentIdentifier = "TEST-CONFIGURATION-PART";
 
         assertEquals(expectedContentIdentifier, actualContentIdentifier);
+    }
+
+    @Test
+    public void shouldGetPartFileName() throws IOException {
+        String confDir = "src/test/resources/configuration-parts";
+        OptionalPartsConf conf = new OptionalPartsConf(confDir);
+
+        assertEquals("messageconverter.xml", conf.getPartFileName("MESSAGECONVERTER"));
+        assertEquals("test-configuration-part.xml", conf.getPartFileName("TEST-CONFIGURATION-PART"));
+    }
+
+    @Test
+    public void shouldGetPartFileNameThrowException() throws IOException {
+        String confDir = "src/test/resources/configuration-parts";
+        OptionalPartsConf conf = new OptionalPartsConf(confDir);
+
+        assertThrows(CodedException.class, () -> conf.getPartFileName("NOT-EXISTING"));
     }
 
     /**

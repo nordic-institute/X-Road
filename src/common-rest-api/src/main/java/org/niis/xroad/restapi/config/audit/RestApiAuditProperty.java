@@ -135,7 +135,12 @@ public enum RestApiAuditProperty {
     TSA_NAME,
     TSA_URL,
     TSA_CERT_HASH,
-    TSA_CERT_HASH_ALGORITHM;
+    TSA_CERT_HASH_ALGORITHM,
+    SOURCE_TYPE,
+    PART_FILE_NAME,
+    UPLOAD_FILE_HASH,
+    UPLOAD_FILE_HASH_ALGORITHM,
+    CONTENT_IDENTIFIER;
 
     /**
      * Gets logged property name for the enum value.

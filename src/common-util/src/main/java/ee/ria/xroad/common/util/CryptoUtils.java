@@ -110,6 +110,7 @@ public final class CryptoUtils {
 
     /** Default digest algorithm id used for calculating configuration anchor hashes. */
     public static final String DEFAULT_ANCHOR_HASH_ALGORITHM_ID = CryptoUtils.SHA224_ID;
+    public static final String DEFAULT_UPLOAD_FILE_HASH_ALGORITHM = CryptoUtils.SHA224_ID;
 
     /** Hash algorithm identifier constants. */
     public static final String MD5_ID = "MD5";

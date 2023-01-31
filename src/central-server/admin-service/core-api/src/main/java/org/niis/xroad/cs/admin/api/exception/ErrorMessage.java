@@ -73,6 +73,7 @@ public enum ErrorMessage {
     INVALID_URL("Invalid url"),
     CONFIGURATION_NOT_FOUND("Configuration Source not found"),
     CONFIGURATION_PART_FILE_NOT_FOUND("Configuration part file not found"),
+    UNKNOWN_CONFIGURATION_PART("Unknown configuration part"),
     ERROR_GETTING_TOKENS("Error getting tokens"),
     TOKEN_NOT_FOUND("Token not found"),
     TOKEN_ACTIVATION_FAILED("Token activation failed"),

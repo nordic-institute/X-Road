@@ -30,9 +30,12 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.commonui.OptionalPartsConf;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
@@ -41,6 +44,7 @@ import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.niis.xroad.cs.admin.api.exception.ConfigurationPartException;
 import org.niis.xroad.cs.admin.api.exception.ConfigurationSourceException;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
@@ -77,14 +81,22 @@ import java.util.Set;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_PART_FILE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_RECREATING_ANCHOR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INSTANCE_IDENTIFIER_NOT_SET;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.NO_CONFIGURATION_SIGNING_KEYS_CONFIGURED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.UNKNOWN_CONFIGURATION_PART;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_INTERNAL_CONFIGURATION_ANCHOR;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CONTENT_IDENTIFIER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.PART_FILE_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SOURCE_TYPE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_HASH_ALGORITHM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_NAME;
 
 @Slf4j
 @Service
@@ -238,6 +250,44 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .filter(this::isForCurrentNode)
                 .map(distributedFileMapper::toTarget)
                 .collect(toSet());
+    }
+
+
+    @Override
+    public void uploadConfigurationPart(org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType sourceType,
+                                        String contentIdentifier, String originalFileName, byte[] data) {
+
+        final OptionalPartsConf optionalPartsConf = OptionalPartsConf.getOptionalPartsConf();
+        final String partFileName = optionalPartsConf.getPartFileName(contentIdentifier);
+
+        auditDataHelper.put(SOURCE_TYPE, sourceType.name());
+        auditDataHelper.put(CONTENT_IDENTIFIER, contentIdentifier);
+        auditDataHelper.put(PART_FILE_NAME, partFileName);
+        auditDataHelper.put(UPLOAD_FILE_NAME, originalFileName);
+
+        if (sourceType == org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL
+                && !contentIdentifier.equals(CONTENT_ID_SHARED_PARAMETERS)) {
+            throw new ConfigurationPartException(UNKNOWN_CONFIGURATION_PART);
+        }
+
+        auditDataHelper.put(UPLOAD_FILE_HASH_ALGORITHM, DEFAULT_UPLOAD_FILE_HASH_ALGORITHM);
+        auditDataHelper.put(UPLOAD_FILE_HASH, getFileHash(data));
+
+        validateConfigurationPart(data, partFileName, optionalPartsConf);
+
+        saveConfigurationPart(contentIdentifier, partFileName, data, 0);
+    }
+
+    private void validateConfigurationPart(byte[] data, String partFileName, OptionalPartsConf optionalPartsConf) {
+        final String validationProgram = optionalPartsConf.getValidationProgram(partFileName);
+
+        // TODO FIXME: Execute bash script
+
+    }
+
+    @SneakyThrows
+    private String getFileHash(byte[] data) {
+        return CryptoUtils.hexDigest(DEFAULT_UPLOAD_FILE_HASH_ALGORITHM, data);
     }
 
     private boolean isForCurrentNode(DistributedFileEntity distributedFile) {

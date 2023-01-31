@@ -27,6 +27,7 @@ package ee.ria.xroad.commonui;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 
 import lombok.Getter;
@@ -86,6 +87,11 @@ public class OptionalPartsConf {
     private final List<String> errors = new ArrayList<>();
 
     private final Set<String> existingPartFileNames = new HashSet<>();
+
+    @SneakyThrows
+    public static OptionalPartsConf getOptionalPartsConf() {
+        return new OptionalPartsConf(SystemProperties.getConfPath() + "/configuration-parts");
+    }
 
     /**
      * Creates optional parts configuration.
@@ -155,6 +161,24 @@ public class OptionalPartsConf {
                 partFile, contentIdentifier);
 
         return contentIdentifier;
+    }
+
+    /**
+     * Returns part filename for content identifier.
+     *
+     * @param contentIdentifier - content identifier.
+     * @return - part filename.
+     */
+    public String getPartFileName(String contentIdentifier) {
+        final String partFileName = getAllParts().stream()
+                .filter(part -> part.getContentIdentifier().equals(contentIdentifier))
+                .findFirst()
+                .map(OptionalConfPart::getFileName)
+                .orElseThrow(() -> new CodedException(ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF,
+                        "Part file name not found for content identifier " + contentIdentifier));
+
+        log.debug("Part filename for content identifier '{}': '{}'", contentIdentifier, partFileName);
+        return partFileName;
     }
 
     @SneakyThrows

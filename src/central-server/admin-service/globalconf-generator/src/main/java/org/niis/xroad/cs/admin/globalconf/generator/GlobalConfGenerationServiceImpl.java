@@ -30,7 +30,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.commonui.OptionalConfPart;
-import ee.ria.xroad.commonui.OptionalPartsConf;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -57,6 +56,7 @@ import static ee.ria.xroad.common.SystemProperties.getCenterExternalDirectory;
 import static ee.ria.xroad.common.SystemProperties.getCenterInternalDirectory;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static ee.ria.xroad.commonui.OptionalPartsConf.getOptionalPartsConf;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toSet;
@@ -249,8 +249,4 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
                 .collect(toSet());
     }
 
-    @SneakyThrows
-    private static OptionalPartsConf getOptionalPartsConf() {
-        return new OptionalPartsConf(SystemProperties.getConfPath() + "/configuration-parts");
-    }
 }

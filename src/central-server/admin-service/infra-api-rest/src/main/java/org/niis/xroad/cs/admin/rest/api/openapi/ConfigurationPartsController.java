@@ -27,13 +27,13 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.rest.api.converter.ConfigurationPartsDtoConverter;
 import org.niis.xroad.cs.openapi.ConfigurationPartsApi;
 import org.niis.xroad.cs.openapi.model.ConfigurationPartDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
-import org.niis.xroad.cs.openapi.model.TrustedAnchorDto;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +45,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_CONFIGURATION_PART;
 import static org.niis.xroad.restapi.openapi.ControllerUtil.createAttachmentResourceResponse;
+import static org.niis.xroad.restapi.util.MultipartFileUtils.readBytes;
+import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
@@ -77,8 +80,13 @@ public class ConfigurationPartsController implements ConfigurationPartsApi {
     }
 
     @Override
-    public ResponseEntity<TrustedAnchorDto> uploadConfigurationParts(ConfigurationTypeDto configurationType,
-                                                                     String contentIdentifier, MultipartFile file) {
-        throw new NotImplementedException("uploadConfigurationParts not implemented yet");
+    @AuditEventMethod(event = UPLOAD_CONFIGURATION_PART)
+    @PreAuthorize("hasAuthority('UPLOAD_CONFIGURATION_PART')")
+    public ResponseEntity<Void> uploadConfigurationParts(ConfigurationTypeDto configurationType,
+                                                         String contentIdentifier, MultipartFile file) {
+        configurationService.uploadConfigurationPart(ConfigurationSourceType.valueOf(configurationType.getValue()),
+                contentIdentifier,
+                file.getOriginalFilename(), readBytes(file));
+        return noContent().build();
     }
 }
