@@ -2085,8 +2085,16 @@ transported to security server filesystem.
 ### 13.3 Automatic Backups
 
 By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are
-automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the
+automatically removed from the server. If needed, backup removal policies can be adjusted by editing the
 `/etc/cron.d/xroad-proxy` file.
+
+Automatic backup schedule can be adjusted  in the file `/etc/xroad/conf.d/local.ini`, 
+in the `[configuration-client]` section (add or edit this section).
+
+```ini
+[configuration-client]
+proxy-configuration-backup-cron=* 15 3 * * ?
+```
 
 ### 13.4 Backup Encryption Configuration
 
