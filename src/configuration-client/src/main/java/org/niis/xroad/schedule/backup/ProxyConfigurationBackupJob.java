@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,67 +24,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.schedule.backup;
 
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientJob;
 import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import ee.ria.xroad.common.util.process.ProcessFailedException;
+import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.schedule.RetryingQuartzJob;
-import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.quartz.SchedulerException;
 
-import java.time.OffsetDateTime;
-
 /**
- * Quartz job implementation for the configuration client.
+ * A quartz job that executes proxy autobackup script.
  */
 @Slf4j
 @DisallowConcurrentExecution
-public class ConfigurationClientJob extends RetryingQuartzJob {
-    private static final int RETRY_DELAY_SEC = 3;
+public class ProxyConfigurationBackupJob extends RetryingQuartzJob {
+    private static final String AUTOBACKUP_SCRIPT_PATH = "/usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh";
+    private static final int RETRY_DELAY_SEC = 5;
 
-    public ConfigurationClientJob() {
+    private final ExternalProcessRunner externalProcessRunner;
+
+    public ProxyConfigurationBackupJob() {
         super(RETRY_DELAY_SEC);
+        this.externalProcessRunner = new ExternalProcessRunner();
+    }
+
+    ProxyConfigurationBackupJob(ExternalProcessRunner externalProcessRunner) {
+        super(RETRY_DELAY_SEC);
+        this.externalProcessRunner = externalProcessRunner;
     }
 
     @Override
-    protected void executeWithRetry(JobExecutionContext context) throws Exception {
-        JobDataMap data = context.getJobDetail().getJobDataMap();
-        Object client = data.get("client");
-
-        if (client instanceof ConfigurationClient) {
-            try {
-                ((ConfigurationClient) client).execute();
-
-                DiagnosticsStatus status =
-                        new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OffsetDateTime.now(),
-                                OffsetDateTime.now()
-                                        .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
-                context.setResult(status);
-            } catch (Exception e) {
-                DiagnosticsStatus status = new DiagnosticsStatus(ConfigurationClientUtils.getErrorCode(e),
-                        OffsetDateTime.now(),
-                        OffsetDateTime.now()
-                                .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
-                context.setResult(status);
-
-                throw new JobExecutionException(e);
-            }
-        } else {
-            throw new JobExecutionException("Could not get configuration client from job data");
-        }
+    protected void executeWithRetry(JobExecutionContext context)
+            throws ProcessFailedException, InterruptedException, ProcessNotExecutableException {
+        log.info("Executing security server configuration auto-backup...");
+        ExternalProcessRunner.ProcessResult processResult = externalProcessRunner.executeAndThrowOnFailure(AUTOBACKUP_SCRIPT_PATH);
+        log.info("Auto-backup execution output: {}", String.join("\n", processResult.getProcessOutput()));
     }
 
     @Override
     protected boolean shouldRescheduleRetry(JobExecutionContext context) throws SchedulerException {
-        return JobManager.isJobRunning(context, ProxyConfigurationBackupJob.class);
+        return JobManager.isJobRunning(context, ConfigurationClientJob.class);
     }
 
 }
