@@ -1,4 +1,3 @@
-#@Modifying
 @ConfigurationInfo
 Feature: Configuration Info APIs
 
@@ -23,3 +22,16 @@ Feature: Configuration Info APIs
   Scenario: Download configuration part
     * User can download EXTERNAL configuration part SHARED-PARAMETERS version 2
     * User can download INTERNAL configuration part PRIVATE-PARAMETERS version 2
+
+  @Modifying
+  Scenario: Uploading optional configuration part
+    Given INTERNAL configuration part OPTIONAL-CONFIGURATION-PART-1 was not uploaded
+    When user uploads INTERNAL configuration OPTIONAL-CONFIGURATION-PART-1 file monitoring-params_upload.xml
+    Then INTERNAL configuration part OPTIONAL-CONFIGURATION-PART-1 is updated
+
+  Scenario: Uploading unknown configuration part fails
+    * INTERNAL configuration part NOT-EXISTING file upload fails
+    * EXTERNAL configuration part NOT-EXISTING file upload fails
+    * EXTERNAL configuration part PRIVATE-PARAMETERS file upload fails
+    * EXTERNAL configuration part OPTIONAL-CONFIGURATION-PART-1 file upload fails
+
