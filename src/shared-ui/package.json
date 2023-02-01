@@ -18,12 +18,12 @@
   "main": "./dist/shared-ui.common.js",
   "types": "src/lib.d.ts",
   "dependencies": {
-    "@fontsource/open-sans": "~4.5.0",
     "@mdi/font": "~6.5.95",
-    "core-js": "^3.6.5",
-    "vue": "^2.6.11",
-    "vue-i18n": "^8.24.3",
-    "vuetify": "^2.4.3"
+    "core-js": "^3.21.0",
+    "@fontsource/open-sans": "~4.5.0",
+    "vue": "2.6.14",
+    "vue-i18n": "~8.26.1",
+    "vuetify": "~2.6.10"
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",
@@ -68,6 +68,8 @@
   "overrides": {
     "trim": "1.0.1",
     "trim-newlines": "4.0.2",
-    "glob-parent": "^5.1.2"
+    "glob-parent": "^5.1.2",
+    "minimatch": "^3.1.2",
+    "loader-utils": "^2.0.4"
   }
 }
