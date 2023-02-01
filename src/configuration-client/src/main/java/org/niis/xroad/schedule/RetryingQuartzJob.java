@@ -52,7 +52,8 @@ public abstract class RetryingQuartzJob implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
             if (shouldRescheduleRetry(context)) {
-                log.warn("ConfigurationClientJob is running. Will retry in {} seconds", retryDelay);
+                log.warn("Job {} is already running. Will retry in {} seconds", context.getJobDetail().getKey().getName(),
+                        retryDelay);
                 scheduleRetry(context);
             } else {
                 executeWithRetry(context);
