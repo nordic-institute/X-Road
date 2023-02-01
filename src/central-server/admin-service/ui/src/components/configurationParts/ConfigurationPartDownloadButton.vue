@@ -26,7 +26,6 @@
  -->
 <template>
   <div style="display: inline-block">
-    <a ref="downloadRef" hidden>download</a>
     <xrd-button
       v-if="showDownloadButton"
       :outlined="false"
@@ -47,7 +46,6 @@ import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 import { userStore } from '@/store/modules/user';
 import { Permissions } from '@/global';
-import { AxiosResponse } from 'axios';
 
 export default Vue.extend({
   props: {
@@ -85,26 +83,7 @@ export default Vue.extend({
           this.configurationPart.content_identifier,
           this.configurationPart.version,
         )
-        .then((res) => {
-          const downloadRef = this.$refs.downloadRef as HTMLAnchorElement;
-          downloadRef.href = window.URL.createObjectURL(new Blob([res.data]));
-          downloadRef.download = this.buildFileName(
-            this.configurationPart,
-            res,
-          );
-          downloadRef.click();
-        })
         .finally(() => (this.loading = false));
-    },
-    buildFileName(item: ConfigurationPart, response: AxiosResponse): string {
-      const fileNameRx = /filename="(.+)"$/;
-      return (
-        response.headers['content-disposition']
-          ?.match(fileNameRx)?.[1]
-          .trim() ||
-        item.fileName ||
-        'configuration.xml'
-      );
     },
   },
 });
