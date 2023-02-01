@@ -278,3 +278,11 @@ jacocoTestReport {
 tasks.withType(Jar).configureEach {
     enabled = false
 }
+
+//Register git-hooks
+tasks.register("installGitHooks", Copy) {
+    from file("$rootDir/../.githooks")
+    into file("$rootDir/../.git/hooks")
+    fileMode 0775
+}
+assemble.dependsOn installGitHooks

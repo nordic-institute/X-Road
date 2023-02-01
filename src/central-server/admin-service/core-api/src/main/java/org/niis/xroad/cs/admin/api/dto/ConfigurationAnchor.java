@@ -39,7 +39,12 @@ import java.time.Instant;
 @NoArgsConstructor
 public class ConfigurationAnchor {
 
+    private byte[] anchorFile;
     private String anchorFileHash;
     private Instant anchorGeneratedAt;
 
+    public ConfigurationAnchor(String anchorFileHash, Instant anchorGeneratedAt) {
+        this.anchorFileHash = anchorFileHash;
+        this.anchorGeneratedAt = anchorGeneratedAt;
+    }
 }

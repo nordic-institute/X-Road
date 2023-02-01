@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:configurationAnchor xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+  <generatedAt>2021-03-10T07:40:57.411Z</generatedAt>
+  <instanceIdentifier>CS</instanceIdentifier>
+  <source>
+    <downloadURL>http://cs/externalconf</downloadURL>
+    <verificationCert>MIICqTCCAZGgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAOMQwwCgYDVQQDDANOL0EwHhcNNzAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAOMQwwCgYDVQQDDANOL0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCBUNj9zuGBZYgiQ1q4jxePy7Cpe8bbr37+ySnjkQKl8D0G/6vIrPZPqz2RRk1QaKmV1wkFlcCksyu+0QVPnpmjRY6AlkWRRCciT21jCHpCef9kwjT++NwUAV8gJ+soIqasWUCZpJPEDkCVrB+/jO22Wltdzpqmj3yX2N1zRIG6ddqoOIez5W0c2sty7w1sHnC+adFoBIWsZctNHfLlInKEkStTa78XTrK8EnjR8qzpZVYjh0WxOZvN7oqNZDdUgeG3gB29TLpj2o4H/rTbUlgJT0gBS/AHIxMzRPUbMVaeDNGap6Ofje/8Jc1tbOdL5wjYc9pYbU5pwz/oSGMI6taBAgMBAAGjEjAQMA4GA1UdDwEB/wQEAwIGQDANBgkqhkiG9w0BAQ0FAAOCAQEAUVM+woAREwkKFY1uEZVOSHNy1SlzrEJD3gPm/ui+Y93LvGrCSrwVJVUqd3dkb9IsHD6Jev/SXjEF/phGVVy0WHS8EXJpkLGdV/lRl/TnhZvQ6k7q5amUd43bxIHb3Jpn4z3fpWgX07/op3SOWSBSKVOD4mrhIQQkwJQKTSkjFDXrJEijYcyT+rgUUeOWiNSnbi7nGnBgJlIA5ff1ojmb9kBiFUNS3tHYG0heEkX46rs6Al9gqjZtaiDK6XkZwlkqx769LzxRlnlrULzQpW1SwEyEQdVzZP/kqSsqfyMNmeokO1hk+FtFvoRi3XG1uEYJO+M8oPvo99+Gyu45IQrmig==</verificationCert>
+  </source>
+</ns3:configurationAnchor>

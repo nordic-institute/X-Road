@@ -29,7 +29,7 @@
 import { NavigationFailure } from 'vue-router';
 import { ClientId, ErrorInfo } from '@/openapi-types';
 import i18n from '@/i18n';
-import { AxiosError } from 'axios';
+import { AxiosError, AxiosResponse } from 'axios';
 
 export function selectedFilter<T, K extends keyof T>(
   arr: T[],
@@ -69,6 +69,40 @@ export function isValidUrl(str: string): boolean {
   catch (_) {
     return false;
   };
+}
+
+// Save response data as a file
+export function saveResponseAsFile(
+  response: AxiosResponse,
+  defaultFileName = 'certs.tar.gz',
+): void {
+  let suggestedFileName;
+  const disposition = response.headers['content-disposition'];
+
+  if (disposition && disposition.indexOf('attachment') !== -1) {
+    const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+    const matches = filenameRegex.exec(disposition);
+    if (matches != null && matches[1]) {
+      suggestedFileName = matches[1].replace(/['"]/g, '');
+    }
+  }
+  const effectiveFileName =
+    suggestedFileName === undefined ? defaultFileName : suggestedFileName;
+  const blob = new Blob([response.data], {
+    type: response.headers['content-type'],
+  });
+
+  // Create a link to DOM and click it. This will trigger the browser to start file download.
+  const link = document.createElement('a');
+  link.href = window.URL.createObjectURL(blob);
+  link.setAttribute('download', effectiveFileName);
+  link.setAttribute('data-test', 'generated-download-link');
+  document.body.appendChild(link);
+  link.click();
+
+  // cleanup
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
 }
 
 // Helper to copy text to clipboard

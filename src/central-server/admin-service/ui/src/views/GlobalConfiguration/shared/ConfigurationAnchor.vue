@@ -30,14 +30,25 @@
       <div class="card-top">
         <div class="card-main-title">{{ $t('globalConf.anchor.title') }}</div>
         <div class="card-corner-button pr-4">
-          <xrd-button outlined class="mr-4">
+          <xrd-button
+            v-if="showRecreateAnchorButton"
+            :loading="loading"
+            outlined
+            class="mr-4"
+            @click="recreateConfigurationAnchor()"
+          >
             <xrd-icon-base class="xrd-large-button-icon">
               <XrdIconAdd />
             </xrd-icon-base>
 
             {{ $t('globalConf.anchor.recreate') }}
           </xrd-button>
-          <xrd-button outlined>
+          <xrd-button
+            v-if="showDownloadAnchorButton"
+            :loading="loading"
+            outlined
+            @click="downloadConfigurationAnchor()"
+          >
             <xrd-icon-base class="xrd-large-button-icon">
               <XrdIconDownload />
             </xrd-icon-base>
@@ -75,11 +86,11 @@
 </template>
 
 <script lang="ts">
-/**
- * View for 'backup and restore' tab
- */
+import { Permissions } from '@/global';
+import { notificationsStore } from '@/store/modules/notifications';
+import { userStore } from '@/store/modules/user';
 import Vue from 'vue';
-import { mapStores } from 'pinia';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { ConfigurationAnchor, ConfigurationType } from '@/openapi-types';
 import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
 import { Prop } from 'vue/types/options';
@@ -99,6 +110,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(useConfigurationSourceStore),
+    ...mapState(userStore, ['hasPermission']),
     anchors(): ConfigurationAnchor[] {
       return [this.configurationSourceStore.getAnchor(this.configurationType)];
     },
@@ -118,16 +130,45 @@ export default Vue.extend({
         },
       ];
     },
+    showDownloadAnchorButton(): boolean {
+      return this.hasPermission(Permissions.DOWNLOAD_SOURCE_ANCHOR);
+    },
+    showRecreateAnchorButton(): boolean {
+      return this.hasPermission(Permissions.GENERATE_SOURCE_ANCHOR);
+    },
   },
   created() {
     this.fetchConfigurationAnchor();
   },
   methods: {
+    ...mapActions(notificationsStore, ['showSuccess']),
     fetchConfigurationAnchor() {
       this.loading = true;
       this.configurationSourceStore
         .fetchConfigurationAnchor(this.configurationType)
         .finally(() => (this.loading = false));
+    },
+    downloadConfigurationAnchor() {
+      this.loading = true;
+      this.configurationSourceStore
+        .downloadConfigurationAnchor(this.configurationType)
+        .finally(() => (this.loading = false));
+    },
+    recreateConfigurationAnchor() {
+      this.loading = true;
+      this.configurationSourceStore
+        .recreateConfigurationAnchor(this.configurationType)
+        .finally(() => {
+          this.loading = false;
+          const formattedConfigurationType =
+            this.configurationType.charAt(0).toUpperCase() +
+            this.configurationType.slice(1).toLowerCase();
+          this.showSuccess(
+            this.$t(`globalConf.anchor.recreateSuccess`, {
+              configurationType: formattedConfigurationType,
+            }),
+          );
+        });
     },
   },
 });

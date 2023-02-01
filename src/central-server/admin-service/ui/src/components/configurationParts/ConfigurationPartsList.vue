@@ -47,9 +47,15 @@
             {{ item.file_updated_at | formatDateTime }}
           </template>
           <template #[`item.actions`]="{ item }">
-            <xrd-button :outlined="false" text>
-              {{ $t('action.download') }}
-            </xrd-button>
+            <configuration-part-download-button
+              :configuration-type="configurationType"
+              :configuration-part="item"
+            />
+            <configuration-part-upload-button
+              :configuration-type="configurationType"
+              :configuration-part="item"
+              @save="fetchConfigurationParts"
+            />
           </template>
           <template #footer>
             <div class="custom-footer"></div>
@@ -65,13 +71,20 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import { mapStores } from 'pinia';
+import { mapState, mapStores } from 'pinia';
 import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 import { DataTableHeader } from 'vuetify';
+import { userStore } from '@/store/modules/user';
+import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.vue';
+import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
 
 export default Vue.extend({
+  components: {
+    ConfigurationPartUploadButton,
+    ConfigurationPartDownloadButton,
+  },
   props: {
     configurationType: {
       type: String as Prop<ConfigurationType>,
@@ -86,11 +99,13 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(useConfigurationSourceStore),
+    ...mapState(userStore, ['hasPermission']),
     configurationParts(): ConfigurationPart[] {
       return this.configurationSourceStore.getConfigurationParts(
         this.configurationType,
       );
     },
+
     headers(): DataTableHeader[] {
       return [
         {
@@ -137,7 +152,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '~@/assets/tables';
 
 .card-top {
   padding-top: 15px;

@@ -224,14 +224,22 @@
       "file": "File",
       "contentIdentifier": "Content Identifier",
       "version": "Version",
-      "updated": "Updated"
+      "updated": "Updated",
+      "dialog": {
+        "upload": {
+          "title": "Upload Configuration Part",
+          "uploadConfigurationPart": "Upload the configuration file from your computer",
+          "success": "Configuration Part uploaded successfully."
+        }
+      }
     },
     "anchor": {
       "title": "Anchor",
       "certificateHash": "Certificate Hash (SHA-224)",
       "created": "Created",
       "download": "Download",
-      "recreate": "Re-create"
+      "recreate": "Re-create",
+      "recreateSuccess": "{configurationType} configuration anchor generated successfully"
     },
     "downloadUrl": {
       "title": "Download URL",

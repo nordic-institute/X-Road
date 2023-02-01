@@ -24,13 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import axios from 'axios';
 import {
   ConfigurationAnchor,
   ConfigurationPart,
   ConfigurationType,
   GlobalConfDownloadUrl,
 } from '@/openapi-types';
+import { saveResponseAsFile } from '@/util/helpers';
+import axios from 'axios';
 import { defineStore } from 'pinia';
 
 export interface State {
@@ -98,6 +99,36 @@ export const useConfigurationSourceStore = defineStore('configurationSource', {
           throw error;
         });
     },
+    downloadConfigurationPartDownloadUrl(
+      configurationType: ConfigurationType,
+      contentIdentifier: string,
+      version: number,
+    ) {
+      return axios
+        .get(
+          `/configuration-sources/${configurationType}/configuration-parts/${contentIdentifier}/${version}/download`,
+          { responseType: 'blob' },
+        )
+        .then((resp) => {
+          saveResponseAsFile(resp);
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    uploadConfigurationFile(
+      configurationType: ConfigurationType,
+      contentIdentifier: string,
+      partFile: File,
+    ) {
+      const formData = new FormData();
+      formData.append('content_identifier', contentIdentifier);
+      formData.append('file', partFile);
+      return axios.post(
+        `/configuration-sources/${configurationType}/configuration-parts`,
+        formData,
+      );
+    },
     getAnchor(configurationType: ConfigurationType): ConfigurationAnchor {
       return this.getSource(configurationType).anchor;
     },
@@ -105,6 +136,33 @@ export const useConfigurationSourceStore = defineStore('configurationSource', {
       return axios
         .get<ConfigurationAnchor>(
           `/configuration-sources/${configurationType}/anchor`,
+        )
+        .then((resp) => {
+          this.getSource(configurationType).anchor = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    downloadConfigurationAnchor(configurationType: ConfigurationType) {
+      return axios
+        .get<File>(
+          `/configuration-sources/${configurationType}/anchor/download`,
+          {
+            responseType: 'blob',
+          },
+        )
+        .then((resp) => {
+          saveResponseAsFile(resp);
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    recreateConfigurationAnchor(configurationType: ConfigurationType) {
+      return axios
+        .put<ConfigurationAnchor>(
+          `/configuration-sources/${configurationType}/anchor/re-create`,
         )
         .then((resp) => {
           this.getSource(configurationType).anchor = resp.data;
