@@ -28,6 +28,7 @@
   <div style="display: inline-block">
     <xrd-button
       v-if="showUploadButton"
+      data-test="`configuration-part-${configurationPart.content_identifier}-upload`"
       :outlined="false"
       text
       @click="showUploadDialog = true"

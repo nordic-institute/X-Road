@@ -31,8 +31,15 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.GlobalConfigurationPageObj;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
 
+    private static final String CONTENT_IDENTIFIER = "CONTENT_IDENTIFIER";
+    private static final String DOWNLOADED_FILE = "DOWNLOADED_FILE";
     private final GlobalConfigurationPageObj globalConfigurationPageObj = new GlobalConfigurationPageObj();
 
     @Step("Internal configuration sub-tab is selected")
@@ -176,5 +183,141 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("Configuration anchor is recreated")
+    public void recreateAnchor() {
+        globalConfigurationPageObj.anchor.btnRecreate()
+                .shouldBe(Condition.enabled)
+                .click();
+        globalConfigurationPageObj.anchor.btnCancelRecreate()
+                .shouldBe(Condition.enabled);
+        globalConfigurationPageObj.anchor.btnConfirmRecreate()
+                .shouldBe(Condition.enabled)
+                .click();
+
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("Updated anchor information is displayed")
+    public void updatedAnchorInfoDisplayed() {
+        globalConfigurationPageObj.anchor.txtHash()
+                .shouldNotBe(Condition.empty);
+
+        globalConfigurationPageObj.anchor.txtCreatedAt()
+                .shouldNotBe(Condition.empty);
+    }
+
+    @Step("User clicks configuration anchor download button")
+    public void downloadConfigurationAnchor() throws FileNotFoundException {
+        final var file = globalConfigurationPageObj.anchor.btnDownload()
+                .shouldBe(Condition.enabled)
+                .download();
+        scenarioContext.putStepData(DOWNLOADED_FILE, file);
+    }
+
+    @Step("Configuration anchor is successfully downloaded")
+    public void isAnchorDownloaded() throws InterruptedException {
+        final File file = scenarioContext.getStepData(DOWNLOADED_FILE);
+        assertThat(file)
+                .exists()
+                .isFile()
+                .isNotEmpty()
+                .hasExtension("xml");
+    }
+
+    @Step("There is entry for configuration part: {}")
+    public void isConfigurationPartPresent(String contentIdentifier) {
+        scenarioContext.putStepData(CONTENT_IDENTIFIER, contentIdentifier);
+        globalConfigurationPageObj.configurationParts.textContentIdentifier(contentIdentifier)
+                .shouldBe(Condition.visible)
+                .shouldNotBe(Condition.empty);
+    }
+
+    @Step("Configuration part has update date")
+    public void hasUpdatedAtForConfigurationPart() {
+        final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
+        globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier)
+                .shouldBe(Condition.visible)
+                .shouldNotBe(Condition.empty);
+    }
+
+    @Step("Configuration part doesn't have update date")
+    public void doesntHaveUpdatedAtForConfigurationPart() {
+        final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
+        globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier)
+                .shouldBe(Condition.empty);
+    }
+
+    @Step("User clicks download button for it")
+    public void startConfigurationPartDownload() throws FileNotFoundException {
+        final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
+
+        var file = globalConfigurationPageObj.configurationParts.btnDownload(contentIdentifier)
+                .download();
+        scenarioContext.putStepData(DOWNLOADED_FILE, file);
+    }
+
+    @Step("User can download it")
+    public void canDownloadConfigurationFile() {
+        final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
+        globalConfigurationPageObj.configurationParts.btnDownload(contentIdentifier)
+                .shouldBe(Condition.enabled);
+    }
+
+    @Step("User can't download it")
+    public void cantDownloadConfigurationFile() {
+        final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
+        globalConfigurationPageObj.configurationParts.btnDownload(contentIdentifier)
+                .shouldNotBe(Condition.visible);
+    }
+
+    @Step("User can upload configuration file for it")
+    public void canUploadConfigurationFile() {
+        final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
+        globalConfigurationPageObj.configurationParts.btnUpload(contentIdentifier)
+                .shouldBe(Condition.enabled);
+    }
+
+    @Step("User can't upload configuration file for it")
+    public void cantUploadConfigurationFile() {
+        final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
+        globalConfigurationPageObj.configurationParts.btnUpload(contentIdentifier)
+                .shouldNotBe(Condition.visible);
+    }
+
+    @Step("User uploads file {} for it")
+    public void openUploadDialog(String file) {
+        final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
+
+        globalConfigurationPageObj.configurationParts.btnUpload(contentIdentifier)
+                .shouldBe(Condition.enabled)
+                .click();
+
+        globalConfigurationPageObj.configurationParts.btnCancelUpload()
+                .shouldBe(Condition.enabled);
+        globalConfigurationPageObj.configurationParts.btnConfirmUpload()
+                .shouldNotBe(Condition.enabled);
+
+        //TODO select file
+
+        globalConfigurationPageObj.configurationParts.btnConfirmUpload()
+                .shouldBe(Condition.enabled)
+                .click();
+
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
+
+
+    @Step("Configuration part file is successfully downloaded")
+    public void wasConfigurationFileDownloaded() {
+        final File file = scenarioContext.getStepData(DOWNLOADED_FILE);
+        assertThat(file)
+                .exists()
+                .isFile()
+                .isNotEmpty()
+                .hasExtension("xml");
     }
 }

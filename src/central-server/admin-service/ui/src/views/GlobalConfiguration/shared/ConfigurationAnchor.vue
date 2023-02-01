@@ -32,6 +32,7 @@
         <div class="card-corner-button pr-4">
           <xrd-button
             v-if="showRecreateAnchorButton"
+            data-test="re-create-anchor-button"
             :loading="loading"
             outlined
             class="mr-4"
@@ -45,6 +46,7 @@
           </xrd-button>
           <xrd-button
             v-if="showDownloadAnchorButton"
+            data-test="download-anchor-button"
             :loading="loading"
             outlined
             @click="downloadConfigurationAnchor()"
@@ -54,6 +56,7 @@
             </xrd-icon-base>
             {{ $t('globalConf.anchor.download') }}
           </xrd-button>
+          <a ref="downloadRef">download</a>
         </div>
       </div>
       <v-card-text class="px-0">
@@ -71,10 +74,12 @@
             <xrd-icon-base class="internal-conf-icon">
               <XrdIconCertificate />
             </xrd-icon-base>
-            {{ item.hash }}
+            <span data-test="anchor-hash">{{ item.hash }}</span>
           </template>
           <template #[`item.created_at`]="{ item }">
-            {{ item.created_at | formatDateTime }}
+            <span data-test="anchor-created-at">{{
+              item.created_at | formatDateTime
+            }}</span>
           </template>
           <template #footer>
             <div class="custom-footer"></div>
@@ -112,7 +117,10 @@ export default Vue.extend({
     ...mapStores(useConfigurationSourceStore),
     ...mapState(userStore, ['hasPermission']),
     anchors(): ConfigurationAnchor[] {
-      return [this.configurationSourceStore.getAnchor(this.configurationType)];
+      const anchor = this.configurationSourceStore.getAnchor(
+        this.configurationType,
+      );
+      return anchor.hash ? [anchor] : [];
     },
     headers(): DataTableHeader[] {
       return [
