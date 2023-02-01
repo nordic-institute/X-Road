@@ -123,14 +123,6 @@ public class GlobalConfigurationPageObj {
             return $x("//button[@data-test='re-create-anchor-button']");
         }
 
-        public SelenideElement btnConfirmRecreate() {
-            return $x("//button[@data-test='dialog-save-button']");
-        }
-
-        public SelenideElement btnCancelRecreate() {
-            return $x("//button[@data-test='dialog-cancel-button']");
-        }
-
         public SelenideElement btnDownload() {
             return $x("//button[@data-test='download-anchor-button']");
         }

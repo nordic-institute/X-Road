@@ -11,8 +11,8 @@ Feature: CS: Global configuration: External configuration: Anchor
 
   @Modifying
   Scenario: User can recreate anchor
- #   When Configuration anchor is recreated
-#    Then Updated anchor information is displayed
+    When Configuration anchor is recreated
+    Then Updated anchor information is displayed
 
   Scenario: User can download anchor
     When User clicks configuration anchor download button

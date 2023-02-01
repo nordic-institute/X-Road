@@ -28,11 +28,14 @@
 package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
 import io.cucumber.java.en.Step;
+import org.apache.commons.lang3.tuple.Pair;
 import org.niis.xroad.cs.test.ui.page.GlobalConfigurationPageObj;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,6 +43,7 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
 
     private static final String CONTENT_IDENTIFIER = "CONTENT_IDENTIFIER";
     private static final String DOWNLOADED_FILE = "DOWNLOADED_FILE";
+    private static final String ANCHOR_DETAILS = "ANCHOR_DETAILS";
     private final GlobalConfigurationPageObj globalConfigurationPageObj = new GlobalConfigurationPageObj();
 
     @Step("Internal configuration sub-tab is selected")
@@ -187,12 +191,19 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
 
     @Step("Configuration anchor is recreated")
     public void recreateAnchor() {
+        scenarioContext.putStepData(ANCHOR_DETAILS,
+                Pair.of(
+                        Optional.of(globalConfigurationPageObj.anchor.txtHash())
+                                .filter(SelenideElement::isDisplayed)
+                                .map(SelenideElement::text)
+                                .orElse(null),
+                        Optional.of(globalConfigurationPageObj.anchor.txtCreatedAt())
+                                .filter(SelenideElement::isDisplayed)
+                                .map(SelenideElement::text)
+                                .orElse(null)
+                )
+        );
         globalConfigurationPageObj.anchor.btnRecreate()
-                .shouldBe(Condition.enabled)
-                .click();
-        globalConfigurationPageObj.anchor.btnCancelRecreate()
-                .shouldBe(Condition.enabled);
-        globalConfigurationPageObj.anchor.btnConfirmRecreate()
                 .shouldBe(Condition.enabled)
                 .click();
 
@@ -207,6 +218,13 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
 
         globalConfigurationPageObj.anchor.txtCreatedAt()
                 .shouldNotBe(Condition.empty);
+        final Pair<String,String> oldDetails = scenarioContext.getStepData(ANCHOR_DETAILS);
+        assertThat(globalConfigurationPageObj.anchor.txtHash().text())
+                .as("new anchor hash should be different from previous")
+                .isNotEqualTo(oldDetails.getLeft());
+        assertThat(globalConfigurationPageObj.anchor.txtCreatedAt().text())
+                .as("new anchor creation date should be different from previous")
+                .isNotEqualTo(oldDetails.getRight());
     }
 
     @Step("User clicks configuration anchor download button")
