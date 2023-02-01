@@ -238,7 +238,8 @@
       "certificateHash": "Certificate Hash (SHA-224)",
       "created": "Created",
       "download": "Download",
-      "recreate": "Re-create"
+      "recreate": "Re-create",
+      "recreateSuccess": "{configurationType} configuration anchor generated successfully"
     },
     "downloadUrl": {
       "title": "Download URL",

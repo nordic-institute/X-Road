@@ -87,9 +87,10 @@
 
 <script lang="ts">
 import { Permissions } from '@/global';
+import { notificationsStore } from '@/store/modules/notifications';
 import { userStore } from '@/store/modules/user';
 import Vue from 'vue';
-import { mapState, mapStores } from 'pinia';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { ConfigurationAnchor, ConfigurationType } from '@/openapi-types';
 import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
 import { Prop } from 'vue/types/options';
@@ -129,11 +130,18 @@ export default Vue.extend({
         },
       ];
     },
+    showDownloadAnchorButton(): boolean {
+      return this.hasPermission(Permissions.DOWNLOAD_SOURCE_ANCHOR);
+    },
+    showRecreateAnchorButton(): boolean {
+      return this.hasPermission(Permissions.GENERATE_SOURCE_ANCHOR);
+    },
   },
   created() {
     this.fetchConfigurationAnchor();
   },
   methods: {
+    ...mapActions(notificationsStore, ['showSuccess']),
     fetchConfigurationAnchor() {
       this.loading = true;
       this.configurationSourceStore
@@ -150,13 +158,17 @@ export default Vue.extend({
       this.loading = true;
       this.configurationSourceStore
         .recreateConfigurationAnchor(this.configurationType)
-        .finally(() => (this.loading = false));
-    },
-    showDownloadAnchorButton(): boolean {
-      return this.hasPermission(Permissions.DOWNLOAD_SOURCE_ANCHOR);
-    },
-    showRecreateAnchorButton(): boolean {
-      return this.hasPermission(Permissions.GENERATE_SOURCE_ANCHOR);
+        .finally(() => {
+          this.loading = false;
+          const formattedConfigurationType =
+            this.configurationType.charAt(0).toUpperCase() +
+            this.configurationType.slice(1).toLowerCase();
+          this.showSuccess(
+            this.$t(`globalConf.anchor.recreateSuccess`, {
+              configurationType: formattedConfigurationType,
+            }),
+          );
+        });
     },
   },
 });
