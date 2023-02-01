@@ -42,7 +42,8 @@ public class ConfigurationParts {
 
     private String contentIdentifier;
     private String fileName;
-    private int version;
+    private Integer version;
     private Instant fileUpdatedAt;
+    private boolean optional;
 
 }

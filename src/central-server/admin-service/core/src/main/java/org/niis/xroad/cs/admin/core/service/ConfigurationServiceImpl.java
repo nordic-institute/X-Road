@@ -28,9 +28,9 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.commonui.OptionalConfPart;
 import ee.ria.xroad.commonui.OptionalPartsConf;
 
 import lombok.NonNull;
@@ -38,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
@@ -75,14 +76,18 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
 import static java.util.stream.Collectors.toSet;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_PART_FILE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_RECREATING_ANCHOR;
@@ -127,19 +132,75 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final AuditDataHelper auditDataHelper;
 
     @Override
-    public Set<ConfigurationParts> getConfigurationParts(String sourceType) {
+    public Set<ConfigurationParts> getConfigurationParts(ConfigurationSourceType sourceType) {
         final ConfigurationSourceEntity configurationSource = findConfigurationSourceBySourceType(
-                sourceType.toLowerCase());
+                sourceType.name().toLowerCase());
+        final String haNodeName = configurationSource.getHaNodeName();
 
-        Set<DistributedFile> distributedFiles = distributedFileRepository
-                .findAllByHaNodeName(configurationSource.getHaNodeName())
-                .stream()
-                .map(distributedFileMapper::toTarget)
-                .collect(toSet());
+        Set<ConfigurationParts> configurationParts = new HashSet<>();
+        if (sourceType.equals(EXTERNAL)) {
+            configurationParts.addAll(getRequiredConfigurationParts(haNodeName, CONTENT_ID_SHARED_PARAMETERS));
+        } else {
+            configurationParts.addAll(getRequiredConfigurationParts(haNodeName,
+                    CONTENT_ID_PRIVATE_PARAMETERS,
+                    CONTENT_ID_SHARED_PARAMETERS));
 
-        return distributedFiles.stream()
-                .map(this::createConfParts)
-                .collect(toSet());
+            configurationParts.addAll(getOptionalParts(haNodeName));
+        }
+
+        return configurationParts;
+    }
+
+    private Set<ConfigurationParts> getOptionalParts(String haNodeName) {
+        final List<OptionalConfPart> allParts = OptionalPartsConf.getOptionalPartsConf().getAllParts();
+        final Set<ConfigurationParts> configurationParts = new HashSet<>();
+
+        for (OptionalConfPart part : allParts) {
+            final Instant updatedAt = distributedFileRepository
+                    .findFirstByContentIdentifierAndHaNodeName(part.getContentIdentifier(), haNodeName)
+                    .map(DistributedFileEntity::getFileUpdatedAt)
+                    .orElse(null);
+
+            configurationParts.add(
+                    optionalConfigurationPart(part.getContentIdentifier(), part.getFileName(), updatedAt));
+
+        }
+        return configurationParts;
+    }
+
+    private ConfigurationParts optionalConfigurationPart(String contentIdentifier, String fileName, Instant updatedAt) {
+        return new ConfigurationParts(contentIdentifier, fileName, null, updatedAt, true);
+    }
+
+    private Set<ConfigurationParts> getRequiredConfigurationParts(String haNode, String... contentIdentifiers) {
+        Set<ConfigurationParts> configurationParts = new HashSet<>();
+        for (String contentIdentifier : contentIdentifiers) {
+            final Set<DistributedFileEntity> files = distributedFileRepository
+                    .findAllByContentIdentifierAndHaNodeName(contentIdentifier, haNode);
+
+            if (files.isEmpty()) {
+                configurationParts.add(
+                        new ConfigurationParts(contentIdentifier, resolveFileName(contentIdentifier), null, null, false)
+                );
+            } else {
+                files.stream()
+                        .map(file -> new ConfigurationParts(file.getContentIdentifier(), file.getFileName(), file.getVersion(),
+                                file.getFileUpdatedAt(), false))
+                        .forEach(configurationParts::add);
+            }
+        }
+        return configurationParts;
+    }
+
+    private String resolveFileName(String contentIdentifier) {
+        switch (contentIdentifier) {
+            case CONTENT_ID_PRIVATE_PARAMETERS:
+                return FILE_NAME_PRIVATE_PARAMETERS;
+            case CONTENT_ID_SHARED_PARAMETERS:
+                return FILE_NAME_SHARED_PARAMETERS;
+            default:
+                throw new ConfigurationPartException(UNKNOWN_CONFIGURATION_PART);
+        }
     }
 
     @Override
@@ -254,7 +315,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
 
     @Override
-    public void uploadConfigurationPart(org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType sourceType,
+    public void uploadConfigurationPart(ConfigurationSourceType sourceType,
                                         String contentIdentifier, String originalFileName, byte[] data) {
 
         final OptionalPartsConf optionalPartsConf = OptionalPartsConf.getOptionalPartsConf();
@@ -265,8 +326,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         auditDataHelper.put(PART_FILE_NAME, partFileName);
         auditDataHelper.put(UPLOAD_FILE_NAME, originalFileName);
 
-        if (sourceType == org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL
-                && !contentIdentifier.equals(CONTENT_ID_SHARED_PARAMETERS)) {
+        if (sourceType == EXTERNAL && !contentIdentifier.equals(CONTENT_ID_SHARED_PARAMETERS)) {
             throw new ConfigurationPartException(UNKNOWN_CONFIGURATION_PART);
         }
 
@@ -319,11 +379,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .orElseThrow(ConfigurationServiceImpl::notFoundException);
     }
 
-    private ConfigurationParts createConfParts(DistributedFile distributedFile) {
-        return new ConfigurationParts(distributedFile.getContentIdentifier(), distributedFile.getFileName(),
-                distributedFile.getVersion(), distributedFile.getFileUpdatedAt());
-    }
-
     private String buildGlobalDownloadUrl(final String sourceType, final String haNodeName) {
         final var csAddress = systemParameterService.getCentralServerAddress(haNodeName);
         final String sourceDirectory = sourceType.equals(INTERNAL_CONFIGURATION)
@@ -333,9 +388,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return String.format("http://%s/%s", csAddress, sourceDirectory);
     }
 
-    private ConfigurationSourceType toXmlSource(final ConfigurationSourceEntity source,
-                                                final String configurationType,
-                                                final ObjectFactory factory) {
+    private ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType toXmlSource(
+            final ConfigurationSourceEntity source,
+            final String configurationType,
+            final ObjectFactory factory) {
         final var xmlSource = factory.createConfigurationSourceType();
 
         xmlSource.setDownloadURL(buildGlobalDownloadUrl(configurationType, source.getHaNodeName()));

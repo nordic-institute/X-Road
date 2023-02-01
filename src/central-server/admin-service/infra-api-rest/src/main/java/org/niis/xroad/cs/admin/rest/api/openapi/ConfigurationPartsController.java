@@ -74,9 +74,11 @@ public class ConfigurationPartsController implements ConfigurationPartsApi {
     @PreAuthorize("(hasAuthority('VIEW_INTERNAL_CONFIGURATION_SOURCE') and #configurationType.value == 'INTERNAL') "
             + "or (hasAuthority('VIEW_EXTERNAL_CONFIGURATION_SOURCE') and #configurationType.value == 'EXTERNAL')")
     public ResponseEntity<Set<ConfigurationPartDto>> getConfigurationParts(ConfigurationTypeDto configurationType) {
-        return ok(configurationService.getConfigurationParts(configurationType.getValue()).stream()
-                .map(configurationPartsDtoConverter::convert)
-                .collect(Collectors.toSet()));
+        return ok(
+                configurationService.getConfigurationParts(ConfigurationSourceType.valueOf(configurationType.getValue()))
+                        .stream()
+                        .map(configurationPartsDtoConverter::convert)
+                        .collect(Collectors.toSet()));
     }
 
     @Override

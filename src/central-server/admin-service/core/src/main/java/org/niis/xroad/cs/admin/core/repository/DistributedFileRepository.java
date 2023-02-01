@@ -33,9 +33,11 @@ import java.util.Set;
 
 public interface DistributedFileRepository extends GenericRepository<DistributedFileEntity, Integer> {
 
-    Set<DistributedFileEntity> findAllByHaNodeName(String haNodeName);
-
     Set<DistributedFileEntity> findAllByVersion(int version);
 
     Optional<DistributedFileEntity> findByContentIdAndVersion(String contentIdentifier, int version, String haNodeName);
+
+    Set<DistributedFileEntity> findAllByContentIdentifierAndHaNodeName(String contentIdentifier, String haNodeName);
+
+    Optional<DistributedFileEntity> findFirstByContentIdentifierAndHaNodeName(String contentIdentifier, String haNodeName);
 }

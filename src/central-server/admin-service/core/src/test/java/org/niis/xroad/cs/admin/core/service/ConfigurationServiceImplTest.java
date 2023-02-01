@@ -30,7 +30,6 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.commonui.OptionalPartsConf;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -65,7 +64,6 @@ import org.xmlunit.assertj3.XmlAssert;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +71,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -103,12 +102,14 @@ class ConfigurationServiceImplTest {
     private static final String HA_NODE_NAME = "haNodeName";
     private static final int VERSION = 123;
     private static final String FILE_NAME = "fileName";
+    private static final String FILE_NAME_PRIVATE_PARAMS = "private-params.xml";
     private static final String CONTENT_IDENTIFIER = "Content";
     private static final Instant FILE_UPDATED_AT = Instant.now();
     private static final String HASH = "F5:1B:1F:9C:07:23:4C:DA:E6:4C:99:CB:FC:D8:EE:0E:C5:5F:A4:AF";
     private static final byte[] FILE_DATA = "file-data".getBytes(UTF_8);
     private static final String NODE_LOCAL_CONTENT_ID = CONTENT_ID_PRIVATE_PARAMETERS;
     private static final String TEST_CONFIGURATION_PART = "TEST-CONFIGURATION-PART";
+    private static final String CONF_PARTS_DIR = "src/test/resources/configuration-parts";
 
     @Mock
     private SystemParameterService systemParameterService;
@@ -133,87 +134,136 @@ class ConfigurationServiceImplTest {
         configurationServiceHa = createConfigurationService(new HAConfigStatus(HA_NODE_NAME, true));
     }
 
-    @Test
-    void shouldGetInternalConfigurationParts() {
-        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
-                .thenReturn(Optional.of(configurationSource));
-        when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
-        when(distributedFileRepository.findAllByHaNodeName(HA_NODE_NAME)).thenReturn(distributedFileEntitySet());
+    @Nested
+    class GetConfigurationParts {
+        @Test
+        void shouldGetInternalConfigurationParts() throws Exception {
+            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
+                    .thenReturn(Optional.of(configurationSource));
+            when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
 
-        final Set<ConfigurationParts> result = configurationService.getConfigurationParts(INTERNAL_CONFIGURATION);
+            when(distributedFileRepository.findAllByContentIdentifierAndHaNodeName(CONTENT_ID_PRIVATE_PARAMETERS, HA_NODE_NAME))
+                    .thenReturn(Set.of(new DistributedFileEntity(VERSION, FILE_NAME_PRIVATE_PARAMS, CONTENT_ID_PRIVATE_PARAMETERS,
+                            FILE_UPDATED_AT)));
 
-        result.forEach(configurationsParts -> {
-            assertThat(configurationsParts.getVersion()).isEqualTo(VERSION);
-            assertThat(configurationsParts.getFileName()).isEqualTo(FILE_NAME);
-            assertThat(configurationsParts.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT);
-        });
+            when(distributedFileRepository.findAllByContentIdentifierAndHaNodeName(CONTENT_ID_SHARED_PARAMETERS, HA_NODE_NAME))
+                    .thenReturn(Set.of(new DistributedFileEntity(VERSION, FILE_NAME, CONTENT_ID_SHARED_PARAMETERS, FILE_UPDATED_AT)));
+
+            try (MockedStatic<OptionalPartsConf> mockedConfParts = mockStatic(OptionalPartsConf.class)) {
+                mockedConfParts.when(OptionalPartsConf::getOptionalPartsConf).thenReturn(new OptionalPartsConf(CONF_PARTS_DIR));
+
+                final Set<ConfigurationParts> result = configurationService.getConfigurationParts(INTERNAL);
+
+                assertThat(result).hasSize(3);
+
+                assertThat(result).filteredOn("fileName", FILE_NAME_PRIVATE_PARAMS)
+                        .hasSize(1)
+                        .satisfiesExactly(item -> assertAll(
+                                () -> assertThat(item.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT),
+                                () -> assertThat(item.getContentIdentifier()).isEqualTo(CONTENT_ID_PRIVATE_PARAMETERS),
+                                () -> assertThat(item.getVersion()).isEqualTo(VERSION),
+                                () -> assertThat(item.isOptional()).isFalse()
+                        ));
+
+                assertThat(result).filteredOn("fileName", FILE_NAME)
+                        .hasSize(1)
+                        .satisfiesExactly(item -> assertAll(
+                                () -> assertThat(item.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT),
+                                () -> assertThat(item.getContentIdentifier()).isEqualTo(CONTENT_ID_SHARED_PARAMETERS),
+                                () -> assertThat(item.getVersion()).isEqualTo(VERSION),
+                                () -> assertThat(item.isOptional()).isFalse()
+                        ));
+
+                assertThat(result).filteredOn("fileName", "test-configuration-part.xml")
+                        .hasSize(1)
+                        .satisfiesExactly(item -> assertAll(
+                                () -> assertThat(item.getFileUpdatedAt()).isNull(),
+                                () -> assertThat(item.getContentIdentifier()).isEqualTo(TEST_CONFIGURATION_PART),
+                                () -> assertThat(item.getVersion()).isNull(),
+                                () -> assertThat(item.isOptional()).isTrue()
+                        ));
+            }
+        }
+
+        @Test
+        void shouldGetExternalConfigurationParts() throws Exception {
+            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
+                    .thenReturn(Optional.of(configurationSource));
+            when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
+            when(distributedFileRepository.findAllByContentIdentifierAndHaNodeName(CONTENT_ID_SHARED_PARAMETERS, HA_NODE_NAME))
+                    .thenReturn(Set.of(new DistributedFileEntity(VERSION, FILE_NAME, CONTENT_ID_SHARED_PARAMETERS, FILE_UPDATED_AT)));
+
+            try (MockedStatic<OptionalPartsConf> mockedConfParts = mockStatic(OptionalPartsConf.class)) {
+                mockedConfParts.when(OptionalPartsConf::getOptionalPartsConf).thenReturn(new OptionalPartsConf(CONF_PARTS_DIR));
+
+                final Set<ConfigurationParts> result = configurationService.getConfigurationParts(EXTERNAL);
+
+                assertThat(result).hasSize(1);
+                final ConfigurationParts configurationPart = result.iterator().next();
+                assertThat(configurationPart.getVersion()).isEqualTo(VERSION);
+                assertThat(configurationPart.getFileName()).isEqualTo(FILE_NAME);
+                assertThat(configurationPart.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT);
+                assertThat(configurationPart.isOptional()).isFalse();
+            }
+        }
+
+        @Test
+        void shouldThrowNotFoundExceptionWhenSourceNotFound() {
+            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
+                    .thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> configurationService.getConfigurationParts(INTERNAL));
+            verifyNoInteractions(distributedFileRepository);
+        }
+
     }
 
-    @Test
-    void shouldGetExternalConfigurationParts() {
-        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
-                .thenReturn(Optional.of(configurationSource));
-        when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
-        when(distributedFileRepository.findAllByHaNodeName(HA_NODE_NAME)).thenReturn(distributedFileEntitySet());
+    @Nested
+    class GetConfigurationAnchor {
+        @Test
+        void shouldGetInternalConfigurationAnchor() {
+            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
+                    .thenReturn(Optional.of(configurationSourceEntity()));
 
-        final Set<ConfigurationParts> result = configurationService.getConfigurationParts(EXTERNAL_CONFIGURATION);
+            final ConfigurationAnchor result = configurationService.getConfigurationAnchor(INTERNAL_CONFIGURATION);
 
-        result.forEach(configurationsParts -> {
-            assertThat(configurationsParts.getVersion()).isEqualTo(VERSION);
-            assertThat(configurationsParts.getFileName()).isEqualTo(FILE_NAME);
-            assertThat(configurationsParts.getFileUpdatedAt()).isEqualTo(FILE_UPDATED_AT);
-        });
+            assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
+            assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
+        }
+
+        @Test
+        void shouldGetExternalConfigurationAnchor() {
+            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
+                    .thenReturn(Optional.of(configurationSourceEntity()));
+
+            final ConfigurationAnchor result = configurationService.getConfigurationAnchor(EXTERNAL_CONFIGURATION);
+
+            assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
+            assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
+        }
     }
 
-    @Test
-    void shouldGetInternalConfigurationAnchor() {
-        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
-                .thenReturn(Optional.of(configurationSourceEntity()));
+    @Nested
+    class GetDownloadUrl {
+        @Test
+        void shouldGetInternalGlobalDownloadUrl() {
+            when(systemParameterService.getCentralServerAddress())
+                    .thenReturn(CENTRAL_SERVICE);
 
-        final ConfigurationAnchor result = configurationService.getConfigurationAnchor(INTERNAL_CONFIGURATION);
+            final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl("INTERNAL");
 
-        assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
-        assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
-    }
+            assertThat(result.getUrl()).isEqualTo("http://" + CENTRAL_SERVICE + "/internalconf");
+        }
 
-    @Test
-    void shouldGetExternalConfigurationAnchor() {
-        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
-                .thenReturn(Optional.of(configurationSourceEntity()));
+        @Test
+        void shouldGetExternalGlobalDownloadUrl() {
+            when(systemParameterService.getCentralServerAddress())
+                    .thenReturn(CENTRAL_SERVICE);
 
-        final ConfigurationAnchor result = configurationService.getConfigurationAnchor(EXTERNAL_CONFIGURATION);
+            final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl("EXTERNAL");
 
-        assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
-        assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
-    }
-
-    @Test
-    void shouldGetInternalGlobalDownloadUrl() {
-        when(systemParameterService.getCentralServerAddress())
-                .thenReturn(CENTRAL_SERVICE);
-
-        final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl("INTERNAL");
-
-        assertThat(result.getUrl()).isEqualTo("http://" + CENTRAL_SERVICE + "/internalconf");
-    }
-
-    @Test
-    void shouldGetExternalGlobalDownloadUrl() {
-        when(systemParameterService.getCentralServerAddress())
-                .thenReturn(CENTRAL_SERVICE);
-
-        final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl("EXTERNAL");
-
-        assertThat(result.getUrl()).isEqualTo("http://" + CENTRAL_SERVICE + "/externalconf");
-    }
-
-    @Test
-    void shouldThrowNotFoundExceptionWhenSourceNotFound() {
-        when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
-                .thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> configurationService.getConfigurationParts(INTERNAL_CONFIGURATION));
-        verifyNoInteractions(distributedFileRepository);
+            assertThat(result.getUrl()).isEqualTo("http://" + CENTRAL_SERVICE + "/externalconf");
+        }
     }
 
     private ConfigurationServiceImpl createConfigurationService(HAConfigStatus haConfigStatus) {
@@ -225,12 +275,6 @@ class ConfigurationServiceImplTest {
                 distributedFileMapper,
                 auditEventHelper,
                 auditDataHelper);
-    }
-
-    private Set<DistributedFileEntity> distributedFileEntitySet() {
-        final DistributedFileEntity entity = new DistributedFileEntity(VERSION, FILE_NAME,
-                CONTENT_IDENTIFIER, FILE_UPDATED_AT);
-        return Collections.singleton(entity);
     }
 
     private ConfigurationSourceEntity configurationSourceEntity() {
@@ -334,6 +378,10 @@ class ConfigurationServiceImplTest {
                     .isInstanceOf(ConfigurationSourceException.class)
                     .hasMessage("No configuration signing keys configured");
         }
+
+        private String asString(final Instant instant) {
+            return instant.truncatedTo(ChronoUnit.MILLIS).toString();
+        }
     }
 
     @Nested
@@ -361,7 +409,7 @@ class ConfigurationServiceImplTest {
 
             verify(distributedFileRepository).save(distributedFileCaptor.capture());
             var df = distributedFileCaptor.getValue();
-            Assertions.assertThat(df).isSameAs(originalDf);
+            assertThat(df).isSameAs(originalDf);
             assertFieldsChanged(df);
         }
 
@@ -418,8 +466,6 @@ class ConfigurationServiceImplTest {
     @Nested
     class UploadConfigurationPart {
 
-        private static final String CONF_PARTS_DIR = "src/test/resources/configuration-parts";
-
         @Captor
         private ArgumentCaptor<DistributedFileEntity> distributedFileCaptor;
 
@@ -438,7 +484,7 @@ class ConfigurationServiceImplTest {
                 verify(auditDataHelper).put(UPLOAD_FILE_HASH_ALGORITHM, DEFAULT_UPLOAD_FILE_HASH_ALGORITHM);
                 verify(auditDataHelper).put(UPLOAD_FILE_HASH, "8ffeeed59eae93366fdbb7805821b5f99da7ccdacd718056ddd740d4");
 
-                // TODO: validation
+                // TODO validation
                 verify(distributedFileRepository).save(distributedFileCaptor.capture());
                 final DistributedFileEntity distributedFileEntity = distributedFileCaptor.getValue();
 
@@ -463,7 +509,4 @@ class ConfigurationServiceImplTest {
         }
     }
 
-    private String asString(final Instant instant) {
-        return instant.truncatedTo(ChronoUnit.MILLIS).toString();
-    }
 }

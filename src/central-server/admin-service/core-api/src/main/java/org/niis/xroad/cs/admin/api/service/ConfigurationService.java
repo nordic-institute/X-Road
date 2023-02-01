@@ -37,7 +37,7 @@ import java.util.Set;
 
 public interface ConfigurationService {
 
-    Set<ConfigurationParts> getConfigurationParts(String sourceType);
+    Set<ConfigurationParts> getConfigurationParts(ConfigurationSourceType sourceType);
 
     File getConfigurationPartFile(String contentIdentifier, int version);
 

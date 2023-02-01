@@ -44,6 +44,8 @@ import java.util.Set;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.niis.xroad.cs.openapi.model.ConfigurationTypeDto.EXTERNAL;
+import static org.niis.xroad.cs.openapi.model.ConfigurationTypeDto.INTERNAL;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
@@ -57,21 +59,70 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignConfigurationPartsApi configurationPartsApi;
 
-    @Step("{} configuration parts exists")
-    public void viewConfParts(String configurationType) {
+    @Step("EXTERNAL configuration parts exists")
+    public void viewExternalConfParts() {
         final ResponseEntity<Set<ConfigurationPartDto>> response = configurationPartsApi
-                .getConfigurationParts(ConfigurationTypeDto.fromValue(configurationType));
+                .getConfigurationParts(EXTERNAL);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion("SHARED-ID", "body[0].contentIdentifier",
+                .assertion(equalsAssertion(1, "body.size()", "Response contains 1 item"))
+                .assertion(equalsAssertion("SHARED-PARAMETERS", "body[0].contentIdentifier",
                         "Response contains content identifier"))
-                .assertion(equalsAssertion("file.xml", "body[0].fileName",
+                .assertion(equalsAssertion("shared-params.xml", "body[0].fileName",
                         "Response contains file name "))
                 .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"), "body[0].fileUpdatedAt",
                         "Response contains date at which file was updated"))
                 .assertion(equalsAssertion(2, "body[0].version",
                         "Response contains version "))
+                .assertion(equalsAssertion(false, "body[0].optional",
+                        "Configuration part is mandatory"))
+                .execute();
+    }
+
+    @Step("INTERNAL configuration parts exists")
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void viewInternalConfParts() {
+        final ResponseEntity<Set<ConfigurationPartDto>> response = configurationPartsApi
+                .getConfigurationParts(INTERNAL);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(4, "body.size()", "Response contains 2 items"))
+
+                .assertion(equalsAssertion("shared-params.xml",
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileName", "File name matches"))
+                .assertion(equalsAssertion(2,
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].version", "Version matches"))
+                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileUpdatedAt", "UpdatedAt matches"))
+                .assertion(equalsAssertion(false,
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].optional", "Part is mandatory"))
+
+                .assertion(equalsAssertion("private-params.xml",
+                        "body.^[contentIdentifier=='PRIVATE-PARAMETERS'].fileName", "File name matches"))
+                .assertion(equalsAssertion(2,
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].version", "Version matches"))
+                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileUpdatedAt", "UpdatedAt matches"))
+                .assertion(equalsAssertion(false,
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].optional", "Part is mandatory"))
+
+                .assertion(equalsAssertion("test-configuration-part-1.xml",
+                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].fileName", "File name matches"))
+                .assertion(isNull("body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].version"))
+                .assertion(isNull("body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].fileUpdatedAt"))
+                .assertion(equalsAssertion(true,
+                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].optional", "Part is optional"))
+
+                .assertion(equalsAssertion("test-configuration-part-2.xml",
+                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].fileName", "File name matches"))
+                .assertion(isNull("body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].version"))
+                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
+                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].fileUpdatedAt", "UpdatedAt matches"))
+                .assertion(equalsAssertion(true,
+                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].optional", "Part is optional"))
+
                 .execute();
     }
 
@@ -110,10 +161,20 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
         final HttpHeaders headers = response.getHeaders();
 
         assertEquals(OK, response.getStatusCode());
-        assertEquals("file_2022-01-01_01 00 00.xml", headers.getContentDisposition().getFilename());
+        assertEquals(resolveFileNamePart(contentIdentifier) + "_2022-01-01_01 00 00.xml", headers.getContentDisposition().getFilename());
         assertEquals("attachment", headers.getContentDisposition().getType());
         assertEquals(APPLICATION_XML, headers.getContentType());
     }
 
+    private String resolveFileNamePart(String contentIdentifier) {
+        switch (contentIdentifier) {
+            case "SHARED-PARAMETERS":
+                return "shared-params";
+            case "PRIVATE-PARAMETERS":
+                return "private-params";
+            default:
+                throw new RuntimeException();
+        }
+    }
 
 }
