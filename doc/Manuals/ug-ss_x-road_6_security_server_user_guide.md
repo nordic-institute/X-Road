@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.73
+Version: 2.74
 Doc. ID: UG-SS
 
 ---
@@ -2096,6 +2096,9 @@ in the `[configuration-client]` section (add or edit this section).
 [configuration-client]
 proxy-configuration-backup-cron=* 15 3 * * ?
 ```
+
+**Note:** In cases where automatic backup is not required (ex: extensions which rely on configuration-client) 
+it is suggested to disable it by using cron expression that will never trigger. For example `* * * * * ? 2099`
 
 ### 13.4 Backup Encryption Configuration
 
