@@ -30,6 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.commonui.OptionalConfPart;
 import ee.ria.xroad.commonui.OptionalPartsConf;
 
@@ -72,6 +73,8 @@ import javax.xml.datatype.DatatypeFactory;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -87,9 +90,11 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NA
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_PART_FILE_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_PART_VALIDATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_RECREATING_ANCHOR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INSTANCE_IDENTIFIER_NOT_SET;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.NO_CONFIGURATION_SIGNING_KEYS_CONFIGURED;
@@ -130,6 +135,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final DistributedFileMapper distributedFileMapper;
     private final AuditEventHelper auditEventHelper;
     private final AuditDataHelper auditDataHelper;
+    private final ExternalProcessRunner externalProcessRunner;
 
     @Override
     public Set<ConfigurationParts> getConfigurationParts(ConfigurationSourceType sourceType) {
@@ -352,9 +358,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private void validateConfigurationPart(byte[] data, String partFileName, OptionalPartsConf optionalPartsConf) {
         final String validationProgram = optionalPartsConf.getValidationProgram(partFileName);
-
-        // TODO FIXME: Execute bash script
-
+        if (isNotBlank(validationProgram)) {
+            try {
+                final Path tempFilePath = Files.createTempFile(partFileName, null);
+                Files.write(tempFilePath, data);
+                externalProcessRunner.executeAndThrowOnFailure(validationProgram, tempFilePath.toString());
+            } catch (Exception e) {
+                throw new ConfigurationPartException(CONFIGURATION_PART_VALIDATION_FAILED);
+            }
+        }
     }
 
     @SneakyThrows

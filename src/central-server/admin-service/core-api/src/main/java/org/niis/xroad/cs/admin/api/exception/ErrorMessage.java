@@ -74,6 +74,7 @@ public enum ErrorMessage {
     CONFIGURATION_NOT_FOUND("Configuration Source not found"),
     CONFIGURATION_PART_FILE_NOT_FOUND("Configuration part file not found"),
     UNKNOWN_CONFIGURATION_PART("Unknown configuration part"),
+    CONFIGURATION_PART_VALIDATION_FAILED("Configuration part validation failed"),
     ERROR_GETTING_TOKENS("Error getting tokens"),
     TOKEN_NOT_FOUND("Token not found"),
     TOKEN_ACTIVATION_FAILED("Token activation failed"),

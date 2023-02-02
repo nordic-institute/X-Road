@@ -28,6 +28,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.commonui.OptionalPartsConf;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -79,6 +80,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -87,7 +90,6 @@ import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.PART_FILE_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SOURCE_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_HASH_ALGORITHM;
@@ -123,6 +125,8 @@ class ConfigurationServiceImplTest {
     private AuditDataHelper auditDataHelper;
     @Mock
     private AuditEventHelper auditEventHelper;
+    @Mock
+    private ExternalProcessRunner externalProcessRunner;
     @Spy
     private DistributedFileMapper distributedFileMapper = new DistributedFileMapperImpl();
     private ConfigurationServiceImpl configurationService;
@@ -298,7 +302,8 @@ class ConfigurationServiceImplTest {
                 distributedFileRepository,
                 distributedFileMapper,
                 auditEventHelper,
-                auditDataHelper);
+                auditDataHelper,
+                externalProcessRunner);
     }
 
     private ConfigurationSourceEntity configurationSourceEntity() {
@@ -494,6 +499,8 @@ class ConfigurationServiceImplTest {
     @Nested
     class UploadConfigurationPart {
 
+        private static final String PART_FILE_NAME = "test-configuration-part.xml";
+
         @Captor
         private ArgumentCaptor<DistributedFileEntity> distributedFileCaptor;
 
@@ -507,18 +514,19 @@ class ConfigurationServiceImplTest {
 
                 verify(auditDataHelper).put(SOURCE_TYPE, "INTERNAL");
                 verify(auditDataHelper).put(RestApiAuditProperty.CONTENT_IDENTIFIER, TEST_CONFIGURATION_PART);
-                verify(auditDataHelper).put(PART_FILE_NAME, "test-configuration-part.xml");
+                verify(auditDataHelper).put(RestApiAuditProperty.PART_FILE_NAME, PART_FILE_NAME);
                 verify(auditDataHelper).put(UPLOAD_FILE_NAME, "original-filename.xml");
                 verify(auditDataHelper).put(UPLOAD_FILE_HASH_ALGORITHM, DEFAULT_UPLOAD_FILE_HASH_ALGORITHM);
                 verify(auditDataHelper).put(UPLOAD_FILE_HASH, "8ffeeed59eae93366fdbb7805821b5f99da7ccdacd718056ddd740d4");
 
-                // TODO validation
+                verify(externalProcessRunner).executeAndThrowOnFailure(eq("test-validate.sh"),
+                        contains(PART_FILE_NAME));
                 verify(distributedFileRepository).save(distributedFileCaptor.capture());
                 final DistributedFileEntity distributedFileEntity = distributedFileCaptor.getValue();
 
                 assertThat(distributedFileEntity.getFileData()).isEqualTo(FILE_DATA);
                 assertThat(distributedFileEntity.getContentIdentifier()).isEqualTo(TEST_CONFIGURATION_PART);
-                assertThat(distributedFileEntity.getFileName()).isEqualTo("test-configuration-part.xml");
+                assertThat(distributedFileEntity.getFileName()).isEqualTo(PART_FILE_NAME);
                 assertThat(distributedFileEntity.getVersion()).isEqualTo(0);
             }
         }
