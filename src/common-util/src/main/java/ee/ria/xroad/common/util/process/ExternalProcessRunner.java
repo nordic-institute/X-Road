@@ -23,14 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package ee.ria.xroad.common.util.process;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.IOUtils;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,7 +40,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@Component
 public class ExternalProcessRunner {
     private static final long TIMEOUT = 60000;
 
@@ -60,7 +58,7 @@ public class ExternalProcessRunner {
      */
     public ProcessResult execute(String command, String... args) throws ProcessNotExecutableException,
             ProcessFailedException, InterruptedException {
-        if (StringUtils.isEmpty(command)) {
+        if (StringUtils.isBlank(command)) {
             throw new IllegalArgumentException("command cannot be null");
         }
         List<String> commandWithArgs = new ArrayList<>();

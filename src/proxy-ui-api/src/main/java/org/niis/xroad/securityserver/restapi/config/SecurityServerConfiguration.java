@@ -23,15 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.securityserver.restapi.config;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_PROCESS_NOT_EXECUTABLE;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public class ProcessNotExecutableException extends ServiceException {
-    public ProcessNotExecutableException(Throwable t) {
-        super(t, new ErrorDeviation(ERROR_PROCESS_NOT_EXECUTABLE));
+/**
+ * A generic, configuration class for bean initialization.
+ */
+@Configuration
+public class SecurityServerConfiguration {
+
+    @Bean
+    public ExternalProcessRunner externalProcessRunner() {
+        return new ExternalProcessRunner();
     }
 }

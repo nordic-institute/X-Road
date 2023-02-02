@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import ee.ria.xroad.common.util.process.ProcessFailedException;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +41,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOut;
 import org.niis.xroad.securityserver.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.InvalidBackupFileException;
-import org.niis.xroad.securityserver.restapi.service.ProcessFailedException;
 import org.niis.xroad.securityserver.restapi.service.RestoreProcessFailedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;

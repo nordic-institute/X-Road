@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,6 +31,9 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TokenPinPolicy;
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import ee.ria.xroad.common.util.process.ProcessFailedException;
+import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -150,7 +153,7 @@ public class InitializationService {
      * @throws ServerAlreadyFullyInitializedException if the server has already been fully initialized
      */
     public void initialize(String securityServerCode, String ownerMemberClass, String ownerMemberCode,
-            String softwareTokenPin, boolean ignoreWarnings) throws AnchorNotFoundException, WeakPinException,
+                           String softwareTokenPin, boolean ignoreWarnings) throws AnchorNotFoundException, WeakPinException,
             UnhandledWarningsException, InvalidCharactersException, SoftwareTokenInitException,
             InvalidInitParamsException, ServerAlreadyFullyInitializedException, InterruptedException {
         if (!systemService.isAnchorImported()) {
@@ -210,8 +213,10 @@ public class InitializationService {
      */
     @SuppressWarnings("squid:S3776") // cognitive complexity 17/15 (because of IF's and logical AND's)
     private void verifyInitializationPrerequisites(String securityServerCode, String ownerMemberClass,
-            String ownerMemberCode, String softwareTokenPin, boolean isServerCodeInitialized,
-            boolean isServerOwnerInitialized, boolean isSoftwareTokenInitialized) throws InvalidInitParamsException {
+                                                   String ownerMemberCode, String softwareTokenPin,
+                                                   boolean isServerCodeInitialized,
+                                                   boolean isServerOwnerInitialized,
+                                                   boolean isSoftwareTokenInitialized) throws InvalidInitParamsException {
         List<String> errorMetadata = new ArrayList<>();
         /*
          * Example case:
@@ -275,7 +280,7 @@ public class InitializationService {
      *
      * @param softwareTokenPin the pin of the token
      * @throws InvalidCharactersException if the pin includes characters outside of ascii (range 32 - 126)
-     * @throws WeakPinException if the pin does not meet the requirements set in {@link TokenPinPolicy}
+     * @throws WeakPinException           if the pin does not meet the requirements set in {@link TokenPinPolicy}
      * @throws SoftwareTokenInitException if token init fails
      */
     private void initializeSoftwareToken(String softwareTokenPin) throws InvalidCharactersException, WeakPinException,
@@ -380,7 +385,7 @@ public class InitializationService {
     }
 
     private void generateGPGKeyPair(String nameReal) throws InterruptedException {
-        String[] args = new String[] {gpgHome, nameReal};
+        String[] args = new String[]{gpgHome, nameReal};
 
         try {
             log.info("Generationg GPG keypair with command '"
