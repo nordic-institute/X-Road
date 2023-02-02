@@ -26,13 +26,13 @@
 package org.niis.xroad.securityserver.restapi.wsdl;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import ee.ria.xroad.common.util.process.ProcessFailedException;
+import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.service.ExternalProcessRunner;
-import org.niis.xroad.securityserver.restapi.service.ProcessFailedException;
-import org.niis.xroad.securityserver.restapi.service.ProcessNotExecutableException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -90,10 +90,10 @@ public class WsdlValidator {
         } catch (ProcessNotExecutableException e) {
             throw new WsdlValidatorNotExecutableException(e);
         } catch (ProcessFailedException e) {
-            if (e.getErrorDeviation() != null) {
-                logValidatorOutput(e.getErrorDeviation().getMetadata());
+            if (e.getMetadata() != null) {
+                logValidatorOutput(e.getMetadata());
             }
-            throw new WsdlValidationFailedException(e.getErrorDeviation().getMetadata());
+            throw new WsdlValidationFailedException(e.getMetadata());
         }
     }
 
