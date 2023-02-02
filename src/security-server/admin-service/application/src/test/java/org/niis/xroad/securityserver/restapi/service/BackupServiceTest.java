@@ -25,6 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import ee.ria.xroad.common.util.process.ProcessFailedException;
+import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;

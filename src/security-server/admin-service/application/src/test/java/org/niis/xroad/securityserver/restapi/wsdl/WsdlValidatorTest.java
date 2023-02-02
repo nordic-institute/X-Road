@@ -25,11 +25,12 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
-import org.niis.xroad.securityserver.restapi.service.ExternalProcessRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;

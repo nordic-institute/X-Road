@@ -28,6 +28,9 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import ee.ria.xroad.common.util.process.ProcessFailedException;
+import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import org.junit.Assert;
 import org.junit.Before;

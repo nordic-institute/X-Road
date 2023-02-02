@@ -445,6 +445,9 @@ public final class SystemProperties {
     public static final String CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS =
             PREFIX + "configuration-client.update-interval";
 
+    public static final String CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON =
+            PREFIX + "configuration-client.proxy-configuration-backup-cron";
+
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";
 
@@ -994,6 +997,14 @@ public final class SystemProperties {
      */
     public static int getConfigurationClientUpdateIntervalSeconds() {
         return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS, "60"));
+    }
+
+    /**
+     * @return the proxy configuration auto backup cron expression.
+     * defaults to '* 15 3 * * ?'
+     */
+    public static String getConfigurationClientProxyConfigurationBackupCron() {
+        return System.getProperty(CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON, "* 15 3 * * ?");
     }
 
     public static String getConfigurationClientAllowedFederations() {
