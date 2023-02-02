@@ -224,6 +224,7 @@
       "file": "File",
       "contentIdentifier": "Content Identifier",
       "version": "Version",
+      "allVersions": "All versions",
       "updated": "Updated",
       "dialog": {
         "upload": {

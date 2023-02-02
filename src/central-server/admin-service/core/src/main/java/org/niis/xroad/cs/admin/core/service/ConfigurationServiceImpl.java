@@ -156,20 +156,21 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         final Set<ConfigurationParts> configurationParts = new HashSet<>();
 
         for (OptionalConfPart part : allParts) {
-            final Instant updatedAt = distributedFileRepository
+            final ConfigurationParts configurationPart = distributedFileRepository
                     .findFirstByContentIdentifierAndHaNodeName(part.getContentIdentifier(), haNodeName)
-                    .map(DistributedFileEntity::getFileUpdatedAt)
-                    .orElse(null);
-
-            configurationParts.add(
-                    optionalConfigurationPart(part.getContentIdentifier(), part.getFileName(), updatedAt));
-
+                    .map(file -> optionalConfigurationPart(part, file))
+                    .orElse(optionalConfigurationPart(part));
+            configurationParts.add(configurationPart);
         }
         return configurationParts;
     }
 
-    private ConfigurationParts optionalConfigurationPart(String contentIdentifier, String fileName, Instant updatedAt) {
-        return new ConfigurationParts(contentIdentifier, fileName, null, updatedAt, true);
+    private ConfigurationParts optionalConfigurationPart(OptionalConfPart part, DistributedFileEntity file) {
+        return new ConfigurationParts(part.getContentIdentifier(), part.getFileName(), file.getVersion(), file.getFileUpdatedAt(), true);
+    }
+
+    private ConfigurationParts optionalConfigurationPart(OptionalConfPart part) {
+        return new ConfigurationParts(part.getContentIdentifier(), part.getFileName(), null, null, true);
     }
 
     private Set<ConfigurationParts> getRequiredConfigurationParts(String haNode, String... contentIdentifiers) {
@@ -217,7 +218,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 sourceType.toLowerCase());
 
         return new ConfigurationAnchor(configurationSource.getAnchorFileHash(),
-                                       configurationSource.getAnchorGeneratedAt());
+                configurationSource.getAnchorGeneratedAt());
     }
 
     @Override
@@ -226,8 +227,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 sourceType.toLowerCase());
 
         return new ConfigurationAnchor(configurationSource.getAnchorFile(),
-                                       configurationSource.getAnchorFileHash(),
-                                       configurationSource.getAnchorGeneratedAt());
+                configurationSource.getAnchorFileHash(),
+                configurationSource.getAnchorGeneratedAt());
     }
 
     @Override

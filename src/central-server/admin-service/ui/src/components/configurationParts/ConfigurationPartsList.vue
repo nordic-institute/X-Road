@@ -46,6 +46,15 @@
           <template #[`item.file_updated_at`]="{ item }">
             {{ item.file_updated_at | formatDateTime }}
           </template>
+          <template #[`item.version`]="{ item }">
+            <template v-if="item.version === 0">
+              {{ $t('globalConf.cfgParts.allVersions') }}
+            </template>
+            <template v-else>
+              {{ item.version }}
+            </template>
+
+          </template>
           <template #[`item.actions`]="{ item }">
             <configuration-part-download-button
               :configuration-type="configurationType"
@@ -71,12 +80,12 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import { mapState, mapStores } from 'pinia';
-import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
-import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
-import { DataTableHeader } from 'vuetify';
-import { userStore } from '@/store/modules/user';
+import {mapState, mapStores} from 'pinia';
+import {useConfigurationSourceStore} from '@/store/modules/configuration-sources';
+import {ConfigurationPart, ConfigurationType} from '@/openapi-types';
+import {Prop} from 'vue/types/options';
+import {DataTableHeader} from 'vuetify';
+import {userStore} from '@/store/modules/user';
 import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.vue';
 import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
 

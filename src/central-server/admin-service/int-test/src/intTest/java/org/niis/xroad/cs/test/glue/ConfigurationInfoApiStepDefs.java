@@ -136,7 +136,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
                 .assertion(equalsAssertion("test-configuration-part-2.xml",
                         "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].fileName", "File name matches"))
-                .assertion(isNull("body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].version"))
+                .assertion(equalsAssertion(0, "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].version", "Version matches"))
                 .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
                         "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].fileUpdatedAt", "UpdatedAt matches"))
                 .assertion(equalsAssertion(true,
@@ -271,7 +271,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(1,
                         "body.?[contentIdentifier=='" + contentIdentifier + "'].size()",
                         "Response contains part: " + contentIdentifier))
-                .assertion(isNull("body.^[contentIdentifier=='" + contentIdentifier + "'].version"))
+                .assertion(notNullAssertion("body.^[contentIdentifier=='" + contentIdentifier + "'].version"))
                 .assertion(notNullAssertion("body.^[contentIdentifier=='" + contentIdentifier + "'].fileUpdatedAt"))
                 .execute();
     }
