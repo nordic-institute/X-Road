@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.rest.api.converter.GlobalConfDownloadUrlDtoConverter;
 import org.niis.xroad.cs.openapi.ConfigurationSourcesApi;
@@ -55,7 +56,7 @@ public class ConfigurationSourcesController implements ConfigurationSourcesApi {
             + "or (hasAuthority('VIEW_EXTERNAL_CONFIGURATION_SOURCE') and #configurationType.value == 'EXTERNAL')")
     public ResponseEntity<GlobalConfDownloadUrlDto> getDownloadUrl(ConfigurationTypeDto configurationType) {
         return ok(globalConfDownloadUrlDtoConverter.convert(
-                configurationService.getGlobalDownloadUrl(configurationType.getValue()
-                )));
+                configurationService
+                        .getGlobalDownloadUrl(ConfigurationSourceType.valueOf(configurationType.getValue()))));
     }
 }

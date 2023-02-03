@@ -41,16 +41,13 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.exception.ConfigurationPartException;
-import org.niis.xroad.cs.admin.api.exception.ConfigurationSourceException;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
-import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
@@ -58,16 +55,9 @@ import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.springframework.util.Base64Utils;
-import org.xmlunit.assertj3.XmlAssert;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -79,17 +69,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SOURCE_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_HASH_ALGORITHM;
@@ -98,8 +85,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FI
 @ExtendWith(MockitoExtension.class)
 class ConfigurationServiceImplTest {
 
-    private static final String INTERNAL_CONFIGURATION = "internal";
-    private static final String EXTERNAL_CONFIGURATION = "external";
     private static final String CENTRAL_SERVICE = "cs";
     private static final String HA_NODE_NAME = "haNodeName";
     private static final int VERSION = 123;
@@ -107,7 +92,6 @@ class ConfigurationServiceImplTest {
     private static final String FILE_NAME_PRIVATE_PARAMS = "private-params.xml";
     private static final String CONTENT_IDENTIFIER = "Content";
     private static final Instant FILE_UPDATED_AT = Instant.now();
-    private static final String HASH = "F5:1B:1F:9C:07:23:4C:DA:E6:4C:99:CB:FC:D8:EE:0E:C5:5F:A4:AF";
     private static final byte[] FILE_DATA = "file-data".getBytes(UTF_8);
     private static final String NODE_LOCAL_CONTENT_ID = CONTENT_ID_PRIVATE_PARAMETERS;
     private static final String TEST_CONFIGURATION_PART = "TEST-CONFIGURATION-PART";
@@ -123,8 +107,6 @@ class ConfigurationServiceImplTest {
     private ConfigurationSourceEntity configurationSource;
     @Mock
     private AuditDataHelper auditDataHelper;
-    @Mock
-    private AuditEventHelper auditEventHelper;
     @Mock
     private ExternalProcessRunner externalProcessRunner;
     @Spy
@@ -142,7 +124,7 @@ class ConfigurationServiceImplTest {
     class GetConfigurationParts {
         @Test
         void shouldGetInternalConfigurationParts() throws Exception {
-            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
+            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL.name().toLowerCase(), HA_NODE_NAME))
                     .thenReturn(Optional.of(configurationSource));
             when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
 
@@ -191,7 +173,7 @@ class ConfigurationServiceImplTest {
 
         @Test
         void shouldGetExternalConfigurationParts() throws Exception {
-            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
+            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL.name().toLowerCase(), HA_NODE_NAME))
                     .thenReturn(Optional.of(configurationSource));
             when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
             when(distributedFileRepository.findAllByContentIdentifierAndHaNodeName(CONTENT_ID_SHARED_PARAMETERS, HA_NODE_NAME))
@@ -213,7 +195,7 @@ class ConfigurationServiceImplTest {
 
         @Test
         void shouldThrowNotFoundExceptionWhenSourceNotFound() {
-            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
+            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL.name().toLowerCase(), HA_NODE_NAME))
                     .thenReturn(Optional.empty());
 
             assertThrows(NotFoundException.class, () -> configurationService.getConfigurationParts(INTERNAL));
@@ -223,62 +205,13 @@ class ConfigurationServiceImplTest {
     }
 
     @Nested
-    class GetConfigurationAnchor {
-        @Test
-        void shouldGetInternalConfigurationAnchor() {
-            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
-                    .thenReturn(Optional.of(configurationSourceEntity()));
-
-            final ConfigurationAnchor result = configurationService.getConfigurationAnchor(INTERNAL_CONFIGURATION);
-
-            assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
-            assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
-        }
-
-        @Test
-        void shouldGetInternalConfigurationAnchorWithFile() {
-            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
-                    .thenReturn(Optional.of(configurationSourceEntityWithFile()));
-
-            final ConfigurationAnchor result = configurationService.getConfigurationAnchorWithFile(INTERNAL_CONFIGURATION);
-
-            assertThat(result.getAnchorFile()).isEqualTo(FILE_DATA);
-            assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
-            assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
-        }
-
-        @Test
-        void shouldGetExternalConfigurationAnchor() {
-            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
-                    .thenReturn(Optional.of(configurationSourceEntity()));
-
-            final ConfigurationAnchor result = configurationService.getConfigurationAnchor(EXTERNAL_CONFIGURATION);
-
-            assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
-            assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
-        }
-
-        @Test
-        void shouldGetExternalConfigurationAnchorWithFile() {
-            when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
-                    .thenReturn(Optional.of(configurationSourceEntityWithFile()));
-
-            final ConfigurationAnchor result = configurationService.getConfigurationAnchorWithFile(EXTERNAL_CONFIGURATION);
-
-            assertThat(result.getAnchorFile()).isEqualTo(FILE_DATA);
-            assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
-            assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
-        }
-    }
-
-    @Nested
     class GetDownloadUrl {
         @Test
         void shouldGetInternalGlobalDownloadUrl() {
             when(systemParameterService.getCentralServerAddress())
                     .thenReturn(CENTRAL_SERVICE);
 
-            final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl("INTERNAL");
+            final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl(INTERNAL);
 
             assertThat(result.getUrl()).isEqualTo("http://" + CENTRAL_SERVICE + "/internalconf");
         }
@@ -288,7 +221,7 @@ class ConfigurationServiceImplTest {
             when(systemParameterService.getCentralServerAddress())
                     .thenReturn(CENTRAL_SERVICE);
 
-            final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl("EXTERNAL");
+            final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl(EXTERNAL);
 
             assertThat(result.getUrl()).isEqualTo("http://" + CENTRAL_SERVICE + "/externalconf");
         }
@@ -301,120 +234,8 @@ class ConfigurationServiceImplTest {
                 configurationSourceRepository,
                 distributedFileRepository,
                 distributedFileMapper,
-                auditEventHelper,
                 auditDataHelper,
                 externalProcessRunner);
-    }
-
-    private ConfigurationSourceEntity configurationSourceEntity() {
-        return new ConfigurationSourceEntity(HASH, FILE_UPDATED_AT);
-    }
-
-    private ConfigurationSourceEntity configurationSourceEntityWithFile() {
-        return new ConfigurationSourceEntity(FILE_DATA, HASH, FILE_UPDATED_AT);
-    }
-
-    @Nested
-    class RecreateAnchor {
-        final Map<String, String> namespace = Map.of(
-                "ns2", "http://x-road.eu/xsd/identifiers",
-                "ns3", "http://x-road.eu/xsd/xroad.xsd"
-        );
-        static final String INSTANCE_IDENTIFIER = "inId";
-        static final String CERT1 = "cert1";
-        static final String CERT2 = "cert2";
-        static final String CERT3 = "cert3";
-        static final String HA_NODE_NAME2 = "haNodeName2";
-        static final String CENTRAL_SERVICE2 = "cs2";
-        @Mock
-        private ConfigurationSigningKeyEntity signingKeyEntity1, signingKeyEntity2, signingKeyEntity3;
-        @Mock
-        private ConfigurationSourceEntity configurationSource2;
-        @Captor
-        private ArgumentCaptor<byte[]> xmlCaptor;
-
-        @Test
-        void shouldSuccessfullyRecreate() {
-            when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-            when(systemParameterService.getCentralServerAddress(HA_NODE_NAME)).thenReturn(CENTRAL_SERVICE);
-            when(systemParameterService.getCentralServerAddress(HA_NODE_NAME2)).thenReturn(CENTRAL_SERVICE2);
-            when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION.toLowerCase(),
-                    new HAConfigStatus(HA_NODE_NAME, false)))
-                    .thenReturn(configurationSource);
-            when(configurationSourceRepository.findAllBySourceType(INTERNAL_CONFIGURATION.toLowerCase()))
-                    .thenReturn(List.of(configurationSource, configurationSource2));
-            when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
-            when(configurationSource.getConfigurationSigningKeys())
-                    .thenReturn(new LinkedHashSet<>(List.of(signingKeyEntity1, signingKeyEntity2)));
-            when(configurationSource.getConfigurationSigningKey()).thenReturn(signingKeyEntity1);
-            when(configurationSource2.getHaNodeName()).thenReturn(HA_NODE_NAME2);
-            when(configurationSource2.getConfigurationSigningKeys()).thenReturn(Set.of(signingKeyEntity3));
-            when(configurationSource2.getConfigurationSigningKey()).thenReturn(null);
-            when(signingKeyEntity1.getCert()).thenReturn(CERT1.getBytes(UTF_8));
-            when(signingKeyEntity2.getCert()).thenReturn(CERT2.getBytes(UTF_8));
-            when(signingKeyEntity3.getCert()).thenReturn(CERT3.getBytes(UTF_8));
-
-            final var result = configurationService.recreateAnchor(INTERNAL_CONFIGURATION);
-
-            verify(configurationSourceRepository).save(configurationSource);
-            verify(configurationSourceRepository, never()).save(configurationSource2);
-            verify(configurationSource).setAnchorFile(xmlCaptor.capture());
-            verify(configurationSource).setAnchorFileHash(result.getAnchorFileHash());
-            verify(configurationSource).setAnchorGeneratedAt(result.getAnchorGeneratedAt());
-            verify(auditEventHelper).changeRequestScopedEvent(RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR);
-            verify(auditDataHelper).putAnchorHash(any());
-
-            assertThat(result.getAnchorGeneratedAt().truncatedTo(ChronoUnit.MINUTES))
-                    .isEqualTo(Instant.now().truncatedTo(ChronoUnit.MINUTES));
-
-            final var xml = new String(xmlCaptor.getValue());
-            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
-                    .valueByXPath("//ns3:configurationAnchor/instanceIdentifier").isEqualTo(INSTANCE_IDENTIFIER);
-            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
-                    .valueByXPath("//ns3:configurationAnchor/generatedAt").isEqualTo(asString(result.getAnchorGeneratedAt()));
-            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
-                    .valueByXPath("//ns3:configurationAnchor/source[1]/downloadURL")
-                    .isEqualTo("http://cs/externalconf");
-            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
-                    .valueByXPath("//ns3:configurationAnchor/source[1]/verificationCert[1]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT1.getBytes(UTF_8)));
-            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
-                    .valueByXPath("//ns3:configurationAnchor/source[1]/verificationCert[2]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT2.getBytes(UTF_8)));
-
-            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
-                    .valueByXPath("//ns3:configurationAnchor/source[2]/downloadURL")
-                    .isEqualTo("http://cs2/externalconf");
-            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
-                    .valueByXPath("//ns3:configurationAnchor/source[2]/verificationCert[1]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT3.getBytes(UTF_8)));
-        }
-
-        @Test
-        void shouldFailIfInstanceIdentifierNotSet() {
-            when(systemParameterService.getInstanceIdentifier()).thenReturn(null);
-
-            assertThatThrownBy(() -> configurationService.recreateAnchor(INTERNAL_CONFIGURATION))
-                    .isInstanceOf(ConfigurationSourceException.class)
-                    .hasMessage("System parameter for instance identifier not set");
-        }
-
-        @Test
-        void shouldFailIfCfgSourceDoesntHaveSigningKeys() {
-            when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
-            when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION.toLowerCase(),
-                    new HAConfigStatus(HA_NODE_NAME, false)))
-                    .thenReturn(configurationSource);
-            when(configurationSource.getConfigurationSigningKeys()).thenReturn(Set.of());
-
-            assertThatThrownBy(() -> configurationService.recreateAnchor(INTERNAL_CONFIGURATION))
-                    .isInstanceOf(ConfigurationSourceException.class)
-                    .hasMessage("No configuration signing keys configured");
-        }
-
-        private String asString(final Instant instant) {
-            return instant.truncatedTo(ChronoUnit.MILLIS).toString();
-        }
     }
 
     @Nested

@@ -1,6 +1,6 @@
 /*
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,27 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.cs.admin.api.service;
 
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
-import org.niis.xroad.cs.admin.api.domain.DistributedFile;
-import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
-import org.niis.xroad.cs.admin.api.dto.File;
-import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
+import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 
-import java.util.Set;
+public interface ConfigurationAnchorService {
+    ConfigurationAnchor getConfigurationAnchor(ConfigurationSourceType sourceType);
 
-public interface ConfigurationService {
+    ConfigurationAnchor getConfigurationAnchorWithFile(ConfigurationSourceType sourceType);
 
-    Set<ConfigurationParts> getConfigurationParts(ConfigurationSourceType sourceType);
-
-    File getConfigurationPartFile(String contentIdentifier, int version);
-
-    GlobalConfDownloadUrl getGlobalDownloadUrl(ConfigurationSourceType sourceType);
-
-    void saveConfigurationPart(String contentIdentifier, String fileName, byte[] data, int version);
-
-    Set<DistributedFile> getAllConfigurationFiles(int version);
-
-    void uploadConfigurationPart(ConfigurationSourceType sourceType, String contentIdentifier, String originalFileName, byte[] data);
+    ConfigurationAnchor recreateAnchor(ConfigurationSourceType configurationType);
 }
