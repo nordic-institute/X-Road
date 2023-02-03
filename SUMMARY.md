@@ -14,8 +14,9 @@
   * [HA Installation Guide](doc/Manuals/ig-csha_x-road_6_ha_installation_guide.md)
   * [Central Server User Guide](doc/Manuals/ug-cs_x-road_6_central_server_user_guide.md)
   * [Configuration Proxy Manual](doc/Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md)
-* [System Parameters](doc/Manuals/ug-syspar_x-road_v6_system_parameters.md)
-* [Signer Console Users Guide](doc/Manuals/ug-sc_x-road_signer-console_user_guide.md)
+* Common
+  * [System Parameters](doc/Manuals/ug-syspar_x-road_v6_system_parameters.md)
+  * [Signer Console Users Guide](doc/Manuals/ug-sc_x-road_signer-console_user_guide.md)
 
 ## Architecture
 
@@ -34,7 +35,7 @@
 
 ## Protocols
 
-* External
+* Information Systems
   * [Message Protocol for REST](doc/Protocols/pr-rest_x-road_message_protocol_for_rest.md)
   * [Message Protocol](doc/Protocols/pr-mess_x-road_message_protocol.md)
   * [Security Server Targeting Extension for the X-Road Message Protocol](doc/Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md)
@@ -44,7 +45,7 @@
   * [Service Metadata Protocol for REST](doc/Protocols/pr-mrest_x-road_service_metadata_protocol_for_rest.md)
   * [Operational Monitoring Protocol](doc/OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
   * [Environmental Monitoring Messages](doc/EnvironmentalMonitoring/Monitoring-messages.md)
-* Internal
+* X-Road Components
   * [Message Transport Protocol](doc/Protocols/pr-messtransp_x-road_message_transport_protocol.md)
   * [Protocol for Management Services](doc/Protocols/pr-mserv_x-road_protocol_for_management_services.md)
   * [Protocol for Downloading Configuration](doc/Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md)
