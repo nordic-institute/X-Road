@@ -31,21 +31,20 @@
 
 ## Protocols
 
-* Message Protocol
+* External
   * [Message Protocol for REST](doc/Protocols/pr-rest_x-road_message_protocol_for_rest.md)
   * [Message Protocol](doc/Protocols/pr-mess_x-road_message_protocol.md)
-* Message Protocol extensions
   * [Security Server Targeting Extension for the X-Road Message Protocol](doc/Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md)
   * [Security Token Extension for the X-Road Message Protocol](doc/Protocols/SecurityTokenExtension/pr-sectoken_security_token_extension_for_the_x-road_protocol.md)
   * [Third Party Representation Extension for the X-Road Message Protocol](doc/Protocols/ThirdPartyRepresentationExtension/pr-third_party_representation_extension_for_the_x-road_protocol.md)
-* [Message Transport Protocol](doc/Protocols/pr-messtransp_x-road_message_transport_protocol.md)
-* [Protocol for Management Services](doc/Protocols/pr-mserv_x-road_protocol_for_management_services.md)
-* Service Metadata Protocol
   * [Service Metadata Protocol](doc/Protocols/pr-meta_x-road_service_metadata_protocol.md)
   * [Service Metadata Protocol for REST](doc/Protocols/pr-mrest_x-road_service_metadata_protocol_for_rest.md)
-* [Protocol for Downloading Configuration](doc/Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md)
-* [Operational Monitoring Protocol](doc/OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
-* [Environmental Monitoring Messages](doc/EnvironmentalMonitoring/Monitoring-messages.md)
+  * [Operational Monitoring Protocol](doc/OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
+  * [Environmental Monitoring Messages](doc/EnvironmentalMonitoring/Monitoring-messages.md)
+* Internal
+  * [Message Transport Protocol](doc/Protocols/pr-messtransp_x-road_message_transport_protocol.md)
+  * [Protocol for Management Services](doc/Protocols/pr-mserv_x-road_protocol_for_management_services.md)
+  * [Protocol for Downloading Configuration](doc/Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md)
 
 ## Useful information
 
