@@ -1,5 +1,15 @@
 #!/bin/bash
 set -euo pipefail
+no_cache=""
+n=1
+for i in "$@" ; do
+    if [[ $i == "--no-cache" ]] ; then
+        no_cache="--no-cache"
+        set -- "${@:1:n-1}" "${@:n+1}"
+        break
+    fi
+    ((n++))
+done
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >&/dev/null && pwd)"
 version="${1:-7.0.0}"
@@ -10,7 +20,7 @@ repo_key="${5-}"
 
 build() {
   echo "BUILDING $tag:$version$2 using ${1#$dir/}"
-  local build_args=(--build-arg "VERSION=$version" --build-arg "TAG=$tag")
+  local build_args=($no_cache --build-arg "VERSION=$version" --build-arg "TAG=$tag")
   [[ -n $repo ]] && build_args+=(--build-arg "REPO=$repo")
   [[ -n $repo_key ]] && build_args+=(--build-arg "REPO_KEY=$repo_key")
   [[ -n $dist ]] && build_args+=(--build-arg "DIST=$dist")
