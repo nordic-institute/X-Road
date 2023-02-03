@@ -20,8 +20,8 @@ easy and cost efficient.
 
 See [X-Road product website](https://x-road.global) for more information about X-Road.
 
-For an in-depth look at the X-Road architecture, take a look at the [architecture documents section of the
-documentation](doc/Architecture).
+For an in-depth look at the X-Road architecture, take a look at the architecture documents section of the
+documentation.
 
 ## Installing X-Road
 
@@ -32,8 +32,8 @@ In case you are looking to join an existing instance, be sure to familiarise you
 of the instance before moving on to the installation guides.
 
 If you are looking to set up your own instance, we recommend you visit the [X-Road website](https://x-road.global),
-have a look at the [architecture documents](doc/Architecture) on this page as well as familiarising yourself with the 
-concepts with the free [X-Road Academy](https://x-road.thinkific.com) courses.
+have a look at the architecture documents on this page as well as familiarising yourself with the concepts with the
+free [X-Road Academy](https://x-road.thinkific.com) courses.
 
 
 ### Security Server

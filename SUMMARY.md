@@ -1,23 +1,19 @@
 # X-Road Documentation
 
-## Security Server Manuals
+## Manuals
 
-* [Security Server Installation Guide](doc/Manuals/ig-ss_x-road_v6_security_server_installation_guide.md)
-* [Security Server Installation Guide for RHEL](doc/Manuals/ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md)
-* [External Load Balancer Installation Guide](doc/Manuals/LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md)
-* [Security Server User Guide](doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md)
-* [Operational Monitoring System Parameters](doc/OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
-* [Signed Document Download and Verification Manual](doc/Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md)
-
-## Central Server Manuals
-
-* [Central Server Installation Guide](doc/Manuals/ig-cs_x-road_6_central_server_installation_guide.md)
-* [HA Installation Guide](doc/Manuals/ig-csha_x-road_6_ha_installation_guide.md)
-* [Central Server User Guide](doc/Manuals/ug-cs_x-road_6_central_server_user_guide.md)
-* [Configuration Proxy Manual](doc/Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md)
-
-## Common Manuals
-
+* Security Server
+  * [Security Server Installation Guide](doc/Manuals/ig-ss_x-road_v6_security_server_installation_guide.md)
+  * [Security Server Installation Guide for RHEL](doc/Manuals/ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md)
+  * [External Load Balancer Installation Guide](doc/Manuals/LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md)
+  * [Security Server User Guide](doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md)
+  * [Operational Monitoring System Parameters](doc/OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
+  * [Signed Document Download and Verification Manual](doc/Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md)
+* Central Server
+  * [Central Server Installation Guide](doc/Manuals/ig-cs_x-road_6_central_server_installation_guide.md)
+  * [HA Installation Guide](doc/Manuals/ig-csha_x-road_6_ha_installation_guide.md)
+  * [Central Server User Guide](doc/Manuals/ug-cs_x-road_6_central_server_user_guide.md)
+  * [Configuration Proxy Manual](doc/Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md)
 * [System Parameters](doc/Manuals/ug-syspar_x-road_v6_system_parameters.md)
 * [Signer Console Users Guide](doc/Manuals/ug-sc_x-road_signer-console_user_guide.md)
 
