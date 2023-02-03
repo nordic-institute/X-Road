@@ -1099,12 +1099,8 @@ paths:
         description: new additional configuration parts file to add
         required: true
       responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TrustedAnchor'
-          description: the new trusted anchor resource
+        '204':
+          $ref: '#/components/responses/NoContent'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':

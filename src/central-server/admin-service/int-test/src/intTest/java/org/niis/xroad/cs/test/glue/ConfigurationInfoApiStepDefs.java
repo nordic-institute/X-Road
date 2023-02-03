@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.cs.test.glue;
 
+import com.nortal.test.asserts.Assertion;
+import feign.FeignException;
 import io.cucumber.java.en.Step;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.cs.openapi.model.ConfigurationAnchorDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationPartDto;
@@ -41,22 +41,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Set;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static com.nortal.test.asserts.Assertions.notNullAssertion;
+import static java.lang.ClassLoader.getSystemResource;
+import static java.nio.file.Files.readAllBytes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.niis.xroad.cs.openapi.model.ConfigurationTypeDto.EXTERNAL;
+import static org.niis.xroad.cs.openapi.model.ConfigurationTypeDto.INTERNAL;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
-    public static final long EXPECTED_INTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH = 1348L;
-    public static final long EXPECTED_EXTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH = 1331L;
     @Autowired
     private FeignConfigurationSourceAnchorApi configurationSourceAnchorApi;
     @Autowired
@@ -64,23 +73,75 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignConfigurationPartsApi configurationPartsApi;
 
+    private static final long EXPECTED_INTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH = 1348L;
+    private static final long EXPECTED_EXTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH = 1331L;
+
     private ResponseEntity<Resource> downloadedAnchor;
 
-    @Step("{} configuration parts exists")
-    public void viewConfParts(String configurationType) {
+    @Step("EXTERNAL configuration parts exists")
+    public void viewExternalConfParts() {
         final ResponseEntity<Set<ConfigurationPartDto>> response = configurationPartsApi
-                .getConfigurationParts(ConfigurationTypeDto.fromValue(configurationType));
+                .getConfigurationParts(EXTERNAL);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion("SHARED-ID", "body[0].contentIdentifier",
+                .assertion(equalsAssertion(1, "body.size()", "Response contains 1 item"))
+                .assertion(equalsAssertion("SHARED-PARAMETERS", "body[0].contentIdentifier",
                         "Response contains content identifier"))
-                .assertion(equalsAssertion("file.xml", "body[0].fileName",
+                .assertion(equalsAssertion("shared-params.xml", "body[0].fileName",
                         "Response contains file name "))
                 .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"), "body[0].fileUpdatedAt",
                         "Response contains date at which file was updated"))
                 .assertion(equalsAssertion(2, "body[0].version",
                         "Response contains version "))
+                .assertion(equalsAssertion(false, "body[0].optional",
+                        "Configuration part is mandatory"))
+                .execute();
+    }
+
+    @Step("INTERNAL configuration parts exists")
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void viewInternalConfParts() {
+        final ResponseEntity<Set<ConfigurationPartDto>> response = configurationPartsApi
+                .getConfigurationParts(INTERNAL);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(4, "body.size()", "Response contains 2 items"))
+
+                .assertion(equalsAssertion("shared-params.xml",
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileName", "File name matches"))
+                .assertion(equalsAssertion(2,
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].version", "Version matches"))
+                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileUpdatedAt", "UpdatedAt matches"))
+                .assertion(equalsAssertion(false,
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].optional", "Part is mandatory"))
+
+                .assertion(equalsAssertion("private-params.xml",
+                        "body.^[contentIdentifier=='PRIVATE-PARAMETERS'].fileName", "File name matches"))
+                .assertion(equalsAssertion(2,
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].version", "Version matches"))
+                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].fileUpdatedAt", "UpdatedAt matches"))
+                .assertion(equalsAssertion(false,
+                        "body.^[contentIdentifier=='SHARED-PARAMETERS'].optional", "Part is mandatory"))
+
+                .assertion(equalsAssertion("test-configuration-part-1.xml",
+                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].fileName", "File name matches"))
+                .assertion(isNull("body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].version"))
+                .assertion(isNull("body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].fileUpdatedAt"))
+                .assertion(equalsAssertion(true,
+                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].optional", "Part is optional"))
+
+                .assertion(equalsAssertion("test-configuration-part-2.xml",
+                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].fileName", "File name matches"))
+                .assertion(equalsAssertion(0, "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].version", "Version matches"))
+                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
+                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].fileUpdatedAt", "UpdatedAt matches"))
+                .assertion(equalsAssertion(true,
+                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].optional", "Part is optional"))
+
                 .execute();
     }
 
@@ -111,41 +172,41 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @When("user downloads {} configuration source anchor")
+    @Step("user downloads {} configuration source anchor")
     public void downloadConfigurationSource(String configurationType) {
         downloadedAnchor = configurationSourceAnchorApi
                 .downloadAnchor(ConfigurationTypeDto.fromValue(configurationType));
     }
 
-    @Then("it should return internal configuration source anchor file")
+    @Step("it should return internal configuration source anchor file")
     public void validateInternalDownloadedAnchor() throws IOException {
         String expectedAnchorContent = IOUtils.resourceToString("/test-data/internal-configuration-anchor.xml",
-                                                                StandardCharsets.UTF_8);
+                StandardCharsets.UTF_8);
         validate(downloadedAnchor)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(EXPECTED_INTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH, "body.contentLength",
-                                           "Response contains configuration anchor has correct content length"))
+                        "Response contains configuration anchor has correct content length"))
                 .assertion(equalsAssertion("configuration_anchor_UTC_2022-01-01_01_00_00.xml", "body.filename",
-                                           "Configuration anchor file has correct name"))
+                        "Configuration anchor file has correct name"))
                 .assertion(equalsAssertion(expectedAnchorContent,
-                                           "T(org.apache.commons.io.IOUtils).toString(body.inputStream, 'UTF-8')",
-                                           "Configuration anchor file content"))
+                        "T(org.apache.commons.io.IOUtils).toString(body.inputStream, 'UTF-8')",
+                        "Configuration anchor file content"))
                 .execute();
     }
 
-    @Then("it should return external configuration source anchor file")
+    @Step("it should return external configuration source anchor file")
     public void validateExternalDownloadedAnchor() throws IOException {
         String expectedAnchorContent = IOUtils.resourceToString("/test-data/external-configuration-anchor.xml",
-                                                                StandardCharsets.UTF_8);
+                StandardCharsets.UTF_8);
         validate(downloadedAnchor)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(EXPECTED_EXTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH, "body.contentLength",
-                                           "Response contains configuration anchor has correct content length"))
+                        "Response contains configuration anchor has correct content length"))
                 .assertion(equalsAssertion("configuration_anchor_UTC_2022-01-01_01_00_00.xml", "body.filename",
-                                           "Configuration anchor file has correct name"))
+                        "Configuration anchor file has correct name"))
                 .assertion(equalsAssertion(expectedAnchorContent,
-                                           "T(org.apache.commons.io.IOUtils).toString(body.inputStream, 'UTF-8')",
-                                           "Configuration anchor file content"))
+                        "T(org.apache.commons.io.IOUtils).toString(body.inputStream, 'UTF-8')",
+                        "Configuration anchor file content"))
                 .execute();
     }
 
@@ -157,10 +218,81 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
         final HttpHeaders headers = response.getHeaders();
 
         assertEquals(OK, response.getStatusCode());
-        assertEquals("file_2022-01-01_01 00 00.xml", headers.getContentDisposition().getFilename());
+        assertEquals(resolveFileNamePart(contentIdentifier) + "_2022-01-01_01 00 00.xml", headers.getContentDisposition().getFilename());
         assertEquals("attachment", headers.getContentDisposition().getType());
         assertEquals(APPLICATION_XML, headers.getContentType());
     }
 
+    private String resolveFileNamePart(String contentIdentifier) {
+        switch (contentIdentifier) {
+            case "SHARED-PARAMETERS":
+                return "shared-params";
+            case "PRIVATE-PARAMETERS":
+                return "private-params";
+            default:
+                throw new RuntimeException();
+        }
+    }
+
+    @Step("{} configuration part {} was not uploaded")
+    public void configurationPartWasNotUploaded(String configurationType, String contentIdentifier) {
+        final ResponseEntity<Set<ConfigurationPartDto>> response = configurationPartsApi
+                .getConfigurationParts(ConfigurationTypeDto.fromValue(configurationType));
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1,
+                        "body.?[contentIdentifier=='" + contentIdentifier + "'].size()", "Response contains part: " + contentIdentifier))
+                .assertion(isNull("body.^[contentIdentifier=='" + contentIdentifier + "'].version"))
+                .assertion(isNull("body.^[contentIdentifier=='" + contentIdentifier + "'].fileUpdatedAt"))
+                .execute();
+    }
+
+    @Step("user uploads {} configuration {} file {}")
+    public void userUploadsConfigurationPart(String configurationType, String contentIdentifier, String filename) throws Exception {
+        MultipartFile file = new MockMultipartFile("file",
+                readAllBytes(Paths.get(getSystemResource("files/" + filename).toURI())));
+
+        final ResponseEntity<Void> response = configurationPartsApi
+                .uploadConfigurationParts(ConfigurationTypeDto.fromValue(configurationType), contentIdentifier, file);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                .execute();
+    }
+
+    @Step("{} configuration part {} is updated")
+    public void configurationPartIsUpdated(String configurationType, String contentIdentifier) {
+        final ResponseEntity<Set<ConfigurationPartDto>> response = configurationPartsApi
+                .getConfigurationParts(ConfigurationTypeDto.fromValue(configurationType));
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1,
+                        "body.?[contentIdentifier=='" + contentIdentifier + "'].size()",
+                        "Response contains part: " + contentIdentifier))
+                .assertion(notNullAssertion("body.^[contentIdentifier=='" + contentIdentifier + "'].version"))
+                .assertion(notNullAssertion("body.^[contentIdentifier=='" + contentIdentifier + "'].fileUpdatedAt"))
+                .execute();
+    }
+
+    @Step("{} configuration part {} file upload fails")
+    public void uploadingConfigurationPartFails(String configurationType, String contentIdentifier) {
+        MultipartFile file = new MockMultipartFile("file", new byte[]{0, 0, 0});
+        try {
+            configurationPartsApi
+                    .uploadConfigurationParts(ConfigurationTypeDto.fromValue(configurationType), contentIdentifier, file);
+            fail("Should throw exception");
+        } catch (FeignException feignException) {
+            validate(feignException.status())
+                    .assertion(new Assertion.Builder()
+                            .message("Verify status code")
+                            .expression("=")
+                            .actualValue(feignException.status())
+                            .expectedValue(INTERNAL_SERVER_ERROR.value())
+                            .build())
+                    .execute();
+        }
+    }
 
 }

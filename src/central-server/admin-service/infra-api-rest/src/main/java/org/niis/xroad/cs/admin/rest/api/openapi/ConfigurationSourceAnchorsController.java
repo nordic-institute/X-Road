@@ -27,8 +27,9 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
-import org.niis.xroad.cs.admin.api.service.ConfigurationService;
+import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.rest.api.converter.ConfigurationAnchorDtoConverter;
 import org.niis.xroad.cs.openapi.ConfigurationSourceAnchorsApi;
 import org.niis.xroad.cs.openapi.model.ConfigurationAnchorDto;
@@ -57,14 +58,14 @@ public class ConfigurationSourceAnchorsController implements ConfigurationSource
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
     private static final String ANCHOR_DOWNLOAD_FILE_EXTENSION = ".xml";
-    private final ConfigurationService configurationService;
+    private final ConfigurationAnchorService configurationAnchorService;
     private final ConfigurationAnchorDtoConverter configurationAnchorDtoConverter;
 
     @Override
     @PreAuthorize("hasAuthority('DOWNLOAD_SOURCE_ANCHOR')")
     public ResponseEntity<Resource> downloadAnchor(ConfigurationTypeDto configurationType) {
-        ConfigurationAnchor configurationAnchor =
-                configurationService.getConfigurationAnchorWithFile(configurationType.getValue());
+        ConfigurationAnchor configurationAnchor = configurationAnchorService
+                .getConfigurationAnchorWithFile(ConfigurationSourceType.valueOf(configurationType.getValue()));
         String anchorFilename = getAnchorFilenameForDownload(configurationAnchor.getAnchorGeneratedAt());
         return ControllerUtil.createAttachmentResourceResponse(configurationAnchor.getAnchorFile(), anchorFilename);
     }
@@ -74,7 +75,8 @@ public class ConfigurationSourceAnchorsController implements ConfigurationSource
             + "or (hasAuthority('VIEW_EXTERNAL_CONFIGURATION_SOURCE') and #configurationType.value == 'EXTERNAL')")
     public ResponseEntity<ConfigurationAnchorDto> getAnchor(ConfigurationTypeDto configurationType) {
         return ok(configurationAnchorDtoConverter.convert(
-                configurationService.getConfigurationAnchor(configurationType.getValue())
+                configurationAnchorService
+                        .getConfigurationAnchor(ConfigurationSourceType.valueOf(configurationType.getValue()))
         ));
     }
 
@@ -83,7 +85,7 @@ public class ConfigurationSourceAnchorsController implements ConfigurationSource
     @AuditEventMethod(event = RE_CREATE_ANCHOR)
     public ResponseEntity<ConfigurationAnchorDto> reCreateAnchor(ConfigurationTypeDto configurationType) {
         return ok(configurationAnchorDtoConverter.convert(
-                configurationService.recreateAnchor(configurationType.getValue())
+                configurationAnchorService.recreateAnchor(ConfigurationSourceType.valueOf(configurationType.getValue()))
         ));
     }
 

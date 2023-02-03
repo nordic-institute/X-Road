@@ -1,6 +1,6 @@
 /*
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,27 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
-import org.niis.xroad.cs.admin.api.domain.DistributedFile;
-import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
-import org.niis.xroad.cs.admin.api.dto.File;
-import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
+package org.niis.xroad.cs.admin.api.exception;
 
-import java.util.Set;
+public class ConfigurationPartException  extends UncheckedServiceException {
 
-public interface ConfigurationService {
+    public ConfigurationPartException(ErrorMessage code, String... metadata) {
+        super(code, metadata);
+    }
 
-    Set<ConfigurationParts> getConfigurationParts(ConfigurationSourceType sourceType);
-
-    File getConfigurationPartFile(String contentIdentifier, int version);
-
-    GlobalConfDownloadUrl getGlobalDownloadUrl(ConfigurationSourceType sourceType);
-
-    void saveConfigurationPart(String contentIdentifier, String fileName, byte[] data, int version);
-
-    Set<DistributedFile> getAllConfigurationFiles(int version);
-
-    void uploadConfigurationPart(ConfigurationSourceType sourceType, String contentIdentifier, String originalFileName, byte[] data);
+    public ConfigurationPartException(ErrorMessage code, Throwable cause, String... metadata) {
+        super(code, cause, metadata);
+    }
 }

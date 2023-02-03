@@ -1,16 +1,15 @@
-#@Modifying
 @ConfigurationInfo
 Feature: Configuration Info APIs
 
   Scenario: View internal configuration
-    When INTERNAL configuration parts exists
-    And INTERNAL configuration source anchor info exists
-    Then INTERNAL configuration source global download url exists
+    * INTERNAL configuration parts exists
+    * INTERNAL configuration source anchor info exists
+    * INTERNAL configuration source global download url exists
 
   Scenario: View external configuration
-    When EXTERNAL configuration parts exists
-    And EXTERNAL configuration source anchor info exists
-    Then EXTERNAL configuration source global download url exists
+    * EXTERNAL configuration parts exists
+    * EXTERNAL configuration source anchor info exists
+    * EXTERNAL configuration source global download url exists
 
   Scenario: Download internal configuration anchor
     When user downloads INTERNAL configuration source anchor
@@ -21,5 +20,18 @@ Feature: Configuration Info APIs
     Then it should return external configuration source anchor file
 
   Scenario: Download configuration part
-    * User can download EXTERNAL configuration part SHARED-ID version 2
-    * User can download INTERNAL configuration part SHARED-ID version 2
+    * User can download EXTERNAL configuration part SHARED-PARAMETERS version 2
+    * User can download INTERNAL configuration part PRIVATE-PARAMETERS version 2
+
+  @Modifying
+  Scenario: Uploading optional configuration part
+    Given INTERNAL configuration part OPTIONAL-CONFIGURATION-PART-1 was not uploaded
+    When user uploads INTERNAL configuration OPTIONAL-CONFIGURATION-PART-1 file monitoring-params_upload.xml
+    Then INTERNAL configuration part OPTIONAL-CONFIGURATION-PART-1 is updated
+
+  Scenario: Uploading unknown configuration part fails
+    * INTERNAL configuration part NOT-EXISTING file upload fails
+    * EXTERNAL configuration part NOT-EXISTING file upload fails
+    * EXTERNAL configuration part PRIVATE-PARAMETERS file upload fails
+    * EXTERNAL configuration part OPTIONAL-CONFIGURATION-PART-1 file upload fails
+

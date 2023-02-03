@@ -81,6 +81,7 @@ public enum RestApiAuditEvent {
     RE_CREATE_ANCHOR("Re-create configuration anchor"),
     RE_CREATE_INTERNAL_CONFIGURATION_ANCHOR("Re-create internal configuration anchor"),
     RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR("Re-create external configuration anchor"),
+    UPLOAD_CONFIGURATION_PART("Upload configuration part"),
     ADD_TSP("Add timestamping service"),
     DELETE_TSP("Delete timestamping service"),
     EDIT_TIMESTAMP_SERVICE("Edit timestamping service"),

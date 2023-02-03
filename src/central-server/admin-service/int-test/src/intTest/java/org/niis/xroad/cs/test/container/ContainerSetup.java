@@ -67,6 +67,10 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
     public void additionalBuilderConfiguration(@NotNull DockerfileBuilder dockerfileBuilder) {
         dockerfileBuilder.copy("/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
                 "/etc/xroad/conf.d/centralserver-admin-service-logback.xml");
+        dockerfileBuilder.copy("/etc/xroad/configuration-parts/optional-part-1.ini",
+                "/etc/xroad/configuration-parts/optional-part-1.ini");
+        dockerfileBuilder.copy("/etc/xroad/configuration-parts/optional-part-2.ini",
+                "/etc/xroad/configuration-parts/optional-part-3.ini");
     }
 
     @NotNull
@@ -80,6 +84,12 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
         imageFromDockerfile.withFileFromClasspath(
                 "/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
                 "container-files/etc/xroad/conf.d/centralserver-admin-service-logback.xml");
+        imageFromDockerfile.withFileFromClasspath(
+                "/etc/xroad/configuration-parts/optional-part-1.ini",
+                "container-files/etc/xroad/configuration-parts/optional-part-1.ini");
+        imageFromDockerfile.withFileFromClasspath(
+                "/etc/xroad/configuration-parts/optional-part-2.ini",
+                "container-files/etc/xroad/configuration-parts/optional-part-2.ini");
     }
 
     @NotNull

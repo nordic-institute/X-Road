@@ -50,7 +50,9 @@
 
             INSERT INTO distributed_files
             (version, file_name, file_data, content_identifier, file_updated_at, ha_node_name)
-            VALUES (2, 'file.xml', '<conf/>', 'SHARED-ID', '2022-01-01 01:00:00.000000', 'node_0');
+            VALUES (2, 'shared-params.xml', '<conf/>', 'SHARED-PARAMETERS', '2022-01-01 01:00:00.000000', 'node_0'),
+                   (2, 'private-params.xml', '<conf/>', 'PRIVATE-PARAMETERS', '2022-01-01 01:00:00.000000', 'node_0'),
+                   (0, 'test-configuration-part-2.xml', '<conf/>', 'OPTIONAL-CONFIGURATION-PART-2', '2022-01-01 01:00:00.000000', 'node_0');
             ]]>
         </sql>
     </changeSet>

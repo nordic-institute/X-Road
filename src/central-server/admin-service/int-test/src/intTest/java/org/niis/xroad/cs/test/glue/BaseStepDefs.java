@@ -26,6 +26,7 @@
 package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
+import com.nortal.test.asserts.AssertionOperation;
 import com.nortal.test.asserts.ValidationHelper;
 import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
@@ -56,6 +57,14 @@ public abstract class BaseStepDefs {
                 .message("Verify status code")
                 .expression("statusCode")
                 .expectedValue(expected)
+                .build();
+    }
+
+    protected Assertion isNull(String expression) {
+        return new Assertion.Builder()
+                .message("Assert field is null")
+                .expression(expression)
+                .operation(AssertionOperation.NULL)
                 .build();
     }
 
