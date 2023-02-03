@@ -19,15 +19,18 @@
 
 ## Architecture
 
-* [X-Road Architecture](doc/Architecture/arc-g_x-road_arhitecture.md)
-* [X-Road Security Architecture](doc/Architecture/arc-sec_x_road_security_architecture.md)
-* [Security Server Architecture](doc/Architecture/arc-ss_x-road_security_server_architecture.md)
-* [Central Server Architecture](doc/Architecture/arc-cs_x-road_central_server_architecture.md)
-* [Configuration Proxy Architecture](doc/Architecture/arc-cp_x-road_configuration_proxy_architecture.md)
-* [Audit Log Events](doc/Architecture/spec-al_x-road_audit_log_events_1.7_Y-883-17.docx)
-* [Operational Monitoring Daemon Architecture](doc/OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md)
-* [Environmental Monitoring Architecture](doc/EnvironmentalMonitoring/Monitoring-architecture.md)
-* [Technologies used in X-Road](doc/Architecture/arc-tec_x-road_technologies.md)
+* Common
+  * [X-Road Architecture](doc/Architecture/arc-g_x-road_arhitecture.md)
+  * [X-Road Security Architecture](doc/Architecture/arc-sec_x_road_security_architecture.md)
+  * [Audit Log Events](doc/Architecture/spec-al_x-road_audit_log_events_1.7_Y-883-17.docx)
+  * [Technologies used in X-Road](doc/Architecture/arc-tec_x-road_technologies.md)
+* Security Server
+  * [Security Server Architecture](doc/Architecture/arc-ss_x-road_security_server_architecture.md)
+  * [Operational Monitoring Daemon Architecture](doc/OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md)
+  * [Environmental Monitoring Architecture](doc/EnvironmentalMonitoring/Monitoring-architecture.md)
+* Central Server
+  * [Central Server Architecture](doc/Architecture/arc-cs_x-road_central_server_architecture.md)
+  * [Configuration Proxy Architecture](doc/Architecture/arc-cp_x-road_configuration_proxy_architecture.md)
 
 ## Protocols
 
