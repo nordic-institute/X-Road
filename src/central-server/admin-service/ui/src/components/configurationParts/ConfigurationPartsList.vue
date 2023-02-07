@@ -47,7 +47,7 @@
             <span
               :data-test="`configuration-part-${item.content_identifier}-updated-at`"
             >
-              {{ item.file_updated_at | formatDateTime }}
+              {{ item.file_updated_at | formatDateTimeSeconds }}
             </span>
           </template>
           <template #[`item.content_identifier`]="{ item }">
@@ -64,7 +64,6 @@
             <template v-else>
               {{ item.version }}
             </template>
-
           </template>
           <template #[`item.actions`]="{ item }">
             <configuration-part-download-button
