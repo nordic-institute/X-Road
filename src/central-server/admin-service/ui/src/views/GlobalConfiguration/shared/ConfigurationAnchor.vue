@@ -56,7 +56,6 @@
             </xrd-icon-base>
             {{ $t('globalConf.anchor.download') }}
           </xrd-button>
-          <a ref="downloadRef">download</a>
         </div>
       </div>
       <v-card-text class="px-0">
@@ -78,7 +77,7 @@
           </template>
           <template #[`item.created_at`]="{ item }">
             <span data-test="anchor-created-at">{{
-              item.created_at | formatDateTime
+              item.created_at | formatDateTimeSeconds
             }}</span>
           </template>
           <template #footer>

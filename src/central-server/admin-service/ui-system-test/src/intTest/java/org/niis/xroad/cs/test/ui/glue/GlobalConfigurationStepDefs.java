@@ -35,8 +35,13 @@ import org.niis.xroad.cs.test.ui.page.GlobalConfigurationPageObj;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
+import static java.lang.ClassLoader.getSystemResource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
@@ -44,6 +49,8 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     private static final String CONTENT_IDENTIFIER = "CONTENT_IDENTIFIER";
     private static final String DOWNLOADED_FILE = "DOWNLOADED_FILE";
     private static final String ANCHOR_DETAILS = "ANCHOR_DETAILS";
+    private static final String CFG_PART_UPDATED = "CFG_PART_UPDATED";
+    private static final long INITIAL_TIMEOUT = 120; //it may take some time to generate configurations
     private final GlobalConfigurationPageObj globalConfigurationPageObj = new GlobalConfigurationPageObj();
 
     @Step("Internal configuration sub-tab is selected")
@@ -218,7 +225,7 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
 
         globalConfigurationPageObj.anchor.txtCreatedAt()
                 .shouldNotBe(Condition.empty);
-        final Pair<String,String> oldDetails = scenarioContext.getStepData(ANCHOR_DETAILS);
+        final Pair<String, String> oldDetails = scenarioContext.getStepData(ANCHOR_DETAILS);
         assertThat(globalConfigurationPageObj.anchor.txtHash().text())
                 .as("new anchor hash should be different from previous")
                 .isNotEqualTo(oldDetails.getLeft());
@@ -251,21 +258,20 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
         globalConfigurationPageObj.configurationParts.textContentIdentifier(contentIdentifier)
                 .shouldBe(Condition.visible)
                 .shouldNotBe(Condition.empty);
+
+        scenarioContext.putStepData(CFG_PART_UPDATED,
+                globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier).text());
     }
 
-    @Step("Configuration part has update date")
-    public void hasUpdatedAtForConfigurationPart() {
-        final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
-        globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier)
-                .shouldBe(Condition.visible)
-                .shouldNotBe(Condition.empty);
-    }
-
-    @Step("Configuration part doesn't have update date")
+    @Step("Configuration part was updated")
     public void doesntHaveUpdatedAtForConfigurationPart() {
         final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
-        globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier)
-                .shouldBe(Condition.empty);
+        final String oldUpdated = scenarioContext.getStepData(CFG_PART_UPDATED);
+        final var newUpdated = globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier).text();
+
+        assertThat(newUpdated).isNotEqualTo(oldUpdated);
+
+        scenarioContext.putStepData(CFG_PART_UPDATED, newUpdated);
     }
 
     @Step("User clicks download button for it")
@@ -282,6 +288,13 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
         final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
         globalConfigurationPageObj.configurationParts.btnDownload(contentIdentifier)
                 .shouldBe(Condition.enabled);
+    }
+
+    @Step("Configuration part is generated")
+    public void isConfigurationPartGenerated() {
+        final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
+        globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier)
+                .shouldNotHave(Condition.exactText("-"), Duration.ofSeconds(INITIAL_TIMEOUT));
     }
 
     @Step("User can't download it")
@@ -306,7 +319,7 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     }
 
     @Step("User uploads file {} for it")
-    public void openUploadDialog(String file) {
+    public void openUploadDialog(String filename) throws URISyntaxException, InterruptedException {
         final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
 
         globalConfigurationPageObj.configurationParts.btnUpload(contentIdentifier)
@@ -317,8 +330,8 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
                 .shouldBe(Condition.enabled);
         globalConfigurationPageObj.configurationParts.btnConfirmUpload()
                 .shouldNotBe(Condition.enabled);
-
-        //TODO select file
+        TimeUnit.SECONDS.sleep(2); //avoid same updated at
+        globalConfigurationPageObj.configurationParts.inputConfigurationFile().uploadFile(getConfigurationFile(filename));
 
         globalConfigurationPageObj.configurationParts.btnConfirmUpload()
                 .shouldBe(Condition.enabled)
@@ -326,6 +339,10 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         commonPageObj.snackBar.btnClose().click();
+    }
+
+    private File getConfigurationFile(String filename) throws URISyntaxException {
+        return Paths.get(getSystemResource("files/" + filename).toURI()).toFile();
     }
 
 

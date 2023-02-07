@@ -104,7 +104,21 @@ export const formatDateTime = (value: string): string => {
   );
 };
 
+// Format date string. Result YYYY-MM-DD HH:MM:SS.
+export const formatDateTimeSeconds = (value: string): string => {
+  const timestamp = Date.parse(value);
+
+  if (isNaN(timestamp)) {
+    return '-';
+  }
+
+  const date = new Date(value);
+
+  return formatDateTime(value) + ':' + date.getSeconds().toString().padStart(2, '0');
+};
+
 Vue.filter('formatDateTime', formatDateTime);
+Vue.filter('formatDateTimeSeconds', formatDateTimeSeconds);
 
 // Format date string. Result HH:MM.
 Vue.filter('formatHoursMins', (value: string): string => {
