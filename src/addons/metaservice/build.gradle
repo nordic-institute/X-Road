@@ -19,7 +19,7 @@ dependencies {
     testImplementation 'org.apache.httpcomponents:httpmime:4.5.13'
     testImplementation 'org.xmlunit:xmlunit-core:2.8.2'
     testImplementation 'org.xmlunit:xmlunit-matchers:2.8.2'
-    testImplementation 'org.hsqldb:hsqldb:2.5.2'
+    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 

@@ -11,11 +11,11 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '3.3'
-    id 'org.owasp.dependencycheck' version '7.2.1'
+    id 'org.owasp.dependencycheck' version '8.0.2'
     id 'jacoco'
     id 'java'
     id 'idea'
-    id "io.spring.dependency-management" version "1.0.14.RELEASE" apply false
+    id "io.spring.dependency-management" version "1.1.0" apply false
     id 'org.springframework.boot' version "${springBootVersion}" apply false
     id "com.dorongold.task-tree" version "2.1.0"
 }
@@ -128,28 +128,31 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
         intTestRuntimeOnly.extendsFrom runtimeOnly
     }
 
-    //Defining version overrides for spring dependency plugin
-    ext['snakeyaml.version'] = "$snakeyamlVersion"
-    ext['tomcat.version'] = "$tomcatVersion"
-
     dependencies {
+        //With require constraints we define lowest compliant dependency version (transitive dependencies are incl.)
         constraints {
+            add('implementation', 'com.fasterxml.jackson.core:jackson-databind') {
+                because("Vulnerability fix regarding CVE-2022-42003")
+                version {
+                    require("$jacksonBomVersion")
+                }
+            }
             add('implementation', 'org.yaml:snakeyaml') {
                 because("Vulnerability fix regarding CVE-2022-25857")
                 version {
                     require("$snakeyamlVersion")
                 }
             }
-            add('implementation', 'org.apache.tomcat.embed:tomcat-embed-core') {
-                because("Vulnerability fix regarding CVE-2022-45143")
+            add('implementation', 'org.apache.commons:commons-text') {
+                because("Vulnerability fix regarding CVE-2022-42889")
                 version {
-                    require("$tomcatVersion")
+                    require("$commonsTextVersion")
                 }
             }
-            add('implementation', 'org.apache.tomcat.embed:tomcat-embed-websocket') {
-                because("Vulnerability fix regarding CVE-2022-45143")
+            add('implementation', 'org.scala-lang:scala-library') {
+                because("Vulnerability fix regarding CVE-2022-36944")
                 version {
-                    require("$tomcatVersion")
+                    require("$scalaLibraryVersion")
                 }
             }
         }
