@@ -28,7 +28,6 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.commonui.OptionalPartsConf;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +53,7 @@ import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
+import org.niis.xroad.cs.admin.core.validation.ConfigurationPartValidator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
@@ -69,8 +69,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -108,7 +106,7 @@ class ConfigurationServiceImplTest {
     @Mock
     private AuditDataHelper auditDataHelper;
     @Mock
-    private ExternalProcessRunner externalProcessRunner;
+    private ConfigurationPartValidator configurationPartValidator;
     @Spy
     private DistributedFileMapper distributedFileMapper = new DistributedFileMapperImpl();
     private ConfigurationServiceImpl configurationService;
@@ -235,7 +233,7 @@ class ConfigurationServiceImplTest {
                 distributedFileRepository,
                 distributedFileMapper,
                 auditDataHelper,
-                externalProcessRunner);
+                configurationPartValidator);
     }
 
     @Nested
@@ -340,8 +338,8 @@ class ConfigurationServiceImplTest {
                 verify(auditDataHelper).put(UPLOAD_FILE_HASH_ALGORITHM, DEFAULT_UPLOAD_FILE_HASH_ALGORITHM);
                 verify(auditDataHelper).put(UPLOAD_FILE_HASH, "8ffeeed59eae93366fdbb7805821b5f99da7ccdacd718056ddd740d4");
 
-                verify(externalProcessRunner).executeAndThrowOnFailure(eq("test-validate.sh"),
-                        contains(PART_FILE_NAME));
+                verify(configurationPartValidator).validate(TEST_CONFIGURATION_PART, FILE_DATA);
+
                 verify(distributedFileRepository).save(distributedFileCaptor.capture());
                 final DistributedFileEntity distributedFileEntity = distributedFileCaptor.getValue();
 

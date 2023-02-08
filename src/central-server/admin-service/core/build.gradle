@@ -21,6 +21,7 @@ dependencies {
 //    implementation project(':signer-protocol')
 //    implementation project(':common-ui')
 //    implementation project(':common-rest-api')
+    api project(':monitoring-conf')
 
     api('org.springframework.boot:spring-boot-starter-web')
     api('org.springframework.boot:spring-boot-starter-security')

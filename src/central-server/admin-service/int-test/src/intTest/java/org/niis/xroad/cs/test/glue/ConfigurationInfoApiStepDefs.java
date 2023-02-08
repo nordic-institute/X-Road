@@ -127,20 +127,20 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(false,
                         "body.^[contentIdentifier=='SHARED-PARAMETERS'].optional", "Part is mandatory"))
 
-                .assertion(equalsAssertion("test-configuration-part-1.xml",
-                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].fileName", "File name matches"))
-                .assertion(isNull("body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].version"))
-                .assertion(isNull("body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].fileUpdatedAt"))
+                .assertion(equalsAssertion("test-monitoring-part.xml",
+                        "body.^[contentIdentifier=='MONITORING'].fileName", "File name matches"))
+                .assertion(isNull("body.^[contentIdentifier=='MONITORING'].version"))
+                .assertion(isNull("body.^[contentIdentifier=='MONITORING'].fileUpdatedAt"))
                 .assertion(equalsAssertion(true,
-                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-1'].optional", "Part is optional"))
+                        "body.^[contentIdentifier=='MONITORING'].optional", "Part is optional"))
 
-                .assertion(equalsAssertion("test-configuration-part-2.xml",
-                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].fileName", "File name matches"))
-                .assertion(equalsAssertion(0, "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].version", "Version matches"))
+                .assertion(equalsAssertion("test-fetchinterval-part.xml",
+                        "body.^[contentIdentifier=='FETCHINTERVAL'].fileName", "File name matches"))
+                .assertion(equalsAssertion(0, "body.^[contentIdentifier=='FETCHINTERVAL'].version", "Version matches"))
                 .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"),
-                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].fileUpdatedAt", "UpdatedAt matches"))
+                        "body.^[contentIdentifier=='FETCHINTERVAL'].fileUpdatedAt", "UpdatedAt matches"))
                 .assertion(equalsAssertion(true,
-                        "body.^[contentIdentifier=='OPTIONAL-CONFIGURATION-PART-2'].optional", "Part is optional"))
+                        "body.^[contentIdentifier=='FETCHINTERVAL'].optional", "Part is optional"))
 
                 .execute();
     }

@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.commonui.OptionalConfPart;
 import ee.ria.xroad.commonui.OptionalPartsConf;
 
@@ -50,13 +49,12 @@ import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
+import org.niis.xroad.cs.admin.core.validation.ConfigurationPartValidator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
@@ -68,12 +66,10 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NA
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_PART_FILE_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_PART_VALIDATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.UNKNOWN_CONFIGURATION_PART;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CONTENT_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.PART_FILE_NAME;
@@ -97,7 +93,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final DistributedFileRepository distributedFileRepository;
     private final DistributedFileMapper distributedFileMapper;
     private final AuditDataHelper auditDataHelper;
-    private final ExternalProcessRunner externalProcessRunner;
+    private final ConfigurationPartValidator configurationPartValidator;
 
     @Override
     public Set<ConfigurationParts> getConfigurationParts(ConfigurationSourceType sourceType) {
@@ -228,22 +224,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         auditDataHelper.put(UPLOAD_FILE_HASH_ALGORITHM, DEFAULT_UPLOAD_FILE_HASH_ALGORITHM);
         auditDataHelper.put(UPLOAD_FILE_HASH, getFileHash(data));
 
-        validateConfigurationPart(data, partFileName, optionalPartsConf);
+        configurationPartValidator.validate(contentIdentifier, data);
 
         saveConfigurationPart(contentIdentifier, partFileName, data, 0);
-    }
-
-    private void validateConfigurationPart(byte[] data, String partFileName, OptionalPartsConf optionalPartsConf) {
-        final String validationProgram = optionalPartsConf.getValidationProgram(partFileName);
-        if (isNotBlank(validationProgram)) {
-            try {
-                final Path tempFilePath = Files.createTempFile(partFileName, null);
-                Files.write(tempFilePath, data);
-                externalProcessRunner.executeAndThrowOnFailure(validationProgram, tempFilePath.toString());
-            } catch (Exception e) {
-                throw new ConfigurationPartException(CONFIGURATION_PART_VALIDATION_FAILED);
-            }
-        }
     }
 
     @SneakyThrows

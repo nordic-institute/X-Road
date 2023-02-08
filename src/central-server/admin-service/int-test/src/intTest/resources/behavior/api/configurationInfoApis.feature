@@ -25,13 +25,13 @@ Feature: Configuration Info APIs
 
   @Modifying
   Scenario: Uploading optional configuration part
-    Given INTERNAL configuration part OPTIONAL-CONFIGURATION-PART-1 was not uploaded
-    When user uploads INTERNAL configuration OPTIONAL-CONFIGURATION-PART-1 file monitoring-params_upload.xml
-    Then INTERNAL configuration part OPTIONAL-CONFIGURATION-PART-1 is updated
+    Given INTERNAL configuration part MONITORING was not uploaded
+    When user uploads INTERNAL configuration MONITORING file monitoring-params_upload.xml
+    Then INTERNAL configuration part MONITORING is updated
 
   Scenario: Uploading unknown configuration part fails
     * INTERNAL configuration part NOT-EXISTING file upload fails
     * EXTERNAL configuration part NOT-EXISTING file upload fails
     * EXTERNAL configuration part PRIVATE-PARAMETERS file upload fails
-    * EXTERNAL configuration part OPTIONAL-CONFIGURATION-PART-1 file upload fails
-
+    * EXTERNAL configuration part FETCHINTERVAL file upload fails
+    * EXTERNAL configuration part MONITORING file upload fails
