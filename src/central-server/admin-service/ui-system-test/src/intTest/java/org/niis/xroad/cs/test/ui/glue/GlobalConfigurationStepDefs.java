@@ -28,16 +28,17 @@
 package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.tuple.Pair;
 import org.niis.xroad.cs.test.ui.page.GlobalConfigurationPageObj;
+import org.openqa.selenium.NoSuchElementException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
-import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -50,7 +51,7 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     private static final String DOWNLOADED_FILE = "DOWNLOADED_FILE";
     private static final String ANCHOR_DETAILS = "ANCHOR_DETAILS";
     private static final String CFG_PART_UPDATED = "CFG_PART_UPDATED";
-    private static final long INITIAL_TIMEOUT = 120; //it may take some time to generate configurations
+    private static final long RETRY_COUNT_FOR_CFG_PARTS = 6; //it may take some time to generate configurations
     private final GlobalConfigurationPageObj globalConfigurationPageObj = new GlobalConfigurationPageObj();
 
     @Step("Internal configuration sub-tab is selected")
@@ -293,8 +294,20 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     @Step("Configuration part is generated")
     public void isConfigurationPartGenerated() {
         final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
-        globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier)
-                .shouldNotHave(Condition.exactText("-"), Duration.ofSeconds(INITIAL_TIMEOUT));
+        var retry = RETRY_COUNT_FOR_CFG_PARTS;
+        while (true) {
+            try {
+                globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier)
+                        .shouldNotHave(Condition.exactText("-"));
+                break;
+            } catch (NoSuchElementException e) {
+                if (retry-- > 0) {
+                    Selenide.webdriver().driver().getWebDriver().navigate();
+                } else {
+                    throw e;
+                }
+            }
+        }
     }
 
     @Step("User can't download it")
