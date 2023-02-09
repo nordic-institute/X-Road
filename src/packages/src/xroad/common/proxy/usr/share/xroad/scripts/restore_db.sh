@@ -100,7 +100,7 @@ fi
 JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
   --classpath=/usr/share/xroad/jlib/postgresql.jar \
   --url="jdbc:postgresql://$db_addr:$db_port/$db_database?currentSchema=${db_schema},public" \
-  --changeLogFile=/usr/share/xroad/db/serverconf-changelog.xml \
+  --changeLogFile=serverconf-changelog.xml \
   --password="${db_admin_password}" \
   --username="${db_admin_user}" \
   --defaultSchemaName="${db_schema}" \

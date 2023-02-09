@@ -36,7 +36,7 @@ dependencies {
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
-    testImplementation('org.hsqldb:hsqldb')
+    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('javax.validation:validation-api')
