@@ -59,6 +59,7 @@ abstract class AbstractExecLister<T> {
     }
 
     void validateSupportedOs() throws ExecListingFailedException {
+        //TODO most commands are supported by macos, implementations of this abstract class should be verified.
         if (!SystemUtils.IS_OS_LINUX) {
             throw new ExecListingFailedException("only linux is supported");
         }
