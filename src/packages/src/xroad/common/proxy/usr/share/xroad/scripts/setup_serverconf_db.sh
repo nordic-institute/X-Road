@@ -181,7 +181,7 @@ EOF
     /usr/share/xroad/db/liquibase.sh \
       --classpath=/usr/share/xroad/jlib/proxy.jar \
       --url="jdbc:postgresql://$db_host/$db_database" \
-      --changeLogFile=/usr/share/xroad/db/${db_name}-legacy-changelog.xml \
+      --changeLogFile=${db_name}-legacy-changelog.xml \
       --password="${db_admin_password}" \
       --username="${db_admin_conn_user}" \
       update ||
@@ -211,7 +211,7 @@ EOF
   LIQUIBASE_HOME="$(pwd)" JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
     --classpath=/usr/share/xroad/jlib/postgresql.jar \
     --url="jdbc:postgresql://$db_host/$db_database?currentSchema=${db_schema},public" \
-    --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml \
+    --changeLogFile=${db_name}-changelog.xml \
     --password="${db_admin_password}" \
     --username="${db_admin_conn_user}" \
     --defaultSchemaName="${db_schema}" \
