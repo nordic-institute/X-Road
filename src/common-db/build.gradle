@@ -7,6 +7,8 @@ dependencies {
 
     implementation  project(':common-util')
     implementation  "org.hibernate:hibernate-hikaricp:$hibernateVersion"
+    implementation "com.zaxxer:HikariCP:$hikariCpVersion"
+
     implementation  "org.postgresql:postgresql:$postgresqlVersion"
 
     // DB layer tests use HSQLDB with in-memory tables
