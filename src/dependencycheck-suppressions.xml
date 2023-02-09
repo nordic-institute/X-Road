@@ -21,4 +21,11 @@
         <packageUrl regex="true">^pkg:maven/org\.springframework/spring.*$</packageUrl>
         <cve>CVE-2016-1000027</cve>
     </suppress>
+    <suppress base="true">
+        <notes><![CDATA[
+   False positive as it shares same namespace as vulnerable woodstox-core lib.
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.codehaus\.woodstox/stax2-api@.*$</packageUrl>
+        <cpe>cpe:/a:fasterxml:woodstox</cpe>
+    </suppress>
 </suppressions>

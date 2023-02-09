@@ -143,6 +143,12 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
                     require("$scalaLibraryVersion")
                 }
             }
+            add('implementation', 'com.fasterxml.woodstox:woodstox-core') {
+                because("Vulnerability fix regarding CVE-2022-40152")
+                version {
+                    require("$woodstoxVersion")
+                }
+            }
         }
 
         testImplementation 'org.hamcrest:hamcrest:2.2'
