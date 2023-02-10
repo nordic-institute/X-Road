@@ -1,5 +1,10 @@
 # Change Log
 
+## 7.1.2 - 2023-02-10
+- XRDDEV-2210: As a Security Server Administrator I want that the Security Server uses the ocspFreshnessSeconds value of the X-Road instance where it has been registered so that the configuration of federated instances doesn't affect my Security Server's operations.
+- XRDDEV-2230: Gpg is not marked as a dependency so initial configuration might fail.
+- XRDDEV-2235: As a Developer I want to check vulnerable dependencies and fix them for the 7.1.2 and 7.2.1 releases so that we don't have potential security issues in the software.
+ 
 ## 7.1.1 - 2022-08-18
 - XRDDEV-2095: Operational monitoring database migrations are not executed on RHEL8 during installation
 - XRDDEV-2115: Update dependencies with known vulnerabilities
