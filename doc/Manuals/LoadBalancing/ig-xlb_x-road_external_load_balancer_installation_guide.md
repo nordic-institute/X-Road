@@ -420,7 +420,6 @@ this node:
 $ curl -i localhost:5588
    HTTP/1.1 200 OK
    Content-Length: 0
-   Server: Jetty(8.y.z-SNAPSHOT)
 ```
 
 And a health check service response on the same node when the service `xroad-signer` is not running:
@@ -428,7 +427,6 @@ And a health check service response on the same node when the service `xroad-sig
 $ curl -i localhost:5588
 HTTP/1.1 500 Server Error
 Transfer-Encoding: chunked
-Server: Jetty(8.y.z-SNAPSHOT)
 
 Fetching health check response timed out for: Authentication key OCSP status
 ```
