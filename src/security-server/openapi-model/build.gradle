@@ -5,10 +5,10 @@ plugins {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
-    implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
+    compileOnly("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
+    compileOnly("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
 
-    api('io.swagger.core.v3:swagger-annotations:2.1.13')
+    api("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
 }
 
 sourceSets {
@@ -27,19 +27,19 @@ openApiGenerate {
     apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
     modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
     globalProperties = [
-        modelDocs: "false",
-        apis     : "", // must use empty strings instead of "true":
+        modelDocs              : "false",
+        apis                   : "", // must use empty strings instead of "true":
         // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-        models   : "",
-        generateSupportingFiles : "true",
-        supportingFiles: 'ApiUtil.java'
+        models                 : "",
+        generateSupportingFiles: "true",
+        supportingFiles        : 'ApiUtil.java'
     ]
     configOptions = [
-        interfaceOnly: "true",
-        useTags      : "true",
+        interfaceOnly        : "true",
+        useTags              : "true",
         documentationProvider: "none",
         skipDefaultInterface : "true",
-        openApiNullable: "false"
+        openApiNullable      : "false"
     ]
 }
 
