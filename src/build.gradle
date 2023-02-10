@@ -226,10 +226,11 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "ui"].contains(it.nam
     }
 
     checkstyle {
-        toolVersion = "8.45.1"
+        toolVersion = "10.7.0"
         configDirectory = file("${project.rootDir}/config/checkstyle")
         ignoreFailures = false
         showViolations = false
+        enableExternalDtdLoad = true
     }
 
     checkstyleMain {
