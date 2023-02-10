@@ -66,6 +66,16 @@ public abstract class RequestEntity extends AuditableEntity {
     @Getter
     private int id;
 
+    @Column(name = "server_owner_name")
+    @Getter
+    @Setter
+    private String serverOwnerName;
+
+    @Column(name = "server_user_name")
+    @Getter
+    @Setter
+    private String serverUserName;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "security_server_id")
     @Getter

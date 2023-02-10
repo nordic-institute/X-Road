@@ -32,6 +32,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 
 
 @Getter
@@ -42,6 +43,7 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 public class AuthenticationCertificateRegistrationRequest extends RequestWithProcessing {
     private byte[] authCert;
     private String address;
+    private CertificateDetails certificateDetails;
 
     public AuthenticationCertificateRegistrationRequest(Origin origin,
                                                         ee.ria.xroad.common.identifier.SecurityServerId serverId) {

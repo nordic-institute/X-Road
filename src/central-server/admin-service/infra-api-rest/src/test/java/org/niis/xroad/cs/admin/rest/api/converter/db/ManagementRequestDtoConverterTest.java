@@ -49,6 +49,7 @@ import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
+import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.rest.api.converter.AbstractDtoConverterTest;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestOriginDtoConverter;
@@ -126,6 +127,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             AuthenticationCertificateRegistrationRequest request = mock(AuthenticationCertificateRegistrationRequest.class);
             doReturn(SERVER_ADDRESS).when(request).getAddress();
             doReturn(authCertBytes).when(request).getAuthCert();
+            doReturn(new CertificateDetails()).when(request).getCertificateDetails();
             prepareCommonStubs(request, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST);
 
             ManagementRequestDto converted = converter.toDto(request);
@@ -147,6 +149,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
         public void testAuthenticationCertificateDeletionRequestConversion() {
             AuthenticationCertificateDeletionRequest request = mock(AuthenticationCertificateDeletionRequest.class);
             doReturn(authCertBytes).when(request).getAuthCert();
+            doReturn(new CertificateDetails()).when(request).getCertificateDetails();
             prepareCommonStubs(request, ManagementRequestType.AUTH_CERT_DELETION_REQUEST);
 
             ManagementRequestDto converted = converter.toDto(request);

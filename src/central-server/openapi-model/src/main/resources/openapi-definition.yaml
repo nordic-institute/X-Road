@@ -4851,6 +4851,9 @@ components:
         security_server_owner:
           type: string
           readOnly: true
+        client_owner:
+          type: string
+          readOnly: true
         security_server_id:
           type: string
           description: Encoded Security Server ID
@@ -5006,6 +5009,8 @@ components:
         authenticationCertificate:
           type: string
           format: byte
+        certificateDetails:
+          $ref: '#/components/schemas/CertificateDetails'
       required:
         - serverAddress
         - authenticationCertificate
@@ -5017,6 +5022,8 @@ components:
         authenticationCertificate:
           type: string
           format: byte
+        certificateDetails:
+          $ref: '#/components/schemas/CertificateDetails'
       required:
         - authenticationCertificate
     ClientRegistrationRequest:

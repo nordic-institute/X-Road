@@ -41,6 +41,7 @@ import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
+import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestOriginDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestStatusConverter;
@@ -79,6 +80,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
     private final ClientIdConverter clientIdConverter;
     private final ManagementRequestStatusConverter.Service statusMapper;
     private final ManagementRequestDtoTypeConverter.Service requestTypeConverter;
+    private final CertificateDetailsDtoConverter certificateDetailsDtoConverter;
 
     public ManagementRequestDto toDto(Request request) {
         ManagementRequestDto result;
@@ -88,12 +90,16 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             result = self(new AuthenticationCertificateRegistrationRequestDto(), self -> {
                 self.setServerAddress(req.getAddress());
                 self.setAuthenticationCertificate(req.getAuthCert());
+                self.setCertificateDetails(certificateDetailsDtoConverter
+                        .convert(req.getCertificateDetails()));
             });
 
         } else if (request instanceof AuthenticationCertificateDeletionRequest) {
             AuthenticationCertificateDeletionRequest req = (AuthenticationCertificateDeletionRequest) request;
             result = self(new AuthenticationCertificateDeletionRequestDto(), self -> {
                 self.setAuthenticationCertificate(req.getAuthCert());
+                self.setCertificateDetails(certificateDetailsDtoConverter
+                        .convert(req.getCertificateDetails()));
             });
 
         } else if (request instanceof ClientRegistrationRequest) {
@@ -119,6 +125,8 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         return result.id(request.getId())
                 .type(requestTypeConverter.toDto(request.getManagementRequestType()))
                 .origin(originMapper.toDto(request.getOrigin()))
+                .securityServerOwner(request.getServerOwnerName())
+                .clientOwner(request.getServerUserName())
                 .securityServerId(securityServerIdMapper.convertId(request.getSecurityServerId()))
                 .status(statusMapper.toDto(request.getProcessingStatus()))
                 .createdAt(request.getCreatedAt().atOffset(dtoZoneOffset))

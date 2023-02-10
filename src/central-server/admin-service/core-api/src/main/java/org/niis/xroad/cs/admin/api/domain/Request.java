@@ -38,6 +38,8 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 public abstract class Request extends Auditable {
 
     private int id;
+    private String serverOwnerName;
+    private String serverUserName;
     private SecurityServerId securityServerId;
     private Origin origin;
     private String comments;

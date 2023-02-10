@@ -37,6 +37,7 @@ import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
+import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
@@ -45,8 +46,9 @@ import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        uses = {RequestProcessingMapper.class, ClientIdMapper.class, SecurityServerIdMapper.class})
+        uses = {RequestProcessingMapper.class, ClientIdMapper.class, SecurityServerIdMapper.class, CertificateConverter.class})
 public interface RequestMapper extends GenericBiDirectionalMapper<RequestEntity, Request> {
+
 
     @Override
     default Request toTarget(RequestEntity source) {
@@ -91,9 +93,11 @@ public interface RequestMapper extends GenericBiDirectionalMapper<RequestEntity,
 
     ClientDeletionRequestEntity fromDto(ClientDeletionRequest source);
 
+    @Mapping(source = "authCert", target = "certificateDetails")
     AuthenticationCertificateDeletionRequest toDto(AuthenticationCertificateDeletionRequestEntity source);
 
     @Mapping(ignore = true, target = "processingStatus")
+    @Mapping(source = "authCert", target = "certificateDetails")
     AuthenticationCertificateRegistrationRequest toDto(AuthenticationCertificateRegistrationRequestEntity source);
 
     ClientDeletionRequest toDto(ClientDeletionRequestEntity source);
