@@ -24,9 +24,7 @@ dependencies {
     annotationProcessor "org.springframework:spring-context-indexer"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-    implementation(project(":central-server:admin-service:api-client")) {
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
-    }
+    implementation(project(":central-server:admin-service:api-client"))
     implementation(project(':central-server:openapi-model'))
     implementation(project(':common-util')) {
         exclude group: 'com.typesafe.akka'
@@ -43,10 +41,9 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-web') {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
-    //TODO jetty is not being picked up.
+
     implementation('org.springframework.boot:spring-boot-starter-jetty')
 
-    implementation('io.swagger.core.v3:swagger-annotations:2.2.0')
     implementation('javax.validation:validation-api')
     implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:7.4.0')
 
