@@ -34,8 +34,8 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.niis.xroad.cs.admin.api.dto.KeyLabel;
 import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.exception.SignerProxyException;
@@ -44,9 +44,11 @@ import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.api.service.TokenActionsResolver;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
+import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyWithDetailsMapper;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -61,7 +63,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
@@ -85,10 +86,12 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTER
 public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer implements ConfigurationSigningKeysService {
     private static final Date SIGNING_KEY_CERT_NOT_BEFORE = Date.from(Instant.EPOCH);
     private static final Date SIGNING_KEY_CERT_NOT_AFTER = Date.from(Instant.parse("2038-01-01T00:00:00Z"));
+
     private final SystemParameterService systemParameterService;
     private final ConfigurationSigningKeyRepository configurationSigningKeyRepository;
     private final ConfigurationSourceRepository configurationSourceRepository;
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
+    private final ConfigurationSigningKeyWithDetailsMapper configurationSigningKeyWithDetailsMapper;
     private final SignerProxyFacade signerProxyFacade;
     private final TokenActionsResolver tokenActionsResolver;
     private final SigningKeyActionsResolver signingKeyActionsResolver;
@@ -96,14 +99,38 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     private final AuditDataHelper auditDataHelper;
     private final HAConfigStatus haConfigStatus;
 
+    @Override
+    public List<ConfigurationSigningKey> findByTokenIdentifier(final String tokenId) {
+        return configurationSigningKeyRepository.findByTokenIdentifier(tokenId).stream()
+                .map(configurationSigningKeyMapper::toTarget)
+                .collect(Collectors.toList());
+    }
 
     @Override
-    public List<ConfigurationSigningKey> findByTokenIdentifier(final ee.ria.xroad.signer.protocol.dto.TokenInfo token) {
+    public List<ConfigurationSigningKeyWithDetails> findDetailedByToken(final TokenInfo token) {
+        var keyInfoMap = Optional.ofNullable(token.getKeyInfo())
+                .orElseGet(List::of).stream()
+                .collect(Collectors.toMap(KeyInfo::getId, key -> key));
+
         return configurationSigningKeyRepository.findByTokenIdentifier(token.getId()).stream()
-                .map(configurationSigningKeyMapper::toTarget)
-                .map(resolvePossibleKeyActions(token))
-                .map(addLabel(token))
+                .map(signingKey -> {
+                    var keyInfo = keyInfoMap.get(configurationSigningKeyMapper.toTarget(signingKey).getKeyIdentifier());
+                    var key = configurationSigningKeyMapper.toTarget(signingKey);
+                    return mapWithDetails(token, key, keyInfo);
+                })
                 .collect(Collectors.toList());
+    }
+
+    private ConfigurationSigningKeyWithDetails mapWithDetails(final ee.ria.xroad.signer.protocol.dto.TokenInfo token,
+                                                              ConfigurationSigningKey signingKey,
+                                                              KeyInfo keyInfo) {
+        var possibleActions = List.copyOf(signingKeyActionsResolver.resolveActions(token, signingKey));
+
+        return configurationSigningKeyWithDetailsMapper.toTarget(
+                signingKey,
+                possibleActions,
+                keyInfo.getLabel(),
+                keyInfo.isAvailable());
     }
 
     @Override
@@ -166,7 +193,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     }
 
     @Override
-    public ConfigurationSigningKey addKey(String sourceType, String tokenId, String keyLabel) {
+    public ConfigurationSigningKeyWithDetails addKey(String sourceType, String tokenId, String keyLabel) {
 
         var response = new ConfigurationSigningKey();
         response.setActiveSourceSigningKey(Boolean.FALSE);
@@ -178,7 +205,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         final PossibleTokenAction action = StringUtils.endsWithIgnoreCase(SOURCE_TYPE_INTERNAL, sourceType)
                 ? GENERATE_INTERNAL_KEY
                 : GENERATE_EXTERNAL_KEY;
-        tokenActionsResolver.requireAction(action, tokenInfo, findByTokenIdentifier(tokenInfo));
+        tokenActionsResolver.requireAction(action, tokenInfo, findByTokenIdentifier(tokenInfo.getId()));
 
         KeyInfo keyInfo;
         try {
@@ -211,38 +238,17 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             configurationSourceEntity.getConfigurationSigningKeys().add(signingKey);
 
             configurationSourceRepository.save(configurationSourceEntity);
+
+            response.setKeyIdentifier(keyInfo.getId())
+                    .setKeyGeneratedAt(generatedAt)
+                    .setTokenIdentifier(tokenId);
+
+            return mapWithDetails(tokenInfo, response, keyInfo);
         } catch (Exception e) {
+            //TODO is this tested? verify
             deleteKey(keyInfo.getId());
+            throw new SignerProxyException(KEY_GENERATION_FAILED);
         }
-
-        return resolvePossibleKeyActions(tokenInfo).apply(
-                response.setKeyIdentifier(keyInfo.getId())
-                        .setLabel(new KeyLabel(keyInfo.getLabel()))
-                        .setAvailable(keyInfo.isAvailable())
-                        .setKeyGeneratedAt(generatedAt)
-                        .setTokenIdentifier(tokenId)
-        );
-    }
-
-    private Function<ConfigurationSigningKey, ConfigurationSigningKey> resolvePossibleKeyActions(
-            final ee.ria.xroad.signer.protocol.dto.TokenInfo token) {
-
-        return key -> {
-            key.setPossibleActions(List.copyOf(signingKeyActionsResolver.resolveActions(token, key)));
-            return key;
-        };
-    }
-
-    private Function<ConfigurationSigningKey, ConfigurationSigningKey> addLabel(final ee.ria.xroad.signer.protocol.dto.TokenInfo token) {
-        var mappedLabels = Optional.ofNullable(token.getKeyInfo())
-                .orElseGet(List::of).stream()
-                .filter(key -> StringUtils.isNotEmpty(key.getLabel()))
-                .collect(Collectors.toMap(KeyInfo::getId, key -> new KeyLabel(key.getLabel())));
-
-        return key -> {
-            key.setLabel(mappedLabels.get(key.getKeyIdentifier()));
-            return key;
-        };
     }
 
     @Override

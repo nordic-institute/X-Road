@@ -82,7 +82,9 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     public GlobalGroup addGlobalGroup(GlobalGroup globalGroup) {
         assertGlobalGroupExists(globalGroup.getGroupCode());
 
-        var globalGroupEntity = globalGroupMapper.fromTarget(globalGroup);
+        var globalGroupEntity = new GlobalGroupEntity(globalGroup.getGroupCode());
+        globalGroupEntity.setDescription(globalGroup.getDescription());
+
 
         globalGroupEntity = globalGroupRepository.save(globalGroupEntity);
         addAuditData(globalGroupEntity);

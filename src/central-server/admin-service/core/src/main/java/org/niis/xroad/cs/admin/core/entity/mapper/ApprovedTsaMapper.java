@@ -40,11 +40,9 @@ import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
 import java.security.cert.X509Certificate;
 
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
-import static org.mapstruct.ReportingPolicy.IGNORE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_CERTIFICATE;
 
-@Mapper(componentModel = SPRING, unmappedTargetPolicy = IGNORE,
-        uses = {CertificateConverter.class})
+@Mapper(componentModel = SPRING, uses = {CertificateConverter.class})
 public interface ApprovedTsaMapper extends GenericUniDirectionalMapper<ApprovedTsaEntity, ApprovedTsa> {
 
     @Override

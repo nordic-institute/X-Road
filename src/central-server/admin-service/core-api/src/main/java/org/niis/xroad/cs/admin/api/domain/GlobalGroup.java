@@ -37,13 +37,5 @@ public class GlobalGroup extends Auditable {
     private int id;
     private String groupCode;
     private String description;
-    private Integer memberCount;
-
-    public GlobalGroup(String groupCode) {
-        this.groupCode = groupCode;
-    }
-
-    public int getMemberCount() {
-        return this.memberCount == null ? 0 : this.memberCount;
-    }
+    private int memberCount;
 }

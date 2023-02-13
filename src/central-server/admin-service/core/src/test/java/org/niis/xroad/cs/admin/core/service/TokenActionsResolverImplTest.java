@@ -50,9 +50,9 @@ import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.GENERATE_INTER
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
 
-class TokenActionsResolverTest {
+class TokenActionsResolverImplTest {
 
-    private final TokenActionsResolver tokenActionsResolver = new TokenActionsResolver();
+    private final TokenActionsResolverImpl tokenActionsResolver = new TokenActionsResolverImpl();
 
     @Test
     void resolve() {

@@ -1,7 +1,5 @@
 
 dependencies {
-    annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
-
     implementation project(':central-server:admin-service:core-api')
     implementation project(':central-server:openapi-model')
     implementation project(':common-util')
@@ -16,8 +14,6 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-
-    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
 
     testImplementation project(':common-test')
     testImplementation(testFixtures(project(":common-rest-api")))

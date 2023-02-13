@@ -31,11 +31,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import org.niis.xroad.cs.admin.api.dto.KeyLabel;
-import org.niis.xroad.cs.admin.api.dto.PossibleKeyAction;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
 @Accessors(chain = true)
@@ -49,11 +46,6 @@ public class ConfigurationSigningKey {
 
     private ConfigurationSourceType sourceType;
     private boolean activeSourceSigningKey;
-
-    private Boolean available;
-    private KeyLabel label;
-    private List<PossibleKeyAction> possibleActions = null;
-
 }
 
 

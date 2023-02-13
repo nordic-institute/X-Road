@@ -10,17 +10,9 @@ configurations {
 }
 
 dependencies {
-    annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
-    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
-    annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
-
+    annotationProcessor("org.hibernate:hibernate-jpamodelgen:$hibernateVersion")
 
     api project(':central-server:admin-service:core-api')
-//    implementation project(':common-util')
-//    implementation project(':common-verifier')
-//    implementation project(':signer-protocol')
-//    implementation project(':common-ui')
-//    implementation project(':common-rest-api')
     api project(':monitoring-conf')
 
     api('org.springframework.boot:spring-boot-starter-web')
@@ -30,7 +22,6 @@ dependencies {
     api("jakarta.transaction:jakarta.transaction-api")
     api("jakarta.persistence:jakarta.persistence-api")
 
-    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
     implementation("io.vavr:vavr:$vavrVersion")
 
     testImplementation project(':common-test')

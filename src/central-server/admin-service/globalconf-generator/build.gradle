@@ -8,10 +8,6 @@ dependencies {
 
     implementation('org.springframework:spring-context')
     implementation('org.springframework:spring-tx')
-    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
-
-    annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
-    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')

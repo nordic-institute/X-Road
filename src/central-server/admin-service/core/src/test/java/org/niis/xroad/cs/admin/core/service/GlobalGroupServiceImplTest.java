@@ -81,7 +81,7 @@ class GlobalGroupServiceImplTest {
 
     @Test
     void addGlobalGroup() {
-        var newGlobalGroup = new GlobalGroup("code");
+        var newGlobalGroup = new GlobalGroup();
 
         newGlobalGroup.setGroupCode("code");
         newGlobalGroup.setDescription("description");
