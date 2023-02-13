@@ -28,10 +28,10 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.cs.admin.api.converter.GenericBiDirectionalMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ApprovedCa;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ApprovedCaMapper extends GenericBiDirectionalMapper<ApprovedCaEntity, ApprovedCa> {
+public interface ApprovedCaMapper extends GenericUniDirectionalMapper<ApprovedCaEntity, ApprovedCa> {
 }

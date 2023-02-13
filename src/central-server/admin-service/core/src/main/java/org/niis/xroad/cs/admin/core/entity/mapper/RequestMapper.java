@@ -30,7 +30,7 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.cs.admin.api.converter.GenericBiDirectionalMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
@@ -46,7 +46,7 @@ import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {RequestProcessingMapper.class, ClientIdMapper.class, SecurityServerIdMapper.class})
-public interface RequestMapper extends GenericBiDirectionalMapper<RequestEntity, Request> {
+public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity, Request> {
 
     @Override
     default Request toTarget(RequestEntity source) {
@@ -71,25 +71,6 @@ public interface RequestMapper extends GenericBiDirectionalMapper<RequestEntity,
 
         throw new IllegalArgumentException("Cannot map " + source.getClass());
     }
-
-    @Override
-    default RequestEntity fromTarget(Request source) {
-        if (source == null) {
-            return null;
-        }
-        if (source instanceof AuthenticationCertificateDeletionRequest) {
-            return fromDto((AuthenticationCertificateDeletionRequest) source);
-        }
-        if (source instanceof ClientDeletionRequest) {
-            return fromDto((ClientDeletionRequest) source);
-        }
-
-        throw new IllegalArgumentException("Cannot map " + source.getClass());
-    }
-
-    AuthenticationCertificateDeletionRequestEntity fromDto(AuthenticationCertificateDeletionRequest source);
-
-    ClientDeletionRequestEntity fromDto(ClientDeletionRequest source);
 
     AuthenticationCertificateDeletionRequest toDto(AuthenticationCertificateDeletionRequestEntity source);
 

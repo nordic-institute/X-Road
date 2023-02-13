@@ -28,10 +28,10 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.cs.admin.api.converter.GenericBiDirectionalMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface MemberClassMapper extends GenericBiDirectionalMapper<MemberClassEntity, MemberClass> {
+public interface MemberClassMapper extends GenericUniDirectionalMapper<MemberClassEntity, MemberClass> {
 }

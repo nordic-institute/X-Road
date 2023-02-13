@@ -29,7 +29,7 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.cs.admin.api.converter.GenericBiDirectionalMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequestProcessing;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequestProcessing;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequestProcessing;
@@ -43,7 +43,7 @@ import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {ClientIdMapper.class, SecurityServerIdMapper.class})
-public interface RequestProcessingMapper extends GenericBiDirectionalMapper<RequestProcessingEntity, RequestProcessing> {
+public interface RequestProcessingMapper extends GenericUniDirectionalMapper<RequestProcessingEntity, RequestProcessing> {
 
     @Override
     default RequestProcessing toTarget(RequestProcessingEntity source) {
@@ -62,36 +62,6 @@ public interface RequestProcessingMapper extends GenericBiDirectionalMapper<Requ
 
         throw new IllegalArgumentException("Cannot map " + source.getClass());
     }
-
-    @Override
-    default RequestProcessingEntity fromTarget(RequestProcessing source) {
-        if (source == null) {
-            return null;
-        }
-        if (source instanceof AuthenticationCertificateRegistrationRequestProcessing) {
-            return fromDto((AuthenticationCertificateRegistrationRequestProcessing) source);
-        }
-        if (source instanceof ClientRegistrationRequestProcessing) {
-            return fromDto((ClientRegistrationRequestProcessing) source);
-        }
-        if (source instanceof OwnerChangeRequestProcessing) {
-            return fromDto((OwnerChangeRequestProcessing) source);
-        }
-
-
-        throw new IllegalArgumentException("Cannot map " + source.getClass());
-    }
-
-    default RequestWithProcessingEntity fromDto(RequestWithProcessing source) {
-
-        return null; //TODO
-    }
-
-    AuthenticationCertificateRegistrationRequestProcessingEntity fromDto(AuthenticationCertificateRegistrationRequestProcessing source);
-
-    ClientRegistrationRequestProcessingEntity fromDto(ClientRegistrationRequestProcessing source);
-
-    OwnerChangeRequestProcessingEntity fromDto(OwnerChangeRequestProcessing source);
 
     AuthenticationCertificateRegistrationRequestProcessing toDto(AuthenticationCertificateRegistrationRequestProcessingEntity source);
 

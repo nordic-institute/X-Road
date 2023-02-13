@@ -68,9 +68,10 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
 
     @Override
     public ClientDeletionRequest add(ClientDeletionRequest request) {
-        var requestEntity = requestMapper.fromDto(request);
         final SecurityServerIdEntity serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final ClientIdEntity clientId = clientIds.findOrCreate(ClientIdEntity.ensure(request.getClientId()));
+
+        final var requestEntity = new ClientDeletionRequestEntity(request.getOrigin(), serverId, clientId);
 
         SecurityServerEntity securityServer = servers.findBy(serverId, clientId).getOrElseThrow(() ->
                 new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND));

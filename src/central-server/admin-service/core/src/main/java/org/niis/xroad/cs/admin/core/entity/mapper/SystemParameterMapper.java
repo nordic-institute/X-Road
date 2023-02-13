@@ -28,10 +28,10 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.cs.admin.api.converter.GenericBiDirectionalMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.SystemParameter;
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface SystemParameterMapper extends GenericBiDirectionalMapper<SystemParameterEntity, SystemParameter> {
+public interface SystemParameterMapper extends GenericUniDirectionalMapper<SystemParameterEntity, SystemParameter> {
 }

@@ -42,7 +42,6 @@ import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
-import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.ClientRegistrationRequestRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
@@ -78,7 +77,6 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     private final ClientRegistrationRequestRepository clientRegRequests;
     private final SecurityServerRepository servers;
     private final RequestMapper requestMapper;
-    private final ClientIdMapper clientIdMapper;
 
     @Override
     public boolean canAutoApprove(ClientRegistrationRequest request) {
@@ -169,7 +167,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
                 // create new subsystem if necessary
                 client = clients
                         .findOneBy(request.getClientId())
-                        .getOrElse(() -> clients.save(new SubsystemEntity(clientMember, clientIdMapper.fromTarget(request.getClientId()))));
+                        .getOrElse(() -> clients.save(new SubsystemEntity(clientMember, clientMember.getIdentifier())));
                 break;
             default:
                 throw new IllegalArgumentException("Invalid client type");

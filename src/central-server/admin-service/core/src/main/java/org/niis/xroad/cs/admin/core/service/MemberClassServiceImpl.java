@@ -89,7 +89,7 @@ public class MemberClassServiceImpl implements MemberClassService {
             }
         };
 
-        var memberClassEntity = memberClassMapper.fromTarget(memberClass);
+        var memberClassEntity = new MemberClassEntity(memberClass.getCode(), memberClass.getDescription());
         return Try.success(memberClassEntity)
                 .andThen(ensureNotExists)
                 .map(memberClassRepository::save)
