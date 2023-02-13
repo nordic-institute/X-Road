@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,12 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.converter;
+package org.niis.xroad.cs.admin.api.service;
 
-import ee.ria.xroad.common.util.NoCoverage;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-public interface GenericUniDirectionalMapper<SOURCE, TARGET> extends GenericMapper {
-    @NoCoverage
-    TARGET toTarget(SOURCE source);
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 
+import java.util.EnumSet;
+import java.util.List;
+
+public interface TokenActionsResolver {
+    EnumSet<PossibleTokenAction> resolveActions(TokenInfo tokenInfo, List<? extends ConfigurationSigningKey> keys);
+
+    void requireAction(PossibleTokenAction action, TokenInfo tokenInfo, List<ConfigurationSigningKey> keys);
 }

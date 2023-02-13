@@ -27,13 +27,16 @@
 
 package org.niis.xroad.cs.admin.core.converter;
 
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.MappingTarget;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
+import org.niis.xroad.cs.admin.api.service.TokenActionsResolver;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
-import org.niis.xroad.cs.admin.core.service.TokenActionsResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = ConfigurationSigningKeyMapper.class)
@@ -44,5 +47,17 @@ public abstract class TokenInfoMapper implements GenericUniDirectionalMapper<ee.
 
     @Autowired
     protected TokenActionsResolver tokenActionsResolver;
+
+    @Override
+    @Mapping(target = "configurationSigningKeys", ignore = true)
+    @Mapping(target = "possibleActions", ignore = true)
+    public abstract TokenInfo toTarget(ee.ria.xroad.signer.protocol.dto.TokenInfo tokenInfo);
+
+    @AfterMapping
+    protected void enrichToken(ee.ria.xroad.signer.protocol.dto.TokenInfo source, @MappingTarget TokenInfo target) {
+        var configurationKeys = configurationSigningKeysService.findDetailedByToken(source);
+        target.setConfigurationSigningKeys(configurationKeys);
+        target.setPossibleActions(tokenActionsResolver.resolveActions(source, configurationKeys));
+    }
 
 }

@@ -32,7 +32,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
+import org.niis.xroad.cs.admin.api.dto.KeyLabel;
+import org.niis.xroad.cs.admin.api.dto.PossibleKeyAction;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenStatus;
 import org.niis.xroad.cs.openapi.model.PossibleTokenActionDto;
@@ -48,19 +50,19 @@ import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
 
 @ExtendWith(MockitoExtension.class)
-class TokenMapperTest {
+class TokenDtoMapperTest {
 
     @Spy
     private ConfigurationSigningKeyDtoMapper configurationSigningKeyDtoMapper
             = new ConfigurationSigningKeyDtoMapperImpl();
 
     @InjectMocks
-    private final TokenMapper tokenMapper = new TokenMapperImpl();
+    private final TokenDtoMapper tokenDtoMapper = new TokenDtoMapperImpl();
 
     @Test
     void toTarget() {
         TokenInfo tokenInfo = tokenInfo();
-        final TokenDto result = tokenMapper.toTarget(tokenInfo);
+        final TokenDto result = tokenDtoMapper.toTarget(tokenInfo);
         assertThat(result.getActive()).isTrue();
         assertThat(result.getAvailable()).isFalse();
         assertThat(result.getId()).isEqualTo("id");
@@ -99,13 +101,14 @@ class TokenMapperTest {
         return tokenInfo;
     }
 
-    private ConfigurationSigningKey configurationSigningKey() {
-        final ConfigurationSigningKey signingKey = new ConfigurationSigningKey();
+    private ConfigurationSigningKeyWithDetails configurationSigningKey() {
+        final ConfigurationSigningKeyWithDetails signingKey = new ConfigurationSigningKeyWithDetails();
         signingKey.setKeyIdentifier("keyIdentifier");
         signingKey.setTokenIdentifier("id");
         signingKey.setKeyGeneratedAt(Instant.now());
         signingKey.setActiveSourceSigningKey(true);
-
+        signingKey.setPossibleActions(List.of(PossibleKeyAction.ACTIVATE));
+        signingKey.setLabel(new KeyLabel("LABEL"));
         return signingKey;
     }
 

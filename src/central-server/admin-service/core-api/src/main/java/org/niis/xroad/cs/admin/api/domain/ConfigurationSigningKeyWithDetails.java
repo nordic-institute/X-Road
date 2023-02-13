@@ -24,12 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.converter;
 
-import ee.ria.xroad.common.util.NoCoverage;
+package org.niis.xroad.cs.admin.api.domain;
 
-public interface GenericUniDirectionalMapper<SOURCE, TARGET> extends GenericMapper {
-    @NoCoverage
-    TARGET toTarget(SOURCE source);
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+import org.niis.xroad.cs.admin.api.dto.KeyLabel;
+import org.niis.xroad.cs.admin.api.dto.PossibleKeyAction;
 
+import java.util.List;
+
+@Data
+@Accessors(chain = true)
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class ConfigurationSigningKeyWithDetails extends ConfigurationSigningKey {
+    private Boolean available;
+    private KeyLabel label;
+    private List<PossibleKeyAction> possibleActions = null;
 }
+
+

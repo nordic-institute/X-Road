@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,12 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.converter;
+package org.niis.xroad.cs.admin.core.entity.mapper;
 
-import ee.ria.xroad.common.util.NoCoverage;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericMapper;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
+import org.niis.xroad.cs.admin.api.dto.KeyLabel;
+import org.niis.xroad.cs.admin.api.dto.PossibleKeyAction;
 
-public interface GenericUniDirectionalMapper<SOURCE, TARGET> extends GenericMapper {
-    @NoCoverage
-    TARGET toTarget(SOURCE source);
+import java.util.List;
 
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public abstract class ConfigurationSigningKeyWithDetailsMapper implements GenericMapper {
+
+    public abstract ConfigurationSigningKeyWithDetails toTarget(ConfigurationSigningKey source,
+                                                                List<PossibleKeyAction> possibleActions,
+                                                                String label,
+                                                                Boolean available);
+
+    protected KeyLabel map(String value) {
+        return new KeyLabel(value);
+    }
 }

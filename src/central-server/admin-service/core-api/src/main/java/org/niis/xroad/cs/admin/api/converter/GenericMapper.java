@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,10 +26,14 @@
  */
 package org.niis.xroad.cs.admin.api.converter;
 
-import ee.ria.xroad.common.util.NoCoverage;
+import org.niis.xroad.restapi.util.FormatUtils;
 
-public interface GenericUniDirectionalMapper<SOURCE, TARGET> extends GenericMapper {
-    @NoCoverage
-    TARGET toTarget(SOURCE source);
+import java.time.Instant;
+import java.time.OffsetDateTime;
 
+public interface GenericMapper {
+
+    default OffsetDateTime fromInstant(Instant instant) {
+        return FormatUtils.fromInstantToOffsetDateTime(instant);
+    }
 }

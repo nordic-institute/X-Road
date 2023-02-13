@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
 import org.niis.xroad.cs.admin.api.service.TokensService;
-import org.niis.xroad.cs.admin.rest.api.mapper.TokenMapper;
+import org.niis.xroad.cs.admin.rest.api.mapper.TokenDtoMapper;
 import org.niis.xroad.cs.openapi.TokensApi;
 import org.niis.xroad.cs.openapi.model.TokenDto;
 import org.niis.xroad.cs.openapi.model.TokenPasswordDto;
@@ -56,7 +56,7 @@ import static org.springframework.http.ResponseEntity.ok;
 public class TokensApiController implements TokensApi {
 
     private final TokensService tokensService;
-    private final TokenMapper tokenMapper;
+    private final TokenDtoMapper tokenDtoMapper;
 
     @Override
     @PreAuthorize(
@@ -64,7 +64,7 @@ public class TokensApiController implements TokensApi {
     )
     public ResponseEntity<Set<TokenDto>> getTokens() {
         Set<TokenInfo> tokens = tokensService.getTokens();
-        return ok(tokens.stream().map(tokenMapper::toTarget).collect(Collectors.toSet()));
+        return ok(tokens.stream().map(tokenDtoMapper::toTarget).collect(Collectors.toSet()));
     }
 
     @Override
@@ -72,13 +72,13 @@ public class TokensApiController implements TokensApi {
     @PreAuthorize("hasAuthority('ACTIVATE_TOKEN')")
     public ResponseEntity<TokenDto> loginToken(String id, TokenPasswordDto tokenPasswordDto) {
         final TokenInfo token = tokensService.login(new TokenLoginRequest(id, tokenPasswordDto.getPassword()));
-        return ok(tokenMapper.toTarget(token));
+        return ok(tokenDtoMapper.toTarget(token));
     }
 
     @Override
     @AuditEventMethod(event = LOGOUT_TOKEN)
     @PreAuthorize("hasAuthority('DEACTIVATE_TOKEN')")
     public ResponseEntity<TokenDto> logoutToken(String id) {
-        return ok(tokenMapper.toTarget(tokensService.logout(id)));
+        return ok(tokenDtoMapper.toTarget(tokensService.logout(id)));
     }
 }

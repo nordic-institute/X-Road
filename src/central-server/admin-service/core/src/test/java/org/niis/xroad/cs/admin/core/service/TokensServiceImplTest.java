@@ -82,7 +82,7 @@ class TokensServiceImplTest {
     @Mock
     private AuditDataHelper auditDataHelper;
     @Mock
-    private TokenActionsResolver tokenActionsResolver;
+    private TokenActionsResolverImpl tokenActionsResolver;
     @Mock
     private SignerProxyFacade signerProxyFacade;
     @Mock

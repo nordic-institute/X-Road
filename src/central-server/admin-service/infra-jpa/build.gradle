@@ -3,16 +3,11 @@ plugins {
 }
 
 dependencies {
-    annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
-    annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
-
     implementation project(':central-server:admin-service:core')
     implementation project(':common-util')
 
     api('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation("org.hibernate.validator:hibernate-validator")
-
-    implementation "org.mapstruct:mapstruct:${mapStructVersion}"
 
     //TODO test dependencies should be reviewed once tests are moved to different layer.
     testImplementation project(':common-test')

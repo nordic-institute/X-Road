@@ -29,19 +29,18 @@ package org.niis.xroad.cs.admin.rest.api.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.openapi.model.TokenDto;
 
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
-import static org.mapstruct.ReportingPolicy.IGNORE;
-
-@Mapper(componentModel = SPRING, unmappedTargetPolicy = IGNORE, uses = ConfigurationSigningKeyDtoMapper.class)
-public interface TokenMapper extends GenericUniDirectionalMapper<TokenInfo, TokenDto> {
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        uses = ConfigurationSigningKeyDtoMapper.class)
+public abstract class TokenDtoMapper implements GenericUniDirectionalMapper<TokenInfo, TokenDto> {
 
     @Override
     @Mapping(source = "friendlyName", target = "name")
     @Mapping(source = "active", target = "loggedIn")
-    TokenDto toTarget(TokenInfo tokenInfo);
+    public abstract TokenDto toTarget(TokenInfo tokenInfo);
 
 }

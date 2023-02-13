@@ -33,6 +33,7 @@ import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.service.TokenActionsResolver;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
@@ -48,11 +49,12 @@ import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_ACTION_NOT_POSSIBLE;
 
 @Component
-public class TokenActionsResolver {
+public class TokenActionsResolverImpl implements TokenActionsResolver {
 
     private static final int MAX_KEYS_PER_SOURCE_TYPE = 2;
 
-    public EnumSet<PossibleTokenAction> resolveActions(TokenInfo tokenInfo, List<ConfigurationSigningKey> keys) {
+    @Override
+    public EnumSet<PossibleTokenAction> resolveActions(TokenInfo tokenInfo, List<? extends ConfigurationSigningKey> keys) {
         EnumSet<PossibleTokenAction> actions = noneOf(PossibleTokenAction.class);
 
         if (tokenInfo.isActive()) {
@@ -79,6 +81,7 @@ public class TokenActionsResolver {
         return actions;
     }
 
+    @Override
     public void requireAction(PossibleTokenAction action, TokenInfo tokenInfo, List<ConfigurationSigningKey> keys) {
         requireAction(action, resolveActions(tokenInfo, keys));
     }
@@ -89,7 +92,7 @@ public class TokenActionsResolver {
     }
 
     private boolean isGenerateKeyAllowedFor(final ConfigurationSourceType sourceType,
-                                            final List<ConfigurationSigningKey> configurationSigningKeys) {
+                                            final List<? extends ConfigurationSigningKey> configurationSigningKeys) {
         return configurationSigningKeys.stream()
                 .map(ConfigurationSigningKey::getSourceType)
                 .filter(sourceType::equals)

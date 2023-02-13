@@ -49,6 +49,8 @@ import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapperImpl;
+import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyWithDetailsMapper;
+import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyWithDetailsMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -93,7 +95,7 @@ class ConfigurationSigningKeysServiceImplTest {
     @Mock
     private ConfigurationSourceRepository configurationSourceRepository;
     @Spy
-    private TokenActionsResolver tokenActionsResolver;
+    private TokenActionsResolverImpl tokenActionsResolver;
     @Spy
     private SigningKeyActionsResolver signingKeyActionsResolver;
     @Mock
@@ -106,7 +108,9 @@ class ConfigurationSigningKeysServiceImplTest {
     private SystemParameterService systemParameterService;
     @Spy
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
-    
+    @Spy
+    private final ConfigurationSigningKeyWithDetailsMapper withDetailsMapper = new ConfigurationSigningKeyWithDetailsMapperImpl();
+
     private ConfigurationSigningKeysServiceImpl configurationSigningKeysServiceImpl;
     private HAConfigStatus haConfigStatus = new HAConfigStatus("haNodeName", false);
 
@@ -116,6 +120,7 @@ class ConfigurationSigningKeysServiceImplTest {
                 configurationSigningKeyRepository,
                 configurationSourceRepository,
                 configurationSigningKeyMapper,
+                withDetailsMapper,
                 signerProxyFacade,
                 tokenActionsResolver,
                 signingKeyActionsResolver,
