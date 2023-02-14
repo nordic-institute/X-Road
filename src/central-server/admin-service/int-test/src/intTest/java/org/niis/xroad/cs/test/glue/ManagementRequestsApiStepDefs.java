@@ -42,6 +42,7 @@ import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto.SECURITY_SERVER;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.APPROVED;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.WAITING;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.fromValue;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
@@ -120,4 +121,29 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+
+    @Step("management request is with status {string}")
+    public void checkManagementRequestStatus(String status) {
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.getManagementRequest(managementRequestId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(fromValue(status), "body.status", "Verify status"))
+                .execute();
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    @Step("details of management request can be retrieved for security server {string}")
+    public void getManagementRequestDetails(String serverId) {
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.getManagementRequest(managementRequestId);
+        final String[] idParts = StringUtils.split(serverId, ':');
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion("security-server-" + idParts[3], "body.serverAddress", "Verify server address"))
+                .assertion(equalsAssertion(serverId, "body.securityServerId", "Verify server id"))
+                .assertion(equalsAssertion(AUTH_CERT_REGISTRATION_REQUEST, "body.type", "Verify type"))
+                .assertion(equalsAssertion(SECURITY_SERVER, "body.origin", "Verify origin"))
+                .execute();
+    }
 }

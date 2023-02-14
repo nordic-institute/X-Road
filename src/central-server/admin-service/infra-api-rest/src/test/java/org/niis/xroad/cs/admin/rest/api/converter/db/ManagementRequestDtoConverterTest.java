@@ -51,6 +51,7 @@ import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.rest.api.converter.AbstractDtoConverterTest;
+import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestOriginDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestStatusConverter;
@@ -100,6 +101,8 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
     private SecurityServerIdConverter securityServerIdMapper;
     @Mock
     private ManagementRequestStatusConverter.Service statusMapper;
+    @Mock
+    private CertificateDetailsDtoConverter certificateDetailsDtoConverter;
     @Mock
     private ClientIdConverter clientIdConverter;
     @Spy
