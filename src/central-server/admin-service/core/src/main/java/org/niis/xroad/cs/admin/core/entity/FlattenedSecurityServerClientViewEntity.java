@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.niis.xroad.cs.admin.core.entity.converter.ClientIdConverter;
 import org.springframework.data.annotation.Immutable;
 
@@ -52,6 +53,8 @@ import java.util.Set;
  */
 @Entity
 @Immutable
+@Getter
+@Setter
 @NoArgsConstructor
 @Table(name = FlattenedSecurityServerClientViewEntity.TABLE_NAME)
 public class FlattenedSecurityServerClientViewEntity extends AuditableEntity {
@@ -60,37 +63,29 @@ public class FlattenedSecurityServerClientViewEntity extends AuditableEntity {
 
     @Id
     @Column(name = "id", unique = true, nullable = false)
-    @Getter
     private int id;
 
     @Column(name = "xroad_instance")
-    @Getter
     private String xroadInstance;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "member_class_id")
-    @Getter
     private MemberClassEntity memberClass;
 
     @Column(name = "member_code")
-    @Getter
     private String memberCode;
 
     @Column(name = "subsystem_code")
-    @Getter
     private String subsystemCode;
 
     @Column(name = "member_name")
-    @Getter
     private String memberName;
 
     @Column(name = "type")
     @Convert(converter = ClientIdConverter.Impl.class)
-    @Getter
     private XRoadObjectType type;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "flattenedSecurityServerClientView")
-    @Getter
     private Set<FlattenedServerClientEntity> flattenedServerClients = new HashSet<>();
 }
 

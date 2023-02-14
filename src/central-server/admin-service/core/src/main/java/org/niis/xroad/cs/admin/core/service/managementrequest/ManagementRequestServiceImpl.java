@@ -33,7 +33,6 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
-import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
 import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
@@ -42,6 +41,7 @@ import org.niis.xroad.cs.admin.api.exception.UncheckedServiceException;
 import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
+import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.ManagementRequestViewRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
@@ -112,8 +112,8 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
      */
     @Override
     public <T extends Request> T approve(int requestId) {
-        final T request = findRequest(requestId);
-        return dispatch(handler -> this.doApprove(handler, request));
+        var request = findRequest(requestId);
+        return (T) dispatch(handler -> this.doApprove(handler, requestMapper.toTarget(request)));
     }
 
     /**
@@ -129,8 +129,8 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
             throw new ValidationFailureException(ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE);
         }
 
-        if (request instanceof RequestWithProcessing) {
-            var processing = ((RequestWithProcessing) request).getRequestProcessing();
+        if (request instanceof RequestWithProcessingEntity) {
+            var processing = ((RequestWithProcessingEntity) request).getRequestProcessing();
             if (processing.getRequests().size() == 1 && request.getOrigin() == Origin.CENTER) {
                 processing.setStatus(ManagementRequestStatus.REVOKED);
             } else {
@@ -143,11 +143,9 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         }
     }
 
-    private <T extends Request> T findRequest(int requestId) {
-        var request = requests.findById(requestId)
+    private <T extends RequestEntity> T findRequest(int requestId) {
+        return (T) requests.findById(requestId)
                 .orElseThrow(() -> new NotFoundException(ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND));
-
-        return (T) requestMapper.toTarget(request);
     }
 
     /*

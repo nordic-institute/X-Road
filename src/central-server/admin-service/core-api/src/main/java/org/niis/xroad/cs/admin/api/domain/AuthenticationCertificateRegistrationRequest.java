@@ -45,7 +45,7 @@ public class AuthenticationCertificateRegistrationRequest extends RequestWithPro
 
     public AuthenticationCertificateRegistrationRequest(Origin origin,
                                                         ee.ria.xroad.common.identifier.SecurityServerId serverId) {
-        super(origin, serverId, new AuthenticationCertificateRegistrationRequestProcessing());
+        super(origin, serverId);
     }
 
     @Override

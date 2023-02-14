@@ -34,7 +34,7 @@ import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 import org.niis.xroad.cs.openapi.model.ConfigurationSigningKeyDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public abstract class ConfigurationSigningKeyDtoMapper implements
+public interface ConfigurationSigningKeyDtoMapper extends
         GenericUniDirectionalMapper<ConfigurationSigningKeyWithDetails,
                 ConfigurationSigningKeyDto> {
 
@@ -44,6 +44,6 @@ public abstract class ConfigurationSigningKeyDtoMapper implements
     @Mapping(source = "keyGeneratedAt", target = "createdAt")
     @Mapping(source = "activeSourceSigningKey", target = "active")
     @Mapping(target = "keyHash", ignore = true)
-    public abstract ConfigurationSigningKeyDto toTarget(ConfigurationSigningKeyWithDetails model);
+    ConfigurationSigningKeyDto toTarget(ConfigurationSigningKeyWithDetails model);
 
 }

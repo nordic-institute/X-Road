@@ -37,14 +37,14 @@ import org.niis.xroad.cs.admin.api.dto.PossibleKeyAction;
 import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public abstract class ConfigurationSigningKeyWithDetailsMapper implements GenericMapper {
+public interface ConfigurationSigningKeyWithDetailsMapper extends GenericMapper {
 
-    public abstract ConfigurationSigningKeyWithDetails toTarget(ConfigurationSigningKey source,
-                                                                List<PossibleKeyAction> possibleActions,
-                                                                String label,
-                                                                Boolean available);
+    ConfigurationSigningKeyWithDetails toTarget(ConfigurationSigningKey source,
+                                                List<PossibleKeyAction> possibleActions,
+                                                String label,
+                                                Boolean available);
 
-    protected KeyLabel map(String value) {
+    default KeyLabel map(String value) {
         return new KeyLabel(value);
     }
 }

@@ -29,12 +29,7 @@ package org.niis.xroad.cs.admin.api.domain;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -44,8 +39,4 @@ public abstract class RequestProcessing extends Auditable {
 
     @NotNull
     private ManagementRequestStatus status = ManagementRequestStatus.WAITING;
-
-    @NotEmpty
-    @Size(max = 2)
-    private Set<RequestWithProcessing> requests = new HashSet<>(0);
 }

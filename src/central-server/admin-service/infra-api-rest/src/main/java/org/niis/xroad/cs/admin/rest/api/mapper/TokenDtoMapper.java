@@ -36,11 +36,11 @@ import org.niis.xroad.cs.openapi.model.TokenDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = ConfigurationSigningKeyDtoMapper.class)
-public abstract class TokenDtoMapper implements GenericUniDirectionalMapper<TokenInfo, TokenDto> {
+public interface TokenDtoMapper extends GenericUniDirectionalMapper<TokenInfo, TokenDto> {
 
     @Override
     @Mapping(source = "friendlyName", target = "name")
     @Mapping(source = "active", target = "loggedIn")
-    public abstract TokenDto toTarget(TokenInfo tokenInfo);
+    TokenDto toTarget(TokenInfo tokenInfo);
 
 }
