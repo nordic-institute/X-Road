@@ -40,15 +40,14 @@ import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = {
-        RequestMapperImpl.class, ClientIdMapperImpl.class,
-        SecurityServerIdMapperImpl.class})
+@SpringBootTest(classes = {RequestMapperImpl.class, ClientIdMapperImpl.class, SecurityServerIdMapperImpl.class})
 class RequestMapperTest {
     private static final byte[] CERT = {1, 0, 1};
 
@@ -113,7 +112,7 @@ class RequestMapperTest {
 
     @Test
     void shouldMapClientRegistrationRequestEntity() {
-        var source = new ClientRegistrationRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY, MEMBER_ID_ENTITY);
+        RequestEntity source = new ClientRegistrationRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY, MEMBER_ID_ENTITY);
         source.setComments("comments");
 
         var result = mapper.toTarget(source);
@@ -123,8 +122,7 @@ class RequestMapperTest {
         assertThat(result.getComments()).isEqualTo(source.getComments());
         assertThat(result.getManagementRequestType()).isEqualTo(ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
         assertThat(result.getSecurityServerId().getServerCode()).isEqualTo(source.getSecurityServerId().getServerCode());
-        assertThat(((ClientRegistrationRequest) result).getClientId().getMemberCode())
-                .isEqualTo(source.getClientId().getMemberCode());
+        assertThat(((ClientRegistrationRequest) result).getClientId().getMemberCode()).isEqualTo(MEMBER_ID_ENTITY.getMemberCode());
     }
 
     @Test

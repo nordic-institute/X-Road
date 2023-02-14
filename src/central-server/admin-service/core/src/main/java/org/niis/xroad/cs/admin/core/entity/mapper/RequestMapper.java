@@ -58,17 +58,11 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
         if (source instanceof AuthenticationCertificateDeletionRequestEntity) {
             return toDto((AuthenticationCertificateDeletionRequestEntity) source);
         }
-        if (source instanceof AuthenticationCertificateRegistrationRequestEntity) {
-            return toDto((AuthenticationCertificateRegistrationRequestEntity) source);
-        }
         if (source instanceof ClientDeletionRequestEntity) {
             return toDto((ClientDeletionRequestEntity) source);
         }
-        if (source instanceof ClientRegistrationRequestEntity) {
-            return toDto((ClientRegistrationRequestEntity) source);
-        }
-        if (source instanceof OwnerChangeRequestEntity) {
-            return toDto((OwnerChangeRequestEntity) source);
+        if (source instanceof RequestWithProcessingEntity) {
+            return toTarget((RequestWithProcessingEntity) source);
         }
 
         throw new IllegalArgumentException("Cannot map " + source.getClass());
@@ -92,13 +86,12 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
         throw new IllegalArgumentException("Cannot map " + source.getClass());
     }
 
-
     AuthenticationCertificateDeletionRequest toDto(AuthenticationCertificateDeletionRequestEntity source);
+
+    ClientDeletionRequest toDto(ClientDeletionRequestEntity source);
 
     @Mapping(target = "processingStatus", source = "requestProcessing.status")
     AuthenticationCertificateRegistrationRequest toDto(AuthenticationCertificateRegistrationRequestEntity source);
-
-    ClientDeletionRequest toDto(ClientDeletionRequestEntity source);
 
     @Mapping(target = "processingStatus", source = "requestProcessing.status")
     ClientRegistrationRequest toDto(ClientRegistrationRequestEntity source);
