@@ -69,34 +69,24 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_SER
 @Transactional
 @RequiredArgsConstructor
 public class TokensServiceImpl extends AbstractTokenConsumer implements TokensService {
-
-
     private static final String KEY_MIN_PIN_LENGTH = "Min PIN length";
     private static final String KEY_MAX_PIN_LENGTH = "Max PIN length";
+
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final AuditDataHelper auditDataHelper;
     private final SignerProxyFacade signerProxyFacade;
-    private final TokenActionsResolver tokenActionsResolver;
+    private final TokenActionsResolverImpl tokenActionsResolver;
     private final TokenInfoMapper tokenInfoMapper;
 
     @Override
     public Set<TokenInfo> getTokens() {
         try {
             return signerProxyFacade.getTokens().stream()
-                    .map(this::enrichToken)
+                    .map(tokenInfoMapper::toTarget)
                     .collect(Collectors.toSet());
         } catch (Exception e) {
             throw new TokenException(ERROR_GETTING_TOKENS, e);
         }
-    }
-
-    public TokenInfo enrichToken(final ee.ria.xroad.signer.protocol.dto.TokenInfo source) {
-        var target = tokenInfoMapper.toTarget(source);
-        target.setConfigurationSigningKeys(configurationSigningKeysService.findByTokenIdentifier(source));
-        target.setPossibleActions(tokenActionsResolver.resolveActions(source, target.getConfigurationSigningKeys()));
-
-
-        return target;
     }
 
     @Override
@@ -108,7 +98,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
             throw new TokenPinLockedException(TOKEN_PIN_LOCKED);
         }
 
-        tokenActionsResolver.requireAction(LOGIN, token, configurationSigningKeysService.findByTokenIdentifier(token));
+        tokenActionsResolver.requireAction(LOGIN, token, configurationSigningKeysService.findByTokenIdentifier(token.getId()));
         validatePinMeetsTheTokenRequirements(token, tokenLoginRequest.getPassword());
 
         try {
@@ -132,7 +122,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
     public TokenInfo logout(String tokenId) {
         final ee.ria.xroad.signer.protocol.dto.TokenInfo token = getToken(tokenId);
         addAuditData(token);
-        tokenActionsResolver.requireAction(LOGOUT, token, configurationSigningKeysService.findByTokenIdentifier(token));
+        tokenActionsResolver.requireAction(LOGOUT, token, configurationSigningKeysService.findByTokenIdentifier(token.getId()));
         try {
             signerProxyFacade.deactivateToken(tokenId);
         } catch (CodedException codedException) {

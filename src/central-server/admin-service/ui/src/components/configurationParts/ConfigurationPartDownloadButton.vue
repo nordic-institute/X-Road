@@ -28,6 +28,7 @@
   <div style="display: inline-block">
     <xrd-button
       v-if="showDownloadButton"
+      :data-test="`configuration-part-${configurationPart.content_identifier}-download`"
       :outlined="false"
       :loading="loading"
       text

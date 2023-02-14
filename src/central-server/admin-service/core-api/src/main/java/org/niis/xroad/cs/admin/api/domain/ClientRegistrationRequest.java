@@ -44,7 +44,7 @@ public class ClientRegistrationRequest extends RequestWithProcessing {
 
     public ClientRegistrationRequest(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId serverId,
                                      ClientId clientId) {
-        super(origin, serverId, new ClientRegistrationRequestProcessing());
+        super(origin, serverId);
         this.clientId = ClientId.ensure(clientId);
     }
 

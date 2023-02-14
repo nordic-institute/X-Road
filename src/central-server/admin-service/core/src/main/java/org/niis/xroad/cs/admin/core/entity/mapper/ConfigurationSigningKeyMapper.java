@@ -36,16 +36,16 @@ import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public abstract class ConfigurationSigningKeyMapper implements
+public interface ConfigurationSigningKeyMapper extends
         GenericUniDirectionalMapper<ConfigurationSigningKeyEntity, ConfigurationSigningKey> {
 
     @Override
     @Mapping(target = "sourceType", source = "entity", qualifiedByName = "mapSourceType")
     @Mapping(target = "activeSourceSigningKey", source = "entity", qualifiedByName = "mapActiveSourceSigningKey")
-    public abstract ConfigurationSigningKey toTarget(ConfigurationSigningKeyEntity entity);
+    ConfigurationSigningKey toTarget(ConfigurationSigningKeyEntity entity);
 
     @Named("mapSourceType")
-    ConfigurationSourceType mapSourceType(ConfigurationSigningKeyEntity entity) {
+    default ConfigurationSourceType mapSourceType(ConfigurationSigningKeyEntity entity) {
         if (entity.getConfigurationSource() != null) {
             for (ConfigurationSourceType sourceType : ConfigurationSourceType.values()) {
                 if (sourceType.name().equalsIgnoreCase(entity.getConfigurationSource().getSourceType())) {
@@ -57,7 +57,7 @@ public abstract class ConfigurationSigningKeyMapper implements
     }
 
     @Named("mapActiveSourceSigningKey")
-    boolean mapActiveSourceSigningKey(ConfigurationSigningKeyEntity entity) {
+    default boolean mapActiveSourceSigningKey(ConfigurationSigningKeyEntity entity) {
         if (entity.getConfigurationSource() != null && entity.getConfigurationSource().getConfigurationSigningKey() != null) {
             return entity.getId() == entity.getConfigurationSource().getConfigurationSigningKey().getId();
         }

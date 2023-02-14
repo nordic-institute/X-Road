@@ -33,9 +33,8 @@ import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.openapi.model.TimestampingServiceDto;
 
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
-import static org.mapstruct.ReportingPolicy.IGNORE;
 
-@Mapper(componentModel = SPRING, unmappedTargetPolicy = IGNORE)
+@Mapper(componentModel = SPRING)
 public interface TimestampingServiceMapper extends GenericUniDirectionalMapper<ApprovedTsa, TimestampingServiceDto> {
 
 }

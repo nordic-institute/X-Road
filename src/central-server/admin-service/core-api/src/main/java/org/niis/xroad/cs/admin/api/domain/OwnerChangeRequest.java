@@ -43,7 +43,7 @@ public class OwnerChangeRequest extends RequestWithProcessing {
 
     public OwnerChangeRequest(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId serverId,
                               ClientId clientId) {
-        super(origin, serverId, new OwnerChangeRequestProcessing());
+        super(origin, serverId);
         this.clientId = ClientId.ensure(clientId);
     }
 

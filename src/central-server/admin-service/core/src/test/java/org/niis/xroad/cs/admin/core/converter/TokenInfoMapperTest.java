@@ -34,10 +34,13 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 import org.niis.xroad.cs.admin.api.dto.TokenStatus;
+import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
+import org.niis.xroad.cs.admin.api.service.TokenActionsResolver;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -45,11 +48,16 @@ import java.util.Map;
 
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TokenInfoMapperTest {
-
+    @Mock
+    private ConfigurationSigningKeysService configurationSigningKeysService;
+    @Mock
+    protected TokenActionsResolver tokenActionsResolver;
     @InjectMocks
     private final TokenInfoMapper tokenInfoMapper = new TokenInfoMapperImpl();
 
@@ -57,7 +65,10 @@ class TokenInfoMapperTest {
     void toTarget() {
         final TokenInfo tokenInfo = createTokenInfo();
         final EnumSet<PossibleTokenAction> possibleActions = mock(EnumSet.class);
-        final List<ConfigurationSigningKey> configurationSigningKeys = mock(List.class);
+        final List<ConfigurationSigningKeyWithDetails> configurationSigningKeys = mock(List.class);
+
+        when(configurationSigningKeysService.findDetailedByToken(any())).thenReturn(configurationSigningKeys);
+        when(tokenActionsResolver.resolveActions(tokenInfo, configurationSigningKeys)).thenReturn(possibleActions);
 
         final org.niis.xroad.cs.admin.api.dto.TokenInfo result = tokenInfoMapper.toTarget(tokenInfo);
 

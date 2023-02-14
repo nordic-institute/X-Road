@@ -30,6 +30,7 @@ package org.niis.xroad.cs.test.ui.page;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$x;
+import static java.lang.String.format;
 
 @SuppressWarnings("InnerClassMayBeStatic")
 public class GlobalConfigurationPageObj {
@@ -39,34 +40,36 @@ public class GlobalConfigurationPageObj {
     public final AddSigningKeyDialog addSigningKeyDialog = new AddSigningKeyDialog();
     public final ActivateSigningKeyDialog activateSigningKeyDialog = new ActivateSigningKeyDialog();
     public final DeleteSigningKeyDialog deleteSigningKeyDialog = new DeleteSigningKeyDialog();
+    public final AnchorSection anchor = new AnchorSection();
+    public final ConfigurationPartsSection configurationParts = new ConfigurationPartsSection();
 
 
     public SelenideElement tokenLabel(final String tokenName) {
-        return $x(String.format(X_TOKEN_EXPANDABLE + "//div[@data-test='token-name']", tokenName));
+        return $x(format(X_TOKEN_EXPANDABLE + "//div[@data-test='token-name']", tokenName));
     }
 
     public SelenideElement loginButton(final String tokenName) {
-        return $x(String.format(X_TOKEN_EXPANDABLE + "//button[@data-test='token-login-button']", tokenName));
+        return $x(format(X_TOKEN_EXPANDABLE + "//button[@data-test='token-login-button']", tokenName));
     }
 
     public SelenideElement logoutButton(final String tokenName) {
-        return $x(String.format(X_TOKEN_EXPANDABLE + "//button[@data-test='token-logout-button']", tokenName));
+        return $x(format(X_TOKEN_EXPANDABLE + "//button[@data-test='token-logout-button']", tokenName));
     }
 
     public SelenideElement addSigningKey(final String tokenName) {
-        return $x(String.format(X_TOKEN_EXPANDABLE + "//button[@data-test='token-add-key-button']", tokenName));
+        return $x(format(X_TOKEN_EXPANDABLE + "//button[@data-test='token-add-key-button']", tokenName));
     }
 
     public SelenideElement signingKeyLabel(final String tokenName, final String keyLabel) {
-        return $x(String.format(X_TOKEN_EXPANDABLE + "//span[@data-test='key-label-text'][contains(text(), '%s')]", tokenName, keyLabel));
+        return $x(format(X_TOKEN_EXPANDABLE + "//span[@data-test='key-label-text'][contains(text(), '%s')]", tokenName, keyLabel));
     }
 
     public SelenideElement btnActivateSigningKey(final String tokenName, final String keyLabel) {
-        return $x(String.format(X_TOKEN_EXPANDABLE + "//button[@data-test='key-%s-activate-button']", tokenName, keyLabel));
+        return $x(format(X_TOKEN_EXPANDABLE + "//button[@data-test='key-%s-activate-button']", tokenName, keyLabel));
     }
 
     public SelenideElement btnDeleteSigningKey(final String tokenName, final String keyLabel) {
-        return $x(String.format(X_TOKEN_EXPANDABLE + "//button[@data-test='key-%s-delete-button']", tokenName, keyLabel));
+        return $x(format(X_TOKEN_EXPANDABLE + "//button[@data-test='key-%s-delete-button']", tokenName, keyLabel));
     }
 
     public SelenideElement internalConfiguration() {
@@ -112,6 +115,54 @@ public class GlobalConfigurationPageObj {
     public class TokenLogoutDialog {
         public SelenideElement btnLogout() {
             return $x("//button[@data-test='dialog-save-button']");
+        }
+    }
+
+    public class AnchorSection {
+        public SelenideElement btnRecreate() {
+            return $x("//button[@data-test='re-create-anchor-button']");
+        }
+
+        public SelenideElement btnDownload() {
+            return $x("//button[@data-test='download-anchor-button']");
+        }
+
+        public SelenideElement txtHash() {
+            return $x("//span[@data-test='anchor-hash']");
+        }
+
+        public SelenideElement txtCreatedAt() {
+            return $x("//span[@data-test='anchor-created-at']");
+        }
+    }
+
+    public class ConfigurationPartsSection {
+
+        public SelenideElement textContentIdentifier(String contentIdentifier) {
+            return $x(format("//span[@data-test='configuration-part-%s']", contentIdentifier));
+        }
+        public SelenideElement textUpdatedAt(String contentIdentifier) {
+            return $x(format("//span[@data-test='configuration-part-%s-updated-at']", contentIdentifier));
+        }
+
+        public SelenideElement btnDownload(String contentIdentifier) {
+            return $x(format("//button[@data-test='configuration-part-%s-download']", contentIdentifier));
+        }
+
+        public SelenideElement btnUpload(String contentIdentifier) {
+            return $x(format("//button[@data-test='configuration-part-%s-upload']", contentIdentifier));
+        }
+
+        public SelenideElement btnConfirmUpload() {
+            return $x("//button[@data-test='dialog-save-button']");
+        }
+
+        public SelenideElement inputConfigurationFile() {
+            return $x("//input[@type='file']");
+        }
+
+        public SelenideElement btnCancelUpload() {
+            return $x("//button[@data-test='dialog-cancel-button']");
         }
     }
 }

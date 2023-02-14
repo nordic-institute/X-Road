@@ -26,23 +26,17 @@
  */
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
-import ee.ria.xroad.common.identifier.ServiceId;
-
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.ReportingPolicy;
-import org.niis.xroad.cs.admin.api.converter.GenericBiDirectionalMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.CentralService;
 import org.niis.xroad.cs.admin.core.entity.CentralServiceEntity;
 import org.niis.xroad.cs.admin.core.entity.ServiceIdEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         unmappedTargetPolicy = ReportingPolicy.ERROR)
-public interface CentralServiceMapper extends GenericBiDirectionalMapper<CentralServiceEntity, CentralService> {
-
-    default ServiceIdEntity fromTarget(ServiceId identifier) {
-        return ServiceIdEntity.create(identifier);
-    }
+public interface CentralServiceMapper extends GenericUniDirectionalMapper<CentralServiceEntity, CentralService> {
 
     default org.niis.xroad.cs.admin.api.domain.ServiceId toTarget(ServiceIdEntity serviceIdEntity) {
         var serviceId = org.niis.xroad.cs.admin.api.domain.ServiceId.create(serviceIdEntity);

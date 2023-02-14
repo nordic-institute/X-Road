@@ -27,19 +27,23 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
 import org.niis.xroad.cs.admin.core.entity.AnchorUrlCertEntity;
 import org.niis.xroad.cs.admin.core.entity.AnchorUrlEntity;
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SpringBootTest(classes = TrustedAnchorMapperImpl.class)
 class TrustedAnchorMapperTest {
-    TrustedAnchorMapper mapper = Mappers.getMapper(TrustedAnchorMapper.class);
+    @Autowired
+    TrustedAnchorMapper mapper;
 
     @Test
     void shouldMapAllFields() {
@@ -53,7 +57,7 @@ class TrustedAnchorMapperTest {
 
         assertThat(target).hasNoNullFieldsOrProperties()
                 .usingRecursiveAssertion()
-                .allFieldsSatisfy(field -> field != null);
+                .allFieldsSatisfy(Objects::nonNull);
     }
 
     private static TrustedAnchorEntity createTrustedAnchorEntity() {

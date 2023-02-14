@@ -50,3 +50,4 @@ Feature: CS: Global configuration: External configuration: Signing keys
     Given Token: softToken-0 is logged-in
     When User logs out token: softToken-0
     Then Add key button is disabled for token: softToken-0
+    And User logs in token: softToken-0 with PIN: Valid_Pin_11

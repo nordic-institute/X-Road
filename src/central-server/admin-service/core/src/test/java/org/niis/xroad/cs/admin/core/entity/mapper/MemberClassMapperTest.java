@@ -1,21 +1,21 @@
-/*
+/**
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,24 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.core.entity.mapper;
 
-package org.niis.xroad.cs.admin.rest.api.mapper;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
-import org.niis.xroad.cs.admin.api.dto.TokenInfo;
-import org.niis.xroad.cs.openapi.model.TokenDto;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
-import static org.mapstruct.ReportingPolicy.IGNORE;
+@SpringBootTest(classes = {MemberClassMapperImpl.class})
+class MemberClassMapperTest {
 
-@Mapper(componentModel = SPRING, unmappedTargetPolicy = IGNORE, uses = ConfigurationSigningKeyDtoMapper.class)
-public interface TokenMapper extends GenericUniDirectionalMapper<TokenInfo, TokenDto> {
+    @Autowired
+    private MemberClassMapper mapper;
 
-    @Override
-    @Mapping(source = "friendlyName", target = "name")
-    @Mapping(source = "active", target = "loggedIn")
-    TokenDto toTarget(TokenInfo tokenInfo);
+    @Test
+    void shouldMapAllFields() {
+        var source = new MemberClassEntity("CODE", "DESC");
 
+        var result = mapper.toTarget(source);
+
+        assertThat(result.getCode()).isEqualTo(source.getCode());
+        assertThat(result.getDescription()).isEqualTo(source.getDescription());
+    }
 }

@@ -28,23 +28,22 @@ package org.niis.xroad.cs.admin.rest.api.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 import org.niis.xroad.cs.openapi.model.ConfigurationSigningKeyDto;
 
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
-import static org.mapstruct.ReportingPolicy.IGNORE;
-
-@Mapper(componentModel = SPRING, unmappedTargetPolicy = IGNORE)
-public abstract class ConfigurationSigningKeyDtoMapper implements
-        GenericUniDirectionalMapper<ConfigurationSigningKey,
-        ConfigurationSigningKeyDto> {
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface ConfigurationSigningKeyDtoMapper extends
+        GenericUniDirectionalMapper<ConfigurationSigningKeyWithDetails,
+                ConfigurationSigningKeyDto> {
 
     @Override
     @Mapping(source = "keyIdentifier", target = "id")
     @Mapping(source = "tokenIdentifier", target = "tokenId")
     @Mapping(source = "keyGeneratedAt", target = "createdAt")
     @Mapping(source = "activeSourceSigningKey", target = "active")
-    public abstract ConfigurationSigningKeyDto toTarget(ConfigurationSigningKey model);
+    @Mapping(target = "keyHash", ignore = true)
+    ConfigurationSigningKeyDto toTarget(ConfigurationSigningKeyWithDetails model);
 
 }

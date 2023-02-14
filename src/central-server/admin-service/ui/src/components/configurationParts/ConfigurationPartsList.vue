@@ -44,7 +44,18 @@
           hide-default-footer
         >
           <template #[`item.file_updated_at`]="{ item }">
-            {{ item.file_updated_at | formatDateTime }}
+            <span
+              :data-test="`configuration-part-${item.content_identifier}-updated-at`"
+            >
+              {{ item.file_updated_at | formatDateTimeSeconds }}
+            </span>
+          </template>
+          <template #[`item.content_identifier`]="{ item }">
+            <span
+              :data-test="`configuration-part-${item.content_identifier}`"
+            >
+              {{ item.content_identifier }}
+            </span>
           </template>
           <template #[`item.version`]="{ item }">
             <template v-if="item.version === 0">
@@ -53,7 +64,6 @@
             <template v-else>
               {{ item.version }}
             </template>
-
           </template>
           <template #[`item.actions`]="{ item }">
             <configuration-part-download-button

@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.cs.admin.api.converter.GenericBiDirectionalMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
@@ -37,7 +37,7 @@ import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ClientIdMapper extends GenericBiDirectionalMapper<ClientIdEntity, ClientId> {
+public interface ClientIdMapper extends GenericUniDirectionalMapper<ClientIdEntity, ClientId> {
 
     @Override
     default ClientId toTarget(ClientIdEntity source) {
@@ -54,35 +54,7 @@ public interface ClientIdMapper extends GenericBiDirectionalMapper<ClientIdEntit
         throw new IllegalArgumentException("Cannot map " + source.getClass());
     }
 
-
-    @Override
-    default ClientIdEntity fromTarget(ClientId source) {
-        if (source == null) {
-            return null;
-        }
-        if (source instanceof MemberId) {
-            return fromMemberId((MemberId) source);
-        }
-        if (source instanceof SubsystemId) {
-            return fromSubsystemId((SubsystemId) source);
-        }
-
-        throw new IllegalArgumentException("Cannot map " + source.getClass());
-    }
-
-    default MemberIdEntity fromMemberId(MemberId source) {
-        return MemberIdEntity.create(source.getXRoadInstance(), source.getMemberClass(), source.getMemberCode());
-    }
-
     MemberId toMemberId(MemberIdEntity source);
-
-    default SubsystemIdEntity fromSubsystemId(SubsystemId source) {
-        return SubsystemIdEntity.create(
-                source.getXRoadInstance(),
-                source.getMemberClass(),
-                source.getMemberCode(),
-                source.getSubsystemCode());
-    }
 
     SubsystemId toSubsystemId(SubsystemIdEntity source);
 }

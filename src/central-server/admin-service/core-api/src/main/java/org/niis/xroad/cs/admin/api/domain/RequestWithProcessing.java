@@ -30,28 +30,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-//@Data
-//@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public abstract class RequestWithProcessing extends Request {
     @Getter
     @Setter
-    private RequestProcessing requestProcessing;
+    private ManagementRequestStatus processingStatus;
 
-    public RequestWithProcessing(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId serverId,
-                                 RequestProcessing processing) {
+    public RequestWithProcessing(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId serverId) {
         super(origin, serverId);
-        this.requestProcessing = processing;
-        requestProcessing.getRequests().add(this);
-    }
-
-    @Override
-    public ManagementRequestStatus getProcessingStatus() {
-        return requestProcessing.getStatus();
-    }
-
-    public void setProcessingStatus(ManagementRequestStatus status) {
-        requestProcessing.setStatus(status);
     }
 
 }

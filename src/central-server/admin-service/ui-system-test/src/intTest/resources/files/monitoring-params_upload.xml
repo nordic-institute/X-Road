@@ -1,0 +1,10 @@
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/xroad.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
+    <monitoringClient>
+        <monitoringClientId id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>CS</id:xRoadInstance>
+            <id:memberClass>TEST</id:memberClass>
+            <id:memberCode>TEST1</id:memberCode>
+            <id:subsystemCode>SUB1</id:subsystemCode>
+        </monitoringClientId>
+    </monitoringClient>
+</tns:conf>

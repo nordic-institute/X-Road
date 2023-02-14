@@ -28,16 +28,10 @@ package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
-import org.niis.xroad.cs.admin.api.converter.GenericBiDirectionalMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface SecurityServerIdMapper extends GenericBiDirectionalMapper<SecurityServerIdEntity, SecurityServerId> {
-
-    @Override
-    default SecurityServerIdEntity fromTarget(SecurityServerId source) {
-        return SecurityServerIdEntity.create(source);
-    }
-
+public interface SecurityServerIdMapper extends GenericUniDirectionalMapper<SecurityServerIdEntity, SecurityServerId> {
 }

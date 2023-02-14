@@ -69,7 +69,7 @@ class SecurityServerClientMapperTest {
 
         SubsystemEntity entity = createSubsystemEntity();
 
-        final Subsystem subsystem = securityServerClientMapper.toDto(entity);
+        final Subsystem subsystem = (Subsystem) securityServerClientMapper.toTarget(entity);
 
         assertThat(subsystem.getId()).isEqualTo(SUBSYSTEM_ID);
         assertThat(subsystem.getSubsystemCode()).isEqualTo(SUBSYSTEM_CODE);
