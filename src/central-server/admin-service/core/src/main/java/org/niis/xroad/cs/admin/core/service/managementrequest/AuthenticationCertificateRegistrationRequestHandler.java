@@ -175,7 +175,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     public AuthenticationCertificateRegistrationRequest approve(AuthenticationCertificateRegistrationRequest request) {
 
         //check state
-        if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(request.getRequestProcessing().getStatus())) {
+        if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(request.getProcessingStatus())) {
             throw new ValidationFailureException(MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL,
                     String.valueOf(request.getId()));
         }

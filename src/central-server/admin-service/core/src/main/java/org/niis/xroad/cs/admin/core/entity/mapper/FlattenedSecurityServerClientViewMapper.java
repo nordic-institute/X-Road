@@ -32,8 +32,7 @@ import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        uses = {FlattenedServerClientMapper.class})
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface FlattenedSecurityServerClientViewMapper extends
         GenericUniDirectionalMapper<FlattenedSecurityServerClientViewEntity, FlattenedSecurityServerClientView> {
 }

@@ -37,15 +37,17 @@ import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
+import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
+import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        uses = {RequestProcessingMapper.class, ClientIdMapper.class, SecurityServerIdMapper.class})
+        uses = {ClientIdMapper.class, SecurityServerIdMapper.class})
 public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity, Request> {
 
     @Override
@@ -72,16 +74,36 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
         throw new IllegalArgumentException("Cannot map " + source.getClass());
     }
 
+    default RequestWithProcessing toTarget(RequestWithProcessingEntity source) {
+        if (source == null) {
+            return null;
+        }
+
+        if (source instanceof AuthenticationCertificateRegistrationRequestEntity) {
+            return toDto((AuthenticationCertificateRegistrationRequestEntity) source);
+        }
+        if (source instanceof ClientRegistrationRequestEntity) {
+            return toDto((ClientRegistrationRequestEntity) source);
+        }
+        if (source instanceof OwnerChangeRequestEntity) {
+            return toDto((OwnerChangeRequestEntity) source);
+        }
+
+        throw new IllegalArgumentException("Cannot map " + source.getClass());
+    }
+
+
     AuthenticationCertificateDeletionRequest toDto(AuthenticationCertificateDeletionRequestEntity source);
 
-    @Mapping(ignore = true, target = "processingStatus")
+    @Mapping(target = "processingStatus", source = "requestProcessing.status")
     AuthenticationCertificateRegistrationRequest toDto(AuthenticationCertificateRegistrationRequestEntity source);
 
     ClientDeletionRequest toDto(ClientDeletionRequestEntity source);
 
-    @Mapping(ignore = true, target = "processingStatus")
+    @Mapping(target = "processingStatus", source = "requestProcessing.status")
     ClientRegistrationRequest toDto(ClientRegistrationRequestEntity source);
 
-    @Mapping(ignore = true, target = "processingStatus")
+    @Mapping(target = "processingStatus", source = "requestProcessing.status")
     OwnerChangeRequest toDto(OwnerChangeRequestEntity source);
+
 }
