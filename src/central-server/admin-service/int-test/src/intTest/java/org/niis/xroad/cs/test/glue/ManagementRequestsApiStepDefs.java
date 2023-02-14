@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
@@ -57,16 +58,19 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
 
     private Integer managementRequestId;
 
+    private byte[] authenticationCertificate;
+
     @SuppressWarnings("checkstyle:MagicNumber")
-    @Step("new security server {string} authentication certificate registered")
-    public void newSecurityServerRegistered(String serverId) throws Exception {
+    @Step("new security server {string} authentication certificate registered with origin {string}")
+    public void newSecurityServerRegistered(String serverId, String origin) throws Exception {
+        generateAuthenticationCertificate();
         final String[] idParts = StringUtils.split(serverId, ':');
         final var managementRequest = new AuthenticationCertificateRegistrationRequestDto();
         managementRequest.setServerAddress("security-server-" + idParts[3]);
         managementRequest.setSecurityServerId(serverId);
-        managementRequest.setAuthenticationCertificate(CertificateUtils.generateAuthCert());
+        managementRequest.setAuthenticationCertificate(authenticationCertificate);
         managementRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);
-        managementRequest.setOrigin(SECURITY_SERVER);
+        managementRequest.setOrigin(ManagementRequestOriginDto.valueOf(origin));
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
@@ -145,5 +149,11 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(AUTH_CERT_REGISTRATION_REQUEST, "body.type", "Verify type"))
                 .assertion(equalsAssertion(SECURITY_SERVER, "body.origin", "Verify origin"))
                 .execute();
+    }
+
+    private void generateAuthenticationCertificate() throws Exception {
+        if (authenticationCertificate == null) {
+            authenticationCertificate = CertificateUtils.generateAuthCert();
+        }
     }
 }

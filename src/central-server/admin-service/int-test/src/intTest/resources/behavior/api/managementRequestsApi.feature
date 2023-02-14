@@ -5,7 +5,7 @@ Feature: Management requests API
   Scenario: Changing security server owner
     Given member class 'E2E' is created
     And new member 'CS:E2E:member-1' is added
-    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered
+    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new member 'CS:E2E:member-2' is added
     And member 'CS:E2E:member-2' is not in global group 'security-server-owners'

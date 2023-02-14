@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
+import ee.ria.xroad.common.TestCertUtil;
+
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
@@ -34,6 +37,8 @@ import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
+import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
+import org.niis.xroad.cs.admin.core.converter.KeyUsageConverter;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
@@ -47,9 +52,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = {RequestMapperImpl.class, ClientIdMapperImpl.class, SecurityServerIdMapperImpl.class})
+@SpringBootTest(classes = {RequestMapperImpl.class, ClientIdMapperImpl.class, SecurityServerIdMapperImpl.class,
+        CertificateConverter.class, KeyUsageConverter.class})
 class RequestMapperTest {
-    private static final byte[] CERT = {1, 0, 1};
+    private static byte[] cert;
 
     private static final MemberIdEntity MEMBER_ID_ENTITY = MemberIdEntity.create(
             "xRoadInstance", "memberClass", "memberCode");
@@ -60,10 +66,15 @@ class RequestMapperTest {
     @Autowired
     private RequestMapper mapper;
 
+    @BeforeAll
+    static void before() throws Exception {
+        cert = TestCertUtil.generateAuthCert();
+    }
+
     @Test
     void shouldMapAuthenticationCertificateDeletionRequestEntity() {
         var source = new AuthenticationCertificateDeletionRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY);
-        source.setAuthCert(CERT);
+        source.setAuthCert(cert);
         source.setComments("comments");
 
         var result = mapper.toTarget(source);
@@ -79,7 +90,7 @@ class RequestMapperTest {
     @Test
     void shouldMapAuthenticationCertificateRegistrationRequestEntity() {
         var source = new AuthenticationCertificateRegistrationRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY);
-        source.setAuthCert(CERT);
+        source.setAuthCert(cert);
         source.setComments("comments");
         source.setAddress("address");
 
