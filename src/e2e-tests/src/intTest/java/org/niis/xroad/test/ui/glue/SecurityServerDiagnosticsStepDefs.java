@@ -34,7 +34,7 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 
 public class SecurityServerDiagnosticsStepDefs extends BaseUiStepDefs {
-    private DiagnosticsPageObj diagnosticsPage = new DiagnosticsPageObj();
+    private final DiagnosticsPageObj diagnosticsPage = new DiagnosticsPageObj();
 
     @Step("Diagnostics tab is selected")
     public void userNavigatesToDiagnostics() {
@@ -88,6 +88,26 @@ public class SecurityServerDiagnosticsStepDefs extends BaseUiStepDefs {
     @Step("At least one member should use default encryption key")
     public void memberWithDefaultEncryptionKeyExists() {
         diagnosticsPage.memberMessageLogEncryptionKeyWithWarning().should(exist);
+    }
+
+    @Step("Java version status should be ok")
+    public void javaVersionStatus() {
+        diagnosticsPage.javaVersionMessage().shouldHave(Condition.partialText("ok"));
+    }
+
+    @Step("Global configuration status should be ok")
+    public void globalConfigurationStatus() {
+        diagnosticsPage.globalConfigurationMessage().shouldHave(Condition.partialText("ok"));
+    }
+
+    @Step("Timestamping status should be ok")
+    public void timestampingStatus() {
+        diagnosticsPage.timestampingMessage().shouldHave(Condition.partialText("ok"));
+    }
+
+    @Step("OCSP responders status should be ok")
+    public void ocspRespondersStatus() {
+        diagnosticsPage.ocspResponderMessage().shouldHave(Condition.partialText("ok"));
     }
 
 
