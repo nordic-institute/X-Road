@@ -35,6 +35,7 @@ export enum RouteName {
   MemberSubsystems = 'member-subsystems',
   SecurityServers = 'security-servers',
   ManagementRequests = 'management-requests',
+  ManagementRequestDetails = 'management-request-details',
   TrustServices = 'trust-services',
   CertificationServiceDetails = 'certification-service-details',
   CertificationServiceSettings = 'certification-service-settings',

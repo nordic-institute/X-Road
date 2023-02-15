@@ -387,7 +387,39 @@
     "removeClient": "Remove Client",
     "securityServerId": "Server Identifier",
     "securityServerOwnerName": "Server Owner Name",
-    "showOnlyPending": "Show only pending requests"
+    "showOnlyPending": "Show only pending requests",
+    "approveRequest": "Approve management request",
+    "confirmApprove": "Are you sure you want to approve the management request ID {id} from server {serverId}?",
+    "declineRequest": "Decline management request",
+    "confirmDecline": "Are you sure you want to decline the management request ID {id} from server {serverId}?",
+    "details": {
+      "requestInfo": {
+        "requestInfo": "Request Information",
+        "requestId": "Request ID",
+        "received": "Received",
+        "source": "Source",
+        "status": "Status",
+        "comments": "Comments"
+      },
+      "authCertInfo": {
+        "ca": "CA",
+        "serialNumber": "Serial number",
+        "subject": "Subject",
+        "expires": "Expires"
+      },
+      "authCertRegistrationDetail": "Authentication Certificate Registration Request Details",
+      "authCertDeletionDetail": "Authentication Certificate Deletion Request Details",
+      "clientRegistrationDetail": "Security Server Client Registration Request Details",
+      "clientDeletionDetail": "Security Server Client Deletion Request Details",
+      "ownerChangeDetail": "Security Server Client Owner Change Request Details",
+      "authCertRegistrationSubmit": "Authentication Certificate Submitted for Registration",
+      "authCertDeletionSubmit": "Authentication Certificate Submitted for Deletion",
+      "clientRegistrationSubmit": "Client Submitted for Registration",
+      "clientDeletionSubmit": "Client Submitted for Deletion",
+      "ownerChangeSubmit": "Client Submitted for Owner change",
+      "affectedServerInfo": "Affected Security Server Information",
+      "submittedClient": "Client Submitted for Registration"
+    }
   },
   "members": {
     "addMember": "Add member",
@@ -451,6 +483,7 @@
     "ownerClass": "Owner Class",
     "ownerCode": "Owner Code",
     "ownerName": "Owner Name",
+    "subsystemCode": "Subsystem Code",
     "registered": "Registered",
     "unregistered": "Unregistered",
     "pending": "Pending approval",

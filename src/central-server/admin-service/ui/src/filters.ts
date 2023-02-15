@@ -1,3 +1,4 @@
+
 /*
  * The MIT License
  *
@@ -117,6 +118,34 @@ export const formatDateTimeSeconds = (value: string): string => {
   return formatDateTime(value) + ':' + date.getSeconds().toString().padStart(2, '0');
 };
 
+// Get identifier from INSTANCE:CLASS:CODE[:SUBSYSTEM]
+export const getInstance = (value: string): string => {
+  const splitted = value.split(':');
+  return splitted[0];
+}
+
+// Get class from INSTANCE:CLASS:CODE[:SUBSYSTEM]
+export const getClass = (value: string): string => {
+  const splitted = value.split(':');
+  return splitted[1];
+}
+
+// Get code from INSTANCE:CLASS:CODE[:SUBSYSTEM]
+export const getCode = (value: string): string => {
+  const splitted = value.split(':');
+  return splitted[2];
+}
+
+// Get code from INSTANCE:CLASS:CODE[:SUBSYSTEM]
+export const getSubsystem = (value: string): string => {
+  const splitted = value.split(':');
+  return splitted[3];
+}
+
+Vue.filter('getInstance', getInstance);
+Vue.filter('getClass', getClass);
+Vue.filter('getCode', getCode);
+Vue.filter('getSubsystem', getSubsystem);
 Vue.filter('formatDateTime', formatDateTime);
 Vue.filter('formatDateTimeSeconds', formatDateTimeSeconds);
 

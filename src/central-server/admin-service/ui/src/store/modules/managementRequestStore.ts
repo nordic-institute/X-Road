@@ -29,15 +29,21 @@ import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';
 import axios, { AxiosRequestConfig } from 'axios';
 import {
+  AuthenticationCertificateRegistrationRequest,
+  CertificateDetails,
   ManagementRequest,
   ManagementRequestsFilter,
+  ManagementRequestType,
   PagedManagementRequests,
   PagingMetadata,
 } from '@/openapi-types';
+import ManagementRequests from '@/views/ManagementRequests/ManagementRequests.vue';
+import { encodePathParameter } from '@/util/api';
 
 export interface State {
   items: ManagementRequest[];
   pagingOptions: PagingMetadata;
+  currentManagementRequest: ManagementRequest;
 }
 
 export const managementRequestsStore = defineStore('managementRequests', {
@@ -49,6 +55,7 @@ export const managementRequestsStore = defineStore('managementRequests', {
       limit: 25,
       offset: 0,
     },
+    currentManagementRequest: {} as ManagementRequest,
   }),
   getters: {},
   actions: {
@@ -70,6 +77,21 @@ export const managementRequestsStore = defineStore('managementRequests', {
           this.items = resp.data.items || [];
           this.pagingOptions = resp.data.paging_metadata;
         });
+    },
+    loadDetails(id: string) {
+      return axios
+        .get<ManagementRequest>(`/management-requests/${id}`)
+        .then((resp) => {
+          this.currentManagementRequest = resp.data;
+        });
+    },
+    approve(id: number) {
+      return axios.post<ManagementRequest>(
+        `/management-requests/${id}/approval`,
+      );
+    },
+    decline(id: number) {
+      return axios.delete(`/management-requests/${id}`);
     },
   },
 });
