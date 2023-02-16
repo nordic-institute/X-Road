@@ -2,7 +2,7 @@
 set -e
 
 VERSION=7.3.0
-LAST_SUPPORTED_VERSION=6.26.0
+LAST_SUPPORTED_VERSION=7.1.0
 
 if [[ $1 == "-release" ]] ; then
   RELEASE=1
