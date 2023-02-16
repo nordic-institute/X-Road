@@ -23,7 +23,7 @@
 * Common
   * [X-Road Architecture](doc/Architecture/arc-g_x-road_arhitecture.md)
   * [X-Road Security Architecture](doc/Architecture/arc-sec_x_road_security_architecture.md)
-  * [Audit Log Events](doc/Architecture/spec-al_x-road_audit_log_events_1.7_Y-883-17.docx)
+  * [Audit Log Events](doc/Architecture/spec-al_x-road_audit_log_events.md)
   * [Technologies used in X-Road](doc/Architecture/arc-tec_x-road_technologies.md)
 * Security Server
   * [Security Server Architecture](doc/Architecture/arc-ss_x-road_security_server_architecture.md)
