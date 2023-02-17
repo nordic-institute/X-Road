@@ -20,10 +20,10 @@ sourceSets {
 
 dependencies {
     api 'org.apache.santuario:xmlsec:2.2.3'
-    api "org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}"
+    api "org.bouncycastle:bcpkix-jdk15on:$bouncyCastleVersion"
     api 'org.apache.commons:commons-lang3:3.12.0'
     api 'commons-io:commons-io:2.11.0'
-    api "org.slf4j:jcl-over-slf4j:${slf4jVersion}"
+    api "org.slf4j:jcl-over-slf4j:$slf4jVersion"
     api 'org.apache.james:apache-mime4j-core:0.8.7'
     api "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
     api 'com.sun.xml.messaging.saaj:saaj-impl:1.5.3'
@@ -32,12 +32,12 @@ dependencies {
     api 'org.apache.httpcomponents:httpclient:4.5.13'
     api 'org.apache.httpcomponents:httpasyncclient:4.1.4'
 
-    api "org.scala-lang:scala-library:2.13.9"
+    api "org.scala-lang:scala-library:$scalaLibraryVersion"
     api "com.typesafe.akka:akka-actor_$akkaVersion"
     api "com.typesafe.akka:akka-remote_$akkaVersion"
     api "com.typesafe.akka:akka-slf4j_$akkaVersion"
 
-    api platform("com.fasterxml.jackson:jackson-bom:${jacksonBomVersion}")
+    api platform("com.fasterxml.jackson:jackson-bom:$jacksonBomVersion")
     api "com.fasterxml.jackson.core:jackson-databind"
     api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
@@ -53,7 +53,7 @@ dependencies {
     }
     api 'org.apache.commons:commons-text:1.10.0'
 
-    implementation "ch.qos.logback:logback-classic:${logbackVersion}"
+    implementation "ch.qos.logback:logback-classic:$logbackVersion"
 
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation project(':common-test')

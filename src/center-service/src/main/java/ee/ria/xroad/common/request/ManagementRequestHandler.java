@@ -225,7 +225,7 @@ public final class ManagementRequestHandler {
         }
 
         X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), memberCert);
-        new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
+        new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
                 new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()))
                 .verifyValidityAndStatus(memberCertOcsp, memberCert, issuer);
     }

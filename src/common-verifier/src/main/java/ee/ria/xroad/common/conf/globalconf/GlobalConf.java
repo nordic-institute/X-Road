@@ -615,15 +615,15 @@ public final class GlobalConf {
     }
 
     /**
-     * @param smallestValue if true the smallest value of all instances
-     * should be returned
      * @return time (in seconds) where validity information is considered valid.
      * After that time, OCSP responses must be refreshed.
      */
-    public static int getOcspFreshnessSeconds(boolean smallestValue) {
+    public static int getOcspFreshnessSeconds() {
         log.trace("getOcspFreshnessSeconds()");
 
-        return getInstance().getOcspFreshnessSeconds(smallestValue);
+        final int ocspFreshnessSeconds = getInstance().getOcspFreshnessSeconds();
+        log.trace("ocspFreshnessSeconds={}", ocspFreshnessSeconds);
+        return ocspFreshnessSeconds;
     }
 
     /**
