@@ -25,16 +25,18 @@ documentation.
 
 ## Installing X-Road
 
-Depending on if you are joining an existing X-Road instance or creating a new one, the software packages you need to
-install vary quite a bit.
+The X-Road software packages to be installed vary between different use cases.
 
-In case you are looking to join an existing instance, be sure to familiarise yourself with the rules and documentation
-of the instance before moving on to the installation guides.
+If you are joining an existing X-Road ecosystem, you should familiarise yourself with the ecosystem-specific
+documentation before moving to the Security Server installation guides. The X-Road ecosystem-specific documentation is
+provided and maintained by the ecosystem's X-Road Operator.
 
-If you are looking to set up your own instance, we recommend you visit the [X-Road website](https://x-road.global),
-have a look at the architecture documents on this page as well as familiarising yourself with the concepts with the
-free [X-Road Academy](https://x-road.thinkific.com) courses.
+Instead, if you're setting up a new X-Road ecosystem, it's strongly recommended to visit the
+[X-Road website](https://x-road.global) for additional resources and study the architecture documents on this page. For
+a new X-Road ecosystem, it's required to set up the Central Server and a management Security Server.
 
+The free [X-Road Academy](https://x-road.thinkific.com) courses provide online training for developers, users,
+operators, consultants, service providers and for anyone willing to learn more about X-Road.
 
 ### Security Server
 
@@ -57,3 +59,6 @@ installation manual [here](doc/Manuals/ig-cs_x-road_6_central_server_installatio
 
 To learn about setting up a Central Server cluster, please also take a look at the relevant documentation
 [here](doc/Manuals/ig-csha_x-road_6_ha_installation_guide.md).
+
+Setting up a fully functional X-Road environment requires a Certificate Authority (CA) with an OCSP service and a
+time-stamping service. The [X-Road Test CA](ansible/TESTCA.md) can be used for testing and development purposes.

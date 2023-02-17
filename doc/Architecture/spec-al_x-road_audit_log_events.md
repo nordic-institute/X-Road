@@ -1,11 +1,7 @@
 # Audit log events
 
 Version: 1.9
-16.02.2023
 Doc. ID: SPEC-AL
-
----
-
 
 ## Version history
 
