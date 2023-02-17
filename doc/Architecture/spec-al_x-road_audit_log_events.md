@@ -1,6 +1,7 @@
 # Audit log events
 
 Version: 1.9
+
 Doc. ID: SPEC-AL
 
 ## Version history
