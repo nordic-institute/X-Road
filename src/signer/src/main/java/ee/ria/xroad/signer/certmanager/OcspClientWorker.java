@@ -148,7 +148,7 @@ public class OcspClientWorker extends AbstractSignerActor {
         boolean sendReschedule = false;
         boolean sendExecute = false;
 
-        changeChecker.addChange(OCSP_FRESHNESS_SECONDS, GlobalConf.getOcspFreshnessSeconds(true));
+        changeChecker.addChange(OCSP_FRESHNESS_SECONDS, GlobalConf.getOcspFreshnessSeconds());
         changeChecker.addChange(VERIFY_OCSP_NEXTUPDATE,
                 GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate());
         changeChecker.addChange(OCSP_FETCH_INTERVAL, GlobalConfExtensions.getInstance().getOcspFetchInterval());
@@ -303,7 +303,7 @@ public class OcspClientWorker extends AbstractSignerActor {
             throw new ConnectException("No OCSP responder URIs available");
         }
 
-        final OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), verifierOptions);
+        final OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), verifierOptions);
 
         for (String responderURI : responderURIs) {
             final OffsetDateTime prevUpdate = OffsetDateTime.now();

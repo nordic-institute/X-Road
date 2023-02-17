@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -40,6 +40,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -103,6 +104,7 @@ public final class ConfigurationClientMain {
      * 1) <anchor file> <configuration path> -- download and exit,
      * 2) <anchor file> -- download and verify,
      * 3) [no args] -- start as daemon.
+     *
      * @param args the arguments
      * @throws Exception if an error occurs
      */
@@ -192,7 +194,7 @@ public final class ConfigurationClientMain {
         client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
             @Override
             protected void deleteExtraConfigurationDirectories(PrivateParametersV2 privateParameters,
-                    FederationConfigurationSourceFilter sourceFilter) {
+                                                               FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete any files
             }
 
@@ -290,6 +292,9 @@ public final class ConfigurationClientMain {
         jobManager.registerRepeatingJob(ConfigurationClientJob.class,
                 SystemProperties.getConfigurationClientUpdateIntervalSeconds(), data);
 
+        jobManager.registerJob(ProxyConfigurationBackupJob.class,
+                SystemProperties.getConfigurationClientProxyConfigurationBackupCron(), new JobDataMap());
+
         jobManager.start();
     }
 
@@ -356,9 +361,11 @@ public final class ConfigurationClientMain {
 
         @Override
         public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
-            log.info("job was executed result={}", context.getResult());
+            if (context.getResult() instanceof DiagnosticsStatus) {
+                log.info("job was executed result={}", context.getResult());
 
-            setStatus((DiagnosticsStatus) context.getResult());
+                setStatus((DiagnosticsStatus) context.getResult());
+            }
         }
     }
 

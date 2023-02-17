@@ -131,7 +131,7 @@ public class GetMemberSigningInfoRequestHandler extends AbstractRequestHandler<G
 
         OCSPResp ocsp = new OCSPResp(ocspBytes);
         X509Certificate issuer = GlobalConf.getCaCert(instanceIdentifier, subject);
-        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false), verifierOptions);
+        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), verifierOptions);
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 }
