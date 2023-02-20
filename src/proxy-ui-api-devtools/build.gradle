@@ -3,10 +3,6 @@ plugins {
     id 'org.springframework.boot'
 }
 
-ext {
-    set('springCloudVersion', "2020.0.4")
-}
-
 bootJar {
     classpath configurations.developmentOnly
 }

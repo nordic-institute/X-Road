@@ -27,7 +27,7 @@ dependencies {
     implementation project(':monitoring-conf')
 
     // Using HSQLDB for an in-memory database in tests.
-    testImplementation 'org.hsqldb:hsqldb:2.5.2'
+    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
     testImplementation 'commons-cli:commons-cli:1.4'
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
@@ -81,8 +81,6 @@ task testsJar(type: Jar, dependsOn: testClasses) {
 jar.enabled = false
 assemble.dependsOn shadowJar
 assemble.dependsOn testsJar
-buildall.dependsOn shadowJar
-buildall.dependsOn testsJar
 
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')

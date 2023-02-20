@@ -1,12 +1,13 @@
-# Security token extension for the X-Road message protocol
+# Security Token Extension for the X-Road Message Protocol
 
-Version: 1.1  
+Version: 1.2  
 Doc. ID: PR-SECTOKEN
 
-| Date       | Version   | Description                                                                  | Author             |
-|------------|-----------|------------------------------------------------------------------------------|--------------------|
-| 20.10.2017 | 1.0       | Initial version                                                              | Olli Lindgren      |
-| 06.03.2018 | 1.1       | Added terms section, term doc reference and link                             | Tatu Repo          | 
+| Date       | Version | Description                                      | Author           |
+|------------|---------|--------------------------------------------------|------------------|
+| 20.10.2017 | 1.0     | Initial version                                  | Olli Lindgren    |
+| 06.03.2018 | 1.1     | Added terms section, term doc reference and link | Tatu Repo        | 
+| 17.06.2022 | 1.2     | Update document title                            | Petteri Kivimäki | 
 
 ## Table of Contents
 
@@ -50,7 +51,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 | Document ID||
 | ------------- |-------------|
-| <a name="Ref_PR-MESS"></a>\[PR-MESS\] | [Cybernetica AS.X-Road: Message Protocol v4.0](../pr-mess_x-road_message_protocol.md)      |
+| <a name="Ref_PR-MESS"></a>\[PR-MESS\] | [X-Road: Message Protocol v4.0](../pr-mess_x-road_message_protocol.md)      |
 | <a name="Ref_UG-SS"></a>\[UG-SS\] | [Security Server User guide](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md)      |
 | <a name="Ref_UG-SYSPAR"></a>\[UG-SYSPAR\] | [X-Road: System Parameters User Guide](../../Manuals/ug-syspar_x-road_v6_system_parameters.md)      |
 | <a name="Ref_JWT-RFC"></a>\[JWT-RFC\] | [Internet Engineering Task Force Request for Comments 7516:  JSON Web Token (JWT)](https://tools.ietf.org/html/rfc7519)      |

@@ -25,14 +25,13 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.service.ApiKeyService;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,12 +41,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
-
-import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 
 /**
  * AuthenticationManager which expects Authentication.principal to be
@@ -63,6 +57,7 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
     private final GrantedAuthorityMapper permissionMapper;
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
     private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final SecurityHelper securityHelper;
 
     @Autowired
     public ApiKeyAuthenticationManager(ApiKeyAuthenticationHelper apiKeyAuthenticationHelper,
@@ -70,12 +65,13 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
             GrantedAuthorityMapper permissionMapper,
             @Qualifier(AuthenticationIpWhitelist.REGULAR_API_WHITELIST)
                     AuthenticationIpWhitelist authenticationIpWhitelist,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
+            AuditEventLoggingFacade auditEventLoggingFacade, SecurityHelper securityHelper) {
         this.apiKeyAuthenticationHelper = apiKeyAuthenticationHelper;
         this.authenticationHeaderDecoder = authenticationHeaderDecoder;
         this.permissionMapper = permissionMapper;
         this.authenticationIpWhitelist = authenticationIpWhitelist;
         this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.securityHelper = securityHelper;
     }
 
     @Override
@@ -94,25 +90,6 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
                 throw new BadCredentialsException("Unknown problem when getting API key", e);
             }
             Set<Role> roles = key.getRoles();
-            log.trace("Node type is {}", SystemProperties.getServerNodeType());
-
-            // On secondary nodes only "XROAD_SECURITYSERVER_OBSERVER" role is permitted. If the key
-            // has any other associated roles, they are removed. If the key does not have
-            // "XROAD_SECURITYSERVER_OBSERVER" role, no permissions are granted.
-            if (SLAVE.equals(SystemProperties.getServerNodeType())) {
-                log.debug("This is a secondary node - only observer role is permitted");
-                Optional<Role> match = key.getRoles().stream()
-                        .filter(role -> role.equals(Role.XROAD_SECURITYSERVER_OBSERVER)).findFirst();
-
-                if (match.isPresent()) {
-                    log.trace("Observer role detected");
-                    roles = new HashSet<>(Arrays.asList(Role.XROAD_SECURITYSERVER_OBSERVER));
-                } else {
-                    log.trace("No observer role detected");
-                    roles = new HashSet<>();
-                }
-            }
-
             PreAuthenticatedAuthenticationToken authenticationWithGrants =
                     new PreAuthenticatedAuthenticationToken(createPrincipal(key),
                             authentication.getCredentials(),

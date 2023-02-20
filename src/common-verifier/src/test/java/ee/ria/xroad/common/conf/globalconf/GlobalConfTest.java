@@ -59,7 +59,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.TestCertUtil.getCertChainCert;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
@@ -85,11 +84,12 @@ public class GlobalConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        GlobalConf.reset();
         System.setProperty(SystemProperties.CONFIGURATION_PATH, GOOD_CONF_DIR);
 
         createConfigurationFiles();
 
-        GlobalConf.reload(new GlobalConfImpl(new ConfigurationDirectoryV2(getConfigurationPath())));
+        GlobalConf.reload();
     }
 
     private static void createConfigurationFiles() throws IOException {
@@ -363,7 +363,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getVerificationCaCerts() {
-        List<X509Certificate> certs = GlobalConf.getInstance().getVerificationCaCerts();
+        List<X509Certificate> certs = GlobalConf.getVerificationCaCerts();
 
         assertEquals(4, certs.size());
     }
@@ -404,7 +404,7 @@ public class GlobalConfTest {
 
         assertEquals("http://mgmt.com:1234", serviceAddr);
         assertEquals(newClientId("servicemember2"), GlobalConf.getManagementRequestService());
-        assertEquals(42, GlobalConf.getOcspFreshnessSeconds(true));
+        assertEquals(42, GlobalConf.getOcspFreshnessSeconds());
     }
 
     /**

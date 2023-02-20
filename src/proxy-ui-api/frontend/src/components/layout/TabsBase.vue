@@ -55,11 +55,12 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import { Tab } from '@/ui-types';
-import { mainTabs, RouteName } from '@/global';
+import { mainTabs } from '@/global';
 import AppIcon from './AppIcon.vue';
 import AppDropMenu from './AppDropMenu.vue';
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
@@ -72,16 +73,9 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['username']),
-
+    ...mapState(useUser, ['getAllowedTabs']),
     allowedTabs(): Tab[] {
-      return this.$store.getters.getAllowedTabs(mainTabs);
-    },
-  },
-  methods: {
-    logout(): void {
-      this.$store.dispatch('logout');
-      this.$router.replace({ name: RouteName.Login });
+      return this.getAllowedTabs(mainTabs);
     },
   },
 });

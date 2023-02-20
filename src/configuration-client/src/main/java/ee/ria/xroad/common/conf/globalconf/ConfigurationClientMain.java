@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -40,6 +40,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -50,6 +51,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -100,6 +104,7 @@ public final class ConfigurationClientMain {
      * 1) <anchor file> <configuration path> -- download and exit,
      * 2) <anchor file> -- download and verify,
      * 3) [no args] -- start as daemon.
+     *
      * @param args the arguments
      * @throws Exception if an error occurs
      */
@@ -109,11 +114,10 @@ public final class ConfigurationClientMain {
         String[] actualArgs = cmd.getArgs();
         if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
             // Run configuration client in one-shot mode downloading the specified global configuration version.
-            System.exit(download(actualArgs[0], actualArgs[1], actualArgs[2]));
+            System.exit(download(actualArgs[0], actualArgs[1]));
         } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
             // Run configuration client in one-shot mode downloading the current global configuration version.
-            System.exit(download(actualArgs[0], actualArgs[1],
-                    String.format("%d", SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION)));
+            System.exit(download(actualArgs[0], actualArgs[1]));
         } else if (actualArgs.length == 1) {
             // Run configuration client in validate mode.
             System.exit(validate(actualArgs[0], getParamsValidator(cmd)));
@@ -135,25 +139,18 @@ public final class ConfigurationClientMain {
         return parser.parse(options, args);
     }
 
-    private static int download(String configurationAnchorFile, String configurationPath, String version) {
-        log.debug("Downloading configuration using anchor {} path = {} version = {})",
-                configurationAnchorFile, configurationPath, version);
+    private static int download(String configurationAnchorFile, String configurationPath) {
+        log.debug("Downloading configuration using anchor {} path = {})",
+                configurationAnchorFile, configurationPath);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, configurationPath);
 
-        FileNameProvider fileNameProvider = new FileNameProviderImpl(configurationPath);
-
-        client = new ConfigurationClient(getDummyDownloadedFiles(),
-                new ConfigurationDownloader(fileNameProvider, Integer.parseInt(version)) {
-                    @Override
-                    void addAdditionalConfigurationSources(PrivateParametersV2 privateParameters) {
-                        // Do not download additional source.
-                    }
-                }, Integer.parseInt(version)) {
+        client = new ConfigurationClient(configurationPath) {
             @Override
-            void initAdditionalConfigurationSources() {
-                // Not needed.
+            protected void deleteExtraConfigurationDirectories(
+                    PrivateParametersV2 privateParameters,
+                    FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete anything
             }
         };
 
@@ -163,34 +160,42 @@ public final class ConfigurationClientMain {
     private static int validate(String configurationAnchorFile, final ParamsValidator paramsValidator) {
         log.trace("Downloading configuration using anchor {}", configurationAnchorFile);
 
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
-
         // Create configuration that does not persist files to disk.
-        ConfigurationDownloader configuration = new ConfigurationDownloader(getDefaultFileNameProvider(),
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
+        final String configurationPath = SystemProperties.getConfigurationPath();
+
+        ConfigurationDownloader configurationDownloader = new ConfigurationDownloader(configurationPath) {
             @Override
-            void handle(ConfigurationLocation location, ConfigurationFile file) {
+            void handleContent(byte[] content, ConfigurationFile file) throws Exception {
+                validateContent(file);
+                super.handleContent(content, file);
+            }
+
+            @Override
+            void validateContent(ConfigurationFile file) {
                 paramsValidator.tryMarkValid(file.getContentIdentifier());
-
-                super.handle(location, file);
             }
 
             @Override
-            void persistContent(byte[] content, Path destination, ConfigurationFile file) throws Exception {
-                // empty cause we don't want to persist files to disk
+            Set<Path> persistAllContent(
+                    List<ConfigurationDownloader.DownloadedContent> downloadedContents) {
+                // empty because we don't want to persist files to disk
+                // can return empty list because extra files deletion method is also empty
+                return Collections.emptySet();
             }
 
             @Override
-            void updateExpirationDate(Path destination, ConfigurationFile file) throws Exception {
-                // empty cause we don't want to persist files to disk
+            void deleteExtraFiles(String instanceIdentifier, Set<Path> neededFiles) {
+                // do not delete anything
             }
+
         };
 
-        client = new ConfigurationClient(getDummyDownloadedFiles(), configuration,
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
+        ConfigurationAnchorV2 configurationAnchor = new ConfigurationAnchorV2(configurationAnchorFile);
+        client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
             @Override
-            void initAdditionalConfigurationSources() {
-                // Not needed.
+            protected void deleteExtraConfigurationDirectories(PrivateParametersV2 privateParameters,
+                                                               FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete any files
             }
 
             @Override
@@ -228,31 +233,10 @@ public final class ConfigurationClientMain {
         shutdown();
     }
 
-    private static ConfigurationClient createClient() {
-        ConfigurationDownloader configuration = new ConfigurationDownloader(getDefaultFileNameProvider(),
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
-
-        return new ConfigurationClient(new DownloadedFiles(SystemProperties.getConfigurationPath()), configuration,
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
-    }
-
-    private static FileNameProviderImpl getDefaultFileNameProvider() {
-        return new FileNameProviderImpl(SystemProperties.getConfigurationPath());
-    }
-
-    private static DownloadedFiles getDummyDownloadedFiles() {
-        return new DownloadedFiles(SystemProperties.getConfigurationPath()) {
-            @Override
-            void delete(Path path) {
-                // old configuration files aren't removed when running as non daemon
-            }
-        };
-    }
-
     private static void setup() {
         log.trace("setUp()");
 
-        client = createClient();
+        client = new ConfigurationClient(SystemProperties.getConfigurationPath());
 
         adminPort = new AdminPort(SystemProperties.getConfigurationClientAdminPort());
 
@@ -307,6 +291,9 @@ public final class ConfigurationClientMain {
 
         jobManager.registerRepeatingJob(ConfigurationClientJob.class,
                 SystemProperties.getConfigurationClientUpdateIntervalSeconds(), data);
+
+        jobManager.registerJob(ProxyConfigurationBackupJob.class,
+                SystemProperties.getConfigurationClientProxyConfigurationBackupCron(), new JobDataMap());
 
         jobManager.start();
     }
@@ -374,9 +361,11 @@ public final class ConfigurationClientMain {
 
         @Override
         public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
-            log.info("job was executed result={}", context.getResult());
+            if (context.getResult() instanceof DiagnosticsStatus) {
+                log.info("job was executed result={}", context.getResult());
 
-            setStatus((DiagnosticsStatus)context.getResult());
+                setStatus((DiagnosticsStatus) context.getResult());
+            }
         }
     }
 

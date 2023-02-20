@@ -25,7 +25,7 @@
  -->
 <template>
   <v-container
-    v-if="isAuthenticated && !needsInitialization && hasAlerts"
+    v-if="authenticated && !needsInitialization && hasAlerts"
     fluid
     class="alerts-container px-3"
   >
@@ -94,13 +94,27 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapState } from 'pinia';
+import { useAlerts } from '@/store/modules/alerts';
+import { useSystemStore } from '@/store/modules/system';
+import { useUser } from '@/store/modules/user';
 import { formatDateTime } from '@/filters';
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
-  name: 'AlertsContainer',
   computed: {
+    ...mapState(useAlerts, [
+      'showGlobalConfAlert',
+      'showSoftTokenPinEnteredAlert',
+      'showRestoreInProgress',
+      'restoreStartTime',
+    ]),
+    ...mapState(useSystemStore, ['isSecondaryNode']),
+    ...mapState(useUser, [
+      'authenticated',
+      'needsInitialization',
+      'hasPermission',
+    ]),
     hasAlerts(): boolean {
       return (
         this.showGlobalConfAlert ||
@@ -109,22 +123,12 @@ export default Vue.extend({
         this.isSecondaryNode
       );
     },
+
     showLoginLink(): boolean {
       return this.$route.name !== RouteName.SignAndAuthKeys;
     },
-    ...mapGetters([
-      'showGlobalConfAlert',
-      'showSoftTokenPinEnteredAlert',
-      'showRestoreInProgress',
-      'restoreStartTime',
-      'isAuthenticated',
-      'needsInitialization',
-      'isSecondaryNode',
-    ]),
     isAllowedToLoginToken(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
-      );
+      return this.hasPermission(Permissions.ACTIVATE_DEACTIVATE_TOKEN);
     },
   },
   methods: {
@@ -148,12 +152,12 @@ export default Vue.extend({
   }
 
   & > :first-child {
-    margin-top: 8px;
+    margin-top: 16px;
   }
 }
 
 .alert {
-  margin-top: 8px;
+  margin-top: 16px;
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;

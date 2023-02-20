@@ -48,10 +48,10 @@ pgrestore() {
   # no --clean for force restore
   if [[ $FORCE_RESTORE == true ]] ; then
     PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
-      pg_restore --single-transaction -d "$db_database" --schema="$db_schema" "$dump_file"
+      pg_restore --no-owner --single-transaction -d "$db_database" --schema="$db_schema" "$dump_file"
   else
     PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
-      pg_restore --single-transaction --clean -d "$db_database" --schema="$db_schema" "$dump_file"
+      pg_restore --no-owner --single-transaction --clean -d "$db_database" --schema="$db_schema" "$dump_file"
   fi
 }
 
@@ -100,7 +100,7 @@ fi
 JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
   --classpath=/usr/share/xroad/jlib/postgresql.jar \
   --url="jdbc:postgresql://$db_addr:$db_port/$db_database?currentSchema=${db_schema},public" \
-  --changeLogFile=/usr/share/xroad/db/serverconf-changelog.xml \
+  --changeLogFile=serverconf-changelog.xml \
   --password="${db_admin_password}" \
   --username="${db_admin_user}" \
   --defaultSchemaName="${db_schema}" \

@@ -48,6 +48,8 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   props: {
@@ -64,19 +66,17 @@ export default Vue.extend({
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     unregisterClient(): void {
       this.unregisterLoading = true;
       api
         .put(`/clients/${encodePathParameter(this.id)}/unregister`, {})
         .then(
           () => {
-            this.$store.dispatch(
-              'showSuccess',
-              this.$t('client.action.unregister.success'),
-            );
+            this.showSuccess(this.$t('client.action.unregister.success'));
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         )
         .finally(() => {

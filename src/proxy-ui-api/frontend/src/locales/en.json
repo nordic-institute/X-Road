@@ -64,6 +64,7 @@
   },
   "alert": {
     "count": "Amount of same errors:",
+    "warningCount": "Amount of same warnings",
     "id": "ID"
   },
   "apiKey": {
@@ -139,7 +140,8 @@
     "backupConfiguration": {
       "button": "Back up config.",
       "message": {
-        "success": "Backup {file} successfully created"
+        "success": "Backup {file} successfully created",
+        "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead."
       }
     },
     "uploadBackup": {
@@ -271,7 +273,10 @@
     "invalidXrdIdentifier": "Identifier value contains illegal characters"
   },
   "diagnostics": {
-    "globalCongiguration": {
+    "addOnStatus": {
+      "messageLogDisabled": "Disabled by configuration"
+    },
+    "globalConfiguration": {
       "configurationStatus": {
         "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
         "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
@@ -305,7 +310,7 @@
         "SUCCESS": "Everything ok",
         "UNKNOWN": "Unknown"
       },
-      "title": "OCSP Responders"
+      "title": "OCSP responders"
     },
     "previousUpdate": "Previous Update",
     "serviceUrl": "Service URL",
@@ -320,6 +325,29 @@
         "UNKNOWN": "Unknown"
       },
       "title": "Timestamping"
+    },
+    "encryption": {
+      "status": {
+        "false": "Disabled",
+        "true": "Enabled"
+      },
+      "statusTitle": "Encryption status:",
+      "backup": {
+        "title": "Backup encryption",
+        "configuredKeyId": "Configured Key Id"
+      },
+      "messageLog": {
+        "archive": {
+          "title": "Message log archive encryption",
+          "groupingTitle": "Grouping rule:",
+          "memberIdentifier": "Member identifier",
+          "keyId": "Key id",
+          "defaultKeyNote": "This member is configured to use the servers default encryption key. For additional security, consider defining a specific key to be used."
+        },
+        "database": {
+          "title": "Message log database encryption"
+        }
+      }
     }
   },
   "endpoints": {
@@ -544,12 +572,6 @@
     "secondaryNode": "You are on a secondary node in a Security Server cluster. Modifying configuration is disabled.",
     "softTokenPinNotEntered": "Please enter soft token PIN"
   },
-  "info": {
-    "backups_incompatible": [
-      "The backup format has changed, and therefore, backups are incompatible between X-Road 6 and X-Road 7.",
-      "Also, please note that the \"/etc/xroad/services/local.conf\" file for configuration overrides is deprecated and is not included in the backups anymore. In version 7, the \"/etc/xroad/services/local.properties\" file should be used instead."
-    ]
-  },
   "initialConfiguration": {
     "anchor": {
       "generated": "Generated",
@@ -720,6 +742,7 @@
   },
   "noData": {
     "loading": "Loading... Please wait",
+    "noBackUpEncryptionKeys": "No configured backup encryption keys",
     "noBackups": "No backups yet",
     "noCertificate": "No certificate",
     "noCertificates": "No certificates",
@@ -730,7 +753,7 @@
     "noMatches": "No items matching criteria",
     "noServices": "No services",
     "noServiceClients": "No service clients",
-    "noTimestampingServices": "No Timestaping services",
+    "noTimestampingServices": "No timestaping services",
     "noTokens": "No tokens"
   },
   "serviceClientType": {
@@ -998,9 +1021,9 @@
     "addSubsystemTitle": "Add subsystem",
     "client": {
       "addClient": "Add Client",
+      "clientExists": "Client already exists",
       "memberClassTooltip": "Code identifying the member class (e.g., government agency, private enterprise etc.).",
       "memberCodeTooltip": "Member code that uniquely identifies this X-Road member within its member class (e.g. business ID).",
-      "memberExists": "Member already exists",
       "memberNameTooltip": "Name of the member organization.",
       "register": "Register client",
       "searchLabel": "Client",
@@ -1021,6 +1044,7 @@
     "member": {
       "info1": "Specify the details of the Member you want to add.",
       "info2": "If the Member is already existing, you can select it from the Global list.",
+      "memberExists": "Member already exists",
       "register": "Register member",
       "searchLabel": "Member",
       "select": "Select member",
@@ -1042,7 +1066,8 @@
       "registerSubsystem": "Register subsystem",
       "searchLabel": "Subsystem",
       "selectSubsystem": "Select Subsystem",
-      "subsystemAdded": "Subsystem added"
+      "subsystemAdded": "Subsystem added",
+      "subsystemExists": "Subsystem already exists"
     },
     "subsystemCode": "Subsystem Code",
     "token": {

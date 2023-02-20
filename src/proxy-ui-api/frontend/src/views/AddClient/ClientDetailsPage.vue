@@ -121,7 +121,7 @@
           </ValidationProvider>
         </div>
         <div v-if="duplicateClient" class="wizard-duplicate-warning">
-          {{ $t('wizard.client.memberExists') }}
+          {{ $t('wizard.client.clientExists') }}
         </div>
       </div>
       <div class="button-footer">
@@ -150,13 +150,17 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { debounce, isEmpty, containsClient } from '@/util/helpers';
 import { Client } from '@/openapi-types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { AddMemberWizardModes } from '@/global';
 import { validate } from 'vee-validate';
+import { mapActions, mapState, mapWritableState } from 'pinia';
+import { useAddClient } from '@/store/modules/addClient';
+import { useNotifications } from '@/store/modules/notifications';
+import { useGeneral } from '@/store/modules/general';
+import { useUser } from '@/store/modules/user';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -176,40 +180,18 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters([
+    ...mapState(useAddClient, [
       'reservedClients',
       'selectableClients',
-      'memberClassesCurrentInstance',
       'selectedMemberName',
-      'currentSecurityServer',
     ]),
-
-    memberClass: {
-      get(): string {
-        return this.$store.getters.memberClass;
-      },
-      set(value: string) {
-        this.$store.commit('setMemberClass', value);
-      },
-    },
-
-    memberCode: {
-      get(): string {
-        return this.$store.getters.memberCode;
-      },
-      set(value: string) {
-        this.$store.commit('setMemberCode', value);
-      },
-    },
-
-    subsystemCode: {
-      get(): string {
-        return this.$store.getters.subsystemCode;
-      },
-      set(value: string) {
-        this.$store.commit('setSubsystemCode', value);
-      },
-    },
+    ...mapWritableState(useAddClient, [
+      'memberClass',
+      'memberCode',
+      'subsystemCode',
+    ]),
+    ...mapState(useGeneral, ['memberClassesCurrentInstance']),
+    ...mapState(useUser, ['currentSecurityServer']),
 
     duplicateClient(): boolean {
       return containsClient(
@@ -223,7 +205,7 @@ export default Vue.extend({
   watch: {
     async memberCode(val) {
       // Set wizard mode to default (full)
-      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+      this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
 
       // Needs to be done here, because the watcher runs before the setter
       validate(this.memberCode, 'required|xrdIdentifier', {
@@ -244,7 +226,7 @@ export default Vue.extend({
     },
     memberClass(val): void {
       // Set wizard mode to default (full)
-      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+      this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
       if (isEmpty(val) || isEmpty(this.memberCode)) {
         return;
       }
@@ -260,17 +242,25 @@ export default Vue.extend({
   },
   created() {
     that = this;
-    this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-    this.$store.dispatch(
-      'fetchSelectableClients',
-      that.currentSecurityServer.instance_id,
-    );
-    this.$store.dispatch('fetchMemberClassesForCurrentInstance');
+    this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
+    this.fetchSelectableClients(that.currentSecurityServer.instance_id);
+    this.fetchMemberClassesForCurrentInstance();
   },
   mounted() {
     this.$refs.memberCodeVP;
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance']),
+    ...mapActions(useAddClient, [
+      'setAddMemberWizardMode',
+      'fetchSelectableClients',
+      'setSelectedMember',
+      'fetchReservedClients',
+      'setSelectedMemberName',
+      'searchTokens',
+    ]),
+
     cancel(): void {
       this.$emit('cancel');
     },
@@ -278,14 +268,11 @@ export default Vue.extend({
       this.$emit('done');
     },
     saveSelectedClient(selectedMember: Client): void {
-      this.$store.dispatch('setSelectedMember', selectedMember).then(
-        () => {
-          this.$store.dispatch('fetchReservedClients', selectedMember);
-        },
-        (error) => {
-          this.$store.dispatch('showError', error);
-        },
-      );
+      this.setSelectedMember(selectedMember);
+      this.fetchReservedClients(selectedMember).catch((error) => {
+        this.showError(error);
+      });
+
       this.showSelectClient = false;
     },
     checkClient(): void {
@@ -304,7 +291,7 @@ export default Vue.extend({
       });
 
       // Fill the name "field" if it's available or set it undefined
-      this.$store.commit('setSelectedMemberName', tempClient?.member_name);
+      this.setSelectedMemberName(tempClient?.member_name);
 
       // Pass the arguments so that we use the validated information instead of the state at that time
       this.checkClientDebounce(this.memberClass, this.memberCode);
@@ -312,8 +299,8 @@ export default Vue.extend({
     checkClientDebounce: debounce((memberClass: string, memberCode: string) => {
       // Debounce is used to reduce unnecessary api calls
       // Search tokens for suitable CSR:s and certificates
-      that.$store
-        .dispatch('searchTokens', {
+      that
+        .searchTokens({
           instanceId: that.currentSecurityServer.instance_id,
           memberClass: memberClass,
           memberCode: memberCode,
@@ -323,7 +310,7 @@ export default Vue.extend({
             that.checkRunning = false;
           },
           (error: Error) => {
-            that.$store.dispatch('showError', error);
+            that.showError(error);
             that.checkRunning = true;
           },
         );

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified"
+           targetNamespace="http://x-road.eu/xsd/representation.xsd"
+           xmlns="http://x-road.eu/xsd/representation.xsd">
+    <xs:element name="partyClass" type="xs:string">
+        <xs:annotation>
+            <xs:documentation>Class of the represented party.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="partyCode" type="xs:string">
+        <xs:annotation>
+            <xs:documentation>Code of the represented party.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="XRoadRepresentedPartyType">
+        <xs:sequence>
+            <xs:element minOccurs="0" ref="partyClass"/>
+            <xs:element minOccurs="1" ref="partyCode"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element name="representedParty" type="XRoadRepresentedPartyType">
+        <xs:annotation>
+            <xs:documentation>Identifies a party that is being
+                represented in a service request.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+</xs:schema>

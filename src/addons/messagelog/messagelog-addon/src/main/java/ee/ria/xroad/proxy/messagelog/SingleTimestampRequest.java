@@ -81,8 +81,9 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
         String signatureXml = signature.toXml();
 
         message.setSignature(signatureXml);
+        String oldHash = message.getSignatureHash();
         message.setSignatureHash(LogManager.signatureHash(signatureXml));
 
-        LogRecordManager.updateMessageRecordSignature(message);
+        LogRecordManager.updateMessageRecordSignature(message, oldHash);
     }
 }

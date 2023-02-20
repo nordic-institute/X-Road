@@ -179,7 +179,7 @@ public class CertChainVerifier {
                         + subject.getSubjectX500Principal().getName());
             }
 
-            OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
+            OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
                     new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
             verifier.verifyValidityAndStatus(response, subject, issuer,
                     atDate);

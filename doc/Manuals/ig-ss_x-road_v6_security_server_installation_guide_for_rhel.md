@@ -123,7 +123,7 @@ There are multiple alternatives how the security server can be deployed. The opt
 The security server runs on the following platforms:
 
 * Red Hat Enterprise Linux (RHEL) versions 7 and 8 on a x86-64 platform.
-* Ubuntu Server 18.04 and 20.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
+* Ubuntu Server 20.04 and 22.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 

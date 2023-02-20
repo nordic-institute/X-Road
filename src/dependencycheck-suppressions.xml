@@ -5,5 +5,43 @@
       file name: org.eclipse.core.contenttype-3.8.0.jar
       ]]></notes>
       <cve>CVE-2021-41033</cve>
-   </suppress>
+    </suppress>
+    <suppress>
+      <notes><![CDATA[file name: apache-mime4j-core-0.8.7.jar]]></notes>
+      <packageUrl regex="true">^pkg:maven/org\.apache\.james/apache\-mime4j\-core@.*$</packageUrl>
+      <cve>CVE-2022-28220</cve>
+      <cve>CVE-2021-38542</cve>
+      <cve>CVE-2021-40110</cve>
+      <cve>CVE-2021-40111</cve>
+      <cve>CVE-2021-40525</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[Ignored since we are not vulnerable.]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring.*$</packageUrl>
+        <cve>CVE-2016-1000027</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[Ignored since it's a false positive, our used Spring Security version is not vulnerable.]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring\-boot\-starter\-security@.*$</packageUrl>
+        <cve>CVE-2022-22976</cve>
+        <cve>CVE-2022-22978</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[Ignored since it's a false positive, our used Spring Security version is not vulnerable.]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring\-security\-rsa@.*$</packageUrl>
+        <cve>CVE-2022-22976</cve>
+        <cve>CVE-2022-22978</cve>
+    </suppress>
+    <suppress until="2022-10-31Z">
+        <notes><![CDATA[Time-limited suppression as there is no proper release with a fix available (only rc). The vulnerable feature UNWRAP_SINGLE_VALUE_ARRAYS is not enabled.]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
+        <cve>CVE-2022-42003</cve>
+    </suppress>
+    <suppress base="true">
+        <notes><![CDATA[
+   False positive as it shares same namespace as vulnerable woodstox-core lib.
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.codehaus\.woodstox/stax2-api@.*$</packageUrl>
+        <cpe>cpe:/a:fasterxml:woodstox</cpe>
+    </suppress>
 </suppressions>

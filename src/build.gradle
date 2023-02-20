@@ -11,12 +11,13 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '3.3'
-    id 'org.owasp.dependencycheck' version '6.3.2'
+    id 'org.owasp.dependencycheck' version '8.0.2'
     id 'jacoco'
     id 'java'
     id 'idea'
-    id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
-    id 'org.springframework.boot' version '2.5.5' apply false
+    id "io.spring.dependency-management" version "1.1.0" apply false
+    id 'org.springframework.boot' version "${springBootVersion}" apply false
+    id "com.dorongold.task-tree" version "2.1.0"
 }
 
 repositories {
@@ -45,6 +46,7 @@ dependencyCheck {
     outputDirectory = "${project.buildDir}/reports/owasp-dependency-check"
     suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
     format = "ALL"
+    skipProjects = [":e2e-tests"]
     analyzers {
         experimentalEnabled = false
         archiveEnabled = false
@@ -61,6 +63,12 @@ dependencyCheck {
         autoconfEnabled = false
         composerEnabled = false
         nodeEnabled = false
+        nodeAudit {
+          enabled = false
+        }
+        ossIndex {
+          enabled = false
+        }
     }
 }
 
@@ -72,9 +80,12 @@ allprojects {
     }
 
     repositories {
-      mavenCentral()
       mavenLocal()
+      mavenCentral()
     }
+
+    group = 'ee.ria.xroad'
+    version = '1.0'
 
     jacoco {
         toolVersion = "0.8.7"
@@ -93,7 +104,7 @@ allprojects {
     }
 }
 
-subprojects {
+configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
@@ -103,20 +114,67 @@ subprojects {
     group = 'ee.ria.xroad'
     version = '1.0'
 
+    sourceSets {
+        intTest {
+            compileClasspath += sourceSets.main.output
+            runtimeClasspath += sourceSets.main.output
+        }
+    }
+
     configurations {
         testArtifacts.extendsFrom testRuntime
+
+        intTestImplementation.extendsFrom implementation
+        intTestRuntimeOnly.extendsFrom runtimeOnly
     }
 
     dependencies {
+        //With require constraints we define lowest compliant dependency version (transitive dependencies are incl.)
+        constraints {
+            add('implementation', 'com.fasterxml.jackson.core:jackson-databind') {
+                because("Vulnerability fix regarding CVE-2022-42003")
+                version {
+                    require("$jacksonBomVersion")
+                }
+            }
+            add('implementation', 'org.yaml:snakeyaml') {
+                because("Vulnerability fix regarding CVE-2022-25857")
+                version {
+                    require("$snakeyamlVersion")
+                }
+            }
+            add('implementation', 'org.apache.commons:commons-text') {
+                because("Vulnerability fix regarding CVE-2022-42889")
+                version {
+                    require("$commonsTextVersion")
+                }
+            }
+            add('implementation', 'org.scala-lang:scala-library') {
+                because("Vulnerability fix regarding CVE-2022-36944")
+                version {
+                    require("$scalaLibraryVersion")
+                }
+            }
+            add('implementation', 'com.fasterxml.woodstox:woodstox-core') {
+                because("Vulnerability fix regarding CVE-2022-40152")
+                version {
+                    require("$woodstoxVersion")
+                }
+            }
+        }
+
         testImplementation 'org.hamcrest:hamcrest:2.2'
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
-        testImplementation 'junit:junit:4.13.2'
+        testImplementation "junit:junit:${junitVersion}"
 
-        compileOnly 'org.projectlombok:lombok:1.18.22'
-        annotationProcessor 'org.projectlombok:lombok:1.18.22'
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
-        testCompileOnly 'org.projectlombok:lombok:1.18.22'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+        intTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+        intTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     }
 
     task testJar(type: Jar) {
@@ -154,10 +212,6 @@ subprojects {
             systemProperty("java.security.properties",
                 "${project.rootDir}/config/workaround-jdk-8156584-security.properties");
         }
-    }
-
-    task buildall(dependsOn: [build, ':center-ui:warble', ':center-service:warble']) {
-        description = "Builds all that can be built (even the slow tasks)"
     }
 
     testJar.enabled = false
@@ -253,3 +307,11 @@ jacocoTestReport {
     sourceDirectories.setFrom files(javaProjects.sourceSets.main.java.srcDirs)
     executionData.setFrom fileTree(dir: '.', include: '**/build/jacoco/*.exec')
 }
+
+//Register git-hooks
+tasks.register("installGitHooks", Copy) {
+    from file("$rootDir/../.githooks")
+    into file("$rootDir/../.git/hooks")
+    fileMode 0775
+}
+assemble.dependsOn installGitHooks

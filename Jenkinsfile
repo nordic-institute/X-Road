@@ -5,14 +5,16 @@ pipeline {
             steps {
                 sh 'env'
             }
-        }        
+        }
         stage('Clean and clone repository') {
             steps {
                 checkout([
                         $class                           : 'GitSCM',
                         branches                         : [[name: ghprbSourceBranch]],
                         doGenerateSubmoduleConfigurations: false,
-                        extensions                       : [[$class: 'CleanBeforeCheckout']],
+                        extensions                       : [[$class: 'CleanBeforeCheckout'],
+                                                            [$class: 'ChangelogToBranch', options: [compareRemote: 'origin', compareTarget: '${ghprbTargetBranch}']],
+                                                           ],
                         gitTool                          : 'Default',
                         submoduleCfg                     : [],
                         userRemoteConfigs                : [
@@ -25,6 +27,12 @@ pipeline {
             }
         }
         stage('Compile Code') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker-compile'
@@ -39,25 +47,19 @@ pipeline {
             steps {
                 sh 'cd src && ./update_ruby_dependencies.sh'
                 withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
-                    sh 'cd src && ~/.rvm/bin/rvm jruby-$(cat .jruby-version) do ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${ghprbPullId} -Dsonar.pullrequest.branch=${ghprbSourceBranch} -Dsonar.pullrequest.base=${ghprbTargetBranch} --stacktrace --no-daemon buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate sonarqube -Pstrict-frontend-audit -Pfrontend-unit-tests'
-                }
-            }
-        }
-        stage('Ubuntu bionic packaging') {
-            agent {
-                dockerfile {
-                    dir 'src/packages/docker/deb-bionic'
-                    args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
-                    reuseNode true
-                }
-            }
-            steps {
-                script {
-                    sh './src/packages/build-deb.sh bionic'
+                    sh 'cd src && ~/.rvm/bin/rvm jruby-$(cat .jruby-version) do ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${ghprbPullId} -Dsonar.pullrequest.branch=${ghprbSourceBranch} -Dsonar.pullrequest.base=${ghprbTargetBranch} --stacktrace --no-daemon build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate sonarqube -Pfrontend-unit-tests -Pfrontend-npm-audit'
                 }
             }
         }
         stage('Ubuntu focal packaging') {
+            when {
+                beforeAgent true
+                expression { return fileExists('src/packages/docker/deb-focal/Dockerfile') }
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker/deb-focal'
@@ -71,7 +73,35 @@ pipeline {
                 }
             }
         }
+        stage('Ubuntu jammy packaging') {
+            when {
+                beforeAgent true
+                expression { return fileExists('src/packages/docker/deb-jammy/Dockerfile') }
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/deb-jammy'
+                    args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
+                    reuseNode true
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-deb.sh jammy'
+                }
+            }
+        }
         stage('RHEL 7 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker/rpm'
@@ -86,6 +116,12 @@ pipeline {
             }
         }
         stage('RHEL 8 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
             agent {
                 dockerfile {
                     dir 'src/packages/docker/rpm-el8'

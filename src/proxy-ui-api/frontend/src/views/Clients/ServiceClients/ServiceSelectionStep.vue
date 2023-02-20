@@ -115,6 +115,8 @@ import { ServiceCandidate } from '@/ui-types';
 import { AccessRight, AccessRights, ServiceClient } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   props: {
@@ -139,14 +141,17 @@ export default Vue.extend({
   },
   computed: {
     searchResults(): ServiceCandidate[] {
-      return this.serviceCandidates.filter((candidate: ServiceCandidate) =>
-        candidate.service_code
-          .toLowerCase()
-          .includes(this.search.toLowerCase()),
-      );
+      const cleanedSearch = this.search.toLowerCase();
+      return this.serviceCandidates.filter((candidate: ServiceCandidate) => {
+        return (
+          candidate.service_code.toLowerCase().includes(cleanedSearch) ||
+          candidate.service_title?.toLowerCase().includes(cleanedSearch)
+        );
+      });
     },
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     saveServices(): void {
       const items = this.selections
         .filter((selection) => selection.service_code.includes(this.search))
@@ -168,13 +173,12 @@ export default Vue.extend({
           accessRightsObject,
         )
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
+          this.showSuccess(
             this.$t('serviceClients.addServiceClientAccessRightSuccess'),
           );
           this.$router.push(`/subsystem/serviceclients/${this.id}`);
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
 
       this.clear();
     },

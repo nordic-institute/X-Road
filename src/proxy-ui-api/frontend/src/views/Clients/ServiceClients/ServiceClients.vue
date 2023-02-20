@@ -60,6 +60,7 @@
       :loader-height="2"
       hide-default-footer
       :no-data-text="$t('noData.noServiceClients')"
+      data-test="service-clients-main-view-table"
     >
       <template #[`item.name`]="{ item }">
         <div
@@ -87,11 +88,16 @@
 <script lang="ts">
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
-import { mapGetters } from 'vuex';
+
 import * as api from '@/util/api';
 import { ServiceClient } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 import { Permissions } from '@/global';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+
+import { useClientStore } from '@/store/modules/client';
 
 export default Vue.extend({
   props: {
@@ -108,11 +114,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['client']),
+    ...mapState(useClientStore, ['client']),
+    ...mapState(useUser, ['hasPermission']),
     showAddSubjects(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES,
-      );
+      return this.hasPermission(Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES);
     },
     headers(): DataTableHeader[] {
       return [
@@ -135,6 +140,7 @@ export default Vue.extend({
     this.fetchServiceClients();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     fetchServiceClients() {
       this.loading = true;
       api
@@ -143,7 +149,7 @@ export default Vue.extend({
           {},
         )
         .then((response) => (this.serviceClients = response.data))
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => (this.loading = false));
     },
     addServiceClient(): void {

@@ -6,11 +6,6 @@
   tags:
     - clean-local-repo
 
-- name: Copy bionic DEB packages (Ubuntu)
-  become: yes
-  copy: src="../src/packages/build/ubuntu18.04/" dest="/xroad/"
-  when: ubuntu_releasever == "bionic"
-
 - name: Copy focal DEB packages (Ubuntu)
   become: yes
   copy: src="../src/packages/build/ubuntu20.04/" dest="/xroad/"
@@ -25,7 +20,7 @@
 
 - name: Ensure dpkg-dev
   become: yes
-  apt: name=dpkg-dev state=present
+  apt: name=dpkg-dev state=present update_cache=yes
 
 - name: Scan new packages
   become: yes

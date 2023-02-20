@@ -29,7 +29,7 @@ var fs = require('fs');
 module.exports = {
   tags: ['ss', 'keyscerts', 'signauthkeys'],
   'Security server add signkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -105,7 +105,7 @@ module.exports = {
     browser.end();
   },
   'Security server add authkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -181,7 +181,7 @@ module.exports = {
     browser.end();
   },
   'Security server add signkey pem/empty label': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -280,7 +280,7 @@ module.exports = {
     browser.end();
   },
   'Security server add authkey pem/empty label': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -375,7 +375,7 @@ module.exports = {
     browser.end();
   },
   'Security server generate sign key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -490,7 +490,7 @@ module.exports = {
     browser.end();
   },
   'Security server delete sign key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -553,7 +553,7 @@ module.exports = {
     browser.end();
   },
   'Security server generate auth key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -603,10 +603,7 @@ module.exports = {
       generateKeyCsrWizardCsr.elements.csrUsage,
       'AUTHENTICATION',
     );
-    browser.assert.containsText(
-      generateKeyCsrWizardCsr.elements.csrService,
-      'X-Road Test CA CN',
-    );
+
     generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
     generateKeyCsrWizardCsr.selectFormat('DER');
     generateKeyCsrWizardCsr.next();
@@ -676,7 +673,7 @@ module.exports = {
     browser.end();
   },
   'Security server delete auth key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -739,7 +736,7 @@ module.exports = {
     browser.end();
   },
   'Security server import authkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -803,7 +800,7 @@ module.exports = {
     browser.end();
   },
   'Security server import signkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -861,7 +858,7 @@ module.exports = {
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
     mainPage.closeSnackbar();
 
-    // Verify that a certificate has been added with the correct status
+    // Verify that one certificate has been added (position is not known for certain though)
     browser.perform(function () {
       browser.waitForElementVisible(
         '(//tr[.//div[contains(@class, "clickable-link")] and .//div[contains(@class, "status-text") and contains(text(), "Registered")]])[' +
@@ -873,9 +870,7 @@ module.exports = {
     // Open imported certificate
     browser.perform(function () {
       browser.click(
-        '(//tr[.//div[contains(@class, "status-text") and contains(text(), "Registered")]]//div[contains(@class, "clickable-link")])[' +
-          (initialCerts + 1) +
-          ']',
+        '//div[contains(@class, "clickable-link") and contains(text(), "X-Road Test CA CN 20")]'
       );
     });
 

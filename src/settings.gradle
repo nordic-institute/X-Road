@@ -33,13 +33,14 @@ include "monitor"
 include "monitor-common"
 include "monitor-test"
 include "op-monitor-daemon"
+include "shared-ui"
 
 // Utils
 include "signer-console"
 
 // Tests
 include "common-test"
-
+include "e2e-tests"
 // Addons
 include "addons:hwtoken"
 include "addons:messagelog:messagelog-addon"

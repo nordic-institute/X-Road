@@ -25,7 +25,7 @@
  -->
 <template>
   <v-container fluid fill-height class="login-view-wrap">
-    <AlertsContainer class="alerts" />
+    <alerts-container class="alerts" />
     <div class="graphics">
       <v-img
         :src="require('../assets/xroad7_large.svg')"
@@ -115,7 +115,11 @@ import Vue, { VueConstructor } from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useSystemStore } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default (
   Vue as VueConstructor<
@@ -140,6 +144,12 @@ export default (
     };
   },
   computed: {
+    ...mapState(useUser, [
+      'hasPermission',
+      'firstAllowedTab',
+      'hasInitState',
+      'needsInitialization',
+    ]),
     isDisabled() {
       if (
         this.username.length < 1 ||
@@ -152,16 +162,37 @@ export default (
     },
   },
   methods: {
+    ...mapActions(useUser, [
+      'loginUser',
+      'logoutUser',
+      'fetchInitializationStatus',
+      'fetchUserData',
+      'fetchCurrentSecurityServer',
+      'clearAuth',
+    ]),
+    ...mapActions(useSystemStore, [
+      'fetchSecurityServerVersion',
+      'fetchSecurityServerNodeType',
+      'clearSystemStore',
+    ]),
+    ...mapActions(useNotifications, [
+      'showError',
+      'showErrorMessage',
+      'clearErrorNotifications',
+    ]),
     async submit() {
       // Clear error notifications when route is changed
-      this.$store.commit('clearErrorNotifications');
+      this.clearErrorNotifications();
+
+      /* Clear user data so there is nothing left from previous sessions.
+       For example user has closed browser tab without loggin out > user data is left in browser local storage */
+      this.clearAuth();
+      this.clearSystemStore();
 
       // Validate inputs
       const isValid = await this.$refs.form.validate();
 
-      if (!isValid) {
-        return;
-      }
+      if (!isValid) return;
 
       const loginData = {
         username: this.username,
@@ -172,11 +203,7 @@ export default (
       this.loading = true;
 
       try {
-        await this.$store.dispatch('login', loginData);
-        // Auth ok. Start phase 2 (fetch user data and current security server info).
-        await this.fetchUserData();
-        await this.fetchSecurityServerVersion();
-        await this.fetchSecurityServerNodeType();
+        await this.loginUser(loginData);
       } catch (error) {
         if (axios.isAxiosError(error)) {
           // Display invalid username/password error in inputs
@@ -196,55 +223,51 @@ export default (
               });
             });
           }
-          await this.$store.dispatch(
-            'showErrorMessage',
-            this.$t('login.generalError'),
-          );
+          this.showErrorMessage(this.$t('login.generalError'));
         } else {
           if (error instanceof Error) {
-            await this.$store.dispatch('showError', error.message);
+            this.showErrorMessage(error.message);
           } else {
             throw error;
           }
         }
       }
+
+      // Auth ok. Start phase 2 (fetch user data and current security server info).
+
+      try {
+        await this.fetchUserData();
+        await this.fetchInitializationData(); // Used to be inside fetchUserData()
+        await this.fetchSecurityServerVersion();
+        await this.fetchSecurityServerNodeType();
+      } catch (error) {
+        this.showError(error as AxiosError);
+      }
+
       // Clear loading state
       this.loading = false;
-    },
-    async fetchUserData() {
-      try {
-        await this.$store.dispatch('fetchUserData');
-        await this.fetchInitializationData();
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          // Display error
-          await this.$store.dispatch('showErrorMessage', error.message);
-        } else {
-          throw error;
-        }
-      }
     },
 
     async fetchInitializationData() {
       const redirectToLogin = async () => {
         // Logout without page refresh
-        await this.$store.dispatch('logout', false);
+        await this.logoutUser(false);
         // Clear inputs
         this.username = '';
         this.password = '';
         this.$refs.form.reset();
       };
 
-      await this.$store.dispatch('fetchInitializationStatus');
-      if (!this.$store.getters.hasInitState) {
-        await this.$store.dispatch(
-          'showErrorMessage',
+      await this.fetchInitializationStatus();
+      await this.fetchSecurityServerNodeType();
+      if (!this.hasInitState) {
+        this.showErrorMessage(
           this.$t('initialConfiguration.noInitializationStatus'),
         );
         await redirectToLogin();
-      } else if (this.$store.getters.needsInitialization) {
+      } else if (this.needsInitialization) {
         // Check if the user has permission to initialize the server
-        if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
+        if (!this.hasPermission(Permissions.INIT_CONFIG)) {
           await redirectToLogin();
           throw new Error(
             this.$t('initialConfiguration.noPermission') as string,
@@ -252,32 +275,11 @@ export default (
         }
         await this.$router.replace({ name: RouteName.InitialConfiguration });
       } else {
+        // No need to initialise, proceed to "main view"
         await this.fetchCurrentSecurityServer();
         await this.$router.replace({
-          name: this.$store.getters.firstAllowedTab.to.name,
+          name: this.firstAllowedTab.to.name,
         });
-      }
-    },
-
-    async fetchCurrentSecurityServer() {
-      try {
-        await this.$store.dispatch('fetchCurrentSecurityServer');
-      } catch (error) {
-        await this.$store.dispatch('showError', error);
-      }
-    },
-    async fetchSecurityServerVersion() {
-      try {
-        await this.$store.dispatch('fetchSecurityServerVersion');
-      } catch (error) {
-        await this.$store.dispatch('showError', error);
-      }
-    },
-    async fetchSecurityServerNodeType() {
-      try {
-        await this.$store.dispatch('fetchSecurityServerNodeType');
-      } catch (error) {
-        await this.$store.dispatch('showError', error);
       }
     },
   },

@@ -70,6 +70,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_EXISTING_SERVICE_CODE;
@@ -184,6 +185,7 @@ public class ServiceDescriptionService {
         Set<String> servicesToRemove = serviceDescriptionType.getService()
                 .stream()
                 .map(ServiceType::getServiceCode)
+                .filter(isServiceUniqueToCurrentDescription(client, serviceDescriptionType))
                 .collect(Collectors.toSet());
         client.getEndpoint().removeIf(endpointType -> servicesToRemove.contains(endpointType.getServiceCode()));
     }
@@ -192,9 +194,18 @@ public class ServiceDescriptionService {
         Set<String> aclServiceCodesToRemove = serviceDescriptionType.getService()
                 .stream()
                 .map(ServiceType::getServiceCode)
+                .filter(isServiceUniqueToCurrentDescription(client, serviceDescriptionType))
                 .collect(Collectors.toSet());
         client.getAcl().removeIf(accessRightType -> aclServiceCodesToRemove
                 .contains(accessRightType.getEndpoint().getServiceCode()));
+    }
+
+    private Predicate<String> isServiceUniqueToCurrentDescription(ClientType client, ServiceDescriptionType current) {
+        return (String serviceCode) -> client.getServiceDescription().stream().filter(
+                        sd -> !sd.getId().equals(current.getId()))
+                .flatMap(sd -> sd.getService().stream())
+                .map(ServiceType::getServiceCode)
+                .noneMatch(Predicate.isEqual(serviceCode));
     }
 
     /**
@@ -874,8 +885,7 @@ public class ServiceDescriptionService {
 
     /**
      * Returns title for client's service with specific serviceCode.
-     * Current implementation picks title of the first matching service with given service code,
-     * if multiple versions exist.
+     * If there are multiple versions, the method returns the last title based on a inverse alphabetical comparison.
      *
      * @param clientType
      * @param serviceCode
@@ -885,7 +895,7 @@ public class ServiceDescriptionService {
         ServiceType service = clientType.getServiceDescription().stream()
                 .flatMap(sd -> sd.getService().stream())
                 .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
-                .findFirst()
+                .max((sOne, sTwo) -> sOne.getServiceVersion().compareToIgnoreCase(sTwo.getServiceVersion()))
                 .orElse(null);
 
         return service == null ? null : service.getTitle();

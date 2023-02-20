@@ -80,15 +80,18 @@ public final class MessageLog {
      *
      * @param actorSystem the actor system
      * @param jobManager  the job manager
+     * @return false if NullLogManager was initialized, true otherwise
      * @throws Exception if initialization fails
      */
-    public static void init(ActorSystem actorSystem, JobManager jobManager) {
+    public static boolean init(ActorSystem actorSystem, JobManager jobManager) {
         Class<? extends AbstractLogManager> clazz = getLogManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);
 
         logManager = actorSystem.actorOf(Props.create(clazz, jobManager).withDispatcher(CONTROL_AWARE_DISPATCHER),
                 LOG_MANAGER);
+
+        return NullLogManager.class != clazz;
     }
 
     /**

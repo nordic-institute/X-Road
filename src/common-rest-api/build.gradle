@@ -1,24 +1,8 @@
-import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
-
-buildscript {
-    ext {
-        // currently duplicate with proxy-ui-api build.gradle, probably should fix
-        openapiGeneratorVersion = '5.2.1'
-        swaggerParserVersion = '2.0.28'
-    }
-    repositories {
-        mavenCentral()
-    }
-}
-
 plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
-    id 'org.openapi.generator' version "$openapiGeneratorVersion"
-}
-
-ext {
-    set('springCloudVersion', "2020.0.4")
+    id 'org.openapi.generator' version "$openApiGeneratorVersion"
+    id 'org.niis.xroad.oasvalidatorplugin'
 }
 
 sourceSets {
@@ -26,8 +10,6 @@ sourceSets {
         java.srcDirs = ['src/main/java', 'build/generated-sources/openapi/src/main/java']
     }
 }
-
-apply plugin: Oas3ValidatorGradlePlugin
 
 dependencyManagement {
     imports {
@@ -54,11 +36,14 @@ dependencies {
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
-    testImplementation('org.hsqldb:hsqldb')
+    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-    implementation('org.openapitools:jackson-databind-nullable:0.2.1')
     implementation('javax.validation:validation-api')
+}
+
+test {
+    useJUnitPlatform()
 }
 
 bootJar {
@@ -76,15 +61,18 @@ openApiGenerate {
     apiPackage = "org.niis.xroad.restapi.openapi"
     modelPackage = "org.niis.xroad.restapi.openapi.model"
     globalProperties = [
-            modelDocs: "false",
-            apis     : "false",
-            models   : "", // must use empty strings instead of "true":
-            // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-            generateSupportingFiles : "false"
+        modelDocs              : "false",
+        apis                   : "false",
+        models                 : "", // must use empty strings instead of "true":
+        // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
+        generateSupportingFiles: "false"
     ]
     configOptions = [
-            interfaceOnly: "true",
-            useTags      : "true"
+        interfaceOnly: "true",
+        useTags      : "true",
+        documentationProvider  : "none",
+        skipDefaultInterface   : "true",
+        openApiNullable: "false"
     ]
 }
 
@@ -113,7 +101,7 @@ licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
 
 apiValidationParameters.apiDefinitionPaths = [
-        "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()
+    "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()
 ]
 
 validateApiDefinitions {
@@ -122,5 +110,3 @@ validateApiDefinitions {
 }
 
 tasks.openApiGenerate.dependsOn 'validateApiDefinitions'
-
-

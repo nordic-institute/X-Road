@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.66 
+Version: 2.74
 Doc. ID: UG-SS
 
 ---
@@ -14,91 +14,99 @@ Doc. ID: UG-SS
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 05.09.2014 | 0.1     | Initial draft
- 24.09.2014 | 0.2     | Translation to English
- 10.10.2014 | 0.3     | Update
- 14.10.2014 | 0.4     | Title page, header, footer added
- 16.10.2014 | 0.5     | Minor corrections done
- 12.11.2014 | 0.6     | Asynchronous messages section removed. Global Configuration distributors section replaced with Configuration Anchor section ([10.1](#101-managing-the-configuration-anchor)). Added Logback information (Chapter [16](#17-logs-and-system-services)). A note added about the order of timestamping services (Section [10.2](#102-managing-the-timestamping-services)).
- 1.12.2014  | 1.0     | Minor corrections done
- 19.01.2015 | 1.1     | License information added
- 27.01.2015 | 1.2     | Minor corrections done
- 30.04.2015 | 1.3     | "sdsb" changed to "xroad"
- 29.05.2015 | 1.4     | Message Log chapter added (Chapter [11](#11-message-log))
- 30.06.2015 | 1.5     | Minor corrections done
- 3.07.2015  | 1.6     | Audit Log chapter added (Chapter [12](#12-audit-log))
- 7.09.2015  | 1.7     | Message Log – how to use remote database (Section [11.3](#113-using-a-remote-database))
- 14.09.2015 | 1.8     | Reference to the audit log events added
- 18.09.2015 | 1.9     | Minor corrections done
- 21.09.2015 | 2.0     | References fixed
- 07.10.2015 | 2.1     | Default value of the parameter *acceptable-timestamp-failure-period* set to 14400
- 14.10.2015 | 2.2     | Instructions for using an external database for the message log corrected
- 05.11.2015 | 2.3     | Updates related to backup and restore (Chapter [13](#13-back-up-and-restore))
- 30.11.2015 | 2.4     | X-Road concepts updated (Section [1.2](#12-x-road-concepts)). Security server registration updated (Chapter [3](#3-security-server-registration)). Security server clients updated (Chapter [4](#4-security-server-clients)); only subsystems (and not members) can be registered as security server clients and have services or access rights configured. Cross-references fixed. Editorial changes made.
- 09.12.2015 | 2.5     | Security server client deletion updated (Section [4.5.2](#452-deleting-a-client)). Editorial changes made.
- 14.12.2015 | 2.6     | Message log updated (Chapter [11](#11-message-log))
- 14.01.2016 | 2.7     | Logs updated (Chapter [16](#17-logs-and-system-services))
- 08.02.2016 | 2.8     | Corrections in chapter [16](#17-logs-and-system-services)
- 20.05.2016 | 2.9     | Merged changes from xtee6-doc repo. Added Chapter [14](#14-diagnostics) Diagnostics and updated content of [10.3](#103-changing-the-internal-tls-key-and-certificate) Changing the Internal TLS Key and Certificate.
- 29.11.2016 | 2.10    | User Management updated (Chapter [2](#2-user-management)). XTE-297: Internal Servers tab is displayed to security server owner (Chapter [9](#9-communication-with-the-client-information-systems)). |
- 19.12.2016 | 2.11    | Added Chapter [15](#15-operational-monitoring) Operational Monitoring
- 20.12.2016 | 2.12    | Minor corrections in Chapter [15](#15-operational-monitoring)
- 22.12.2016 | 2.13    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
- 04.01.2016 | 2.14    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
- 20.02.2017 | 2.15    | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 16.03.2017 | 2.16    | Added observer role to Chapters [2.1](#21-user-roles) and [2.2](#22-managing-the-users) | Tatu Repo
- 15.06.2017 | 2.17    | Added [Chapter 17](#18-federation) on federation | Olli Lindgren
- 25.09.2017 | 2.18    | Added chapter [16 Environmental Monitoring](#16-environmental-monitoring) | Tomi Tolvanen
- 17.10.2017 | 2.19    | Added section [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)| Joni Laurila
- 05.03.2018 | 2.20    | Added terms and abbreviations reference, document links, moved concepts to terms and abbreviations. | Tatu Repo 
- 10.04.2018 | 2.21    | Update internal server certificate documentation. | Jarkko Hyöty
- 25.05.2018 | 2.22    | Update system parameters documentation. | Jarkko Hyöty
- 15.11.2018 | 2.23    | Minor updates for Ubuntu 18.04 | Jarkko Hyöty
- 06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
- 15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6] | Jarkko Hyöty
- 26.03.2019 | 2.26    | Added chapter on API keys [19](#19-management-rest-api) | Janne Mattila
- 16.04.2019 | 2.27    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
- 30.06.2019 | 2.28    | Update the default connection type from HTTP to HTTPS in chapter [9] | Petteri Kivimäki
- 01.07.2019 | 2.29    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
- 14.08.2019 | 2.30    | Added automatic backups | Ilkka Seppälä
- 29.09.2019 | 2.31    | Added chapter [19.3](#193-correlation-id-http-header) on REST API correlation id | Janne Mattila
- 30.09.2019 | 2.32    | Added remote database migration guide | Ilkka Seppälä
- 15.10.2019 | 2.33    | Updated REST services in chapter [6] | Ilkka Seppälä
- 04.11.2019 | 2.34    | Added information about REST API request rate and size limits | Janne Mattila
- 07.11.2019 | 2.35    | Add more information about service descriptions to chapter [6] | Ilkka Seppälä
- 05.12.2019 | 2.36    | Add information about timestamping failover capabilities in chapter [10.2](#102-managing-the-timestamping-services) | Petteri Kivimäki
- 24.02.2020 | 2.37    | Updated notes about key caching after changing internal TLS key and certificate [10.3](#103-changing-the-internal-tls-key-and-certificate) | Caro Hautamäki
- 26.03.2020 | 2.38    | Added chapter on updating API keys [19.1.3](#1913-updating-api-keys) | Petteri Kivimäki
- 30.03.2020 | 2.39    | Added description of pre-restore backups | Ilkka Seppälä
- 01.04.2020 | 2.40    | Added notes about IP whitelists for REST API | Janne Mattila
- 03.06.2020 | 2.41    | Updated audit logging description | Janne Mattila
- 05.06.2020 | 2.42    | Added chapter about validation errors [19.4](#194-validation-errors) | Caro Hautamäki
- 25.06.2020 | 2.43    | Update environmental and operational monitoring JMXMP details | Petteri Kivimäki
- 08.07.2020 | 2.44    | Update chapter on access rights [7](#7-access-rights) | Petteri Kivimäki
- 30.07.2020 | 2.45    | Added mention about proxy_ui_api.log to [17 Logs and System Services](#17-logs-and-system-services) | Janne Mattila
- 10.08.2020 | 2.46    | Added mention about unit start rate limits to [17.1 System Services](#171-system-services) | Janne Mattila
- 21.09.2020 | 2.47    | Added a validation error example to [19.4 Validation errors](#194-validation-errors) | Caro Hautamäki
- 29.09.2020 | 2.48    | Update chapters [3](#3-security-server-registration), [4](#4-security-server-clients), [6](#6-x-road-services), [7](#7-access-rights), [8](#8-local-access-right-groups) and [13](#13-back-up-and-restore) to match the new management API | Tapio Jaakkola
- 30.09.2020 | 2.49    | Update chapters [3](#3-security-server-registration), [5](#5-security-tokens-keys-and-certificates), [9](#9-communication-with-the-client-information-systems), [10](#10-system-parameters), [14](#14-diagnostics) and [17](#17-logs-and-system-services) to match the new management API | Caro Hautamäki
- 10.10.2020 | 2.50    | Corrections in Chapter [19 Management REST API](#19-management-rest-api) | Janne Mattila
- 13.10.2020 | 2.51    | Added a section about the warning responses [19.5 Warning responses](#195-warning-responses) | Caro Hautamäki
- 15.10.2020 | 2.52    | Added chapter [2.3 Managing API Keys](#23-managing-api-keys) | Caro Hautamäki
- 22.10.2020 | 2.53    | Added reference to management REST API's OpenAPI description | Petteri Kivimäki
- 01.12.2020 | 2.54    | Added endpoint for getting one API key to [19.1.2 Listing API keys](#1912-listing-api-keys) | Janne Mattila
- 25.02.2020 | 2.55    | Added information to find X-Road ID from conf backup file in chapter [13.2 Restore from the Command Line](#132-restore-from-the-command-line) | Karl Talumäe
- 31.05.2021 | 2.56    | Added information about backup archive contents and encryption | Andres Allkivi
- 23.06.2021 | 2.57    | Fix incorrect link in Chapter [3.1](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner) | Petteri Kivimäki
- 11.08.2021 | 2.58    | Minor updates to backup archive contents and encryption | Petteri Kivimäki
- 13.08.2021 | 2.59    | Add documentation about message log archive grouping and encryption | Jarkko Hyöty
- 25.08.2021 | 2.60    | Update X-Road references from version 6 to 7 | Caro Hautamäki
- 31.08.2021 | 2.61    | Describe new messagelog and message archive functionality | Ilkka Seppälä
- 13.09.2021 | 2.62    | Added a new chapter about custom command line arguments [21](#21-adding-command-line-arguments) | Caro Hautamäki
- 22.09.2021 | 2.63    | Update backup encryption instructions | Jarkko Hyöty
- 05.10.2021 | 2.64    | Moved the chapter about command line arguments to the system parameters document | Caro Hautamäki
- 24.11.2021 | 2.65    | Updated anchors to match correct sections | Raido Kaju
- 30.11.2021 | 2.66    | Added chapter about configuring account lockouts [22](#22-configuring-account-lockout)  | Caro Hautamäki
+| Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                                                                 | Author            |
+|------------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
+| 05.09.2014 | 0.1     | Initial draft                                                                                                                                                                                                                                                                                                                                                                                               |                   |
+| 24.09.2014 | 0.2     | Translation to English                                                                                                                                                                                                                                                                                                                                                                                      |                   |
+| 10.10.2014 | 0.3     | Update                                                                                                                                                                                                                                                                                                                                                                                                      |                   |
+| 14.10.2014 | 0.4     | Title page, header, footer added                                                                                                                                                                                                                                                                                                                                                                            |                   |
+| 16.10.2014 | 0.5     | Minor corrections done                                                                                                                                                                                                                                                                                                                                                                                      |                   |
+| 12.11.2014 | 0.6     | Asynchronous messages section removed. Global Configuration distributors section replaced with Configuration Anchor section ([10.1](#101-managing-the-configuration-anchor)). Added Logback information (Chapter [16](#17-logs-and-system-services)). A note added about the order of timestamping services (Section [10.2](#102-managing-the-timestamping-services)).                                      |                   |
+| 1.12.2014  | 1.0     | Minor corrections done                                                                                                                                                                                                                                                                                                                                                                                      |                   |
+| 19.01.2015 | 1.1     | License information added                                                                                                                                                                                                                                                                                                                                                                                   |                   |
+| 27.01.2015 | 1.2     | Minor corrections done                                                                                                                                                                                                                                                                                                                                                                                      |                   |
+| 30.04.2015 | 1.3     | "sdsb" changed to "xroad"                                                                                                                                                                                                                                                                                                                                                                                   |                   |
+| 29.05.2015 | 1.4     | Message Log chapter added (Chapter [11](#11-message-log))                                                                                                                                                                                                                                                                                                                                                   |                   |
+| 30.06.2015 | 1.5     | Minor corrections done                                                                                                                                                                                                                                                                                                                                                                                      |                   |
+| 3.07.2015  | 1.6     | Audit Log chapter added (Chapter [12](#12-audit-log))                                                                                                                                                                                                                                                                                                                                                       |                   |
+| 7.09.2015  | 1.7     | Message Log – how to use remote database (Section [11.3](#113-using-a-remote-database))                                                                                                                                                                                                                                                                                                                     |                   |
+| 14.09.2015 | 1.8     | Reference to the audit log events added                                                                                                                                                                                                                                                                                                                                                                     |                   |
+| 18.09.2015 | 1.9     | Minor corrections done                                                                                                                                                                                                                                                                                                                                                                                      |                   |
+| 21.09.2015 | 2.0     | References fixed                                                                                                                                                                                                                                                                                                                                                                                            |                   |
+| 07.10.2015 | 2.1     | Default value of the parameter *acceptable-timestamp-failure-period* set to 14400                                                                                                                                                                                                                                                                                                                           |                   |
+| 14.10.2015 | 2.2     | Instructions for using an external database for the message log corrected                                                                                                                                                                                                                                                                                                                                   |                   |
+| 05.11.2015 | 2.3     | Updates related to backup and restore (Chapter [13](#13-back-up-and-restore))                                                                                                                                                                                                                                                                                                                               |                   |
+| 30.11.2015 | 2.4     | X-Road concepts updated (Section [1.2](#12-x-road-concepts)). Security server registration updated (Chapter [3](#3-security-server-registration)). Security server clients updated (Chapter [4](#4-security-server-clients)); only subsystems (and not members) can be registered as security server clients and have services or access rights configured. Cross-references fixed. Editorial changes made. |                   |
+| 09.12.2015 | 2.5     | Security server client deletion updated (Section [4.5.2](#452-deleting-a-client)). Editorial changes made.                                                                                                                                                                                                                                                                                                  |                   |
+| 14.12.2015 | 2.6     | Message log updated (Chapter [11](#11-message-log))                                                                                                                                                                                                                                                                                                                                                         |                   |
+| 14.01.2016 | 2.7     | Logs updated (Chapter [16](#17-logs-and-system-services))                                                                                                                                                                                                                                                                                                                                                   |                   |
+| 08.02.2016 | 2.8     | Corrections in chapter [16](#17-logs-and-system-services)                                                                                                                                                                                                                                                                                                                                                   |                   |
+| 20.05.2016 | 2.9     | Merged changes from xtee6-doc repo. Added Chapter [14](#14-diagnostics) Diagnostics and updated content of [10.3](#103-changing-the-internal-tls-key-and-certificate) Changing the Internal TLS Key and Certificate.                                                                                                                                                                                        |                   |
+| 29.11.2016 | 2.10    | User Management updated (Chapter [2](#2-user-management)). XTE-297: Internal Servers tab is displayed to security server owner (Chapter [9](#9-communication-with-the-client-information-systems)).                                                                                                                                                                                                         |                   |
+| 19.12.2016 | 2.11    | Added Chapter [15](#15-operational-monitoring) Operational Monitoring                                                                                                                                                                                                                                                                                                                                       |                   |
+| 20.12.2016 | 2.12    | Minor corrections in Chapter [15](#15-operational-monitoring)                                                                                                                                                                                                                                                                                                                                               |                   |
+| 22.12.2016 | 2.13    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)                                                                                                                                                                                                                                                                          |                   |
+| 04.01.2016 | 2.14    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)                                                                                                                                                                                                                                                                          |                   |
+| 20.02.2017 | 2.15    | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF                                                                                                                                                                                                                                                                                                        | Toomas Mölder     |
+| 16.03.2017 | 2.16    | Added observer role to Chapters [2.1](#21-user-roles) and [2.2](#22-managing-the-users)                                                                                                                                                                                                                                                                                                                     | Tatu Repo         |
+| 15.06.2017 | 2.17    | Added [Chapter 17](#18-federation) on federation                                                                                                                                                                                                                                                                                                                                                            | Olli Lindgren     |
+| 25.09.2017 | 2.18    | Added chapter [16 Environmental Monitoring](#16-environmental-monitoring)                                                                                                                                                                                                                                                                                                                                   | Tomi Tolvanen     |
+| 17.10.2017 | 2.19    | Added section [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)                                                                                                                                                                                                                                                                              | Joni Laurila      |
+| 05.03.2018 | 2.20    | Added terms and abbreviations reference, document links, moved concepts to terms and abbreviations.                                                                                                                                                                                                                                                                                                         | Tatu Repo         |
+| 10.04.2018 | 2.21    | Update internal server certificate documentation.                                                                                                                                                                                                                                                                                                                                                           | Jarkko Hyöty      |
+| 25.05.2018 | 2.22    | Update system parameters documentation.                                                                                                                                                                                                                                                                                                                                                                     | Jarkko Hyöty      |
+| 15.11.2018 | 2.23    | Minor updates for Ubuntu 18.04                                                                                                                                                                                                                                                                                                                                                                              | Jarkko Hyöty      |
+| 06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority).                                                                                                                                                                   | Petteri Kivimäki  |
+| 15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6]                                                                                                                                                                                                                                                                                                                                             | Jarkko Hyöty      |
+| 26.03.2019 | 2.26    | Added chapter on API keys [19](#19-management-rest-api)                                                                                                                                                                                                                                                                                                                                                     | Janne Mattila     |
+| 16.04.2019 | 2.27    | Minor updates regarding REST services in chapter [6]                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki  |
+| 30.06.2019 | 2.28    | Update the default connection type from HTTP to HTTPS in chapter [9]                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki  |
+| 01.07.2019 | 2.29    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner))                                                                                                                                                                                                                                                                                                    | Petteri Kivimäki  |
+| 14.08.2019 | 2.30    | Added automatic backups                                                                                                                                                                                                                                                                                                                                                                                     | Ilkka Seppälä     |
+| 29.09.2019 | 2.31    | Added chapter [19.3](#193-correlation-id-http-header) on REST API correlation id                                                                                                                                                                                                                                                                                                                            | Janne Mattila     |
+| 30.09.2019 | 2.32    | Added remote database migration guide                                                                                                                                                                                                                                                                                                                                                                       | Ilkka Seppälä     |
+| 15.10.2019 | 2.33    | Updated REST services in chapter [6]                                                                                                                                                                                                                                                                                                                                                                        | Ilkka Seppälä     |
+| 04.11.2019 | 2.34    | Added information about REST API request rate and size limits                                                                                                                                                                                                                                                                                                                                               | Janne Mattila     |
+| 07.11.2019 | 2.35    | Add more information about service descriptions to chapter [6]                                                                                                                                                                                                                                                                                                                                              | Ilkka Seppälä     |
+| 05.12.2019 | 2.36    | Add information about timestamping failover capabilities in chapter [10.2](#102-managing-the-timestamping-services)                                                                                                                                                                                                                                                                                         | Petteri Kivimäki  |
+| 24.02.2020 | 2.37    | Updated notes about key caching after changing internal TLS key and certificate [10.3](#103-changing-the-internal-tls-key-and-certificate)                                                                                                                                                                                                                                                                  | Caro Hautamäki    |
+| 26.03.2020 | 2.38    | Added chapter on updating API keys [19.1.3](#1913-updating-api-keys)                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki  |
+| 30.03.2020 | 2.39    | Added description of pre-restore backups                                                                                                                                                                                                                                                                                                                                                                    | Ilkka Seppälä     |
+| 01.04.2020 | 2.40    | Added notes about IP whitelists for REST API                                                                                                                                                                                                                                                                                                                                                                | Janne Mattila     |
+| 03.06.2020 | 2.41    | Updated audit logging description                                                                                                                                                                                                                                                                                                                                                                           | Janne Mattila     |
+| 05.06.2020 | 2.42    | Added chapter about validation errors [19.4](#194-validation-errors)                                                                                                                                                                                                                                                                                                                                        | Caro Hautamäki    |
+| 25.06.2020 | 2.43    | Update environmental and operational monitoring JMXMP details                                                                                                                                                                                                                                                                                                                                               | Petteri Kivimäki  |
+| 08.07.2020 | 2.44    | Update chapter on access rights [7](#7-access-rights)                                                                                                                                                                                                                                                                                                                                                       | Petteri Kivimäki  |
+| 30.07.2020 | 2.45    | Added mention about proxy_ui_api.log to [17 Logs and System Services](#17-logs-and-system-services)                                                                                                                                                                                                                                                                                                         | Janne Mattila     |
+| 10.08.2020 | 2.46    | Added mention about unit start rate limits to [17.1 System Services](#171-system-services)                                                                                                                                                                                                                                                                                                                  | Janne Mattila     |
+| 21.09.2020 | 2.47    | Added a validation error example to [19.4 Validation errors](#194-validation-errors)                                                                                                                                                                                                                                                                                                                        | Caro Hautamäki    |
+| 29.09.2020 | 2.48    | Update chapters [3](#3-security-server-registration), [4](#4-security-server-clients), [6](#6-x-road-services), [7](#7-access-rights), [8](#8-local-access-right-groups) and [13](#13-back-up-and-restore) to match the new management API                                                                                                                                                                  | Tapio Jaakkola    |
+| 30.09.2020 | 2.49    | Update chapters [3](#3-security-server-registration), [5](#5-security-tokens-keys-and-certificates), [9](#9-communication-with-the-client-information-systems), [10](#10-system-parameters), [14](#14-diagnostics) and [17](#17-logs-and-system-services) to match the new management API                                                                                                                   | Caro Hautamäki    |
+| 10.10.2020 | 2.50    | Corrections in Chapter [19 Management REST API](#19-management-rest-api)                                                                                                                                                                                                                                                                                                                                    | Janne Mattila     |
+| 13.10.2020 | 2.51    | Added a section about the warning responses [19.5 Warning responses](#195-warning-responses)                                                                                                                                                                                                                                                                                                                | Caro Hautamäki    |
+| 15.10.2020 | 2.52    | Added chapter [2.3 Managing API Keys](#23-managing-api-keys)                                                                                                                                                                                                                                                                                                                                                | Caro Hautamäki    |
+| 22.10.2020 | 2.53    | Added reference to management REST API's OpenAPI description                                                                                                                                                                                                                                                                                                                                                | Petteri Kivimäki  |
+| 01.12.2020 | 2.54    | Added endpoint for getting one API key to [19.1.2 Listing API keys](#1912-listing-api-keys)                                                                                                                                                                                                                                                                                                                 | Janne Mattila     |
+| 25.02.2020 | 2.55    | Added information to find X-Road ID from conf backup file in chapter [13.2 Restore from the Command Line](#132-restore-from-the-command-line)                                                                                                                                                                                                                                                               | Karl Talumäe      |
+| 31.05.2021 | 2.56    | Added information about backup archive contents and encryption                                                                                                                                                                                                                                                                                                                                              | Andres Allkivi    |
+| 23.06.2021 | 2.57    | Fix incorrect link in Chapter [3.1](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)                                                                                                                                                                                                                                                                                          | Petteri Kivimäki  |
+| 11.08.2021 | 2.58    | Minor updates to backup archive contents and encryption                                                                                                                                                                                                                                                                                                                                                     | Petteri Kivimäki  |
+| 13.08.2021 | 2.59    | Add documentation about message log archive grouping and encryption                                                                                                                                                                                                                                                                                                                                         | Jarkko Hyöty      |
+| 25.08.2021 | 2.60    | Update X-Road references from version 6 to 7                                                                                                                                                                                                                                                                                                                                                                | Caro Hautamäki    |
+| 31.08.2021 | 2.61    | Describe new messagelog and message archive functionality                                                                                                                                                                                                                                                                                                                                                   | Ilkka Seppälä     |
+| 13.09.2021 | 2.62    | Added a new chapter about custom command line arguments [21](#21-adding-command-line-arguments)                                                                                                                                                                                                                                                                                                             | Caro Hautamäki    |
+| 22.09.2021 | 2.63    | Update backup encryption instructions                                                                                                                                                                                                                                                                                                                                                                       | Jarkko Hyöty      |
+| 05.10.2021 | 2.64    | Moved the chapter about command line arguments to the system parameters document                                                                                                                                                                                                                                                                                                                            | Caro Hautamäki    |
+| 24.11.2021 | 2.65    | Updated anchors to match correct sections                                                                                                                                                                                                                                                                                                                                                                   | Raido Kaju        |
+| 30.11.2021 | 2.66    | Added chapter about configuring account lockouts                                                                                                                                                                                                                                                                                                                                                            | Caro Hautamäki    |
+| 09.12.2021 | 2.67    | Added instructions for ensuring user account security                                                                                                                                                                                                                                                                                                                                                       | Ilkka Seppälä     |
+| 09.12.2021 | 2.68    | Updated chapter [22](#22-additional-security-hardening) and added information about password policies                                                                                                                                                                                                                                                                                                       | Caro Hautamäki    |
+| 13.04.2022 | 2.69    | Updated max loggable body size parameter name to correct one                                                                                                                                                                                                                                                                                                                                                | Raido Kaju        |
+| 03.05.2022 | 2.70    | Minor updates to system services                                                                                                                                                                                                                                                                                                                                                                            | Petteri Kivimäki  |
+| 17.05.2022 | 2.71    | Updates to Diagnostics section, minor updates to backup encryption, message log database encryption and archive encryption and grouping                                                                                                                                                                                                                                                                     | Petteri Kivimäki  |
+| 13.07.2022 | 2.72    | Updated chapter [21](#21-adding-command-line-arguments) and added `XROAD_MESSAGELOG_ARCHIVER_PARAMS` argument                                                                                                                                                                                                                                                                                               | Petteri Kivimäki  |
+| 09.01.2023 | 2.73    | Improved chapter [9](#9-communication-with-information-systems)                                                                                                                                                                                                                                                                                                                                             | Andres Rosenthal  |
+| 30.01.2023 | 2.74    | Updated chapter [13.3 Automatic Backups](#133-automatic-backups) to reflect recent configuration changes.                                                                                                                                                                                                                                                                                                   | Ričardas Bučiūnas |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -113,6 +121,7 @@ Doc. ID: UG-SS
 * [2 User Management](#2-user-management)
   * [2.1 User Roles](#21-user-roles)
   * [2.2 Managing the Users](#22-managing-the-users)
+    * [2.2.1 Adding and Removing Users](#221-adding-and-removing-users)
   * [2.3 Managing API Keys](#23-managing-api-keys)
     * [2.3.1 Creating a new API key](#231-creating-a-new-api-key)
     * [2.3.2 Editing the roles of an API key](#232-editing-the-roles-of-an-api-key)
@@ -170,7 +179,11 @@ Doc. ID: UG-SS
   * [8.2 Displaying and Changing the Members of a Local Group](#82-displaying-and-changing-the-members-of-a-local-group)
   * [8.3 Changing the description of a Local Group](#83-changing-the-description-of-a-local-group)
   * [8.4 Deleting a Local Group](#84-deleting-a-local-group)
-* [9 Communication with the Client Information Systems](#9-communication-with-the-client-information-systems)
+* [9 Communication with Information Systems](#9-communication-with-information-systems)
+  * [9.1 Communication with Service Consumer Information Systems](#91-communication-with-service-consumer-information-systems)
+  * [9.2 Communication with Service Provider Information Systems](#92-communication-with-service-provider-information-systems)
+  * [9.3 Managing Information System TLS Certificates](#93-managing-information-system-tls-certificates)
+
 * [10 System Parameters](#10-system-parameters)
   * [10.1 Managing the Configuration Anchor](#101-managing-the-configuration-anchor)
   * [10.2 Managing the Timestamping Services](#102-managing-the-timestamping-services)
@@ -180,7 +193,7 @@ Doc. ID: UG-SS
   * [11.1 Changing the Configuration of the Message Log](#111-changing-the-configuration-of-the-message-log)
     * [11.1.1 Common Parameters](#1111-common-parameters)
     * [11.1.2 Logging Parameters](#1112-logging-parameters)
-    * [11.1.3 Messagelog Encryption](#1113-messagelog-encryption)
+    * [11.1.3 Message Log Encryption](#1113-message-log-encryption)
     * [11.1.4 Timestamping Parameters](#1114-timestamping-parameters)
     * [11.1.5 Archiving Parameters](#1115-archiving-parameters)
     * [11.1.6 Archive Files](#1116-archive-files)
@@ -198,6 +211,8 @@ Doc. ID: UG-SS
   * [13.5 Verifying Backup Archive Consistency](#135-verifying-backup-archive-consistency)
 * [14 Diagnostics](#14-diagnostics)
   * [14.1 Examine security server services status information](#141-examine-security-server-services-status-information)
+  * [14.2 Examine security server Java version information](#142-examine-security-server-java-version-information)
+  * [14.3 Examine security server encryption status information](#143-examine-security-server-encryption-status-information)
 * [15 Operational Monitoring](#15-operational-monitoring)
   * [15.1 Operational Monitoring Buffer](#151-operational-monitoring-buffer)
     * [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
@@ -230,11 +245,14 @@ Doc. ID: UG-SS
   * [19.5 Warning responses](#195-warning-responses)
 * [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 * [21 Adding command line arguments](#21-adding-command-line-arguments)
-* [22 Configuring account lockout](#22-configuring-account-lockout)
-  * [22.1 Considerations and risks](#221-considerations-and-risks)
-  * [22.2 Account lockout examples](#222-account-lockout-examples)
-    * [22.2.1 Example on Ubuntu](#2221-example-on-ubuntu)
-    * [22.2.2 Example on RHEL](#2222-example-on-rhel)
+* [22 Additional Security Hardening](#22-additional-security-hardening)
+  * [22.1 Configuring account lockout](#221-configuring-account-lockout)
+    * [22.1.1 Considerations and risks](#2211-considerations-and-risks)
+    * [22.1.2 Account lockout examples](#2212-account-lockout-examples)
+  * [22.2 Configuring password policies](#222-configuring-password-policies)
+    * [22.2.1 Considerations and risks](#2221-considerations-and-risks)
+  * [22.3 Ensuring User Account Security](#223-ensuring-user-account-security)
+
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
 
@@ -291,7 +309,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 6.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md)
 
-7.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events_1.7_Y-883-17.docx?raw=true)
+7.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events.md)
 
 8.  <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
 
@@ -362,7 +380,9 @@ If the logged-in user does not have a permission to carry out a particular task,
 
 ### 2.2 Managing the Users
 
-User management is carried out on command line in root user permissions.
+User management is carried out on the command line in root user permissions.
+
+#### 2.2.1 Adding and Removing Users
 
 To add a new user, enter the command:
 
@@ -376,11 +396,11 @@ To grant permissions to the user you created, add it to the corresponding system
     adduser username xroad-system-administrator
     adduser username xroad-securityserver-observer
 
-To remove a user permission, remove the user from the corresponding system group, for example:
+To remove user permission, remove the user from the corresponding system group, for example:
 
     deluser username xroad-security-officer
 
-Modified user permissions are applied only after user does a new log in.
+Modified user permissions are applied only after a user does a new login.
 
 To remove a user, enter:
 
@@ -1368,52 +1388,67 @@ To delete a local group, follow these steps.
 3.  In the group detail view, click **DELETE** and confirm the deletion by clicking **YES** in the dialog that opens.
 
 
-## 9 Communication with the Client Information Systems
+## 9 Communication with Information Systems
 
 **Access rights:** [Registration Officer](#xroad-registration-officer), [Service Administrator](#xroad-service-administrator)
 
-A security server can use either the HTTP, HTTPS, or HTTPS NOAUTH protocol to communicate with information system servers which provide and use services.
 
--   The HTTP protocol should be used if the information system server and the security server communicate in a private network segment where no other computers are connected to. Furthermore, the information system server must not allow interactive log-in.
+### 9.1 Communication with Service Consumer Information Systems
 
--   The HTTPS protocol (**default for new clients**) should be used if it is not possible to provide a separate network segment for the communication between the information system server and the security server. In that case, cryptographic methods are used to protect their communication against potential eavesdropping and interception. Before HTTPS can be used, internal TLS certificates must be created for the information system server(s) and uploaded to the security server.
+A security server can be configured to require either the HTTP, HTTPS, or HTTPS with Client Authentication (i.e. HTTP over mTLS) protocol from the consumer role information systems for communication.
 
--   The HTTPS NOAUTH protocol should be used if you want the security server to skip the verification of the information system TLS certificate.
+- HTTP protocol should be used if the consumer information system and the security server communicate in a private network segment where no other computers are connected to. Furthermore, the information system must not allow interactive log-in.
 
-   *Note:* If the HTTP connection method is selected, but the information system connects to the security server over HTTPS, then the connection is accepted, but the client's internal TLS certificate is not verified (same behavior as with HTTPS NOAUTH).
+
+- HTTPS NOAUTH - a.k.a plain HTTPS protocol should be used if it is not possible to provide a separate network segment for the communication between the information system and the security server. In that case, cryptographic methods are used to protect their communication against potential eavesdropping and interception.
+
+
+- HTTPS - a.k.a. HTTPS with Client Authentication protocol (**default for new clients**) should be used to protect against unauthorised communication in addition to potential eavesdropping and interception. Before HTTPS can be used, internal TLS certificates must be created for the information systems and uploaded to the security server.
 
 **By default the connection type for all the security server clients is set to HTTPS to prevent unauthorised use of the clients.**
 
 **It is strongly recommended to keep the connection type of the security server owner as HTTPS to prevent security server clients from making operational monitoring data requests as a security server owner.**
 
-To set the connection method for internal network servers in the **service consumer role**, follow these steps.
+To set the connection method for information systems in the **service consumer role**, follow these steps:
 
-1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
+1. In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
 
-2.  In the view that opens, select the **INTERNAL SERVERS** tab
+2. In the view that opens, select the **INTERNAL SERVERS** tab
  
-3.  On the **Connection type** drop-down, select the connection method. The changes will be saved immediately on selecting the new method and a "Connection type updated" message is displayed.
+3. On the **Connection type** drop-down, select the connection method between HTTP, HTTPS NOAUTH or HTTPS. The changes will be saved immediately on selecting the new method and a "Connection type updated" message is displayed.
+
+
+   **Note:** If the HTTP connection method is selected, but the information system connects to the security server over HTTPS, then the connection is accepted, but the client's internal TLS certificate is not verified (same behavior as with HTTPS NOAUTH).
+
+   **Note:** If HTTPS NOAUTH method is selected keep in mind that the consumer information system must trust the security server's TLS certificate. This can be achieved by exporting security server's internal TLS certificate into information system's truststore (see section [9.3](#93-managing-information-system-tls-certificates)).
+
+   **Note:** If HTTPS method is selected then additionally the client information system's TLS certificate must be trusted. In order to accomplish that the certificate must be added into security server's **Information System TLS certificate** list (see section [9.3](#93-managing-information-system-tls-certificates)).
 
 Depending on the configured connection method, the request URL for information system is **`http://SECURITYSERVER/`** or **`https://SECURITYSERVER/`**. When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the security server.
 
-The connection method for internal network servers in the **service provider role** is determined by the protocol in the URL. To change the connection method, follow these steps.
+### 9.2 Communication with Service Provider Information Systems
 
-1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table
 
-2.  In the view that opens, select the **SERVICES** tab
+The connection method for information systems in the **service provider role** is determined by the protocol in the URL. To change the connection method, follow these steps.
+
+1.  In the **Navigation tabs**, select **CLIENTS**, select a security server owner or a client from the table.
+
+2.  In the view that opens, select the **SERVICES** tab.
     
-3.  Click the caret next to the desired service description to show all services related to it
+3.  Click the caret next to the desired service description to show all services related to it.
 
 4.  Click on a service code in the table.
     
-5.  In the view that opens, change the protocol in the service URL to HTTP, HTTPS or HTTPS NO AUTH.
-    If the HTTPS protocol was selected, select the **Verify TLS certificate** checkbox if needed (see section [6.6](#66-changing-the-parameters-of-a-service)). According to the service parameters, the connection with the internal network server is created using one the following protocols:
+5.  In the view that opens, change the protocol (a.k.a. scheme) part in the Service URL to either **http://** or **https://**.
 
--   HTTP – the service/adapter URL begins with "**http:**//...".
+- HTTP – the service/adapter URL begins with "**http:**//...".
 
--   HTTPS – the service/adapter URL begins with "**https**://" and the **Verify TLS certificate** checkbox is selected.
+- HTTPS – the service/adapter URL begins with "**https**://".
+  - If **Verify TLS certificate** checkbox is left unchecked it means that service provider information system's TLS certificate is not verified and trusted by default.
+  - If **Verify TLS certificate** checkbox is checked it means that service provider information system's TLS certificate is verified. In order to make the information system's TLS certificate trusted, it must be added into security server's **Information System TLS certificate** list (see section [9.3](#93-managing-information-system-tls-certificates)).
+  - When the service provider information system needs to verify the Security Server's internal TLS certificate, the certificate must be first exported and then imported into the service provider information system's truststore (see section [9.3](#93-managing-information-system-tls-certificates)).
 
--   HTTPS NO AUTH – the service/adapter URL begins with "**https**://" and the **Verify TLS certificate** checkbox is not selected.
+### 9.3 Managing Information System TLS Certificates
 
 To add an internal TLS certificate for a security server owner or security server client (for HTTPS connections), follow these steps.
 
@@ -1645,9 +1680,9 @@ For example, to configure the parameters `archive-path` and `archive-max-filesiz
   
 5.  `disabled-body-logging-remote-producer-subsystems` - when message-body-logging is set to true, this field contains the overrides for the remote producer subsystems.
 
-6.  `max-loggable-body-size` - the maximum REST message body size that will be written to the messagelog.
+6.  `max-loggable-message-body-size` - the maximum REST message body size that will be written to the messagelog.
 
-7.  `truncated-body-allowed` - if the REST message body size exceeds the max-loggable-body-size, truncate the body (true) or reject the message (false)
+7.  `truncated-body-allowed` - if the REST message body size exceeds the max-loggable-message-body-size truncate the body (true) or reject the message (false)
 
 8.  `messagelog-encryption-enabled` - if set to true, the message bodies are written to the database in an encrypted format
 
@@ -1658,11 +1693,13 @@ For example, to configure the parameters `archive-path` and `archive-max-filesiz
 11.  `messagelog-key-id` - messagelog keystore key id
 
 
-#### 11.1.3 Messagelog Encryption
+#### 11.1.3 Message Log Encryption
 
-The message bodies can be encrypted (`messagelog-encryption-enabled = true`) when stored to the database. The encryption is symmetric, the used cipher is AES-CTR, and the encryption is performed using Java code.
+The message bodies can be encrypted (`messagelog-encryption-enabled = true`) when stored to the database. By default, the encryption is disabled. Also, the encryption is fully transparent to all the external interfaces, e.g., the signed document download service. The encryption is symmetric, the used cipher is AES-CTR, and the encryption is performed using Java code.
 
-When encryption is switched on, the implementation expects to find the keystore in the location pointed by `messagelog-keystore`. The keystore should contain an encryption key with the identifier specified in `messagelog-key-id`. The keystore password is specified in `messagelog-keystore-password`.
+In the message log database, there are two separate columns for plaintext (`message`) and encrypted (`ciphermessage`) message body. The message body is always stored in one of the two columns depending on the configuration. Instead, the other column that is not used is left empty. When message log database encryption is enabled/disabled, the change doesn't affect already existing records in the database. For example, when message log database encryption is enabled, all the records created after the configuration change will be encrypted and stored in the `ciphermessage` column. Instead, all the records stored before the change will remain in plaintext in the `message` column.
+
+When encryption is switched on, the implementation expects to find the keystore in the location pointed by `messagelog-keystore`. The keystore should contain an encryption key with the identifier/alias specified in `messagelog-key-id`. The keystore password is specified in `messagelog-keystore-password`.
 
 For example, add the following to `/etc/xroad/conf.d/local.ini`:
 
@@ -1737,9 +1774,11 @@ Archive files can be encrypted (when `archive-encryption-enabled = true`) using 
 
 By default, the produced archive files contain messages from all the security server's members, but it's possible to group the archives by member or by subsystem if needed. The grouping is controlled by the setting `archive-grouping`. The grouping is enabled/disabled on a security server level - it is either enabled or disabled for all the members and subsystems.
 
-When encryption is enabled, the archiving process expects to find a GnuPG keyring containing the server signing keypair in `archive-gpg-home-directory` (by default this is the same as the backup signing and encryption keypair). This keypair is used to sign the generated archive files, and as a fallback encryption key if no other keys are configured.
+Message log archive encryption and grouping can be configured separately. For example, the archives can be encrypted but not grouped (or vice versa). By default, both features are disabled.
 
-The `archive-default-encryption-key` can use used to override the default encryption key id, which is used when `archive-grouping` is `none` or no member gpg key is defined. Changing this parameter requires restarting the xroad-addon-messagelog service.
+When encryption is enabled, the archiving process expects to find a GnuPG keyring containing the server signing keypair in `archive-gpg-home-directory` (by default `/etc/xroad/gpghome`). When the default value is used the server signing keypair is the same as the backup signing and encryption keypair. This keypair is used to sign the generated archive files, and as a fallback encryption key if no other keys are configured.
+
+The `archive-default-encryption-key` can be used to override the default encryption key id, which is used when `archive-grouping` is `none` or no member gpg key is defined. Changing this parameter requires restarting the xroad-addon-messagelog service.
 
 In case `archive-grouping` is `member` or `subsystem`, gpg keys defined in file `archive-encryption-keys-config` are used (if no key is defined for the member, the default encryption key is used). This file maps member identifiers to gpg key identifiers and has the following format:
 ```
@@ -1762,7 +1801,9 @@ In case `archive-grouping` is `member` or `subsystem`, gpg keys defined in file 
 
 Warning. The archiving process fails if a required key is not present in the gpg keyring. Therefore, it is important to verify that the mappings are correct.
 
-For example, generate a keypair for encryption with defaults and no expiration and export the public key:
+**Configuration example**
+
+Generate a keypair for encryption with defaults and no expiration and export the public key:
 ```bash
 gpg [--homedir <member gpghome>] --quick-generate-key INSTANCE/memberClass/memberCode default default never
 gpg [--homedir <member gpghome>] --export INSTANCE/memberClass/memberCode >INSTANCE-memberClass-memberCode.pgp
@@ -1773,9 +1814,24 @@ Import the public key to the gpg keyring in `archive-gpg-home-directory` and tak
 gpg --homedir <archive-gpg-home-directory> --import INSTANCE-memberClass-memberCode.pgp
 ```
 
+Edit the key and add ultimate trust.
+```bash
+gpg --homedir <archive-gpg-home-directory> --edit-key <key id>
+```
+
+At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` to confirm, then `quit`.
+
 Add the mapping to `archive-encryption-keys-config` file (mappings can be edited without restarting X-Road services), e.g.:
 ```bash
 INSTANCE/memberClass/memberCode = 96F20FF6578A5EF90DFBA18D8C003019508B5637
+```
+
+Add the mapping file location (`archive-encryption-keys-config`) and grouping level (`archive-grouping`) to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
+```bash
+[message-log]
+archive-encryption-enabled = true
+archive-grouping = member
+archive-encryption-keys-config = /etc/xroad/messagelog/archive-encryption-mapping.ini
 ```
 
 To decrypt the encrypted archives, use the following syntax:
@@ -2030,8 +2086,19 @@ transported to security server filesystem.
 ### 13.3 Automatic Backups
 
 By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are
-automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the
+automatically removed from the server. If needed, backup removal policies can be adjusted by editing the
 `/etc/cron.d/xroad-proxy` file.
+
+Automatic backup schedule can be adjusted  in the file `/etc/xroad/conf.d/local.ini`, 
+in the `[configuration-client]` section (add or edit this section).
+
+```ini
+[configuration-client]
+proxy-configuration-backup-cron=* 15 3 * * ?
+```
+
+**Note:** In cases where automatic backup is not required (ex: extensions which rely on configuration-client) 
+it is suggested to disable it by using cron expression that will never trigger. For example `* * * * * ? 2099`
 
 ### 13.4 Backup Encryption Configuration
 
@@ -2061,6 +2128,39 @@ Resulting file `backupadmin.publickey` should be moved to security server and im
 Private keys corresponding to additional backup encryption public keys must be handled safely and kept in secret. Any of
 them can be used to decrypt backups and thus mount attacks on the security servers.
 
+**Configuration example**
+
+Generate a keypair for encryption with defaults and no expiration and export the public key:
+```bash
+gpg [--homedir <admin gpghome>] --quick-generate-key backupadmin@example.org default default never
+gpg [--homedir <admin gpghome>] --export backupadmin@example.org >backupadmin@example.org.pgp
+```
+
+Import the public key to the gpg keyring in `/etc/xroad/gpghome` directory and take note of the key id.
+```bash
+gpg --homedir /etc/xroad/gpghome --import backupadmin@example.org.pgp
+```
+
+Edit the key and add ultimate trust.
+```bash
+gpg --homedir /etc/xroad/gpghome/ --edit-key <key id>
+```
+
+At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` to confirm, then `quit`.
+
+Add the key id to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
+```bash
+[proxy]
+backup-encryption-enabled = true
+backup-encryption-keyids = 96F20FF6578A5EF90DFBA18D8C003019508B5637
+```
+
+To decrypt the encrypted backups, use the following syntax:
+
+```bash
+gpg --homedir /etc/xroad/gpghome --decrypt <backup name> --output <output file name> 
+```
+
 ### 13.5 Verifying Backup Archive Consistency
 
 During restore security server verifies consistency of backup archives automatically, archives are not checked during upload.
@@ -2086,14 +2186,25 @@ for backup archive consistency verification.
 
 ## 14 Diagnostics
 
-
-### 14.1 Examine security server services status information
-
 **Access rights:** [System Administrator](#xroad-system-administrator)
 
 Click on **DIAGNOSTICS** in the **Navigation tabs**.
 
-On this page you can examine the statuses of the following services:
+On the Diagnostics page you can view the status information of:
+
+- security server services;
+    - global configuration client;
+    - timestamping operation;
+    - downloading OCSP responses from the OCSP-responder;
+- security server Java version;
+- security server encryption configuration;
+    - backup encryption;
+    - message log archive encryption and grouping;
+    - message log database encryption.
+
+### 14.1 Examine security server services status information
+
+Security server services status information covers the following services:
 
  Service              | Status           | Message        | Previous Update          | Next Update
 --------------------- | ---------------- | -------------- | ------------------------ | ------------------------
@@ -2111,6 +2222,58 @@ The status colors indicate the following:
 The status message offers more detailed information on the current status.
 
 If a section of the diagnostics view appears empty, it means that there either is no configured service available or that checking the service status has failed. If sections are empty, try refreshing the diagnostics view or check the service configuration.
+
+### 14.2 Examine security server Java version information
+
+Security server Java version information provides the following details:
+
+ Column                    | Description 
+---------------------------|------------
+Status                     | Green/red
+Message                    | Status message
+Vendor name                | Vendor name of Java that the security server is using
+Java version               | Java version number that the security server is using
+Earliest supported version | Earliest supported Java version number
+Latest supported version   | Latest supported Java version number
+
+To refresh the status, refresh the page.
+
+The status colors indicate the following:
+- **Red indicator** – security server's java version number isn't supported
+- **Green indicator** – security server's java version number is supported
+
+### 14.3 Examine security server encryption status information
+
+**Backup encryption status**
+
+The status shows is the backup encryption `enabled` or `disabled`. The Configured key ID list contains all the additional encryption keys that are present in the configuration. If the list is empty, only the system generated default encryption key is used. When the backup encryption is `disabled`, the list is always empty.
+
+The status colors indicate the following:
+- **Red indicator** – there's an error with checking the backup encryption status
+- **Yellow indicator** – backup encryption is disabled
+- **Green indicator** – backup encryption is enabled
+
+**Message log archive encryption status**
+
+The status shows is the message log archive encryption `enabled` or `disabled`. The Grouping rule shows the grouping level (`NONE`, `MEMBER`, `SUBSYSTEM`) of the message log archives.
+
+The list of Member Identifier / Key ID pairs includes a list of members using the security server and the encryption key(s) associated with the member when the grouping level is `MEMBER` or `SUBSYSTEM`. When the grouping level is `NONE`, the list is always empty. If no member-specific key is associated with a member, there's a warning icon in the Key ID column. If the Key ID is missing and there's only the warning icon in the Key ID column, the member is using the system generated default encryption key. Instead, if the warning icon is after the Key ID, the member is using the user generated default encryption key (defined using the `archive-default-encryption-key` property). It's strongly recommended to use user generated member-specific encryption keys.
+
+Each member can have multiple member-specific encryption keys configured. If multiple keys are configured for a single member, the key IDs are presented as a comma separated list.
+
+The status colors indicate the following:
+- **Red indicator** – there's an error with checking the message log archive encryption status
+- **Yellow indicator** – message log archive encryption is disabled
+- **Green indicator** – message log archive encryption is enabled
+- 
+**Message log database encryption status**
+
+The status shows is the message log database encryption `enabled` or `disabled`.
+
+The status colors indicate the following:
+- **Red indicator** – there's an error with checking the message log database encryption status
+- **Yellow indicator** – message log database encryption is disabled
+- **Green indicator** – message log database encryption is enabled
 
 ## 15 Operational Monitoring
 
@@ -2308,13 +2471,16 @@ It is possibility to limit what allowed non-owners can request via environmental
 
 The most important system services of a security server are as follows.
 
- **Service**           | **Purpose**                                             | **Log**
--------------------    | ------------------------------------------------------  | -----------------------------------------
- `xroad-confclient`    | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
- `xroad-proxy`         | Message exchanger                                       | `/var/log/xroad/proxy.log`
- `xroad-signer`        | Manager process for key settings                        | `/var/log/xroad/signer.log`
- `xroad-proxy-ui-api`  | Management UI and REST API                              | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
-
+ **Service**              | **Purpose**                                             | **Log**
+------------------------- | ------------------------------------------------------  | -----------------------------------------
+ `xroad-addon-messagelog` | Message log archiving and cleaning of the message logs  | `/var/log/xroad/messagelog-archiver.log`
+ `xroad-confclient`       | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
+ `xroad-proxy`            | Message exchanger                                       | `/var/log/xroad/proxy.log`
+ `xroad-signer`           | Manager process for key settings                        | `/var/log/xroad/signer.log`
+ `xroad-proxy-ui-api`     | Management UI and REST API                              | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
+ `xroad-monitor`          | Environmental monitoring                                | `/var/log/xroad/monitor.log`
+ `xroad-opmonitor`        | Operational monitoring                                  | `/var/log/xroad/op-monitor.log`
+ 
 System services are managed through the *systemd* facility.
 
 **To start a service**, issue the following command as a `root` user:
@@ -2763,39 +2929,46 @@ Example of `/etc/xroad/services/local.properties` with modifications that overri
 XROAD_PROXY_PARAMS=-Xms150m -Xmx1024m
 ```
 
-All possible properties to adjust in this file are
+All possible properties to adjust in this file are:
 ```
 XROAD_SIGNER_PARAMS
 XROAD_ADDON_PARAMS
-XROAD_CONFCLIENT_PARAM
-XROAD_CONFPROXY_PARAM
+XROAD_CONFCLIENT_PARAMS
+XROAD_CONFPROXY_PARAMS
 XROAD_JETTY_PARAMS
-XROAD_MONITOR_PARAM
-XROAD_OPMON_PARAM
-XROAD_PROXY_PARAM
-XROAD_PROXY_UI_API_PARAM
-XROAD_SIGNER_CONSOLE_PARAM
+XROAD_MESSAGELOG_ARCHIVER_PARAMS
+XROAD_MONITOR_PARAMS
+XROAD_OPMON_PARAMS
+XROAD_PROXY_PARAMS
+XROAD_PROXY_UI_API_PARAMS
+XROAD_SIGNER_CONSOLE_PARAMS
 ```
 
-## 22 Configuring account lockout
+## 22 Additional Security Hardening
 
-You may want to improve the security of your X-Road instance by configuring an account lockout policy in your Security Server Admin UI authentication. When trying to log in to the Security Server Admin UI with a locked account, the login screen will display a generic login error without disclosing the reason or any other login information.
+You may want to harden the security of your X-Road instance by configuring additional security policies in your Security Servers. The security measures that are introduced in this guide are common security policies that can be configured on operating system level.
 
-X-Road uses the Linux Pluggable Authentication Modules (PAM) to authenticate users. This makes it easy to configure the account management to your liking. The service to configure the account lockout to is `xroad`.
+X-Road uses the Linux Pluggable Authentication Modules (PAM) to authenticate users. This makes it easy to configure the account management to your liking. The example PAM configurations provided in this guide may or may not work on your system depending on your system and existing PAM configurations. Note that editing the PAM configurations will take effect immediately without the need to restart anything.
 
-For configuring the account lockout for the X-Road Security Server Admin UI in production, please refer to [The Linux-PAM System Administrator's Guide](http://www.linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html) for the full documentation on how to configure PAM.
 
-### 22.1 Considerations and risks
+For configuring the following security policies for the X-Road Security Server Admin UI in production, please refer to [The Linux-PAM System Administrator's Guide](http://www.linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html) for the full documentation on how to configure PAM.
+
+### 22.1 Configuring account lockout
+
+Configuring an account lockout policy in your Security Server Admin UI authentication will provide an extra layer of defence against password guessing attacks, such as brute force attacks. After configuring the account lockout, when trying to log in to the Security Server Admin UI with a locked account, the login screen will display a generic login error without disclosing the reason or any other login information.
+
+The PAM service to configure the account lockout to is `xroad`.
+
+#### 22.1.1 Considerations and risks
 
 After enabling the account lockout for the Security Server, you should be aware that a user can lock out any other user's account if they know the correct username.
 
-### 22.2 Account lockout examples
+#### 22.1.2 Account lockout examples
 
-The example configurations, in chapters [22.2.1](#2221-example-on-ubuntu) and [22.2.2](#2222-example-on-rhel), will lock the user's account, preventing login to the Security Server Admin UI for 15 minutes (I.e. 900 seconds) after they provide a wrong password in the Security Server Admin UI login three (3) consecutive times. This configuration also affects the root account. Note that editing the PAM configurations will take effect immediately without the need to restart anything.
+The example configurations will lock the user's account, preventing login to the Security Server Admin UI for 15 minutes (I.e. 900 seconds) after they provide a wrong password in the Security Server Admin UI login three (3) consecutive times. This configuration also affects the root account.
 
-The example PAM configurations provided in this guide may or may not work on your system depending on your system and existing PAM configurations. You should always refer to the official PAM documentation before configuring the account lockout in production.
+**Example on Ubuntu**
 
-#### 22.2.1 Example on Ubuntu
 Create a new configuration `/etc/pam.d/xroad` with the following content:
 ```shell
 auth        required          pam_tally2.so deny=3 even_deny_root unlock_time=900 file=/var/lib/xroad/tallylog
@@ -2806,7 +2979,8 @@ password    required          pam_deny.so
 session     required          pam_deny.so    
 ```
 
-#### 22.2.2 Example on RHEL
+**Example on RHEL**
+
 On RHEL systems, the `/etc/pam.d/xroad` file ships with the Security Server installation package so you need to modify the existing file. Replace the `/etc/pam.d/xroad` contents with the following:
 ```shell
 #%PAM-1.0
@@ -2818,3 +2992,48 @@ password   required     pam_deny.so
 password   required     pam_warn.so
 session    required     pam_deny.so
 ```
+
+### 22.2 Configuring password policies
+
+Configuring a password policy in your Security Server Admin UI authentication will provide an additional layer of defence against password guessing attacks, such as password spraying. 
+
+User account passwords cannot be changed directly from the Security Server Admin UI, therefore the password policy must be configured on operating system user account level. The method of adding a new password policy varies significantly depending on your operating system, existing PAM configuration and authentication protocol.
+
+For instruction on how to add password policies, please refer to your operating system's official documentation or customer support. 
+
+#### 22.2.1 Considerations and risks
+
+In a strong password, it is advisable to have at least 16 characters at minimum. You can also add complexity requirements, such as numbers and special characters, but these requirements can make the passwords more difficult for users to remember. Further additional measures could be to add commonly known passwords into a blocklist.
+
+### 22.3 Ensuring User Account Security
+
+Users of the web application are created by creating operating-system-level users. This means that a user can access the web application and the underlying operating system with the same credentials. Therefore, if user accounts in the web application were compromised, the attacker could use those credentials to log into the server via SSH if credential-based logging in is not disabled.
+
+To harden the user account security, make sure that users are not allowed to access the server via SSH by default. The users needing SSH access are granted those rights separately.
+
+Create a user group in which users are allowed to connect to the server via SSH while all other users are denied. Add the following line to `/etc/ssh/sshd_config`:
+
+    AllowGroups <group_to_allow>
+
+Restart the SSH service:
+
+    sudo systemctl restart sshd
+
+It is also recommended to disable SSH password login and allow key-based authentication only. Before this modification, add users' public keys to the server. Edit `/etc/ssh/sshd_config` and add the following lines:
+
+    ChallengeResponseAuthentication no
+    PasswordAuthentication no
+
+Restart the SSH service once again:
+
+    sudo systemctl restart sshd
+
+In addition, the users should be prevented from logging in to the system. This can be achieved by issuing the following command on Ubuntu:
+
+    usermod -s /bin/false user
+
+On RHEL, the corresponding command is:
+
+    usermod -s /sbin/nologin user
+
+The system administrator should also implement a monitoring and alerting system regarding anomalous logins.

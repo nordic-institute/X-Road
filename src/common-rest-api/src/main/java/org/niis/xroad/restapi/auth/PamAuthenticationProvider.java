@@ -32,6 +32,7 @@ import org.jvnet.libpam.UnixUser;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -67,19 +68,20 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
     private final GrantedAuthorityMapper grantedAuthorityMapper;
     private final RestApiAuditEvent loginEvent; // login event to audit log
     private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final SecurityHelper securityHelper;
 
     /**
      * constructor
      * @param authenticationIpWhitelist whitelist that limits the authentication
      */
     public PamAuthenticationProvider(AuthenticationIpWhitelist authenticationIpWhitelist,
-            GrantedAuthorityMapper grantedAuthorityMapper,
-            RestApiAuditEvent loginEvent,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
+            GrantedAuthorityMapper grantedAuthorityMapper, RestApiAuditEvent loginEvent,
+            AuditEventLoggingFacade auditEventLoggingFacade, SecurityHelper securityHelper) {
         this.authenticationIpWhitelist = authenticationIpWhitelist;
         this.grantedAuthorityMapper = grantedAuthorityMapper;
         this.loginEvent = loginEvent;
         this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.securityHelper = securityHelper;
     }
 
     /**
@@ -87,8 +89,8 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
      */
     private static final Set<String> ALLOWED_GROUP_NAMES = Collections.unmodifiableSet(
             Arrays.stream(Role.values())
-                .map(Role::getLinuxGroupName)
-                .collect(Collectors.toSet()));
+                    .map(Role::getLinuxGroupName)
+                    .collect(Collectors.toSet()));
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {

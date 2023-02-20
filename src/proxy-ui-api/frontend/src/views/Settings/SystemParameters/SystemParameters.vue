@@ -101,24 +101,29 @@
         </v-row>
       </v-card-text>
     </v-card>
-    <v-card flat class="xrd-card">
-      <v-card-text class="card-text">
+    <v-card flat class="xrd-card" :class="{ disabled: !messageLogEnabled }">
+      <v-card-text class="card-text ">
         <v-row
           v-if="hasPermission(permissions.VIEW_TSPS)"
           no-gutters
           class="px-4"
         >
           <v-col
-            ><h3>
+            ><h3 :class="{ disabled: !messageLogEnabled }">
               {{ $t('systemParameters.timestampingServices.title') }}
             </h3></v-col
           >
-          <v-col class="text-right">
+          <v-col
+            v-if="hasPermission(permissions.ADD_TSP) && messageLogEnabled"
+            class="text-right"
+          >
             <add-timestamping-service-dialog
-              v-if="hasPermission(permissions.ADD_TSP)"
               :configured-timestamping-services="configuredTimestampingServices"
               @added="fetchConfiguredTimestampingServiced"
             />
+          </v-col>
+          <v-col v-if="!messageLogEnabled" class="text-right disabled">
+            {{ $t('diagnostics.addOnStatus.messageLogDisabled') }}
           </v-col>
         </v-row>
 
@@ -151,6 +156,7 @@
                   v-for="timestampingService in configuredTimestampingServices"
                   :key="timestampingService.url"
                   :timestamping-service="timestampingService"
+                  :message-log-enabled="messageLogEnabled"
                   @deleted="fetchConfiguredTimestampingServiced"
                 />
 
@@ -262,6 +268,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import {
+  AddOnStatus,
   Anchor,
   CertificateAuthority,
   TimestampingService,
@@ -272,6 +279,9 @@ import TimestampingServiceRow from '@/views/Settings/SystemParameters/Timestampi
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 import { saveResponseAsFile } from '@/util/helpers';
 import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddTimestampingServiceDialog.vue';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
@@ -289,9 +299,12 @@ export default Vue.extend({
       loadingTimestampingservices: false,
       loadingAnchor: false,
       loadingCAs: false,
+      loadingMessageLogEnabled: false,
+      messageLogEnabled: false,
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     orderedCertificateAuthorities(): CertificateAuthority[] {
       const temp = this.certificateAuthorities;
 
@@ -306,6 +319,7 @@ export default Vue.extend({
     }
 
     if (this.hasPermission(Permissions.VIEW_TSPS)) {
+      this.fetchMessageLogEnabled();
       this.fetchConfiguredTimestampingServiced();
     }
 
@@ -314,23 +328,30 @@ export default Vue.extend({
     }
   },
   methods: {
-    hasPermission(permission: Permissions): boolean {
-      return this.$store.getters.hasPermission(permission);
-    },
+    ...mapActions(useNotifications, ['showError']),
+
     async fetchConfigurationAnchor() {
       this.loadingAnchor = true;
       return api
         .get<Anchor>('/system/anchor')
         .then((resp) => (this.configuratonAnchor = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => (this.loadingAnchor = false));
+    },
+    async fetchMessageLogEnabled() {
+      this.loadingMessageLogEnabled = true;
+      return api
+        .get<AddOnStatus>('/diagnostics/addon-status')
+        .then((resp) => (this.messageLogEnabled = resp.data.messagelog_enabled))
+        .catch((error) => this.showError(error))
+        .finally(() => (this.loadingMessageLogEnabled = false));
     },
     async fetchConfiguredTimestampingServiced() {
       this.loadingTimestampingservices = true;
       return api
         .get<TimestampingService[]>('/system/timestamping-services')
         .then((resp) => (this.configuredTimestampingServices = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => (this.loadingTimestampingservices = false));
     },
     async fetchApprovedCertificateAuthorities() {
@@ -340,7 +361,7 @@ export default Vue.extend({
           '/certificate-authorities?include_intermediate_cas=true',
         )
         .then((resp) => (this.certificateAuthorities = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => (this.loadingCAs = false));
     },
     downloadAnchor(): void {
@@ -349,7 +370,7 @@ export default Vue.extend({
         .get('/system/anchor/download', { responseType: 'blob' })
         .then((res) => saveResponseAsFile(res, 'configuration-anchor.xml'))
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => (this.downloadingAnchor = false));
     },
@@ -362,7 +383,7 @@ export default Vue.extend({
 @import '~styles/tables';
 
 h3 {
-  color: #211e1e;
+  color: $XRoad-Black100;
   font-size: 18px;
   font-weight: bold;
   letter-spacing: 0;
@@ -372,6 +393,12 @@ h3 {
 .card-text {
   padding-left: 0;
   padding-right: 0;
+}
+
+.disabled {
+  cursor: not-allowed;
+  background: $XRoad-Black10;
+  color: $XRoad-WarmGrey100;
 }
 
 tr td {

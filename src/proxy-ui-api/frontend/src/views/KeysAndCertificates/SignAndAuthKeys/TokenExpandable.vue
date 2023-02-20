@@ -198,6 +198,10 @@ import {
   getTokenUIStatus,
   TokenUIStatus,
 } from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useTokensStore } from '@/store/modules/tokens';
 
 export default Vue.extend({
   components: {
@@ -221,19 +225,21 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
+
+    ...mapState(useTokensStore, ['tokenExpanded']),
+
     canActivateToken(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
-      );
+      return this.hasPermission(Permissions.ACTIVATE_DEACTIVATE_TOKEN);
     },
     canImportCertificate(): boolean {
       return (
-        this.$store.getters.hasPermission(Permissions.IMPORT_AUTH_CERT) ||
-        this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT)
+        this.hasPermission(Permissions.IMPORT_AUTH_CERT) ||
+        this.hasPermission(Permissions.IMPORT_SIGN_CERT)
       );
     },
     canAddKey(): boolean {
-      return this.$store.getters.hasPermission(Permissions.GENERATE_KEY);
+      return this.hasPermission(Permissions.GENERATE_KEY);
     },
 
     tokenLabelKey(): string {
@@ -301,18 +307,24 @@ export default Vue.extend({
     }
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useTokensStore, [
+      'setSelectedToken',
+      'hideToken',
+      'expandToken',
+    ]),
     addKey(): void {
-      this.$store.dispatch('setSelectedToken', this.token);
+      this.setSelectedToken(this.token);
       this.$emit('add-key');
     },
 
     login(): void {
-      this.$store.dispatch('setSelectedToken', this.token);
+      this.setSelectedToken(this.token);
       this.$emit('token-login');
     },
 
     logout(): void {
-      this.$store.dispatch('setSelectedToken', this.token);
+      this.setSelectedToken(this.token);
       this.$emit('token-logout');
     },
 
@@ -368,13 +380,13 @@ export default Vue.extend({
     },
 
     descClose(tokenId: string) {
-      this.$store.dispatch('hideToken', tokenId);
+      this.hideToken(tokenId);
     },
     descOpen(tokenId: string) {
-      this.$store.dispatch('expandToken', tokenId);
+      this.expandToken(tokenId);
     },
     isExpanded(tokenId: string) {
-      return this.$store.getters.tokenExpanded(tokenId);
+      return this.tokenExpanded(tokenId);
     },
 
     importCert(event: FileUploadResult) {
@@ -386,14 +398,11 @@ export default Vue.extend({
         })
         .then(
           () => {
-            this.$store.dispatch(
-              'showSuccess',
-              this.$t('keys.importCertSuccess'),
-            );
+            this.showSuccess(this.$t('keys.importCertSuccess'));
             this.fetchData();
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         );
     },
@@ -402,14 +411,11 @@ export default Vue.extend({
         .post(`/token-certificates/${encodePathParameter(hash)}/import`, {})
         .then(
           () => {
-            this.$store.dispatch(
-              'showSuccess',
-              this.$t('keys.importCertSuccess'),
-            );
+            this.showSuccess(this.$t('keys.importCertSuccess'));
             this.fetchData();
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         );
     },

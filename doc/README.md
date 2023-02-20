@@ -5,10 +5,11 @@
 
 ## Architecture
 - [\[ARC-G\] X-Road Architecture](Architecture/arc-g_x-road_arhitecture.md)
+- [\[ARC-SEC\] X-Road Security Architecture](Architecture/arc-sec_x_road_security_architecture.md)
 - [\[ARC-SS\] Security Server Architecture](Architecture/arc-ss_x-road_security_server_architecture.md)
 - [\[ARC-CP\] Configuration Proxy Architecture](Architecture/arc-cp_x-road_configuration_proxy_architecture.md)
 - [\[ARC-CS\] Central Server Architecture](Architecture/arc-cs_x-road_central_server_architecture.md)
-- [\[SPEC-AL\] Audit Log Events](Architecture/spec-al_x-road_audit_log_events_1.7_Y-883-17.docx)
+- [\[SPEC-AL\] Audit Log Events](Architecture/spec-al_x-road_audit_log_events.md)
 - [\[ARC-TEC\] Technologies used in X-Road](Architecture/arc-tec_x-road_technologies.md)
 - [\[ARC-OPMOND\] Operational Monitoring Daemon Architecture](OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md)
 - [\[ARC-ENVMON\] Environmental Monitoring Architecture](EnvironmentalMonitoring/Monitoring-architecture.md)
@@ -16,6 +17,9 @@
 ## Protocols
 - [\[PR-REST\] Message Protocol for REST](Protocols/pr-rest_x-road_message_protocol_for_rest.md)
 - [\[PR-MESS\] Message Protocol](Protocols/pr-mess_x-road_message_protocol.md)
+  - [\[PR-TARGETSS\] Security Server Targeting Extension for the X-Road Message Protocol](Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md)
+  - [\[PR-SECTOKEN\] Security Token Extension for the X-Road Message Protocol](Protocols/SecurityTokenExtension/pr-sectoken_security_token_extension_for_the_x-road_protocol.md)
+  - [\[PR-THIRDPARTY\] Third Party Representation Extension for the X-Road Message Protocol](Protocols/ThirdPartyRepresentationExtension/pr-third_party_representation_extension_for_the_x-road_protocol.md)
 - [\[PR-MESSTRANSP\] Message Transport Protocol](Protocols/pr-messtransp_x-road_message_transport_protocol.md)
 - [\[PR-MSERV\] Protocol for Management Services](Protocols/pr-mserv_x-road_protocol_for_management_services.md)
 - [\[PR-META\] Service Metadata Protocol](Protocols/pr-meta_x-road_service_metadata_protocol.md)

@@ -29,7 +29,7 @@ let frontPage;
 module.exports = {
   tags: ['ss', 'login'],
   before: function (browser) {
-    frontPage = browser.page.ssFrontPage();
+    frontPage = browser.page.ssLoginPage();
 
     frontPage.navigateAndMakeTestable();
   },

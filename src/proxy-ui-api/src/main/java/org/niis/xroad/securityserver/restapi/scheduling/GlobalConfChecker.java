@@ -90,13 +90,7 @@ public class GlobalConfChecker {
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
     @Transactional
-    public void updateServerConf() {
-        // In clustered setup slave nodes may skip globalconf updates
-        if (SLAVE.equals(SystemProperties.getServerNodeType())) {
-            log.debug("This is a slave node - skip globalconf updates");
-            return;
-        }
-
+    public void checkGlobalConf() {
         if (restoreInProgress) {
             log.debug("Backup restore in progress - skipping globalconf update");
             return;
@@ -104,7 +98,8 @@ public class GlobalConfChecker {
 
         try {
             log.debug("Check globalconf for updates");
-            checkGlobalConf();
+            reloadGlobalConf();
+            updateServerConf();
         } catch (Exception e) {
             log.error("Checking globalconf for updates failed", e);
             throw e;
@@ -116,21 +111,27 @@ public class GlobalConfChecker {
         restoreInProgress = BackupRestoreEvent.START.equals(e);
     }
 
-    private void checkGlobalConf() {
-        globalConfFacade.verifyValidity();
-
+    private void reloadGlobalConf() {
+        // conf MUST be reloaded before checking validity otherwise expired or invalid conf is never reloaded
         log.debug("Reloading globalconf");
-        globalConfFacade.reload(); // XXX: temporary fix
+        globalConfFacade.reload();
+        globalConfFacade.verifyValidity();
+    }
+
+    private void updateServerConf() {
+        // In clustered setup slave nodes may skip serverconf updates
+        if (SLAVE.equals(SystemProperties.getServerNodeType())) {
+            log.debug("This is a slave node - skip serverconf updates");
+            return;
+        }
 
         ServerConfType serverConf = globalConfCheckerHelper.getServerConf();
-        SecurityServerId securityServerId = null;
-
         try {
             if (globalConfFacade.getServerOwner(buildSecurityServerId(serverConf)) == null) {
                 log.debug("Server owner not found in globalconf - owner may have changed");
                 updateOwner(serverConf);
             }
-            securityServerId = buildSecurityServerId(serverConf);
+            SecurityServerId securityServerId = buildSecurityServerId(serverConf);
             log.debug("Security Server ID is \"{}\"", securityServerId);
             updateClientStatuses(serverConf, securityServerId);
             updateAuthCertStatuses(securityServerId);

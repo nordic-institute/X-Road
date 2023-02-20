@@ -437,7 +437,7 @@ public class LogArchiveCacheTest {
     private LogArchiveCache createCache(LinkingInfoBuilder builder) {
         return new LogArchiveCache(
                 builder,
-                encrypted ? new EncryptionConfig(true, Paths.get("build/gpg"), null)
+                encrypted ? new EncryptionConfig(true, Paths.get("build/gpg"), null, null)
                         : EncryptionConfig.DISABLED,
                 Paths.get("build/tmp/")
         );

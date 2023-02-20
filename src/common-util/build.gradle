@@ -1,4 +1,6 @@
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
     id 'java-library'
 }
@@ -18,11 +20,11 @@ sourceSets {
 
 dependencies {
     api 'org.apache.santuario:xmlsec:2.2.3'
-    api "org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}"
+    api "org.bouncycastle:bcpkix-jdk15on:$bouncyCastleVersion"
     api 'org.apache.commons:commons-lang3:3.12.0'
     api 'commons-io:commons-io:2.11.0'
-    api "org.slf4j:jcl-over-slf4j:${slf4jVersion}"
-    api 'org.apache.james:apache-mime4j-core:0.8.6'
+    api "org.slf4j:jcl-over-slf4j:$slf4jVersion"
+    api 'org.apache.james:apache-mime4j-core:0.8.7'
     api "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
     api 'com.sun.xml.messaging.saaj:saaj-impl:1.5.3'
     api 'com.sun.activation:jakarta.activation:1.2.2'
@@ -30,23 +32,28 @@ dependencies {
     api 'org.apache.httpcomponents:httpclient:4.5.13'
     api 'org.apache.httpcomponents:httpasyncclient:4.1.4'
 
+    api "org.scala-lang:scala-library:$scalaLibraryVersion"
     api "com.typesafe.akka:akka-actor_$akkaVersion"
     api "com.typesafe.akka:akka-remote_$akkaVersion"
     api "com.typesafe.akka:akka-slf4j_$akkaVersion"
 
-    api "com.fasterxml.jackson.core:jackson-databind:${project.property('jackson.version')}"
-    api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${project.property('jackson.version')}"
+    api platform("com.fasterxml.jackson:jackson-bom:$jacksonBomVersion")
+    api "com.fasterxml.jackson.core:jackson-databind"
+    api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
-    api 'com.google.code.gson:gson:2.8.7'
+    api 'com.google.code.gson:gson:2.9.0'
     api "com.google.guava:guava:$guavaVersion"
 
     api ('org.quartz-scheduler:quartz:2.3.2') {
         exclude module: 'c3p0'
     }
 
-    api 'org.apache.commons:commons-configuration2:2.7'
+    api ('org.apache.commons:commons-configuration2:2.8.0') {
+        exclude group: 'org.apache.commons', module: 'commons-text'
+    }
+    api 'org.apache.commons:commons-text:1.10.0'
 
-    implementation 'ch.qos.logback:logback-classic:1.2.6'
+    implementation "ch.qos.logback:logback-classic:$logbackVersion"
 
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation project(':common-test')
@@ -130,29 +137,31 @@ task xjc() {
     }
 }
 
-task make(type: Exec) {
-    def javaCompiler = javaToolchains.compilerFor(java.toolchain)
-    def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
+if (Os.isName("linux")) {
+    task make(type: Exec) {
+        def javaCompiler = javaToolchains.compilerFor(java.toolchain)
+        def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
 
-    inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c','*.h','Makefile'])
-    inputs.dir file("${javaHome}/include")
-    outputs.dir file('../lib')
+        inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c', '*.h', 'Makefile'])
+        inputs.dir file("${javaHome}/include")
+        outputs.dir file('../lib')
 
-    workingDir '../'
-    commandLine 'make', 'clean', 'all'
-}
+        workingDir '../'
+        commandLine 'make', 'clean', 'all'
+    }
 
-task makeClean(type: Exec) {
-    workingDir '../'
-    commandLine 'make', 'clean'
+    task makeClean(type: Exec) {
+        workingDir '../'
+        commandLine 'make', 'clean'
+    }
+
+    classes.dependsOn make
+    clean.dependsOn makeClean
 }
 
 licenseFormatTest {
     outputs.upToDateWhen { false }
 }
-
-classes.dependsOn make
-clean.dependsOn makeClean
 
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Helper for working with security and authorization
  */
+@Slf4j
 @Component
 public class SecurityHelper {
 
@@ -105,6 +107,4 @@ public class SecurityHelper {
         }
         return hasSessionContext;
     }
-
-
 }

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
@@ -57,6 +58,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static ee.ria.xroad.common.conf.serverconf.model.DescriptionType.WSDL;
+import static ee.ria.xroad.common.conf.serverconf.model.EndpointType.ANY_METHOD;
+import static ee.ria.xroad.common.conf.serverconf.model.EndpointType.ANY_PATH;
+import static java.util.Collections.singleton;
+import static java.util.function.Predicate.isEqual;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -79,6 +85,9 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
 
     @Autowired
     ClientService clientService;
+
+    @Autowired
+    AccessRightService accessRightService;
 
     @Autowired
     ServiceDescriptionRepository serviceDescriptionRepository;
@@ -480,6 +489,64 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     }
 
     @Test
+    public void removeWsdlServiceDescriptionRetainsEndointsAndAccessRightsIfDifferentVersionExists() throws Exception {
+        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+
+        ServiceDescriptionType serviceDescription1 = createServiceDescription(clientType, "wsdl1");
+        ServiceType serviceV1 = createServiceType("foo-service", "foo", "v1");
+        serviceDescription1.getService().add(serviceV1);
+        serviceDescriptionRepository.saveOrUpdate(serviceDescription1);
+
+        ServiceDescriptionType serviceDescription2 = createServiceDescription(clientType, "wsdl2");
+        ServiceType serviceV2 = createServiceType("foo-service", "foo", "v2");
+        serviceDescription2.getService().add(serviceV2);
+        serviceDescriptionRepository.saveOrUpdate(serviceDescription2);
+
+        EndpointType endpointType = new EndpointType("foo", ANY_METHOD, ANY_PATH, true);
+        clientType.getEndpoint().add(endpointType);
+
+        doReturn(true).when(globalConfService).clientsExist(any());
+        accessRightService.addServiceClientAccessRights(
+                clientType.getIdentifier(),
+                singleton("foo"),
+                CLIENT_ID_SS6);
+
+
+        clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+
+        assertTrue("Expecting endpoint for service 'foo' to be added",
+                   clientType.getEndpoint().stream()
+                           .map(EndpointType::getServiceCode)
+                           .anyMatch(isEqual("foo")));
+        assertTrue("Expecting access rights for service 'foo' not to added",
+                   clientType.getAcl().stream()
+                           .map(AccessRightType::getEndpoint)
+                           .map(EndpointType::getServiceCode)
+                           .anyMatch(isEqual("foo")));
+
+        serviceDescriptionService.deleteServiceDescription(serviceDescription1.getId());
+
+        clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        assertTrue("Expecting endpoint for service 'foo' not to be removed as it's still referenced by v2",
+                   clientType.getEndpoint().stream()
+                           .map(EndpointType::getServiceCode)
+                           .anyMatch(isEqual("foo")));
+        assertTrue("Expecting access rights for service 'foo' not to be removed as it's still referenced by v2",
+                   clientType.getAcl().stream()
+                           .map(AccessRightType::getEndpoint)
+                           .map(EndpointType::getServiceCode)
+                           .anyMatch(isEqual("foo")));
+    }
+
+    private ServiceDescriptionType createServiceDescription(ClientType clientType, String wsdl) {
+        ServiceDescriptionType serviceDescription1 = new ServiceDescriptionType();
+        serviceDescription1.setClient(clientType);
+        serviceDescription1.setUrl(wsdl);
+        serviceDescription1.setType(WSDL);
+        return serviceDescription1;
+    }
+
+    @Test
     @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
         ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
@@ -786,16 +853,27 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         sd1.getService().clear();
         sd1.getService().add(createServiceType(null, "foo", "v1"));
         sd1.getService().add(createServiceType("v3-title", "foo", "v3"));
-        assertEquals(null, serviceDescriptionService.getServiceTitle(testClient, "foo"));
+        assertEquals("v3-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
 
         sd1.getService().clear();
         sd1.getService().add(createServiceType("", "foo", "v2"));
         sd1.getService().add(createServiceType("v3-title", "foo", "v3"));
-        assertEquals("", serviceDescriptionService.getServiceTitle(testClient, "foo"));
+        assertEquals("v3-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
 
         sd1.getService().clear();
+        sd1.getService().add(createServiceType("v4-title", "foo", "v4"));
         sd1.getService().add(createServiceType("v3-title", "foo", "v3"));
-        assertEquals("v3-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
+        sd1.getService().add(createServiceType("v5-title", "foo", "v5"));
+
+        assertEquals("v5-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
+
+        sd1.getService().clear();
+        sd1.getService().add(createServiceType("AAA-title", "foo", "AAA"));
+        sd1.getService().add(createServiceType("XYZ-title", "foo", "XYZ"));
+        sd1.getService().add(createServiceType("v1-title", "foo", "v1"));
+        sd1.getService().add(createServiceType("V1`-title", "foo", "V1`"));
+
+        assertEquals("XYZ-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
     }
 
     private ServiceType createServiceType(String title, String serviceCode, String serviceVersion) {

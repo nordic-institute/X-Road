@@ -25,17 +25,25 @@
  */
 package ee.ria.xroad.proxy;
 
+import ee.ria.xroad.common.AddOnStatusDiagnostics;
+import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
+import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
+import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
+import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.common.util.AdminPort;
@@ -49,7 +57,6 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
-import ee.ria.xroad.proxy.util.GlobalConfUpdater;
 import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
 import ee.ria.xroad.signer.protocol.SignerClient;
 
@@ -60,6 +67,7 @@ import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -71,11 +79,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
@@ -112,9 +123,15 @@ public final class ProxyMain {
 
     private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
 
-    private static final int GLOBAL_CONF_UPDATE_REPEAT_INTERVAL = 60;
-
     private static final int STATS_LOG_REPEAT_INTERVAL = 60;
+
+    private static AddOnStatusDiagnostics addOnStatus;
+
+    private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
+
+    private static BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
+
+    private static MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
     private ProxyMain() {
     }
@@ -189,7 +206,7 @@ public final class ProxyMain {
         MonitorAgent.init(actorSystem);
         SignerClient.init(actorSystem);
         BatchSigner.init(actorSystem);
-        MessageLog.init(actorSystem, jobManager);
+        boolean messageLogEnabled = MessageLog.init(actorSystem, jobManager);
         OpMonitoring.init(actorSystem);
 
         for (AddOn addOn : addOns) {
@@ -208,8 +225,30 @@ public final class ProxyMain {
             SERVICES.add(new HealthCheckPort());
         }
 
-        jobManager.registerRepeatingJob(GlobalConfUpdater.class, GLOBAL_CONF_UPDATE_REPEAT_INTERVAL);
         jobManager.registerRepeatingJob(ServerConfStatsLogger.class, STATS_LOG_REPEAT_INTERVAL);
+        jobManager.registerRepeatingJob(GlobalConfUpdater.class,
+                SystemProperties.getConfigurationClientUpdateIntervalSeconds());
+
+        addOnStatus = new AddOnStatusDiagnostics(messageLogEnabled);
+
+        backupEncryptionStatusDiagnostics = new BackupEncryptionStatusDiagnostics(
+                SystemProperties.isBackupEncryptionEnabled(),
+                getBackupEncryptionKeyIds());
+
+        messageLogEncryptionStatusDiagnostics = new MessageLogEncryptionStatusDiagnostics(
+                MessageLogProperties.isArchiveEncryptionEnabled(),
+                MessageLogProperties.isMessageLogEncryptionEnabled(),
+                ARCHIVE_GROUPING.name(),
+                getMessageLogArchiveEncryptionMembers(getMembers()));
+    }
+
+    private static List<ClientId> getMembers() {
+        try {
+            return new ArrayList<>(ServerConf.getMembers());
+        } catch (Exception e) {
+            log.warn("Failed to get members from server configuration", e);
+            return Collections.emptyList();
+        }
     }
 
     private static void loadConfigurations() {
@@ -219,7 +258,6 @@ public final class ProxyMain {
             if (SystemProperties.getServerConfCachePeriod() > 0) {
                 ServerConf.reload(new CachingServerConfImpl());
             }
-            GlobalConf.reload();
         } catch (Exception e) {
             log.error("Failed to initialize configurations", e);
         }
@@ -236,7 +274,61 @@ public final class ProxyMain {
 
         addClearCacheHandler(adminPort);
 
+        addAddOnStatusHandler(adminPort);
+
+        addBackupEncryptionStatus(adminPort);
+
+        addMessageLogEncryptionStatus(adminPort);
+
         return adminPort;
+    }
+
+    private static void logResponseIOError(IOException e) {
+        log.error("Unable to write to provided response, delegated request handling failed, response may"
+                + " be malformed", e);
+    }
+
+    private static void addAddOnStatusHandler(AdminPort adminPort) {
+        adminPort.addHandler("/addonstatus", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
+                try {
+                    response.setCharacterEncoding("UTF8");
+                    JsonUtils.getSerializer().toJson(addOnStatus, response.getWriter());
+                } catch (IOException e) {
+                    logResponseIOError(e);
+                }
+            }
+        });
+    }
+
+    private static void addBackupEncryptionStatus(AdminPort adminPort) {
+        adminPort.addHandler("/backup-encryption-status", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
+                try {
+                    response.setCharacterEncoding("UTF8");
+                    JsonUtils.getSerializer().toJson(backupEncryptionStatusDiagnostics, response.getWriter());
+                } catch (IOException e) {
+                    logResponseIOError(e);
+                }
+            }
+        });
+    }
+
+    private static void addMessageLogEncryptionStatus(AdminPort adminPort) {
+        adminPort.addHandler("/message-log-encryption-status", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
+                try {
+                    response.setCharacterEncoding("UTF8");
+                    JsonUtils.getSerializer().toJson(messageLogEncryptionStatusDiagnostics,
+                            response.getWriter());
+                } catch (IOException e) {
+                    logResponseIOError(e);
+                }
+            }
+        });
     }
 
     private static void addClearCacheHandler(AdminPort adminPort) {
@@ -248,8 +340,7 @@ public final class ProxyMain {
                     response.setCharacterEncoding("UTF8");
                     response.getWriter().println("Configuration cache cleared");
                 } catch (IOException e) {
-                    log.error("Unable to write to provided response, delegated request handling failed, response may"
-                            + " be malformed", e);
+                    logResponseIOError(e);
                 }
             }
         });
@@ -270,8 +361,7 @@ public final class ProxyMain {
                     response.setCharacterEncoding("UTF8");
                     response.getWriter().println(result);
                 } catch (IOException e) {
-                    log.error("Unable to write to provided response, delegated request handling failed, response may"
-                            + " be malformed", e);
+                    logResponseIOError(e);
                 }
             }
         });
@@ -324,8 +414,7 @@ public final class ProxyMain {
                     response.setCharacterEncoding("UTF8");
                     JsonUtils.getSerializer().toJson(result, response.getWriter());
                 } catch (IOException e) {
-                    log.error("Unable to write to provided response, delegated request handling failed, response may"
-                            + " be malformed", e);
+                    logResponseIOError(e);
                 }
             }
         });
@@ -440,6 +529,26 @@ public final class ProxyMain {
         }
         return statuses;
 
+    }
+
+    private static List<MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers(
+            List<ClientId> members) throws IOException {
+        EncryptionConfigProvider configProvider = EncryptionConfigProvider.getInstance(ARCHIVE_GROUPING);
+        if (!configProvider.isEncryptionEnabled()) {
+            return Collections.emptyList();
+        }
+        return configProvider.forDiagnostics(members).getEncryptionMembers()
+                .stream()
+                .map(member -> new MessageLogArchiveEncryptionMember(member.getMemberId(),
+                        member.getKeys(), member.isDefaultKeyUsed()))
+                .collect(Collectors.toList());
+    }
+
+    private static List<String> getBackupEncryptionKeyIds() {
+        return Arrays.stream(StringUtils.split(
+                SystemProperties.getBackupEncryptionKeyIds(), ','))
+                .map(String::trim)
+                .collect(Collectors.toList());
     }
 
     /**

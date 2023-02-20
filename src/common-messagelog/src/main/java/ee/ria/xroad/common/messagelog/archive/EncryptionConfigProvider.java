@@ -26,6 +26,7 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * A strategy interface for archive encryption configuration providers.
@@ -57,6 +59,11 @@ public interface EncryptionConfigProvider {
      * Given a grouping, returns an encryption configuration that applies to it.
      */
     EncryptionConfig forGrouping(Grouping grouping) throws IOException;
+
+    /**
+     * Returns encryption info for diagnostics
+     */
+    EncryptionConfig forDiagnostics(List<ClientId> members);
 
     static EncryptionConfigProvider getInstance(GroupingStrategy groupingStrategy) throws IOException {
         if (!MessageLogProperties.isArchiveEncryptionEnabled()) {
@@ -81,6 +88,11 @@ enum DisabledEncryptionConfigProvider implements EncryptionConfigProvider {
     public EncryptionConfig forGrouping(Grouping grouping) {
         return EncryptionConfig.DISABLED;
     }
+
+    @Override
+    public EncryptionConfig forDiagnostics(List<ClientId> members) {
+        return EncryptionConfig.DISABLED;
+    }
 }
 
 /**
@@ -100,11 +112,16 @@ final class ServerEncryptionConfigProvider implements EncryptionConfigProvider {
         } else {
             defaultKey = Collections.singleton(key);
         }
-        config = new EncryptionConfig(true, gpgHome, defaultKey);
+        config = new EncryptionConfig(true, gpgHome, defaultKey, Collections.emptyList());
     }
 
     @Override
     public EncryptionConfig forGrouping(Grouping grouping) {
+        return config;
+    }
+
+    @Override
+    public EncryptionConfig forDiagnostics(List<ClientId> members) {
         return config;
     }
 }
@@ -141,10 +158,35 @@ final class MemberEncryptionConfigProvider implements EncryptionConfigProvider {
 
         if (keys == null || keys.isEmpty()) {
             log.info("Encryption mapping does not exist, using default key for group {}", grouping);
-            return new EncryptionConfig(true, gpgHome, defaultKey);
+            return new EncryptionConfig(true, gpgHome, defaultKey, Collections.emptyList());
         } else {
             log.debug("Using key(s) {} for encrypting group {} archives", keys, grouping);
-            return new EncryptionConfig(true, gpgHome, keys);
+            return new EncryptionConfig(true, gpgHome, keys, Collections.emptyList());
+        }
+    }
+
+    @Override
+    public EncryptionConfig forDiagnostics(List<ClientId> members) {
+        return new EncryptionConfig(true, gpgHome, Collections.emptySet(), getEncryptionMembers(members));
+    }
+
+    private List<EncryptionMember> getEncryptionMembers(List<ClientId> members) {
+        return members.stream()
+                .map(member -> member.getMemberId().toShortString())
+                .distinct()
+                .map(this::getEncryptionMember)
+                .collect(Collectors.toList());
+    }
+
+    private EncryptionMember getEncryptionMember(String memberId) {
+        Set<String> keys = keyMappings.get(memberId);
+
+        if (keys == null || keys.isEmpty()) {
+            log.info("Encryption mapping does not exist, using default key for member {}", memberId);
+            return new EncryptionMember(memberId, defaultKey, true);
+        } else {
+            log.debug("Using key(s) {} for encrypting member {}", keys, memberId);
+            return new EncryptionMember(memberId, keys, false);
         }
     }
 

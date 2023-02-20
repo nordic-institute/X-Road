@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
@@ -16,7 +16,7 @@ RUN apt-get -qq update \
     && apt-get -qq install postgresql postgresql-contrib \
     && apt-get -qq clean
 
-ARG DIST=focal-current
+ARG DIST=jammy-current
 ARG REPO=https://artifactory.niis.org/xroad-release-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
@@ -26,11 +26,11 @@ ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     && apt-key add '/tmp/repokey.gpg'
 
-RUN pg_ctlcluster 12 main start \
+RUN pg_ctlcluster 14 main start \
     && apt-get update \
     && apt-get -qq install xroad-securityserver xroad-autologin \
     && apt-get -qq clean \
-    && pg_ctlcluster 12 main stop
+    && pg_ctlcluster 14 main stop
 
 # back up read-only config (for volume support)
 RUN mkdir -p /root/etc/xroad \

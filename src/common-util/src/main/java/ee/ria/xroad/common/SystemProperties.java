@@ -278,10 +278,14 @@ public final class SystemProperties {
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
 
-    private static final String PROXY_BACKUP_ENCRYPTED = PREFIX + "proxy.backup-encrypted";
+    private static final String PROXY_BACKUP_ENCRYPTION_ENABLED = PREFIX + "proxy.backup-encryption-enabled";
 
-    private static final String PROXY_BACKUP_PUBLIC_KEY_PATH = PREFIX + "proxy.backup-public-key-path";
+    private static final String PROXY_BACKUP_ENCRYPTION_KEY_IDS = PREFIX + "proxy.backup-encryption-keyids";
 
+    private static final String HSM_HEALTH_CHECK_ENABLED = PREFIX + "proxy.hsm-health-check-enabled";
+
+    private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = "false";
+    private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = "false";
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = "false";
@@ -440,6 +444,9 @@ public final class SystemProperties {
 
     public static final String CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS =
             PREFIX + "configuration-client.update-interval";
+
+    public static final String CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON =
+            PREFIX + "configuration-client.proxy-configuration-backup-cron";
 
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";
@@ -990,6 +997,14 @@ public final class SystemProperties {
      */
     public static int getConfigurationClientUpdateIntervalSeconds() {
         return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS, "60"));
+    }
+
+    /**
+     * @return the proxy configuration auto backup cron expression.
+     * defaults to '* 15 3 * * ?'
+     */
+    public static String getConfigurationClientProxyConfigurationBackupCron() {
+        return System.getProperty(CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON, "* 15 3 * * ?");
     }
 
     public static String getConfigurationClientAllowedFederations() {
@@ -1601,5 +1616,29 @@ public final class SystemProperties {
     public static boolean isClientIsCertValidityPeriodCheckEnforced() {
         return "true".equalsIgnoreCase(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
                 DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
+    }
+
+    /**
+     * @return Whether encryption to security server backup files using server's OpenPGP key is enabled,
+     * 'false' by default..
+     */
+    public static boolean isBackupEncryptionEnabled() {
+        return "true".equalsIgnoreCase(System.getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,
+                DEFAULT_PROXY_BACKUP_ENCRYPTED));
+    }
+
+    /**
+     * @return Comma-separated list of additional recipient OpenPGP key identifiers
+     */
+    public static String getBackupEncryptionKeyIds() {
+        return System.getProperty(PROXY_BACKUP_ENCRYPTION_KEY_IDS, "");
+    }
+
+    /**
+     * @return Whether Hardware Security Modules Healthcheck is enabled
+     * 'false' by default
+     */
+    public static boolean isHSMHealthCheckEnabled() {
+        return Boolean.parseBoolean(System.getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
     }
 }

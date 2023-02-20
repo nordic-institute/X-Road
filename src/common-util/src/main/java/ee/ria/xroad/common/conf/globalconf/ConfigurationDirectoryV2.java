@@ -26,32 +26,29 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.ConfProvider;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
 
 /**
@@ -64,183 +61,139 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInsta
 @Slf4j
 public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
 
-    public static final String PRIVATE_PARAMETERS_XML = "private-params.xml";
-    public static final String SHARED_PARAMETERS_XML = "shared-params.xml";
-
     @Getter
-    @Setter
-    private Path path;
-    private final boolean reloadIfChanged;
+    private final Path path;
 
-    private String instanceIdentifier;
+    private final String instanceIdentifier;
 
-    private Map<String, PrivateParametersV2> privateParameters = new HashMap<>();
-    private Map<String, SharedParametersV2> sharedParameters = new HashMap<>();
+    private final Map<String, PrivateParametersV2> privateParameters = new HashMap<>();
+    private final Map<String, SharedParametersV2> sharedParameters = new HashMap<>();
 
     // ------------------------------------------------------------------------
 
     /**
      * Constructs new directory from the given path.
-     *
      * @param directoryPath the path to the directory.
      * @throws Exception if loading configuration fails
      */
     public ConfigurationDirectoryV2(String directoryPath) throws Exception {
-        this(directoryPath, false);
+        this.path = Paths.get(directoryPath);
+
+        instanceIdentifier = loadInstanceIdentifier();
+
+        // empty maps as placeholders
+        loadParameters(new HashMap<>(), new HashMap<>());
     }
 
     /**
-     * Constructs new directory from the given path.
-     *
+     * Constructs new directory from the given path using parts from provided base that have not changed.
      * @param directoryPath the path to the directory.
-     * @param reloadIfChanged if true, automatic reload and detection of parameters is performed.
+     * @param base existing configurationdirectory to look for reusable parameter objects
      * @throws Exception if loading configuration fails
      */
-    public ConfigurationDirectoryV2(String directoryPath, boolean reloadIfChanged) throws Exception {
+    public ConfigurationDirectoryV2(String directoryPath, ConfigurationDirectoryV2 base) throws Exception {
         this.path = Paths.get(directoryPath);
-        this.reloadIfChanged = reloadIfChanged;
 
-        reload();
+        instanceIdentifier = loadInstanceIdentifier();
+
+        loadParameters(base.privateParameters, base.sharedParameters);
     }
 
     /**
      * @return the instance identifier of this configuration. The instance identifier is lazy initialized.
      */
-    public synchronized String getInstanceIdentifier() {
-        if (instanceIdentifier == null) {
-            loadInstanceIdentifier();
-        }
-
+    public String getInstanceIdentifier() {
         return instanceIdentifier;
     }
 
     /**
      * Reloads the configuration directory. Only files that are new or have changed, are actually loaded.
-     *
      * @throws Exception if an error occurs during reload
      */
-    public synchronized void reload() throws Exception {
-        Map<String, PrivateParametersV2> privateParams = new HashMap<>();
-        Map<String, SharedParametersV2> sharedParams = new HashMap<>();
-
+    private void loadParameters(Map<String, PrivateParametersV2> basePrivateParams,
+            Map<String, SharedParametersV2> baseSharedParams) throws Exception {
         log.trace("Reloading configuration from {}", path);
-
-        instanceIdentifier = null;
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, Files::isDirectory)) {
             for (Path instanceDir : stream) {
                 log.trace("Loading parameters from {}", instanceDir);
-                try {
-                    loadPrivateParameters(instanceDir, privateParams);
-                } catch (Exception e) {
-                    log.error("Unable to load private parameters from {}", instanceDir, e);
-                }
-                try {
-                    loadSharedParameters(instanceDir, sharedParams);
-                } catch (Exception e) {
-                    log.error("Unable to load shared parameters from {}", instanceDir, e);
-                }
+                loadPrivateParameters(instanceDir, basePrivateParams);
+                loadSharedParameters(instanceDir, baseSharedParams);
             }
         }
-
-        privateParameters = privateParams;
-        sharedParameters = sharedParams;
     }
 
     /**
      * Returns private parameters for a given instance identifier.
-     *
      * @param instanceId the instance identifier
      * @return private parameters or null, if no private parameters exist for given instance identifier
      * @throws Exception if an error occurs while reading parameters
      */
-    public synchronized PrivateParametersV2 getPrivate(String instanceId) throws Exception {
+    public PrivateParametersV2 getPrivate(String instanceId) throws Exception {
         String safeInstanceId = escapeInstanceIdentifier(instanceId);
 
         log.trace("getPrivate(instance = {}, directory = {})", instanceId, safeInstanceId);
-
-        PrivateParametersV2 parameters = privateParameters.get(safeInstanceId);
-
-        if (!reloadIfChanged) {
-            return parameters;
-        }
-
-        if (parameters != null && parameters.hasChanged()) {
-            parameters.reload();
-        } else if (parameters == null) {
-            // Parameters not cached, attempt to load it from disk.
-            Path instanceDir = Paths.get(path.toString(), safeInstanceId);
-            loadPrivateParameters(instanceDir, privateParameters);
-        }
 
         return privateParameters.get(safeInstanceId);
     }
 
     /**
      * Returns shared parameters for a given instance identifier.
-     *
      * @param instanceId the instance identifier
      * @return shared parameters or null, if no shared parameters exist for given instance identifier
      * @throws Exception if an error occurs while reading parameters
      */
-    public synchronized SharedParametersV2 getShared(String instanceId) throws Exception {
+    public SharedParametersV2 getShared(String instanceId) throws Exception {
         String safeInstanceId = escapeInstanceIdentifier(instanceId);
 
         log.trace("getShared(instance = {}, directory = {})", instanceId, safeInstanceId);
 
         SharedParametersV2 parameters = sharedParameters.get(safeInstanceId);
-
-        if (!reloadIfChanged) {
+        // ignore federated parameters that are expired
+        if (parameters != null
+                && (parameters.getInstanceIdentifier().equals(instanceIdentifier)
+                    || parameters.getExpiresOn().isAfter(OffsetDateTime.now()))) {
             return parameters;
         }
-
-        if (parameters != null && parameters.hasChanged()) {
-            parameters.reload();
-        } else if (parameters == null) {
-            // Parameters not cached, attempt to load it from disk.
-            Path instanceDir = Paths.get(path.toString(), safeInstanceId);
-            loadSharedParameters(instanceDir, sharedParameters);
-        }
-
-        return sharedParameters.get(safeInstanceId);
+        return null;
     }
 
     /**
      * @return all known shared parameters
      */
-    public synchronized List<SharedParametersV2> getShared() {
-        return new ArrayList<>(sharedParameters.values());
+    public List<SharedParametersV2> getShared() {
+        OffsetDateTime now = OffsetDateTime.now();
+        return sharedParameters.values()
+                .stream()
+                .filter(p -> p.getInstanceIdentifier().equals(instanceIdentifier) || p.getExpiresOn().isAfter(now))
+                .collect(Collectors.toList());
     }
 
     /**
      * Applies the given function to all files belonging to the configuration directory.
-     *
      * @param consumer the function instance that should be applied to
      * @throws Exception if an error occurs
      */
-    protected synchronized void eachFile(final Consumer<Path> consumer) throws Exception {
+    private synchronized void eachFile(final Consumer<Path> consumer) throws Exception {
         getConfigurationFiles().forEach(consumer);
     }
 
-    private List<Path> getConfigurationFiles() throws Exception {
-        List<Path> confFiles = new ArrayList<>();
+    protected List<Path> getConfigurationFiles() throws Exception {
+        return excludeMetadataAndDirs(Files.walk(path));
+    }
 
-        File files = Paths.get(path.toString(), "files").toFile();
-
-        if (files.exists() && files.isFile()) {
-            FileUtils.readLines(files, StandardCharsets.UTF_8).forEach(f -> confFiles.add(Paths.get(f)));
-        } else {
-            throw new CodedException(X_MALFORMED_GLOBALCONF, "File 'files' is missing");
-        }
-
-        return confFiles;
+    private List<Path> excludeMetadataAndDirs(Stream<Path> stream) {
+        return stream.filter(Files::isRegularFile)
+                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.FILES))
+                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE))
+                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.METADATA_SUFFIX))
+                .collect(Collectors.toList());
     }
 
     /**
      * Applies the given function to all files belonging to the configuration directory.
-     *
      * @param consumer the function instance that should be applied to all files belonging to the
-     * configuration directory.
+     *         configuration directory.
      * @throws Exception if an error occurs
      */
     public synchronized void eachFile(FileConsumer consumer) throws Exception {
@@ -252,9 +205,8 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
 
                 try {
                     metadata = getMetadata(filepath);
-                } catch (Exception e) {
+                } catch (IOException e) {
                     log.error("Could not open configuration file '{}' metadata: {}", filepath, e);
-
                     throw e;
                 }
 
@@ -272,71 +224,36 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
     }
 
     /**
-     * Returns true, if the file has expired. Returns false, if the file has not expired or the expiration
-     * time-stamp cannot be found.
-     *
-     * @param fileName the absolute file name
-     * @return true, if the file has expired
-     */
-    public static final boolean isExpired(Path fileName) {
-        try {
-            OffsetDateTime expiresOn = getMetadata(fileName).getExpirationDate();
-
-            if (expiresOn.toInstant().isBefore(Instant.now())) {
-                log.info("{} expired on {}", fileName, expiresOn);
-
-                return true;
-            }
-        } catch (Exception e) {
-            log.error("Failed to get expiration date of file " + fileName, e);
-        }
-
-        return false;
-    }
-
-    /**
-     * Throws exception with error code ErrorCodes.X_OUTDATED_GLOBALCONF if the file is too old.
-     *
-     * @param fileName the file name
-     */
-    public static final void verifyUpToDate(Path fileName) {
-        if (isExpired(fileName)) {
-            throw new CodedException(X_OUTDATED_GLOBALCONF, "%s is too old", fileName);
-        }
-    }
-
-    /**
-     * Throws exception with error code ErrorCodes.X_OUTDATED_GLOBALCONF if any of the configuration files is too old.
-     */
-    public void verifyUpToDate() throws Exception {
-        eachFile(ConfigurationDirectoryV2::verifyUpToDate);
-    }
-
-
-    /**
      * Gets the metadata for the given file.
-     *
      * @param fileName the file name
-     * @return the metadata for the given file.
+     * @return the metadata for the given file or null if metadata file does not exist.
      * @throws Exception if the metadata cannot be loaded
      */
-    public static ConfigurationPartMetadata getMetadata(Path fileName) throws Exception {
-        File file = new File(fileName.toString() + METADATA_SUFFIX);
-
+    public static ConfigurationPartMetadata getMetadata(Path fileName) throws IOException {
+        File file = new File(fileName.toString() + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA);
         try (InputStream in = new FileInputStream(file)) {
             return ConfigurationPartMetadata.read(in);
         }
     }
 
+    private static OffsetDateTime getFileExpiresOn(Path filePath) {
+        try {
+            return getMetadata(filePath).getExpirationDate();
+        } catch (IOException e) {
+            log.error("Unable to read expiration date", e);
+            return OffsetDateTime.MAX;
+        }
+    }
+
     // ------------------------------------------------------------------------
 
-    private void loadInstanceIdentifier() {
+    private String loadInstanceIdentifier() {
         Path file = Paths.get(path.toString(), INSTANCE_IDENTIFIER_FILE);
 
         log.trace("Loading instance identifier from {}", file);
 
         try {
-            instanceIdentifier = FileUtils.readFileToString(file.toFile()).trim();
+            return FileUtils.readFileToString(file.toFile(), StandardCharsets.UTF_8).trim();
         } catch (Exception e) {
             log.error("Failed to read instance identifier from " + file, e);
 
@@ -345,48 +262,64 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
         }
     }
 
-    private void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersV2> privateParams)
-            throws Exception {
+    private void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersV2> basePrivateParameters) {
         String instanceId = instanceDir.getFileName().toString();
 
-        Path privateParametersPath = Paths.get(instanceDir.toString(), PRIVATE_PARAMETERS_XML);
-
+        Path privateParametersPath = Paths.get(instanceDir.toString(),
+                ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
         if (Files.exists(privateParametersPath)) {
-            log.trace("Loading private parameters from {}", privateParametersPath);
+            try {
+                log.trace("Loading private parameters from {}", privateParametersPath);
 
-            privateParams.put(instanceId, loadParameters(privateParametersPath, PrivateParametersV2.class,
-                    privateParameters.get(instanceId)));
+                PrivateParametersV2 existingParameters = basePrivateParameters.get(instanceId);
+                PrivateParametersV2 parametersToUse;
+                OffsetDateTime fileExpiresOn = getFileExpiresOn(privateParametersPath);
+
+                if (existingParameters != null && !existingParameters.hasChanged()) {
+                    log.trace("PrivateParametersV2 from {} have not changed, reusing", privateParametersPath);
+                    parametersToUse = new PrivateParametersV2(existingParameters, fileExpiresOn);
+                } else {
+                    log.trace("Loading PrivateParametersV2 from {}", privateParametersPath);
+                    parametersToUse = new PrivateParametersV2(privateParametersPath, fileExpiresOn);
+                }
+
+                privateParameters.put(instanceId, parametersToUse);
+            } catch (Exception e) {
+                log.error("Unable to load private parameters from {}", instanceDir, e);
+            }
         } else {
             log.trace("Not loading private parameters from {}, file does not exist", privateParametersPath);
         }
     }
 
-    private void loadSharedParameters(Path instanceDir, Map<String, SharedParametersV2> sharedParams) throws Exception {
+    private void loadSharedParameters(Path instanceDir, Map<String, SharedParametersV2> baseSharedParameters) {
         String instanceId = instanceDir.getFileName().toString();
 
-        Path sharedParametersPath = Paths.get(instanceDir.toString(), SHARED_PARAMETERS_XML);
+        Path sharedParametersPath = Paths.get(instanceDir.toString(),
+                ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
         if (Files.exists(sharedParametersPath)) {
-            log.trace("Loading shared parameters from {}", sharedParametersPath);
+            try {
+                log.trace("Loading shared parameters from {}", sharedParametersPath);
 
-            sharedParams.put(instanceId, loadParameters(sharedParametersPath, SharedParametersV2.class,
-                    sharedParameters.get(instanceId)));
+                SharedParametersV2 existingParameters = baseSharedParameters.get(instanceId);
+                SharedParametersV2 parametersToUse;
+                OffsetDateTime fileExpiresOn = getFileExpiresOn(sharedParametersPath);
+
+                if (existingParameters != null && !existingParameters.hasChanged()) {
+                    log.trace("SharedParametersV2 from {} have not changed, reusing", sharedParametersPath);
+                    parametersToUse = new SharedParametersV2(existingParameters, fileExpiresOn);
+                } else {
+                    log.trace("Loading SharedParametersV2 from {}", sharedParametersPath);
+                    parametersToUse = new SharedParametersV2(sharedParametersPath, fileExpiresOn);
+                }
+
+                sharedParameters.put(instanceId, parametersToUse);
+            } catch (Exception e) {
+                log.error("Unable to load shared parameters from {}", instanceDir, e);
+            }
         } else {
             log.trace("Not loading shared parameters from {}, file does not exist", sharedParametersPath);
         }
     }
 
-    // Loads the parameters from file if the file has changed.
-    // Returns the parameters or null if the file does not exist.
-    private static <T extends ConfProvider> T loadParameters(Path path, Class<T> clazz, T existingInstance)
-            throws Exception {
-        T params = existingInstance != null ? existingInstance : (T) clazz.newInstance();
-
-        if (params.hasChanged()) {
-            log.trace("Loading {} from {}", clazz.getSimpleName(), path);
-
-            params.load(path.toString());
-        }
-
-        return params;
-    }
 }

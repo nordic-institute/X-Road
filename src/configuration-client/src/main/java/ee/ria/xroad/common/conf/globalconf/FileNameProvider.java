@@ -35,9 +35,13 @@ public interface FileNameProvider {
 
     /**
      * @param file the file
-     * @return the full path where the file should be save
-     * @throws Exception if an error occurs
+     * @return the full path where the file should be saved
      */
-    Path getFileName(ConfigurationFile file) throws Exception;
+    Path getFileName(ConfigurationFile file);
 
+    /**
+     * @param instanceIdentifier configuration instance identifier
+     * @return the full path where configuration files of this instance should be saved
+     */
+    Path getConfigurationDirectory(String instanceIdentifier);
 }

@@ -25,8 +25,8 @@
  -->
 <template>
   <tr data-test="system.parameters-timestamping-service-row">
-    <td>{{ timestampingService.name }}</td>
-    <td>{{ timestampingService.url }}</td>
+    <td :class="{ disabled: !messageLogEnabled }">{{ timestampingService.name }}</td>
+    <td :class="{ disabled: !messageLogEnabled }">{{ timestampingService.url }}</td>
     <td class="pr-4">
       <xrd-button
         v-if="showDeleteTsp"
@@ -58,6 +58,9 @@ import { TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
 import { Prop } from 'vue/types/options';
 import * as api from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   name: 'TimestampingServiceRow',
@@ -66,6 +69,7 @@ export default Vue.extend({
       type: Object as Prop<TimestampingService>,
       required: true,
     },
+    messageLogEnabled: Boolean,
   },
   data() {
     return {
@@ -75,11 +79,14 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     showDeleteTsp(): boolean {
-      return this.$store.getters.hasPermission(Permissions.DELETE_TSP);
+      return this.hasPermission(Permissions.DELETE_TSP) && this.messageLogEnabled;
     },
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+
     deleteTimestampingService(): void {
       this.deleting = true;
       api
@@ -88,14 +95,13 @@ export default Vue.extend({
           this.deleting = false;
           this.confirmDeleteDialog = false;
           this.$emit('deleted');
-          this.$store.dispatch(
-            'showSuccess',
+          this.showSuccess(
             this.$t(
               'systemParameters.timestampingServices.table.action.delete.success',
             ),
           );
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
   },
 });
@@ -104,6 +110,10 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/colors';
 @import '~styles/tables';
+
+.disabled {
+  color: $XRoad-WarmGrey100;
+}
 
 tr td {
   color: $XRoad-Black100;

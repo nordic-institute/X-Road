@@ -72,6 +72,9 @@ import Vue from 'vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
 import { RouteName } from '@/global';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   components: {
@@ -96,38 +99,41 @@ export default Vue.extend({
     };
   },
   created() {
-    this.$store.commit('storeKeyId', this.keyId);
-    this.$store.dispatch('setCsrTokenType', this.tokenType);
-    this.fetchKeyData();
-    this.fetchCertificateAuthorities();
+    this.storeKeyId(this.keyId);
+    this.setCsrTokenType(this.tokenType);
+    this.fetchKeyData().catch((error) => {
+      this.showError(error);
+    });
+    this.fetchCertificateAuthorities().catch((error) => {
+      this.showError(error);
+    });
   },
   beforeDestroy() {
-    // Clear the vuex store
-    this.$store.dispatch('resetCsrState');
+    // Clear the store state
+    this.resetCsrState();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useCsrStore, [
+      'resetCsrState',
+      'setCsrTokenType',
+      'storeKeyId',
+      'fetchCsrForm',
+      'fetchKeyData',
+      'fetchCertificateAuthorities',
+    ]),
     save(): void {
-      this.$store.dispatch('fetchCsrForm').then(
+      this.fetchCsrForm().then(
         () => {
           this.currentStep = 2;
         },
         (error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         },
       );
     },
     cancel(): void {
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
-    },
-    fetchKeyData(): void {
-      this.$store.dispatch('fetchKeyData').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
-    fetchCertificateAuthorities(): void {
-      this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
     },
   },
 });

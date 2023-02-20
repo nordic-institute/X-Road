@@ -119,7 +119,7 @@ public class OcspClientTest {
         OCSPResp ocsp = getOcspResponse(subject);
         assertNotNull(ocsp);
 
-        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
+        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
                 new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, GlobalConf.getCaCert("EE", subject));
     }
@@ -147,7 +147,7 @@ public class OcspClientTest {
         OCSPResp ocsp = getOcspResponse(subject);
         assertNotNull(ocsp);
 
-        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
+        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
                 new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, GlobalConf.getCaCert("EE", subject));
     }

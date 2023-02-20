@@ -36,8 +36,8 @@
         }}</v-col>
       </v-row>
       <v-row>
-        <v-col cols="3" class="mt-6">
-          <xrd-help-iconcon
+        <v-col cols="3" class="mt-6 icon-wrapper">
+          <xrd-help-icon
             :text="$t('ssTlsCertificate.generateInternalCsr.step1.tooltip')"
           />
           {{ $t('ssTlsCertificate.generateInternalCsr.step1.label') }}
@@ -95,6 +95,8 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { saveResponseAsFile } from '@/util/helpers';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   data() {
@@ -105,6 +107,7 @@ export default Vue.extend({
     };
   },
   methods: {
+    ...mapActions(useNotifications, ['showError']),
     back(): void {
       this.$router.go(-1);
     },
@@ -121,7 +124,7 @@ export default Vue.extend({
           this.csrGenerated = true;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => (this.generatingCsr = false));
     },
@@ -146,6 +149,12 @@ $spacing: 12rem;
   border-radius: 4px;
   padding: 0px;
   margin-top: 20px;
+}
+
+.icon-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
 }
 
 .first-action {

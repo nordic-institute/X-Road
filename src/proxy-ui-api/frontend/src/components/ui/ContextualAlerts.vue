@@ -36,14 +36,17 @@
         :key="notification.timeAdded"
         v-model="notification.show"
         data-test="contextual-alert"
-        color="red"
+        :color="notificationColor(notification)"
         border="left"
         colored-border
         class="alert"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
           <div class="icon-wrapper">
-            <v-icon class="icon"> icon-Error-notification</v-icon>
+            <v-icon v-if="notification.isWarning" class="warning-icon"
+              >icon-Warning</v-icon
+            >
+            <v-icon v-else class="error-icon"> icon-Error-notification</v-icon>
             <div class="row-wrapper">
               <!-- Show message text -->
               <div v-if="notification.errorMessage">
@@ -51,46 +54,40 @@
               </div>
 
               <!-- Show localised text by id from error object -->
-              <div
-                v-else-if="notification.errorObject && errorCode(notification)"
-              >
-                {{ $t(`error_code.${errorCode(notification)}`) }}
+              <div v-else-if="notification.errorCode">
+                {{ $t(`error_code.${notification.errorCode}`) }}
               </div>
 
               <!-- If error doesn't have a text or localisation key then just print the error object -->
-              <div v-else-if="notification.errorObject">
-                {{ notification.errorObject }}
+              <div v-else-if="notification.errorObjectAsString">
+                {{ notification.errorObjectAsString }}
               </div>
 
               <!-- Special case for pin code validation -->
-              <template v-if="errorCode(notification) === 'weak_pin'">
+              <template v-if="notification.errorCode === 'weak_pin'">
                 <div>
                   {{
-                    $t(`error_code.${errorMetadata(notification)[0]}`) +
-                    `: ${errorMetadata(notification)[1]}`
+                    $t(`error_code.${notification.metaData[0]}`) +
+                    `: ${notification.metaData[1]}`
                   }}
                 </div>
                 <div>
                   {{
-                    $t(`error_code.${errorMetadata(notification)[2]}`) +
-                    `: ${errorMetadata(notification)[3]}`
+                    $t(`error_code.${notification.metaData[2]}`) +
+                    `: ${notification.metaData[3]}`
                   }}
                 </div>
               </template>
 
               <!-- Show the error metadata if it exists -->
-              <div
-                v-for="meta in errorMetadata(notification)"
-                v-else
-                :key="meta"
-              >
+              <div v-for="meta in notification.metaData" v-else :key="meta">
                 {{ meta }}
               </div>
 
               <!-- Show validation errors -->
-              <ul v-if="hasValidationErrors(notification)">
+              <ul v-if="notification.validationErrors">
                 <li
-                  v-for="validationError in validationErrors(notification)"
+                  v-for="validationError in notification.validationErrors"
                   :key="validationError.field"
                 >
                   {{ $t(`fields.${validationError.field}`) }}:
@@ -100,7 +97,7 @@
                   <template v-else>
                     <ul>
                       <li
-                        v-for="errCode in validationError.errCodes"
+                        v-for="errCode in validationError.errorCodes"
                         :key="`${validationError.field}.${errCode}`"
                       >
                         {{ $t(`validationError.${errCode}`) }}
@@ -111,20 +108,20 @@
               </ul>
 
               <!-- Error ID -->
-              <div v-if="errorId(notification)">
+              <div v-if="notification.errorId">
                 {{ $t('alert.id') }}:
-                {{ errorId(notification) }}
+                {{ notification.errorId }}
               </div>
 
               <!-- count -->
-              <div v-if="notification.count > 1">
+              <div v-if="notification.count > 1 && !notification.isWarning">
                 {{ $t('alert.count') }}
                 {{ notification.count }}
               </div>
             </div>
           </div>
           <xrd-button
-            v-if="errorId(notification)"
+            v-if="notification.errorId"
             text
             :outlined="false"
             class="id-button"
@@ -152,58 +149,29 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
-
-type ValidationError = {
-  field: string;
-  errorCodes: string[];
-};
+import { Colors } from '@/global';
 
 export default Vue.extend({
   // Component for contextual notifications
   computed: {
-    ...mapGetters(['errorNotifications']),
+    ...mapState(useNotifications, ['errorNotifications']),
   },
   methods: {
-    errorCode(notification: Notification): string | undefined {
-      return notification.errorObject?.response?.data?.error?.code;
+    notificationColor(notification: Notification) {
+      // TODO - how to import these values from colors.css?
+      return notification.isWarning ? Colors.Warning : Colors.Error;
     },
+    ...mapActions(useNotifications, ['deleteNotification']),
 
-    errorMetadata(notification: Notification): string[] {
-      return notification.errorObject?.response?.data?.error?.metadata ?? [];
-    },
-
-    errorId(notification: Notification): string | undefined {
-      return notification.errorObject?.response?.headers[
-        'x-road-ui-correlation-id'
-      ];
-    },
-
-    hasValidationErrors(notification: Notification): boolean {
-      return (
-        notification.errorObject?.response?.data?.error?.validation_errors !==
-        undefined
-      );
-    },
-
-    validationErrors(notification: Notification): ValidationError[] {
-      const validationErrors =
-        notification.errorObject?.response?.data?.error?.validation_errors;
-      return Object.keys(validationErrors).map(
-        (field) =>
-          ({
-            field,
-            errorCodes: validationErrors[field],
-          } as ValidationError),
-      );
-    },
     closeError(id: number): void {
-      this.$store.commit('deleteNotification', id);
+      this.deleteNotification(id);
     },
     copyId(notification: Notification): void {
-      const id = this.errorId(notification);
+      const id = notification.errorId;
       if (id) {
         toClipboard(id);
       }
@@ -224,7 +192,7 @@ export default Vue.extend({
 }
 
 .alert {
-  margin-top: 8px;
+  margin-top: 16px;
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
@@ -243,9 +211,13 @@ export default Vue.extend({
   justify-content: space-between;
   align-items: center;
 
-  .icon {
+  .error-icon {
     margin-right: 12px;
     color: $XRoad-Error;
+  }
+  .warning-icon {
+    margin-right: 12px;
+    color: $XRoad-Warning;
   }
 }
 

@@ -6,5 +6,4 @@
 ../../../../src/xroad/default-configuration/devices.ini usr/share/xroad/doc/
 ../../../../../signer/build/libs/signer-1.0.jar usr/share/xroad/jlib/
 ../../../../../signer-console/build/libs/signer-console-1.0.jar usr/share/xroad/jlib/
-../../../../../libs/libpkcs11wrapper.so usr/share/xroad/lib/
 ../../../../../lib/libpasswordstore.so usr/share/xroad/lib/

@@ -15,6 +15,7 @@
     <include file="messagelog/7-x-request-id.xml"/>
     <include file="messagelog/8-grouping-index.xml"/>
     <include file="messagelog/9-encryption.xml"/>
+    <include file="messagelog/10-timestamping-fix.xml"/>
 
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

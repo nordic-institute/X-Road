@@ -2,7 +2,7 @@ dependencies {
     implementation  project(':common-util')
     implementation  project(':common-ui')
     implementation  project(':signer-protocol')
-    implementation  'org.postgresql:postgresql:42.2.24'
+    implementation  "org.postgresql:postgresql:$postgresqlVersion"
     implementation  'commons-configuration:commons-configuration:1.10'
 }
 
@@ -59,7 +59,7 @@ task generateJsTranslations(type: Exec) {
 }
 
 // FUTURE - We might want to get rid of warning at .war file generation. RM task #3316
-task warble(dependsOn: [copyDeps, ':center-ui:build', generateJsTranslations], type: Exec) {
+task warble(dependsOn: [copyDeps, generateJsTranslations], type: Exec) {
     commandLine = ['jruby', '-S', 'warble']
 }
 
@@ -100,7 +100,7 @@ task checkRubySource(type: Exec) {
 }
 
 check.dependsOn checkRubySource
-build.dependsOn copyDeps
+build.dependsOn warble
 
 
 def licenseSourceAdds = fileTree('test_pg')

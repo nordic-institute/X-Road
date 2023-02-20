@@ -31,7 +31,10 @@
       <transition name="fade" mode="out-in">
         <div class="base-full-width">
           <router-view name="subTabs" />
-          <router-view name="alerts" />
+
+          <div class="sticky">
+            <router-view name="alerts" />
+          </div>
           <v-layout
             align-center
             justify-center
@@ -64,6 +67,9 @@
 import Vue from 'vue';
 import { RouteName } from '@/global';
 import * as api from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useAlerts } from '@/store/modules/alerts';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   data() {
@@ -73,8 +79,9 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['sessionAlive']),
     showDialog(): boolean {
-      return this.$store.getters.isSessionAlive === false;
+      return this.sessionAlive === false;
     },
   },
   created() {
@@ -83,26 +90,28 @@ export default Vue.extend({
       () => this.pollSessionStatus(),
       30000,
     );
-    this.$store.dispatch('checkAlertStatus'); // Poll immediately to get initial alerts state
+    this.checkAlertStatus(); // Poll immediately to get initial alerts state
   },
   methods: {
-    pollSessionStatus() {
+    ...mapActions(useAlerts, ['checkAlertStatus']),
+    ...mapActions(useUser, ['logoutUser', 'setSessionAlive']),
+    async pollSessionStatus() {
       return api
         .get('/notifications/session-status')
         .then(() => {
           // Check alert status after a successfull session-status call
-          this.$store.dispatch('checkAlertStatus');
+          this.checkAlertStatus();
         })
         .catch((error) => {
           if (error?.response?.status === 401) {
-            this.$store.commit('setSessionAlive', false);
+            this.setSessionAlive(false);
             clearInterval(this.sessionPollInterval);
             clearInterval(this.alertsPollInterval);
           }
         });
     },
     logout(): void {
-      this.$store.dispatch('logout');
+      this.logoutUser();
       this.$router.replace({ name: RouteName.Login });
     },
   },
@@ -110,6 +119,13 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+.sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 4px;
+  z-index: 7; // Vuetify drop menu has z-index 8 so this goes just under those. Modals/dialogs have z-index 202
+}
+
 .base-full-width {
   width: 100%;
   padding-bottom: 40px;

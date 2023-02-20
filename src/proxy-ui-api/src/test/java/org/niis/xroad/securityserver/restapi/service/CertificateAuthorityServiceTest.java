@@ -88,6 +88,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
         approvedCAInfos.add(new ApprovedCAInfo("fi-not-auth-only", false,
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
+        // @deprecated The {@link SkEsteIdCertificateProfileInfoProvider} profile has been marked deprecated starting
+        // from X-Road 7.2.0 and will be removed in a future version. This test should then also be cleaned up.
         approvedCAInfos.add(new ApprovedCAInfo("est-auth-only", true,
                 "ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider"));
         approvedCAInfos.add(new ApprovedCAInfo("mock-top-ca", false,

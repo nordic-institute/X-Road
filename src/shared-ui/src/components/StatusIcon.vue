@@ -29,10 +29,16 @@
     <v-icon v-if="status === 'ok'" :small="true" color="#0CC177"
       >icon-Checked</v-icon
     >
+    <v-icon v-if="status === 'ok-disabled'" :small="true" color="#575169"
+      >icon-Checked</v-icon
+    >
     <v-icon v-else-if="status === 'saved'" x-large color="#211E1E"
       >icon-Checkmark</v-icon
     >
     <v-icon v-else-if="status === 'progress-register'" small color="#0CC177"
+      >icon-In-progress</v-icon
+    >
+    <v-icon v-else-if="status === 'progress-register-disabled'" small color="#575169"
       >icon-In-progress</v-icon
     >
     <v-icon v-else-if="status === 'progress-delete'" small color="#211E1E"
@@ -41,7 +47,13 @@
     <v-icon v-else-if="status === 'error'" small color="#EC4040"
       >icon-Error</v-icon
     >
+    <v-icon v-else-if="status === 'error-disabled'" small color="#575169"
+      >icon-Error</v-icon
+    >
     <v-icon v-else-if="status === 'pending'" small color="#F5A623"
+      >icon-Error</v-icon
+    >
+    <v-icon v-else-if="status === 'pending-disabled'" small color="#575169"
       >icon-Error</v-icon
     >
   </div>
@@ -62,11 +74,15 @@ export default Vue.extend({
         [
           '',
           'ok',
+          'ok-disabled',
           'saved',
           'progress-register',
+          'progress-register-disabled',
           'progress-delete',
           'error',
+          'error-disabled',
           'pending',
+          'pending-disabled',
         ].includes(val),
     },
   },

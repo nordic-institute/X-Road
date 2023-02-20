@@ -31,8 +31,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.PRIVATE_PARAMETERS_XML;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.SHARED_PARAMETERS_XML;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
 
 /**
@@ -44,14 +44,14 @@ public class FileNameProviderImpl implements FileNameProvider {
     private final String globalConfigurationDirectory;
 
     @Override
-    public Path getFileName(ConfigurationFile file) throws Exception {
+    public Path getFileName(ConfigurationFile file) {
         String fileName;
         switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
-                fileName = PRIVATE_PARAMETERS_XML;
+                fileName = FILE_NAME_PRIVATE_PARAMETERS;
                 break;
             case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
-                fileName = SHARED_PARAMETERS_XML;
+                fileName = FILE_NAME_SHARED_PARAMETERS;
                 break;
             default:
                 fileName = Paths.get(
@@ -64,5 +64,10 @@ public class FileNameProviderImpl implements FileNameProvider {
         return Paths.get(globalConfigurationDirectory,
                 escapeInstanceIdentifier(file.getInstanceIdentifier()),
                 fileName);
+    }
+
+    @Override
+    public Path getConfigurationDirectory(String instanceIdentifier) {
+        return Paths.get(globalConfigurationDirectory, escapeInstanceIdentifier(instanceIdentifier));
     }
 }

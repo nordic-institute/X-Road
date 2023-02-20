@@ -36,7 +36,6 @@ import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
-import java.io.OutputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -105,11 +104,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public boolean hasChanged() {
-        return false;
-    }
-
-    @Override
     public Set<String> getKnownAddresses() {
         return Collections.emptySet();
     }
@@ -123,16 +117,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public X509Certificate[] getAuthTrustChain() {
         return null;
-    }
-
-    @Override
-    public void save() throws Exception {
-        // Empty configuration is not saved
-    }
-
-    @Override
-    public void save(OutputStream out) throws Exception {
-        // Empty configuration is not saved
     }
 
     @Override
@@ -170,11 +154,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public ClientId getManagementRequestService() {
         return null;
-    }
-
-    @Override
-    public void load(String fileName) throws Exception {
-        // Empty configuration cannot be loaded
     }
 
     @Override
@@ -216,7 +195,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public int getOcspFreshnessSeconds(boolean smallestValue) {
+    public int getOcspFreshnessSeconds() {
         return DEFAULT_OCSP_FRESHNESS;
     }
 
@@ -279,6 +258,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public ClientId getServerOwner(SecurityServerId serverId) {
         return null;
+    }
+
+    @Override
+    public void reload() {
+      // nothing to reload here
     }
 
     @Override
