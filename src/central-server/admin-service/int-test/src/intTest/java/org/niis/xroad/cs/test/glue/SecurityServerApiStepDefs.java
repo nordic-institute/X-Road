@@ -28,6 +28,8 @@ package org.niis.xroad.cs.test.glue;
 import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
+import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,9 +110,22 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         }
     }
 
+    @Step("security servers list contains {string}")
+    public void securityServersListContains(String serverId) {
+        final ResponseEntity<PagedSecurityServersDto> response = securityServersApi
+                .findSecurityServers("", new PagingSortingParametersDto());
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1, "body.items.?[id=='" + serverId + "'].size",
+                        "Servers list contains id " + serverId))
+                .execute();
+    }
+
     @SuppressWarnings("checkstyle:MagicNumber")
     private String randomSecurityServerId() {
         return String.format("%s:%s:%s:%s", randomAlphabetic(3), randomAlphabetic(3),
                 randomAlphabetic(3), randomAlphabetic(3));
     }
+
 }

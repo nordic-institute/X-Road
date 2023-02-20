@@ -52,8 +52,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.transaction.Transactional;
-
 import java.util.Set;
 
 import static java.util.Map.entry;
@@ -96,7 +94,6 @@ public class SecurityServersApiController implements SecurityServersApi {
     @Override
     @Validated
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
-    @Transactional
     public ResponseEntity<PagedSecurityServersDto> findSecurityServers(String query,
                                                                        PagingSortingParametersDto pagingSorting) {
         PageRequest pageRequest = pageRequestConverter.convert(
