@@ -27,16 +27,26 @@ package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
-import io.cucumber.java.en.Then;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
+import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static com.nortal.test.asserts.Assertions.notNullAssertion;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.apache.commons.lang3.StringUtils.split;
+import static org.junit.Assert.fail;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
+
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SecurityServerApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignSecurityServersApi securityServersApi;
 
-    @Then("Security server auth certs for {string} is requested")
+    @Step("Security server auth certs for {string} is requested")
     public void systemStatusIsRequested(String id) {
         try {
             var response = securityServersApi.getSecurityServerAuthCerts(id);
@@ -46,7 +56,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         }
     }
 
-    @Then("Response is of status code {int}")
+    @Step("Response is of status code {int}")
     public void systemStatusIsValidated(int statusCode) {
         int responseCode = getRequiredStepData(StepDataKey.RESPONSE_STATUS);
 
@@ -58,5 +68,49 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                         .expectedValue(statusCode)
                         .build())
                 .execute();
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    @Step("user can get security server {string} details")
+    public void userCanGetSecurityServerDetails(String serverId) {
+        final String[] idParts = split(serverId, ':');
+
+        final ResponseEntity<SecurityServerDto> response = securityServersApi.getSecurityServer(serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(serverId, "body.id", "Server id should match"))
+                .assertion(equalsAssertion(idParts[0], "body.xroadId.instanceId", "Instance id should match"))
+                .assertion(equalsAssertion(idParts[1], "body.xroadId.memberClass", "Member class id should match"))
+                .assertion(equalsAssertion(idParts[2], "body.xroadId.memberCode", "Member code class id should match"))
+                .assertion(equalsAssertion(idParts[3], "body.xroadId.serverCode", "Server code class id should match"))
+                .assertion(equalsAssertion("Member name for " + serverId.substring(0, serverId.lastIndexOf(':')),
+                        "body.ownerName", "Owner name id should match"))
+                .assertion(equalsAssertion("security-server-address-" + idParts[3], "body.serverAddress", "Server address id should match"))
+                .assertion(notNullAssertion("body.createdAt"))
+                .execute();
+    }
+
+    @Step("getting non existing security server details fails")
+    public void gettingNonExistingSecurityServerDetailsFails() {
+        try {
+            securityServersApi.getSecurityServer(randomSecurityServerId());
+            fail("Should throw exception");
+        } catch (FeignException exception) {
+            validate(exception.status())
+                    .assertion(new Assertion.Builder()
+                            .message("Verify status code")
+                            .expression("=")
+                            .actualValue(exception.status())
+                            .expectedValue(NOT_FOUND.value())
+                            .build())
+                    .execute();
+        }
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private String randomSecurityServerId() {
+        return String.format("%s:%s:%s:%s", randomAlphabetic(3), randomAlphabetic(3),
+                randomAlphabetic(3), randomAlphabetic(3));
     }
 }

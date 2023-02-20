@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.SecurityServerConverter;
@@ -41,6 +42,7 @@ import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -55,6 +57,7 @@ import javax.transaction.Transactional;
 import java.util.Set;
 
 import static java.util.Map.entry;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -67,6 +70,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     private final PageRequestConverter pageRequestConverter;
 
     private final SecurityServerService securityServerService;
+    private final SecurityServerIdConverter securityServerIdConverter;
     private final AuditDataHelper auditData;
 
     private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
@@ -106,8 +110,12 @@ public class SecurityServersApiController implements SecurityServersApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVER_DETAILS')")
     public ResponseEntity<SecurityServerDto> getSecurityServer(String id) {
-        return null;
+        return securityServerService.find(securityServerIdConverter.convertId(id))
+                .map(securityServerDtoConverter::toDto)
+                .map(ResponseEntity::ok)
+                .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
     }
 
     @Override

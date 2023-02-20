@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
+import io.vavr.control.Option;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -37,24 +38,35 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
+import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.service.managementrequest.ManagementRequestServiceImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class SecurityServerServiceImplTest implements WithInOrder {
+class SecurityServerServiceImplTest implements WithInOrder {
 
     @Mock
     private ManagementRequestServiceImpl managementRequestService;
+    @Mock
+    private SecurityServerRepository securityServerRepository;
+    @Mock
+    private SecurityServerMapper securityServerMapper;
 
     @Mock
     private ManagementRequestInfoDto managementRequestInfoDto;
@@ -62,17 +74,22 @@ public class SecurityServerServiceImplTest implements WithInOrder {
     @Mock
     private SecurityServerId serverId;
 
+    @Mock
+    private SecurityServerEntity securityServerEntity;
+    @Mock
+    private SecurityServer securityServer;
+
     @InjectMocks
     private SecurityServerServiceImpl securityServerService;
 
 
     @Nested
     @DisplayName("findSecurityServerRegistrationStatus(SecurityServerId serverId)")
-    public class SecurityServerRegStatusMethod implements WithInOrder {
+    class SecurityServerRegStatusMethod implements WithInOrder {
 
         @Test
         @DisplayName("should find management status approved")
-        public void shouldReturnStatusApproved() {
+        void shouldReturnStatusApproved() {
             Page<ManagementRequestInfoDto> requestInfoDtos = new PageImpl<>(List.of(managementRequestInfoDto));
             doReturn(requestInfoDtos).when(managementRequestService)
                     .findRequests(any(), any());
@@ -86,7 +103,7 @@ public class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         @DisplayName("should return null if no management request exit")
-        public void shouldReturnNullWhenRequestNotFound() {
+        void shouldReturnNullWhenRequestNotFound() {
             Page<ManagementRequestInfoDto> emptyRequestInfoDtos = Page.empty();
             doReturn(emptyRequestInfoDtos).when(managementRequestService)
                     .findRequests(any(), any());
@@ -94,6 +111,30 @@ public class SecurityServerServiceImplTest implements WithInOrder {
             ManagementRequestStatus result = securityServerService.findSecurityServerRegistrationStatus(serverId);
 
             assertNull(result);
+        }
+    }
+
+    @Nested
+    class FindSecurityServer {
+
+        @Test
+        void find() {
+            when(securityServerRepository.findBy(serverId)).thenReturn(Option.of(securityServerEntity));
+            when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
+
+            final Option<SecurityServer> result = securityServerService.find(serverId);
+
+            assertThat(result.get()).isEqualTo(securityServer);
+        }
+
+        @Test
+        void findShouldReturnEmpty() {
+            when(securityServerRepository.findBy(serverId)).thenReturn(Option.none());
+
+            final Option<SecurityServer> result = securityServerService.find(serverId);
+
+            assertThat(result.isEmpty()).isTrue();
+            verifyNoInteractions(securityServerMapper);
         }
     }
 }
