@@ -46,7 +46,7 @@ public class SubsystemId extends ClientId {
         setSubsystemCode(subsystemCode);
     }
 
-    protected static SubsystemId create(ee.ria.xroad.common.identifier.ClientId identifier) {
+    public static SubsystemId create(ee.ria.xroad.common.identifier.ClientId identifier) {
         validateArgument("identifier", identifier);
 
         return create(identifier.getXRoadInstance(),

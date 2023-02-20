@@ -27,7 +27,6 @@ package ee.ria.xroad.common.identifier;
 
 import ee.ria.xroad.common.util.NoCoverage;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -40,7 +39,6 @@ import static ee.ria.xroad.common.util.Validation.validateArgument;
  * Security server ID.
  */
 public interface SecurityServerId extends XRoadId {
-    char ENCODED_ID_SEPARATOR = ':';
 
     String getMemberClass();
 
@@ -51,26 +49,7 @@ public interface SecurityServerId extends XRoadId {
     ClientId getOwner();
 
     default String[] getFieldsForStringFormat() {
-        return new String[] {getMemberClass(), getMemberCode(), getServerCode()};
-    }
-
-    default String asEncodedId() {
-        ClientId ownerId = getOwner();
-
-        StringBuilder builder = new StringBuilder();
-
-        builder.append(ownerId.getXRoadInstance())
-                .append(ENCODED_ID_SEPARATOR)
-                .append(ownerId.getMemberClass())
-                .append(ENCODED_ID_SEPARATOR)
-                .append(ownerId.getMemberCode());
-        if (StringUtils.isNotEmpty(ownerId.getSubsystemCode())) {
-            builder.append(ENCODED_ID_SEPARATOR)
-                    .append(ownerId.getSubsystemCode());
-        }
-        builder.append(ENCODED_ID_SEPARATOR)
-                .append(getServerCode());
-        return builder.toString().trim();
+        return new String[]{getMemberClass(), getMemberCode(), getServerCode()};
     }
 
     @XmlJavaTypeAdapter(IdentifierTypeConverter.SecurityServerIdAdapter.class)
@@ -94,6 +73,7 @@ public interface SecurityServerId extends XRoadId {
 
         /**
          * Returns the owner member class of thesecurity server.
+         *
          * @return String
          */
         public String getMemberClass() {
@@ -102,6 +82,7 @@ public interface SecurityServerId extends XRoadId {
 
         /**
          * Returns the owner member code of the security server.
+         *
          * @return String
          */
         public String getMemberCode() {
@@ -110,6 +91,7 @@ public interface SecurityServerId extends XRoadId {
 
         /**
          * Returns the server code of the security server.
+         *
          * @return String
          */
         public String getServerCode() {
@@ -118,6 +100,7 @@ public interface SecurityServerId extends XRoadId {
 
         /**
          * Returns the client ID of the owner of the security server.
+         *
          * @return ClientId
          */
         public ClientId.Conf getOwner() {
@@ -138,16 +121,17 @@ public interface SecurityServerId extends XRoadId {
 
         /**
          * Factory method for creating a new SecurityServerId.
+         *
          * @param xRoadInstance instance of the new security server
-         * @param memberClass class of the new security server owner
-         * @param memberCode code of the new security server owner
-         * @param serverCode code of the new security server
+         * @param memberClass   class of the new security server owner
+         * @param memberCode    code of the new security server owner
+         * @param serverCode    code of the new security server
          * @return SecurityServerId
          */
         public static SecurityServerId.Conf create(String xRoadInstance,
-                                            String memberClass,
-                                            String memberCode,
-                                            String serverCode) {
+                                                   String memberClass,
+                                                   String memberCode,
+                                                   String serverCode) {
             validateArgument("xRoadInstance", xRoadInstance);
             validateArgument("memberClass", memberClass);
             validateArgument("memberCode", memberCode);
@@ -159,7 +143,8 @@ public interface SecurityServerId extends XRoadId {
         /**
          * Factory method for creating a new SecurityServerId from ClientId and
          * server code.
-         * @param client ID of the new security server owner
+         *
+         * @param client     ID of the new security server owner
          * @param serverCode code of the new security server
          * @return SecurityServerId
          */

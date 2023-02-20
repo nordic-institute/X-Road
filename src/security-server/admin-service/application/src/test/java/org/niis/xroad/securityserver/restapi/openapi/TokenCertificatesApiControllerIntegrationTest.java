@@ -39,7 +39,6 @@ import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
-import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsage;
 import org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction;
@@ -194,7 +193,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
             Assert.assertEquals(DeviationCodes.ERROR_CLIENT_NOT_FOUND, error.getCode());
-            Assert.assertEquals(FormatUtils.xRoadIdToEncodedId(notFoundId), error.getMetadata().get(0));
+            Assert.assertEquals(notFoundId.asEncodedId(), error.getMetadata().get(0));
         }
     }
 

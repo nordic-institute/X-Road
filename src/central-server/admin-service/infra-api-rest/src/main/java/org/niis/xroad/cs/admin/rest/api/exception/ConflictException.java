@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.openapi;
+package org.niis.xroad.cs.admin.rest.api.exception;
 
 import org.niis.xroad.restapi.exceptions.DeviationAwareException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;

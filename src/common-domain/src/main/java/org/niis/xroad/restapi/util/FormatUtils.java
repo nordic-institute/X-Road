@@ -26,13 +26,8 @@
 package org.niis.xroad.restapi.util;
 
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.LocalGroupId;
-import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.restapi.converter.Converters;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 
 import java.net.IDN;
@@ -165,48 +160,6 @@ public final class FormatUtils {
         }
         String removed = from.replace(String.valueOf(searched), "");
         return from.length() - removed.length();
-    }
-
-    /**
-     * Converts {@link XRoadId} to an encoded String format
-     * @param xRoadId
-     * @return
-     */
-    public static String xRoadIdToEncodedId(XRoadId xRoadId) {
-        StringBuilder encodedId = new StringBuilder();
-        switch (xRoadId.getObjectType()) {
-            case MEMBER:
-                ClientId memberId = (ClientId) xRoadId;
-                encodedId.append(memberId.getXRoadInstance())
-                        .append(Converters.ENCODED_ID_SEPARATOR)
-                        .append(memberId.getMemberClass())
-                        .append(Converters.ENCODED_ID_SEPARATOR)
-                        .append(memberId.getMemberCode());
-                break;
-            case SUBSYSTEM:
-                ClientId subSystemId = (ClientId) xRoadId;
-                encodedId.append(subSystemId.getXRoadInstance())
-                        .append(Converters.ENCODED_ID_SEPARATOR)
-                        .append(subSystemId.getMemberClass())
-                        .append(Converters.ENCODED_ID_SEPARATOR)
-                        .append(subSystemId.getMemberCode())
-                        .append(Converters.ENCODED_ID_SEPARATOR)
-                        .append(subSystemId.getSubsystemCode());
-                break;
-            case GLOBALGROUP:
-                GlobalGroupId globalGroupId = (GlobalGroupId) xRoadId;
-                encodedId.append(globalGroupId.getXRoadInstance())
-                        .append(Converters.ENCODED_ID_SEPARATOR)
-                        .append(globalGroupId.getGroupCode());
-                break;
-            case LOCALGROUP:
-                LocalGroupId localGroupId = (LocalGroupId) xRoadId;
-                encodedId.append(localGroupId.getGroupCode());
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + xRoadId.getObjectType()); // never ever
-        }
-        return encodedId.toString();
     }
 
     /**

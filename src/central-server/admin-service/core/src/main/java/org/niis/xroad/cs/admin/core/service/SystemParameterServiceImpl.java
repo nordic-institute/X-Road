@@ -109,6 +109,12 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     }
 
     @Override
+    public String getSecurityServerOwnersGroup() {
+        return getParameterValue(SECURITY_SERVER_OWNERS_GROUP, "");
+    }
+
+
+    @Override
     public String getConfSignCertHashAlgoUri() {
         return getParameterValue(CONF_SIGN_CERT_HASH_ALGO_URI, DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI);
     }
