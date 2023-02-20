@@ -120,7 +120,7 @@ public class MessageRoomRequestSender extends AbstractClientMessageProcessor {
         try {
             restRequest = new RestRequest(
                     originalRestRequest.getVerb().toString(),
-                    "/r1/" + serviceId + "/",
+                    "/r1/" + serviceId,
                     originalRestRequest.getQuery(),
                     originalRestRequest.getHeaders(),
                     xRequestId
