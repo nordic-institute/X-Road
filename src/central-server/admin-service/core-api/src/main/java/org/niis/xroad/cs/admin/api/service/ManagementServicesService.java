@@ -1,6 +1,5 @@
 /**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,33 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.jpa.repository;
+package org.niis.xroad.cs.admin.api.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.XRoadObjectType;
+import org.niis.xroad.cs.admin.api.domain.ManagementServicesConfiguration;
 
-import io.vavr.control.Option;
-import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
-import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
-import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
-import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface JpaXRoadMemberRepository extends JpaSecurityServerClientRepository<XRoadMemberEntity>, XRoadMemberRepository {
-
-    boolean existsByMemberClass(MemberClassEntity memberClass);
-
+public interface ManagementServicesService {
     /**
-     * Finds a (owner) member corresponding to the client id
+     * Get aggregated management services configuration.
      *
-     * @param clientId member or subsystem ID
-     * @return XRoadMember or Optional.empty() if none exists
+     * @return configuration
      */
-    default Option<XRoadMemberEntity> findMember(ClientId clientId) {
-        ClientId memberId = clientId.getObjectType().equals(XRoadObjectType.MEMBER) ? clientId
-                : MemberIdEntity.create(clientId);
-        return findOneBy(memberId);
-    }
-
+    ManagementServicesConfiguration getManagementServicesConfiguration();
 }

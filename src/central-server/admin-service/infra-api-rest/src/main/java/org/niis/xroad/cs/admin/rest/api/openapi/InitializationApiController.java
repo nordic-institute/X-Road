@@ -36,6 +36,8 @@ import org.niis.xroad.cs.admin.api.exception.WeakPinException;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
 import org.niis.xroad.cs.admin.rest.api.converter.model.InitialServerConfDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.InitializationStatusDtoConverter;
+import org.niis.xroad.cs.admin.rest.api.exception.ConflictException;
+import org.niis.xroad.cs.admin.rest.api.exception.InternalServerErrorException;
 import org.niis.xroad.cs.openapi.InitializationApi;
 import org.niis.xroad.cs.openapi.model.InitialServerConfDto;
 import org.niis.xroad.cs.openapi.model.InitializationStatusDto;

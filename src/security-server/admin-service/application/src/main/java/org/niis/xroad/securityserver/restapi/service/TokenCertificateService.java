@@ -51,7 +51,6 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
-import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
@@ -352,7 +351,7 @@ public class TokenCertificateService {
                 boolean clientExists = clientRepository.clientExists(clientId, true);
                 if (!clientExists) {
                     throw new ClientNotFoundException("client " + clientId.toShortString() + " " + NOT_FOUND,
-                            FormatUtils.xRoadIdToEncodedId(clientId));
+                            clientId.asEncodedId());
                 }
                 certificateState = CertificateInfo.STATUS_REGISTERED;
             }

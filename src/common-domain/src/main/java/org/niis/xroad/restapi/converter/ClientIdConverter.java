@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Service;
@@ -35,6 +34,8 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
 
 /**
  * Converter for encoded client ids
@@ -61,21 +62,7 @@ public class ClientIdConverter extends AbstractConverter<ClientId, String> {
      * @return
      */
     public String convertId(ClientId clientId, boolean includeType) {
-        StringBuilder builder = new StringBuilder();
-        if (includeType) {
-            builder.append(clientId.getObjectType())
-                    .append(Converters.ENCODED_ID_SEPARATOR);
-        }
-        builder.append(clientId.getXRoadInstance())
-                .append(Converters.ENCODED_ID_SEPARATOR)
-                .append(clientId.getMemberClass())
-                .append(Converters.ENCODED_ID_SEPARATOR)
-                .append(clientId.getMemberCode());
-        if (StringUtils.isNotEmpty(clientId.getSubsystemCode())) {
-            builder.append(Converters.ENCODED_ID_SEPARATOR)
-                    .append(clientId.getSubsystemCode());
-        }
-        return builder.toString().trim();
+        return clientId.asEncodedId(includeType);
     }
 
     /**
@@ -88,7 +75,7 @@ public class ClientIdConverter extends AbstractConverter<ClientId, String> {
         if (!isEncodedClientId(encodedId)) {
             throw new BadRequestException("Invalid client id " + encodedId);
         }
-        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(Converters.ENCODED_ID_SEPARATOR)));
+        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
         String memberClass = parts.get(MEMBER_CLASS_INDEX);
         String memberCode = parts.get(MEMBER_CODE_INDEX);
@@ -114,12 +101,12 @@ public class ClientIdConverter extends AbstractConverter<ClientId, String> {
     }
 
     public boolean isEncodedSubsystemId(String encodedId) {
-        int separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
+        int separators = FormatUtils.countOccurences(encodedId, ENCODED_ID_SEPARATOR);
         return separators == SUBSYSTEM_CODE_INDEX;
     }
 
     public boolean isEncodedMemberId(String encodedId) {
-        int separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
+        int separators = FormatUtils.countOccurences(encodedId, ENCODED_ID_SEPARATOR);
         return separators == MEMBER_CODE_INDEX;
     }
 

@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.converter.Converters;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.GroupMember;
@@ -43,6 +42,8 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
 
 /**
  * Helper to convert LocalGroups
@@ -161,7 +162,7 @@ public class LocalGroupConverter {
         StringBuilder builder = new StringBuilder();
         if (includeType) {
             builder.append(localGroupId.getObjectType())
-                    .append(Converters.ENCODED_ID_SEPARATOR);
+                    .append(ENCODED_ID_SEPARATOR);
         }
         builder.append(localGroupId.getGroupCode());
         return builder.toString().trim();

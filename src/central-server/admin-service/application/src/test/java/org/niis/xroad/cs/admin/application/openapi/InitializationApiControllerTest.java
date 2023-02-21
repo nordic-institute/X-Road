@@ -31,7 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.application.util.TokenTestUtils;
-import org.niis.xroad.cs.admin.rest.api.openapi.ConflictException;
+import org.niis.xroad.cs.admin.rest.api.exception.ConflictException;
 import org.niis.xroad.cs.admin.rest.api.openapi.InitializationApiController;
 import org.niis.xroad.cs.openapi.model.InitialServerConfDto;
 import org.niis.xroad.cs.openapi.model.InitializationStatusDto;

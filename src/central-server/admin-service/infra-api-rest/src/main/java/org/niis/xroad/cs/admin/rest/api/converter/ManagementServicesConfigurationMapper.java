@@ -1,21 +1,20 @@
 /**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,33 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.jpa.repository;
+package org.niis.xroad.cs.admin.rest.api.converter;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.XRoadObjectType;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.cs.admin.api.domain.ManagementServicesConfiguration;
+import org.niis.xroad.cs.openapi.model.ManagementServicesConfigurationDto;
 
-import io.vavr.control.Option;
-import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
-import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
-import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
-import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface JpaXRoadMemberRepository extends JpaSecurityServerClientRepository<XRoadMemberEntity>, XRoadMemberRepository {
-
-    boolean existsByMemberClass(MemberClassEntity memberClass);
-
-    /**
-     * Finds a (owner) member corresponding to the client id
-     *
-     * @param clientId member or subsystem ID
-     * @return XRoadMember or Optional.empty() if none exists
-     */
-    default Option<XRoadMemberEntity> findMember(ClientId clientId) {
-        ClientId memberId = clientId.getObjectType().equals(XRoadObjectType.MEMBER) ? clientId
-                : MemberIdEntity.create(clientId);
-        return findOneBy(memberId);
-    }
-
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface ManagementServicesConfigurationMapper extends
+        GenericUniDirectionalMapper<ManagementServicesConfiguration, ManagementServicesConfigurationDto> {
 }
