@@ -33,6 +33,7 @@ import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequ
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestViewDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
@@ -128,25 +129,29 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
 
     @Step("management request is with status {string}")
     public void checkManagementRequestStatus(String status) {
-        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.getManagementRequest(managementRequestId);
+        final ResponseEntity<ManagementRequestViewDto> response =
+                managementRequestsApi.getManagementRequest(managementRequestId);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(fromValue(status), "body.status", "Verify status"))
+                .assertion(equalsAssertion(fromValue(status), "body.requestProcessingStatus", "Verify status"))
                 .execute();
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
     @Step("details of management request can be retrieved for security server {string}")
     public void getManagementRequestDetails(String serverId) {
-        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.getManagementRequest(managementRequestId);
+        final ResponseEntity<ManagementRequestViewDto> response =
+                managementRequestsApi.getManagementRequest(managementRequestId);
         final String[] idParts = StringUtils.split(serverId, ':');
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion("security-server-" + idParts[3], "body.serverAddress", "Verify server address"))
-                .assertion(equalsAssertion(serverId, "body.securityServerId", "Verify server id"))
-                .assertion(equalsAssertion(AUTH_CERT_REGISTRATION_REQUEST, "body.type", "Verify type"))
+                .assertion(equalsAssertion("security-server-" + idParts[3], "body.securityServerAddress", "Verify server address"))
+                .assertion(equalsAssertion(idParts[0], "body.securityServerXroadInstance", "Verify server id"))
+                .assertion(equalsAssertion(idParts[1], "body.securityServerMemberClass", "Verify server id"))
+                .assertion(equalsAssertion(idParts[2], "body.securityServerMemberCode", "Verify server id"))
+                .assertion(equalsAssertion(AUTH_CERT_REGISTRATION_REQUEST.name(), "body.type", "Verify type"))
                 .assertion(equalsAssertion(SECURITY_SERVER, "body.origin", "Verify origin"))
                 .execute();
     }

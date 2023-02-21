@@ -104,6 +104,24 @@ public class ManagementRequestViewEntity {
     @Column(name = "server_code")
     private String serverCode;
 
+    @Column(name = "client_owner_name")
+    private String clientOwnerName;
+
+    @Column(name = "client_member_code")
+    private String clientMemberCode;
+
+    @Column(name = "client_member_class")
+    private String clientMemberClass;
+
+    @Column(name = "client_subsystem_code")
+    private String clientSubsystemCode;
+
+    @Column(name = "auth_cert")
+    private byte[] authCert;
+
+    @Column(name = "address")
+    private String address;
+
     @Column(name = "created_at")
     private Instant createdAt;
 

@@ -3280,7 +3280,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequest'
+                $ref: '#/components/schemas/ManagementRequestView'
         '400':
           description: invalid request
         '401':
@@ -4826,6 +4826,68 @@ components:
         - member_class
         - member_code
         - server_code
+    ManagementRequestView:
+      type: object
+      description: Management request view
+      properties:
+        id:
+          type: integer
+          description: request id
+          readOnly: true
+        origin:
+          $ref: '#/components/schemas/ManagementRequestOrigin'
+        comments:
+          type: string
+          readOnly: true
+        type:
+          type: string
+          readOnly: true
+        security_server_identifier_id:
+          type: integer
+          format: int64
+          readOnly: true
+        request_processing_id:
+          type: integer
+          format: int64
+          readOnly: true
+        request_processing_status:
+          $ref: '#/components/schemas/ManagementRequestStatus'
+        security_server_owner_name:
+          type: string
+          readOnly: true
+        security_server_xroad_instance:
+          type: string
+          readOnly: true
+        security_server_member_code:
+          type: string
+          readOnly: true
+        security_server_member_class:
+          type: string
+          readOnly: true
+        security_server_code:
+          type: string
+          readOnly: true
+        security_server_address:
+          type: string
+          readOnly: true
+        client_owner_name:
+          type: string
+          readOnly: true
+        client_member_code:
+          type: string
+          readOnly: true
+        client_member_class:
+          type: string
+          readOnly: true
+        client_subsystem_code:
+          type: string
+          readOnly: true
+        certificateDetails:
+          $ref: '#/components/schemas/CertificateDetails'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
     ManagementRequest:
       type: object
       description: Management request
@@ -4849,9 +4911,6 @@ components:
         origin:
           $ref: '#/components/schemas/ManagementRequestOrigin'
         security_server_owner:
-          type: string
-          readOnly: true
-        client_owner:
           type: string
           readOnly: true
         security_server_id:
@@ -5009,8 +5068,6 @@ components:
         authenticationCertificate:
           type: string
           format: byte
-        certificateDetails:
-          $ref: '#/components/schemas/CertificateDetails'
       required:
         - serverAddress
         - authenticationCertificate
@@ -5022,8 +5079,6 @@ components:
         authenticationCertificate:
           type: string
           format: byte
-        certificateDetails:
-          $ref: '#/components/schemas/CertificateDetails'
       required:
         - authenticationCertificate
     ClientRegistrationRequest:

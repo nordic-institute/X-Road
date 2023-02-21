@@ -31,6 +31,7 @@ import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
@@ -42,6 +43,7 @@ import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
+import org.niis.xroad.cs.admin.core.entity.mapper.ManagementRequestViewMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.ManagementRequestViewRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
@@ -67,6 +69,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     private final ManagementRequestViewRepository managementRequestViewRepository;
     private final List<RequestHandler<? extends Request>> handlers;
     private final RequestMapper requestMapper;
+    private final ManagementRequestViewMapper viewMapper;
 
     /**
      * Get a management request
@@ -77,6 +80,12 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     public Optional<Request> getRequest(int id) {
         return requests.findById(id)
                 .map(requestMapper::toTarget);
+    }
+
+    @Override
+    public Optional<ManagementRequestView> getRequestView(int requestId) {
+        return managementRequestViewRepository.findById(requestId)
+                .map(viewMapper::toTarget);
     }
 
     @Override

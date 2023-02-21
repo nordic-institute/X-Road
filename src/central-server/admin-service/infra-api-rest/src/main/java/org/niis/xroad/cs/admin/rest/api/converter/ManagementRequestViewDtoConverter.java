@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,45 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+package org.niis.xroad.cs.admin.rest.api.converter;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
+import org.niis.xroad.cs.openapi.model.ManagementRequestViewDto;
 
-import java.time.Instant;
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface ManagementRequestViewDtoConverter extends BaseConverter {
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ManagementRequestView {
-
-    private int id;
-    private Origin origin;
-    private String comments;
-    private String type;
-    private Long securityServerIdentifierId;
-    private Long requestProcessingId;
-    private ManagementRequestStatus requestProcessingStatus;
-    private String securityServerOwnerName;
-    private String xroadInstance;
-    private String memberCode;
-    private String memberClass;
-    private String serverCode;
-    private String clientOwnerName;
-    private String clientMemberCode;
-    private String clientMemberClass;
-    private String clientSubsystemCode;
-    private CertificateDetails certificateDetails;
-    private String address;
-    private Instant createdAt;
-
-    public SecurityServerId getSecurityServerId() {
-        return SecurityServerId.Conf.create(xroadInstance, memberClass, memberCode, serverCode);
-    }
-
+    @Mapping(target = "securityServerXroadInstance", source = "xroadInstance")
+    @Mapping(target = "securityServerMemberCode", source = "memberCode")
+    @Mapping(target = "securityServerMemberClass", source = "memberClass")
+    @Mapping(target = "securityServerCode", source = "serverCode")
+    @Mapping(target = "securityServerAddress", source = "address")
+    ManagementRequestViewDto convert(ManagementRequestView managementRequestView);
 
 }

@@ -51,6 +51,9 @@ public class CertificateConverter {
 
     @SneakyThrows
     public CertificateDetails toCertificateDetails(byte[] cert) {
+        if (cert == null) {
+            return null;
+        }
 
         final X509Certificate[] certificates = CertUtils.readCertificateChain(cert);
         final X509Certificate certificate = certificates[0];

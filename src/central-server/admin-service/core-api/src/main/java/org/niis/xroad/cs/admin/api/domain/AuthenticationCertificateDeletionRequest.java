@@ -34,7 +34,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 
 @Getter
 @Setter
@@ -43,7 +42,6 @@ import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 @EqualsAndHashCode(callSuper = true)
 public class AuthenticationCertificateDeletionRequest extends Request {
     private byte[] authCert;
-    private CertificateDetails certificateDetails;
 
     public AuthenticationCertificateDeletionRequest(Origin origin, SecurityServerId identifier) {
         super(origin, identifier);

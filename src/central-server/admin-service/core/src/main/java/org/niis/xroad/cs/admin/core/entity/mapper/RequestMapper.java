@@ -38,7 +38,6 @@ import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
-import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
@@ -48,7 +47,7 @@ import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        uses = {ClientIdMapper.class, SecurityServerIdMapper.class, CertificateConverter.class})
+        uses = {ClientIdMapper.class, SecurityServerIdMapper.class})
 public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity, Request> {
 
     @Override
@@ -87,13 +86,11 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
         throw new IllegalArgumentException("Cannot map " + source.getClass());
     }
 
-    @Mapping(source = "authCert", target = "certificateDetails")
     AuthenticationCertificateDeletionRequest toDto(AuthenticationCertificateDeletionRequestEntity source);
 
     ClientDeletionRequest toDto(ClientDeletionRequestEntity source);
 
     @Mapping(target = "processingStatus", source = "requestProcessing.status")
-    @Mapping(source = "authCert", target = "certificateDetails")
     AuthenticationCertificateRegistrationRequest toDto(AuthenticationCertificateRegistrationRequestEntity source);
 
     @Mapping(target = "processingStatus", source = "requestProcessing.status")

@@ -24,45 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
-
-import ee.ria.xroad.common.identifier.SecurityServerId;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
-
-import java.time.Instant;
-
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ManagementRequestView {
-
-    private int id;
-    private Origin origin;
-    private String comments;
-    private String type;
-    private Long securityServerIdentifierId;
-    private Long requestProcessingId;
-    private ManagementRequestStatus requestProcessingStatus;
-    private String securityServerOwnerName;
-    private String xroadInstance;
-    private String memberCode;
-    private String memberClass;
-    private String serverCode;
-    private String clientOwnerName;
-    private String clientMemberCode;
-    private String clientMemberClass;
-    private String clientSubsystemCode;
-    private CertificateDetails certificateDetails;
-    private String address;
-    private Instant createdAt;
-
-    public SecurityServerId getSecurityServerId() {
-        return SecurityServerId.Conf.create(xroadInstance, memberClass, memberCode, serverCode);
-    }
+package org.niis.xroad.cs.admin.core.entity.mapper;
 
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
+import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
+import org.niis.xroad.cs.admin.core.entity.ManagementRequestViewEntity;
+
+
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = CertificateConverter.class)
+public interface ManagementRequestViewMapper extends GenericUniDirectionalMapper<ManagementRequestViewEntity, ManagementRequestView> {
+
+    @Override
+    @Mapping(source = "authCert", target = "certificateDetails")
+    @Mapping(source = "managementRequestType", target = "type")
+    ManagementRequestView toTarget(ManagementRequestViewEntity managementRequestViewEntity);
 }

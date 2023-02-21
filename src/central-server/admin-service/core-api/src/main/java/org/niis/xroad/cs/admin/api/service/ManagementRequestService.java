@@ -32,6 +32,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
@@ -60,6 +61,7 @@ public interface ManagementRequestService {
      */
     Optional<Request> getRequest(int id);
 
+    Optional<ManagementRequestView> getRequestView(int id);
     ManagementRequestType getRequestType(int id);
 
     /**
