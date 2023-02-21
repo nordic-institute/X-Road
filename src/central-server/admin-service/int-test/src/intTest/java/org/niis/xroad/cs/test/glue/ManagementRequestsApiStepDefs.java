@@ -61,7 +61,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     public void newSecurityServerRegistered(String serverId) throws Exception {
         final String[] idParts = StringUtils.split(serverId, ':');
         final var managementRequest = new AuthenticationCertificateRegistrationRequestDto();
-        managementRequest.setServerAddress("security-server-" + idParts[3]);
+        managementRequest.setServerAddress("security-server-address-" + idParts[3]);
         managementRequest.setSecurityServerId(serverId);
         managementRequest.setAuthenticationCertificate(CertificateUtils.generateAuthCert());
         managementRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);

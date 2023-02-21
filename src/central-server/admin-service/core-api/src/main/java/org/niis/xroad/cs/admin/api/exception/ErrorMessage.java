@@ -64,6 +64,7 @@ public enum ErrorMessage {
     GLOBAL_GROUP_NOT_FOUND("Global group by given id does not exist"),
     OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED("Cannot perform delete action on server owners group"),
     GLOBAL_GROUP_EXISTS("Global group with the same code already exists."),
+    SECURITY_SERVER_NOT_FOUND("Security server not found"),
 
     CERTIFICATION_SERVICE_NOT_FOUND("Certification service not found."),
     INVALID_CERTIFICATE("Invalid X.509 certificate"),

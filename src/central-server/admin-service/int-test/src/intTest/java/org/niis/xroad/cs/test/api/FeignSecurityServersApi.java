@@ -26,8 +26,27 @@
 package org.niis.xroad.cs.test.api;
 
 import org.niis.xroad.cs.openapi.SecurityServersApi;
+import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
+import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.cloud.openfeign.SpringQueryMap;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "securityServerApi", path = "/api/v1")
 public interface FeignSecurityServersApi extends SecurityServersApi {
+
+    // Overriding to add @SpringQueryMap for GET query params, otherwise Feign tries to put it to body,
+    // which is not supported in GET request.
+    @Override
+    @RequestMapping(
+            method = RequestMethod.GET,
+            value = "/security-servers",
+            produces = {"application/json"}
+    )
+    ResponseEntity<PagedSecurityServersDto> findSecurityServers(
+            @RequestParam(value = "q", required = false) String q,
+            @SpringQueryMap PagingSortingParametersDto pagingSorting);
 }
