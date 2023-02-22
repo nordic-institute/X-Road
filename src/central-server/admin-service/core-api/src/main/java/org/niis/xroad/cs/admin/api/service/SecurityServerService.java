@@ -52,4 +52,6 @@ public interface SecurityServerService {
 
     List<FlattenedSecurityServerClientView> findClients(SecurityServerId serverId);
 
+    Option<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress);
+
 }

@@ -44,6 +44,8 @@ import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -65,6 +67,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     private final ManagementRequestService managementRequestService;
     private final ClientService clientService;
     private final SecurityServerMapper securityServerMapper;
+    private final AuditDataHelper auditDataHelper;
 
     @Override
     public Page<SecurityServer> findSecurityServers(String q, Pageable pageable) {
@@ -110,8 +113,20 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     @Override
     public List<FlattenedSecurityServerClientView> findClients(SecurityServerId serverId) {
         return securityServerRepository.findBy(serverId)
-                .map(server -> clientService.find(new ClientService.SearchParameters().setSecurityServerId(server.getId())))
+                .map(server -> clientService.find(
+                        new ClientService.SearchParameters().setSecurityServerId(server.getId())))
                 .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
+    }
+
+    public Option<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress) {
+        auditDataHelper.put(RestApiAuditProperty.SERVER_CODE, serverId.getServerCode());
+        auditDataHelper.put(RestApiAuditProperty.OWNER_CODE, serverId.getOwner().getMemberCode());
+        auditDataHelper.put(RestApiAuditProperty.OWNER_CLASS, serverId.getOwner().getMemberClass());
+        auditDataHelper.put(RestApiAuditProperty.ADDRESS, newAddress);
+
+        return securityServerRepository.findBy(serverId)
+                .peek(securityServer -> securityServer.setAddress(newAddress))
+                .map(securityServerMapper::toTarget);
     }
 
 }

@@ -86,8 +86,8 @@ public class SystemApiController implements SystemApi {
      * or request specified an invalid format (status code 406)
      * or internal server error (status code 500)
      */
-    @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
-    @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CENTRAL_SERVER_ADDRESS)
+    @PreAuthorize("hasAuthority('EDIT_CENTRAL_SERVER_ADDRESS')")
+    @AuditEventMethod(event = RestApiAuditEvent.EDIT_CENTRAL_SERVER_ADDRESS)
     public ResponseEntity<SystemStatusDto> updateCentralServerAddress(CentralServerAddressDto centralServerAddress) {
         auditDataHelper.put(RestApiAuditProperty.CENTRAL_SERVER_ADDRESS,
                 centralServerAddress.getCentralServerAddress());

@@ -41,6 +41,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
@@ -49,6 +50,8 @@ import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.service.managementrequest.ManagementRequestServiceImpl;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
@@ -64,6 +67,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -82,7 +86,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
     private ManagementRequestInfoDto managementRequestInfoDto;
 
     @Mock
-    private SecurityServerId serverId;
+    private AuditDataHelper auditDataHelper;
 
     @Mock
     private SecurityServerEntity securityServerEntity;
@@ -92,6 +96,8 @@ class SecurityServerServiceImplTest implements WithInOrder {
     @InjectMocks
     private SecurityServerServiceImpl securityServerService;
 
+    @Mock
+    private SecurityServerId serverId;
 
     @Nested
     @DisplayName("findSecurityServerRegistrationStatus(SecurityServerId serverId)")
@@ -181,6 +187,46 @@ class SecurityServerServiceImplTest implements WithInOrder {
                     .hasMessage("Security server not found");
 
             verifyNoInteractions(clientService);
+        }
+    }
+
+    class UpdateSecurityServerAddress implements WithInOrder {
+
+        MemberId ownerId = MemberId.create("UNIT_TEST", "MOCK", "test123");
+
+        @Test
+        void shouldUpdateSecurityServerAddress() {
+            String newAddress = "http://localhost:443";
+            when(serverId.getOwner()).thenReturn(ownerId);
+            when(securityServerRepository.findBy(serverId)).thenReturn(Option.of(securityServerEntity));
+            when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
+            when(securityServer.getAddress()).thenReturn(newAddress);
+
+            var result = securityServerService.updateSecurityServerAddress(serverId, newAddress);
+
+            assertThat(result.get().getAddress()).isEqualTo(newAddress);
+            verify(auditDataHelper).put(RestApiAuditProperty.SERVER_CODE, serverId.getServerCode());
+            verify(auditDataHelper).put(RestApiAuditProperty.OWNER_CODE, ownerId.getMemberCode());
+            verify(auditDataHelper).put(RestApiAuditProperty.OWNER_CLASS, ownerId.getMemberClass());
+            verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, newAddress);
+            verifyNoMoreInteractions(auditDataHelper);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenSecurityServerNotFound() {
+            String newAddress = "http://localhost:443";
+            when(serverId.getOwner()).thenReturn(ownerId);
+            when(securityServerRepository.findBy(serverId)).thenReturn(Option.none());
+
+            var result = securityServerService.updateSecurityServerAddress(serverId, newAddress);
+
+            assertThat(result).isEqualTo(Option.none());
+            verify(auditDataHelper).put(RestApiAuditProperty.SERVER_CODE, serverId.getServerCode());
+            verify(auditDataHelper).put(RestApiAuditProperty.OWNER_CODE, ownerId.getMemberCode());
+            verify(auditDataHelper).put(RestApiAuditProperty.OWNER_CLASS, ownerId.getMemberClass());
+            verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, newAddress);
+            verifyNoMoreInteractions(auditDataHelper);
+            verifyNoInteractions(securityServerMapper);
         }
     }
 }
