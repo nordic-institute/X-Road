@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
@@ -143,7 +141,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = RestApiAuditEvent.EDIT_SECURITY_SERVER_ADDRESS)
     public ResponseEntity<SecurityServerDto> updateSecurityServerAddress(String id, SecurityServerAddressDto securityServerAddress) {
-        SecurityServerId securityServerId = securityServerIdConverter.convertId(id);
+        var securityServerId = securityServerIdConverter.convertId(id);
         return securityServerService.updateSecurityServerAddress(securityServerId, securityServerAddress.getServerAddress())
                 .map(securityServerDtoConverter::toDto)
                 .map(ResponseEntity::ok)

@@ -75,27 +75,27 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
     @Mock
     private ManagementRequestServiceImpl managementRequestService;
+
     @Mock
     private ClientService clientService;
     @Mock
     private SecurityServerRepository securityServerRepository;
+
     @Mock
     private SecurityServerMapper securityServerMapper;
 
     @Mock
-    private ManagementRequestInfoDto managementRequestInfoDto;
-
-    @Mock
     private AuditDataHelper auditDataHelper;
-
-    @Mock
-    private SecurityServerEntity securityServerEntity;
-    @Mock
-    private SecurityServer securityServer;
 
     @InjectMocks
     private SecurityServerServiceImpl securityServerService;
 
+    @Mock
+    private ManagementRequestInfoDto managementRequestInfoDto;
+    @Mock
+    private SecurityServerEntity securityServerEntity;
+    @Mock
+    private SecurityServer securityServer;
     @Mock
     private SecurityServerId serverId;
 
@@ -190,6 +190,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
         }
     }
 
+    @Nested
     class UpdateSecurityServerAddress implements WithInOrder {
 
         MemberId ownerId = MemberId.create("UNIT_TEST", "MOCK", "test123");
@@ -213,7 +214,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
         }
 
         @Test
-        void shouldThrowExceptionWhenSecurityServerNotFound() {
+        void securityServerNotFound() {
             String newAddress = "http://localhost:443";
             when(serverId.getOwner()).thenReturn(ownerId);
             when(securityServerRepository.findBy(serverId)).thenReturn(Option.none());
