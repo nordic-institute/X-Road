@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.api.service;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import io.vavr.control.Option;
+import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
@@ -48,5 +49,7 @@ public interface SecurityServerService {
     Option<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
 
     List<SecurityServer> findAll();
+
+    List<FlattenedSecurityServerClientView> findClients(SecurityServerId serverId);
 
 }

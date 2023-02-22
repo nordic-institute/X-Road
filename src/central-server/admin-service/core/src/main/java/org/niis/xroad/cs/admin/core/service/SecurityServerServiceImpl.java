@@ -31,11 +31,14 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
+import org.niis.xroad.cs.admin.api.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.StableSortHelper;
@@ -50,6 +53,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 
 @Service
 @Transactional
@@ -59,6 +63,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     private final StableSortHelper stableSortHelper;
     private final SecurityServerRepository securityServerRepository;
     private final ManagementRequestService managementRequestService;
+    private final ClientService clientService;
     private final SecurityServerMapper securityServerMapper;
 
     @Override
@@ -101,4 +106,12 @@ public class SecurityServerServiceImpl implements SecurityServerService {
                 .map(securityServerMapper::toTarget)
                 .collect(toList());
     }
+
+    @Override
+    public List<FlattenedSecurityServerClientView> findClients(SecurityServerId serverId) {
+        return securityServerRepository.findBy(serverId)
+                .map(server -> clientService.find(new ClientService.SearchParameters().setSecurityServerId(server.getId())))
+                .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
+    }
+
 }
