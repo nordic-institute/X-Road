@@ -21,3 +21,15 @@ Feature: Security Server API
     And management request is approved
     Then user can get security server 'CS:TEST:member-1:SS-X' details
     And getting non existing security server details fails
+
+  @Modifying
+  Scenario: Get security server clients
+    Given member class 'TEST' is created
+    And new member 'CS:TEST:member-2' is added
+    And new security server 'CS:TEST:member-2:SS-2' authentication certificate registered
+    And management request is approved
+    Then security server 'CS:TEST:member-2:SS-2' has no clients
+    When new member 'CS:TEST:member-7' is added
+    And new client 'CS:TEST:member-7' is registered for security server 'CS:TEST:member-2:SS-2'
+    And management request is approved
+    Then security server 'CS:TEST:member-2:SS-2' clients contains 'CS:TEST:member-7'

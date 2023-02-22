@@ -34,12 +34,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
+import org.niis.xroad.cs.admin.api.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
@@ -48,13 +53,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
 import java.util.List;
+import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -63,6 +71,8 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
     @Mock
     private ManagementRequestServiceImpl managementRequestService;
+    @Mock
+    private ClientService clientService;
     @Mock
     private SecurityServerRepository securityServerRepository;
     @Mock
@@ -135,6 +145,42 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
             assertThat(result.isEmpty()).isTrue();
             verifyNoInteractions(securityServerMapper);
+        }
+    }
+
+    @Nested
+    class FindClients {
+
+        private final int securityServerId = new Random().nextInt();
+
+        @Mock
+        private FlattenedSecurityServerClientView securityServerClientView1, securityServerClientView2;
+        @Captor
+        private ArgumentCaptor<ClientService.SearchParameters> searchParamsCaptor;
+
+        @Test
+        void findClients() {
+            when(securityServerRepository.findBy(serverId)).thenReturn(Option.of(securityServerEntity));
+            when(securityServerEntity.getId()).thenReturn(securityServerId);
+            when(clientService.find(any(ClientService.SearchParameters.class)))
+                    .thenReturn(List.of(securityServerClientView1, securityServerClientView2));
+
+            final List<FlattenedSecurityServerClientView> result = securityServerService.findClients(serverId);
+
+            assertThat(result).containsExactlyInAnyOrder(securityServerClientView1, securityServerClientView2);
+            verify(clientService).find(searchParamsCaptor.capture());
+            assertThat(searchParamsCaptor.getValue().getSecurityServerId()).isEqualTo(securityServerId);
+        }
+
+        @Test
+        void findClientsShouldThrowExceptionWhenSecurityServerNotFound() {
+            when(securityServerRepository.findBy(serverId)).thenReturn(Option.none());
+
+            assertThatThrownBy(() -> securityServerService.findClients(serverId))
+                    .isInstanceOf(NotFoundException.class)
+                    .hasMessage("Security server not found");
+
+            verifyNoInteractions(clientService);
         }
     }
 }

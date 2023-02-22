@@ -28,12 +28,15 @@ package org.niis.xroad.cs.test.glue;
 import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+
+import java.util.Set;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
@@ -119,6 +122,32 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(1, "body.items.?[id=='" + serverId + "'].size",
                         "Servers list contains id " + serverId))
+                .execute();
+    }
+
+    @Step("security server {string} clients contains {string}")
+    public void securityServerClientsContains(String serverId, String clientId) {
+        final ResponseEntity<Set<ClientDto>> response = securityServersApi.getSecurityServerClients(serverId);
+
+        final String[] idParts = split(clientId, ':');
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1,
+                        "body.?[xroadId.instanceId =='" + idParts[0] + "' "
+                                + "and xroadId.memberClass == '" + idParts[1] + "' "
+                                + "and xroadId.memberCode == '" + idParts[2] + "'].size",
+                        "Clients list contains " + clientId))
+                .execute();
+    }
+
+    @Step("security server {string} has no clients")
+    public void securityServerHasNoClients(String serverId) {
+        final ResponseEntity<Set<ClientDto>> response = securityServersApi.getSecurityServerClients(serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(0, "body.size", "Clients list is empty"))
                 .execute();
     }
 

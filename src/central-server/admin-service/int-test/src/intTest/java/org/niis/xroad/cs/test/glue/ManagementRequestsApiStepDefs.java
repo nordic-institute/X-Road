@@ -120,4 +120,21 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @Step("new client {string} is registered for security server {string}")
+    public void newClientIsRegisteredForSecurityServer(String clientId, String securityServerId) {
+
+        final ClientRegistrationRequestDto clientRegDto = new ClientRegistrationRequestDto();
+        clientRegDto.setOrigin(SECURITY_SERVER);
+        clientRegDto.setType(CLIENT_REGISTRATION_REQUEST);
+        clientRegDto.setSecurityServerId(securityServerId);
+        clientRegDto.setClientId(clientId);
+
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(clientRegDto);
+        this.managementRequestId = response.getBody().getId();
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                .assertion(equalsAssertion(WAITING, "body.status", "Verify status"))
+                .execute();
+    }
 }
