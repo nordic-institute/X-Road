@@ -33,3 +33,13 @@ Feature: Security Server API
     And new client 'CS:TEST:member-7' is registered for security server 'CS:TEST:member-2:SS-2'
     And management request is approved
     Then security server 'CS:TEST:member-2:SS-2' clients contains 'CS:TEST:member-7'
+
+  @Modifying
+  Scenario: Modify security server address
+    Given member class 'TEST' is created
+    And new member 'CS:TEST:member-1' is added
+    And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered
+    And management request is approved
+    Then security server 'CS:TEST:member-1:SS-X' address is updated
+    And Updating the address of a non-existing security server fails
+

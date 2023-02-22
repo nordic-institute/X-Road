@@ -28,9 +28,11 @@ package org.niis.xroad.cs.test.glue;
 import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
+import org.niis.xroad.cs.openapi.model.SecurityServerAddressDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,6 +151,38 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(0, "body.size", "Clients list is empty"))
                 .execute();
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    @Step("security server {string} address is updated")
+    public void securityServerAddressIsUpdated(String serverId) {
+        final String[] idParts = StringUtils.split(serverId, ':');
+        final String newAddress = "security-server-new-address-" + idParts[3];
+        final ResponseEntity<SecurityServerDto> response =
+                securityServersApi.updateSecurityServerAddress(serverId, new SecurityServerAddressDto().serverAddress(newAddress));
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(newAddress, "body.serverAddress", "Verify updated security server address"))
+                .execute();
+    }
+
+    @Step("Updating the address of a non-existing security server fails")
+    public void updatingAddressOfNonExistingSecurityServerFails() {
+        try {
+            securityServersApi.updateSecurityServerAddress(
+                    randomSecurityServerId(), new SecurityServerAddressDto().serverAddress("localhost"));
+            fail("Should throw exception");
+        } catch (FeignException exception) {
+            validate(exception.status())
+                    .assertion(new Assertion.Builder()
+                            .message("Verify status code")
+                            .expression("=")
+                            .actualValue(exception.status())
+                            .expectedValue(NOT_FOUND.value())
+                            .build())
+                    .execute();
+        }
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")

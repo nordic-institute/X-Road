@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
@@ -138,10 +139,12 @@ public class SecurityServersApiController implements SecurityServersApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
-    @AuditEventMethod(event = RestApiAuditEvent.UPDATE_SECURITY_SERVER_ADDRESS)
-    public ResponseEntity<SecurityServerDto> updateSecurityServerAddress(
-            String id,
-            SecurityServerAddressDto securityServerAddress) {
-        throw new NotImplementedException("updateSecurityServerAddress not implemented yet");
+    @AuditEventMethod(event = RestApiAuditEvent.EDIT_SECURITY_SERVER_ADDRESS)
+    public ResponseEntity<SecurityServerDto> updateSecurityServerAddress(String id, SecurityServerAddressDto securityServerAddress) {
+        var securityServerId = securityServerIdConverter.convertId(id);
+        return securityServerService.updateSecurityServerAddress(securityServerId, securityServerAddress.getServerAddress())
+                .map(securityServerDtoConverter::toDto)
+                .map(ResponseEntity::ok)
+                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.SECURITY_SERVER_NOT_FOUND));
     }
 }
