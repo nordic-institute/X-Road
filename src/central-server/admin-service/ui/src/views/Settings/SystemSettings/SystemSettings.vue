@@ -87,181 +87,73 @@
           </table>
         </v-card>
       </div>
+
+      <xrd-simple-dialog
+        v-if="isEditingServerAddress"
+        title="systemSettings.editCentralServerAddressTitle"
+        data-test="system-settings-central-server-address-edit-dialog"
+        :dialog="isEditingServerAddress"
+        :scrollable="false"
+        :show-close="true"
+        save-button-text="action.save"
+        @save="onServerAddressSave(renewedServerAddress)"
+        @cancel="onCancelAddressEdit"
+      >
+        <div slot="content">
+          <div class="pt-4 dlg-input-width">
+            <ValidationProvider
+              ref="serverAddressVP"
+              v-slot="{ errors }"
+              rules="required"
+              name="serviceAddress"
+              class="validation-provider"
+            >
+              <v-text-field
+                v-model="renewedServerAddress"
+                data-test="system-settings-central-server-address-edit-field"
+                :label="$t('systemSettings.centralServerAddress')"
+                autofocus
+                outlined
+                class="dlg-row-input"
+                name="serviceAddress"
+                :error-messages="errors"
+              ></v-text-field>
+            </ValidationProvider>
+          </div>
+        </div>
+      </xrd-simple-dialog>
     </div>
 
     <!-- Management Services -->
-    <div id="management-services-anchor" class="mb-6">
-      <v-card class="pb-4" flat>
-        <div class="card-top">
-          <div class="card-main-title">
-            {{ $t('systemSettings.managementServices') }}
-          </div>
-        </div>
-
-        <xrd-simple-dialog
-          v-if="isEditingServerAddress"
-          title="systemSettings.editCentralServerAddressTitle"
-          data-test="system-settings-central-server-address-edit-dialog"
-          :dialog="isEditingServerAddress"
-          :scrollable="false"
-          :show-close="true"
-          save-button-text="action.save"
-          @save="onServerAddressSave(renewedServerAddress)"
-          @cancel="onCancelAddressEdit"
-        >
-          <div slot="content">
-            <div class="pt-4 dlg-input-width">
-              <ValidationProvider
-                ref="serverAddressVP"
-                v-slot="{ errors }"
-                rules="required"
-                name="serviceAddress"
-                class="validation-provider"
-              >
-                <v-text-field
-                  v-model="renewedServerAddress"
-                  data-test="system-settings-central-server-address-edit-field"
-                  :label="$t('systemSettings.centralServerAddress')"
-                  autofocus
-                  outlined
-                  class="dlg-row-input"
-                  name="serviceAddress"
-                  :error-messages="errors"
-                ></v-text-field>
-              </ValidationProvider>
-            </div>
-          </div>
-        </xrd-simple-dialog>
-        <table class="xrd-table mt-0 pb-3">
-          <XrdEmptyPlaceholderRow
-            :colspan="2"
-            :loading="loadingServices"
-            :data="managementServices"
-            no-items-text="no items"
-          />
-
-          <tbody v-if="!loadingServices">
-            <tr>
-              <td class="title-cell">
-                <div>
-                  <div>
-                    {{ $t('systemSettings.serviceProviderIdentifier') }}
-                  </div>
-                </div>
-              </td>
-              <td
-                data-test="system-settings-management-service-provider-identifier-field"
-              >
-                {{ managementServices.serviceProviderIdentifier }}
-              </td>
-              <td class="action-cell">
-                <xrd-button text :outlined="false"
-                  >{{ $t('action.edit') }}
-                </xrd-button>
-              </td>
-            </tr>
-
-            <tr>
-              <td>
-                <div>
-                  <div>
-                    {{ $t('systemSettings.serviceProviderName') }}
-                  </div>
-                </div>
-              </td>
-              <td
-                data-test="system-settings-management-service-provider-name-field"
-              >
-                {{ managementServices.serviceProviderName }}
-              </td>
-              <td></td>
-            </tr>
-
-            <tr>
-              <td>
-                <div>
-                  <div>
-                    {{ $t('systemSettings.managementServiceSecurityServer') }}
-                  </div>
-                </div>
-              </td>
-              <td data-test="system-settings-management-security-server-field">
-                {{ managementServices.managementServiceSecurityServer }}
-              </td>
-              <td></td>
-            </tr>
-
-            <tr>
-              <td>
-                <div>
-                  <div>
-                    {{ $t('systemSettings.wsdlAddress') }}
-                  </div>
-                </div>
-              </td>
-              <td data-test="system-settings-management-wsdl-address-field">
-                {{ managementServices.wsdlAddress }}
-              </td>
-              <td></td>
-            </tr>
-
-            <tr>
-              <td>
-                <div>
-                  <div>
-                    {{ $t('systemSettings.centralServerAddress') }}
-                  </div>
-                </div>
-              </td>
-              <td>
-                {{ serverAddress }}
-              </td>
-              <td></td>
-            </tr>
-
-            <tr>
-              <td>
-                <div>
-                  <div>
-                    {{ $t('systemSettings.securityServerOwnerroupCode') }}
-                  </div>
-                </div>
-              </td>
-              <td>{{ managementServices.securityServerOwnerroupCode }}</td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-      </v-card>
-    </div>
+    <ManagementServices ref="managementServices" />
     <MemberClasses />
   </div>
 </template>
 
 <script lang="ts">
+import { ErrorInfo } from "@/openapi-types";
+import { managementServicesStore } from "@/store/modules/management-services";
+import { notificationsStore } from "@/store/modules/notifications";
+import { systemStore } from "@/store/modules/system";
+
+import { getErrorInfo, getTranslatedFieldErrors, isFieldError } from "@/util/helpers";
+import ManagementServices from "@/views/Settings/SystemSettings/ManagementServices.vue";
+import MemberClasses from "@/views/Settings/SystemSettings/MemberClasses.vue";
+import { AxiosError } from "axios";
+import { mapActions, mapState } from "pinia";
+import { ValidationProvider } from "vee-validate";
+
 /**
  * View for 'system settings' tab
  */
-import Vue, { VueConstructor } from 'vue';
-import { ErrorInfo } from '@/openapi-types';
-import { ValidationProvider } from 'vee-validate';
-import { AxiosError } from 'axios';
-import { mapActions, mapState } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { systemStore } from '@/store/modules/system';
-import MemberClasses from '@/views/Settings/SystemSettings/MemberClasses.vue';
-
-import {
-  getErrorInfo,
-  getTranslatedFieldErrors,
-  isFieldError,
-} from '@/util/helpers';
+import Vue, { VueConstructor } from "vue";
 
 export default (
   Vue as VueConstructor<
     Vue & {
       $refs: {
         serverAddressVP: InstanceType<typeof ValidationProvider>;
+        managementServices: InstanceType<typeof ManagementServices>;
       };
     }
   >
@@ -269,21 +161,14 @@ export default (
   components: {
     MemberClasses,
     ValidationProvider,
+    ManagementServices,
   },
   data() {
     return {
       search: '' as string,
-      loadingServices: false,
       showOnlyPending: false,
       isEditingServerAddress: false,
       renewedServerAddress: '',
-      managementServices: {
-        serviceProviderIdentifier: 'SUBSYSTEM:DEV/ORG/111/MANAGEMENT',
-        serviceProviderName: 'NIIS',
-        managementServiceSecurityServer: 'SERVER:DEV/ORG/111/SS1',
-        wsdlAddress: 'https://dev-cs.i.x-road.rocks/managementservices.wsdl',
-        securityServerOwnerroupCode: 'security-server-owners',
-      },
     };
   },
   computed: {
@@ -305,6 +190,9 @@ export default (
       'fetchSystemStatus',
       'updateCentralServerAddress',
     ]),
+    ...mapActions(managementServicesStore, [
+      'fetchManagementServicesConfiguration',
+    ]),
     async onServerAddressSave(serverAddress: string): Promise<void> {
       try {
         await this.updateCentralServerAddress({
@@ -312,6 +200,7 @@ export default (
         });
 
         await this.fetchSystemStatus();
+        this.$refs.managementServices.fetchManagementServicesConfiguration();
 
         this.showSuccess(
           this.$t('systemSettings.editCentralServerAddressSuccess'),
@@ -352,23 +241,8 @@ export default (
 <style lang="scss" scoped>
 @import '~styles/tables';
 
-.server-code {
-  color: $XRoad-Purple100;
-  font-weight: 600;
-  font-size: 14px;
-}
-
 .align-fix {
   align-items: center;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
-}
-
-.card-corner-button {
-  display: flex;
 }
 
 .card-top {
