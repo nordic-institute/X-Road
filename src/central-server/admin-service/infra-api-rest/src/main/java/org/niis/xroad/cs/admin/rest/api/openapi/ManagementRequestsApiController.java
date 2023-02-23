@@ -29,14 +29,14 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
-import org.niis.xroad.cs.admin.rest.api.converter.ManagementRequestViewDtoConverter;
+import org.niis.xroad.cs.admin.rest.api.converter.ManagementRequestDetailsDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PagedManagementRequestsConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ManagementRequestDtoConverter;
 import org.niis.xroad.cs.openapi.ManagementRequestsApi;
+import org.niis.xroad.cs.openapi.model.ManagementRequestDetailsDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto;
-import org.niis.xroad.cs.openapi.model.ManagementRequestViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
 import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
@@ -50,8 +50,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
-
 import static java.util.Map.entry;
 
 @RestController
@@ -64,7 +62,7 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
     private final ManagementRequestDtoConverter converter;
     private final PageRequestConverter pageRequestConverter;
     private final PagedManagementRequestsConverter pagedManagementRequestsConverter;
-    private final ManagementRequestViewDtoConverter managementRequestViewDtoConverter;
+    private final ManagementRequestDetailsDtoConverter managementRequestDetailsDtoConverter;
     private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
             new PageRequestConverter.MappableSortParameterConverter(
                     entry("id", "id"),
@@ -93,11 +91,10 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MANAGEMENT_REQUEST_DETAILS')")
-    public ResponseEntity<ManagementRequestViewDto> getManagementRequest(Integer id) {
+    public ResponseEntity<ManagementRequestDetailsDto> getManagementRequest(Integer id) {
         return Option.of(id)
                 .map(service::getRequestView)
-                .map(Optional::get)
-                .map(managementRequestViewDtoConverter::convert)
+                .map(managementRequestDetailsDtoConverter::convert)
                 .map(ResponseEntity::ok).get();
     }
 

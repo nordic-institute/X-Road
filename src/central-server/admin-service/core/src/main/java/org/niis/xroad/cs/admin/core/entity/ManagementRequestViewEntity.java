@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
@@ -35,11 +36,13 @@ import lombok.NoArgsConstructor;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.Origin;
+import org.niis.xroad.cs.admin.core.entity.converter.XRoadObjectTypeConverter;
 import org.springframework.data.annotation.Immutable;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -106,6 +109,13 @@ public class ManagementRequestViewEntity {
 
     @Column(name = "client_owner_name")
     private String clientOwnerName;
+
+    @Column(name = "client_type")
+    @Convert(converter = XRoadObjectTypeConverter.Impl.class)
+    private XRoadObjectType clientType;
+
+    @Column(name = "client_xroad_instance")
+    private String clientXroadInstance;
 
     @Column(name = "client_member_code")
     private String clientMemberCode;

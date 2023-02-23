@@ -34,7 +34,6 @@ import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
-import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
 import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
@@ -57,6 +56,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND;
 
 /**
  * Implements generic management request services that do not depend on the request type.
@@ -83,27 +84,28 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     }
 
     @Override
-    public Optional<ManagementRequestView> getRequestView(int requestId) {
+    public ManagementRequestView getRequestView(int requestId) {
         return managementRequestViewRepository.findById(requestId)
-                .map(viewMapper::toTarget);
+                .map(viewMapper::toTarget)
+                .orElseThrow(() -> new NotFoundException(MANAGEMENT_REQUEST_NOT_FOUND));
     }
 
     @Override
     public ManagementRequestType getRequestType(int id) {
         return requests.findById(id)
                 .map(RequestEntity::getManagementRequestType)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MANAGEMENT_REQUEST_NOT_FOUND));
     }
 
     /**
      * Find management requests matching criteria.
      */
     @Override
-    public Page<ManagementRequestInfoDto> findRequests(
+    public Page<ManagementRequestView> findRequests(
             ManagementRequestService.Criteria filter,
             Pageable page) {
         var result = managementRequestViewRepository.findAll(filter, page);
-        return result.map(ManagementRequests::asInfoDto);
+        return result.map(viewMapper::toTarget);
     }
 
     /**
@@ -154,7 +156,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
 
     private <T extends RequestEntity> T findRequest(int requestId) {
         return (T) requests.findById(requestId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MANAGEMENT_REQUEST_NOT_FOUND));
     }
 
     /*

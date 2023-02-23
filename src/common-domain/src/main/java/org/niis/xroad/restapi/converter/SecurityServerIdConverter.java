@@ -73,7 +73,7 @@ public class SecurityServerIdConverter extends AbstractConverter<SecurityServerI
      * @return
      */
     public String convertId(SecurityServerId securityServerId) {
-        return securityServerId.asEncodedId();
+        return securityServerId.getEncodedId();
     }
 
     @Override

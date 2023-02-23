@@ -3280,7 +3280,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequestView'
+                $ref: '#/components/schemas/ManagementRequestDetails'
         '400':
           description: invalid request
         '401':
@@ -4745,6 +4745,9 @@ components:
           SERVER: "SecurityServerId"
           SUBSYSTEM: "ClientId"
       properties:
+        encoded_id:
+          type: string
+          description: Encoded Security Server Id
         instance_id:
           description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: FI
@@ -4826,68 +4829,43 @@ components:
         - member_class
         - member_code
         - server_code
-    ManagementRequestView:
+    ManagementRequestDetails:
       type: object
-      description: Management request view
+      description: Management request details
       properties:
         id:
           type: integer
           description: request id
           readOnly: true
+        type:
+          $ref: '#/components/schemas/ManagementRequestType'
         origin:
           $ref: '#/components/schemas/ManagementRequestOrigin'
-        comments:
-          type: string
-          readOnly: true
-        type:
-          type: string
-          readOnly: true
-        security_server_identifier_id:
-          type: integer
-          format: int64
-          readOnly: true
-        request_processing_id:
-          type: integer
-          format: int64
-          readOnly: true
-        request_processing_status:
+        status:
           $ref: '#/components/schemas/ManagementRequestStatus'
-        security_server_owner_name:
+        security_server_owner:
           type: string
           readOnly: true
-        security_server_xroad_instance:
-          type: string
-          readOnly: true
-        security_server_member_code:
-          type: string
-          readOnly: true
-        security_server_member_class:
-          type: string
-          readOnly: true
-        security_server_code:
-          type: string
-          readOnly: true
-        security_server_address:
+        security_server_id:
+          $ref: '#/components/schemas/SecurityServerId'
+        address:
           type: string
           readOnly: true
         client_owner_name:
           type: string
           readOnly: true
-        client_member_code:
-          type: string
-          readOnly: true
-        client_member_class:
-          type: string
-          readOnly: true
-        client_subsystem_code:
-          type: string
-          readOnly: true
+        client_id:
+          $ref: '#/components/schemas/ClientId'
         certificateDetails:
           $ref: '#/components/schemas/CertificateDetails'
         created_at:
           type: string
           format: date-time
           readOnly: true
+      required:
+        - type
+        - source
+        - securityserverId
     ManagementRequest:
       type: object
       description: Management request
@@ -4914,8 +4892,7 @@ components:
           type: string
           readOnly: true
         security_server_id:
-          type: string
-          description: Encoded Security Server ID
+          $ref: '#/components/schemas/SecurityServerId'
         status:
           $ref: '#/components/schemas/ManagementRequestStatus'
         created_at:
@@ -5087,8 +5064,7 @@ components:
       type: object
       properties:
         clientId:
-          type: string
-          description: Encoded Client ID
+          $ref: '#/components/schemas/ClientId'
       required:
         - clientId
     ClientDeletionRequest:
@@ -5097,8 +5073,7 @@ components:
       type: object
       properties:
         clientId:
-          type: string
-          description: Encoded Client ID
+          $ref: '#/components/schemas/ClientId'
       required:
         - clientId
     OwnerChangeRequest:
@@ -5107,8 +5082,7 @@ components:
       type: object
       properties:
         clientId:
-          type: string
-          description: Encoded Client ID
+          $ref: '#/components/schemas/ClientId'
       required:
         - clientId
   securitySchemes:

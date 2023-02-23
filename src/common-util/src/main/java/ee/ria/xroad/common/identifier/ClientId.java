@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,6 +27,7 @@ package ee.ria.xroad.common.identifier;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.vavr.control.Option;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -43,6 +44,8 @@ import static ee.ria.xroad.common.util.Validation.validateOptionalArgument;
  */
 public interface ClientId extends XRoadId {
 
+    char ENCODED_ID_SEPARATOR = ':';
+
     String getMemberClass();
 
     String getMemberCode();
@@ -54,6 +57,22 @@ public interface ClientId extends XRoadId {
     @Override
     default String[] getFieldsForStringFormat() {
         return new String[]{getMemberClass(), getMemberCode(), getSubsystemCode()};
+    }
+
+    default String getEncodedId() {
+
+        StringBuilder builder = new StringBuilder();
+
+        builder.append(getXRoadInstance())
+                .append(ENCODED_ID_SEPARATOR)
+                .append(getMemberClass())
+                .append(ENCODED_ID_SEPARATOR)
+                .append(getMemberCode());
+        if (StringUtils.isNotEmpty(getSubsystemCode())) {
+            builder.append(ENCODED_ID_SEPARATOR)
+                    .append(getSubsystemCode());
+        }
+        return builder.toString().trim();
     }
 
     // todo: move to a proper location

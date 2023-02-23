@@ -26,7 +26,7 @@
 package org.niis.xroad.cs.admin.rest.api.converter;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ManagementRequestDtoConverter;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
@@ -45,7 +45,7 @@ public class PagedManagementRequestsConverter {
     private final PagingMetadataConverter pagingMetadataConverter;
     private final ManagementRequestDtoConverter managementRequestConverter;
 
-    public PagedManagementRequestsDto convert(Page<ManagementRequestInfoDto> page,
+    public PagedManagementRequestsDto convert(Page<ManagementRequestView> page,
                                               PagingSortingParametersDto pagingSorting) {
 
         PagingMetadataDto meta = pagingMetadataConverter.convert(page, pagingSorting);

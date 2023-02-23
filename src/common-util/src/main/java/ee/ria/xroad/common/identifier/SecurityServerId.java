@@ -54,7 +54,7 @@ public interface SecurityServerId extends XRoadId {
         return new String[] {getMemberClass(), getMemberCode(), getServerCode()};
     }
 
-    default String asEncodedId() {
+    default String getEncodedId() {
         ClientId ownerId = getOwner();
 
         StringBuilder builder = new StringBuilder();

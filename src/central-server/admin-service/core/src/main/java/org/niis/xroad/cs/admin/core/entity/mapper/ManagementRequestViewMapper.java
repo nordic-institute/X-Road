@@ -40,7 +40,8 @@ import org.niis.xroad.cs.admin.core.entity.ManagementRequestViewEntity;
 public interface ManagementRequestViewMapper extends GenericUniDirectionalMapper<ManagementRequestViewEntity, ManagementRequestView> {
 
     @Override
-    @Mapping(source = "authCert", target = "certificateDetails")
-    @Mapping(source = "managementRequestType", target = "type")
+    @Mapping(target = "certificateDetails", source = "authCert")
+    @Mapping(target = "status", source = "requestProcessingStatus")
+    @Mapping(target = "type", source = "managementRequestType")
     ManagementRequestView toTarget(ManagementRequestViewEntity managementRequestViewEntity);
 }

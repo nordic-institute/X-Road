@@ -37,7 +37,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
-import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.core.service.managementrequest.ManagementRequestServiceImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -57,7 +57,7 @@ public class SecurityServerServiceImplTest implements WithInOrder {
     private ManagementRequestServiceImpl managementRequestService;
 
     @Mock
-    private ManagementRequestInfoDto managementRequestInfoDto;
+    private ManagementRequestView managementRequestView;
 
     @Mock
     private SecurityServerId serverId;
@@ -73,10 +73,10 @@ public class SecurityServerServiceImplTest implements WithInOrder {
         @Test
         @DisplayName("should find management status approved")
         public void shouldReturnStatusApproved() {
-            Page<ManagementRequestInfoDto> requestInfoDtos = new PageImpl<>(List.of(managementRequestInfoDto));
+            Page<ManagementRequestView> requestInfoDtos = new PageImpl<>(List.of(managementRequestView));
             doReturn(requestInfoDtos).when(managementRequestService)
                     .findRequests(any(), any());
-            doReturn(ManagementRequestStatus.APPROVED).when(managementRequestInfoDto).getStatus();
+            doReturn(ManagementRequestStatus.APPROVED).when(managementRequestView).getStatus();
 
             ManagementRequestStatus result = securityServerService.findSecurityServerRegistrationStatus(serverId);
 
@@ -87,7 +87,7 @@ public class SecurityServerServiceImplTest implements WithInOrder {
         @Test
         @DisplayName("should return null if no management request exit")
         public void shouldReturnNullWhenRequestNotFound() {
-            Page<ManagementRequestInfoDto> emptyRequestInfoDtos = Page.empty();
+            Page<ManagementRequestView> emptyRequestInfoDtos = Page.empty();
             doReturn(emptyRequestInfoDtos).when(managementRequestService)
                     .findRequests(any(), any());
 

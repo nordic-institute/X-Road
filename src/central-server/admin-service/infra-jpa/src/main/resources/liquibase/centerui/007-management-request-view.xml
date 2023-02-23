@@ -21,6 +21,8 @@
                    owner.server_code,
 
                    clientssc.name AS client_owner_name,
+                   client.object_type AS client_type,
+                   client.xroad_instance AS client_xroad_instance,
                    client.member_code AS client_member_code,
                    client.member_class AS client_member_class,
                    client.subsystem_code AS client_subsystem_code,
@@ -38,10 +40,8 @@
                                ON (ssc.member_code = owner.member_code
                                    AND ssc.member_class_id = mc.id
                                    AND ssc.type = 'XRoadMember')
-                     LEFT JOIN security_server_clients clientssc
-                               ON (clientssc.member_code = client.member_code
-                                   AND clientssc.member_class_id = mc.id
-                                   AND clientssc.type = 'XRoadMember')
+                     LEFT JOIN security_server_client_names clientssc
+                               ON (clientssc.client_identifier_id = client.id)
         </createView>
     </changeSet>
 </databaseChangeLog>

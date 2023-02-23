@@ -36,6 +36,8 @@ import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.openapi.model.SecurityServerIdDto;
+import org.niis.xroad.cs.openapi.model.XRoadIdDto;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -52,7 +54,15 @@ class AdminApiServiceImpl implements AdminApiService {
         request.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
         request.setServerAddress(address);
         request.setAuthenticationCertificate(certificate);
-        request.setSecurityServerId(serverId.asEncodedId());
+        var securityServerIdDto = new SecurityServerIdDto();
+        securityServerIdDto
+                .memberCode(serverId.getMemberCode())
+                .memberClass(serverId.getMemberClass())
+                .serverCode(serverId.getServerCode());
+        securityServerIdDto.type(XRoadIdDto.TypeEnum.valueOf(serverId.getObjectType().name()))
+                .instanceId(serverId.getXRoadInstance())
+                .encodedId(serverId.getEncodedId());
+        request.setSecurityServerId(securityServerIdDto);
 
         var result = managementRequestsApi.addManagementRequest(request);
 
