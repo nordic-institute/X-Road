@@ -34,7 +34,6 @@ import org.niis.xroad.cs.openapi.model.ClientIdDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailsDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
-import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerIdDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
@@ -50,6 +49,9 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.fromVal
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
+import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.MEMBER;
+import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.SERVER;
+import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.SUBSYSTEM;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -65,8 +67,8 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     private byte[] authenticationCertificate;
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    @Step("new security server {string} authentication certificate registered with origin {string}")
-    public void newSecurityServerRegistered(String securityServerId, String origin) throws Exception {
+    @Step("new security server {string} authentication certificate registered")
+    public void newSecurityServerRegistered(String securityServerId) throws Exception {
         generateAuthenticationCertificate();
         final String[] idParts = StringUtils.split(securityServerId, ':');
         final var managementRequest = new AuthenticationCertificateRegistrationRequestDto();
@@ -75,7 +77,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         managementRequest.setAuthenticationCertificate(authenticationCertificate);
         managementRequest.setAuthenticationCertificate(CertificateUtils.generateAuthCert());
         managementRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);
-        managementRequest.setOrigin(ManagementRequestOriginDto.valueOf(origin));
+        managementRequest.setOrigin(SECURITY_SERVER);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
@@ -150,36 +152,18 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion("security-server-" + securityServerIdParts[3],
-                        "body.securityServerAddress", "Verify server address"))
+                .assertion(equalsAssertion("security-server-address-" + securityServerIdParts[3],
+                        "body.address", "Verify server address"))
                 .assertion(equalsAssertion(securityServerIdParts[0], "body.securityServerId.instanceId",
                         "Verify server instance"))
                 .assertion(equalsAssertion(securityServerIdParts[1], "body.securityServerId.memberClass",
                         "Verify server member class"))
                 .assertion(equalsAssertion(securityServerIdParts[2], "body.securityServerId.memberCode",
                         "Verify server member code"))
-                .assertion(equalsAssertion(AUTH_CERT_REGISTRATION_REQUEST.name(), "body.type",
+                .assertion(equalsAssertion(AUTH_CERT_REGISTRATION_REQUEST, "body.type",
                         "Verify request type"))
                 .assertion(equalsAssertion(SECURITY_SERVER, "body.origin",
                         "Verify request origin"))
-                .execute();
-    }
-
-    @Step("new client {string} is registered for security server {string}")
-    public void newClientIsRegisteredForSecurityServer(String clientId, String securityServerId) {
-
-        final ClientRegistrationRequestDto clientRegDto = new ClientRegistrationRequestDto();
-        clientRegDto.setOrigin(SECURITY_SERVER);
-        clientRegDto.setType(CLIENT_REGISTRATION_REQUEST);
-        clientRegDto.setSecurityServerId(toSecurityServerIdDto(securityServerId));
-        clientRegDto.setClientId(toClientIdDto(clientId));
-
-        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(clientRegDto);
-        this.managementRequestId = response.getBody().getId();
-
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(ACCEPTED))
-                .assertion(equalsAssertion(WAITING, "body.status", "Verify status"))
                 .execute();
     }
 
@@ -193,7 +177,8 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     private SecurityServerIdDto toSecurityServerIdDto(String securityServerId) {
         final String[] securityServerIdParts = StringUtils.split(securityServerId, ':');
         var clientIdDto = new SecurityServerIdDto();
-        clientIdDto.instanceId(securityServerIdParts[0]);
+        clientIdDto.encodedId(securityServerId)
+                .instanceId(securityServerIdParts[0]).type(SERVER);
         return clientIdDto.memberClass(securityServerIdParts[1])
                 .memberCode(securityServerIdParts[2]).serverCode(securityServerIdParts[3]);
     }
@@ -202,8 +187,10 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     private ClientIdDto toClientIdDto(String clientId) {
         final String[] clientIdParts = StringUtils.split(clientId, ':');
         var clientIdDto = new ClientIdDto();
-        clientIdDto.instanceId(clientIdParts[0]);
-        return clientIdDto.memberClass(clientIdParts[1])
-                .memberCode(clientIdParts[2]).subsystemCode(clientIdParts[3]);
+        clientIdDto.encodedId(clientId).instanceId(clientIdParts[0]).type(MEMBER);
+        if (clientIdParts.length > 3) {
+            clientIdDto.subsystemCode(clientIdParts[3]).type(SUBSYSTEM);
+        }
+        return clientIdDto.memberClass(clientIdParts[1]).memberCode(clientIdParts[2]);
     }
 }

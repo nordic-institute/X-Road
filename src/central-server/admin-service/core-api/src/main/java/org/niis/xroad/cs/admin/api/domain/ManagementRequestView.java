@@ -78,6 +78,8 @@ public class ManagementRequestView {
                 case SUBSYSTEM:
                     return SubsystemId.create(clientXroadInstance, clientMemberClass,
                             clientMemberCode, clientSubsystemCode);
+                default:
+                    break;
             }
         }
         return null;

@@ -208,8 +208,8 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         info.setId(managementRequestView.getId());
         info.setType(ManagementRequestTypeDto.valueOf(managementRequestView.getType().name()));
         info.setOrigin(ManagementRequestOriginDto.valueOf(managementRequestView.getOrigin().name()));
-        info.setStatus(managementRequestView.getStatus() == null ? null :
-                ManagementRequestStatusDto.valueOf(managementRequestView.getStatus().name()));
+        info.setStatus(managementRequestView.getStatus() == null ? null
+                : ManagementRequestStatusDto.valueOf(managementRequestView.getStatus().name()));
         info.setSecurityServerOwner(managementRequestView.getSecurityServerOwnerName());
         info.setSecurityServerId(securityServerIdDtoConverter.convert(managementRequestView.getSecurityServerId()));
         info.setCreatedAt(managementRequestView.getCreatedAt().atOffset(ZoneOffset.UTC));

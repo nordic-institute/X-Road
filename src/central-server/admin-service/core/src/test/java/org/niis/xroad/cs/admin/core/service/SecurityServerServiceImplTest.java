@@ -83,7 +83,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
     @Mock
     private ManagementRequestView managementRequestView;
-
+    @Mock
     private ClientService clientService;
     @Mock
     private SecurityServerRepository securityServerRepository;
