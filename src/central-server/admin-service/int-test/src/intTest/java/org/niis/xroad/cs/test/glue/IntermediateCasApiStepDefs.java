@@ -50,7 +50,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     @Autowired

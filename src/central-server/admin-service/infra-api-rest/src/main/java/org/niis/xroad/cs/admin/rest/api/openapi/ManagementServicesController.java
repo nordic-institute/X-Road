@@ -31,6 +31,10 @@ import org.niis.xroad.cs.admin.rest.api.converter.ManagementServicesConfiguratio
 import org.niis.xroad.cs.openapi.ManagementServicesApi;
 import org.niis.xroad.cs.openapi.model.ManagementServicesConfigurationDto;
 import org.niis.xroad.cs.openapi.model.ServiceProviderIdDto;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class ManagementServicesController implements ManagementServicesApi {
     private final ManagementServicesService managementServicesService;
     private final ManagementServicesConfigurationMapper managementServicesConfigurationMapper;
+    private final ClientIdConverter clientIdConverter;
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SYSTEM_SETTINGS')")
@@ -54,8 +59,15 @@ public class ManagementServicesController implements ManagementServicesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SYSTEM_SETTINGS')")
+    @AuditEventMethod(event = RestApiAuditEvent.EDIT_MANAGEMENT_SERVICES_PROVIDER)
     public ResponseEntity<ManagementServicesConfigurationDto> updateManagementServicesConfiguration(
             ServiceProviderIdDto serviceProviderIdDto) {
-        throw new RuntimeException("not implemented yet");
+        var serviceProviderId = serviceProviderIdDto.getServiceProviderId();
+        if (!clientIdConverter.isEncodedSubsystemId(serviceProviderId)) {
+            throw new BadRequestException("Invalid service provider id");
+        }
+
+        var response = managementServicesService.updateManagementServicesProvider(clientIdConverter.convertId(serviceProviderId));
+        return ResponseEntity.ok(managementServicesConfigurationMapper.toTarget(response));
     }
 }

@@ -1,6 +1,6 @@
 /*
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,39 +27,44 @@
 
 package org.niis.xroad.cs.test.glue;
 
-import io.cucumber.java.en.When;
-import org.niis.xroad.cs.openapi.model.ApprovedCertificationServiceDto;
-import org.niis.xroad.cs.test.api.FeignCertificationServicesApi;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.openapi.model.ClientDto;
+import org.niis.xroad.cs.openapi.model.ClientIdDto;
+import org.niis.xroad.cs.test.api.FeignSubsystemsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 
-import static com.nortal.test.asserts.Assertions.notNullAssertion;
-import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.CERTIFICATION_SERVICE_ID;
-import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
+import static org.apache.commons.lang3.StringUtils.split;
+import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.SUBSYSTEM;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-public class CertificationServicesApiStepDefs extends BaseStepDefs {
+public class SubsystemsApiStepDefs extends BaseStepDefs {
 
     @Autowired
-    private FeignCertificationServicesApi certificationServicesApi;
+    private FeignSubsystemsApi subsystemsApi;
 
-    @When("Certification service is created")
-    public void createCertificationService() throws Exception {
-        MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert());
-        String certificateProfileInfo = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";
+    @SuppressWarnings("checkstyle:MagicNumber")
+    @Step("new subsystem {string} is added")
+    public void createSubsystem(String subsystemId) {
+        final String[] idParts = split(subsystemId, ':');
 
-        final ResponseEntity<ApprovedCertificationServiceDto> response = certificationServicesApi
-                .addCertificationService(certificate, certificateProfileInfo, "false");
+        final ClientIdDto clientIdDto = new ClientIdDto()
+                .memberClass(idParts[1])
+                .memberCode(idParts[2])
+                .subsystemCode(idParts[3]);
+        clientIdDto.setType(SUBSYSTEM);
+        clientIdDto.setInstanceId(idParts[0]);
+
+        final ClientDto dto = new ClientDto()
+                .xroadId(clientIdDto);
+
+        final ResponseEntity<ClientDto> response = subsystemsApi.addSubsystem(dto);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(CREATED))
-                .assertion(notNullAssertion("body.id"))
                 .execute();
-
-        putStepData(CERTIFICATION_SERVICE_ID, response.getBody().getId());
     }
+
 
 }

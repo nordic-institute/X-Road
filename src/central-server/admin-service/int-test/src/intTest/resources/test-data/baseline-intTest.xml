@@ -5,35 +5,45 @@
 
     <changeSet id="apikey-testdata" author="ricardas">
         <comment>Add default apiKey which can be used for scenarios which do not case about permissions.
-            This maps to header value X-ROAD-APIKEY TOKEN=d56e1ca7-4134-4ed4-8030-5f330bdb602a
         </comment>
         <sql>
             -- noinspection SqlResolve
             INSERT INTO apikey
                 (id, encodedkey)
-            VALUES (1, 'ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1');
+            VALUES (1, 'ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1'), -- d56e1ca7-4134-4ed4-8030-5f330bdb602a
+                   (2, 'ed99ce2b1660cb681598b9d33bb84089f3023d6f511729a281066bed5a764ca0'), -- 4a5842e5-4ede-49f1-ab32-1b6be33d81c3
+                   (3, 'e26a8562ff905ba186970fb889b429eab2ceb8195b81e58767dd170ca910583d'), -- 3964334d-1f65-4629-a4a4-73c62ade0c9c
+                   (4, 'ccba0161478071cbd9801d981e74465d54d963563afc7713513698e1173a76f0'); -- de628164-9485-409c-b654-7dda28bb3872
 
             INSERT INTO apikey_roles
                 (id, apikey_id, role)
             VALUES (1000001, 1, 'XROAD_SYSTEM_ADMINISTRATOR'),
-                   (1000002, 1, 'XROAD_SECURITY_OFFICER'),
-                   (1000003, 1, 'XROAD_REGISTRATION_OFFICER'),
-                   (1000004, 1, 'XROAD_MANAGEMENT_SERVICE');
+                   (1000002, 2, 'XROAD_REGISTRATION_OFFICER'),
+                   (1000003, 3, 'XROAD_SECURITY_OFFICER'),
+                   (1000004, 4, 'XROAD_MANAGEMENT_SERVICE'),
+                   (1000005, 4, 'XROAD_REGISTRATION_OFFICER'),
+                   (1000006, 4, 'XROAD_SYSTEM_ADMINISTRATOR');
             ALTER SEQUENCE apikey_roles_id_seq RESTART WITH 1001000;
-
         </sql>
     </changeSet>
-
+    <changeSet id="initialize-cs" author="ricardas">
+        <sql>
+            <![CDATA[
+            -- noinspection SqlResolve
+            INSERT INTO system_parameters
+               (key, value, created_at, updated_at, ha_node_name)
+            VALUES ('centralServerAddress', 'cs', '2022-01-01 01:00:00.000000', '2022-01-02 01:00:00.000000', 'node_0'),
+                   ('instanceIdentifier', 'CS', '2022-01-01 01:00:00.000000', '2022-01-02 01:00:00.000000', 'node_0'),
+                   ('securityServerOwnersGroup', 'security-server-owners', '2022-01-01 01:00:00.000000', '2022-01-02 01:00:00.000000', 'node_0');
+            ]]>
+        </sql>
+    </changeSet>
     <changeSet id="internal-configuration-testdata" author="vpaliliunas">
         <comment>Test data for configuration info apis testing
         </comment>
         <sql>
             <![CDATA[
             -- noinspection SqlResolve
-            INSERT INTO system_parameters
-                (key, value, created_at, updated_at, ha_node_name)
-            VALUES ('centralServerAddress', 'cs', '2022-01-01 01:00:00.000000', '2022-01-02 01:00:00.000000', 'node_0');
-
             INSERT INTO configuration_sources
             (source_type, active_key_id, anchor_file, anchor_file_hash, anchor_generated_at, ha_node_name)
             VALUES ('internal', null,
@@ -62,14 +72,6 @@
         <sql>
             INSERT INTO global_groups(group_code, description, created_at, updated_at)
             VALUES ('security-server-owners','Security server owners', now(), now());
-        </sql>
-    </changeSet>
-    <changeSet id="add-central-server-identifier" author="ovidijus">
-        <comment>Add instance identifier to system parameters.</comment>
-        <sql>
-            INSERT INTO system_parameters
-                (key, value, created_at, updated_at, ha_node_name)
-            VALUES ('instanceIdentifier', 'CS', '2022-01-01 01:00:00.000000', '2022-01-02 01:00:00.000000', 'node_0');
         </sql>
     </changeSet>
     <changeSet id="add-configuration-signing-keys" author="ovidijus">

@@ -27,6 +27,7 @@
 
 package org.niis.xroad.cs.test.glue;
 
+import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.TokenDto;
 import org.niis.xroad.cs.openapi.model.TokenPasswordDto;
@@ -41,18 +42,32 @@ import static org.mockserver.model.MediaType.APPLICATION_JSON;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class TokensApiStepDefs extends BaseStepDefs {
 
     @Autowired
     private FeignTokensApi tokensApi;
 
+    private ResponseEntity<TokenDto> response;
+    private String requestTokenId;
+
     @Step("User can login token {string} with password {string}")
     public void userTriesToLoginTokenWithPassword(String tokenId, String password) {
-        final ResponseEntity<TokenDto> response = tokensApi.loginToken(tokenId, new TokenPasswordDto().password(password));
+        try {
+            response = tokensApi.loginToken(tokenId, new TokenPasswordDto().password(password));
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+        }
 
+        this.requestTokenId = tokenId;
+    }
+
+    @Step("Token login is successful")
+    public void loginRequestIsValidated() {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(tokenId, "body.id", "Token should be returned"))
+                .assertion(equalsAssertion(requestTokenId, "body.id", "Token should be returned"))
                 .execute();
     }
 
@@ -108,13 +123,21 @@ public class TokensApiStepDefs extends BaseStepDefs {
 
     @Step("User can logout token {string}")
     public void userCanLogoutTokenTokenId(String tokenId) {
-        final ResponseEntity<TokenDto> response = tokensApi.logoutToken(tokenId);
-
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(tokenId, "body.id", "Token should be returned"))
-                .execute();
+        try {
+            response = tokensApi.logoutToken(tokenId);
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+        }
+        this.requestTokenId = tokenId;
     }
 
 
+    @Step("Token logout token is successful")
+    public void logoutRequestIsValidated() {
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(requestTokenId, "body.id", "Token should be returned"))
+                .execute();
+    }
 }

@@ -25,13 +25,12 @@
  */
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Then;
 import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SecurityServerApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignSecurityServersApi securityServersApi;
@@ -46,17 +45,4 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         }
     }
 
-    @Then("Response is of status code {int}")
-    public void systemStatusIsValidated(int statusCode) {
-        int responseCode = getRequiredStepData(StepDataKey.RESPONSE_STATUS);
-
-        validate(responseCode)
-                .assertion(new Assertion.Builder()
-                        .message("Verify status code")
-                        .expression("=")
-                        .actualValue(responseCode)
-                        .expectedValue(statusCode)
-                        .build())
-                .execute();
-    }
 }

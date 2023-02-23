@@ -86,7 +86,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("member {string} is registered as security server {string} client")
+    @Step("client {string} is registered as security server {string} client")
     public void memberIsRegisteredAsSecurityServerClient(String memberId, String securityServerId) {
         final ClientRegistrationRequestDto managementRequest = new ClientRegistrationRequestDto();
         managementRequest.setType(CLIENT_REGISTRATION_REQUEST);

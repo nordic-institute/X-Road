@@ -23,25 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.test.api;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import org.niis.xroad.cs.openapi.InitializationApi;
+import org.springframework.cloud.openfeign.FeignClient;
 
-import org.niis.xroad.cs.admin.api.domain.ManagementServicesConfiguration;
-
-public interface ManagementServicesService {
-    /**
-     * Update management service provider.
-     *
-     * @param serviceProviderClientId identifier
-     * @return configuration
-     */
-    ManagementServicesConfiguration updateManagementServicesProvider(ClientId serviceProviderClientId);
-
-    /**
-     * Get aggregated management services configuration.
-     *
-     * @return configuration
-     */
-    ManagementServicesConfiguration getManagementServicesConfiguration();
+@FeignClient(name = "initializationApi", path = "/api/v1")
+public interface FeignInitializationApi extends InitializationApi {
 }
