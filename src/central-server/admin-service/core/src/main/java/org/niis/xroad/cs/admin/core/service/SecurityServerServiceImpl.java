@@ -126,7 +126,6 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     @Override
     public Set<SecurityServerAuthenticationCertificateDetails> findAuthCertificates(SecurityServerId id) {
         return securityServerRepository.findBy(id)
-                .map(securityServerMapper::toTarget)
                 .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND))
                 .getAuthCerts().stream()
                 .map(certificateConverter::toCertificateDetails)

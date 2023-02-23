@@ -30,9 +30,9 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.niis.xroad.cs.admin.api.domain.AuthCert;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
+import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
@@ -57,7 +57,7 @@ public class CertificateConverter {
         return certificateDetails;
     }
 
-    public SecurityServerAuthenticationCertificateDetails toCertificateDetails(final AuthCert authCert) {
+    public SecurityServerAuthenticationCertificateDetails toCertificateDetails(final AuthCertEntity authCert) {
         SecurityServerAuthenticationCertificateDetails authCertificateDetails =
                 new SecurityServerAuthenticationCertificateDetails(authCert.getId());
         populateCertificateDetails(authCertificateDetails, authCert.getCert());
