@@ -28,22 +28,32 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.domain.ManagementServicesConfiguration;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ManagementServicesService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_CLASS;
+import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_CODE;
+import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_PROVIDER_IDENTIFIER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_PROVIDER_NAME;
 
 @Service
 @RequiredArgsConstructor
@@ -51,28 +61,57 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
     private final SystemParameterService systemParameterService;
     private final MemberService memberService;
     private final SubsystemService subsystemService;
+    private final AuditDataHelper auditData;
+
+    @Override
+    public ManagementServicesConfiguration updateManagementServicesProvider(ClientId serviceProviderClientId) {
+        var subsystem = subsystemService.findByIdentifier(serviceProviderClientId)
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_FOUND));
+        var xRoadMember = subsystem.getXroadMember();
+
+        systemParameterService.updateOrCreateParameter(MANAGEMENT_SERVICE_PROVIDER_CLASS, xRoadMember.getMemberClass().getCode());
+        systemParameterService.updateOrCreateParameter(MANAGEMENT_SERVICE_PROVIDER_CODE, xRoadMember.getMemberCode());
+        systemParameterService.updateOrCreateParameter(MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM, subsystem.getSubsystemCode());
+
+        auditData.put(SERVICE_PROVIDER_IDENTIFIER, serviceProviderClientId.asEncodedId());
+        auditData.put(SERVICE_PROVIDER_NAME, subsystem.getXroadMember().getName());
+
+        return getFullConfiguration(xRoadMember, serviceProviderClientId);
+    }
 
     @Override
     public ManagementServicesConfiguration getManagementServicesConfiguration() {
+        return Optional.ofNullable(systemParameterService.getManagementServiceProviderId()).map(serviceProviderClientId -> {
+            var xRoadMember = memberService.findMember(serviceProviderClientId)
+                    .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
+
+            return getFullConfiguration(xRoadMember, serviceProviderClientId);
+        }).orElseGet(this::getBasicConfiguration);
+    }
+
+    private ManagementServicesConfiguration getBasicConfiguration() {
         var centralServerAddress = systemParameterService.getCentralServerAddress();
-        var serviceProviderClientId = systemParameterService.getManagementServiceProviderId();
-        var xRoadMember = memberService.findMember(serviceProviderClientId).getOrElseThrow(NoSuchElementException::new);
 
         return new ManagementServicesConfiguration()
                 .setServicesAddress(formatServicesAddress(centralServerAddress))
                 .setWsdlAddress(formatWsdlAddress(centralServerAddress))
-                .setSecurityServerOwnersGlobalGroupCode(systemParameterService.getSecurityServerOwnersGroup())
+                .setSecurityServerOwnersGlobalGroupCode(systemParameterService.getSecurityServerOwnersGroup());
+    }
+
+    private ManagementServicesConfiguration getFullConfiguration(XRoadMember xRoadMember,
+                                                                 ClientId serviceProviderClientId) {
+        return getBasicConfiguration()
                 .setServiceProviderId(serviceProviderClientId.asEncodedId(true))
                 .setServiceProviderName(xRoadMember.getName())
                 .setSecurityServerId(getSecurityServerIds(serviceProviderClientId, xRoadMember));
     }
 
-
     private String getSecurityServerIds(ClientId serviceProviderClientId, XRoadMember xRoadMember) {
         SecurityServerClient securityServerClient;
         Set<SecurityServerId> securityServers = new HashSet<>();
         if (serviceProviderClientId.getSubsystemCode() != null) {
-            securityServerClient = subsystemService.findByIdentifier(serviceProviderClientId).orElseThrow();
+            securityServerClient = subsystemService.findByIdentifier(serviceProviderClientId)
+                    .orElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_FOUND));
         } else {
             securityServerClient = xRoadMember;
 
@@ -96,10 +135,16 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
 
 
     private String formatWsdlAddress(String centralServerAddress) {
+        if (StringUtils.isBlank(centralServerAddress)) {
+            return StringUtils.EMPTY;
+        }
         return String.format("http://%s/managementservices.wsdl", centralServerAddress);
     }
 
     private String formatServicesAddress(String centralServerAddress) {
+        if (StringUtils.isBlank(centralServerAddress)) {
+            return StringUtils.EMPTY;
+        }
         return String.format("https://%s:4002/managementservice/manage/", centralServerAddress);
     }
 

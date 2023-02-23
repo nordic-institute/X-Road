@@ -154,7 +154,9 @@ public enum RestApiAuditEvent {
     UNREGISTER_SUBSYSTEM("Unregister subsystem as security server client"),
     DELETE_SUBSYSTEM("Delete subsystem"),
     DELETE_INTERMEDIATE_CA("Delete intermediate CA"),
-    DELETE_OCSP_RESPONDER("Delete OCSP responder");
+    DELETE_OCSP_RESPONDER("Delete OCSP responder"),
+
+    EDIT_MANAGEMENT_SERVICES_PROVIDER("Edit provider of management services");
     private final String eventName;
 
     RestApiAuditEvent(String eventName) {

@@ -1,6 +1,9 @@
 @TimestampingServices
 Feature: Timestamping services API
 
+  Background:
+    Given Authentication header is set to SYSTEM_ADMINISTRATOR
+
   @Modifying
   Scenario: View the list of timestamping services
     When timestamping service is added

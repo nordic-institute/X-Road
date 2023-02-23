@@ -1,6 +1,9 @@
 @ConfigurationSourceAnchors
 Feature: Configuration Source Anchor API
 
+  Background:
+    Given Authentication header is set to SECURITY_OFFICER
+
   @Modifying
   Scenario: Re-create internal configuration source anchor
     When user gets the "internal" configuration source anchor

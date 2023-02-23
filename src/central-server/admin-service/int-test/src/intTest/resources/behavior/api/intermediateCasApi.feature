@@ -3,7 +3,8 @@
 Feature: Intermediate CAS API
 
   Background:
-    Given Certification service is created
+    Given Authentication header is set to SYSTEM_ADMINISTRATOR
+    And Certification service is created
 
   Scenario: Adding OCSP responder to intermediate CA
     Given intermediate CA added to certification service

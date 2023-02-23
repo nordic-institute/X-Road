@@ -55,6 +55,16 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignSecurityServersApi securityServersApi;
 
+    @Step("Security server auth certs for {string} is requested")
+    public void systemStatusIsRequested(String id) {
+        try {
+            var response = securityServersApi.getSecurityServerAuthCerts(id);
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+        }
+    }
+
     @SuppressWarnings("checkstyle:MagicNumber")
     @Step("user can get security server {string} details")
     public void userCanGetSecurityServerDetails(String serverId) {
