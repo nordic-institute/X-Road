@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Access;
@@ -51,6 +52,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = SecurityServerEntity.TABLE_NAME)
+@NoArgsConstructor
 public class SecurityServerEntity extends AuditableEntity {
 
     public static final String TABLE_NAME = "security_servers";
@@ -97,10 +99,6 @@ public class SecurityServerEntity extends AuditableEntity {
     @Access(AccessType.FIELD)
     @Getter
     private Set<ServerClientEntity> serverClients = new HashSet<>(0);
-
-    protected SecurityServerEntity() {
-        //JPA
-    }
 
     public SecurityServerEntity(XRoadMemberEntity owner, String serverCode) {
         this.owner = owner;

@@ -121,7 +121,7 @@
                     />
                   </td>
 
-                  <td>
+                  <td data-test="global-configuration-message">
                     {{
                       $t(
                         `diagnostics.globalConfiguration.configurationStatus.${globalConf.status_code}`,
@@ -187,7 +187,7 @@
                   <td class="url-column" :class="{ disabled: !messageLogEnabled }" data-test="service-url">
                     {{ timestampingService.url }}
                   </td>
-                  <td :class="{ disabled: !messageLogEnabled }">
+                  <td :class="{ disabled: !messageLogEnabled }" data-test="timestamping-message">
                     {{
                       $t(
                         `diagnostics.timestamping.timestampingStatus.${timestampingService.status_code}`,
@@ -261,7 +261,7 @@
                     <td class="url-column" data-test="service-url">
                       {{ ocsp.url }}
                     </td>
-                    <td>
+                    <td data-test="ocsp-responders-message">
                       {{
                         $t(
                           `diagnostics.ocspResponders.ocspStatus.${ocsp.status_code}`,

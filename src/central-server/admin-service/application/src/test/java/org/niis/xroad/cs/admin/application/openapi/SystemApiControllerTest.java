@@ -98,7 +98,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = {"EDIT_SECURITY_SERVER_ADDRESS"})
+    @WithMockUser(authorities = {"EDIT_CENTRAL_SERVER_ADDRESS"})
     public void testUpdateCentralServerAddress() throws Exception {
         when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(
                 testSWToken); // for the getInitializationStatus
@@ -121,7 +121,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = {"EDIT_SECURITY_SERVER_ADDRESS"})
+    @WithMockUser(authorities = {"EDIT_CENTRAL_SERVER_ADDRESS"})
     public void testUpdateCentralServerAddressInvalidParam() {
         CentralServerAddressDto centralServerAddress = new CentralServerAddressDto()
                 .centralServerAddress("invalid...address.c");

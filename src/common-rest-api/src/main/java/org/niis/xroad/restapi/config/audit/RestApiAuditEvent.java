@@ -86,7 +86,7 @@ public enum RestApiAuditEvent {
     DELETE_TSP("Delete timestamping service"),
     EDIT_TIMESTAMP_SERVICE("Edit timestamping service"),
     GENERATE_INTERNAL_TLS_KEY_CERT("Generate new internal TLS key and certificate"),
-    UPDATE_CENTRAL_SERVER_ADDRESS("Update Central Server address"),
+    EDIT_CENTRAL_SERVER_ADDRESS("Edit central server address"),
 
     // keys and certificates events
     LOGIN_TOKEN("Log in to token"),
@@ -134,7 +134,7 @@ public enum RestApiAuditEvent {
     APPROVE_MANAGEMENT_REQUEST("Approve management request"),
 
     DELETE_SECURITY_SERVER("Delete security server"),
-    UPDATE_SECURITY_SERVER_ADDRESS("Update security server address"),
+    EDIT_SECURITY_SERVER_ADDRESS("Edit security server address"),
 
     ADD_CERTIFICATION_SERVICE("Add certification service"),
     EDIT_CERTIFICATION_SERVICE_SETTINGS("Edit certification service settings"),
