@@ -42,7 +42,6 @@ import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -53,6 +52,8 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_CLASS;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_CODE;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_PROVIDER_IDENTIFIER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_PROVIDER_NAME;
 
 @Service
 @RequiredArgsConstructor
@@ -72,8 +73,8 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
         systemParameterService.updateOrCreateParameter(MANAGEMENT_SERVICE_PROVIDER_CODE, xRoadMember.getMemberCode());
         systemParameterService.updateOrCreateParameter(MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM, subsystem.getSubsystemCode());
 
-        auditData.put(RestApiAuditProperty.SERVICE_PROVIDER_IDENTIFIER, serviceProviderClientId.asEncodedId());
-        auditData.put(RestApiAuditProperty.SERVICE_PROVIDER_NAME, subsystem.getXroadMember().getName());
+        auditData.put(SERVICE_PROVIDER_IDENTIFIER, serviceProviderClientId.asEncodedId());
+        auditData.put(SERVICE_PROVIDER_NAME, subsystem.getXroadMember().getName());
 
         return getFullConfiguration(xRoadMember, serviceProviderClientId);
     }
