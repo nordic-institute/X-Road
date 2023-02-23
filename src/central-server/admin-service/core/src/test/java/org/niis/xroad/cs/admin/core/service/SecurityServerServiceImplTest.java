@@ -39,13 +39,16 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.cs.admin.api.domain.AuthCert;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
+import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
@@ -57,12 +60,14 @@ import org.springframework.data.domain.PageImpl;
 
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
@@ -83,6 +88,9 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
     @Mock
     private SecurityServerMapper securityServerMapper;
+
+    @Mock
+    private CertificateConverter certificateConverter;
 
     @Mock
     private AuditDataHelper auditDataHelper;
@@ -191,7 +199,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
     }
 
     @Nested
-    class UpdateSecurityServerAddress implements WithInOrder {
+    class UpdateSecurityServerAddress {
 
         MemberId ownerId = MemberId.create("UNIT_TEST", "MOCK", "test123");
 
@@ -230,4 +238,30 @@ class SecurityServerServiceImplTest implements WithInOrder {
             verifyNoInteractions(securityServerMapper);
         }
     }
+
+    @Nested
+    class FindSecurityServerAuthCerts {
+
+        @Test
+        void shouldFindSecurityServerAuthCerts() {
+            var certificateDetailsMock = new SecurityServerAuthenticationCertificateDetails(1);
+            AuthCert authCertMock = new AuthCert();
+            authCertMock.setCert("test".getBytes());
+            when(securityServerRepository.findBy(serverId)).thenReturn(Option.of(securityServerEntity));
+            when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
+            when(securityServer.getAuthCerts()).thenReturn(Set.of(authCertMock));
+            when(certificateConverter.toCertificateDetails(authCertMock)).thenReturn(certificateDetailsMock);
+            var result = securityServerService.findAuthCertificates(serverId);
+            assertThat(result).containsOnly(certificateDetailsMock);
+        }
+
+        @Test
+        void securityServerNotFound() {
+            when(securityServerRepository.findBy(serverId)).thenReturn(Option.none());
+
+            assertThrows(NotFoundException.class, () ->  securityServerService.findAuthCertificates(serverId));
+        }
+
+    }
+
 }

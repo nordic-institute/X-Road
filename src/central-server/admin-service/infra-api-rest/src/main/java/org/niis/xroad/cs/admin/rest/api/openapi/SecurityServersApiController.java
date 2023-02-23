@@ -28,9 +28,11 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
+import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.SecurityServerConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ClientDtoConverter;
@@ -41,6 +43,7 @@ import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerAddressDto;
+import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -55,6 +58,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.toSet;
@@ -70,6 +74,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     private final SecurityServerConverter serverConverter;
     private final SecurityServerDtoConverter securityServerDtoConverter;
     private final PageRequestConverter pageRequestConverter;
+    private final CertificateDetailsDtoConverter certificateDetailsDtoConverter;
 
     private final SecurityServerService securityServerService;
     private final SecurityServerIdConverter securityServerIdConverter;
@@ -125,8 +130,13 @@ public class SecurityServersApiController implements SecurityServersApi {
     }
 
     @Override
-    public ResponseEntity<Set<CertificateDetailsDto>> getSecurityServerAuthCerts(String id) {
-        throw new NotImplementedException("getSecurityServerAuthCerts not implemented yet");
+    @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVER_DETAILS')")
+    public ResponseEntity<Set<SecurityServerAuthenticationCertificateDetailsDto>> getSecurityServerAuthCerts(String id) {
+        Set<SecurityServerAuthenticationCertificateDetails> authCerts =
+                securityServerService.findAuthCertificates(securityServerIdConverter.convertId(id));
+        return ResponseEntity.ok(
+                authCerts.stream().map(certificateDetailsDtoConverter::convert).collect(Collectors.toSet())
+        );
     }
 
     @Override

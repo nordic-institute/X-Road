@@ -37,11 +37,13 @@ import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
+import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.StableSortHelper;
+import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -53,6 +55,8 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
@@ -67,6 +71,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     private final ManagementRequestService managementRequestService;
     private final ClientService clientService;
     private final SecurityServerMapper securityServerMapper;
+    private final CertificateConverter certificateConverter;
     private final AuditDataHelper auditDataHelper;
 
     @Override
@@ -118,6 +123,17 @@ public class SecurityServerServiceImpl implements SecurityServerService {
                 .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
     }
 
+    @Override
+    public Set<SecurityServerAuthenticationCertificateDetails> findAuthCertificates(SecurityServerId id) {
+        return securityServerRepository.findBy(id)
+                .map(securityServerMapper::toTarget)
+                .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND))
+                .getAuthCerts().stream()
+                .map(certificateConverter::toCertificateDetails)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public Option<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress) {
         auditDataHelper.put(RestApiAuditProperty.SERVER_CODE, serverId.getServerCode());
         auditDataHelper.put(RestApiAuditProperty.OWNER_CODE, serverId.getOwner().getMemberCode());

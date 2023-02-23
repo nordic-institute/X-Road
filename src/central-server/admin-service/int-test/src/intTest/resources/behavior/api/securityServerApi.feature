@@ -1,10 +1,6 @@
 @SecurityServer
 Feature: Security Server API
 
-  Scenario: Security server get certs fails
-    When Security server auth certs for "123" is requested
-    Then Response is of status code 403
-
   @Modifying
   Scenario: Get list of security servers
     Given member class 'TEST' is created
@@ -41,5 +37,12 @@ Feature: Security Server API
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered
     And management request is approved
     Then security server 'CS:TEST:member-1:SS-X' address is updated
-    And Updating the address of a non-existing security server fails
+    And updating the address of a non-existing security server fails
 
+  @Modifying
+  Scenario: Get security server authentication certificates
+    Given member class 'TEST' is created
+    And new member 'CS:TEST:member-1' is added
+    And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered
+    And management request is approved
+    Then user can get security server 'CS:TEST:member-1:SS-X' authentication certificates
