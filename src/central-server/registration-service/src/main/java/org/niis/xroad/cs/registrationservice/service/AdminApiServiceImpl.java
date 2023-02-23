@@ -61,7 +61,7 @@ class AdminApiServiceImpl implements AdminApiService {
                 .serverCode(serverId.getServerCode());
         securityServerIdDto.type(XRoadIdDto.TypeEnum.valueOf(serverId.getObjectType().name()))
                 .instanceId(serverId.getXRoadInstance())
-                .encodedId(serverId.getEncodedId());
+                .encodedId(serverId.asEncodedId());
         request.setSecurityServerId(securityServerIdDto);
 
         var result = managementRequestsApi.addManagementRequest(request);

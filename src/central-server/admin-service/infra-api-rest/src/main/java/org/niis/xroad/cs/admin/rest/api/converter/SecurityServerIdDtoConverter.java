@@ -40,6 +40,7 @@ public interface SecurityServerIdDtoConverter {
 
     @Mapping(target = "instanceId", source = "XRoadInstance")
     @Mapping(target = "type", source = "objectType")
+    @Mapping(target = "encodedId", expression = "java(securityServerId.asEncodedId())")
     SecurityServerIdDto convert(SecurityServerId securityServerId);
 
 }

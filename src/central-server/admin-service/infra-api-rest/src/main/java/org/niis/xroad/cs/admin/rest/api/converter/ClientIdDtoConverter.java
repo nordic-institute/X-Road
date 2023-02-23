@@ -40,6 +40,7 @@ public interface ClientIdDtoConverter {
 
     @Mapping(target = "instanceId", source = "XRoadInstance")
     @Mapping(target = "type", source = "objectType")
+    @Mapping(target = "encodedId", expression = "java(clientId.asEncodedId())")
     ClientIdDto convert(ClientId clientId);
 
 }
