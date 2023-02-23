@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.core.entity;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Access;
@@ -49,6 +50,7 @@ import javax.validation.constraints.NotNull;
 @Table(name = AuthCertEntity.TABLE_NAME)
 @EqualsAndHashCode(exclude = {"id", "securityServer"}, callSuper = false)
 @Getter
+@NoArgsConstructor
 public class AuthCertEntity extends AuditableEntity {
 
     public static final String TABLE_NAME = "auth_certs";
@@ -75,10 +77,6 @@ public class AuthCertEntity extends AuditableEntity {
     @Getter
     @Setter
     private byte[] cert;
-
-    protected AuthCertEntity() {
-        //JPA
-    }
 
     public AuthCertEntity(SecurityServerEntity server, byte[] certificate) {
         this.securityServer = server;

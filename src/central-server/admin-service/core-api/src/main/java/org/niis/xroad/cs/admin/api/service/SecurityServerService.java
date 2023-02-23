@@ -33,10 +33,12 @@ import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
+import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Set;
 
 public interface SecurityServerService {
 
@@ -51,6 +53,8 @@ public interface SecurityServerService {
     List<SecurityServer> findAll();
 
     List<FlattenedSecurityServerClientView> findClients(SecurityServerId serverId);
+
+    Set<SecurityServerAuthenticationCertificateDetails> findAuthCertificates(SecurityServerId id);
 
     Option<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress);
 

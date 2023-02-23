@@ -33,6 +33,7 @@ import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerAddressDto;
+import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SecurityServerApiStepDefs extends BaseStepDefs {
+
     @Autowired
     private FeignSecurityServersApi securityServersApi;
 
@@ -153,7 +155,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("Updating the address of a non-existing security server fails")
+    @Step("updating the address of a non-existing security server fails")
     public void updatingAddressOfNonExistingSecurityServerFails() {
         try {
             securityServersApi.updateSecurityServerAddress(
@@ -169,6 +171,25 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                             .build())
                     .execute();
         }
+    }
+
+    @Step("user can get security server {string} authentication certificates")
+    public void userCanGetSecurityServerAuthneticationCertificates(String serverId) {
+        final ResponseEntity<Set<SecurityServerAuthenticationCertificateDetailsDto>> response =
+                securityServersApi.getSecurityServerAuthCerts(serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1, "body.size", "Auth cert is present in the response"))
+                .assertion(notNullAssertion("body[0].id"))
+                .assertion(equalsAssertion("Issuer", "body[0].issuerCommonName",
+                        "Auth cert \"issuerCommonName\" should match"))
+                .assertion(equalsAssertion("1", "body[0].serial",
+                        "Auth cert \"serial\" should match"))
+                .assertion(equalsAssertion("CN=Subject", "body[0].subjectDistinguishedName",
+                        "Auth cert \"subjectDistinguishedName\" should match"))
+                .assertion(notNullAssertion("body[0].notAfter"))
+                .execute();
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
