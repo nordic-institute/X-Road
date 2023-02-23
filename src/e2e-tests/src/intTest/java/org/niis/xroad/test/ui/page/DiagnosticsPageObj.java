@@ -59,4 +59,20 @@ public class DiagnosticsPageObj {
         return $x("//table[@data-test='member-encryption-status']")
                 .$("td.status-wrapper:has(i.warning-icon)");
     }
+
+    public SelenideElement javaVersionMessage() {
+        return $x("//td[@data-test='java-message']");
+    }
+
+    public SelenideElement globalConfigurationMessage() {
+        return $x("//td[@data-test='global-configuration-message']");
+    }
+
+    public SelenideElement timestampingMessage() {
+        return $x("//td[@data-test='timestamping-message']");
+    }
+
+    public SelenideElement ocspResponderMessage() {
+        return $x("//td[@data-test='ocsp-responders-message']");
+    }
 }

@@ -27,16 +27,25 @@
 package org.niis.xroad.cs.admin.jpa.repository;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
 
+import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface JpaSubsystemRepository extends JpaSecurityServerClientRepository<SubsystemEntity>, SubsystemRepository {
+public interface JpaSubsystemRepository extends JpaSecurityServerClientRepository<SubsystemEntity>,
+        JpaSpecificationExecutor<SubsystemEntity>, SubsystemRepository {
 
-    Optional<SubsystemEntity> findByIdentifier(ClientId id);
+    default Optional<SubsystemEntity> findByIdentifier(ClientId clientId) {
+        ClientId memberId = clientId.getObjectType().equals(XRoadObjectType.SUBSYSTEM) ? clientId
+                : SubsystemId.create(clientId);
+        return findOneBy(memberId).toJavaOptional();
+    }
+
 }
 

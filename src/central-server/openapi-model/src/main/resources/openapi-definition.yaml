@@ -2743,7 +2743,7 @@ paths:
               schema:
                 description: array of auth certs
                 items:
-                  $ref: '#/components/schemas/CertificateDetails'
+                  $ref: '#/components/schemas/SecurityServerAuthenticationCertificateDetails'
                 type: array
                 uniqueItems: true
           description: list of auth certs
@@ -2839,6 +2839,44 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
       summary: get a security server's authentication certificate
+      tags:
+        - security-servers
+  /security-servers/{id}/clients:
+    get:
+      description: <h3>CS administrator views a Security Server's clients.</h3>
+      operationId: getSecurityServerClients
+      parameters:
+        - description: id of the security server
+          in: path
+          name: id
+          required: true
+          schema:
+            format: text
+            maxLength: 1023
+            minLength: 1
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: clients
+                items:
+                  $ref: '#/components/schemas/Client'
+                type: array
+                uniqueItems: true
+          description: list of clients
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a security server's clients
       tags:
         - security-servers
   /system/instance-identifier:
@@ -3704,6 +3742,17 @@ components:
         - key_usages
         - subject_alternative_names
       type: object
+    SecurityServerAuthenticationCertificateDetails:
+      allOf:
+        - $ref: '#/components/schemas/CertificateDetails'
+      description: Security server's authentication certificate
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
     CertificateFile:
       description: certificate file
       properties:

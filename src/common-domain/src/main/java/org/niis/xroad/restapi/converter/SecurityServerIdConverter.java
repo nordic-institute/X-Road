@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -51,7 +52,7 @@ public class SecurityServerIdConverter extends AbstractConverter<SecurityServerI
     public SecurityServerId convertId(String encodedId) {
         validateEncodedString(encodedId);
         int serverCodeSeparatorIndex = encodedId.lastIndexOf(
-                Converters.ENCODED_ID_SEPARATOR);
+                XRoadId.ENCODED_ID_SEPARATOR);
         // items 0,1,2 for a client id of an member (not a subsystem)
         String encodedMemberClientId = encodedId.substring(0, serverCodeSeparatorIndex);
         ClientId memberClientId = clientIdConverter.convertId(encodedMemberClientId);
@@ -61,7 +62,7 @@ public class SecurityServerIdConverter extends AbstractConverter<SecurityServerI
 
     private void validateEncodedString(String encodedId) {
         int separators = FormatUtils.countOccurences(encodedId,
-                Converters.ENCODED_ID_SEPARATOR);
+                XRoadId.ENCODED_ID_SEPARATOR);
         if (separators != SECURITY_SERVER_CODE_INDEX) {
             throw new BadRequestException("Invalid security server id " + encodedId);
         }

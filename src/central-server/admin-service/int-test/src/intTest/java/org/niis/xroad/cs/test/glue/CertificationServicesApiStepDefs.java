@@ -40,7 +40,7 @@ import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.CERTIFICATION
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
 import static org.springframework.http.HttpStatus.CREATED;
 
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class CertificationServicesApiStepDefs extends BaseStepDefs {
 
     @Autowired

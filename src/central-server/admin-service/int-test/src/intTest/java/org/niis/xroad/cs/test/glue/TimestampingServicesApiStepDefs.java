@@ -49,6 +49,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class TimestampingServicesApiStepDefs extends BaseStepDefs {
 
     @Autowired

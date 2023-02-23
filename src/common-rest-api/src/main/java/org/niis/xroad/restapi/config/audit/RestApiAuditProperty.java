@@ -140,7 +140,10 @@ public enum RestApiAuditProperty {
     PART_FILE_NAME,
     UPLOAD_FILE_HASH,
     UPLOAD_FILE_HASH_ALGORITHM,
-    CONTENT_IDENTIFIER;
+    CONTENT_IDENTIFIER,
+
+    SERVICE_PROVIDER_IDENTIFIER,
+    SERVICE_PROVIDER_NAME;
 
     /**
      * Gets logged property name for the enum value.

@@ -31,6 +31,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
+import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
@@ -49,16 +51,28 @@ public class CertificateConverter {
     private static final int RADIX_FOR_HEX = 16;
     private final KeyUsageConverter keyUsageConverter;
 
-    @SneakyThrows
-    public CertificateDetails toCertificateDetails(byte[] cert) {
+    public CertificateDetails toCertificateDetails(final byte[] cert) {
         if (cert == null) {
             return null;
         }
+        CertificateDetails certificateDetails = new CertificateDetails();
+        populateCertificateDetails(certificateDetails, cert);
+        return certificateDetails;
+    }
 
+    public SecurityServerAuthenticationCertificateDetails toCertificateDetails(final AuthCertEntity authCert) {
+        SecurityServerAuthenticationCertificateDetails authCertificateDetails =
+                new SecurityServerAuthenticationCertificateDetails(authCert.getId());
+        populateCertificateDetails(authCertificateDetails, authCert.getCert());
+        return authCertificateDetails;
+    }
+
+    @SneakyThrows
+    private void populateCertificateDetails(final CertificateDetails certificateDetails, byte[] cert) {
         final X509Certificate[] certificates = CertUtils.readCertificateChain(cert);
         final X509Certificate certificate = certificates[0];
 
-        final CertificateDetails certificateDetails = new CertificateDetails()
+        certificateDetails
                 .setHash(CryptoUtils.calculateCertHexHash(certificate.getEncoded()).toUpperCase())
                 .setVersion(certificate.getVersion())
                 .setSerial(valueOf(certificate.getSerialNumber()))
@@ -81,7 +95,5 @@ public class CertificateConverter {
             certificateDetails.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent());
             certificateDetails.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
         }
-
-        return certificateDetails;
     }
 }

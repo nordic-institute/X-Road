@@ -23,16 +23,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.cs.admin.api.domain;
 
-/**
- * Shared constants and methods for converters
- */
-@SuppressWarnings({"checkstyle:InterfaceIsType", "java:S1214"})
-public interface Converters {
-    /**
-     * Separator char for different types of encoded ids: client id,
-     * service id, security server id...
-     */
-    char ENCODED_ID_SEPARATOR = ':';
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+@Data
+@Accessors(chain = true)
+public class ManagementServicesConfiguration {
+    private String securityServerId;
+    private String securityServerOwnersGlobalGroupCode;
+    private String serviceProviderName;
+    private String servicesAddress;
+    private String wsdlAddress;
+    private String serviceProviderId;
 }

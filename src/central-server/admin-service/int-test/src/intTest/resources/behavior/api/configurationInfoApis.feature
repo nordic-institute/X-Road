@@ -1,5 +1,8 @@
 @ConfigurationInfo
-Feature: Configuration Info APIs
+Feature: Configuration Info API
+
+  Background:
+    Given Authentication header is set to SECURITY_OFFICER
 
   Scenario: View internal configuration
     * INTERNAL configuration parts exists

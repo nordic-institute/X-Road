@@ -42,6 +42,8 @@ public interface SystemParameterService {
 
     String getInstanceIdentifier();
 
+    String getSecurityServerOwnersGroup();
+
     String getConfSignCertHashAlgoUri();
 
     String getConfSignDigestAlgoId();

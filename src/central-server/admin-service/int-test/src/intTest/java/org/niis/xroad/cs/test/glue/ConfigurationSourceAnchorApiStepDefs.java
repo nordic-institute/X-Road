@@ -39,6 +39,7 @@ import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static org.springframework.http.HttpStatus.OK;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ConfigurationSourceAnchorApiStepDefs extends BaseStepDefs {
 
     @Autowired

@@ -1,6 +1,5 @@
-/*
+/**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,21 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.api.service;
 
-package org.niis.xroad.cs.admin.rest.api.converter;
+import ee.ria.xroad.common.identifier.ClientId;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
-import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
-import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
-import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
+import org.niis.xroad.cs.admin.api.domain.ManagementServicesConfiguration;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface CertificateDetailsDtoConverter extends BaseConverter {
+public interface ManagementServicesService {
+    /**
+     * Update management service provider.
+     *
+     * @param serviceProviderClientId identifier
+     * @return configuration
+     */
+    ManagementServicesConfiguration updateManagementServicesProvider(ClientId serviceProviderClientId);
 
-    CertificateDetailsDto convert(CertificateDetails certificateDetails);
-
-    SecurityServerAuthenticationCertificateDetailsDto convert(SecurityServerAuthenticationCertificateDetails certificateDetails);
-
+    /**
+     * Get aggregated management services configuration.
+     *
+     * @return configuration
+     */
+    ManagementServicesConfiguration getManagementServicesConfiguration();
 }

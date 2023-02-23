@@ -44,8 +44,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
 
 /**
  * Convert Service related data between openapi and service domain classes

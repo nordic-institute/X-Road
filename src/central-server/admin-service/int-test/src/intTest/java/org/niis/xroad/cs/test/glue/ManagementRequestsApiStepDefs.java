@@ -70,9 +70,10 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         generateAuthenticationCertificate();
         final String[] idParts = StringUtils.split(securityServerId, ':');
         final var managementRequest = new AuthenticationCertificateRegistrationRequestDto();
-        managementRequest.setServerAddress("security-server-" + idParts[3]);
+        managementRequest.setServerAddress("security-server-address-" + idParts[3]);
         managementRequest.setSecurityServerId(toSecurityServerIdDto(securityServerId));
         managementRequest.setAuthenticationCertificate(authenticationCertificate);
+        managementRequest.setAuthenticationCertificate(CertificateUtils.generateAuthCert());
         managementRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);
         managementRequest.setOrigin(ManagementRequestOriginDto.valueOf(origin));
 
@@ -95,7 +96,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("member {string} is registered as security server {string} client")
+    @Step("client {string} is registered as security server {string} client")
     public void memberIsRegisteredAsSecurityServerClient(String memberId, String securityServerId) {
         final ClientRegistrationRequestDto managementRequest = new ClientRegistrationRequestDto();
         managementRequest.setType(CLIENT_REGISTRATION_REQUEST);
@@ -161,6 +162,24 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                         "Verify request type"))
                 .assertion(equalsAssertion(SECURITY_SERVER, "body.origin",
                         "Verify request origin"))
+                .execute();
+    }
+
+    @Step("new client {string} is registered for security server {string}")
+    public void newClientIsRegisteredForSecurityServer(String clientId, String securityServerId) {
+
+        final ClientRegistrationRequestDto clientRegDto = new ClientRegistrationRequestDto();
+        clientRegDto.setOrigin(SECURITY_SERVER);
+        clientRegDto.setType(CLIENT_REGISTRATION_REQUEST);
+        clientRegDto.setSecurityServerId(toSecurityServerIdDto(securityServerId));
+        clientRegDto.setClientId(toClientIdDto(clientId));
+
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(clientRegDto);
+        this.managementRequestId = response.getBody().getId();
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                .assertion(equalsAssertion(WAITING, "body.status", "Verify status"))
                 .execute();
     }
 

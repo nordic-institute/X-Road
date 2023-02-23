@@ -28,13 +28,14 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
-import org.niis.xroad.restapi.converter.Converters;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
 
 /**
  * Helper to convert GlobalGroups
@@ -61,10 +62,10 @@ public class GlobalGroupConverter {
         StringBuilder builder = new StringBuilder();
         if (includeType) {
             builder.append(globalGroupId.getObjectType())
-                    .append(Converters.ENCODED_ID_SEPARATOR);
+                    .append(ENCODED_ID_SEPARATOR);
         }
         builder.append(globalGroupId.getXRoadInstance())
-                .append(Converters.ENCODED_ID_SEPARATOR)
+                .append(ENCODED_ID_SEPARATOR)
                 .append(globalGroupId.getGroupCode());
         return builder.toString().trim();
     }
@@ -78,14 +79,14 @@ public class GlobalGroupConverter {
         if (!isEncodedGlobalGroupId(encodedId)) {
             throw new BadRequestException("Invalid global group id " + encodedId);
         }
-        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(Converters.ENCODED_ID_SEPARATOR)));
+        List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
         String groupCode = parts.get(GLOBALGROUP_CODE_INDEX);
         return GlobalGroupId.Conf.create(instance, groupCode);
     }
 
     public boolean isEncodedGlobalGroupId(String encodedId) {
-        int separators = FormatUtils.countOccurences(encodedId, Converters.ENCODED_ID_SEPARATOR);
+        int separators = FormatUtils.countOccurences(encodedId, ENCODED_ID_SEPARATOR);
         return separators == GLOBALGROUP_CODE_INDEX;
     }
 

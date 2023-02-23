@@ -41,7 +41,7 @@ import java.util.Optional;
 /**
  * Base class for all step definitions. Provides convenience methods and most commonly used beans.
  */
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public abstract class BaseStepDefs {
     @Autowired
     private ScenarioContext scenarioContext;
@@ -121,6 +121,7 @@ public abstract class BaseStepDefs {
         RESPONSE_STATUS,
         CERTIFICATION_SERVICE_ID,
         OCSP_RESPONDER_ID,
-        NEW_OCSP_RESPONDER_URL
+        NEW_OCSP_RESPONDER_URL,
+        TOKEN_TYPE
     }
 }
