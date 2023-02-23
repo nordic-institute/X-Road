@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 
 /**
  * Methods for storing various {@link RestApiAuditProperty} values in request scope
@@ -234,6 +235,15 @@ public class AuditDataHelper {
      */
     public void putCertificateHash(String unformattedHash) {
         putAlreadyFormattedCertificateHash(formatHash(unformattedHash));
+    }
+
+    /**
+     * calculates and puts certificate hash using default hash algorithm
+     * @param certificate certificate
+     */
+    public void putCertificateHash(byte[] certificate) {
+        put(RestApiAuditProperty.CERT_HASH, calculateCertHexHashDelimited(certificate));
+        putDefaulCertHashAlgorithm();
     }
 
     /**

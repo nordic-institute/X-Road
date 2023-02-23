@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.Origin;
@@ -44,10 +45,11 @@ import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
+import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
+import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -59,7 +61,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.AUTH_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ADDRESS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @Service
 @Transactional
@@ -67,6 +75,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER
 public class SecurityServerServiceImpl implements SecurityServerService {
 
     private final StableSortHelper stableSortHelper;
+    private final AuthCertRepository authCertRepository;
     private final SecurityServerRepository securityServerRepository;
     private final ManagementRequestService managementRequestService;
     private final ClientService clientService;
@@ -134,14 +143,34 @@ public class SecurityServerServiceImpl implements SecurityServerService {
 
     @Override
     public Option<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress) {
-        auditDataHelper.put(RestApiAuditProperty.SERVER_CODE, serverId.getServerCode());
-        auditDataHelper.put(RestApiAuditProperty.OWNER_CODE, serverId.getOwner().getMemberCode());
-        auditDataHelper.put(RestApiAuditProperty.OWNER_CLASS, serverId.getOwner().getMemberClass());
-        auditDataHelper.put(RestApiAuditProperty.ADDRESS, newAddress);
+        auditDataHelper.put(SERVER_CODE, serverId.getServerCode());
+        auditDataHelper.put(OWNER_CODE, serverId.getOwner().getMemberCode());
+        auditDataHelper.put(OWNER_CLASS, serverId.getOwner().getMemberClass());
+        auditDataHelper.put(ADDRESS, newAddress);
 
         return securityServerRepository.findBy(serverId)
                 .peek(securityServer -> securityServer.setAddress(newAddress))
                 .map(securityServerMapper::toTarget);
+    }
+
+    @Override
+    public void deleteAuthCertificate(SecurityServerId serverId, Integer certificateId) {
+        auditDataHelper.put(OWNER_CLASS, serverId.getMemberClass());
+        auditDataHelper.put(OWNER_CODE, serverId.getMemberCode());
+        auditDataHelper.put(SERVER_CODE, serverId.getServerCode());
+
+        if (!securityServerRepository.existsBy(serverId)) {
+            throw new NotFoundException(SECURITY_SERVER_NOT_FOUND);
+        }
+
+        final AuthCertEntity authCertificate = authCertRepository.findById(certificateId)
+                .filter(authCertEntity -> authCertEntity.getSecurityServer().getServerId().equals(serverId))
+                .orElseThrow(() -> new NotFoundException(AUTH_CERTIFICATE_NOT_FOUND));
+
+        auditDataHelper.putCertificateHash(authCertificate.getCert());
+
+        final var certDeletionRequest = new AuthenticationCertificateDeletionRequest(CENTER, serverId, authCertificate.getCert());
+        managementRequestService.add(certDeletionRequest);
     }
 
 }

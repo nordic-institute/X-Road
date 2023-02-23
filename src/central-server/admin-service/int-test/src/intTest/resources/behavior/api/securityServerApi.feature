@@ -56,3 +56,15 @@ Feature: Security Server API
     And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
     Then user can get security server 'CS:TEST:member-1:SS-X' authentication certificates
+
+# TODO: FIXME: Implement after certification deletion request handler is implemented
+#  @Modifying
+#  Scenario: Deleting security server authentication certificate
+#    Given Authentication header is set to MANAGEMENT_SERVICE
+#    And member class 'TEST' is created
+#    And new member 'CS:TEST:member-1' is added
+#    And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered
+#    And management request is approved
+#    And Authentication header is set to REGISTRATION_OFFICER
+#    Then user can delete security server 'CS:TEST:member-1:SS-X' authentication certificate
+

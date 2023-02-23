@@ -47,6 +47,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.junit.Assert.fail;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -174,7 +175,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
     }
 
     @Step("user can get security server {string} authentication certificates")
-    public void userCanGetSecurityServerAuthneticationCertificates(String serverId) {
+    public void userCanGetSecurityServerAuthenticationCertificates(String serverId) {
         final ResponseEntity<Set<SecurityServerAuthenticationCertificateDetailsDto>> response =
                 securityServersApi.getSecurityServerAuthCerts(serverId);
 
@@ -192,10 +193,21 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @Step("user can delete security server {string} authentication certificate")
+    public void userCanDeleteSecurityServerAuthenticationCertificate(String serverId) {
+        final var certificatesResponse = securityServersApi.getSecurityServerAuthCerts(serverId);
+        final Integer certificateId = certificatesResponse.getBody().stream().findFirst()
+                .map(SecurityServerAuthenticationCertificateDetailsDto::getId).get();
+
+        final ResponseEntity<Void> response = securityServersApi.deleteSecurityServerAuthCert(serverId, certificateId);
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                .execute();
+    }
+
     @SuppressWarnings("checkstyle:MagicNumber")
     private String randomSecurityServerId() {
         return String.format("%s:%s:%s:%s", randomAlphabetic(3), randomAlphabetic(3),
                 randomAlphabetic(3), randomAlphabetic(3));
     }
-
 }

@@ -63,6 +63,8 @@ import java.util.stream.Collectors;
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER_AUTH_CERT;
+import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -96,8 +98,11 @@ public class SecurityServersApiController implements SecurityServersApi {
     }
 
     @Override
-    public ResponseEntity<Void> deleteSecurityServerAuthCert(String id, String hash) {
-        throw new NotImplementedException("deleteSecurityServerAuthCert not implemented yet");
+    @AuditEventMethod(event = DELETE_SECURITY_SERVER_AUTH_CERT)
+    @PreAuthorize("hasAuthority('DELETE_SECURITY_SERVER_AUTH_CERT')")
+    public ResponseEntity<Void> deleteSecurityServerAuthCert(String id, Integer certificateId) {
+        securityServerService.deleteAuthCertificate(securityServerIdConverter.convertId(id), certificateId);
+        return noContent().build();
     }
 
     @Override
@@ -107,7 +112,6 @@ public class SecurityServersApiController implements SecurityServersApi {
                                                                        PagingSortingParametersDto pagingSorting) {
         PageRequest pageRequest = pageRequestConverter.convert(
                 pagingSorting, findSortParameterConverter);
-
 
         Page<SecurityServerDto> servers = securityServerService.findSecurityServers(query, pageRequest)
                 .map(securityServerDtoConverter::toDto);
@@ -125,7 +129,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     }
 
     @Override
-    public ResponseEntity<CertificateDetailsDto> getSecurityServerAuthCert(String id, String hash) {
+    public ResponseEntity<CertificateDetailsDto> getSecurityServerAuthCert(String id, Integer certificateId) {
         throw new NotImplementedException("getSecurityServerAuthCert not implemented yet");
     }
 

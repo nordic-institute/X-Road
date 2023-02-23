@@ -2760,7 +2760,7 @@ paths:
       summary: get a security server's authentication certificates
       tags:
         - security-servers
-  /security-servers/{id}/authentication-certificates/{hash}:
+  /security-servers/{id}/authentication-certificates/{certificateId}:
     delete:
       description: <h3>CS administrator deletes a Security Server's authentication certificate.</h3>
       operationId: deleteSecurityServerAuthCert
@@ -2774,15 +2774,13 @@ paths:
             maxLength: 1023
             minLength: 1
             type: string
-        - description: SHA-1 hash of the authentication certificate
+        - description: unique identifier of the authentication certificate
           in: path
-          name: hash
+          name: certificateId
           required: true
           schema:
-            format: text
-            maxLength: 40
-            minLength: 1
-            type: string
+            format: int32
+            type: integer
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -2812,15 +2810,13 @@ paths:
             maxLength: 1023
             minLength: 1
             type: string
-        - description: SHA-1 hash of the authentication certificate
+        - description: unique identifier of the certificate
           in: path
-          name: hash
+          name: certificateId
           required: true
           schema:
-            format: text
-            maxLength: 40
-            minLength: 1
-            type: string
+            format: int32
+            type: integer
       responses:
         '200':
           content:
