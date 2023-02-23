@@ -2743,7 +2743,7 @@ paths:
               schema:
                 description: array of auth certs
                 items:
-                  $ref: '#/components/schemas/CertificateDetails'
+                  $ref: '#/components/schemas/SecurityServerAuthenticationCertificateDetails'
                 type: array
                 uniqueItems: true
           description: list of auth certs
@@ -3742,6 +3742,17 @@ components:
         - key_usages
         - subject_alternative_names
       type: object
+    SecurityServerAuthenticationCertificateDetails:
+      allOf:
+        - $ref: '#/components/schemas/CertificateDetails'
+      description: Security server's authentication certificate
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
     CertificateFile:
       description: certificate file
       properties:
