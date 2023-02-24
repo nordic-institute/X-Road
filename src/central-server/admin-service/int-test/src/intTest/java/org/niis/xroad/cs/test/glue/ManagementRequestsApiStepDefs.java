@@ -30,12 +30,10 @@ package org.niis.xroad.cs.test.glue;
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
-import org.niis.xroad.cs.openapi.model.ClientIdDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailsDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
-import org.niis.xroad.cs.openapi.model.SecurityServerIdDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +47,6 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.fromVal
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
-import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.MEMBER;
-import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.SERVER;
-import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.SUBSYSTEM;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -73,7 +68,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         final String[] idParts = StringUtils.split(securityServerId, ':');
         final var managementRequest = new AuthenticationCertificateRegistrationRequestDto();
         managementRequest.setServerAddress("security-server-address-" + idParts[3]);
-        managementRequest.setSecurityServerId(toSecurityServerIdDto(securityServerId));
+        managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setAuthenticationCertificate(authenticationCertificate);
         managementRequest.setAuthenticationCertificate(CertificateUtils.generateAuthCert());
         managementRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);
@@ -103,8 +98,8 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         final ClientRegistrationRequestDto managementRequest = new ClientRegistrationRequestDto();
         managementRequest.setType(CLIENT_REGISTRATION_REQUEST);
         managementRequest.setOrigin(SECURITY_SERVER);
-        managementRequest.setSecurityServerId(toSecurityServerIdDto(securityServerId));
-        managementRequest.setClientId(toClientIdDto(memberId));
+        managementRequest.setSecurityServerId(securityServerId);
+        managementRequest.setClientId(memberId);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
@@ -120,8 +115,8 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         final OwnerChangeRequestDto managementRequest = new OwnerChangeRequestDto();
         managementRequest.setType(OWNER_CHANGE_REQUEST);
         managementRequest.setOrigin(SECURITY_SERVER);
-        managementRequest.setSecurityServerId(toSecurityServerIdDto(securityServerId));
-        managementRequest.setClientId(toClientIdDto(memberId));
+        managementRequest.setSecurityServerId(securityServerId);
+        managementRequest.setClientId(memberId);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
@@ -171,26 +166,5 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         if (authenticationCertificate == null) {
             authenticationCertificate = CertificateUtils.generateAuthCert();
         }
-    }
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    private SecurityServerIdDto toSecurityServerIdDto(String securityServerId) {
-        final String[] securityServerIdParts = StringUtils.split(securityServerId, ':');
-        var clientIdDto = new SecurityServerIdDto();
-        clientIdDto.encodedId(securityServerId)
-                .instanceId(securityServerIdParts[0]).type(SERVER);
-        return clientIdDto.memberClass(securityServerIdParts[1])
-                .memberCode(securityServerIdParts[2]).serverCode(securityServerIdParts[3]);
-    }
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    private ClientIdDto toClientIdDto(String clientId) {
-        final String[] clientIdParts = StringUtils.split(clientId, ':');
-        var clientIdDto = new ClientIdDto();
-        clientIdDto.encodedId(clientId).instanceId(clientIdParts[0]).type(MEMBER);
-        if (clientIdParts.length > 3) {
-            clientIdDto.subsystemCode(clientIdParts[3]).type(SUBSYSTEM);
-        }
-        return clientIdDto.memberClass(clientIdParts[1]).memberCode(clientIdParts[2]);
     }
 }

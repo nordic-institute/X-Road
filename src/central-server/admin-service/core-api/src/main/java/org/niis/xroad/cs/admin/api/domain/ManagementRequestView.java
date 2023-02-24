@@ -61,6 +61,7 @@ public class ManagementRequestView {
     private String clientMemberCode;
     private String clientMemberClass;
     private String clientSubsystemCode;
+    private byte[] authCert;
     private CertificateDetails certificateDetails;
     private String address;
     private Instant createdAt;

@@ -4464,7 +4464,7 @@ components:
         items:
           description: Management Requests
           items:
-            $ref: '#/components/schemas/ManagementRequest'
+            $ref: '#/components/schemas/ManagementRequestView'
           type: array
         paging_metadata:
           $ref: '#/components/schemas/PagingMetadata'
@@ -4881,40 +4881,14 @@ components:
     ManagementRequestDetails:
       type: object
       description: Management request details
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequestView'
       properties:
-        id:
-          type: integer
-          description: request id
-          readOnly: true
-        type:
-          $ref: '#/components/schemas/ManagementRequestType'
-        origin:
-          $ref: '#/components/schemas/ManagementRequestOrigin'
-        status:
-          $ref: '#/components/schemas/ManagementRequestStatus'
-        security_server_owner:
-          type: string
-          readOnly: true
-        security_server_id:
-          $ref: '#/components/schemas/SecurityServerId'
-        address:
-          type: string
-          readOnly: true
         client_owner_name:
           type: string
           readOnly: true
-        client_id:
-          $ref: '#/components/schemas/ClientId'
         certificateDetails:
           $ref: '#/components/schemas/CertificateDetails'
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-      required:
-        - type
-        - source
-        - securityserverId
     ManagementRequest:
       type: object
       description: Management request
@@ -4941,9 +4915,41 @@ components:
           type: string
           readOnly: true
         security_server_id:
-          $ref: '#/components/schemas/SecurityServerId'
+          type: string
+          description: Encoded Security Server ID
         status:
           $ref: '#/components/schemas/ManagementRequestStatus'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - type
+        - source
+        - securityserverId
+    ManagementRequestView:
+      type: object
+      description: Management request view
+      properties:
+        id:
+          type: integer
+          description: request id
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/ManagementRequestType'
+        origin:
+          $ref: '#/components/schemas/ManagementRequestOrigin'
+        security_server_owner:
+          type: string
+          readOnly: true
+        security_server_id:
+          $ref: '#/components/schemas/SecurityServerId'
+        address:
+          type: string
+        status:
+          $ref: '#/components/schemas/ManagementRequestStatus'
+        clientId:
+          $ref: '#/components/schemas/ClientId'
         created_at:
           type: string
           format: date-time
@@ -5113,7 +5119,8 @@ components:
       type: object
       properties:
         clientId:
-          $ref: '#/components/schemas/ClientId'
+          type: string
+          description: Encoded Client ID
       required:
         - clientId
     ClientDeletionRequest:
@@ -5122,7 +5129,8 @@ components:
       type: object
       properties:
         clientId:
-          $ref: '#/components/schemas/ClientId'
+          type: string
+          description: Encoded Client ID
       required:
         - clientId
     OwnerChangeRequest:
@@ -5131,7 +5139,8 @@ components:
       type: object
       properties:
         clientId:
-          $ref: '#/components/schemas/ClientId'
+          type: string
+          description: Encoded Client ID
       required:
         - clientId
   securitySchemes:

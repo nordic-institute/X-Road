@@ -31,12 +31,13 @@ import axios, { AxiosRequestConfig } from 'axios';
 import {
   ManagementRequest,
   ManagementRequestsFilter,
+  ManagementRequestView,
   PagedManagementRequests,
   PagingMetadata,
 } from '@/openapi-types';
 
 export interface State {
-  items: ManagementRequest[];
+  items: ManagementRequestView[];
   pagingOptions: PagingMetadata;
 }
 

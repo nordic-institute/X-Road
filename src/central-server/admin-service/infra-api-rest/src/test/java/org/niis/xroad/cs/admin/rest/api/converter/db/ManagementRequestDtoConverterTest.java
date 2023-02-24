@@ -50,21 +50,17 @@ import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.rest.api.converter.AbstractDtoConverterTest;
-import org.niis.xroad.cs.admin.rest.api.converter.ClientIdDtoConverter;
-import org.niis.xroad.cs.admin.rest.api.converter.SecurityServerIdDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestOriginDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestStatusConverter;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
-import org.niis.xroad.cs.openapi.model.ClientIdDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
-import org.niis.xroad.cs.openapi.model.SecurityServerIdDto;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
@@ -98,23 +94,13 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
     private SecurityServerId securityServerId;
 
     @Mock
-    private SecurityServerIdDto securityServerIdDto;
-
-    @Mock
-    private ClientIdDto clientIdDto;
-
-    @Mock
     private ManagementRequestOriginDtoConverter.Service originDtoMapper;
     @Mock
     private SecurityServerIdConverter securityServerIdMapper;
     @Mock
-    private SecurityServerIdDtoConverter securityServerIdDtoConverter;
-    @Mock
     private ManagementRequestStatusConverter.Service statusMapper;
     @Mock
     private ClientIdConverter clientIdConverter;
-    @Mock
-    private ClientIdDtoConverter clientIdDtoConverter;
     @Spy
     private ManagementRequestDtoTypeConverter.Service requestTypeConverter = new ManagementRequestDtoTypeConverter.Service();
 
@@ -180,7 +166,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
         public void testClientRegistrationRequestConversion() {
             ClientRegistrationRequest request = mock(ClientRegistrationRequest.class);
             doReturn(clientId).when(request).getClientId();
-            doReturn(clientIdDto).when(clientIdDtoConverter).convert(clientId);
+            doReturn(encodedClientId).when(clientIdConverter).convertId(clientId);
             prepareCommonStubs(request, ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
 
             ManagementRequestDto converted = converter.toDto(request);
@@ -188,10 +174,10 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             assertCommon(converted, CLIENT_REGISTRATION_REQUEST);
             ClientRegistrationRequestDto casted =
                     assertInstanceOf(ClientRegistrationRequestDto.class, converted);
-            assertEquals(clientIdDto, casted.getClientId());
+            assertEquals(encodedClientId, casted.getClientId());
             inOrder(request).verify(inOrder -> {
                 inOrder.verify(request).getClientId();
-                inOrder.verify(clientIdDtoConverter).convert(clientId);
+                inOrder.verify(clientIdConverter).convertId(clientId);
                 verifyCommon(inOrder, request);
             });
         }
@@ -201,7 +187,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
         public void testClientDeletionRequestConversion() {
             ClientDeletionRequest request = mock(ClientDeletionRequest.class);
             doReturn(clientId).when(request).getClientId();
-            doReturn(clientIdDto).when(clientIdDtoConverter).convert(clientId);
+            doReturn(encodedClientId).when(clientIdConverter).convertId(clientId);
             prepareCommonStubs(request, ManagementRequestType.CLIENT_DELETION_REQUEST);
 
             ManagementRequestDto converted = converter.toDto(request);
@@ -209,10 +195,10 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             assertCommon(converted, CLIENT_DELETION_REQUEST);
             ClientDeletionRequestDto casted =
                     assertInstanceOf(ClientDeletionRequestDto.class, converted);
-            assertEquals(clientIdDto, casted.getClientId());
+            assertEquals(encodedClientId, casted.getClientId());
             inOrder(request).verify(inOrder -> {
                 inOrder.verify(request).getClientId();
-                inOrder.verify(clientIdDtoConverter).convert(clientId);
+                inOrder.verify(clientIdConverter).convertId(clientId);
                 verifyCommon(inOrder, request);
             });
         }
@@ -235,7 +221,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             doReturn(type).when(request).getManagementRequestType();
             doReturn(originDto).when(originDtoMapper).toDto(origin);
             doReturn(securityServerId).when(request).getSecurityServerId();
-            doReturn(securityServerIdDto).when(securityServerIdDtoConverter).convert(securityServerId);
+            doReturn("SECURITY_SERVER_ID").when(securityServerIdMapper).convertId(securityServerId);
             doReturn(managementRequestStatus).when(request).getProcessingStatus();
             doReturn(managementRequestStatusDto).when(statusMapper).toDto(managementRequestStatus);
             doReturn(createdAtInstance).when(request).getCreatedAt();
@@ -246,7 +232,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             assertNotNull(requestDto);
             assertEquals(ID, requestDto.getId());
             assertEquals(originDto, requestDto.getOrigin());
-            assertEquals(securityServerIdDto, requestDto.getSecurityServerId());
+            assertEquals("SECURITY_SERVER_ID", requestDto.getSecurityServerId());
             assertEquals(type, requestDto.getType());
             assertEquals(managementRequestStatusDto, requestDto.getStatus());
             assertEquals(createdAtOffsetDateTime, requestDto.getCreatedAt());
@@ -259,7 +245,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             inOrder.verify(request).getOrigin();
             inOrder.verify(originDtoMapper).toDto(origin);
             inOrder.verify(request).getSecurityServerId();
-            inOrder.verify(securityServerIdDtoConverter).convert(securityServerId);
+            inOrder.verify(securityServerIdMapper).convertId(securityServerId);
             inOrder.verify(request).getProcessingStatus();
             inOrder.verify(statusMapper).toDto(managementRequestStatus);
             inOrder.verify(request).getCreatedAt();
@@ -317,8 +303,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
         public void shouldSuccessfullyPerformClientRegistrationRequestDtoConversion() {
             ClientRegistrationRequestDto requestDto = mock(ClientRegistrationRequestDto.class);
             prepareCommonStubs(requestDto);
-            doReturn(clientIdDto).when(requestDto).getClientId();
-            doReturn(encodedClientId).when(clientIdDto).getEncodedId();
+            doReturn(encodedClientId).when(requestDto).getClientId();
             doReturn(clientIdConf).when(clientIdConverter).convertId(encodedClientId);
 
             Request converted = converter.fromDto(requestDto);
@@ -339,8 +324,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
         public void shouldSuccessfullyPerformClientDeletionRequestDtoConversion() {
             ClientDeletionRequestDto requestDto = mock(ClientDeletionRequestDto.class);
             prepareCommonStubs(requestDto);
-            doReturn(clientIdDto).when(requestDto).getClientId();
-            doReturn(encodedClientId).when(clientIdDto).getEncodedId();
+            doReturn(encodedClientId).when(requestDto).getClientId();
             doReturn(clientIdConf).when(clientIdConverter).convertId(encodedClientId);
 
             Request converted = converter.fromDto(requestDto);
@@ -359,8 +343,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
         private void prepareCommonStubs(ManagementRequestDto requestDto) {
             doReturn(originDto).when(requestDto).getOrigin();
             doReturn(origin).when(originDtoMapper).fromDto(originDto);
-            doReturn(securityServerIdDto).when(requestDto).getSecurityServerId();
-            doReturn("SECURITY_SERVER_ID").when(securityServerIdDto).getEncodedId();
+            doReturn("SECURITY_SERVER_ID").when(requestDto).getSecurityServerId();
             doReturn(securityServerId).when(securityServerIdMapper).convertId("SECURITY_SERVER_ID");
         }
 
