@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.api.domain;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -51,38 +50,11 @@ public class ManagementRequestView {
     private Long requestProcessingId;
     private ManagementRequestStatus status;
     private String securityServerOwnerName;
-    private String xroadInstance;
-    private String memberCode;
-    private String memberClass;
-    private String serverCode;
+    private SecurityServerId securityServerId;
     private String clientOwnerName;
-    private XRoadObjectType clientType;
-    private String clientXroadInstance;
-    private String clientMemberCode;
-    private String clientMemberClass;
-    private String clientSubsystemCode;
+    private ClientId clientId;
     private byte[] authCert;
     private CertificateDetails certificateDetails;
     private String address;
     private Instant createdAt;
-
-    public SecurityServerId getSecurityServerId() {
-        return SecurityServerId.Conf.create(xroadInstance, memberClass, memberCode, serverCode);
-    }
-
-    public ClientId getClientId() {
-        if (clientType != null) {
-            switch (clientType) {
-                case MEMBER:
-                    return MemberId.create(clientXroadInstance, clientMemberClass,
-                            clientMemberCode);
-                case SUBSYSTEM:
-                    return SubsystemId.create(clientXroadInstance, clientMemberClass,
-                            clientMemberCode, clientSubsystemCode);
-                default:
-                    break;
-            }
-        }
-        return null;
-    }
 }

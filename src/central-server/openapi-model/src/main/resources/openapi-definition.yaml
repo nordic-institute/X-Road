@@ -3318,7 +3318,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequestDetails'
+                $ref: '#/components/schemas/ManagementRequestDetailedView'
         '400':
           description: invalid request
         '401':
@@ -4464,7 +4464,7 @@ components:
         items:
           description: Management Requests
           items:
-            $ref: '#/components/schemas/ManagementRequestView'
+            $ref: '#/components/schemas/ManagementRequestListView'
           type: array
         paging_metadata:
           $ref: '#/components/schemas/PagingMetadata'
@@ -4878,11 +4878,11 @@ components:
         - member_class
         - member_code
         - server_code
-    ManagementRequestDetails:
+    ManagementRequestDetailedView:
       type: object
-      description: Management request details
+      description: Management Request detailed view
       allOf:
-        - $ref: '#/components/schemas/ManagementRequestView'
+        - $ref: '#/components/schemas/ManagementRequestListView'
       properties:
         client_owner_name:
           type: string
@@ -4927,9 +4927,9 @@ components:
         - type
         - source
         - securityserverId
-    ManagementRequestView:
+    ManagementRequestListView:
       type: object
-      description: Management request view
+      description: Management Request view
       properties:
         id:
           type: integer

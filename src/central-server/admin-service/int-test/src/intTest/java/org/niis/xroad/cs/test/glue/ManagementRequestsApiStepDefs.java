@@ -31,7 +31,7 @@ import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
-import org.niis.xroad.cs.openapi.model.ManagementRequestDetailsDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
@@ -129,7 +129,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
 
     @Step("management request is with status {string}")
     public void checkManagementRequestStatus(String status) {
-        final ResponseEntity<ManagementRequestDetailsDto> response =
+        final ResponseEntity<ManagementRequestDetailedViewDto> response =
                 managementRequestsApi.getManagementRequest(managementRequestId);
 
         validate(response)
@@ -141,7 +141,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     @SuppressWarnings("checkstyle:MagicNumber")
     @Step("details of management request can be retrieved for security server {string}")
     public void getManagementRequestDetails(String securityServerId) {
-        final ResponseEntity<ManagementRequestDetailsDto> response =
+        final ResponseEntity<ManagementRequestDetailedViewDto> response =
                 managementRequestsApi.getManagementRequest(managementRequestId);
         final String[] securityServerIdParts = StringUtils.split(securityServerId, ':');
 

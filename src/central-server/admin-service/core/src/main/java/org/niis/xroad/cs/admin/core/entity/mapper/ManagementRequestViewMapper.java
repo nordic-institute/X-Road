@@ -26,15 +26,19 @@
  */
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.Named;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
+import org.niis.xroad.cs.admin.api.domain.MemberId;
+import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.entity.ManagementRequestViewEntity;
-
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = CertificateConverter.class)
 public interface ManagementRequestViewMapper extends GenericUniDirectionalMapper<ManagementRequestViewEntity, ManagementRequestView> {
@@ -43,5 +47,33 @@ public interface ManagementRequestViewMapper extends GenericUniDirectionalMapper
     @Mapping(target = "certificateDetails", source = "authCert")
     @Mapping(target = "status", source = "requestProcessingStatus")
     @Mapping(target = "type", source = "managementRequestType")
+    @Mapping(target = "securityServerId", source = ".", qualifiedByName = "toSecurityServerId")
+    @Mapping(target = "clientId", source = ".", qualifiedByName = "toClientId")
     ManagementRequestView toTarget(ManagementRequestViewEntity managementRequestViewEntity);
+
+    @Named("toSecurityServerId")
+    static SecurityServerId toSecurityServerId(ManagementRequestViewEntity entity) {
+        return SecurityServerId.Conf.create(entity.getXroadInstance(), entity.getMemberClass(),
+                entity.getMemberCode(), entity.getServerCode());
+    }
+
+    @Named("toClientId")
+    static ClientId toClientId(ManagementRequestViewEntity entity) {
+        if (entity.getClientType() != null) {
+            switch (entity.getClientType()) {
+                case MEMBER:
+                    return MemberId.create(entity.getClientXroadInstance(),
+                            entity.getClientMemberClass(),
+                            entity.getClientMemberCode());
+                case SUBSYSTEM:
+                    return SubsystemId.create(entity.getClientXroadInstance(),
+                            entity.getClientMemberClass(),
+                            entity.getClientMemberCode(),
+                            entity.getClientSubsystemCode());
+                default:
+                    break;
+            }
+        }
+        return null;
+    }
 }

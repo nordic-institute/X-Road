@@ -32,15 +32,15 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.rest.api.converter.model.XRoadObjectTypeDtoConverter;
-import org.niis.xroad.cs.openapi.model.ManagementRequestViewDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestListViewDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {ClientIdDtoConverter.class,
         SecurityServerIdDtoConverter.class, XRoadObjectTypeDtoConverter.class
 })
-public interface ManagementRequestViewDtoConverter extends BaseConverter {
+public interface ManagementRequestListViewDtoConverter extends BaseConverter {
 
     @Mapping(target = "securityServerOwner", source = "securityServerOwnerName")
     @Mapping(target = "createdAt", expression = "java(fromInstant(managementRequestView.getCreatedAt()))")
-    ManagementRequestViewDto convert(ManagementRequestView managementRequestView);
+    ManagementRequestListViewDto convert(ManagementRequestView managementRequestView);
 
 }
