@@ -8,6 +8,7 @@ sourceSets {
     main {
         java.srcDirs = ["src/main/java", "$buildDir/generated-sources"]
         resources.srcDirs = ['src/main/resources', '../common-util/src/main/resources']
+        resources.exclude 'version.properties'
     }
 }
 
