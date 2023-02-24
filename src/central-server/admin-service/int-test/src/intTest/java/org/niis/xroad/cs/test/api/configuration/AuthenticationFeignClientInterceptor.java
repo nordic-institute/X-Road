@@ -30,6 +30,7 @@ import com.nortal.test.feign.interceptor.FeignClientInterceptor;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Interceptor;
 import okhttp3.Response;
+ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.cs.test.glue.CommonStepDefs;
 import org.springframework.http.HttpHeaders;
@@ -55,6 +56,10 @@ public class AuthenticationFeignClientInterceptor implements FeignClientIntercep
     @NotNull
     @Override
     public Response intercept(@NotNull Interceptor.Chain chain) throws IOException {
+        if (StringUtils.isNotBlank(chain.request().header(HttpHeaders.AUTHORIZATION))) {
+            return chain.proceed(chain.request());
+        }
+
         var request = chain.request().newBuilder()
                 .addHeader(HttpHeaders.AUTHORIZATION, getToken());
         return chain.proceed(request.build());
@@ -63,7 +68,7 @@ public class AuthenticationFeignClientInterceptor implements FeignClientIntercep
     private String getToken() {
         return Optional.ofNullable(scenarioContext.getStepData(TOKEN_TYPE.name()))
                 .map(object -> (CommonStepDefs.TokenType) object)
-                .map(tokenType -> String.format("X-ROAD-APIKEY TOKEN=%s", tokenType.getToken()))
+                .map(CommonStepDefs.TokenType::getHeaderToken)
                 .orElseThrow(() -> new IllegalArgumentException("Authentication token was not found."));
     }
 }

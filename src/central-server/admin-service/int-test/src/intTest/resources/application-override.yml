@@ -5,6 +5,7 @@ logging:
     ROOT: INFO
     cucumber: TRACE
     org.springframework: INFO
+    com.nortal.test: INFO # TRACE is helpful for development
 
 test-automation:
   report-name: xroad-cs-api-test-suite
@@ -13,8 +14,8 @@ test-automation:
   cucumber:
     execution:
       parallel:
-        enabled: true
-        executor-count: 3
+        enabled: false
+        executor-count: 1
         isolation-tag: "Modifying"
     glue-append: "org.niis.xroad.cs.test.glue"
     filter:
