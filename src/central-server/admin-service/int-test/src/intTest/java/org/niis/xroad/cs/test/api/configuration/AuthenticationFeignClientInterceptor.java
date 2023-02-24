@@ -47,7 +47,7 @@ import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.TOKEN_TYPE;
 public class AuthenticationFeignClientInterceptor implements FeignClientInterceptor {
     private static final int EXECUTION_ORDER = 50;
 
-    private final ObjectProvider<ScenarioContext> scenarioContext;
+    private final ObjectProvider<ScenarioContext> scenarioContextProvider;
 
     @Override
     public int getOrder() {
@@ -67,7 +67,7 @@ public class AuthenticationFeignClientInterceptor implements FeignClientIntercep
     }
 
     private String getToken() {
-        return Optional.ofNullable(scenarioContext.getIfAvailable())
+        return Optional.ofNullable(scenarioContextProvider.getIfAvailable())
                 .map(scenarioContext -> scenarioContext.getStepData(TOKEN_TYPE.name()))
                 .map(object -> (CommonStepDefs.TokenType) object)
                 .map(CommonStepDefs.TokenType::getHeaderToken)
