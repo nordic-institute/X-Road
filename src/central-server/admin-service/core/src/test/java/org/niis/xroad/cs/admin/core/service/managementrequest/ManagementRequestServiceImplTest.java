@@ -26,169 +26,89 @@
  */
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import ee.ria.xroad.common.TestCertUtil;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import io.vavr.control.Option;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
-import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
-import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.Origin;
+import org.niis.xroad.cs.admin.api.domain.Request;
+import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
-import org.niis.xroad.cs.admin.api.domain.SubsystemId;
-import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
-import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
-import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
-import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
-import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
-import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
-import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.niis.xroad.cs.admin.api.exception.UncheckedServiceException;
 
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@Disabled("Needs to be rewritten as unit test. Test just this bean.") //TODO refactor and enable.
 @ExtendWith(MockitoExtension.class)
 public class ManagementRequestServiceImplTest {
-    private final X509Certificate certificate = TestCertUtil.getProducer().certChain[0];
-    private final SecurityServerId securityServerId = SecurityServerId.create("TEST", "CLASS", "MEMBER", "SERVER");
-    private final SubsystemId subsystemId = SubsystemId.create("TEST", "CLASS", "MEMBER", "SUB");
-
-    @Mock
-    private XRoadMemberRepository members;
-
-    @Mock
-    private MemberClassRepository memberClasses;
-
+    private final AuthenticationCertificateRegistrationRequestHandler certificateRegistrationRequestHandler =
+            mock(AuthenticationCertificateRegistrationRequestHandler.class);
+    private final ClientRegistrationRequestHandler clientRegistrationRequestHandler =
+            mock(ClientRegistrationRequestHandler.class);
+    private final ClientDeletionRequestHandler clientDeletionRequestHandler =
+            mock(ClientDeletionRequestHandler.class);
+    private final OwnerChangeRequestHandler ownerChangeRequestHandler =
+            mock(OwnerChangeRequestHandler.class);
+    @Spy
+    private List<RequestHandler<? extends Request>> handlers = Arrays.asList(
+            certificateRegistrationRequestHandler,
+            clientRegistrationRequestHandler,
+            clientDeletionRequestHandler,
+            ownerChangeRequestHandler);
     @InjectMocks
     private ManagementRequestServiceImpl service;
 
-    @BeforeEach
-    public void setup() {
-        MemberClassEntity memberClass = new MemberClassEntity("CLASS", "CLASS");
-        MemberIdEntity memberId = MemberIdEntity.create("TEST", "CLASS", "MEMBER");
+    @Test
+    public void shouldSelectCorrectHandler() throws CertificateEncodingException {
+        AuthenticationCertificateRegistrationRequest request = new AuthenticationCertificateRegistrationRequest(
+                Origin.SECURITY_SERVER, SecurityServerId.create("Instance",
+                "memberClass",
+                "memberCode",
+                "ServerCode"));
+        when(certificateRegistrationRequestHandler.narrow(
+                any(AuthenticationCertificateRegistrationRequest.class)))
+                .thenReturn(Option.of(request));
 
-        XRoadMemberEntity member = new XRoadMemberEntity("MEMBER_NAME", memberId, memberClass);
-        members.save(member);
+        service.add(request);
+
+        verify(certificateRegistrationRequestHandler, times(1))
+                .add(any(AuthenticationCertificateRegistrationRequest.class));
+        verify(certificateRegistrationRequestHandler, never())
+                .approve(any(AuthenticationCertificateRegistrationRequest.class));
     }
 
     @Test
-    public void testAddRequest() throws CertificateEncodingException {
-        addServer(securityServerId);
+    public void shouldThrowExceptionIfNoCorrectHandler() {
+        when(certificateRegistrationRequestHandler.narrow(any())).thenReturn(Option.none());
+        when(clientRegistrationRequestHandler.narrow(any())).thenReturn(Option.none());
+        when(clientDeletionRequestHandler.narrow(any())).thenReturn(Option.none());
+        when(ownerChangeRequestHandler.narrow(any())).thenReturn(Option.none());
 
+        assertThrows(UncheckedServiceException.class, () -> service.add(new IncorrectRequest()));
 
-        var page = PageRequest.of(0, 10, Sort.by("origin", "securityServerIdentifierId"));
-        var pagedResponse = service.findRequests(
-                ManagementRequestService.Criteria.builder()
-                        .origin(Origin.SECURITY_SERVER)
-                        .types(List.of(ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST))
-                        .status(ManagementRequestStatus.WAITING)
-                        .build(),
-                page);
-        assertEquals(1, pagedResponse.getTotalElements());
+        verify(certificateRegistrationRequestHandler, never()).add(any());
+        verify(clientRegistrationRequestHandler, never()).add(any());
+        verify(clientDeletionRequestHandler, never()).add(any());
+        verify(ownerChangeRequestHandler, never()).add(any());
     }
 
-    @Test
-    public void testAddRequestAutoApprove() throws CertificateEncodingException {
-        //"pre-approve" request
-        service.add(new AuthenticationCertificateRegistrationRequest(Origin.CENTER, securityServerId)
-                .setAuthCert(certificate.getEncoded())
-                .setAddress("server.example.org")
-        );
-        AuthenticationCertificateRegistrationRequest request =
-                new AuthenticationCertificateRegistrationRequest(Origin.SECURITY_SERVER, securityServerId)
-                        .setAuthCert(certificate.getEncoded())
-                        .setAddress("server.example.org");
-
-        AuthenticationCertificateRegistrationRequest response = service.add(request);
-
-        assertEquals(ManagementRequestStatus.APPROVED, response.getProcessingStatus());
-    }
-
-    @Test
-    public void testAddClientRegRequest() throws CertificateEncodingException {
-        addServer(securityServerId);
-        //"Pre-approve"
-        service.add(new ClientRegistrationRequest(
-                Origin.CENTER,
-                securityServerId,
-                subsystemId));
-        ClientRegistrationRequest request = new ClientRegistrationRequest(
-                Origin.SECURITY_SERVER,
-                securityServerId,
-                subsystemId);
-
-        ClientRegistrationRequest response = service.add(request);
-
-        assertEquals(ManagementRequestStatus.APPROVED, response.getProcessingStatus());
-    }
-
-    @Test
-    public void testAddClientRegRequestShouldFailIfServerDoesNotExist() {
-        ClientRegistrationRequest request = new ClientRegistrationRequest(
-                Origin.CENTER,
-                securityServerId,
-                subsystemId);
-
-        Executable testable = () -> service.add(request);
-
-        assertThrows(DataIntegrityException.class, testable);
-    }
-
-    @Test
-    public void testShouldFailIfSameOrigin() throws CertificateEncodingException {
-        service.add(new AuthenticationCertificateRegistrationRequest(Origin.SECURITY_SERVER, securityServerId)
-                .setAuthCert(certificate.getEncoded())
-                .setAddress("server.example.org"));
-        AuthenticationCertificateRegistrationRequest sameOriginRequest =
-                new AuthenticationCertificateRegistrationRequest(Origin.SECURITY_SERVER, securityServerId)
-                        .setAuthCert(certificate.getEncoded())
-                        .setAddress("server.example.org");
-
-        Executable testable = () -> service.add(sameOriginRequest);
-
-        assertThrows(DataIntegrityException.class, testable);
-    }
-
-    @Test
-    @SuppressWarnings("checkstyle:hiddenField")
-    public void testShouldFailIfConflictingRequests() throws CertificateEncodingException {
-        SecurityServerId securityServerId = SecurityServerId.create("TEST", "CLASS", "MEMBER1", "CODE");
-        SecurityServerId conflictingSecurityServerId = SecurityServerId.create("TEST", "CLASS", "MEMBER2", "CODE");
-        service.add(new AuthenticationCertificateRegistrationRequest(Origin.SECURITY_SERVER, securityServerId)
-                .setAuthCert(certificate.getEncoded())
-                .setAddress("server.example.org"));
-        AuthenticationCertificateRegistrationRequest conflictingRequest =
-                new AuthenticationCertificateRegistrationRequest(Origin.CENTER, conflictingSecurityServerId)
-                        .setAuthCert(certificate.getEncoded())
-                        .setAddress("server.example.org");
-
-        Executable testable = () -> service.add(conflictingRequest);
-
-        assertThrows(DataIntegrityException.class, testable);
-    }
-
-    private void addServer(SecurityServerId serverId) throws CertificateEncodingException {
-        AuthenticationCertificateRegistrationRequest response =
-                service.add(new AuthenticationCertificateRegistrationRequest(Origin.SECURITY_SERVER, serverId)
-                        .setAuthCert(certificate.getEncoded())
-                        .setAddress("server.example.org"));
-
-        AuthenticationCertificateRegistrationRequest approved = service.approve(response.getId());
-
-        assertEquals(ManagementRequestStatus.APPROVED, approved.getProcessingStatus());
+    private static class IncorrectRequest extends RequestWithProcessing {
+        @Override
+        public ManagementRequestType getManagementRequestType() {
+            return null;
+        }
     }
 }

@@ -49,7 +49,7 @@ import static org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity.DI
 public class ClientDeletionRequestEntity extends RequestEntity {
     public static final String DISCRIMINATOR_VALUE = "ClientDeletionRequest";
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sec_serv_user_id")
     @Getter
     @Setter

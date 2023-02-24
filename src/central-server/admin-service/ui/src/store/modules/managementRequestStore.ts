@@ -29,14 +29,14 @@ import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';
 import axios, { AxiosRequestConfig } from 'axios';
 import {
-  ManagementRequest,
+  ManagementRequestListView,
   ManagementRequestsFilter,
   PagedManagementRequests,
   PagingMetadata,
 } from '@/openapi-types';
 
 export interface State {
-  items: ManagementRequest[];
+  items: ManagementRequestListView[];
   pagingOptions: PagingMetadata;
 }
 

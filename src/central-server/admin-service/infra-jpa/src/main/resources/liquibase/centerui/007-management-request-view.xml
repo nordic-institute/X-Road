@@ -15,19 +15,33 @@
                    rp.status AS request_processing_status,
 
                    ssc.name  AS security_server_owner_name,
-                   i.xroad_instance,
-                   i.member_code,
-                   i.member_class,
-                   i.server_code,
+                   owner.xroad_instance,
+                   owner.member_code,
+                   owner.member_class,
+                   owner.server_code,
+
+                   clientssc.name AS client_owner_name,
+                   client.object_type AS client_type,
+                   client.xroad_instance AS client_xroad_instance,
+                   client.member_code AS client_member_code,
+                   client.member_class AS client_member_class,
+                   client.subsystem_code AS client_subsystem_code,
+
+                   r.auth_cert,
+                   r.address,
+
                    r.created_at
             FROM requests r
                      LEFT JOIN request_processings rp ON (rp.id = r.request_processing_id)
-                     LEFT JOIN identifiers i ON (i.id = r.security_server_id)
-                     LEFT JOIN member_classes mc ON (mc.code = i.member_class)
+                     LEFT JOIN identifiers owner ON (owner.id = r.security_server_id)
+                     LEFT JOIN identifiers client ON (client.id = r.sec_serv_user_id)
+                     LEFT JOIN member_classes mc ON (mc.code = owner.member_class)
                      LEFT JOIN security_server_clients ssc
-                               ON (ssc.member_code = i.member_code
+                               ON (ssc.member_code = owner.member_code
                                    AND ssc.member_class_id = mc.id
                                    AND ssc.type = 'XRoadMember')
+                     LEFT JOIN security_server_client_names clientssc
+                               ON (clientssc.client_identifier_id = client.id)
         </createView>
     </changeSet>
 </databaseChangeLog>

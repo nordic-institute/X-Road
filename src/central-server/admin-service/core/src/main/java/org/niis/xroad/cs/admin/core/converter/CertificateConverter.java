@@ -52,6 +52,9 @@ public class CertificateConverter {
     private final KeyUsageConverter keyUsageConverter;
 
     public CertificateDetails toCertificateDetails(final byte[] cert) {
+        if (cert == null) {
+            return null;
+        }
         CertificateDetails certificateDetails = new CertificateDetails();
         populateCertificateDetails(certificateDetails, cert);
         return certificateDetails;

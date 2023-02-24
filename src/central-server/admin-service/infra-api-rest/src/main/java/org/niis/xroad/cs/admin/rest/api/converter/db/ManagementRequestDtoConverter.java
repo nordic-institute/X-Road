@@ -39,7 +39,6 @@ import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
-import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestOriginDtoConverter;
@@ -49,8 +48,6 @@ import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequ
 import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
-import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
-import org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
@@ -197,18 +194,6 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                 .status(statusMapper.convert(filter.getStatus()))
                 .serverId(convert(filter.getServerId()).orElse(null))
                 .build();
-    }
-
-    public ManagementRequestDto convert(ManagementRequestInfoDto dto) {
-        var info = new ManagementRequestDto();
-        info.setId(dto.getId());
-        info.setType(ManagementRequestTypeDto.valueOf(dto.getType().name()));
-        info.setOrigin(ManagementRequestOriginDto.valueOf(dto.getOrigin().name()));
-        info.setStatus(dto.getStatus() == null ? null : ManagementRequestStatusDto.valueOf(dto.getStatus().name()));
-        info.setSecurityServerOwner(dto.getServerOwnerName());
-        info.setSecurityServerId(convert(dto.getServerId()));
-        info.setCreatedAt(dto.getCreatedAt().atOffset(ZoneOffset.UTC));
-        return info;
     }
 
     private List<ManagementRequestType> convert(List<ManagementRequestTypeDto> types) {

@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,37 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
+package org.niis.xroad.cs.admin.rest.api.converter;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
+import org.niis.xroad.cs.admin.rest.api.converter.model.XRoadObjectTypeDtoConverter;
+import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 
-import java.time.Instant;
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {CertificateDetailsDtoConverter.class,
+        ClientIdDtoConverter.class, SecurityServerIdDtoConverter.class, XRoadObjectTypeDtoConverter.class
+})
+public interface ManagementRequestDetailedViewDtoConverter extends BaseConverter {
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ManagementRequestView {
+    @Mapping(target = "securityServerOwner", source = "securityServerOwnerName")
+    @Mapping(target = "createdAt", expression = "java(fromInstant(managementRequestView.getCreatedAt()))")
+    ManagementRequestDetailedViewDto convert(ManagementRequestView managementRequestView);
 
-    private int id;
-    private Origin origin;
-    private String comments;
-    private ManagementRequestType type;
-    private Long securityServerIdentifierId;
-    private Long requestProcessingId;
-    private ManagementRequestStatus status;
-    private String securityServerOwnerName;
-    private SecurityServerId securityServerId;
-    private String clientOwnerName;
-    private ClientId clientId;
-    private byte[] authCert;
-    private CertificateDetails certificateDetails;
-    private String address;
-    private Instant createdAt;
 }

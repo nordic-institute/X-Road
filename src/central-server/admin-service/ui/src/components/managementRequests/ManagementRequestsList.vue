@@ -77,7 +77,7 @@
       </template>
 
       <template #[`item.security_server_id`]="{ item }">
-        <div>{{ item.security_server_id }}</div>
+        <div>{{ item.security_server_id.encoded_id }}</div>
       </template>
 
       <template #[`item.status`]="{ item }">
