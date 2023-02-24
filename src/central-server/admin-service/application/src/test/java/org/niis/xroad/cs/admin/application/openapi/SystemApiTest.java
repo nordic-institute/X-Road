@@ -27,18 +27,15 @@
 package org.niis.xroad.cs.admin.application.openapi;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.cs.admin.application.util.TestUtils;
 import org.niis.xroad.cs.openapi.model.SystemStatusDto;
 import org.niis.xroad.cs.openapi.model.VersionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SystemApiTest extends AbstractApiControllerTestContext {
 
@@ -46,30 +43,10 @@ public class SystemApiTest extends AbstractApiControllerTestContext {
     TestRestTemplate restTemplate;
 
     @Test
-    public void testGetVersionSucceeds() {
-        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<VersionDto> response = restTemplate.getForEntity("/api/v1/system/version", VersionDto.class);
-        assertNotNull(response, "System Version response  must not be null.");
-        assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
-        assertNotNull(response.getBody());
-        assertEquals(ee.ria.xroad.common.Version.XROAD_VERSION, response.getBody().getInfo());
-    }
-
-    @Test
     public void testGetVersionFailsIfNotAuthorized() {
         restTemplate.getRestTemplate().setInterceptors(Collections.emptyList());
         var response = restTemplate.getForEntity("/api/v1/system/version", VersionDto.class);
         assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCodeValue());
-    }
-
-    @Test
-    public void testGetSystemStatusSucceeds() {
-        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<SystemStatusDto> response =
-                restTemplate.getForEntity("/api/v1/system/status", SystemStatusDto.class);
-        assertNotNull(response, "System status response must not be null.");
-        assertEquals(200, response.getStatusCodeValue(), "System status response status code must be 200 ");
-        assertNotNull(response.getBody());
     }
 
     @Test

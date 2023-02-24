@@ -25,29 +25,48 @@
  */
 package org.niis.xroad.cs.test.glue;
 
-import io.cucumber.java.en.Then;
+import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.SystemStatusDto;
+import org.niis.xroad.cs.openapi.model.VersionDto;
 import org.niis.xroad.cs.test.api.FeignSystemApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
+import static com.nortal.test.asserts.Assertions.notNullAssertion;
+
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SystemApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignSystemApi feignSystemApi;
 
     private ResponseEntity<SystemStatusDto> response;
 
-    @Then("System status is requested")
+    @Step("System status is requested")
     public void systemStatusIsRequested() {
         response = feignSystemApi.getSystemStatus();
     }
 
-    @Then("System status is validated")
+    @Step("System status is validated")
     public void systemStatusIsValidated() {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
+                .assertion(notNullAssertion("body"))
                 .execute();
     }
+
+    @Step("System version endpoint returns version")
+    public void verifySystemVersionEndpoint() {
+        final ResponseEntity<VersionDto> systemVersion = feignSystemApi.getSystemVersion();
+        validate(systemVersion)
+                .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
+                .assertion(notNullAssertion("body.info"))
+                .assertion(isTrue("body.info.length > 0"))
+                .assertion(isFalse("body.info.contains(\"@version@\")"))
+                .assertion(isFalse("body.info.contains(\"@buildType@\")"))
+                .assertion(isFalse("body.info.contains(\"@gitCommitDate@\")"))
+                .assertion(isFalse("body.info.contains(\"@gitCommitHash@\")"))
+                .execute();
+    }
+
 }

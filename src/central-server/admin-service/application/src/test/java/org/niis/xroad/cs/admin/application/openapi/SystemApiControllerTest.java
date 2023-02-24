@@ -35,7 +35,6 @@ import org.niis.xroad.cs.admin.rest.api.openapi.SystemApiController;
 import org.niis.xroad.cs.openapi.model.CentralServerAddressDto;
 import org.niis.xroad.cs.openapi.model.SystemStatusDto;
 import org.niis.xroad.cs.openapi.model.TokenInitStatusDto;
-import org.niis.xroad.cs.openapi.model.VersionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -66,16 +65,6 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         testSWToken = new TokenTestUtils.TokenInfoBuilder()
                 .id(SSL_TOKEN_ID)
                 .build();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"VIEW_VERSION"})
-    public void testGetVersionEndpoint() {
-        ResponseEntity<VersionDto> response = systemApiController.getSystemVersion();
-        assertNotNull(response, "System Version response  must not be null.");
-        assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
-        assertNotNull(response.getBody());
-        assertEquals(ee.ria.xroad.common.Version.XROAD_VERSION, response.getBody().getInfo());
     }
 
     @Test
