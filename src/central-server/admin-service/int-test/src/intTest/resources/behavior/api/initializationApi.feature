@@ -2,6 +2,7 @@
 @SkipInitialization
 Feature: Initialization API
 
+  @ResetDB
   @Modifying
   Scenario: Server initialization is successful
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
@@ -14,6 +15,7 @@ Feature: Initialization API
       | $instanceIdentifier      | E2E_CS      |
       | $centralServerAddress    | e2e-cs      |
 
+  @ResetDB
   @Modifying
   Scenario: Server initialization is successful, but is rejected second time
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
@@ -27,6 +29,7 @@ Feature: Initialization API
     When Server is initialized with address "e2e-cs", instance-identifier "E2E_CS", token pin "1234-VALID"
     Then Response is of status code 400 and error code "invalid_init_params"
 
+  @ResetDB
   @Modifying
   Scenario: Server initialization is successful
     Given Authentication header is set to SYSTEM_ADMINISTRATOR

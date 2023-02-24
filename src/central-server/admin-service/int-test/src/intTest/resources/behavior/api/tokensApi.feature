@@ -1,6 +1,7 @@
 @TokensApi
 Feature: Tokens API
 
+  @Modifying
   Scenario: Login token
     Given Authentication header is set to SECURITY_OFFICER
     And Signer.getToken response is mocked for token 'token-id-1'
@@ -14,6 +15,7 @@ Feature: Tokens API
     When User can login token 'token-id-1' with password '1234'
     Then Response is of status code 403
 
+  @Modifying
   Scenario: Logout token
     Given Authentication header is set to SECURITY_OFFICER
     And Signer.getToken response is mocked for active token 'token-id-2'

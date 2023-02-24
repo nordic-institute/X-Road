@@ -26,21 +26,36 @@
  */
 package org.niis.xroad.cs.test.hook;
 
-import com.nortal.test.core.services.hooks.BeforeSuiteHook;
+import com.nortal.test.core.services.ScenarioExecutionContext;
+import com.nortal.test.core.services.hooks.BeforeScenarioHook;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.test.utils.SecurityServerInitializer;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.cs.test.container.database.LiquibaseExecutor;
 import org.springframework.stereotype.Component;
 
 /**
- * Hook responsible for initializing CS instance for tests.
+ * Database reset hook which drops current database and initializes fresh schema.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class CentralServerInitializationHook implements BeforeSuiteHook {
-    private final SecurityServerInitializer securityServerInitializer;
+public class DatabaseResetBeforeScenarioHook implements BeforeScenarioHook {
+    private static final String TAG_RESET_DB = "@ResetDB";
+
+    private final LiquibaseExecutor liquibaseExecutor;
 
     @Override
-    public void beforeSuite() {
-        securityServerInitializer.initializeWithDefaults();
+    public void before(@NotNull ScenarioExecutionContext scenarioExecutionContext) {
+        var resetDatabase = scenarioExecutionContext.getCucumberScenario().getSourceTagNames()
+                .stream()
+                .anyMatch(TAG_RESET_DB::equalsIgnoreCase);
+
+        if (resetDatabase) {
+            log.info("Scenario [{}] was marked with {}. Resetting database.",
+                    scenarioExecutionContext.getCucumberScenario().getName(),
+                    TAG_RESET_DB);
+            liquibaseExecutor.executeChangesets();
+        }
     }
 }

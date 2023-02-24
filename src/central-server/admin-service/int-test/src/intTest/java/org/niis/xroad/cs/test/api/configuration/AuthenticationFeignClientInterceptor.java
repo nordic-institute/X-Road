@@ -30,9 +30,10 @@ import com.nortal.test.feign.interceptor.FeignClientInterceptor;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Interceptor;
 import okhttp3.Response;
- import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.cs.test.glue.CommonStepDefs;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +47,7 @@ import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.TOKEN_TYPE;
 public class AuthenticationFeignClientInterceptor implements FeignClientInterceptor {
     private static final int EXECUTION_ORDER = 50;
 
-    private final ScenarioContext scenarioContext;
+    private final ObjectProvider<ScenarioContext> scenarioContext;
 
     @Override
     public int getOrder() {
@@ -66,7 +67,8 @@ public class AuthenticationFeignClientInterceptor implements FeignClientIntercep
     }
 
     private String getToken() {
-        return Optional.ofNullable(scenarioContext.getStepData(TOKEN_TYPE.name()))
+        return Optional.ofNullable(scenarioContext.getIfAvailable())
+                .map(scenarioContext -> scenarioContext.getStepData(TOKEN_TYPE.name()))
                 .map(object -> (CommonStepDefs.TokenType) object)
                 .map(CommonStepDefs.TokenType::getHeaderToken)
                 .orElseThrow(() -> new IllegalArgumentException("Authentication token was not found."));
