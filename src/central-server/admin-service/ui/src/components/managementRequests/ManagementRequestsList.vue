@@ -69,7 +69,7 @@
       </template>
 
       <template #[`item.type`]="{ item }">
-        <type-cell :status="item.type" />
+        <type-cell :type="item.type" />
       </template>
 
       <template #[`item.security_server_owner`]="{ item }">

@@ -402,6 +402,11 @@
       }
     }
   },
+  "managementRequestDetails": {
+    "requestInformation": "Request Information",
+    "requestId": "Request ID",
+    "received": "Received"
+  },
   "members": {
     "addMember": "Add member",
     "header": "Members",

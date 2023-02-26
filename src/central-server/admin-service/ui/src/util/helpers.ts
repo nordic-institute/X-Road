@@ -27,7 +27,7 @@
 
 // Filters an array of objects excluding specified object key
 import { NavigationFailure } from 'vue-router';
-import { ClientId, ErrorInfo } from '@/openapi-types';
+import { ClientId, ErrorInfo, ManagementRequestType } from '@/openapi-types';
 import i18n from '@/i18n';
 import { AxiosError, AxiosResponse } from 'axios';
 
@@ -213,3 +213,24 @@ export function toIdentifier(client: ClientId): string {
   return identifier;
 }
 
+export function managementTypeToText(
+  type: ManagementRequestType | undefined,
+): string {
+  if (!type) {
+    return '';
+  }
+  switch (type) {
+    case ManagementRequestType.OWNER_CHANGE_REQUEST:
+      return i18n.t('managementRequests.changeOwner') as string;
+    case ManagementRequestType.AUTH_CERT_DELETION_REQUEST:
+      return i18n.t('managementRequests.removeCertificate') as string;
+    case ManagementRequestType.CLIENT_DELETION_REQUEST:
+      return i18n.t('managementRequests.removeClient') as string;
+    case ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST:
+      return i18n.t('managementRequests.addCertificate') as string;
+    case ManagementRequestType.CLIENT_REGISTRATION_REQUEST:
+      return i18n.t('managementRequests.addClient') as string;
+    default:
+      return '';
+  }
+}
