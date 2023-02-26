@@ -37,12 +37,14 @@ import {
 } from '@/openapi-types';
 
 export interface State {
+  currentManagementRequest: ManagementRequest | null;
   items: ManagementRequestListView[];
   pagingOptions: PagingMetadata;
 }
 
 export const managementRequestsStore = defineStore('managementRequests', {
   state: (): State => ({
+    currentManagementRequest: null,
     items: [],
     pagingOptions: {
       total_items: 0,
@@ -70,6 +72,16 @@ export const managementRequestsStore = defineStore('managementRequests', {
         .then((resp) => {
           this.items = resp.data.items || [];
           this.pagingOptions = resp.data.paging_metadata;
+        });
+    },
+    loadById(requestId: number) {
+      return axios
+        .get<ManagementRequest>(`/management-requests/${requestId}`)
+        .then((resp) => {
+          this.currentManagementRequest = resp.data;
+        })
+        .catch((error) => {
+          throw error;
         });
     },
     approve(id: number) {

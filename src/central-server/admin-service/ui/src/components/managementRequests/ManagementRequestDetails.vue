@@ -25,63 +25,67 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="status-wrapper">
-    <v-tooltip top>
-      <template #activator="{ on, attrs }">
-        <div v-bind="attrs" v-on="on">
-          <xrd-icon-base v-bind="attrs" class="mr-3" v-on="on">
-            <!-- Decide what icon to show -->
-            <XrdIconChangeOwner v-if="type === 'OWNER_CHANGE_REQUEST'" />
-            <XrdIconAddUser v-if="type === 'CLIENT_REGISTRATION_REQUEST'" />
-            <XrdIconRemoveUser v-if="type === 'CLIENT_DELETION_REQUEST'" />
-            <XrdIconRemoveCertificate
-              v-if="type === 'AUTH_CERT_DELETION_REQUEST'"
-            />
-            <XrdIconAddCertificate
-              v-if="type === 'AUTH_CERT_REGISTRATION_REQUEST'"
-            />
-          </xrd-icon-base>
-        </div>
-      </template>
-      <span>{{ typeText }}</span>
-    </v-tooltip>
-    <span class="status-text">{{ typeText }}</span>
+  <div id="management-request-view">
+    <div class="table-toolbar align-fix mt-0 pl-0">
+      <div class="xrd-view-title">{{ typeText }}</div>
+      <div>
+        <xrd-button outlined class="mr-4" data-test="approve-management-request-button">
+          Approve//TODO
+        </xrd-button>
+        <xrd-button outlined class="mr-4" data-test="decline-management-request-button">
+          Decline//TODO
+        </xrd-button>
+      </div>
+    </div>
+
+    <management-request-information
+      v-if="managementRequest"
+      :management-request="managementRequest"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
-import { ManagementRequestType } from '@/openapi-types';
+import Vue from 'vue';
+import { mapStores } from 'pinia';
+import { managementRequestsStore } from '@/store/modules/managementRequestStore';
 import { managementTypeToText } from '@/util/helpers';
+import ManagementRequestInformation from './ManagementRequestInformation.vue';
 
+/**
+ * Wrapper component for a certification service view
+ */
 export default Vue.extend({
+  name: 'ManagementRequestDetails',
+  components: { ManagementRequestInformation },
   props: {
-    type: {
-      type: String as PropType<ManagementRequestType>,
-      default: undefined,
+    requestId: {
+      type: Number,
+      required: true,
     },
   },
-
+  data() {
+    return {};
+  },
   computed: {
-    typeText() {
-      return managementTypeToText(this.type);
+    ...mapStores(managementRequestsStore),
+    managementRequest() {
+      return this.managementRequestsStore.currentManagementRequest;
+    },
+    typeText(){
+      return managementTypeToText(
+        this.managementRequestsStore.currentManagementRequest?.type,
+      );
     },
   },
+  created() {
+    this.managementRequestsStore.loadById(this.requestId);
+  },
+  methods: {},
 });
 </script>
-
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '~@/assets/tables';
 
-.status-wrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
 
-@media (max-width: 1200px) {
-  .status-text {
-    display: none;
-  }
-}
 </style>

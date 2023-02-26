@@ -89,6 +89,8 @@ import IntermediateCa from '@/views/TrustServices/CertificationService/Intermedi
 import IntermediateCaDetails from '@/views/TrustServices/CertificationService/IntermediateCaDetails.vue';
 import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationService/IntermediateCaOcspResponders.vue';
 import TimestampingServiceCertificate from '@/components/timestampingServices/TimestampingServiceCertificate.vue';
+import ManagementRequestDetails from "@/components/managementRequests/ManagementRequestDetails.vue";
+import ManagementRequestsList, { Scope } from "@/components/managementRequests/ManagementRequestsList.vue";
 
 const routes: RouteConfig[] = [
   {
@@ -430,14 +432,40 @@ const routes: RouteConfig[] = [
       },
 
       {
-        name: RouteName.ManagementRequests,
+
         path: '/management-requests',
         components: {
           default: ManagementRequests,
           top: TabsBase,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.VIEW_MANAGEMENT_REQUESTS] },
+        children: [
+          {
+            name: RouteName.ManagementRequests,
+            path: '',
+            component: ManagementRequestsList,
+            props: {
+              scope: Scope.FULL,
+            },
+            meta: {
+              permissions: [Permissions.VIEW_MANAGEMENT_REQUESTS],
+            },
+          },
+          {
+            name: RouteName.ManagementRequestDetails,
+            path: ':requestId/details',
+            component: ManagementRequestDetails,
+            props(route: Route): { requestId: number } {
+              const requestId = Number(
+                route.params.requestId,
+              );
+              return { requestId };
+            },
+            meta: {
+              permissions: [Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS],
+            },
+          },
+        ],
       },
 
       {

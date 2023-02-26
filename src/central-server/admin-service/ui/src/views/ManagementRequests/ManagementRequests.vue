@@ -26,7 +26,7 @@
  -->
 <template>
   <xrd-sub-view-container>
-    <ManagementRequestsList :scope="requestListScope" />
+    <router-view />
   </xrd-sub-view-container>
 </template>
 
@@ -35,19 +35,6 @@
  * View for 'management requests' tab
  */
 import Vue from 'vue';
-import ManagementRequestsList, {
-  Scope,
-} from '@/components/managementRequests/ManagementRequestsList.vue';
 
-export default Vue.extend({
-  components: {
-    ManagementRequestsList,
-  },
-  data() {
-    return {
-      requestListScope: Scope.FULL,
-    };
-  },
-  computed: {},
-});
+export default Vue.extend({});
 </script>
