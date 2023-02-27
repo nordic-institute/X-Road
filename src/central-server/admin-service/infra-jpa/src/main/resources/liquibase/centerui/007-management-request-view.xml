@@ -3,7 +3,15 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
                    logicalFilePath="centerui/007-management-request-view.xml">
-    <changeSet author="niis" id="007-management-request-view">
+
+    <changeSet author="niis" id="007-management-request-view-drop">
+        <preConditions onFail="MARK_RAN">
+                <viewExists viewName="management_request_view"/>
+        </preConditions>
+        <dropView viewName="management_request_view"/>
+    </changeSet>
+
+    <changeSet author="niis" id="007-management-request-view-create">
         <createView fullDefinition="false" viewName="management_request_view">
             SELECT r.id,
                    r.origin,
