@@ -137,8 +137,8 @@ import { notificationsStore } from "@/store/modules/notifications";
 import { systemStore } from "@/store/modules/system";
 
 import { getErrorInfo, getTranslatedFieldErrors, isFieldError } from "@/util/helpers";
-import ManagementServices from "@/views/Settings/SystemSettings/ManagementServices.vue";
-import MemberClasses from "@/views/Settings/SystemSettings/MemberClasses.vue";
+import ManagementServices from "@/components/SystemSettings/ManagementServices.vue";
+import MemberClasses from "@/components/SystemSettings/MemberClasses.vue";
 import { AxiosError } from "axios";
 import { mapActions, mapState } from "pinia";
 import { ValidationProvider } from "vee-validate";
