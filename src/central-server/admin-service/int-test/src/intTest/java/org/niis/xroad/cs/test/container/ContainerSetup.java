@@ -65,12 +65,7 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
 
     @Override
     public void additionalBuilderConfiguration(@NotNull DockerfileBuilder dockerfileBuilder) {
-        dockerfileBuilder.copy("/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
-                "/etc/xroad/conf.d/centralserver-admin-service-logback.xml");
-        dockerfileBuilder.copy("/etc/xroad/configuration-parts/center-monitoring.ini",
-                "/etc/xroad/configuration-parts/center-monitoring.ini");
-        dockerfileBuilder.copy("/etc/xroad/configuration-parts/ocsp-fetchinterval.ini",
-                "/etc/xroad/configuration-parts/ocsp-fetchinterval.ini");
+        dockerfileBuilder.copy(".", ".");
     }
 
     @NotNull
