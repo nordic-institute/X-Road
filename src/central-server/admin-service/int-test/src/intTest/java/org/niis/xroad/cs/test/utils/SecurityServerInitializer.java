@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.test.api;
+package org.niis.xroad.cs.test.utils;
 
-import org.niis.xroad.cs.openapi.InitializationApi;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.openapi.model.InitialServerConfDto;
-import org.niis.xroad.cs.openapi.model.InitializationStatusDto;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.niis.xroad.cs.test.api.FeignInitializationApi;
+import org.niis.xroad.cs.test.container.service.MockServerService;
+import org.springframework.stereotype.Component;
 
-import javax.validation.Valid;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
+import static org.niis.xroad.cs.test.glue.CommonStepDefs.TokenType.SYSTEM_ADMINISTRATOR;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+@Component
+@Slf4j
+@RequiredArgsConstructor
+public class SecurityServerInitializer {
+    private final MockServerService mockServerService;
+    private final FeignInitializationApi initializationApi;
 
-@FeignClient(name = "initializationApi", path = "/api/v1")
-public interface FeignInitializationApi extends InitializationApi {
-    @RequestMapping(
-            method = RequestMethod.POST,
-            value = "/initialization",
-            produces = {"application/json"},
-            consumes = {"application/json"}
-    )
-    ResponseEntity<Void> initCentralServerWithHeader(
-            @Valid @RequestBody(required = false) InitialServerConfDto initialServerConfDto,
-            @RequestHeader(AUTHORIZATION) String authentication
-    );
+    public void initializeWithDefaults() {
+        log.info("Initializing CentralServer with default configuration");
 
-    @RequestMapping(
-            method = RequestMethod.GET,
-            value = "/initialization/status",
-            produces = { "application/json" }
-    )
-    ResponseEntity<InitializationStatusDto> getInitializationStatusWithHeader(
-            @RequestHeader(AUTHORIZATION) String authentication
-    );
+        mockSignerInit();
+        var authHeader = SYSTEM_ADMINISTRATOR.getHeaderToken();
+        var request = new InitialServerConfDto();
+        request.setInstanceIdentifier("CS");
+        request.setCentralServerAddress("cs");
+        request.setSoftwareTokenPin("1234-VALID");
+
+        initializationApi.initCentralServerWithHeader(request, authHeader);
+    }
+
+    private void mockSignerInit() {
+        mockServerService.client()
+                .when(request()
+                        .withMethod("PUT")
+                        .withPath("/initSoftwareToken/"))
+                .respond(response().withStatusCode(NO_CONTENT.value()));
+    }
 }
