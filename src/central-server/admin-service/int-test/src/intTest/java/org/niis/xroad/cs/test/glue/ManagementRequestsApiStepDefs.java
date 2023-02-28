@@ -84,7 +84,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("authentication certificate of {} is deleted")
+    @Step("authentication certificate of {string} is deleted")
     public void deleteAuthCert(String serverId) {
         final var managementRequest = new AuthenticationCertificateDeletionRequestDto();
         managementRequest.setOrigin(SECURITY_SERVER);
