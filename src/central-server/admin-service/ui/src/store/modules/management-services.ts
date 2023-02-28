@@ -26,7 +26,10 @@
  */
 
 import * as api from '@/util/api';
-import { ManagementServicesConfiguration } from '@/openapi-types';
+import {
+  ManagementServicesConfiguration,
+  ServiceProviderId,
+} from '@/openapi-types';
 import { defineStore } from 'pinia';
 
 interface ManagementServicesState {
@@ -55,6 +58,21 @@ export const managementServicesStore = defineStore('managementServicesStore', {
         )
         .then((resp) => {
           this.managementServicesConfiguration = resp.data;
+        });
+    },
+    updateManagementServicesConfiguration(
+      serviceProviderId: ServiceProviderId,
+    ) {
+      return api
+        .patch<ManagementServicesConfiguration>(
+          '/management-services-configuration',
+          serviceProviderId,
+        )
+        .then((resp) => {
+          this.managementServicesConfiguration = resp.data;
+        })
+        .catch((error) => {
+          throw error;
         });
     },
   },

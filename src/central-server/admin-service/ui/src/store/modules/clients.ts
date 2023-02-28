@@ -24,46 +24,57 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import axios, {AxiosRequestConfig} from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { PagedClients, PagingMetadata, Client } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';
 
 export interface State {
-    clients: Client[];
-    pagingOptions: PagingMetadata;
+  clients: Client[];
+  pagingOptions: PagingMetadata;
 }
 
 export const clientStore = defineStore('client', {
-    state: (): State => ({
-        clients: [],
-        pagingOptions: {
-            total_items: 0,
-            items: 0,
-            limit: 25,
-            offset: 0,
-        },
-    }),
-    persist: true,
-    actions: {
-        async find(dataOptions: DataOptions, q: string) {
-            const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
-            const params: unknown = {
-                limit: dataOptions.itemsPerPage,
-                offset: offset,
-                sort: dataOptions.sortBy[0],
-                desc: dataOptions.sortDesc[0],
-                client_type: "MEMBER",
-                q,
-            };
-            const axiosParams: AxiosRequestConfig = { params };
-
-            return axios
-                .get<PagedClients>('/clients/', axiosParams)
-                .then((resp) => {
-                    this.clients = resp.data.clients || [];
-                    this.pagingOptions = resp.data.paging_metadata;
-                });
-        },
+  state: (): State => ({
+    clients: [],
+    pagingOptions: {
+      total_items: 0,
+      items: 0,
+      limit: 25,
+      offset: 0,
     },
+  }),
+  persist: true,
+  actions: {
+    async find(dataOptions: DataOptions, q: string) {
+      const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
+      const params: unknown = {
+        limit: dataOptions.itemsPerPage,
+        offset: offset,
+        sort: dataOptions.sortBy[0],
+        desc: dataOptions.sortDesc[0],
+        client_type: 'MEMBER',
+        q,
+      };
+      const axiosParams: AxiosRequestConfig = { params };
+
+      return axios.get<PagedClients>('/clients/', axiosParams).then((resp) => {
+        this.clients = resp.data.clients || [];
+        this.pagingOptions = resp.data.paging_metadata;
+      });
+    },
+    getByClientType(clientType: string) {
+      const params: unknown = {
+        client_type: clientType,
+      };
+      const axiosParams: AxiosRequestConfig = { params };
+
+      return axios
+        .get<PagedClients>('/clients/', axiosParams)
+        .then((resp) => resp.data.clients)
+        .catch((error) => {
+          throw error;
+        });
+    },
+  },
 });
