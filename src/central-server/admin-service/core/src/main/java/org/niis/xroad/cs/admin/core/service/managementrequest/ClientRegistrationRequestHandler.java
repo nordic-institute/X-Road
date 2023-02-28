@@ -55,6 +55,7 @@ import javax.transaction.Transactional;
 import java.util.EnumSet;
 import java.util.List;
 
+import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
@@ -63,6 +64,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQU
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_MEMBER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_SERVER_NOT_FOUND;
 
 @Service
@@ -130,7 +132,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
                 ClientRegistrationRequestEntity anotherReq = pending.get(0);
                 if (anotherReq.getOrigin().equals(request.getOrigin())) {
                     throw new DataIntegrityException(MANAGEMENT_REQUEST_EXISTS,
-                            String.valueOf(anotherReq.getId()));
+                            valueOf(anotherReq.getId()));
                 }
                 req = new ClientRegistrationRequestEntity(origin, anotherReq);
                 req.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
@@ -146,35 +148,42 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
 
     @Override
     public ClientRegistrationRequest approve(ClientRegistrationRequest request) {
-        if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(request.getProcessingStatus())) {
+        Integer requestId = request.getId();
+        final ClientRegistrationRequestEntity clientRegistrationRequest = clientRegRequests.findById(requestId)
+                .orElseThrow(() -> new ValidationFailureException(MANAGEMENT_REQUEST_NOT_FOUND, valueOf(requestId)));
+
+        if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(clientRegistrationRequest.getProcessingStatus())) {
             throw new ValidationFailureException(MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL,
-                    String.valueOf(request.getId()));
+                    valueOf(clientRegistrationRequest.getId()));
         }
 
-        SecurityServerEntity server = servers.findBy(request.getSecurityServerId())
+        SecurityServerEntity server = servers.findBy(clientRegistrationRequest.getSecurityServerId())
                 .getOrElseThrow(() -> new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_NOT_FOUND));
 
-        XRoadMemberEntity clientMember = members.findMember(request.getClientId()).getOrElseThrow(() ->
+        XRoadMemberEntity clientMember = members.findMember(clientRegistrationRequest.getClientId()).getOrElseThrow(() ->
                 new DataIntegrityException(MANAGEMENT_REQUEST_MEMBER_NOT_FOUND,
-                        request.getClientId().toString()));
+                        clientRegistrationRequest.getClientId().toString()));
 
         SecurityServerClientEntity client;
-        switch (request.getClientId().getObjectType()) {
+        switch (clientRegistrationRequest.getClientId().getObjectType()) {
             case MEMBER:
                 client = clientMember;
                 break;
             case SUBSYSTEM:
                 // create new subsystem if necessary
                 client = clients
-                        .findOneBy(request.getClientId())
+                        .findOneBy(clientRegistrationRequest.getClientId())
                         .getOrElse(() -> clients.save(new SubsystemEntity(clientMember, clientMember.getIdentifier())));
                 break;
             default:
                 throw new IllegalArgumentException("Invalid client type");
         }
         server.addClient(client);
-        request.setProcessingStatus(ManagementRequestStatus.APPROVED);
-        return request;
+        servers.save(server);
+        clientRegistrationRequest.setProcessingStatus(ManagementRequestStatus.APPROVED);
+        var persistedRequest = clientRegRequests.save(clientRegistrationRequest);
+
+        return requestMapper.toDto(persistedRequest);
     }
 
     @Override
