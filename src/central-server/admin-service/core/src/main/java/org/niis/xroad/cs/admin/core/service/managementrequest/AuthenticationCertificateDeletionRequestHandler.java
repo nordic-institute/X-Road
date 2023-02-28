@@ -26,20 +26,16 @@
  */
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import io.vavr.control.Option;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
-import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
-import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
-import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
-import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
 
@@ -48,7 +44,6 @@ import javax.transaction.Transactional;
 import java.util.Arrays;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_AUTH_CERTIFICATE;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 
 /**
@@ -59,16 +54,14 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER
 @RequiredArgsConstructor
 public class AuthenticationCertificateDeletionRequestHandler implements
         RequestHandler<AuthenticationCertificateDeletionRequest> {
-    private final IdentifierRepository<SecurityServerIdEntity> serverIds;
-    private final SecurityServerClientRepository<XRoadMemberEntity> members;
     private final RequestRepository<AuthenticationCertificateDeletionRequestEntity> requests;
     private final AuthCertRepository authCerts;
     private final SecurityServerRepository servers;
     private final RequestMapper requestMapper;
 
     public AuthenticationCertificateDeletionRequest add(AuthenticationCertificateDeletionRequest request) {
-        // todo: check findOrCreate
-        final SecurityServerIdEntity serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
+
+        SecurityServerId serverId = request.getSecurityServerId();
 
         final var requestEntity = new AuthenticationCertificateDeletionRequestEntity(request.getOrigin(), serverId);
 
@@ -76,13 +69,7 @@ public class AuthenticationCertificateDeletionRequestHandler implements
             throw new DataIntegrityException(INVALID_AUTH_CERTIFICATE);
         }
 
-        //check prerequisites (member exists)
-        XRoadMemberEntity owner = members
-                .findOneBy(request.getSecurityServerId().getOwner())
-                .getOrElseThrow(() ->
-                        new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND));
-
-        SecurityServerEntity server = servers.findBy(request.getSecurityServerId())
+        SecurityServerEntity server = servers.findBy(serverId)
                 .getOrElseThrow(() ->
                         new DataIntegrityException(SECURITY_SERVER_NOT_FOUND));
 
@@ -93,14 +80,9 @@ public class AuthenticationCertificateDeletionRequestHandler implements
             }
         }
 
-        return Option.of(requestEntity)
-                .map(RequestEntity::getOrigin)
-                .flatMap(origin -> Option.of(serverId)
-                        .map(serverIds::findOrCreate)
-                        .map(dbSecurityServerId -> new AuthenticationCertificateDeletionRequestEntity(origin, dbSecurityServerId)))
-                .map(requests::save)
-                .map(requestMapper::toDto)
-                .get();
+        requests.save(requestEntity);
+
+        return requestMapper.toDto(requestEntity);
     }
 
     @Override
