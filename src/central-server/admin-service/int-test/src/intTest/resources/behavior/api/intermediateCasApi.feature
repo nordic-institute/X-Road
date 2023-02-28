@@ -6,6 +6,22 @@ Feature: Intermediate CAS API
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
     And Certification service is created
 
+  Scenario: Adding intermediate CA is created
+    Given intermediate CA added to certification service
+    When intermediate CAs are retrieved
+    Then intermediate CA is as follows
+      | #$hash                    | A9D0114E3D7FADFF960EBBF2E21DD064D530F4D6 |
+      | $issuerDistinguishedName  | CN=Issuer                                |
+      | $subjectDistinguishedName | CN=Subject                               |
+      | $subjectCommonName        | Subject                                  |
+      | $notBefore                | 2023-02-27T10:01:42Z                     |
+      | $notAfter                 | 2024-02-27T10:01:42Z                     |
+
+  Scenario: Adding intermediate CA is deleted
+    Given intermediate CA added to certification service
+    When intermediate CA is deleted
+    Then deleted intermediate CA is not present
+
   Scenario: Adding OCSP responder to intermediate CA
     Given intermediate CA added to certification service
     Then OCSP responder is added to intermediate CA
