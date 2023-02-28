@@ -55,9 +55,16 @@ public class AuthenticationFeignClientInterceptor implements FeignClientIntercep
     @NotNull
     @Override
     public Response intercept(@NotNull Interceptor.Chain chain) throws IOException {
-        var request = chain.request().newBuilder()
-                .addHeader(HttpHeaders.AUTHORIZATION, getToken());
-        return chain.proceed(request.build());
+        if (shouldAddAuthorization()) {
+            var request = chain.request().newBuilder()
+                    .addHeader(HttpHeaders.AUTHORIZATION, getToken());
+            return chain.proceed(request.build());
+        }
+        return chain.proceed(chain.request());
+    }
+
+    private boolean shouldAddAuthorization() {
+        return scenarioContext.getStepData(TOKEN_TYPE.name()) != null;
     }
 
     private String getToken() {
