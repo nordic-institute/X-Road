@@ -29,6 +29,7 @@ package org.niis.xroad.cs.test.utils;
 
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
@@ -50,8 +51,13 @@ public final class CertificateUtils {
     private CertificateUtils() {
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     public static byte[] generateAuthCert() throws NoSuchAlgorithmException, OperatorCreationException, IOException {
+        return generateAuthCertHolder().getEncoded();
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static X509CertificateHolder generateAuthCertHolder()
+            throws NoSuchAlgorithmException, OperatorCreationException, IOException {
         var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(1024);
         var subjectKey = keyPairGenerator.generateKeyPair();
@@ -59,10 +65,12 @@ public final class CertificateUtils {
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    private static byte[] generateAuthCert(PublicKey subjectKey, PrivateKey privateKey) throws OperatorCreationException, IOException {
+    private static X509CertificateHolder generateAuthCert(PublicKey subjectKey, PrivateKey privateKey)
+            throws OperatorCreationException, IOException {
         var signer = new JcaContentSignerBuilder("SHA256withRSA").build(privateKey);
         var issuer = new X500Principal("CN=Issuer");
         var subject = new X500Principal("CN=Subject");
+
 
         return new JcaX509v3CertificateBuilder(
                 issuer,
@@ -75,8 +83,7 @@ public final class CertificateUtils {
                         Extension.keyUsage,
                         true,
                         new KeyUsage(KeyUsage.digitalSignature)))
-                .build(signer)
-                .getEncoded();
+                .build(signer);
     }
 
 }
