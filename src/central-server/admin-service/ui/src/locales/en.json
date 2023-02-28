@@ -44,7 +44,8 @@
     "submit": "Submit",
     "unregister": "Unregister",
     "upload": "Upload",
-    "yes": "Yes"
+    "yes": "Yes",
+    "select": "Select"
   },
   "alert": {
     "count": "Amount of same errors:",
@@ -444,7 +445,8 @@
     "noMemberClasses": "No member classes",
     "noServices": "No services",
     "noTokens": "No tokens",
-    "noSecurityServers": "No security servers"
+    "noSecurityServers": "No security servers",
+    "noResults": "Your search found no results"
   },
   "securityServers": {
     "address": "Address",
@@ -481,6 +483,19 @@
     "instanceIdentifier": "Instance Identifier",
     "managementServiceSecurityServer": "Management Services' Security Server",
     "managementServices": "Management Services",
+    "selectMember": {
+      "title": "Select member",
+      "search": "Search",
+      "name": "Name",
+      "memberClass": "Class",
+      "memberCode": "Code",
+      "subsystemCode": "Subsystem",
+      "xroadInstance": "Instance",
+      "type": "Type"
+    },
+    "serviceProvider": {
+      "changedSuccess": "Service Provider changed successfully"
+    },
     "memberClasses": "Member classes",
     "securityServerOwnerGroupCode": "Security Server Owners Group Code",
     "serviceProviderIdentifier": "Service Provider Identifier",
