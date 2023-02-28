@@ -26,9 +26,8 @@
 package org.niis.xroad.cs.admin.rest.api.converter;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
-import org.niis.xroad.cs.admin.rest.api.converter.db.ManagementRequestDtoConverter;
-import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
+import org.niis.xroad.cs.openapi.model.ManagementRequestListViewDto;
 import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
 import org.niis.xroad.cs.openapi.model.PagingMetadataDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
@@ -43,15 +42,15 @@ import java.util.stream.Collectors;
 public class PagedManagementRequestsConverter {
 
     private final PagingMetadataConverter pagingMetadataConverter;
-    private final ManagementRequestDtoConverter managementRequestConverter;
+    private final ManagementRequestListViewDtoConverter managementRequestListViewDtoConverter;
 
-    public PagedManagementRequestsDto convert(Page<ManagementRequestInfoDto> page,
+    public PagedManagementRequestsDto convert(Page<ManagementRequestView> page,
                                               PagingSortingParametersDto pagingSorting) {
 
         PagingMetadataDto meta = pagingMetadataConverter.convert(page, pagingSorting);
 
-        List<ManagementRequestDto> items = page.get()
-                .map(managementRequestConverter::convert)
+        List<ManagementRequestListViewDto> items = page.get()
+                .map(managementRequestListViewDtoConverter::convert)
                 .collect(Collectors.toList());
 
         PagedManagementRequestsDto result = new PagedManagementRequestsDto();

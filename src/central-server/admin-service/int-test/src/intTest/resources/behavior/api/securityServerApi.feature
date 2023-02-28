@@ -31,7 +31,7 @@ Feature: Security Server API
     And management request is approved
     Then security server 'CS:TEST:member-2:SS-2' has no clients
     When new member 'CS:TEST:member-7' is added
-    And new client 'CS:TEST:member-7' is registered for security server 'CS:TEST:member-2:SS-2'
+    And client 'CS:TEST:member-7' is registered as security server 'CS:TEST:member-2:SS-2' client
     And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
     Then security server 'CS:TEST:member-2:SS-2' clients contains 'CS:TEST:member-7'

@@ -33,10 +33,10 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
-import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ClientService;
@@ -96,7 +96,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
                                 .types(List.of(ManagementRequestType.CLIENT_REGISTRATION_REQUEST))
                                 .build(), Pageable.unpaged())
                 .stream()
-                .map(ManagementRequestInfoDto::getStatus)
+                .map(ManagementRequestView::getStatus)
                 .findFirst()
                 .orElse(null);
     }
