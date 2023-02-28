@@ -170,29 +170,14 @@ export default Vue.extend({
       }
 
       return this.selectableClients?.filter((member) => {
-        if (member.member_name?.toLowerCase().includes(tempSearch)) {
-          return true;
-        } else if (
-          member.xroad_id.member_code.toLowerCase().includes(tempSearch)
-        ) {
-          return true;
-        } else if (
-          member.xroad_id.member_class.toLowerCase().includes(tempSearch)
-        ) {
-          return true;
-        } else if (
-          member.xroad_id.subsystem_code?.toLowerCase().includes(tempSearch)
-        ) {
-          return true;
-        } else if (
-          member.xroad_id.instance_id.toLowerCase().includes(tempSearch)
-        ) {
-          return true;
-        } else if (member.xroad_id.type.toLowerCase().includes(tempSearch)) {
-          return true;
-        }
-
-        return false;
+        return (
+          member.member_name?.toLowerCase().includes(tempSearch) ||
+          member.xroad_id.member_code.toLowerCase().includes(tempSearch) ||
+          member.xroad_id.member_class.toLowerCase().includes(tempSearch) ||
+          member.xroad_id.subsystem_code?.toLowerCase().includes(tempSearch) ||
+          member.xroad_id.instance_id.toLowerCase().includes(tempSearch) ||
+          member.xroad_id.type.toLowerCase().includes(tempSearch)
+        );
       });
     },
     cancel(): void {
