@@ -24,37 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.cs.test.hook;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import com.nortal.test.core.services.CucumberScenarioProvider;
+import com.nortal.test.core.services.hooks.AfterScenarioHook;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.mockserver.client.MockServerClient;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.stereotype.Component;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class MockServerResetHook implements AfterScenarioHook {
+    private final ObjectProvider<MockServerClient> mockServerClientProvider;
 
-import java.time.Instant;
+    @Override
+    public void after(CucumberScenarioProvider cucumberScenarioProvider) {
+        // if needed we can clear per scenario.
+        mockServerClientProvider.ifAvailable(MockServerClient::reset);
+    }
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ManagementRequestView {
-
-    private int id;
-    private Origin origin;
-    private String comments;
-    private ManagementRequestType type;
-    private Long securityServerIdentifierId;
-    private Long requestProcessingId;
-    private ManagementRequestStatus status;
-    private String securityServerOwnerName;
-    private SecurityServerId securityServerId;
-    private String clientOwnerName;
-    private ClientId clientId;
-    private byte[] authCert;
-    private CertificateDetails certificateDetails;
-    private String address;
-    private Instant createdAt;
+    @Override
+    public int afterScenarioOrder() {
+        return 100; //Remove mocks before doing anything else
+    }
 }

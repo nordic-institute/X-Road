@@ -30,8 +30,10 @@ import com.nortal.test.feign.interceptor.FeignClientInterceptor;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Interceptor;
 import okhttp3.Response;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.cs.test.glue.CommonStepDefs;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +47,7 @@ import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.TOKEN_TYPE;
 public class AuthenticationFeignClientInterceptor implements FeignClientInterceptor {
     private static final int EXECUTION_ORDER = 50;
 
-    private final ScenarioContext scenarioContext;
+    private final ObjectProvider<ScenarioContext> scenarioContextProvider;
 
     @Override
     public int getOrder() {
@@ -55,22 +57,29 @@ public class AuthenticationFeignClientInterceptor implements FeignClientIntercep
     @NotNull
     @Override
     public Response intercept(@NotNull Interceptor.Chain chain) throws IOException {
-        if (shouldAddAuthorization()) {
-            var request = chain.request().newBuilder()
-                    .addHeader(HttpHeaders.AUTHORIZATION, getToken());
-            return chain.proceed(request.build());
+        if (!shouldAddAuthorization()) {
+            return chain.proceed(chain.request());
         }
-        return chain.proceed(chain.request());
+        if (StringUtils.isNotBlank(chain.request().header(HttpHeaders.AUTHORIZATION))) {
+            return chain.proceed(chain.request());
+        }
+
+        var request = chain.request().newBuilder()
+                .addHeader(HttpHeaders.AUTHORIZATION, getToken());
+        return chain.proceed(request.build());
     }
 
     private boolean shouldAddAuthorization() {
-        return scenarioContext.getStepData(TOKEN_TYPE.name()) != null;
+        return Optional.ofNullable(scenarioContextProvider.getIfAvailable())
+                .map(scenarioContext -> scenarioContext.getStepData(TOKEN_TYPE.name()))
+                .isPresent();
     }
 
     private String getToken() {
-        return Optional.ofNullable(scenarioContext.getStepData(TOKEN_TYPE.name()))
+        return Optional.ofNullable(scenarioContextProvider.getIfAvailable())
+                .map(scenarioContext -> scenarioContext.getStepData(TOKEN_TYPE.name()))
                 .map(object -> (CommonStepDefs.TokenType) object)
-                .map(tokenType -> String.format("X-ROAD-APIKEY TOKEN=%s", tokenType.getToken()))
+                .map(CommonStepDefs.TokenType::getHeaderToken)
                 .orElseThrow(() -> new IllegalArgumentException("Authentication token was not found."));
     }
 }

@@ -41,9 +41,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
-import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ClientService;
@@ -82,6 +82,8 @@ class SecurityServerServiceImplTest implements WithInOrder {
     private ManagementRequestServiceImpl managementRequestService;
 
     @Mock
+    private ManagementRequestView managementRequestView;
+    @Mock
     private ClientService clientService;
     @Mock
     private SecurityServerRepository securityServerRepository;
@@ -99,8 +101,6 @@ class SecurityServerServiceImplTest implements WithInOrder {
     private SecurityServerServiceImpl securityServerService;
 
     @Mock
-    private ManagementRequestInfoDto managementRequestInfoDto;
-    @Mock
     private SecurityServerEntity securityServerEntity;
     @Mock
     private SecurityServer securityServer;
@@ -113,11 +113,11 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         @DisplayName("should find management status approved")
-        void shouldReturnStatusApproved() {
-            Page<ManagementRequestInfoDto> requestInfoDtos = new PageImpl<>(List.of(managementRequestInfoDto));
-            doReturn(requestInfoDtos).when(managementRequestService)
+        public void shouldReturnStatusApproved() {
+            Page<ManagementRequestView> managementRequestViews = new PageImpl<>(List.of(managementRequestView));
+            doReturn(managementRequestViews).when(managementRequestService)
                     .findRequests(any(), any());
-            doReturn(ManagementRequestStatus.APPROVED).when(managementRequestInfoDto).getStatus();
+            doReturn(ManagementRequestStatus.APPROVED).when(managementRequestView).getStatus();
 
             ManagementRequestStatus result = securityServerService.findSecurityServerRegistrationStatus(serverId);
 
@@ -127,9 +127,9 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         @DisplayName("should return null if no management request exit")
-        void shouldReturnNullWhenRequestNotFound() {
-            Page<ManagementRequestInfoDto> emptyRequestInfoDtos = Page.empty();
-            doReturn(emptyRequestInfoDtos).when(managementRequestService)
+        public void shouldReturnNullWhenRequestNotFound() {
+            Page<ManagementRequestView> emptyManagementRequestViews = Page.empty();
+            doReturn(emptyManagementRequestViews).when(managementRequestService)
                     .findRequests(any(), any());
 
             ManagementRequestStatus result = securityServerService.findSecurityServerRegistrationStatus(serverId);
@@ -258,7 +258,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
         void securityServerNotFound() {
             when(securityServerRepository.findBy(serverId)).thenReturn(Option.none());
 
-            assertThrows(NotFoundException.class, () ->  securityServerService.findAuthCertificates(serverId));
+            assertThrows(NotFoundException.class, () -> securityServerService.findAuthCertificates(serverId));
         }
 
     }

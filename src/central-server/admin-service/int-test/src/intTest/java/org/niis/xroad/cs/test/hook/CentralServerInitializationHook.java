@@ -24,37 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.cs.test.hook;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import com.nortal.test.core.services.hooks.BeforeSuiteHook;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.test.utils.SecurityServerInitializer;
+import org.springframework.stereotype.Component;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+/**
+ * Hook responsible for initializing CS instance for tests.
+ */
+@Component
+@RequiredArgsConstructor
+public class CentralServerInitializationHook implements BeforeSuiteHook {
+    private final SecurityServerInitializer securityServerInitializer;
 
-import java.time.Instant;
-
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ManagementRequestView {
-
-    private int id;
-    private Origin origin;
-    private String comments;
-    private ManagementRequestType type;
-    private Long securityServerIdentifierId;
-    private Long requestProcessingId;
-    private ManagementRequestStatus status;
-    private String securityServerOwnerName;
-    private SecurityServerId securityServerId;
-    private String clientOwnerName;
-    private ClientId clientId;
-    private byte[] authCert;
-    private CertificateDetails certificateDetails;
-    private String address;
-    private Instant createdAt;
+    @Override
+    public void beforeSuite() {
+        securityServerInitializer.initializeWithDefaults();
+    }
 }

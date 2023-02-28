@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,39 +24,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.converter;
+package org.niis.xroad.cs.test.utils;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
-import org.niis.xroad.cs.openapi.model.ManagementRequestListViewDto;
-import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
-import org.niis.xroad.cs.openapi.model.PagingMetadataDto;
-import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.springframework.data.domain.Page;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.cs.openapi.model.InitialServerConfDto;
+import org.niis.xroad.cs.test.api.FeignInitializationApi;
+import org.niis.xroad.cs.test.container.service.MockServerService;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
+import static org.niis.xroad.cs.test.glue.CommonStepDefs.TokenType.SYSTEM_ADMINISTRATOR;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
-public class PagedManagementRequestsConverter {
+public class SecurityServerInitializer {
+    private final MockServerService mockServerService;
+    private final FeignInitializationApi initializationApi;
 
-    private final PagingMetadataConverter pagingMetadataConverter;
-    private final ManagementRequestListViewDtoConverter managementRequestListViewDtoConverter;
+    public void initializeWithDefaults() {
+        log.info("Initializing CentralServer with default configuration");
 
-    public PagedManagementRequestsDto convert(Page<ManagementRequestView> page,
-                                              PagingSortingParametersDto pagingSorting) {
+        mockSignerInit();
+        var authHeader = SYSTEM_ADMINISTRATOR.getHeaderToken();
+        var request = new InitialServerConfDto();
+        request.setInstanceIdentifier("CS");
+        request.setCentralServerAddress("cs");
+        request.setSoftwareTokenPin("1234-VALID");
 
-        PagingMetadataDto meta = pagingMetadataConverter.convert(page, pagingSorting);
+        initializationApi.initCentralServerWithHeader(request, authHeader);
+    }
 
-        List<ManagementRequestListViewDto> items = page.get()
-                .map(managementRequestListViewDtoConverter::convert)
-                .collect(Collectors.toList());
-
-        PagedManagementRequestsDto result = new PagedManagementRequestsDto();
-        result.setItems(items);
-        result.setPagingMetadata(meta);
-        return result;
+    private void mockSignerInit() {
+        mockServerService.client()
+                .when(request()
+                        .withMethod("PUT")
+                        .withPath("/initSoftwareToken/"))
+                .respond(response().withStatusCode(NO_CONTENT.value()));
     }
 }

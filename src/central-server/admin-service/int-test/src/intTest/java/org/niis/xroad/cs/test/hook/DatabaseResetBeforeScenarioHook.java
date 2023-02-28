@@ -24,37 +24,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.cs.test.hook;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import com.nortal.test.core.services.ScenarioExecutionContext;
+import com.nortal.test.core.services.hooks.BeforeScenarioHook;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.cs.test.container.database.LiquibaseExecutor;
+import org.springframework.stereotype.Component;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+/**
+ * Database reset hook which drops current database and initializes fresh schema.
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class DatabaseResetBeforeScenarioHook implements BeforeScenarioHook {
+    private static final String TAG_RESET_DB = "@ResetDB";
 
-import java.time.Instant;
+    private final LiquibaseExecutor liquibaseExecutor;
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ManagementRequestView {
+    @Override
+    public void before(@NotNull ScenarioExecutionContext scenarioExecutionContext) {
+        var resetDatabase = scenarioExecutionContext.getCucumberScenario().getSourceTagNames()
+                .stream()
+                .anyMatch(TAG_RESET_DB::equalsIgnoreCase);
 
-    private int id;
-    private Origin origin;
-    private String comments;
-    private ManagementRequestType type;
-    private Long securityServerIdentifierId;
-    private Long requestProcessingId;
-    private ManagementRequestStatus status;
-    private String securityServerOwnerName;
-    private SecurityServerId securityServerId;
-    private String clientOwnerName;
-    private ClientId clientId;
-    private byte[] authCert;
-    private CertificateDetails certificateDetails;
-    private String address;
-    private Instant createdAt;
+        if (resetDatabase) {
+            log.info("Scenario [{}] was marked with {}. Resetting database.",
+                    scenarioExecutionContext.getCucumberScenario().getName(),
+                    TAG_RESET_DB);
+            liquibaseExecutor.executeChangesets();
+        }
+    }
 }

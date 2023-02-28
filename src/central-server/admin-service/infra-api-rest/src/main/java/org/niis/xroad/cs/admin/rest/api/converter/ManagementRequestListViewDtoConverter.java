@@ -1,21 +1,21 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,26 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.dto;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+package org.niis.xroad.cs.admin.rest.api.converter;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
-import org.niis.xroad.cs.admin.api.domain.Origin;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
+import org.niis.xroad.cs.admin.rest.api.converter.model.XRoadObjectTypeDtoConverter;
+import org.niis.xroad.cs.openapi.model.ManagementRequestListViewDto;
 
-import java.time.Instant;
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {ClientIdDtoConverter.class,
+        SecurityServerIdDtoConverter.class, XRoadObjectTypeDtoConverter.class
+})
+public interface ManagementRequestListViewDtoConverter extends BaseConverter {
 
-@Getter
-@RequiredArgsConstructor
-public class ManagementRequestInfoDto {
-    private final int id;
-    private final ManagementRequestType type;
-    private final Origin origin;
-    private final String serverOwnerName;
-    private final SecurityServerId serverId;
-    private final ManagementRequestStatus status;
-    private final Instant createdAt;
+    @Mapping(target = "securityServerOwner", source = "securityServerOwnerName")
+    @Mapping(target = "createdAt", expression = "java(fromInstant(managementRequestView.getCreatedAt()))")
+    ManagementRequestListViewDto convert(ManagementRequestView managementRequestView);
+
 }

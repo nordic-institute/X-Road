@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,25 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import org.niis.xroad.cs.admin.api.dto.ManagementRequestInfoDto;
-import org.niis.xroad.cs.admin.core.entity.ManagementRequestViewEntity;
+package org.niis.xroad.cs.admin.rest.api.converter;
 
-final class ManagementRequests {
+import ee.ria.xroad.common.identifier.ClientId;
 
-    private ManagementRequests() {
-        //Utility class
-    }
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverter;
+import org.niis.xroad.cs.openapi.model.ClientIdDto;
 
-    static ManagementRequestInfoDto asInfoDto(final ManagementRequestViewEntity managementRequestView) {
-        return new ManagementRequestInfoDto(
-                managementRequestView.getId(),
-                managementRequestView.getManagementRequestType(),
-                managementRequestView.getOrigin(),
-                managementRequestView.getSecurityServerOwnerName(),
-                managementRequestView.getSecurityServerId(),
-                managementRequestView.getRequestProcessingStatus(),
-                managementRequestView.getCreatedAt());
-    }
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = ManagementRequestDtoTypeConverter.class)
+public interface ClientIdDtoConverter {
+
+    @Mapping(target = "instanceId", source = "XRoadInstance")
+    @Mapping(target = "type", source = "objectType")
+    @Mapping(target = "encodedId", expression = "java(clientId.asEncodedId())")
+    ClientIdDto convert(ClientId clientId);
+
 }

@@ -128,6 +128,7 @@ public abstract class BaseStepDefs {
     public enum StepDataKey {
         RESPONSE,
         RESPONSE_BODY,
+        ERROR_RESPONSE_BODY,
         RESPONSE_STATUS,
         CERTIFICATION_SERVICE_ID,
         OCSP_RESPONDER_ID,

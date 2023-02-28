@@ -34,7 +34,7 @@ import org.niis.xroad.cs.test.container.database.PostgresContextualContainer;
 import org.springframework.stereotype.Component;
 import org.testcontainers.images.builder.dockerfile.DockerfileBuilder;
 
-import java.util.Collections;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,31 +65,19 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
 
     @Override
     public void additionalBuilderConfiguration(@NotNull DockerfileBuilder dockerfileBuilder) {
-        dockerfileBuilder.copy("/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
-                "/etc/xroad/conf.d/centralserver-admin-service-logback.xml");
-        dockerfileBuilder.copy("/etc/xroad/configuration-parts/center-monitoring.ini",
-                "/etc/xroad/configuration-parts/center-monitoring.ini");
-        dockerfileBuilder.copy("/etc/xroad/configuration-parts/ocsp-fetchinterval.ini",
-                "/etc/xroad/configuration-parts/ocsp-fetchinterval.ini");
+        dockerfileBuilder.copy(".", ".");
     }
 
     @NotNull
     @Override
     public List<String> additionalCommandParts() {
-        return Collections.emptyList();
+        return List.of("-Dxroad.signer.enforce-token-pin-policy=true");
     }
 
     @Override
     public void additionalImageFromDockerfileConfiguration(@NotNull ImageFromDockerfile imageFromDockerfile) {
-        imageFromDockerfile.withFileFromClasspath(
-                "/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
-                "container-files/etc/xroad/conf.d/centralserver-admin-service-logback.xml");
-        imageFromDockerfile.withFileFromClasspath(
-                "/etc/xroad/configuration-parts/center-monitoring.ini",
-                "container-files/etc/xroad/configuration-parts/center-monitoring.ini");
-        imageFromDockerfile.withFileFromClasspath(
-                "/etc/xroad/configuration-parts/ocsp-fetchinterval.ini",
-                "container-files/etc/xroad/configuration-parts/ocsp-fetchinterval.ini");
+        var filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
+        imageFromDockerfile.withFileFromFile(".", filesToAdd);
     }
 
     @NotNull

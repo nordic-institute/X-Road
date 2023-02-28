@@ -5,6 +5,7 @@ logging:
     ROOT: INFO
     cucumber: TRACE
     org.springframework: INFO
+    com.nortal.test: INFO # TRACE is helpful for development
 
 test-automation:
   report-name: xroad-cs-api-test-suite
