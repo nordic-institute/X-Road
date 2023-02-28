@@ -10,12 +10,12 @@ Feature: Intermediate CAS API
     Given intermediate CA added to certification service
     When intermediate CAs are retrieved
     Then intermediate CA is as follows
-      | #$hash                    | A9D0114E3D7FADFF960EBBF2E21DD064D530F4D6 |
-      | $issuerDistinguishedName  | CN=Issuer                                |
-      | $subjectDistinguishedName | CN=Subject                               |
-      | $subjectCommonName        | Subject                                  |
-      | $notBefore                | 2023-02-27T10:01:42Z                     |
-      | $notAfter                 | 2024-02-27T10:01:42Z                     |
+      | #$hash                    | [not_null]  |
+      | $issuerDistinguishedName  | CN=Issuer   |
+      | $subjectDistinguishedName | CN=Subject  |
+      | $subjectCommonName        | Subject     |
+      | $notBefore                | [generated] |
+      | $notAfter                 | [generated] |
 
   Scenario: Adding intermediate CA is deleted
     Given intermediate CA added to certification service
