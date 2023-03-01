@@ -65,7 +65,7 @@
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import { ManagementRequest } from '@/openapi-types';
+import { ManagementRequestListView } from '@/openapi-types';
 import { mapState } from 'pinia';
 import { userStore } from '@/store/modules/user';
 import { Permissions } from '@/global';
@@ -82,7 +82,7 @@ export default Vue.extend({
   },
   props: {
     managementRequest: {
-      type: Object as PropType<ManagementRequest>,
+      type: Object as PropType<ManagementRequestListView>,
       required: true,
     },
   },
