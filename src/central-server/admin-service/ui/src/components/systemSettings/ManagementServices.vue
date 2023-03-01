@@ -57,7 +57,7 @@
                 text
                 :outlined="false"
                 data-test="edit-management-member"
-                @click="openSelectMemberDialog"
+                @click="openSelectSubsystemDialog"
                 >{{ $t('action.edit') }}
               </xrd-button>
             </td>
@@ -143,13 +143,12 @@
         </tbody>
       </table>
     </v-card>
-    <SelectMemberDialog
-      :dialog="showSelectMemberDialog"
-      :client-type="'SUBSYSTEM'"
+    <SelectSubsystemDialog
+      :dialog="showSelectSubsystemDialog"
       @select="updateServiceProvider"
-      @cancel="hideSelectMemberDialog"
+      @cancel="hideSelectSubsystemDialog"
     >
-    </SelectMemberDialog>
+    </SelectSubsystemDialog>
   </div>
 </template>
 
@@ -158,20 +157,20 @@ import { Client, ManagementServicesConfiguration } from '@/openapi-types';
 import Vue from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { managementServicesStore } from '@/store/modules/management-services';
-import SelectMemberDialog from '@/components/systemSettings/SelectMemberDialog.vue';
 import { notificationsStore } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
 import { Permissions } from '@/global';
 import { userStore } from '@/store/modules/user';
+import SelectSubsystemDialog from '@/components/systemSettings/SelectSubsystemDialog.vue';
 
 export default Vue.extend({
   components: {
-    SelectMemberDialog,
+    SelectSubsystemDialog,
   },
   data() {
     return {
       loading: false,
-      showSelectMemberDialog: false,
+      showSelectSubsystemDialog: false,
     };
   },
   computed: {
@@ -200,11 +199,11 @@ export default Vue.extend({
         navigator.clipboard.writeText(url);
       }
     },
-    openSelectMemberDialog(): void {
-      this.showSelectMemberDialog = true;
+    openSelectSubsystemDialog(): void {
+      this.showSelectSubsystemDialog = true;
     },
-    hideSelectMemberDialog(): void {
-      this.showSelectMemberDialog = false;
+    hideSelectSubsystemDialog(): void {
+      this.showSelectSubsystemDialog = false;
     },
     updateServiceProvider(subsystem: Client): void {
       this.loading = true;
@@ -216,7 +215,7 @@ export default Vue.extend({
           this.showSuccess(
             this.$t('systemSettings.serviceProvider.changedSuccess'),
           );
-          this.showSelectMemberDialog = false;
+          this.showSelectSubsystemDialog = false;
         })
         .catch((error) => {
           this.showError(error);

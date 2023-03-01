@@ -30,7 +30,7 @@
       <v-card-title>
         <slot name="title">
           <span class="dialog-title-text">{{
-            $t('systemSettings.selectMember.title')
+            $t('systemSettings.selectSubsystem.title')
           }}</span>
         </slot>
         <v-spacer />
@@ -40,7 +40,7 @@
       <v-card-text style="height: 500px" class="elevation-0">
         <v-text-field
           v-model="search"
-          :label="$t('systemSettings.selectMember.search')"
+          :label="$t('systemSettings.selectSubsystem.search')"
           single-line
           hide-details
           class="search-input"
@@ -55,12 +55,16 @@
             <thead>
               <tr>
                 <th class="checkbox-column"></th>
-                <th>{{ $t('systemSettings.selectMember.name') }}</th>
-                <th>{{ $t('systemSettings.selectMember.memberCode') }}</th>
-                <th>{{ $t('systemSettings.selectMember.memberClass') }}</th>
-                <th>{{ $t('systemSettings.selectMember.subsystemCode') }}</th>
-                <th>{{ $t('systemSettings.selectMember.xroadInstance') }}</th>
-                <th>{{ $t('systemSettings.selectMember.type') }}</th>
+                <th>{{ $t('systemSettings.selectSubsystem.name') }}</th>
+                <th>{{ $t('systemSettings.selectSubsystem.memberCode') }}</th>
+                <th>{{ $t('systemSettings.selectSubsystem.memberClass') }}</th>
+                <th>
+                  {{ $t('systemSettings.selectSubsystem.subsystemCode') }}
+                </th>
+                <th>
+                  {{ $t('systemSettings.selectSubsystem.xroadInstance') }}
+                </th>
+                <th>{{ $t('systemSettings.selectSubsystem.type') }}</th>
               </tr>
             </thead>
             <template v-if="selectableClients && selectableClients.length > 0">
@@ -120,14 +124,10 @@ import { clientStore } from '@/store/modules/clients';
 import { notificationsStore } from '@/store/modules/notifications';
 
 export default Vue.extend({
-  name: 'SelectMemberDialog',
+  name: 'SelectSubsystemDialog',
   props: {
     dialog: {
       type: Boolean,
-      required: true,
-    },
-    clientType: {
-      type: String,
       required: true,
     },
   },
@@ -146,7 +146,7 @@ export default Vue.extend({
   created() {
     this.loading = true;
     this.clientStore
-      .getByClientType(this.clientType)
+      .getByClientType('SUBSYSTEM')
       .then((resp) => {
         this.selectableClients = resp;
       })
@@ -186,6 +186,7 @@ export default Vue.extend({
     },
     select(): void {
       this.$emit('select', this.selectedMember);
+      this.clearForm();
     },
     clearForm(): void {
       this.selectedMember = undefined;

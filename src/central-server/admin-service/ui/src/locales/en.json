@@ -483,8 +483,8 @@
     "instanceIdentifier": "Instance Identifier",
     "managementServiceSecurityServer": "Management Services' Security Server",
     "managementServices": "Management Services",
-    "selectMember": {
-      "title": "Select member",
+    "selectSubsystem": {
+      "title": "Select subsystem",
       "search": "Search",
       "name": "Name",
       "memberClass": "Class",
