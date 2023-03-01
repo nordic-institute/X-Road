@@ -57,10 +57,10 @@ public class AuthenticationFeignClientInterceptor implements FeignClientIntercep
     @NotNull
     @Override
     public Response intercept(@NotNull Interceptor.Chain chain) throws IOException {
-        if (!shouldAddAuthorization()) {
+        if (StringUtils.isNotBlank(chain.request().header(HttpHeaders.AUTHORIZATION))) {
             return chain.proceed(chain.request());
         }
-        if (StringUtils.isNotBlank(chain.request().header(HttpHeaders.AUTHORIZATION))) {
+        if (!isTokenConfiguredForScenario()) {
             return chain.proceed(chain.request());
         }
 
@@ -69,7 +69,7 @@ public class AuthenticationFeignClientInterceptor implements FeignClientIntercep
         return chain.proceed(request.build());
     }
 
-    private boolean shouldAddAuthorization() {
+    private boolean isTokenConfiguredForScenario() {
         return Optional.ofNullable(scenarioContextProvider.getIfAvailable())
                 .map(scenarioContext -> scenarioContext.getStepData(TOKEN_TYPE.name()))
                 .isPresent();

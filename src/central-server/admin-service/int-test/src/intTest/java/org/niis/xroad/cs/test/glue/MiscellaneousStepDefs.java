@@ -123,7 +123,7 @@ public class MiscellaneousStepDefs extends BaseStepDefs {
         Set<String> resultStatuses = new HashSet<>();
         for (ResultDto result : results) {
             String statusText = getStatusText(result.getStatus(), expectedStatus);
-            table.add(List.of(statusText, result.getFeignClient(), result.getMethod(), result.getStatus()));
+            table.add(List.of(statusText, result.getFeignClient(), result.getMethod(), String.valueOf(result.getStatus())));
             resultStatuses.add(statusText);
         }
         ReportFormatter.Attachment attachment = new ReportFormatter.Attachment().setName("RESULTS");
