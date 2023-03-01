@@ -58,14 +58,16 @@ export default Vue.extend({
     return {
       loading: false,
       showDialog: false,
-      messageData: {
-        id: this.managementRequest.id,
-        serverId: this.managementRequest.security_server_id,
-      },
     };
   },
   computed: {
     ...mapStores(managementRequestsStore),
+    messageData() {
+      return {
+        id: this.managementRequest.id,
+        serverId: this.managementRequest.security_server_id?.encoded_id,
+      };
+    },
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),

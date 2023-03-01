@@ -29,6 +29,7 @@ import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';
 import axios, { AxiosRequestConfig } from 'axios';
 import {
+  ManagementRequest,
   ManagementRequestListView,
   ManagementRequestsFilter,
   PagedManagementRequests,

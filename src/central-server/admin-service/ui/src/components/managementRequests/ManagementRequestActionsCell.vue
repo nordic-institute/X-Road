@@ -26,11 +26,15 @@
  -->
 <template>
   <div class="cs-table-actions-wrap management-requests-table">
-    <div v-if="managementRequest.status === 'WAITING'">
+    <div
+      v-if="managementRequest.status === 'WAITING'"
+      :data-test="`actions-for-MR-${managementRequest.id}`"
+    >
       <xrd-button
         v-if="showApproveButton"
-        text
         :outlined="false"
+        data-test="approve-button"
+        text
         @click="$refs.approveDialog.openDialog()"
       >
         {{ $t('action.approve') }}
@@ -38,8 +42,9 @@
 
       <xrd-button
         v-if="showDeclineButton"
-        text
         :outlined="false"
+        data-test="decline-button"
+        text
         @click="$refs.declineDialog.openDialog()"
       >
         {{ $t('action.decline') }}
