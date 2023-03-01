@@ -33,7 +33,6 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
 import org.niis.xroad.cs.admin.api.exception.EntityExistsException;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
@@ -44,6 +43,7 @@ import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -55,6 +55,16 @@ import java.util.stream.Collectors;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_EXISTS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @Service
 @Transactional
@@ -66,9 +76,14 @@ public class SubsystemServiceImpl implements SubsystemService {
 
     private final SecurityServerClientNameRepository securityServerClientNameRepository;
     private final SecurityServerClientMapper subsystemConverter;
+    private final AuditDataHelper auditDataHelper;
 
     @Override
     public Subsystem add(SubsystemCreationRequest request) {
+        auditDataHelper.put(MEMBER_CLASS, request.getMemberId().getMemberClass());
+        auditDataHelper.put(MEMBER_CODE, request.getMemberId().getMemberCode());
+        auditDataHelper.put(MEMBER_SUBSYSTEM_CODE, request.getSubsystemId().getSubsystemCode());
+
         final boolean exists = subsystemRepository.findOneBy(request.getSubsystemId()).isDefined();
         if (exists) {
             throw new EntityExistsException(SUBSYSTEM_EXISTS, request.getSubsystemId().toShortString());
@@ -98,7 +113,7 @@ public class SubsystemServiceImpl implements SubsystemService {
     @Override
     public Set<Subsystem> findByMemberIdentifier(ClientId id) {
         return xRoadMemberRepository.findMember(id)
-                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND))
+                .getOrElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND))
                 .getSubsystems().stream().map(subsystemConverter::toDto)
                 .collect(Collectors.toSet());
     }
@@ -110,22 +125,31 @@ public class SubsystemServiceImpl implements SubsystemService {
 
     @Override
     public void unregisterSubsystem(ClientId subsystemId, SecurityServerId securityServerId) {
+        auditDataHelper.put(SERVER_CODE, securityServerId.getServerCode());
+        auditDataHelper.put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+        auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+        auditDataHelper.put(CLIENT_IDENTIFIER, subsystemId);
+
         SubsystemEntity subsystem = subsystemRepository.findOneBy(subsystemId)
-                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_FOUND));
+                .getOrElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
         ServerClientEntity serverClient = subsystem.getServerClients().stream()
                 .filter(sc -> securityServerId.equals(sc.getSecurityServer().getServerId()))
                 .findFirst()
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER));
+                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER));
         subsystem.getServerClients().remove(serverClient);
     }
 
     @Override
     public void deleteSubsystem(ClientId subsystemClientId) {
+        auditDataHelper.put(MEMBER_CLASS, subsystemClientId.getMemberClass());
+        auditDataHelper.put(MEMBER_CODE, subsystemClientId.getMemberCode());
+        auditDataHelper.put(MEMBER_SUBSYSTEM_CODE, subsystemClientId.getSubsystemCode());
+
         var subsystem = subsystemRepository.findOneBy(subsystemClientId)
-                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_FOUND));
+                .getOrElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
 
         if (isRegistered(subsystem)) {
-            throw new ValidationFailureException(ErrorMessage.SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED);
+            throw new ValidationFailureException(SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED);
         }
 
         subsystemRepository.deleteById(subsystem.getId());
