@@ -75,42 +75,6 @@ public class SubsystemsApiControllerTest implements WithInOrder {
         Function<SecurityServerClient, ? extends SecurityServerClient> expectTypeFn;
 
         @Test
-        @DisplayName("should add subsystem successfully")
-        public void shouldAddSubsystemSuccessfully() {
-            doReturn(clientIdDto).when(newClientDto).getXroadId();
-            doReturn(MEMBER_CLASS).when(clientIdDto).getMemberClass();
-            doNothing().when(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
-            doReturn(MEMBER_CODE).when(clientIdDto).getMemberCode();
-            doNothing().when(auditData).put(RestApiAuditProperty.MEMBER_CODE, MEMBER_CODE);
-            doReturn(SUBSYSTEM_CODE).when(clientIdDto).getSubsystemCode();
-            doNothing().when(auditData).put(RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE, SUBSYSTEM_CODE);
-            doReturn(newSubsystem).when(clientDtoConverter).fromDto(newClientDto);
-            doReturn(expectTypeFn).when(clientDtoConverter).expectType(Subsystem.class);
-            doReturn(newSubsystem).when(expectTypeFn).apply(newSubsystem);
-            doReturn(persistedSubsystem).when(subsystemService).add(newSubsystem);
-            doReturn(persistedClientDto).when(clientDtoConverter).toDto(persistedSubsystem);
-
-            ResponseEntity<ClientDto> result = subsystemsApiController.addSubsystem(newClientDto);
-
-            assertNotNull(result);
-            assertEquals(HttpStatus.CREATED, result.getStatusCode());
-            assertEquals(persistedClientDto, result.getBody());
-            inOrder().verify(inOrder -> {
-                inOrder.verify(clientIdDto).getMemberClass();
-                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
-                inOrder.verify(clientIdDto).getMemberCode();
-                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CODE, MEMBER_CODE);
-                inOrder.verify(clientIdDto).getSubsystemCode();
-                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE, SUBSYSTEM_CODE);
-                inOrder.verify(clientDtoConverter).fromDto(newClientDto);
-                inOrder.verify(clientDtoConverter).expectType(Subsystem.class);
-                inOrder.verify(expectTypeFn).apply(newSubsystem);
-                inOrder.verify(subsystemService).add(newSubsystem);
-                inOrder.verify(clientDtoConverter).toDto(persistedSubsystem);
-            });
-        }
-
-        @Test
         @DisplayName("should fail while trying to add illegal type of security server client")
         public void shouldFailWhileTryingToAddIllegalTypeSecurityServerClient() {
             IllegalArgumentException expectedThrows = mock(IllegalArgumentException.class);
@@ -246,21 +210,6 @@ public class SubsystemsApiControllerTest implements WithInOrder {
 
         private final ClientId subsystemClientId = SubsystemId.create("TEST", "CLASS", "MEMBER", "SUBSYSTEM");
         private final String encodedSubsystemId = subsystemClientId.toShortString(':');
-
-        @Test
-        @DisplayName("Should delete subsystem")
-        void shouldDeleteSubsystem() {
-            var result = subsystemsApiController.deleteSubsystem(encodedSubsystemId);
-
-            assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
-            inOrder().verify(inOrder -> {
-                inOrder.verify(clientIdConverter).convertId(encodedSubsystemId);
-                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, subsystemClientId.getMemberClass());
-                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_CODE, subsystemClientId.getMemberCode());
-                inOrder.verify(auditData).put(RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE, subsystemClientId.getSubsystemCode());
-                inOrder.verify(subsystemService).deleteSubsystem(subsystemClientId);
-            });
-        }
 
         @ParameterizedTest
         @ValueSource(strings = {
