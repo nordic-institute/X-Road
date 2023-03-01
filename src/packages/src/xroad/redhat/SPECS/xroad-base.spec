@@ -96,7 +96,8 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
 /usr/share/xroad/scripts/_setup_db.sh
 /usr/share/xroad/scripts/xroad-base.sh
-/usr/share/xroad/db/liquibase-core-4.19.0.jar
+/usr/share/xroad/db/liquibase-core.jar
+/usr/share/xroad/db/liquibase-core-*.jar
 /usr/share/xroad/db/liquibase.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
