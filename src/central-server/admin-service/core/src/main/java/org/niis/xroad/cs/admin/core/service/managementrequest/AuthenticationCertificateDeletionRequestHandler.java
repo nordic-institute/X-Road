@@ -26,15 +26,15 @@
  */
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
+import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
@@ -55,15 +55,16 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER
 public class AuthenticationCertificateDeletionRequestHandler implements
         RequestHandler<AuthenticationCertificateDeletionRequest> {
     private final RequestRepository<AuthenticationCertificateDeletionRequestEntity> requests;
+    private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final AuthCertRepository authCerts;
     private final SecurityServerRepository servers;
     private final RequestMapper requestMapper;
 
     public AuthenticationCertificateDeletionRequest add(AuthenticationCertificateDeletionRequest request) {
-
-        SecurityServerId serverId = request.getSecurityServerId();
+        final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
 
         final var requestEntity = new AuthenticationCertificateDeletionRequestEntity(request.getOrigin(), serverId);
+        requestEntity.setAuthCert(request.getAuthCert());
 
         if (!authCerts.existsByCert(request.getAuthCert())) {
             throw new DataIntegrityException(INVALID_AUTH_CERTIFICATE);
@@ -73,16 +74,12 @@ public class AuthenticationCertificateDeletionRequestHandler implements
                 .getOrElseThrow(() ->
                         new DataIntegrityException(SECURITY_SERVER_NOT_FOUND));
 
-        for (var item : server.getAuthCerts()) {
-            if (Arrays.equals(item.getCert(), request.getAuthCert())) {
-                authCerts.deleteById(item.getId());
-                break;
-            }
-        }
+        server.getAuthCerts()
+                .removeIf(item -> Arrays.equals(item.getCert(), request.getAuthCert()));
 
-        requests.save(requestEntity);
+        var persistedRequest = requests.save(requestEntity);
 
-        return requestMapper.toDto(requestEntity);
+        return requestMapper.toDto(persistedRequest);
     }
 
     @Override

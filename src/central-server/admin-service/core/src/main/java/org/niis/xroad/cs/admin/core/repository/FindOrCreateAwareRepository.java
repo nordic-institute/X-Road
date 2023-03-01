@@ -38,6 +38,12 @@ public interface FindOrCreateAwareRepository<ENTITY, ID> extends GenericReposito
     ENTITY findOrCreate(ENTITY model);
 
     /**
+     * Return an equivalent model from the repository.
+     * <p>
+     */
+    ENTITY findOne(ENTITY model);
+
+    /**
      * Create an equivalent model to the repository.
      *
      * @param model        the model to create

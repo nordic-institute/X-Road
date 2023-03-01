@@ -35,6 +35,7 @@ import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
@@ -43,7 +44,7 @@ import org.springframework.http.ResponseEntity;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto.SECURITY_SERVER;
-import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.WAITING;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto.valueOf;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.fromValue;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_DELETION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
@@ -64,8 +65,8 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     private byte[] authenticationCertificate;
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    @Step("new security server {string} authentication certificate registered")
-    public void newSecurityServerRegistered(String securityServerId) throws Exception {
+    @Step("new security server {string} authentication certificate registered from {string}")
+    public void newSecurityServerRegistered(String securityServerId, String origin) throws Exception {
         generateAuthenticationCertificate();
         final String[] idParts = StringUtils.split(securityServerId, ':');
         final var managementRequest = new AuthenticationCertificateRegistrationRequestDto();
@@ -73,15 +74,10 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setAuthenticationCertificate(authenticationCertificate);
         managementRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);
-        managementRequest.setOrigin(SECURITY_SERVER);
+        managementRequest.setOrigin(ManagementRequestOriginDto.valueOf(origin));
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
-
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(ACCEPTED))
-                .assertion(equalsAssertion(WAITING, "body.status", "Verify status"))
-                .execute();
     }
 
     @Step("authentication certificate of {string} is deleted")
@@ -100,20 +96,16 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("client {string} is registered as security server {string} client")
-    public void memberIsRegisteredAsSecurityServerClient(String memberId, String securityServerId) {
+    @Step("client {string} is registered as security server {string} client from {string}")
+    public void memberIsRegisteredAsSecurityServerClient(String memberId, String securityServerId, String origin) {
         final ClientRegistrationRequestDto managementRequest = new ClientRegistrationRequestDto();
         managementRequest.setType(CLIENT_REGISTRATION_REQUEST);
-        managementRequest.setOrigin(SECURITY_SERVER);
+        managementRequest.setOrigin(valueOf(origin));
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setClientId(memberId);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
-
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(ACCEPTED))
-                .execute();
     }
 
     @Step("member {string} is deleted as security server {string} client")

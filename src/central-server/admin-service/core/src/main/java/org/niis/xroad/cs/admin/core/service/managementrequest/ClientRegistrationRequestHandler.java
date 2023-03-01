@@ -59,8 +59,8 @@ import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_ALREADY_REGISTERED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_CANNOT_REGISTER_OWNER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_CLIENT_ALREADY_REGISTERED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_MEMBER_NOT_FOUND;
@@ -91,7 +91,6 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
 
     @Override
     public ClientRegistrationRequest add(ClientRegistrationRequest request) {
-        //TODO is it ok to create identifiers if they're not found?
         final SecurityServerIdEntity serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final ClientIdEntity clientId = clientIds.findOrCreate(ClientIdEntity.ensure(request.getClientId()));
         final Origin origin = request.getOrigin();
@@ -116,8 +115,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
         }
 
         servers.findBy(serverId, clientId).map(s -> {
-            //fixme wrong error code
-            throw new DataIntegrityException(MANAGEMENT_REQUEST_ALREADY_REGISTERED);
+            throw new DataIntegrityException(MANAGEMENT_REQUEST_CLIENT_ALREADY_REGISTERED);
         });
 
         List<ClientRegistrationRequestEntity> pending = clientRegRequests.findBy(serverId, clientId,

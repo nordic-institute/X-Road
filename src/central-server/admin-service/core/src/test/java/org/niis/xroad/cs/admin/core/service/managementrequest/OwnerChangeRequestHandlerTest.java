@@ -157,7 +157,7 @@ class OwnerChangeRequestHandlerTest {
     void addShouldThrowExceptionWhenPendingRequestsExist() {
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
 
-        when(serverIds.findOrCreate(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
+        when(serverIds.findOne(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of(mock(OwnerChangeRequestEntity.class), mock(OwnerChangeRequestEntity.class)));
 
@@ -171,7 +171,7 @@ class OwnerChangeRequestHandlerTest {
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
         request.getClientId().setSubsystemCode("SUBSYSTEM");
 
-        when(serverIds.findOrCreate(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
+        when(serverIds.findOne(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
@@ -184,7 +184,7 @@ class OwnerChangeRequestHandlerTest {
     void addShouldThrowExceptionWhenSecurityServerNotExists() {
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
 
-        when(serverIds.findOrCreate(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
+        when(serverIds.findOne(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
@@ -199,7 +199,7 @@ class OwnerChangeRequestHandlerTest {
     void addShouldThrowExceptionWhenOwnerIsNotSecurityServerClient() {
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
 
-        when(serverIds.findOrCreate(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
+        when(serverIds.findOne(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
@@ -216,7 +216,7 @@ class OwnerChangeRequestHandlerTest {
     void addShouldThrowExceptionWhenClientIsTheCurrentOwner() {
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
 
-        when(serverIds.findOrCreate(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
+        when(serverIds.findOne(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
@@ -239,7 +239,7 @@ class OwnerChangeRequestHandlerTest {
     void addShouldThrowExceptionWhenOtherSecurityServerWithTheSameIdExists() {
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
 
-        when(serverIds.findOrCreate(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
+        when(serverIds.findOne(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
@@ -281,7 +281,7 @@ class OwnerChangeRequestHandlerTest {
     void add() {
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
 
-        when(serverIds.findOrCreate(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity, securityServerIdEntity);
+        when(serverIds.findOne(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity, securityServerIdEntity);
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
@@ -298,7 +298,7 @@ class OwnerChangeRequestHandlerTest {
 
         when(servers.count(SecurityServerId.create(clientId, "SS"))).thenReturn(0L);
 
-        when(memberIds.findOrCreate(isA(MemberIdEntity.class))).thenReturn(memberIdEntity);
+        when(memberIds.findOne(isA(MemberIdEntity.class))).thenReturn(memberIdEntity);
         when(ownerChangeRequestRepository.save(isA(OwnerChangeRequestEntity.class))).thenReturn(ownerChangeRequestEntity);
         when(requestMapper.toDto(ownerChangeRequestEntity)).thenReturn(ownerChangeRequestDto);
 
