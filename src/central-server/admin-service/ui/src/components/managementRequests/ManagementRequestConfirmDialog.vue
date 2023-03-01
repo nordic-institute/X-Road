@@ -39,7 +39,7 @@
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import { ManagementRequest } from '@/openapi-types';
+import { ManagementRequestListView } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { managementRequestsStore } from '@/store/modules/managementRequestStore';
 import { notificationsStore } from '@/store/modules/notifications';
@@ -50,7 +50,7 @@ import { notificationsStore } from '@/store/modules/notifications';
 export default Vue.extend({
   props: {
     managementRequest: {
-      type: Object as PropType<ManagementRequest>,
+      type: Object as PropType<ManagementRequestListView>,
       required: true,
     },
   },
@@ -62,8 +62,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(managementRequestsStore),
-    messageData() {
-
+    messageData(): Record<string, unknown> {
       return {
         id: this.managementRequest.id,
         serverId: this.managementRequest.security_server_id?.encoded_id,
@@ -79,7 +78,7 @@ export default Vue.extend({
       this.loading = true;
       this.managementRequestsStore
         .approve(this.managementRequest.id)
-        .then((res) => {
+        .then(() => {
           this.showSuccess(
             this.$t(
               'managementRequests.dialog.approve.successMessage',
