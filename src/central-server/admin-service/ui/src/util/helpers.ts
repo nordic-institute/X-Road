@@ -62,13 +62,13 @@ export function selectedFilter<T, K extends keyof T>(
 export function isValidUrl(str: string): boolean {
   try {
     const url = new URL(str);
-    const protocolPattern = /^https?:$/
-    const hostPattern = /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$/;
-    return protocolPattern.test(url.protocol) && hostPattern.test(url.hostname)
-  }
-  catch (_) {
+    const protocolPattern = /^https?:$/;
+    const hostPattern =
+      /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$/;
+    return protocolPattern.test(url.protocol) && hostPattern.test(url.hostname);
+  } catch (_) {
     return false;
-  };
+  }
 }
 
 // Save response data as a file
@@ -184,19 +184,19 @@ export function getTranslatedFieldErrors(
 // Debounce function
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const debounce = <F extends (...args: any[]) => any>(
-    func: F,
-    waitFor: number,
+  func: F,
+  waitFor: number,
 ): ((...args: Parameters<F>) => Promise<ReturnType<F>>) => {
   let timeout: number | undefined;
 
   return (...args: Parameters<F>): Promise<ReturnType<F>> =>
-      new Promise((resolve) => {
-        if (timeout) {
-          clearTimeout(timeout);
-        }
+    new Promise((resolve) => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
 
-        timeout = setTimeout(() => resolve(func(...args)), waitFor);
-      });
+      timeout = setTimeout(() => resolve(func(...args)), waitFor);
+    });
 };
 
 // Check if a string or array is empty, null or undefined
@@ -206,9 +206,10 @@ export function isEmpty(str: string | []): boolean {
 
 // Get identifier in format CS:ORG:MEMBER[:SUBSYSTEM]
 export function toIdentifier(client: ClientId): string {
-  let identifier = client.instance_id + ':' + client.member_class + ':' + client.member_code;
+  let identifier =
+    client.instance_id + ':' + client.member_class + ':' + client.member_code;
   if (client.subsystem_code) {
-    identifier += ':' + client.subsystem_code
+    identifier += ':' + client.subsystem_code;
   }
   return identifier;
 }

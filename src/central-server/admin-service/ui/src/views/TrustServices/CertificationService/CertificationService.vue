@@ -38,9 +38,7 @@
         {{ $t('trustServices.viewCertificate') }}
       </xrd-button>
     </div>
-    <PageNavigation
-      :tabs="certificationServiceNavigationTabs"
-    ></PageNavigation>
+    <PageNavigation :tabs="certificationServiceNavigationTabs"></PageNavigation>
     <router-view />
   </div>
 </template>
@@ -112,9 +110,6 @@ export default Vue.extend({
         },
       ];
     },
-  },
-  created() {
-    this.certificationServiceStore.loadById(this.certificationServiceId);
   },
   created() {
     this.certificationServiceStore.loadById(this.certificationServiceId);
