@@ -65,7 +65,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     private byte[] authenticationCertificate;
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    @Step("new security server {string} authentication certificate registered from {string}")
+    @Step("new security server {string} authentication certificate registered with origin {string}")
     public void newSecurityServerRegistered(String securityServerId, String origin) throws Exception {
         generateAuthenticationCertificate();
         final String[] idParts = StringUtils.split(securityServerId, ':');

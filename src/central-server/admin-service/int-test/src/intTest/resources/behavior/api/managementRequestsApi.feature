@@ -8,7 +8,7 @@ Feature: Management requests API
 
   @Modifying
   Scenario: Add/delete Authentication certificate
-    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered from 'SECURITY_SERVER'
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     When user can get security server 'CS:E2E:member-1:SS-X' authentication certificates
     Then authentication certificate of 'CS:E2E:member-1:SS-X' is deleted
@@ -17,16 +17,16 @@ Feature: Management requests API
   @Modifying
   Scenario: Auto approve Authentication certificate
     Given Authentication header is set to REGISTRATION_OFFICER
-    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered from 'CENTER'
+    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'CENTER'
     And management request is with status 'WAITING'
     When Authentication header is set to MANAGEMENT_SERVICE
-    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered from 'SECURITY_SERVER'
+    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     Then management request is with status 'APPROVED'
     And user can get security server 'CS:E2E:member-1:SS-X' authentication certificates
 
   @Modifying
   Scenario: Decline authentication certificate registration
-    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered from 'SECURITY_SERVER'
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is with status 'WAITING'
     Then management request is declined
     And management request is with status 'DECLINED'
@@ -34,7 +34,7 @@ Feature: Management requests API
 
   @Modifying
   Scenario: Add/delete security server client
-    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered from 'SECURITY_SERVER'
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new member 'CS:E2E:member-2' is added
     When client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
@@ -45,7 +45,7 @@ Feature: Management requests API
 
   @Modifying
   Scenario: Auto approve security server client
-    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered from 'SECURITY_SERVER'
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new member 'CS:E2E:member-2' is added
     And Authentication header is set to REGISTRATION_OFFICER
@@ -58,7 +58,7 @@ Feature: Management requests API
 
   @Modifying
   Scenario: Decline client registration
-    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered from 'SECURITY_SERVER'
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new member 'CS:E2E:member-2' is added
     When client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
@@ -68,7 +68,7 @@ Feature: Management requests API
 
   @Modifying
   Scenario: Changing security server owner
-    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered from 'SECURITY_SERVER'
+    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And member 'CS:E2E:member-1' is in global group 'security-server-owners'
     And new member 'CS:E2E:member-2' is added
@@ -83,6 +83,6 @@ Feature: Management requests API
 
   @Modifying
   Scenario: View management request details
-    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered from 'SECURITY_SERVER'
+    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is with status 'WAITING'
     Then details of management request can be retrieved for security server 'CS:E2E:member-1:SS-X'
