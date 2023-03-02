@@ -39,9 +39,11 @@
               <b>{{ subsystemCode }}</b>
             </template>
             <template #memberId>
-              <b>{{ currentMember.xroad_id.member_class +
-              '/' +
-              currentMember.xroad_id.member_code }}</b>
+              <b>{{
+                currentMember.xroad_id.member_class +
+                '/' +
+                currentMember.xroad_id.member_code
+              }}</b>
             </template>
           </i18n>
         </v-card-text>

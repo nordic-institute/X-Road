@@ -65,7 +65,9 @@
       </template>
 
       <template #[`item.roles`]="{ item }">
-        <span :data-test="`api-key-row-${item.id}-roles`">{{ translateRoles(item.roles) | commaSeparate }}</span>
+        <span :data-test="`api-key-row-${item.id}-roles`">{{
+          translateRoles(item.roles) | commaSeparate
+        }}</span>
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -183,9 +185,6 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(userStore, ['hasPermission']),
-    canCreateApiKey(): boolean {
-      return this.hasPermission(Permissions.CREATE_API_KEY);
-    },
     canEdit(): boolean {
       return this.hasPermission(Permissions.UPDATE_API_KEY);
     },

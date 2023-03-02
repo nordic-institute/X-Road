@@ -32,7 +32,8 @@
         {{ $t('globalResources.globalGroups') }}
       </div>
 
-      <xrd-button data-test="add-global-group-button"
+      <xrd-button
+        data-test="add-global-group-button"
         @click="showAddGroupDialog = true"
       >
         <xrd-icon-base class="xrd-large-button-icon"
