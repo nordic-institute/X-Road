@@ -19,7 +19,7 @@
         </preConditions>
 
         <createTable tableName="anchor_url_certs">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="anchor_url_certs_pkey"/>
             </column>
             <column name="anchor_url_id" type="INT"/>
@@ -27,7 +27,7 @@
         </createTable>
 
         <createTable tableName="anchor_urls">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="anchor_urls_pkey"/>
             </column>
             <column name="trusted_anchor_id" type="INT"/>
@@ -35,7 +35,7 @@
         </createTable>
 
         <createTable tableName="approved_cas">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="approved_cas_pkey"/>
             </column>
             <column name="name" type="VARCHAR(255)"/>
@@ -53,7 +53,7 @@
         </createTable>
 
         <createTable tableName="approved_tsas">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="approved_tsas_pkey"/>
             </column>
             <column name="name" type="VARCHAR(255)"/>
@@ -70,7 +70,7 @@
         </createTable>
 
         <createTable tableName="auth_certs">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="auth_certs_pkey"/>
             </column>
             <column name="security_server_id" type="INT"/>
@@ -84,7 +84,7 @@
         </createTable>
 
         <createTable tableName="ca_infos">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="ca_infos_pkey"/>
             </column>
             <column name="cert" type="${binaryType}"/>
@@ -100,7 +100,7 @@
         </createTable>
 
         <createTable tableName="central_services">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="central_services_pkey"/>
             </column>
             <column name="service_code" type="VARCHAR(255)"/>
@@ -114,7 +114,7 @@
         </createTable>
 
         <createTable tableName="configuration_signing_keys">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="configuration_signing_keys_pkey"/>
             </column>
             <column name="configuration_source_id" type="INT"/>
@@ -125,7 +125,7 @@
         </createTable>
 
         <createTable tableName="configuration_sources">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="configuration_sources_pkey"/>
             </column>
             <column name="source_type" type="VARCHAR(255)"/>
@@ -137,7 +137,7 @@
         </createTable>
 
         <createTable tableName="distributed_files">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="distributed_files_pkey"/>
             </column>
             <column name="file_name" type="VARCHAR(255)"/>
@@ -151,7 +151,7 @@
         </createTable>
 
         <createTable tableName="global_group_members">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="global_group_members_pkey"/>
             </column>
             <column name="group_member_id" type="INT"/>
@@ -165,7 +165,7 @@
         </createTable>
 
         <createTable tableName="global_groups">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="global_groups_pkey"/>
             </column>
             <column name="group_code" type="VARCHAR(255)"/>
@@ -180,7 +180,7 @@
         </createTable>
 
         <createTable tableName="history">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="history_pkey"/>
             </column>
             <column name="operation" type="VARCHAR(255)">
@@ -207,7 +207,7 @@
         </createTable>
 
         <createTable tableName="identifiers">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="identifiers_pkey"/>
             </column>
             <column name="object_type" type="VARCHAR(255)"/>
@@ -228,7 +228,7 @@
         </createTable>
 
         <createTable tableName="member_classes">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="member_classes_pkey"/>
             </column>
             <column name="code" type="VARCHAR(255)"/>
@@ -242,7 +242,7 @@
         </createTable>
 
         <createTable tableName="ocsp_infos">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="ocsp_infos_pkey"/>
             </column>
             <column name="url" type="VARCHAR(255)"/>
@@ -257,7 +257,7 @@
         </createTable>
 
         <createTable tableName="request_processings">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="request_processings_pkey"/>
             </column>
             <column name="type" type="VARCHAR(255)"/>
@@ -271,7 +271,7 @@
         </createTable>
 
         <createTable tableName="requests">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="requests_pkey"/>
             </column>
             <column name="request_processing_id" type="INT"/>
@@ -297,7 +297,7 @@
         </createTable>
 
         <createTable tableName="security_categories">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="security_categories_pkey"/>
             </column>
             <column name="code" type="VARCHAR(255)"/>
@@ -311,7 +311,7 @@
         </createTable>
 
         <createTable tableName="security_server_client_names">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="security_server_client_names_pkey"/>
             </column>
             <column name="name" type="VARCHAR(255)"/>
@@ -325,7 +325,7 @@
         </createTable>
 
         <createTable tableName="security_server_clients">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="security_server_clients_pkey"/>
             </column>
             <column name="member_code" type="VARCHAR(255)"/>
@@ -345,7 +345,7 @@
         </createTable>
 
         <createTable tableName="security_servers">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="security_servers_pkey"/>
             </column>
             <column name="server_code" type="VARCHAR(255)"/>
@@ -360,7 +360,7 @@
         </createTable>
 
         <createTable tableName="security_servers_security_categories">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="security_servers_security_categories_pkey"/>
             </column>
             <column name="security_server_id" type="INT">
@@ -372,7 +372,7 @@
         </createTable>
 
         <createTable tableName="server_clients">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="server_clients_pkey"/>
             </column>
             <column name="security_server_id" type="INT">
@@ -384,7 +384,7 @@
         </createTable>
 
         <createTable tableName="system_parameters">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="system_parameters_pkey"/>
             </column>
             <column name="key" type="VARCHAR(255)"/>
@@ -399,7 +399,7 @@
         </createTable>
 
         <createTable tableName="trusted_anchors">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="trusted_anchors_pkey"/>
             </column>
             <column name="instance_identifier" type="VARCHAR(255)"/>
@@ -411,7 +411,7 @@
         </createTable>
 
         <createTable tableName="ui_users">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="ui_users_pkey"/>
             </column>
             <column name="username" type="VARCHAR(255)"/>
