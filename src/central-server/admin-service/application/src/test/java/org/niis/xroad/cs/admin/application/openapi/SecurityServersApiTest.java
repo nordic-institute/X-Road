@@ -88,28 +88,6 @@ public class SecurityServersApiTest extends AbstractApiRestTemplateTestContext {
                 "Total items must not be less than clients returned in one page");
     }
 
-    @Test
-    public void givenDescSortReturnsCorrectlySorted() {
-        addApiKeyAuthorizationHeader(restTemplate);
-
-        ResponseEntity<PagedSecurityServersDto> response =
-                restTemplate.getForEntity("/api/v1/security-servers/?desc=true&sort=xroad_id.member_code",
-                        PagedSecurityServersDto.class);
-
-        assertNotNull(response, "Security server list response  must not be null.");
-        assertEquals(200, response.getStatusCodeValue(),
-                "Security server list request return 200 status");
-        assertNotNull(response.getBody());
-        List<SecurityServerDto> securityServers = response.getBody().getItems();
-        assertNotNull(securityServers);
-        assertNotNull(response.getBody().getPagingMetadata());
-        int itemCount = response.getBody().getItems().size();
-        assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
-                "Total items must not be less than clients returned in one page");
-        assertTrue(0 < securityServers.get(0).getXroadId().getMemberCode()
-                .compareTo(securityServers.get(itemCount - 1).getXroadId().getMemberCode()));
-
-    }
 */
 
 }
