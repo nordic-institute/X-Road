@@ -38,8 +38,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
-import { ManagementRequestListView } from '@/openapi-types';
+import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { managementRequestsStore } from '@/store/modules/managementRequestStore';
 import { notificationsStore } from '@/store/modules/notifications';
@@ -49,8 +48,12 @@ import { notificationsStore } from '@/store/modules/notifications';
  */
 export default Vue.extend({
   props: {
-    managementRequest: {
-      type: Object as PropType<ManagementRequestListView>,
+    requestId: {
+      type: Number,
+      required: true,
+    },
+    securityServerId: {
+      type: String,
       required: true,
     },
   },
@@ -64,20 +67,17 @@ export default Vue.extend({
     ...mapStores(managementRequestsStore),
     messageData(): Record<string, unknown> {
       return {
-        id: this.managementRequest.id,
-        serverId: this.managementRequest.security_server_id?.encoded_id,
+        id: this.requestId,
+        serverId: this.securityServerId,
       };
     },
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     approve() {
-      if (!this.managementRequest.id) {
-        return;
-      }
       this.loading = true;
       this.managementRequestsStore
-        .approve(this.managementRequest.id)
+        .approve(this.requestId)
         .then(() => {
           this.showSuccess(
             this.$t(
@@ -101,41 +101,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@import '~styles/tables';
-
-#management-request-filters {
-  display: flex;
-  justify-content: space-between;
-}
-
-.request-id {
-  color: $XRoad-Purple100;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.align-fix {
-  align-items: center;
-}
-
-.margin-fix {
-  margin-top: -10px;
-}
-
-.custom-checkbox {
-  .v-label {
-    font-size: 14px;
-  }
-}
-
-.only-pending {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.management-requests-table {
-  min-width: 182px;
-}
-</style>

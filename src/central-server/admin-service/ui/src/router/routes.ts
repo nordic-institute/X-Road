@@ -89,8 +89,10 @@ import IntermediateCa from '@/views/TrustServices/CertificationService/Intermedi
 import IntermediateCaDetails from '@/views/TrustServices/CertificationService/IntermediateCaDetails.vue';
 import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationService/IntermediateCaOcspResponders.vue';
 import TimestampingServiceCertificate from '@/components/timestampingServices/TimestampingServiceCertificate.vue';
-import ManagementRequestDetails from "@/components/managementRequests/ManagementRequestDetails.vue";
-import ManagementRequestsList, { Scope } from "@/components/managementRequests/ManagementRequestsList.vue";
+import ManagementRequestDetails from '@/views/ManagementRequests/ManagementRequestDetails.vue';
+import ManagementRequestsList, {
+  Scope,
+} from '@/views/ManagementRequests/ManagementRequestsList.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -429,7 +431,6 @@ const routes: RouteConfig[] = [
       },
 
       {
-
         path: '/management-requests',
         components: {
           default: ManagementRequests,
@@ -453,9 +454,7 @@ const routes: RouteConfig[] = [
             path: ':requestId/details',
             component: ManagementRequestDetails,
             props(route: Route): { requestId: number } {
-              const requestId = Number(
-                route.params.requestId,
-              );
+              const requestId = Number(route.params.requestId);
               return { requestId };
             },
             meta: {

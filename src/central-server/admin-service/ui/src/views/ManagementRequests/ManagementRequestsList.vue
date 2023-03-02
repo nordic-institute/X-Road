@@ -61,7 +61,7 @@
       @update:options="changeOptions"
     >
       <template #[`item.id`]="{ item }">
-        <div class="request-id">{{ item.id }}</div>
+        <management-request-id-cell :management-request="item" />
       </template>
 
       <template #[`item.created_at`]="{ item }">
@@ -69,7 +69,7 @@
       </template>
 
       <template #[`item.type`]="{ item }">
-        <type-cell :type="item.type" />
+        <mr-type-cell :type="item.type" />
       </template>
 
       <template #[`item.security_server_owner`]="{ item }">
@@ -81,11 +81,15 @@
       </template>
 
       <template #[`item.status`]="{ item }">
-        <status-cell :status="item.status" />
+        <mr-status-cell :status="item.status" />
       </template>
 
       <template #[`item.button`]="{ item }">
-        <actions-cell :management-request="item" @approve="changeOptions" @decline="changeOptions" />
+        <mr-actions-cell
+          :management-request="item"
+          @approve="changeOptions"
+          @decline="changeOptions"
+        />
       </template>
     </v-data-table>
   </div>
@@ -93,10 +97,6 @@
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import { RouteName } from '@/global';
-import StatusCell from '@/components/managementRequests/ManagementRequestStatusCell.vue';
-import TypeCell from '@/components/managementRequests/ManagementRequestTypeCell.vue';
-import ActionsCell from '@/components/managementRequests/ManagementRequestActionsCell.vue';
 import { DataOptions, DataTableHeader } from 'vuetify';
 import { mapActions, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
@@ -104,6 +104,10 @@ import { debounce } from '@/util/helpers';
 import XrdFilter from '@/components/ui/XrdFilter.vue';
 import { managementRequestsStore } from '@/store/modules/managementRequestStore';
 import { ManagementRequestsFilter } from '@/openapi-types';
+import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vue';
+import MrActionsCell from '@/components/managementRequests/MrActionsCell.vue';
+import MrStatusCell from '@/components/managementRequests/MrStatusCell.vue';
+import MrTypeCell from '@/components/managementRequests/MrTypeCell.vue';
 
 export enum Scope {
   FULL,
@@ -121,9 +125,10 @@ let that: any;
 export default Vue.extend({
   name: 'ManagementRequestsList',
   components: {
-    ActionsCell,
-    StatusCell,
-    TypeCell,
+    MrTypeCell,
+    MrStatusCell,
+    MrActionsCell,
+    ManagementRequestIdCell,
     XrdFilter,
   },
   props: {
@@ -208,13 +213,6 @@ export default Vue.extend({
       // Debounce is used to reduce unnecessary api calls
       that.fetchItems(that.pagingSortingOptions);
     }, 600),
-    toDetails(): void {
-      //TODO navigate to proper page
-      this.$router.push({
-        name: RouteName.MemberDetails,
-        params: { memberid: 'unknown-member-id' },
-      });
-    },
     changeOptions: async function () {
       await this.fetchItems(this.pagingSortingOptions, this.filter);
     },
@@ -236,17 +234,11 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '~@/assets/tables';
 
 #management-request-filters {
   display: flex;
   justify-content: space-between;
-}
-
-.request-id {
-  color: $XRoad-Purple100;
-  font-weight: 600;
-  font-size: 14px;
 }
 
 .align-fix {

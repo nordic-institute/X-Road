@@ -25,33 +25,39 @@
    THE SOFTWARE.
  -->
 <template>
-  <main data-test="security-server-management-requests-view">
-    <ManagementRequests :scope="requestListScope" />
-  </main>
+  <data-block block-title-key="managementRequestDetails.clientInformation">
+    <data-line
+      label-text-key="managementRequestDetails.ownerName"
+      :value="managementRequest.client_owner_name"
+    />
+    <data-line
+      label-text-key="managementRequestDetails.ownerClass"
+      :value="managementRequest.clientId.member_class"
+    />
+    <data-line
+      label-text-key="managementRequestDetails.ownerCode"
+      :value="managementRequest.clientId.member_code"
+    />
+    <data-line
+      label-text-key="managementRequestDetails.subsystemCode"
+      :value="managementRequest.clientId.subsystem_code"
+    />
+  </data-block>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { Colors } from '@/global';
-import ManagementRequests, {
-  Scope,
-} from '@/views/ManagementRequests/ManagementRequestsList.vue';
+import Vue, { PropType } from 'vue';
+import { ManagementRequestDetailedView } from '@/openapi-types';
+import DataLine from './DetailsLine.vue';
+import DataBlock from './DetailsBlock.vue';
 
-/**
- * Component for Security server management requests
- */
 export default Vue.extend({
-  name: 'MemberManagementRequests',
-
-  components: {
-    ManagementRequests,
-  },
-  data() {
-    return {
-      colors: Colors,
-      loading: false,
-      requestListScope: Scope.SECURITY_SERVER,
-    };
+  components: { DataBlock, DataLine },
+  props: {
+    managementRequest: {
+      type: Object as PropType<ManagementRequestDetailedView>,
+      required: true,
+    },
   },
 });
 </script>
