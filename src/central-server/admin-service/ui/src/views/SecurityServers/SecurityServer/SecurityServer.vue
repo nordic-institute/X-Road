@@ -31,7 +31,7 @@
         <div class="xrd-view-title">FOO 1</div>
       </div>
     </div>
-    <PageNavigation :items="memberNavigationItems"></PageNavigation>
+    <PageNavigation :items="securityServerNavigationItems"></PageNavigation>
     <router-view />
   </div>
 </template>
@@ -41,7 +41,7 @@ import Vue from 'vue';
 import PageNavigation, {
   NavigationItem,
 } from '@/components/layout/PageNavigation.vue';
-import { Colors, RouteName } from '@/global';
+import { Colors } from '@/global';
 
 /**
  * Wrapper component for a security server view
@@ -49,7 +49,7 @@ import { Colors, RouteName } from '@/global';
 export default Vue.extend({
   components: { PageNavigation },
   props: {
-    id: {
+    serverId: {
       type: String,
       required: true,
     },
@@ -60,30 +60,30 @@ export default Vue.extend({
     };
   },
   computed: {
-    memberNavigationItems(): NavigationItem[] {
+    securityServerNavigationItems(): NavigationItem[] {
       return [
         {
-          url: `/security-servers/${this.id}/details`,
+          url: `/security-servers/${this.serverId}/details`,
           label: this.$t(
             'securityServers.securityServer.tabs.details',
           ) as string,
         },
         {
-          url: `/security-servers/${this.id}/clients`,
+          url: `/security-servers/${this.serverId}/clients`,
           label: this.$t(
             'securityServers.securityServer.tabs.clients',
           ) as string,
         },
 
         {
-          url: `/security-servers/${this.id}/authenticationcertificates`,
+          url: `/security-servers/${this.serverId}/authenticationcertificates`,
           label: this.$t(
             'securityServers.securityServer.tabs.authCertificates',
           ) as string,
         },
 
         {
-          url: `/security-servers/${this.id}/managementrequests`,
+          url: `/security-servers/${this.serverId}/managementrequests`,
           label: this.$t(
             'members.member.pagenavigation.managementRequests',
           ) as string,
