@@ -25,7 +25,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <data-block block-title-key="managementRequestDetails.ssInformation">
+  <data-block
+    block-title-key="managementRequestDetails.securityServerInformation"
+  >
     <data-line
       label-text-key="managementRequestDetails.ownerName"
       :value="managementRequest.security_server_owner"

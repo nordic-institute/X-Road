@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="details-block">
+  <div class="details-block" :data-test="blockTitleKey">
     <!-- System Parameters -->
     <div class="mb-6">
       <v-card class="pb-4" flat>

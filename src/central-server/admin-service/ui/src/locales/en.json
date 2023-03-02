@@ -409,7 +409,7 @@
     "source": "Source",
     "status": "Status",
     "comments": "Comments",
-    "ssInformation": "Affected Security Server Information",
+    "securityServerInformation": "Affected Security Server Information",
     "ownerName": "Owner Name",
     "ownerClass": "Owner Class",
     "ownerCode": "Owner Code",
