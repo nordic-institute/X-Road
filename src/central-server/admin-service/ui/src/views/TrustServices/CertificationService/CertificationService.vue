@@ -116,6 +116,9 @@ export default Vue.extend({
   created() {
     this.certificationServiceStore.loadById(this.certificationServiceId);
   },
+  created() {
+    this.certificationServiceStore.loadById(this.certificationServiceId);
+  },
   methods: {
     navigateToCertificateDetails() {
       this.$router.push({

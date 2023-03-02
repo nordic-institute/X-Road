@@ -37,7 +37,9 @@
       :action-text="$t('action.edit')"
       :show-action="allowEditSettings"
       :info-text="
-        certificationServiceStore.currentCertificationService.tls_auth ? 'True' : 'False'
+        certificationServiceStore.currentCertificationService.tls_auth
+          ? 'True'
+          : 'False'
       "
       data-test="tls-auth-card"
       @actionClicked="showEditTlsAuthDialog = true"
@@ -49,7 +51,8 @@
       :action-text="$t('action.edit')"
       :show-action="allowEditSettings"
       :info-text="
-        certificationServiceStore.currentCertificationService.certificate_profile_info || ''
+        certificationServiceStore.currentCertificationService
+          .certificate_profile_info || ''
       "
       data-test="cert-profile-card"
       @actionClicked="showEditCertProfileDialog = true"
@@ -58,7 +61,9 @@
     <!-- Edit TLS auth dialog -->
     <EditTlsAuthDialog
       v-if="showEditTlsAuthDialog"
-      :certificationService="certificationServiceStore.currentCertificationService"
+      :certification-service="
+        certificationServiceStore.currentCertificationService
+      "
       @cancel="hideEditTlsAuthDialog"
       @tlsAuthChanged="hideEditTlsAuthDialog"
     ></EditTlsAuthDialog>
@@ -66,11 +71,12 @@
     <!-- Edit cert profile dialog -->
     <EditCertProfileDialog
       v-if="showEditCertProfileDialog"
-      :certificationService="certificationServiceStore.currentCertificationService"
+      :certification-service="
+        certificationServiceStore.currentCertificationService
+      "
       @cancel="hideEditCertProfileDialog"
       @tlsAuthChanged="hideEditCertProfileDialog"
     ></EditCertProfileDialog>
-
   </main>
 </template>
 
@@ -80,12 +86,12 @@
  */
 import Vue from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
-import {mapState, mapStores} from 'pinia';
+import { mapState, mapStores } from 'pinia';
 import { useCertificationServiceStore } from '@/store/modules/trust-services';
-import {Permissions} from "@/global";
-import {userStore} from "@/store/modules/user";
-import EditCertProfileDialog from "@/components/certificationServices/EditCertProfileDialog.vue";
-import EditTlsAuthDialog from "@/components/certificationServices/EditTlsAuthDialog.vue";
+import { Permissions } from '@/global';
+import { userStore } from '@/store/modules/user';
+import EditCertProfileDialog from '@/components/certificationServices/EditCertProfileDialog.vue';
+import EditTlsAuthDialog from '@/components/certificationServices/EditTlsAuthDialog.vue';
 
 export default Vue.extend({
   name: 'CertificationServiceSettings',
@@ -98,7 +104,7 @@ export default Vue.extend({
     return {
       showEditTlsAuthDialog: false,
       showEditCertProfileDialog: false,
-    }
+    };
   },
   computed: {
     ...mapStores(useCertificationServiceStore),
@@ -114,6 +120,6 @@ export default Vue.extend({
     hideEditCertProfileDialog() {
       this.showEditCertProfileDialog = false;
     },
-  }
+  },
 });
 </script>

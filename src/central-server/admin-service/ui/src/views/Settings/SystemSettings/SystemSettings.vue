@@ -131,22 +131,26 @@
 </template>
 
 <script lang="ts">
-import { ErrorInfo } from "@/openapi-types";
-import { managementServicesStore } from "@/store/modules/management-services";
-import { notificationsStore } from "@/store/modules/notifications";
-import { systemStore } from "@/store/modules/system";
+import { ErrorInfo } from '@/openapi-types';
+import { managementServicesStore } from '@/store/modules/management-services';
+import { notificationsStore } from '@/store/modules/notifications';
+import { systemStore } from '@/store/modules/system';
 
-import { getErrorInfo, getTranslatedFieldErrors, isFieldError } from "@/util/helpers";
-import ManagementServices from "@/components/systemSettings/ManagementServices.vue";
-import MemberClasses from "@/components/systemSettings/MemberClasses.vue";
-import { AxiosError } from "axios";
-import { mapActions, mapState } from "pinia";
-import { ValidationProvider } from "vee-validate";
+import {
+  getErrorInfo,
+  getTranslatedFieldErrors,
+  isFieldError,
+} from '@/util/helpers';
+import ManagementServices from '@/components/systemSettings/ManagementServices.vue';
+import MemberClasses from '@/components/systemSettings/MemberClasses.vue';
+import { AxiosError } from 'axios';
+import { mapActions, mapState } from 'pinia';
+import { ValidationProvider } from 'vee-validate';
 
 /**
  * View for 'system settings' tab
  */
-import Vue, { VueConstructor } from "vue";
+import Vue, { VueConstructor } from 'vue';
 
 export default (
   Vue as VueConstructor<

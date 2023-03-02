@@ -124,10 +124,14 @@
         @click="showDeleteDialog = true"
       >
         <div>
-          <v-icon class="xrd-large-button-icon" :color="colors.Purple100">mdi-close-circle</v-icon>
+          <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
+            >mdi-close-circle</v-icon
+          >
         </div>
         <div class="action-text">
-          {{ $t('members.member.details.deleteMember') }} "{{ memberStore.currentMember.member_name || '' }}"
+          {{ $t('members.member.details.deleteMember') }} "{{
+            memberStore.currentMember.member_name || ''
+          }}"
         </div>
       </div>
     </div>

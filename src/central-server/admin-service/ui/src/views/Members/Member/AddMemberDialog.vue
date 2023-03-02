@@ -67,13 +67,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import {mapActions, mapState, mapStores} from 'pinia';
-import {MemberClass, XRoadId} from "@/openapi-types";
-import {clientStore} from "@/store/modules/clients";
-import {memberStore} from "@/store/modules/members";
-import {systemStore} from "@/store/modules/system";
-import {notificationsStore} from "@/store/modules/notifications";
-import {useMemberClassStore} from "@/store/modules/member-class";
+import { mapActions, mapState, mapStores } from 'pinia';
+import { MemberClass, XRoadId } from '@/openapi-types';
+import { clientStore } from '@/store/modules/clients';
+import { memberStore } from '@/store/modules/members';
+import { systemStore } from '@/store/modules/system';
+import { notificationsStore } from '@/store/modules/notifications';
+import { useMemberClassStore } from '@/store/modules/member-class';
 
 export default Vue.extend({
   name: 'AddMemberDialog',
@@ -98,11 +98,7 @@ export default Vue.extend({
       return this.memberClassStore.memberClasses;
     },
     formReady(): boolean {
-      return !!(
-        this.memberName &&
-        this.memberClass &&
-        this.memberCode
-      );
+      return !!(this.memberName && this.memberClass && this.memberCode);
     },
   },
   created() {
@@ -120,27 +116,31 @@ export default Vue.extend({
       this.memberCode = '';
     },
     add(): void {
-      const instanceId: string = this.getSystemStatus?.initialization_status?.instance_identifier as string;
-      this.memberStore.add({
-        member_name: this.memberName,
-        xroad_id: {
-          member_class: this.memberClass,
-          member_code: this.memberCode,
-          type: XRoadId.type.MEMBER,
-          instance_id: instanceId,
-        },
-      })
-      .then(() => {
-        this.showSuccess(
-          this.$t('members.memberSuccessfullyAdded', { memberName: this.memberName }),
-        );
-        this.$emit('save');
-        this.clearForm();
-      })
-      .catch((error) => {
-        this.showError(error);
-      });
-    }
-  }
+      const instanceId: string = this.getSystemStatus?.initialization_status
+        ?.instance_identifier as string;
+      this.memberStore
+        .add({
+          member_name: this.memberName,
+          xroad_id: {
+            member_class: this.memberClass,
+            member_code: this.memberCode,
+            type: XRoadId.type.MEMBER,
+            instance_id: instanceId,
+          },
+        })
+        .then(() => {
+          this.showSuccess(
+            this.$t('members.memberSuccessfullyAdded', {
+              memberName: this.memberName,
+            }),
+          );
+          this.$emit('save');
+          this.clearForm();
+        })
+        .catch((error) => {
+          this.showError(error);
+        });
+    },
+  },
 });
 </script>

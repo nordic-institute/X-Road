@@ -133,7 +133,11 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: (this.$t('global.memberName') as string) + ' (' + this.clientStore.clients?.length + ')',
+          text:
+            (this.$t('global.memberName') as string) +
+            ' (' +
+            this.clientStore.clients?.length +
+            ')',
           align: 'start',
           value: 'member_name',
           class: 'xrd-table-header members-table-header-name',
