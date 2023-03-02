@@ -37,8 +37,6 @@ import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDe
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Set;
@@ -47,8 +45,8 @@ import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.StringUtils.split;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESULT_LIST;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
@@ -58,8 +56,6 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
 
     @Autowired
     private FeignSecurityServersApi securityServersApi;
-
-    private ResponseEntity<PagedSecurityServersDto> savedResponse;
 
     @Step("Security server auth certs for {string} is requested")
     public void systemStatusIsRequested(String id) {
@@ -213,7 +209,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(OK))
                 .execute();
 
-        savedResponse = response;
+        putStepData(RESULT_LIST, response.getBody().getItems());
     }
 
     private PagingSortingParametersDto getPagingSortingParameter(String sortBy, String order) {
@@ -222,29 +218,6 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         dto.setDesc("desc".equalsIgnoreCase(order));
         return dto;
     }
-
-    @Step("the list is sorted by {string} {string}")
-    public void theListIsSortedByServerCodeDesc(String fieldExpression, String order) {
-        final PagedSecurityServersDto body = savedResponse.getBody();
-        boolean desc = "desc".equalsIgnoreCase(order);
-
-        for (int i = 0; i < body.getItems().size() - 1; i++) {
-            var current = evalExpression(body.getItems().get(i), fieldExpression);
-            var next = evalExpression(body.getItems().get(i + 1), fieldExpression);
-
-            if (desc) {
-                assertTrue(current.compareTo(next) > 0);
-            } else {
-                assertTrue(current.compareTo(next) < 0);
-            }
-        }
-    }
-
-    public String evalExpression(SecurityServerDto item, String expression) {
-        Expression exp = new SpelExpressionParser().parseExpression(expression);
-        return (String) exp.getValue(item);
-    }
-
 
     @Step("security servers list sorting by unknown field fails")
     public void securityServersListSortingByUnknownFieldFails() {

@@ -27,15 +27,15 @@ Feature: Security Server API
     When user requests security servers list sorted by '<$sortField>' '<$sortDirection>'
     Then the list is sorted by '<$responseFieldExpression>' '<$sortDirection>'
     Examples:
-      | $sortField            | $sortDirection | $responseFieldExpression          |
-      | xroad_id.server_code  | desc           | xroadId.serverCode.toUpperCase()  |
-      | xroad_id.server_code  | asc            | xroadId.serverCode.toUpperCase()  |
-      | xroad_id.member_code  | desc           | xroadId.memberCode.toUpperCase()  |
-      | xroad_id.member_code  | asc            | xroadId.memberCode.toUpperCase()  |
-      | xroad_id.member_class | desc           | xroadId.memberClass.toUpperCase() |
-      | xroad_id.member_class | asc            | xroadId.memberClass.toUpperCase() |
-      | owner_name            | desc           | ownerName.toUpperCase()           |
-      | owner_name            | asc            | ownerName.toUpperCase()           |
+      | $sortField            | $sortDirection | $responseFieldExpression |
+      | xroad_id.server_code  | desc           | xroadId.serverCode       |
+      | xroad_id.server_code  | asc            | xroadId.serverCode       |
+      | xroad_id.member_code  | desc           | xroadId.memberCode       |
+      | xroad_id.member_code  | asc            | xroadId.memberCode       |
+      | xroad_id.member_class | desc           | xroadId.memberClass      |
+      | xroad_id.member_class | asc            | xroadId.memberClass      |
+      | owner_name            | desc           | ownerName                |
+      | owner_name            | asc            | ownerName                |
 
   @Modifying
   Scenario: Get security server details

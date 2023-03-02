@@ -133,6 +133,7 @@ public abstract class BaseStepDefs {
         CERTIFICATION_SERVICE_ID,
         OCSP_RESPONDER_ID,
         NEW_OCSP_RESPONDER_URL,
-        TOKEN_TYPE
+        TOKEN_TYPE,
+        RESULT_LIST,
     }
 }

@@ -55,7 +55,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.junit.Assert.fail;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-public class MiscellaneousStepDefs extends BaseStepDefs {
+public class ApiSecurityCheckStepDefs extends BaseStepDefs {
 
     private static final Map<String, Set<String>> SKIP_ENDPOINTS = Map.of(
             "FeignManagementRequestsApi", Set.of("findManagementRequests")
