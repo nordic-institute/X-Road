@@ -30,6 +30,7 @@ import { DataOptions } from 'vuetify';
 import axios, { AxiosRequestConfig } from 'axios';
 import {
   ManagementRequest,
+  ManagementRequestDetailedView,
   ManagementRequestListView,
   ManagementRequestsFilter,
   PagedManagementRequests,
@@ -37,7 +38,7 @@ import {
 } from '@/openapi-types';
 
 export interface State {
-  currentManagementRequest: ManagementRequest | null;
+  currentManagementRequest: ManagementRequestDetailedView | null;
   items: ManagementRequestListView[];
   pagingOptions: PagingMetadata;
 }
@@ -74,9 +75,9 @@ export const managementRequestsStore = defineStore('managementRequests', {
           this.pagingOptions = resp.data.paging_metadata;
         });
     },
-    loadById(requestId: number) {
+    async loadById(requestId: number) {
       return axios
-        .get<ManagementRequest>(`/management-requests/${requestId}`)
+        .get<ManagementRequestDetailedView>(`/management-requests/${requestId}`)
         .then((resp) => {
           this.currentManagementRequest = resp.data;
         })

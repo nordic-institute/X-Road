@@ -25,120 +25,57 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="cs-table-actions-wrap management-requests-table">
-    <div
-      v-if="managementRequest.status === 'WAITING'"
-      :data-test="`actions-for-MR-${managementRequest.id}`"
-    >
-      <xrd-button
-        v-if="showApproveButton"
-        :outlined="false"
-        data-test="approve-button"
-        text
-        @click="$refs.approveDialog.openDialog()"
-      >
-        {{ $t('action.approve') }}
-      </xrd-button>
-
-      <xrd-button
-        v-if="showDeclineButton"
-        :outlined="false"
-        data-test="decline-button"
-        text
-        @click="$refs.declineDialog.openDialog()"
-      >
-        {{ $t('action.decline') }}
-      </xrd-button>
-    </div>
-    <management-request-confirm-dialog
-      ref="approveDialog"
-      :management-request="managementRequest"
-      @approve="$emit('approve')"
-    />
-    <management-request-decline-dialog
-      ref="declineDialog"
-      :management-request="managementRequest"
-      @decline="$emit('decline')"
-    />
+  <div
+    class="request-id"
+    :class="{ 'xrd-clickable': canSeeDetails }"
+    @click="navigateToDetails"
+  >
+    {{ managementRequest.id }}
   </div>
 </template>
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 import { ManagementRequestListView } from '@/openapi-types';
+import { Permissions, RouteName } from '@/global';
 import { mapState } from 'pinia';
 import { userStore } from '@/store/modules/user';
-import { Permissions } from '@/global';
-import ManagementRequestConfirmDialog from './ManagementRequestConfirmDialog.vue';
-import ManagementRequestDeclineDialog from './ManagementRequestDeclineDialog.vue';
 
-/**
- * General component for Management request actions
- */
 export default Vue.extend({
-  components: {
-    ManagementRequestDeclineDialog,
-    ManagementRequestConfirmDialog,
-  },
   props: {
     managementRequest: {
       type: Object as PropType<ManagementRequestListView>,
       required: true,
     },
   },
-  data() {
-    return {
-      showApproveDialog: false,
-    };
-  },
+
   computed: {
     ...mapState(userStore, ['hasPermission']),
-    showApproveButton(): boolean {
-      return this.hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS);
-    },
-    showDeclineButton(): boolean {
+    canSeeDetails(): boolean {
       return this.hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS);
     },
   },
 
-  methods: {},
+  methods: {
+    navigateToDetails(): void {
+      if (!this.canSeeDetails) {
+        return;
+      }
+      this.$router.push({
+        name: RouteName.ManagementRequestDetails,
+        params: { requestId: String(this.managementRequest.id) },
+      });
+    },
+  },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
-
-#management-request-filters {
-  display: flex;
-  justify-content: space-between;
-}
+@import '~styles/colors';
 
 .request-id {
   color: $XRoad-Purple100;
   font-weight: 600;
   font-size: 14px;
-}
-
-.align-fix {
-  align-items: center;
-}
-
-.margin-fix {
-  margin-top: -10px;
-}
-
-.custom-checkbox {
-  .v-label {
-    font-size: 14px;
-  }
-}
-
-.only-pending {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.management-requests-table {
-  min-width: 182px;
 }
 </style>

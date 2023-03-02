@@ -4887,6 +4887,9 @@ components:
         client_owner_name:
           type: string
           readOnly: true
+        comments:
+          type: string
+          format: text
         certificateDetails:
           $ref: '#/components/schemas/CertificateDetails'
     ManagementRequest:

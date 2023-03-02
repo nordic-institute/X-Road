@@ -25,67 +25,79 @@
    THE SOFTWARE.
  -->
 <template>
-  <div id="management-request-view">
-    <div class="table-toolbar align-fix mt-0 pl-0">
-      <div class="xrd-view-title">{{ typeText }}</div>
-      <div>
-        <xrd-button outlined class="mr-4" data-test="approve-management-request-button">
-          Approve//TODO
-        </xrd-button>
-        <xrd-button outlined class="mr-4" data-test="decline-management-request-button">
-          Decline//TODO
-        </xrd-button>
-      </div>
-    </div>
-
-    <management-request-information
-      v-if="managementRequest"
-      :management-request="managementRequest"
-    />
-  </div>
+  <xrd-confirm-dialog
+    v-if="showDialog"
+    :dialog="true"
+    title="managementRequests.dialog.decline.title"
+    text="managementRequests.dialog.decline.bodyMessage"
+    :data="messageData"
+    :loading="loading"
+    @cancel="showDialog = false"
+    @accept="decline"
+  />
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapStores } from 'pinia';
+import { mapActions, mapStores } from 'pinia';
 import { managementRequestsStore } from '@/store/modules/managementRequestStore';
-import { managementTypeToText } from '@/util/helpers';
-import ManagementRequestInformation from './ManagementRequestInformation.vue';
+import { notificationsStore } from '@/store/modules/notifications';
 
 /**
- * Wrapper component for a certification service view
+ * General component for Management request actions
  */
 export default Vue.extend({
-  name: 'ManagementRequestDetails',
-  components: { ManagementRequestInformation },
   props: {
     requestId: {
       type: Number,
       required: true,
     },
+    securityServerId: {
+      type: String,
+      required: true,
+    },
   },
   data() {
-    return {};
+    return {
+      loading: false,
+      showDialog: false,
+    };
   },
   computed: {
     ...mapStores(managementRequestsStore),
-    managementRequest() {
-      return this.managementRequestsStore.currentManagementRequest;
-    },
-    typeText(){
-      return managementTypeToText(
-        this.managementRequestsStore.currentManagementRequest?.type,
-      );
+    messageData(): Record<string, unknown> {
+      return {
+        id: this.requestId,
+        serverId: this.securityServerId,
+      };
     },
   },
-  created() {
-    this.managementRequestsStore.loadById(this.requestId);
+  methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    decline(): void {
+      this.loading = true;
+      this.managementRequestsStore
+        .decline(this.requestId)
+        .then(() => {
+          this.showSuccess(
+            this.$t(
+              'managementRequests.dialog.decline.successMessage',
+              this.messageData,
+            ),
+          );
+          this.showDialog = false;
+          this.$emit('decline');
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    openDialog() {
+      this.showDialog = true;
+    },
   },
-  methods: {},
 });
 </script>
-<style lang="scss" scoped>
-@import '~@/assets/tables';
-
-
-</style>

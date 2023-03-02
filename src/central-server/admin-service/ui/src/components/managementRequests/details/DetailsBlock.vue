@@ -25,46 +25,19 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div class="details-block">
     <!-- System Parameters -->
-    <div
-      id="system-parameters-anchor"
-      class="mb-6"
-      data-test="system-settings-system-parameters-card"
-    >
+    <div class="mb-6">
       <v-card class="pb-4" flat>
         <div class="card-top">
           <div class="card-main-title">
-            {{ $t('managementRequestDetails.requestInformation') }}
+            {{ $t(blockTitleKey) }}
           </div>
         </div>
 
         <table class="xrd-table mt-0 pb-3">
           <tbody>
-            <tr>
-              <td class="title-cell">
-                <div>
-                  <div>
-                    {{ $t('managementRequestDetails.requestId') }}
-                  </div>
-                </div>
-              </td>
-              <td data-test="request-id-field">
-                {{ managementRequest.id }}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <div>
-                  <div>
-                    {{ $t('managementRequestDetails.received') }}
-                  </div>
-                </div>
-              </td>
-              <td data-test="request-received-field">
-                {{ managementRequest.created_at | formatDateTimeSeconds }}
-              </td>
-            </tr>
+            <slot></slot>
           </tbody>
         </table>
       </v-card>
@@ -73,13 +46,12 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
-import { ManagementRequest } from '@/openapi-types';
+import Vue from 'vue';
 
 export default Vue.extend({
   props: {
-    managementRequest: {
-      type: Object as PropType<ManagementRequest>,
+    blockTitleKey: {
+      type: String,
       required: true,
     },
   },
@@ -91,7 +63,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables.scss';
+@import '~@/assets/tables.scss';
 
 .card-main-title {
   color: $XRoad-Black100;
@@ -110,10 +82,5 @@ export default Vue.extend({
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-}
-
-.title-cell {
-  max-width: 40%;
-  width: 40%;
 }
 </style>

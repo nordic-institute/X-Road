@@ -25,29 +25,63 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-confirm-dialog
-    v-if="showDialog"
-    :dialog="true"
-    title="managementRequests.dialog.decline.title"
-    text="managementRequests.dialog.decline.bodyMessage"
-    :data="messageData"
-    :loading="loading"
-    @cancel="showDialog = false"
-    @accept="decline"
-  />
+  <div class="cs-table-actions-wrap management-requests-table">
+    <div
+      v-if="managementRequest.status === 'WAITING'"
+      :data-test="`actions-for-MR-${managementRequest.id}`"
+    >
+      <xrd-button
+        v-if="showApproveButton"
+        :outlined="false"
+        data-test="approve-button"
+        text
+        @click="$refs.approveDialog.openDialog()"
+      >
+        {{ $t('action.approve') }}
+      </xrd-button>
+
+      <xrd-button
+        v-if="showDeclineButton"
+        :outlined="false"
+        data-test="decline-button"
+        text
+        @click="$refs.declineDialog.openDialog()"
+      >
+        {{ $t('action.decline') }}
+      </xrd-button>
+    </div>
+    <mr-confirm-dialog
+      ref="approveDialog"
+      :request-id="managementRequest.id"
+      :security-server-id="managementRequest.security_server_id.encoded_id"
+      @approve="$emit('approve')"
+    />
+    <mr-decline-dialog
+      ref="declineDialog"
+      :request-id="managementRequest.id"
+      :security-server-id="managementRequest.security_server_id.encoded_id"
+      @decline="$emit('decline')"
+    />
+  </div>
 </template>
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 import { ManagementRequestListView } from '@/openapi-types';
-import { mapActions, mapStores } from 'pinia';
-import { managementRequestsStore } from '@/store/modules/managementRequestStore';
-import { notificationsStore } from '@/store/modules/notifications';
+import { mapState } from 'pinia';
+import { userStore } from '@/store/modules/user';
+import { Permissions } from '@/global';
+import MrConfirmDialog from '@/components/managementRequests/MrConfirmDialog.vue';
+import MrDeclineDialog from '@/components/managementRequests/MrDeclineDialog.vue';
 
 /**
  * General component for Management request actions
  */
 export default Vue.extend({
+  components: {
+    MrDeclineDialog,
+    MrConfirmDialog,
+  },
   props: {
     managementRequest: {
       type: Object as PropType<ManagementRequestListView>,
@@ -56,84 +90,25 @@ export default Vue.extend({
   },
   data() {
     return {
-      loading: false,
-      showDialog: false,
+      showApproveDialog: false,
     };
   },
   computed: {
-    ...mapStores(managementRequestsStore),
-    messageData(): Record<string, unknown> {
-      return {
-        id: this.managementRequest.id,
-        serverId: this.managementRequest.security_server_id?.encoded_id,
-      };
+    ...mapState(userStore, ['hasPermission']),
+    showApproveButton(): boolean {
+      return this.hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS);
+    },
+    showDeclineButton(): boolean {
+      return this.hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS);
     },
   },
-  methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    decline(): void {
-      if (!this.managementRequest.id) {
-        return;
-      }
-      this.loading = true;
-      this.managementRequestsStore
-        .decline(this.managementRequest.id)
-        .then((res) => {
-          this.showSuccess(
-            this.$t(
-              'managementRequests.dialog.decline.successMessage',
-              this.messageData,
-            ),
-          );
-          this.showDialog = false;
-          this.$emit('decline');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
-    openDialog() {
-      this.showDialog = true;
-    },
-  },
+
+  methods: {},
 });
 </script>
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-
-#management-request-filters {
-  display: flex;
-  justify-content: space-between;
-}
-
-.request-id {
-  color: $XRoad-Purple100;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.align-fix {
-  align-items: center;
-}
-
-.margin-fix {
-  margin-top: -10px;
-}
-
-.custom-checkbox {
-  .v-label {
-    font-size: 14px;
-  }
-}
-
-.only-pending {
-  display: flex;
-  justify-content: flex-end;
-}
 
 .management-requests-table {
   min-width: 182px;

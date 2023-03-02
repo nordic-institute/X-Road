@@ -407,7 +407,23 @@
   "managementRequestDetails": {
     "requestInformation": "Request Information",
     "requestId": "Request ID",
-    "received": "Received"
+    "received": "Received",
+    "source": "Source",
+    "status": "Status",
+    "comments": "Comments",
+    "ssInformation": "Affected Security Server Information",
+    "ownerName": "Owner Name",
+    "ownerClass": "Owner Class",
+    "ownerCode": "Owner Code",
+    "serverCode": "Server Code",
+    "address": "Address",
+    "clientInformation": "Client Submitted for Registration",
+    "subsystemCode": "Subsystem Code",
+    "certificateformation": "Authentication Certificate Submitted for Registration",
+    "ca": "CA",
+    "serialNumber": "Serial number",
+    "subject": "Subject",
+    "expires": "Expires"
   },
   "members": {
     "addMember": "Add member",

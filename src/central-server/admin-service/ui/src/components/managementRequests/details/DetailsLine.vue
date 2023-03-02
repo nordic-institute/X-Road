@@ -25,33 +25,45 @@
    THE SOFTWARE.
  -->
 <template>
-  <main data-test="security-server-management-requests-view">
-    <ManagementRequests :scope="requestListScope" />
-  </main>
+  <tr>
+    <td class="title-cell">
+      {{ $t(labelTextKey) }}
+    </td>
+    <td data-test="request-id-field">
+      <slot>{{ value }}</slot>
+    </td>
+  </tr>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { Colors } from '@/global';
-import ManagementRequests, {
-  Scope,
-} from '@/views/ManagementRequests/ManagementRequestsList.vue';
+import Vue, { PropType } from 'vue';
+import { ManagementRequestDetailedView } from '@/openapi-types';
+import ManagementRequestStatusCell from '../MrStatusCell.vue';
 
-/**
- * Component for Security server management requests
- */
 export default Vue.extend({
-  name: 'MemberManagementRequests',
+  props: {
+    labelTextKey: {
+      type: String,
+      required: true,
+    },
+    value: {
+      type: [String, Number],
+      required: false,
+      default: '',
+    },
+  },
 
-  components: {
-    ManagementRequests,
-  },
-  data() {
-    return {
-      colors: Colors,
-      loading: false,
-      requestListScope: Scope.SECURITY_SERVER,
-    };
-  },
+  computed: {},
+
+  methods: {},
 });
 </script>
+
+<style lang="scss" scoped>
+@import '~@/assets/tables.scss';
+
+.title-cell {
+  max-width: 40%;
+  width: 40%;
+}
+</style>

@@ -34,7 +34,7 @@
 import Vue from 'vue';
 import ManagementRequestsList, {
   Scope,
-} from '@/components/managementRequests/ManagementRequestsList.vue';
+} from '@/views/ManagementRequests/ManagementRequestsList.vue';
 
 /**
  * Component for Member Management requests
