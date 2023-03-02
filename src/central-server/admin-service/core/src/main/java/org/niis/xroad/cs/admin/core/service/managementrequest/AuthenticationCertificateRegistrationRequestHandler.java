@@ -30,10 +30,11 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
+import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Origin;
-import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.service.GroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -49,8 +50,6 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 import java.util.List;
@@ -58,6 +57,7 @@ import java.util.function.Predicate;
 
 import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.APPROVED;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
@@ -66,8 +66,10 @@ import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_AUTH_CERTIFICATE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_SECURITY_SERVER_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 
 /**
  * Service for handling authentication certificate registration requests
@@ -83,6 +85,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     private final AuthenticationCertificateRegistrationRequestRepository authCertReqRequests;
     private final AuthCertRepository authCerts;
     private final SecurityServerRepository servers;
+    private final GroupMemberService groupMemberService;
     private final RequestMapper requestMapper;
 
     /**
@@ -114,7 +117,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
             //todo: verify that certificate is issued by a known CA
 
             validatedCert = authCert.getEncoded();
-        } catch (CertificateParsingException | CertificateEncodingException e) {
+        } catch (Exception e) {
             throw new ValidationFailureException(INVALID_AUTH_CERTIFICATE, e);
         }
 
@@ -142,10 +145,11 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
                     break;
                 }
                 throw new DataIntegrityException(MANAGEMENT_REQUEST_EXISTS,
-                        String.valueOf(existingRequest.getId()));
+                        valueOf(existingRequest.getId()));
             default:
                 throw new DataIntegrityException(MANAGEMENT_REQUEST_EXISTS);
         }
+
 
         authCertRegRequest.setAuthCert(validatedCert);
         authCertRegRequest.setAddress(request.getAddress());
@@ -173,14 +177,17 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
      */
     @Override
     public AuthenticationCertificateRegistrationRequest approve(AuthenticationCertificateRegistrationRequest request) {
+        Integer requestId = request.getId();
+        final AuthenticationCertificateRegistrationRequestEntity requestEntity = authCertReqRequests.findById(requestId)
+                .orElseThrow(() -> new ValidationFailureException(MANAGEMENT_REQUEST_NOT_FOUND, valueOf(requestId)));
 
         //check state
-        if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(request.getProcessingStatus())) {
+        if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(requestEntity.getProcessingStatus())) {
             throw new ValidationFailureException(MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL,
-                    String.valueOf(request.getId()));
+                    valueOf(requestEntity.getId()));
         }
 
-        SecurityServerId serverId = request.getSecurityServerId();
+        SecurityServerIdEntity serverId = requestEntity.getSecurityServerId();
 
         //check prerequisites (member exists)
         XRoadMemberEntity owner = members
@@ -194,15 +201,17 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
                 .getOrElse(() -> new SecurityServerEntity(owner, serverCode));
 
         //register certificate
-        server.getAuthCerts().add(new AuthCertEntity(server, request.getAuthCert()));
-        server.setAddress(request.getAddress());
+        server.getAuthCerts().add(new AuthCertEntity(server, requestEntity.getAuthCert()));
+        server.setAddress(requestEntity.getAddress());
 
         servers.save(server);
-        request.setProcessingStatus(APPROVED);
+        requestEntity.setProcessingStatus(APPROVED);
 
-        //todo: handle global group registration
+        groupMemberService.addMemberToGlobalGroup(MemberId.create(owner.getIdentifier()),
+                DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
 
-        return request;
+        var persistedRequest = authCertReqRequests.save(requestEntity);
+        return requestMapper.toDto(persistedRequest);
     }
 
     @Override

@@ -174,7 +174,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
     }
 
     @Step("user can get security server {string} authentication certificates")
-    public void userCanGetSecurityServerAuthneticationCertificates(String serverId) {
+    public void userCanGetSecurityServerAuthenticationCertificates(String serverId) {
         final ResponseEntity<Set<SecurityServerAuthenticationCertificateDetailsDto>> response =
                 securityServersApi.getSecurityServerAuthCerts(serverId);
 
@@ -189,6 +189,17 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion("CN=Subject", "body[0].subjectDistinguishedName",
                         "Auth cert \"subjectDistinguishedName\" should match"))
                 .assertion(notNullAssertion("body[0].notAfter"))
+                .execute();
+    }
+
+    @Step("security server {string} has no authentication certificates")
+    public void securityServerHasNoAuthenticationCertificates(String serverId) {
+        final ResponseEntity<Set<SecurityServerAuthenticationCertificateDetailsDto>> response =
+                securityServersApi.getSecurityServerAuthCerts(serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(0, "body.size", "SS has not auth certificates"))
                 .execute();
     }
 

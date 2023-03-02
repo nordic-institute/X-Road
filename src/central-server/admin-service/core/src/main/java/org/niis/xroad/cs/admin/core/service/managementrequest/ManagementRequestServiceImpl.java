@@ -147,7 +147,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
             } else {
                 processing.setStatus(ManagementRequestStatus.DECLINED);
             }
-            //TODO persist?
+            requests.save(request);
         } else {
             // should not happen since simple requests can not be pending
             throw new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_NOT_SUPPORTED);
