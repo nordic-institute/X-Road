@@ -50,49 +50,38 @@
         </v-text-field>
 
         <!-- Table -->
-        <v-radio-group v-model="selectedMember">
-          <table class="xrd-table members-table fixed_header">
-            <thead>
-              <tr>
-                <th class="checkbox-column"></th>
-                <th>{{ $t('systemSettings.selectSubsystem.name') }}</th>
-                <th>{{ $t('systemSettings.selectSubsystem.memberCode') }}</th>
-                <th>{{ $t('systemSettings.selectSubsystem.memberClass') }}</th>
-                <th>
-                  {{ $t('systemSettings.selectSubsystem.subsystemCode') }}
-                </th>
-                <th>
-                  {{ $t('systemSettings.selectSubsystem.xroadInstance') }}
-                </th>
-                <th>{{ $t('systemSettings.selectSubsystem.type') }}</th>
-              </tr>
-            </thead>
-            <template v-if="selectableClients && selectableClients.length > 0">
-              <tbody>
-                <tr v-for="member in filteredMembers()" :key="member.id">
-                  <td class="checkbox-column">
-                    <div class="checkbox-wrap">
-                      <v-radio :key="member.id" :value="member"></v-radio>
-                    </div>
-                  </td>
-                  <td>{{ member.member_name }}</td>
-                  <td>{{ member.xroad_id.member_code }}</td>
-                  <td>{{ member.xroad_id.member_class }}</td>
-                  <td>{{ member.xroad_id.subsystem_code }}</td>
-                  <td>{{ member.xroad_id.instance_id }}</td>
-                  <td>{{ member.xroad_id.type }}</td>
-                </tr>
-              </tbody>
-            </template>
-
-            <XrdEmptyPlaceholderRow
-              :colspan="7"
-              :data="filteredMembers()"
-              :loading="loading"
-              :no-items-text="$t('noData.noResults')"
-            />
-          </table>
-        </v-radio-group>
+        <v-data-table
+          v-model="selectedSubsystems"
+          show-select
+          single-select
+          :loading="loading"
+          :headers="headers"
+          :items="selectableSubsystems"
+          :search="search"
+          hide-default-footer
+          item-key="id"
+          class="elevation-0 data-table"
+          @update:options="changeOptions"
+        >
+          <template #[`item.member_name`]="{ item }">
+            <div>{{ item.member_name }}</div>
+          </template>
+          <template #[`item.xroad_id.member_code`]="{ item }">
+            <div>{{ item.xroad_id.member_code }}</div>
+          </template>
+          <template #[`item.xroad_id.member_class`]="{ item }">
+            <div>{{ item.xroad_id.member_class }}</div>
+          </template>
+          <template #[`item.xroad_id.subsystem_code`]="{ item }">
+            <div>{{ item.xroad_id.subsystem_code }}</div>
+          </template>
+          <template #[`item.xroad_id.instance_id`]="{ item }">
+            <div>{{ item.xroad_id.instance_id }}</div>
+          </template>
+          <template #[`item.xroad_id.type`]="{ item }">
+            <div>{{ item.xroad_id.type }}</div>
+          </template>
+        </v-data-table>
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
@@ -106,7 +95,7 @@
         >
 
         <xrd-button
-          :disabled="!selectedMember"
+          :disabled="!selectedSubsystems || selectedSubsystems.length === 0"
           data-test="select-button"
           @click="select()"
           >{{ $t('action.select') }}</xrd-button
@@ -122,6 +111,8 @@ import { Client } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { clientStore } from '@/store/modules/clients';
 import { notificationsStore } from '@/store/modules/notifications';
+import { toIdentifier } from '@/util/helpers';
+import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
   name: 'SelectSubsystemDialog',
@@ -130,25 +121,74 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
+    defaultSubsystemId: {
+      type: String,
+      required: true,
+    },
   },
 
   data() {
     return {
       loading: false,
-      selectableClients: [] as Client[] | undefined,
+      selectableSubsystems: [] as Client[] | undefined,
       search: '',
-      selectedMember: undefined,
+      selectedSubsystems: [] as Client[],
     };
   },
   computed: {
     ...mapStores(clientStore),
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('systemSettings.selectSubsystem.name') as string,
+          align: 'start',
+          value: 'member_name',
+          class: 'xrd-table-header text-uppercase',
+        },
+        {
+          text: this.$t('systemSettings.selectSubsystem.memberCode') as string,
+          align: 'start',
+          value: 'xroad_id.member_code',
+          class: 'xrd-table-header text-uppercase',
+        },
+        {
+          text: this.$t('systemSettings.selectSubsystem.memberClass') as string,
+          align: 'start',
+          value: 'xroad_id.member_class',
+          class: 'xrd-table-header text-uppercase',
+        },
+        {
+          text: this.$t(
+            'systemSettings.selectSubsystem.subsystemCode',
+          ) as string,
+          align: 'start',
+          value: 'xroad_id.subsystem_code',
+          class: 'xrd-table-header text-uppercase',
+        },
+        {
+          text: this.$t(
+            'systemSettings.selectSubsystem.xroadInstance',
+          ) as string,
+          align: 'start',
+          value: 'xroad_id.instance_id',
+          class: 'xrd-table-header text-uppercase',
+        },
+        {
+          text: this.$t('systemSettings.selectSubsystem.type') as string,
+          align: 'start',
+          value: 'xroad_id.type',
+          class: 'xrd-table-header text-uppercase',
+        },
+      ];
+    },
   },
   created() {
     this.loading = true;
     this.clientStore
       .getByClientType('SUBSYSTEM')
       .then((resp) => {
-        this.selectableClients = resp;
+        this.selectableSubsystems = resp;
+        this.setSelectedSubsystems();
       })
       .catch((error) => {
         this.showError(error);
@@ -159,37 +199,30 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    filteredMembers() {
-      if (!this.search) {
-        return this.selectableClients;
-      }
+    changeOptions: async function () {
+      await this.setSelectedSubsystems();
+    },
+    setSelectedSubsystems() {
+      const filteredList = this.selectableSubsystems?.filter(
+        (subsystem) =>
+          'SUBSYSTEM:' + toIdentifier(subsystem.xroad_id) ===
+          this.defaultSubsystemId,
+      );
 
-      const tempSearch = this.search.toString().toLowerCase().trim();
-      if (tempSearch === '') {
-        return this.selectableClients;
+      if (filteredList) {
+        this.selectedSubsystems = filteredList;
       }
-
-      return this.selectableClients?.filter((member) => {
-        return (
-          member.member_name?.toLowerCase().includes(tempSearch) ||
-          member.xroad_id.member_code.toLowerCase().includes(tempSearch) ||
-          member.xroad_id.member_class.toLowerCase().includes(tempSearch) ||
-          member.xroad_id.subsystem_code?.toLowerCase().includes(tempSearch) ||
-          member.xroad_id.instance_id.toLowerCase().includes(tempSearch) ||
-          member.xroad_id.type.toLowerCase().includes(tempSearch)
-        );
-      });
     },
     cancel(): void {
       this.$emit('cancel');
       this.clearForm();
     },
     select(): void {
-      this.$emit('select', this.selectedMember);
+      this.$emit('select', this.selectedSubsystems);
       this.clearForm();
     },
     clearForm(): void {
-      this.selectedMember = undefined;
+      this.selectedSubsystems = [];
       this.search = '';
     },
   },

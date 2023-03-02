@@ -145,6 +145,7 @@
     </v-card>
     <SelectSubsystemDialog
       :dialog="showSelectSubsystemDialog"
+      :defaultSubsystemId="managementServicesConfiguration.service_provider_id"
       @select="updateServiceProvider"
       @cancel="hideSelectSubsystemDialog"
     >
@@ -205,11 +206,11 @@ export default Vue.extend({
     hideSelectSubsystemDialog(): void {
       this.showSelectSubsystemDialog = false;
     },
-    updateServiceProvider(subsystem: Client): void {
+    updateServiceProvider(subsystems: Client[]): void {
       this.loading = true;
       this.managementServicesStoreStore
         .updateManagementServicesConfiguration({
-          service_provider_id: toIdentifier(subsystem.xroad_id),
+          service_provider_id: toIdentifier(subsystems[0].xroad_id),
         })
         .then(() => {
           this.showSuccess(

@@ -445,8 +445,7 @@
     "noMemberClasses": "No member classes",
     "noServices": "No services",
     "noTokens": "No tokens",
-    "noSecurityServers": "No security servers",
-    "noResults": "Your search found no results"
+    "noSecurityServers": "No security servers"
   },
   "securityServers": {
     "address": "Address",
