@@ -29,7 +29,7 @@
     <td class="title-cell">
       {{ $t(labelTextKey) }}
     </td>
-    <td data-test="request-id-field">
+    <td :data-test="labelTextKey">
       <slot>{{ value }}</slot>
     </td>
   </tr>
