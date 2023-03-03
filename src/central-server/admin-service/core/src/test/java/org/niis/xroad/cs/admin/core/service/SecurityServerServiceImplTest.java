@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
@@ -39,17 +40,27 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
+import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
+import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.api.service.GroupMemberService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
+import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
+import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.service.managementrequest.ManagementRequestServiceImpl;
@@ -58,6 +69,7 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -70,17 +82,24 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
+import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @ExtendWith(MockitoExtension.class)
 class SecurityServerServiceImplTest implements WithInOrder {
 
     @Mock
     private ManagementRequestServiceImpl managementRequestService;
-
+    @Mock
+    private GroupMemberService groupMemberService;
     @Mock
     private ManagementRequestView managementRequestView;
     @Mock
@@ -214,9 +233,9 @@ class SecurityServerServiceImplTest implements WithInOrder {
             var result = securityServerService.updateSecurityServerAddress(serverId, newAddress);
 
             assertThat(result.get().getAddress()).isEqualTo(newAddress);
-            verify(auditDataHelper).put(RestApiAuditProperty.SERVER_CODE, serverId.getServerCode());
-            verify(auditDataHelper).put(RestApiAuditProperty.OWNER_CODE, ownerId.getMemberCode());
-            verify(auditDataHelper).put(RestApiAuditProperty.OWNER_CLASS, ownerId.getMemberClass());
+            verify(auditDataHelper).put(SERVER_CODE, serverId.getServerCode());
+            verify(auditDataHelper).put(OWNER_CODE, ownerId.getMemberCode());
+            verify(auditDataHelper).put(OWNER_CLASS, ownerId.getMemberClass());
             verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, newAddress);
             verifyNoMoreInteractions(auditDataHelper);
         }
@@ -230,9 +249,9 @@ class SecurityServerServiceImplTest implements WithInOrder {
             var result = securityServerService.updateSecurityServerAddress(serverId, newAddress);
 
             assertThat(result).isEqualTo(Option.none());
-            verify(auditDataHelper).put(RestApiAuditProperty.SERVER_CODE, serverId.getServerCode());
-            verify(auditDataHelper).put(RestApiAuditProperty.OWNER_CODE, ownerId.getMemberCode());
-            verify(auditDataHelper).put(RestApiAuditProperty.OWNER_CLASS, ownerId.getMemberClass());
+            verify(auditDataHelper).put(SERVER_CODE, serverId.getServerCode());
+            verify(auditDataHelper).put(OWNER_CODE, ownerId.getMemberCode());
+            verify(auditDataHelper).put(OWNER_CLASS, ownerId.getMemberClass());
             verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, newAddress);
             verifyNoMoreInteractions(auditDataHelper);
             verifyNoInteractions(securityServerMapper);
@@ -263,4 +282,96 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
     }
 
+    @Nested
+    class Delete {
+
+        private final SecurityServerId id = SecurityServerId.Conf.create("INSTANCE", "CLASS", "MEMBER", "SERVER-CODE");
+        private final SecurityServerIdEntity securityServerIdEntity = SecurityServerIdEntity.create(id);
+        private final ClientIdEntity clientIdEntity = MemberIdEntity.create("INSTANCE", "CLASS", "MEMBER");
+
+        @Mock
+        private XRoadMemberEntity xRoadMemberEntity;
+
+        @Captor
+        private ArgumentCaptor<Request> requestCaptor;
+
+        @Test
+        void delete() {
+            when(securityServerRepository.findBy(id)).thenReturn(Option.of(securityServerEntity));
+            when(securityServerEntity.getServerId()).thenReturn(securityServerIdEntity);
+            when(securityServerEntity.getServerClients()).thenReturn(
+                    Set.of(serverClientEntity("client-1"), serverClientEntity("client-2")));
+            when(securityServerEntity.getAuthCerts()).thenReturn(
+                    Set.of(new AuthCertEntity(securityServerEntity, new byte[]{1, 2, 3})));
+            when(securityServerEntity.getOwner()).thenReturn(xRoadMemberEntity);
+            when(xRoadMemberEntity.getIdentifier()).thenReturn(clientIdEntity);
+            when(xRoadMemberEntity.getOwnedServers()).thenReturn(new HashSet<>(Set.of(securityServerEntity)));
+
+            securityServerService.delete(id);
+
+            verifyAudit();
+
+            verify(managementRequestService, times(3)).add(requestCaptor.capture());
+            verifyAuthCertDeleteRequest(requestCaptor.getAllValues());
+            verifyClientDeletionRequest(requestCaptor.getAllValues(), "client-1");
+            verifyClientDeletionRequest(requestCaptor.getAllValues(), "client-2");
+
+            verify(groupMemberService).removeMemberFromGlobalGroup(MemberId.create(clientIdEntity),
+                    DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+            verify(securityServerRepository).delete(securityServerEntity);
+        }
+
+        private void verifyAuthCertDeleteRequest(List<Request> requests) {
+            final AuthenticationCertificateDeletionRequest request = requests.stream()
+                    .filter(req -> req instanceof AuthenticationCertificateDeletionRequest)
+                    .map(req -> (AuthenticationCertificateDeletionRequest) req)
+                    .findFirst().orElseThrow();
+
+            assertThat(request.getOrigin()).isEqualTo(CENTER);
+            assertThat(request.getComments()).isEqualTo("SERVER:INSTANCE/CLASS/MEMBER/SERVER-CODE deletion");
+            assertThat(request.getSecurityServerId()).isEqualTo(id);
+            assertThat(request.getAuthCert()).isEqualTo(new byte[]{1, 2, 3});
+        }
+
+        private void verifyClientDeletionRequest(List<Request> requests, String code) {
+            final ClientDeletionRequest request = requests.stream()
+                    .filter(req -> req instanceof ClientDeletionRequest)
+                    .map(req -> (ClientDeletionRequest) req)
+                    .filter(req -> code.equals(req.getClientId().getMemberCode()))
+                    .findFirst().orElseThrow();
+
+            assertThat(request.getOrigin()).isEqualTo(CENTER);
+            assertThat(request.getComments()).isEqualTo("SERVER:INSTANCE/CLASS/MEMBER/SERVER-CODE deletion");
+            assertThat(request.getSecurityServerId()).isEqualTo(id);
+            assertThat(request.getClientId()).isEqualTo(MemberId.create("INST", "class", code));
+        }
+
+        private ServerClientEntity serverClientEntity(String code) {
+            final ServerClientEntity entity = new ServerClientEntity();
+            entity.setSecurityServer(securityServerEntity);
+            entity.setSecurityServerClient(new XRoadMemberEntity("name",
+                    ClientId.Conf.create("INST", "class", code),
+                    new MemberClassEntity("class", "")));
+            return entity;
+        }
+
+        @Test
+        void deleteShouldThrowSecurityServerNotFound() {
+            when(securityServerRepository.findBy(id)).thenReturn(Option.none());
+
+            assertThatThrownBy(() -> securityServerService.delete(id))
+                    .isInstanceOf(NotFoundException.class)
+                    .hasMessage("Security server not found");
+
+            verifyAudit();
+            verifyNoMoreInteractions(securityServerRepository);
+            verifyNoInteractions(managementRequestService, groupMemberService);
+        }
+
+        private void verifyAudit() {
+            verify(auditDataHelper).put(SERVER_CODE, "SERVER-CODE");
+            verify(auditDataHelper).put(OWNER_CODE, "MEMBER");
+            verify(auditDataHelper).put(OWNER_CLASS, "CLASS");
+        }
+    }
 }

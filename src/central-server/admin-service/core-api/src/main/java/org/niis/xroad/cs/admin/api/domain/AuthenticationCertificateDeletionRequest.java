@@ -47,6 +47,11 @@ public class AuthenticationCertificateDeletionRequest extends Request {
         super(origin, identifier);
     }
 
+    public AuthenticationCertificateDeletionRequest(Origin origin, SecurityServerId identifier, byte[] authCert) {
+        this(origin, identifier);
+        this.authCert = authCert;
+    }
+
     @Override
     public ManagementRequestType getManagementRequestType() {
         return ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
