@@ -28,7 +28,7 @@
   <div data-test="security-server-view">
     <div class="header-row">
       <div class="title-search">
-        <div class="xrd-view-title">FOO 1</div>
+        <div class="xrd-view-title">{{ securityServerCode }}</div>
       </div>
     </div>
     <PageNavigation :tabs="securityServerNavigationTabs"></PageNavigation>
@@ -42,6 +42,9 @@ import PageNavigation, {
   PageNavigationTab,
 } from '@/components/layout/PageNavigation.vue';
 import { Colors, Permissions, RouteName } from '@/global';
+import { mapActions, mapStores } from 'pinia';
+import { useSecurityServerStore } from '@/store/modules/security-servers';
+import { notificationsStore } from '@/store/modules/notifications';
 
 /**
  * Wrapper component for a security server view
@@ -60,6 +63,14 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapStores(useSecurityServerStore),
+    securityServerCode(): string {
+      return (
+        this.securityServerStore?.currentSecurityServer?.xroad_id.server_code ||
+        ''
+      );
+    },
+    memberNavigationItems(): NavigationItem[] {
     securityServerNavigationTabs(): PageNavigationTab[] {
       return [
         {
@@ -99,6 +110,19 @@ export default Vue.extend({
           showAttention: true,
         },
       ];
+    },
+  },
+  created() {
+    this.fetchDetails();
+  },
+  methods: {
+    ...mapActions(notificationsStore, ['showError']),
+    fetchDetails: async function () {
+      try {
+        await this.securityServerStore.loadById(this.securityServerId);
+      } catch (error: unknown) {
+        this.showError(error);
+      }
     },
   },
 });

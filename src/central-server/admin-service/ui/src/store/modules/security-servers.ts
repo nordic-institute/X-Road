@@ -28,18 +28,22 @@ import axios from 'axios';
 import {
   PagedSecurityServers,
   PagingMetadata,
-  SecurityServer,
+  SecurityServer, SecurityServerAddress,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';
 
 export interface State {
+  currentSecurityServerLoading: boolean;
+  currentSecurityServer: SecurityServer | null;
   securityServers: SecurityServer[];
   securityServerPagingOptions: PagingMetadata;
 }
 
 export const useSecurityServerStore = defineStore('securityServer', {
   state: (): State => ({
+    currentSecurityServerLoading: false,
+    currentSecurityServer: null,
     securityServers: [],
     securityServerPagingOptions: {
       total_items: 0,
@@ -68,6 +72,35 @@ export const useSecurityServerStore = defineStore('securityServer', {
           this.securityServers = resp.data.items || [];
           this.securityServerPagingOptions = resp.data.paging_metadata;
         });
+    },
+    async loadById(securityServerId: string) {
+      this.currentSecurityServerLoading = true;
+      return axios
+        .get<SecurityServer>(`/security-servers/${securityServerId}`)
+        .then((resp) => {
+          this.currentSecurityServer = resp.data;
+        })
+        .finally(() => (this.currentSecurityServerLoading = false));
+    },
+    async updateAddress(securityServerId: string, address: string) {
+      this.currentSecurityServerLoading = true;
+      const securityServerAddress: SecurityServerAddress = {
+        server_address: address,
+      };
+      return axios
+        .patch<SecurityServer>(
+          `/security-servers/${securityServerId}`,
+          securityServerAddress,
+        )
+        .then((resp) => {
+          this.currentSecurityServer = resp.data;
+        })
+        .finally(() => (this.currentSecurityServerLoading = false));
+    },
+    async delete(securityServerId: string) {
+      return axios.delete(`/security-servers/${securityServerId}`).then(() => {
+        this.currentSecurityServer = null;
+      });
     },
   },
 });
