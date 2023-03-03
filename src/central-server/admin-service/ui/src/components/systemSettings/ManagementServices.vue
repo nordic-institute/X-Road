@@ -46,9 +46,7 @@
             <td class="title-cell">
               {{ $t('systemSettings.serviceProviderIdentifier') }}
             </td>
-            <td
-              data-test="system-settings-management-service-provider-identifier-field"
-            >
+            <td data-test="management-service-provider-identifier-field">
               {{ managementServicesConfiguration.service_provider_id }}
             </td>
             <td class="action-cell">
@@ -56,7 +54,7 @@
                 v-if="hasPermissionToEditServiceProvider"
                 text
                 :outlined="false"
-                data-test="edit-management-member"
+                data-test="edit-management-subsystem"
                 @click="openSelectSubsystemDialog"
                 >{{ $t('action.edit') }}
               </xrd-button>
@@ -67,9 +65,7 @@
             <td>
               {{ $t('systemSettings.serviceProviderName') }}
             </td>
-            <td
-              data-test="system-settings-management-service-provider-name-field"
-            >
+            <td data-test="management-service-provider-name-field">
               {{ managementServicesConfiguration.service_provider_name }}
             </td>
             <td></td>
@@ -79,7 +75,7 @@
             <td>
               {{ $t('systemSettings.managementServiceSecurityServer') }}
             </td>
-            <td data-test="system-settings-management-security-server-field">
+            <td data-test="management-security-server-field">
               {{ managementServicesConfiguration.security_server_id }}
             </td>
             <td></td>
@@ -89,7 +85,7 @@
             <td>
               {{ $t('systemSettings.wsdlAddress') }}
             </td>
-            <td data-test="system-settings-management-wsdl-address-field">
+            <td data-test="management-wsdl-address-field">
               {{ managementServicesConfiguration.wsdl_address }}
             </td>
             <td class="action-cell">
@@ -98,6 +94,7 @@
                 text
                 :outlined="false"
                 class="copy-button"
+                data-test="management-wsdl-address-copy-btn"
                 @click.prevent="
                   copyUrl(managementServicesConfiguration.wsdl_address)
                 "
@@ -111,7 +108,7 @@
             <td>
               {{ $t('systemSettings.centralServerAddress') }}
             </td>
-            <td>
+            <td data-test="management-central-server-address-field">
               {{ managementServicesConfiguration.services_address }}
             </td>
             <td class="action-cell">
@@ -120,6 +117,7 @@
                 text
                 :outlined="false"
                 class="copy-button"
+                data-test="management-central-server-address-copy-btn"
                 @click.prevent="
                   copyUrl(managementServicesConfiguration.services_address)
                 "
@@ -133,7 +131,7 @@
             <td>
               {{ $t('systemSettings.securityServerOwnerGroupCode') }}
             </td>
-            <td>
+            <td data-test="management-owner-group-code-field">
               {{
                 managementServicesConfiguration.security_server_owners_global_group_code
               }}
@@ -145,7 +143,9 @@
     </v-card>
     <SelectSubsystemDialog
       :dialog="showSelectSubsystemDialog"
-      :defaultSubsystemId="managementServicesConfiguration.service_provider_id"
+      :default-subsystem-id="
+        managementServicesConfiguration.service_provider_id
+      "
       @select="updateServiceProvider"
       @cancel="hideSelectSubsystemDialog"
     >
@@ -178,7 +178,7 @@ export default Vue.extend({
     ...mapStores(managementServicesStore),
     ...mapState(userStore, ['hasPermission']),
     managementServicesConfiguration(): ManagementServicesConfiguration {
-      return this.managementServicesStoreStore.managementServicesConfiguration;
+      return this.managementServicesStore.managementServicesConfiguration;
     },
     hasPermissionToEditServiceProvider(): boolean {
       return this.hasPermission(Permissions.VIEW_SYSTEM_SETTINGS);
@@ -191,7 +191,7 @@ export default Vue.extend({
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     fetchManagementServicesConfiguration(): void {
       this.loading = true;
-      this.managementServicesStoreStore
+      this.managementServicesStore
         .fetchManagementServicesConfiguration()
         .finally(() => (this.loading = false));
     },
@@ -208,7 +208,7 @@ export default Vue.extend({
     },
     updateServiceProvider(subsystems: Client[]): void {
       this.loading = true;
-      this.managementServicesStoreStore
+      this.managementServicesStore
         .updateManagementServicesConfiguration({
           service_provider_id: toIdentifier(subsystems[0].xroad_id),
         })
