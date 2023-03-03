@@ -154,7 +154,9 @@
     "username": "Username",
     "url": "URL",
     "tokenPin": "Token PIN",
-    "keyLabel": "Key friendly name"
+    "keyLabel": "Key friendly name",
+    "securityServerAddress": "Security server address",
+    "serverCode": "Server code"
   },
   "filters": {
     "apply": "Apply",
@@ -474,13 +476,24 @@
       "serialNumber": "Serial Number",
       "subject": "Subject",
       "deleteSecurityServer": "Delete Security Server",
-      "enterCode": "Enter Security Server Code",
-      "areYouSure": "Are you sure you want to delete the Security Server {securityServer} from the system configuration? Enter the server code to confirm.",
       "tabs": {
         "authCertificates": "Authentication Certificates",
         "clients": "Clients",
         "details": "Details",
         "managementRequests": "Management Requests"
+      }
+    },
+    "dialogs": {
+      "editAddress": {
+        "title": "Edit Security Server address",
+        "addressField": "Security server address",
+        "success": "Security server address successfully updated"
+      },
+      "deleteAddress": {
+        "title": "Delete Security Server",
+        "enterCode": "Enter Security Server Code",
+        "areYouSure": "Are you sure you want to delete the Security Server {securityServer} from the system configuration? Enter the server code to confirm.",
+        "success": "Security Server deleted."
       }
     },
     "serverCode": "Server Code"
@@ -678,5 +691,6 @@
     "SizeField": "value does not meet length requirements",
     "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
     "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
-  }
+  },
+  "validation.is":"The {_field_} field must have a value of \"{other }\""
 }

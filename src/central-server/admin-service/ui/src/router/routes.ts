@@ -255,10 +255,13 @@ const routes: RouteConfig[] = [
                 name: RouteName.SecurityServerDetails,
                 path: 'details',
                 component: SecurityServerDetails,
+                props(route: Route): { securityServerId: string } {
+                  const securityServerId = route.params.securityServerId;
+                  return { securityServerId };
+                },
                 meta: {
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
                 },
-                props: true,
               },
               {
                 name: RouteName.SecurityServerManagementRequests,
