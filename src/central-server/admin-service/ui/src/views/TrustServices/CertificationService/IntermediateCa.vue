@@ -43,7 +43,7 @@
         {{ $t('trustServices.viewCertificate') }}
       </xrd-button>
     </div>
-    <PageNavigation :items="intermediateCaNavigationItems" />
+    <PageNavigation :tabs="intermediateCaNavigationTabs" />
     <router-view />
   </div>
 </template>
@@ -51,9 +51,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import PageNavigation, {
-  NavigationItem,
+  PageNavigationTab,
 } from '@/components/layout/PageNavigation.vue';
-import { Colors, RouteName } from '@/global';
+import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useIntermediateCaStore } from '@/store/modules/trust-services';
 
@@ -76,19 +76,24 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(useIntermediateCaStore),
-    intermediateCaNavigationItems(): NavigationItem[] {
+    intermediateCaNavigationTabs(): PageNavigationTab[] {
       return [
         {
-          url: `/intermediate-ca/${this.intermediateCaId}/details`,
-          label: this.$t(
-            'trustServices.trustService.pagenavigation.details',
-          ) as string,
+          key: 'intermediate-ca-details-tab-button',
+          name: 'trustServices.trustService.pagenavigation.details',
+          to: {
+            name: RouteName.IntermediateCaDetails,
+          },
+          permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
         },
+
         {
-          url: `/intermediate-ca/${this.intermediateCaId}/ocsp-responders`,
-          label: this.$t(
-            'trustServices.trustService.pagenavigation.ocspResponders',
-          ) as string,
+          key: 'intermediate-ca-ocsp-responders-tab-button',
+          name: 'trustServices.trustService.pagenavigation.ocspResponders',
+          to: {
+            name: RouteName.IntermediateCaOcspResponders,
+          },
+          permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
         },
       ];
     },
