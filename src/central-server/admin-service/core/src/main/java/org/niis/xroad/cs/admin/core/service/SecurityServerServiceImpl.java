@@ -31,23 +31,28 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
+import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
+import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.api.service.GroupMemberService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -59,7 +64,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ADDRESS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @Service
 @Transactional
@@ -70,6 +81,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     private final SecurityServerRepository securityServerRepository;
     private final ManagementRequestService managementRequestService;
     private final ClientService clientService;
+    private final GroupMemberService groupMemberService;
     private final SecurityServerMapper securityServerMapper;
     private final CertificateConverter certificateConverter;
     private final AuditDataHelper auditDataHelper;
@@ -134,14 +146,55 @@ public class SecurityServerServiceImpl implements SecurityServerService {
 
     @Override
     public Option<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress) {
-        auditDataHelper.put(RestApiAuditProperty.SERVER_CODE, serverId.getServerCode());
-        auditDataHelper.put(RestApiAuditProperty.OWNER_CODE, serverId.getOwner().getMemberCode());
-        auditDataHelper.put(RestApiAuditProperty.OWNER_CLASS, serverId.getOwner().getMemberClass());
-        auditDataHelper.put(RestApiAuditProperty.ADDRESS, newAddress);
+        auditDataHelper.put(SERVER_CODE, serverId.getServerCode());
+        auditDataHelper.put(OWNER_CODE, serverId.getOwner().getMemberCode());
+        auditDataHelper.put(OWNER_CLASS, serverId.getOwner().getMemberClass());
+        auditDataHelper.put(ADDRESS, newAddress);
 
         return securityServerRepository.findBy(serverId)
                 .peek(securityServer -> securityServer.setAddress(newAddress))
                 .map(securityServerMapper::toTarget);
+    }
+
+    @Override
+    public void delete(SecurityServerId serverId) {
+        auditDataHelper.put(SERVER_CODE, serverId.getServerCode());
+        auditDataHelper.put(OWNER_CODE, serverId.getOwner().getMemberCode());
+        auditDataHelper.put(OWNER_CLASS, serverId.getOwner().getMemberClass());
+
+        final SecurityServerEntity securityServerEntity = securityServerRepository.findBy(serverId)
+                .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
+
+        registerClientDeletionRequests(securityServerEntity);
+        registerAuthCertsDeleteRequests(securityServerEntity);
+        updateServerOwnersGroup(securityServerEntity);
+        securityServerEntity.getOwner().getOwnedServers().remove(securityServerEntity);
+        securityServerRepository.delete(securityServerEntity);
+    }
+
+    private void registerClientDeletionRequests(SecurityServerEntity securityServerEntity) {
+        final String comment = String.format("%s deletion", securityServerEntity.getServerId().toString());
+        securityServerEntity.getServerClients().stream()
+                .map(client -> new ClientDeletionRequest(CENTER, securityServerEntity.getServerId(),
+                        client.getSecurityServerClient().getIdentifier()))
+                .peek(req -> req.setComments(comment))
+                .forEach(managementRequestService::add);
+    }
+
+    private void registerAuthCertsDeleteRequests(SecurityServerEntity securityServerEntity) {
+        final String comment = String.format("%s deletion", securityServerEntity.getServerId().toString());
+        securityServerEntity.getAuthCerts().stream()
+                .map(cert -> new AuthenticationCertificateDeletionRequest(CENTER, securityServerEntity.getServerId(), cert.getCert()))
+                .peek(req -> req.setComments(comment))
+                .forEach(managementRequestService::add);
+    }
+
+    private void updateServerOwnersGroup(SecurityServerEntity securityServerEntity) {
+        final XRoadMemberEntity owner = securityServerEntity.getOwner();
+        if (owner.getOwnedServers().size() == 1) {
+            groupMemberService.removeMemberFromGlobalGroup(
+                    MemberId.create(owner.getIdentifier()), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+        }
     }
 
 }

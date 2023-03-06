@@ -46,7 +46,6 @@ import org.niis.xroad.cs.openapi.model.SecurityServerAddressDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.data.domain.Page;
@@ -63,6 +62,9 @@ import java.util.stream.Collectors;
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SECURITY_SERVER_ADDRESS;
+import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -90,9 +92,10 @@ public class SecurityServersApiController implements SecurityServersApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_SECURITY_SERVER')")
-    @AuditEventMethod(event = RestApiAuditEvent.DELETE_SECURITY_SERVER)
+    @AuditEventMethod(event = DELETE_SECURITY_SERVER)
     public ResponseEntity<Void> deleteSecurityServer(String id) {
-        throw new NotImplementedException("deleteSecurityServer not implemented yet");
+        securityServerService.delete(securityServerIdConverter.convertId(id));
+        return noContent().build();
     }
 
     @Override
@@ -107,7 +110,6 @@ public class SecurityServersApiController implements SecurityServersApi {
                                                                        PagingSortingParametersDto pagingSorting) {
         PageRequest pageRequest = pageRequestConverter.convert(
                 pagingSorting, findSortParameterConverter);
-
 
         Page<SecurityServerDto> servers = securityServerService.findSecurityServers(query, pageRequest)
                 .map(securityServerDtoConverter::toDto);
@@ -149,7 +151,7 @@ public class SecurityServersApiController implements SecurityServersApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
-    @AuditEventMethod(event = RestApiAuditEvent.EDIT_SECURITY_SERVER_ADDRESS)
+    @AuditEventMethod(event = EDIT_SECURITY_SERVER_ADDRESS)
     public ResponseEntity<SecurityServerDto> updateSecurityServerAddress(String id, SecurityServerAddressDto securityServerAddress) {
         var securityServerId = securityServerIdConverter.convertId(id);
         return securityServerService.updateSecurityServerAddress(securityServerId, securityServerAddress.getServerAddress())
