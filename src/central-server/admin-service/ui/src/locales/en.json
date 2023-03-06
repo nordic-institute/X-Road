@@ -692,5 +692,5 @@
     "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
     "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
   },
-  "validation.is":"The {_field_} field must have a value of \"{other }\""
+  "validation.is":"The {_field_} field must have a value of \"{other}\""
 }

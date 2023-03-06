@@ -103,13 +103,13 @@
       <delete-security-server-address-dialog
         ref="deleteDialog"
         :server-code="securityServer.xroad_id.server_code"
-        :security-server-id="securityServerId"
+        :security-server-id="serverId"
         @delete="deleteServer"
       />
       <edit-security-server-address-dialog
         ref="editAddressDialog"
         :address="securityServer.server_address"
-        :security-server-id="securityServerId"
+        :security-server-id="serverId"
       />
     </main>
   </div>
@@ -137,7 +137,7 @@ export default Vue.extend({
     InfoCard,
   },
   props: {
-    securityServerId: {
+    serverId: {
       type: String,
       required: true,
     },
