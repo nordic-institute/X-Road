@@ -201,7 +201,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                         "Auth cert \"issuerCommonName\" should match"))
                 .assertion(equalsAssertion("1", "body[0].serial",
                         "Auth cert \"serial\" should match"))
-                .assertion(equalsAssertion("CN=Subject", "body[0].subjectDistinguishedName",
+                .assertion(equalsAssertion("CN=Subject-" + serverId, "body[0].subjectDistinguishedName",
                         "Auth cert \"subjectDistinguishedName\" should match"))
                 .assertion(notNullAssertion("body[0].notAfter"))
                 .execute();
