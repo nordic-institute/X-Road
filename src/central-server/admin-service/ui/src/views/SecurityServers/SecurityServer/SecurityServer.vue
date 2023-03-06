@@ -70,7 +70,6 @@ export default Vue.extend({
         ''
       );
     },
-    memberNavigationItems(): NavigationItem[] {
     securityServerNavigationTabs(): PageNavigationTab[] {
       return [
         {
@@ -119,7 +118,7 @@ export default Vue.extend({
     ...mapActions(notificationsStore, ['showError']),
     fetchDetails: async function () {
       try {
-        await this.securityServerStore.loadById(this.securityServerId);
+        await this.securityServerStore.loadById(this.serverId);
       } catch (error: unknown) {
         this.showError(error);
       }
