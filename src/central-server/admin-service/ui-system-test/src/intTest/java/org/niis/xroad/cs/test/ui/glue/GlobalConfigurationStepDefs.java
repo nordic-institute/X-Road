@@ -32,8 +32,8 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.tuple.Pair;
+import org.awaitility.core.EvaluatedCondition;
 import org.niis.xroad.cs.test.ui.page.GlobalConfigurationPageObj;
-import org.openqa.selenium.NoSuchElementException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.ClassLoader.getSystemResource;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.given;
 
 public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
 
@@ -51,7 +52,6 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     private static final String DOWNLOADED_FILE = "DOWNLOADED_FILE";
     private static final String ANCHOR_DETAILS = "ANCHOR_DETAILS";
     private static final String CFG_PART_UPDATED = "CFG_PART_UPDATED";
-    private static final long RETRY_COUNT_FOR_CFG_PARTS = 6; //it may take some time to generate configurations
     private final GlobalConfigurationPageObj globalConfigurationPageObj = new GlobalConfigurationPageObj();
 
     @Step("Internal configuration sub-tab is selected")
@@ -294,20 +294,27 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     @Step("Configuration part is generated")
     public void isConfigurationPartGenerated() {
         final String contentIdentifier = scenarioContext.getStepData(CONTENT_IDENTIFIER);
-        var retry = RETRY_COUNT_FOR_CFG_PARTS;
-        while (true) {
-            try {
-                globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier)
-                        .shouldNotHave(Condition.exactText("-"));
-                break;
-            } catch (NoSuchElementException e) {
-                if (retry-- > 0) {
-                    Selenide.refresh();
-                } else {
-                    throw e;
-                }
-            }
+
+        final int pollInterval = 10;
+        final int pollDelay = 5;
+        final int maxWaitTime = 65;
+        given()
+                .pollDelay(pollDelay, TimeUnit.SECONDS)
+                .pollInterval(pollInterval, TimeUnit.SECONDS)
+                .pollInSameThread()
+                .conditionEvaluationListener(this::refreshOnFailure)
+                .atMost(maxWaitTime, TimeUnit.SECONDS)
+                .await().untilAsserted(() -> assertThat(cfgPartUpdatedAt(contentIdentifier)).isNotEqualTo("-"));
+    }
+
+    private void refreshOnFailure(final EvaluatedCondition evaluatedCondition) {
+        if (!evaluatedCondition.isSatisfied()) {
+            Selenide.refresh();
         }
+    }
+
+    private String cfgPartUpdatedAt(final String contentIdentifier) {
+        return globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier).text();
     }
 
     @Step("User can't download it")

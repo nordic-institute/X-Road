@@ -6,6 +6,7 @@ dependencies {
     intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
     intTestImplementation("org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}")
+    intTestImplementation( "org.awaitility:awaitility:${awaitilityVersion}")
 }
 
 task systemTest(type: Test) {
