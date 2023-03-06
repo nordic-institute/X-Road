@@ -302,7 +302,7 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
                 break;
             } catch (NoSuchElementException e) {
                 if (retry-- > 0) {
-                    Selenide.webdriver().driver().getWebDriver().navigate().refresh();
+                    Selenide.refresh();
                 } else {
                     throw e;
                 }
