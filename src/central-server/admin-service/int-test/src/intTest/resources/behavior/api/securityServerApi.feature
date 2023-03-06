@@ -19,9 +19,9 @@ Feature: Security Server API
     And member class 'ANOTHER' is created
     And new member 'CS:TEST:member-1' is added
     And new member 'CS:ANOTHER:member-2' is added
-    And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered
+    And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
-    And new security server 'CS:ANOTHER:member-2:SS-A' authentication certificate registered
+    And new security server 'CS:ANOTHER:member-2:SS-A' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And Authentication header is set to SYSTEM_ADMINISTRATOR
     When user requests security servers list sorted by '<$sortField>' '<$sortDirection>'

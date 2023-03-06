@@ -10,6 +10,7 @@ Feature: System API
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
     Then system version endpoint returns version
 
+  @Modifying
   Scenario: Update central server address
     Given Authentication header is set to SECURITY_OFFICER
     Then updating central server address with 'valid.url' should succeed
