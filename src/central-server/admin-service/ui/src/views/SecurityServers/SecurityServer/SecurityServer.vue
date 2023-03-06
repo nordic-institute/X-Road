@@ -31,7 +31,7 @@
         <div class="xrd-view-title">FOO 1</div>
       </div>
     </div>
-    <PageNavigation :items="memberNavigationItems"></PageNavigation>
+    <PageNavigation :tabs="securityServerNavigationTabs"></PageNavigation>
     <router-view />
   </div>
 </template>
@@ -39,9 +39,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import PageNavigation, {
-  NavigationItem,
+  PageNavigationTab,
 } from '@/components/layout/PageNavigation.vue';
-import { Colors, RouteName } from '@/global';
+import { Colors, Permissions, RouteName } from '@/global';
 
 /**
  * Wrapper component for a security server view
@@ -49,7 +49,7 @@ import { Colors, RouteName } from '@/global';
 export default Vue.extend({
   components: { PageNavigation },
   props: {
-    id: {
+    serverId: {
       type: String,
       required: true,
     },
@@ -60,33 +60,42 @@ export default Vue.extend({
     };
   },
   computed: {
-    memberNavigationItems(): NavigationItem[] {
+    securityServerNavigationTabs(): PageNavigationTab[] {
       return [
         {
-          url: `/security-servers/${this.id}/details`,
-          label: this.$t(
-            'securityServers.securityServer.tabs.details',
-          ) as string,
-        },
-        {
-          url: `/security-servers/${this.id}/clients`,
-          label: this.$t(
-            'securityServers.securityServer.tabs.clients',
-          ) as string,
+          key: 'security-server-details-tab-button',
+          name: 'securityServers.securityServer.tabs.details',
+          to: {
+            name: RouteName.SecurityServerDetails,
+          },
+          permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },
 
         {
-          url: `/security-servers/${this.id}/authenticationcertificates`,
-          label: this.$t(
-            'securityServers.securityServer.tabs.authCertificates',
-          ) as string,
+          key: 'security-server-clients-tab-button',
+          name: 'securityServers.securityServer.tabs.clients',
+          to: {
+            name: RouteName.SecurityServerClients,
+          },
+          permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },
 
         {
-          url: `/security-servers/${this.id}/managementrequests`,
-          label: this.$t(
-            'members.member.pagenavigation.managementRequests',
-          ) as string,
+          key: 'security-server-auth-certs-tab-button',
+          name: 'securityServers.securityServer.tabs.authCertificates',
+          to: {
+            name: RouteName.SecurityServerAuthenticationCertificates,
+          },
+          permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
+        },
+
+        {
+          key: 'security-server-management-requests-tab-button',
+          name: 'securityServers.securityServer.tabs.managementRequests',
+          to: {
+            name: RouteName.SecurityServerManagementRequests,
+          },
+          permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
           showAttention: true,
         },
       ];

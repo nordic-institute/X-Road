@@ -63,7 +63,14 @@
       </template>
 
       <template #[`item.ca_certificate.subject_common_name`]="{ item }">
-        <div class="xrd-clickable" @click="toDetails(item)">
+        <div
+          v-if="hasPermissionToDetails"
+          class="xrd-clickable"
+          @click="toDetails(item)"
+        >
+          {{ item.ca_certificate.subject_common_name }}
+        </div>
+        <div v-else>
           {{ item.ca_certificate.subject_common_name }}
         </div>
       </template>
@@ -129,7 +136,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
-import { mapActions, mapStores } from 'pinia';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { useIntermediateCaStore } from '@/store/modules/trust-services';
 import { notificationsStore } from '@/store/modules/notifications';
 import {
@@ -137,7 +144,8 @@ import {
   CertificateAuthority,
 } from '@/openapi-types';
 import AddIntermediateCaDialog from '@/components/intermediateCas/AddIntermediateCaDialog.vue';
-import { RouteName } from '@/global';
+import { Permissions, RouteName } from '@/global';
+import { userStore } from '@/store/modules/user';
 
 export default Vue.extend({
   name: 'IntermediateCasList',
@@ -159,8 +167,12 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(useIntermediateCaStore),
+    ...mapState(userStore, ['hasPermission']),
     intermediateCas(): CertificateAuthority[] {
       return this.intermediateCasServiceStore.currentIntermediateCas;
+    },
+    hasPermissionToDetails(): boolean {
+      return this.hasPermission(Permissions.VIEW_APPROVED_CA_DETAILS);
     },
     headers(): DataTableHeader[] {
       return [
