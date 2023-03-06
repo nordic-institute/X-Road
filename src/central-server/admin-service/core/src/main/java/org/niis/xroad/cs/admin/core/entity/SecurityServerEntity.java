@@ -108,8 +108,8 @@ public class SecurityServerEntity extends AuditableEntity {
     public void addClient(SecurityServerClientEntity client) {
         var serverClient = new ServerClientEntity(this, client);
         serverClients.add(serverClient);
-        //todo: is two-way mapping necessary.
-        client.getServerClients().add(serverClient);
+        //todo: is two-way mapping necessary. Will be improved under other story.
+        //client.getServerClients().add(serverClient);
     }
 
     @Transient

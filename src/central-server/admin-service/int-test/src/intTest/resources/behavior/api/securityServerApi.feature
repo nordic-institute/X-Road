@@ -82,3 +82,17 @@ Feature: Security Server API
     And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
     Then user can get security server 'CS:TEST:member-1:SS-X' authentication certificates
+
+  @Modifying
+  Scenario: Delete security server
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And member class 'TEST' is created
+    And new member 'CS:TEST:member-1' is added
+    And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new member 'CS:TEST:member-2' is added
+    And client 'CS:TEST:member-2' is registered as security server 'CS:TEST:member-1:SS-X' client from 'SECURITY_SERVER'
+    And management request is approved
+    Then security servers list contains 'CS:TEST:member-1:SS-X'
+    When user deletes security server 'CS:TEST:member-1:SS-X'
+    Then security servers list does not contain 'CS:TEST:member-1:SS-X'

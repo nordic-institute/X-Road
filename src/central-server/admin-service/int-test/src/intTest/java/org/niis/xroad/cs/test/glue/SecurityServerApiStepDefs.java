@@ -49,6 +49,7 @@ import static org.junit.Assert.fail;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESULT_LIST;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -113,6 +114,18 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(1, "body.items.?[id=='" + serverId + "'].size",
+                        "Servers list contains id " + serverId))
+                .execute();
+    }
+
+    @Step("security servers list does not contain {string}")
+    public void securityServersListDoesNotContainServer(String serverId) {
+        final ResponseEntity<PagedSecurityServersDto> response = securityServersApi
+                .findSecurityServers("", new PagingSortingParametersDto());
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(0, "body.items.?[id=='" + serverId + "'].size",
                         "Servers list contains id " + serverId))
                 .execute();
     }
@@ -202,6 +215,15 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(0, "body.size", "SS has not auth certificates"))
+                .execute();
+    }
+
+    @Step("user deletes security server {string}")
+    public void userDeletesSecurityServer(String serverId) {
+        final ResponseEntity<Void> response = securityServersApi.deleteSecurityServer(serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
                 .execute();
     }
 
