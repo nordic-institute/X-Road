@@ -28,10 +28,9 @@ package org.niis.xroad.cs.test.ui.glue;
 import com.codeborne.selenide.Selenide;
 import io.cucumber.java.After;
 import io.cucumber.java.en.Step;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v108.network.Network;
-import org.openqa.selenium.devtools.v108.network.model.ConnectionType;
+import org.openqa.selenium.devtools.v110.network.Network;
+import org.openqa.selenium.devtools.v110.network.model.ConnectionType;
 
 import java.util.Optional;
 
@@ -39,9 +38,7 @@ public class CommonUiStepDefs extends BaseUiStepDefs {
 
     @After(value = "@LoadingTesting")
     public void loadingTestingAfter() {
-        var chromedriver = (ChromeDriver) Selenide.webdriver().driver().getWebDriver();
-        DevTools devTools = (chromedriver).getDevTools();
-        devTools.createSession();
+        var devTools = chromiumDevTools.getDevTools();
         devTools.send(Network.disable());
     }
 
@@ -60,9 +57,7 @@ public class CommonUiStepDefs extends BaseUiStepDefs {
     @SuppressWarnings("checkstyle:MagicNumber")
     @Step("Browser is set in {} network speed")
     public void setInBrowserSpeed(String connectionType) {
-        var chromedriver = (ChromeDriver) Selenide.webdriver().driver().getWebDriver();
-        DevTools devTools = (chromedriver).getDevTools();
-        devTools.createSession();
+        DevTools devTools = chromiumDevTools.getDevTools();
         devTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
         devTools.send(Network.emulateNetworkConditions(
                 false,

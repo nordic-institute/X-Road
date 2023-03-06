@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 @Slf4j
@@ -52,12 +51,6 @@ public class ExtTestContainerService extends TestContainerService {
         applicationContainer.waitingFor(Wait.forLogMessage(".*Started ManagementServiceMain.*", 1));
 
         super.startContainer(applicationContainer);
-
-        attachLogger(applicationContainer);
     }
 
-    private void attachLogger(final GenericContainer<?> applicationContainer) {
-        Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(log).withSeparateOutputStreams();
-        applicationContainer.followOutput(logConsumer);
-    }
 }

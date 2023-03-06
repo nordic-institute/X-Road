@@ -33,7 +33,7 @@
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="members"
+      :items="clients"
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
@@ -42,13 +42,23 @@
       :loader-height="2"
       hide-default-footer
     >
-      <template #[`item.name`]="{ item }">
-        <div class="table-cell-name" @click="toDetails('netum')">
-          <xrd-icon-base class="xrd-clickable mr-4"
-            ><xrd-icon-folder-outline
+      <template #[`item.member_name`]="{ item }">
+        <div
+          v-if="hasPermissionToMemberDetails"
+          class="table-cell-member-name-action"
+          @click="toMemberDetails(item)"
+        >
+          <xrd-icon-base class="xrd-clickable mr-4">
+            <xrd-icon-folder-outline
           /></xrd-icon-base>
+          {{ item.member_name }}
+        </div>
 
-          {{ item.name }}
+        <div v-else class="table-cell-member-name">
+          <xrd-icon-base class="mr-4">
+            <xrd-icon-folder-outline />
+          </xrd-icon-base>
+          {{ item.member_name }}
         </div>
       </template>
 
@@ -65,61 +75,86 @@
  */
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
+import { Client } from '@/openapi-types';
+import { mapActions, mapState, mapStores } from 'pinia';
+import { clientStore } from '@/store/modules/clients';
+import { notificationsStore } from '@/store/modules/notifications';
+import { Permissions, RouteName } from '@/global';
+import { userStore } from '@/store/modules/user';
 
 export default Vue.extend({
+  name: 'SecurityServerClients',
+  props: {
+    serverId: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       search: '',
       loading: false,
-      members: [
-        {
-          name: 'Nordic Institue for Interoperability Solutions',
-          class: 'ORG',
-          code: '555',
-          subsystem: 'Subsystem X',
-        },
-        {
-          name: 'Netum Oy',
-          class: 'COM',
-          code: 'IMAMEMBERCODE',
-          subsystem: 'Subsystem B',
-        },
-      ],
+      clients: [] as Client[],
     };
   },
   computed: {
+    ...mapStores(clientStore),
+    ...mapState(userStore, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
         {
-          text: (this.$t('global.memberName') as string) + ' (8)',
+          text: this.$t('global.memberName') as string,
           align: 'start',
-          value: 'name',
+          value: 'member_name',
           class: 'xrd-table-header clients-table-header-name',
         },
         {
           text: this.$t('global.class') as string,
           align: 'start',
-          value: 'class',
+          value: 'xroad_id.member_class',
           class: 'xrd-table-header clients-table-header-class',
         },
         {
           text: this.$t('global.code') as string,
           align: 'start',
-          value: 'code',
+          value: 'xroad_id.member_code',
           class: 'xrd-table-header clients-table-header-code',
         },
         {
           text: this.$t('global.subsystem') as string,
           align: 'start',
-          value: 'code',
+          value: 'xroad_id.subsystem_code',
           class: 'xrd-table-header clients-table-header-subsystem',
         },
       ];
     },
+    hasPermissionToMemberDetails(): boolean {
+      return this.hasPermission(Permissions.VIEW_MEMBER_DETAILS);
+    },
+  },
+  created() {
+    this.loading = true;
+    this.clientStore
+      .getBySecurityServerId(this.serverId)
+      .then((resp) => {
+        this.clients = resp;
+      })
+      .catch((error) => {
+        this.showError(error);
+      })
+      .finally(() => {
+        this.loading = false;
+      });
   },
   methods: {
-    toDetails(): void {
-      // Implement later
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    toMemberDetails(client: Client): void {
+      this.$router.push({
+        name: RouteName.MemberDetails,
+        params: {
+          memberid: `${client.xroad_id.instance_id}:${client.xroad_id.member_class}:${client.xroad_id.member_code}`,
+        },
+      });
     },
   },
 });
@@ -129,11 +164,16 @@ export default Vue.extend({
 @import '~styles/colors';
 @import '~styles/tables';
 
-.table-cell-name {
+.table-cell-member-name-action {
   color: $XRoad-Purple100;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
+}
+
+.table-cell-member-name {
+  font-weight: 600;
+  font-size: 14px;
 }
 
 #clients-filter {

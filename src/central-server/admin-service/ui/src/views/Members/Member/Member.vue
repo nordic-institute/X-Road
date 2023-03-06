@@ -33,7 +33,7 @@
         </div>
       </div>
     </div>
-    <PageNavigation :items="memberNavigationItems"></PageNavigation>
+    <PageNavigation :tabs="memberNavigationTabs"></PageNavigation>
     <router-view />
   </div>
 </template>
@@ -41,9 +41,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import PageNavigation, {
-  NavigationItem,
+  PageNavigationTab,
 } from '@/components/layout/PageNavigation.vue';
-import { Colors } from '@/global';
+import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { memberStore } from '@/store/modules/members';
 
@@ -66,22 +66,34 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(memberStore),
-    memberNavigationItems(): NavigationItem[] {
+    memberNavigationTabs(): PageNavigationTab[] {
       return [
         {
-          url: `/members/${this.memberid}/details`,
-          label: this.$t('members.member.pagenavigation.details') as string,
+          key: 'member-details-tab-button',
+          name: 'members.member.pagenavigation.details',
+          to: {
+            name: RouteName.MemberDetails,
+          },
+          permissions: [Permissions.VIEW_MEMBER_DETAILS],
         },
+
         {
-          url: `/members/${this.memberid}/managementrequests`,
-          label: this.$t(
-            'members.member.pagenavigation.managementRequests',
-          ) as string,
+          key: 'member-management-requests-tab-button',
+          name: 'members.member.pagenavigation.managementRequests',
+          to: {
+            name: RouteName.MemberManagementRequests,
+          },
+          permissions: [Permissions.VIEW_MEMBER_DETAILS],
           showAttention: true,
         },
+
         {
-          url: `/members/${this.memberid}/subsystems`,
-          label: this.$t('members.member.pagenavigation.subsystems') as string,
+          key: 'member-subsystems-tab-button',
+          name: 'members.member.pagenavigation.subsystems',
+          to: {
+            name: RouteName.MemberSubsystems,
+          },
+          permissions: [Permissions.VIEW_MEMBER_DETAILS],
         },
       ];
     },

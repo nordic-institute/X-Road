@@ -76,5 +76,13 @@ export const clientStore = defineStore('client', {
           throw error;
         });
     },
+    getBySecurityServerId(serverId: string) {
+      return axios
+        .get<Client[]>(`/security-servers/${serverId}/clients`)
+        .then((resp) => resp.data)
+        .catch((error) => {
+          throw error;
+        });
+    },
   },
 });

@@ -5,8 +5,6 @@ spring:
   cache:
     type: none
   jpa:
-    hibernate:
-      ddl-auto: none #TODO this should be removed once schema is stable.
     show-sql: true
 
 cache:
