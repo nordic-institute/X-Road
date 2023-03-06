@@ -244,7 +244,7 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     }
 
     @Step("Configuration anchor is successfully downloaded")
-    public void isAnchorDownloaded() throws InterruptedException {
+    public void isAnchorDownloaded() {
         final File file = scenarioContext.getStepData(DOWNLOADED_FILE);
         assertThat(file)
                 .exists()
@@ -302,7 +302,7 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
                 break;
             } catch (NoSuchElementException e) {
                 if (retry-- > 0) {
-                    Selenide.webdriver().driver().getWebDriver().navigate();
+                    Selenide.webdriver().driver().getWebDriver().navigate().refresh();
                 } else {
                     throw e;
                 }
