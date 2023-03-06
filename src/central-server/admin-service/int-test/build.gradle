@@ -17,7 +17,7 @@ dependencies {
     intTestImplementation("com.nortal.test:test-automation-containers:$testAutomationFrameworkVersion")
     intTestImplementation("com.nortal.test:test-automation-feign:$testAutomationFrameworkVersion")
     intTestImplementation("com.nortal.test:test-automation-allure:$testAutomationFrameworkVersion")
-    intTestImplementation("org.liquibase:liquibase-core:4.9.1")
+    intTestImplementation("org.liquibase:liquibase-core:$liquibaseVersion")
     intTestImplementation("org.testcontainers:postgresql:1.17.6") //TODO test automation should release BOM module
     intTestImplementation("org.postgresql:postgresql:$postgresqlVersion")
     intTestImplementation("org.projectlombok:lombok:${lombokVersion}")

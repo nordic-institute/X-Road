@@ -59,7 +59,14 @@
         hide-default-footer
       >
         <template #[`item.name`]="{ item }">
-          <div class="xrd-clickable" @click="toDetails(item)">
+          <div
+            v-if="hasPermissionToDetails"
+            class="xrd-clickable"
+            @click="toDetails(item)"
+          >
+            {{ item.name }}
+          </div>
+          <div v-else>
             {{ item.name }}
           </div>
         </template>
@@ -76,10 +83,7 @@
       </v-data-table>
     </div>
 
-    <TimestampingServicesList
-      v-if="showTsaList"
-    >
-    </TimestampingServicesList>
+    <TimestampingServicesList v-if="showTsaList"> </TimestampingServicesList>
 
     <!-- Dialogs -->
     <AddCertificationServiceDialog
@@ -127,6 +131,9 @@ export default Vue.extend({
     ...mapState(userStore, ['hasPermission']),
     certificationServices(): ApprovedCertificationServiceListItem[] {
       return this.certificationServiceStore.certificationServices;
+    },
+    hasPermissionToDetails(): boolean {
+      return this.hasPermission(Permissions.VIEW_APPROVED_CA_DETAILS);
     },
     showAddCSButton(): boolean {
       return this.hasPermission(Permissions.ADD_APPROVED_CA);

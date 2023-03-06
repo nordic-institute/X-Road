@@ -33,6 +33,7 @@ import com.nortal.test.core.services.ScenarioContext;
 import org.niis.xroad.cs.test.ui.TargetHostUrlProvider;
 import org.niis.xroad.cs.test.ui.configuration.TestProperties;
 import org.niis.xroad.cs.test.ui.page.CommonPageObj;
+import org.niis.xroad.cs.test.ui.utils.ChromiumDevTools;
 import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -55,6 +56,8 @@ public abstract class BaseUiStepDefs {
     protected TargetHostUrlProvider targetHostUrlProvider;
     @Autowired
     protected TestReportService testReportService;
+    @Autowired
+    protected ChromiumDevTools chromiumDevTools;
 
     /**
      * Vue.JS adds additional elements on top of input and simple clear just does not work.

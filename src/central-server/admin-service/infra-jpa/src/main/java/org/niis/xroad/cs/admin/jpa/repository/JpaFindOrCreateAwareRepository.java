@@ -41,6 +41,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.FluentQuery;
 
 import javax.persistence.Column;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.Id;
 
 import java.util.Objects;
@@ -58,6 +59,15 @@ public interface JpaFindOrCreateAwareRepository<ENTITY, ID> extends JpaRepositor
     default ENTITY findOrCreate(ENTITY model) {
         return findBy(Example.of(model, exampleMatcher(model)), FluentQuery.FetchableFluentQuery::first)
                 .orElseGet(() -> save(model));
+    }
+
+    /**
+     * Return an equivalent model from the repository.
+     * <p>
+     */
+    default ENTITY findOne(ENTITY model) {
+        return findBy(Example.of(model, exampleMatcher(model)), FluentQuery.FetchableFluentQuery::first)
+                .orElseThrow(() -> new EntityNotFoundException(model.toString()));
     }
 
     /**

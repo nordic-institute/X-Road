@@ -45,7 +45,9 @@
       :must-sort="true"
       :items-per-page="10"
       :options.sync="pagingSortingOptions"
-      :server-items-length="securityServerStore.securityServerPagingOptions.total_items"
+      :server-items-length="
+        securityServerStore.securityServerPagingOptions.total_items
+      "
       disable-filtering
       class="elevation-0 data-table"
       :no-data-text="emptyListReasoning"
@@ -54,15 +56,14 @@
       :footer-props="{ itemsPerPageOptions: [10, 25] }"
       @update:options="findServers"
     >
-      <template #[`item.serverCode`]="{ item }">
+      <template #[`item.xroad_id.server_code`]="{ item }">
         <div class="server-code xrd-clickable" @click="toDetails(item)">
           <xrd-icon-base class="mr-4">
             <XrdIconSecurityServer />
           </xrd-icon-base>
-          <div>{{ item.serverCode }}</div>
+          {{ item.xroad_id.server_code }}
         </div>
       </template>
-
     </v-data-table>
   </div>
 </template>
@@ -80,7 +81,7 @@ import { mapActions, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import VueI18n from 'vue-i18n';
 import TranslateResult = VueI18n.TranslateResult;
-import {debounce} from "@/util/helpers";
+import { debounce } from '@/util/helpers';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -149,7 +150,7 @@ export default Vue.extend({
     toDetails(securityServer: SecurityServer): void {
       this.$router.push({
         name: RouteName.SecurityServerDetails,
-        params: { id: securityServer.id || '' },
+        params: { serverId: securityServer.id || '' },
       });
     },
     changeOptions: async function () {

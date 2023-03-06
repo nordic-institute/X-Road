@@ -97,9 +97,9 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         assertNoOtherSubmittedRequests(request);
         validateRequest(request);
 
-        final SecurityServerIdEntity securityServerIdEntity = serverIds.findOrCreate(
+        final SecurityServerIdEntity securityServerIdEntity = serverIds.findOne(
                 SecurityServerIdEntity.create(request.getSecurityServerId()));
-        final MemberIdEntity memberIdEntity = memberIds.findOrCreate(MemberIdEntity.create(request.getClientId()));
+        final MemberIdEntity memberIdEntity = memberIds.findOne(MemberIdEntity.create(request.getClientId()));
 
         OwnerChangeRequestEntity entity = new OwnerChangeRequestEntity(
                 request.getOrigin(),
@@ -140,7 +140,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
     }
 
     private void assertNoOtherSubmittedRequests(OwnerChangeRequest request) {
-        final SecurityServerIdEntity securityServerIdEntity = serverIds.findOrCreate(
+        final SecurityServerIdEntity securityServerIdEntity = serverIds.findOne(
                 SecurityServerIdEntity.create(request.getSecurityServerId()));
         final List<OwnerChangeRequestEntity> pendingRequests = ownerChangeRequestRepository.findBy(securityServerIdEntity,
                 EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));

@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.rest.api.security;
 
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
@@ -53,6 +54,7 @@ public class AdminServicePermissionEvaluator implements PermissionEvaluator {
         this.resolvers = resolvers;
         this.targetMapping = self(new IdentityHashMap<>(), self -> {
             self.put(AuthenticationCertificateRegistrationRequestDto.class, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST);
+            self.put(AuthenticationCertificateDeletionRequestDto.class, ManagementRequestType.AUTH_CERT_DELETION_REQUEST);
             self.put(ClientRegistrationRequestDto.class, ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
             self.put(ClientDeletionRequestDto.class, ManagementRequestType.CLIENT_DELETION_REQUEST);
             self.put(OwnerChangeRequestDto.class, ManagementRequestType.OWNER_CHANGE_REQUEST);

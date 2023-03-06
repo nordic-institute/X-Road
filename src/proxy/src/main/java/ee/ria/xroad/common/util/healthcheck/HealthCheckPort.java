@@ -31,6 +31,8 @@ import ee.ria.xroad.common.util.StartStop;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -63,7 +65,6 @@ public class HealthCheckPort implements StartStop {
     private static final int THREAD_POOL_SIZE = 8;
     private static final int ACCEPTOR_THREAD_COUNT = 1;
     private static final int SELECTOR_THREAD_COUNT = 1;
-    private static final int SO_LINGER = -1; //disable linger
 
     private final Server server;
     private final StoppableHealthCheckProvider stoppableHealthCheckProvider;
@@ -88,13 +89,15 @@ public class HealthCheckPort implements StartStop {
     }
 
     private void createHealthCheckConnector() {
-
-        ServerConnector connector = new ServerConnector(server, ACCEPTOR_THREAD_COUNT, SELECTOR_THREAD_COUNT);
+        HttpConfiguration httpConfiguration = new HttpConfiguration();
+        httpConfiguration.setSendServerVersion(false);
+        HttpConnectionFactory connectionFactory = new HttpConnectionFactory(httpConfiguration);
+        ServerConnector connector = new ServerConnector(server, ACCEPTOR_THREAD_COUNT, SELECTOR_THREAD_COUNT,
+                                                        connectionFactory);
         connector.setName("HealthCheckPort");
         connector.setHost(SystemProperties.getHealthCheckInterface());
         connector.setPort(portNumber);
         connector.setIdleTimeout(SOCKET_MAX_IDLE_MILLIS);
-        connector.setSoLingerTime(SO_LINGER);
         server.addConnector(connector);
 
         HandlerCollection handlerCollection = new HandlerCollection();

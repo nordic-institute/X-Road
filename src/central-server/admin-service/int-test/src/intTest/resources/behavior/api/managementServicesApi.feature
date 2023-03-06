@@ -8,9 +8,9 @@ Feature: Management services API
     And member class 'E2E' is created
     And new member 'CS:E2E:member-for-management' is added
     And new subsystem "CS:E2E:member-for-management:Management" is added
-    And new security server 'CS:E2E:member-for-management:SS0' authentication certificate registered
+    And new security server 'CS:E2E:member-for-management:SS0' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
-    And client 'CS:E2E:member-for-management:Management' is registered as security server 'CS:E2E:member-for-management:SS0' client
+    And client 'CS:E2E:member-for-management:Management' is registered as security server 'CS:E2E:member-for-management:SS0' client from 'SECURITY_SERVER'
     And management request is approved
     And Authentication header is set to SECURITY_OFFICER
     When Management services provider id is set to "CS:E2E:member-for-management:Management"

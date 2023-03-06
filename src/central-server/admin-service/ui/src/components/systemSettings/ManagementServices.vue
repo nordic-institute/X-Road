@@ -38,6 +38,7 @@
           :colspan="2"
           :loading="loading"
           :data="managementServicesConfiguration"
+          :no-items-text="$t('noData.noData')"
         />
 
         <tbody v-if="!loading">
@@ -51,7 +52,12 @@
               {{ managementServicesConfiguration.service_provider_id }}
             </td>
             <td class="action-cell">
-              <xrd-button text :outlined="false"
+              <xrd-button
+                v-if="hasPermissionToEditServiceProvider"
+                text
+                :outlined="false"
+                data-test="edit-management-member"
+                @click="openSelectSubsystemDialog"
                 >{{ $t('action.edit') }}
               </xrd-button>
             </td>
@@ -137,32 +143,52 @@
         </tbody>
       </table>
     </v-card>
+    <SelectSubsystemDialog
+      :dialog="showSelectSubsystemDialog"
+      :defaultSubsystemId="managementServicesConfiguration.service_provider_id"
+      @select="updateServiceProvider"
+      @cancel="hideSelectSubsystemDialog"
+    >
+    </SelectSubsystemDialog>
   </div>
 </template>
 
 <script lang="ts">
-import { ManagementServicesConfiguration } from '@/openapi-types';
-import { toClipboard } from '@/util/helpers';
+import { Client, ManagementServicesConfiguration } from '@/openapi-types';
 import Vue from 'vue';
-import { mapStores } from 'pinia';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { managementServicesStore } from '@/store/modules/management-services';
+import { notificationsStore } from '@/store/modules/notifications';
+import { toIdentifier } from '@/util/helpers';
+import { Permissions } from '@/global';
+import { userStore } from '@/store/modules/user';
+import SelectSubsystemDialog from '@/components/systemSettings/SelectSubsystemDialog.vue';
 
 export default Vue.extend({
+  components: {
+    SelectSubsystemDialog,
+  },
   data() {
     return {
       loading: false,
+      showSelectSubsystemDialog: false,
     };
   },
   computed: {
     ...mapStores(managementServicesStore),
+    ...mapState(userStore, ['hasPermission']),
     managementServicesConfiguration(): ManagementServicesConfiguration {
       return this.managementServicesStoreStore.managementServicesConfiguration;
+    },
+    hasPermissionToEditServiceProvider(): boolean {
+      return this.hasPermission(Permissions.VIEW_SYSTEM_SETTINGS);
     },
   },
   created() {
     this.fetchManagementServicesConfiguration();
   },
   methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     fetchManagementServicesConfiguration(): void {
       this.loading = true;
       this.managementServicesStoreStore
@@ -173,6 +199,31 @@ export default Vue.extend({
       if (url) {
         navigator.clipboard.writeText(url);
       }
+    },
+    openSelectSubsystemDialog(): void {
+      this.showSelectSubsystemDialog = true;
+    },
+    hideSelectSubsystemDialog(): void {
+      this.showSelectSubsystemDialog = false;
+    },
+    updateServiceProvider(subsystems: Client[]): void {
+      this.loading = true;
+      this.managementServicesStoreStore
+        .updateManagementServicesConfiguration({
+          service_provider_id: toIdentifier(subsystems[0].xroad_id),
+        })
+        .then(() => {
+          this.showSuccess(
+            this.$t('systemSettings.serviceProvider.changedSuccess'),
+          );
+          this.showSelectSubsystemDialog = false;
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
   },
 });

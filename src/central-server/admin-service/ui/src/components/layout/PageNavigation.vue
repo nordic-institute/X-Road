@@ -27,10 +27,15 @@
 <template>
   <div>
     <v-tabs :background-color="'transparent'" class="page-navigation-row">
-      <v-tab v-for="item in items" :key="item.url" :to="item.url"
-        >{{ item.label }}
-        <span v-if="item.showAttention" class="dot mb-3"></span
-      ></v-tab>
+      <v-tab
+        v-for="tab in allowedTabs"
+        :key="tab.key"
+        :to="tab.to"
+        :data-test="tab.key"
+        exact-path
+        >{{ $t(tab.name) }}
+        <span v-if="tab.showAttention" class="dot mb-3"></span>
+      </v-tab>
     </v-tabs>
   </div>
 </template>
@@ -38,19 +43,26 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
+import { mapState } from 'pinia';
+import { userStore } from '@/store/modules/user';
+import { Tab } from '@/ui-types';
 
-export interface NavigationItem {
-  url: string;
-  label: string;
+export interface PageNavigationTab extends Tab {
   showAttention?: boolean;
 }
 
 export default Vue.extend({
   name: 'PageNavigation',
   props: {
-    items: {
-      type: Array as Prop<NavigationItem[]>,
+    tabs: {
+      type: Array as Prop<PageNavigationTab[]>,
       required: true,
+    },
+  },
+  computed: {
+    ...mapState(userStore, ['getAllowedTabs']),
+    allowedTabs(): PageNavigationTab[] {
+      return this.getAllowedTabs(this.tabs);
     },
   },
 });
