@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,7 +24,6 @@
  * THE SOFTWARE.
  */
 package ee.ria.xroad.proxy.protocol;
-
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.message.RestRequest;
@@ -37,12 +36,12 @@ import ee.ria.xroad.common.util.MimeUtils;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
@@ -53,17 +52,15 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests to verify correct proxy message decoder behavior.
  */
-@Ignore(value = "Test data must be updated -- protocolVersion header field is required")
 public class ProxyMessageDecoderTest {
 
     DummyMessageConsumer callback;
 
     /**
      * Initialize.
-     * @throws Exception in case of any unexpected errors
      */
     @Before
-    public void initialize() throws Exception {
+    public void initialize() {
         callback = new DummyMessageConsumer();
     }
 
@@ -285,18 +282,18 @@ public class ProxyMessageDecoderTest {
     }
 
     private static InputStream getQuery(String fileName) throws Exception {
-        return new FileInputStream("src/test/queries/" + fileName);
+        return Files.newInputStream(Paths.get("src/test/queries/" + fileName));
     }
 
     private static InputStream getMessage(String fileName) throws Exception {
-        return new FileInputStream("src/test/proxymessages/" + fileName);
+        return Files.newInputStream(Paths.get("src/test/proxymessages/" + fileName));
     }
 
     private String getHashAlgoId() {
         return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
     }
 
-    private class DummyMessageConsumer implements ProxyMessageConsumer {
+    private static class DummyMessageConsumer implements ProxyMessageConsumer {
 
         private SoapMessageImpl soapMessage;
         private boolean hasAttachments;
@@ -326,28 +323,28 @@ public class ProxyMessageDecoderTest {
 
         @Override
         public void soap(SoapMessageImpl soap,
-                Map<String, String> additionalHeaders) throws Exception {
+                         Map<String, String> additionalHeaders) throws Exception {
             this.soapMessage = soap;
         }
 
         @Override
-        public void rest(RestRequest message) throws Exception {
+        public void rest(RestRequest message) {
 
         }
 
         @Override
-        public void restBody(InputStream content) throws Exception {
+        public void restBody(InputStream content) {
 
         }
 
         @Override
         public void attachment(String contentType, InputStream content,
-                Map<String, String> additionalHeaders) throws Exception {
+                               Map<String, String> additionalHeaders) throws Exception {
             this.hasAttachments = true;
         }
 
         @Override
-        public void ocspResponse(OCSPResp resp) throws Exception {
+        public void ocspResponse(OCSPResp resp) {
             this.ocspResponse = resp;
         }
 

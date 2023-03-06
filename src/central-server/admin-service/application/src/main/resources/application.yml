@@ -12,7 +12,10 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect_resolvers: ee.ria.xroad.common.db.Postgres10FixedImplicitSequenceDialectResolver
+        dialect_resolvers: >
+          ee.ria.xroad.common.db.Postgres10FixedImplicitSequenceDialectResolver,
+          ee.ria.xroad.common.db.Postgres12FixedImplicitSequenceDialectResolver,
+          ee.ria.xroad.common.db.Postgres14FixedImplicitSequenceDialectResolver
   profiles:
     include: nontest
   jackson:

@@ -29,10 +29,12 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
+import org.niis.xroad.cs.admin.rest.api.converter.ManagementRequestDetailedViewDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PagedManagementRequestsConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ManagementRequestDtoConverter;
 import org.niis.xroad.cs.openapi.ManagementRequestsApi;
+import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
@@ -48,8 +50,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
-
 import static java.util.Map.entry;
 
 @RestController
@@ -62,6 +62,7 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
     private final ManagementRequestDtoConverter converter;
     private final PageRequestConverter pageRequestConverter;
     private final PagedManagementRequestsConverter pagedManagementRequestsConverter;
+    private final ManagementRequestDetailedViewDtoConverter managementRequestDetailedViewDtoConverter;
     private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
             new PageRequestConverter.MappableSortParameterConverter(
                     entry("id", "id"),
@@ -90,11 +91,10 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MANAGEMENT_REQUEST_DETAILS')")
-    public ResponseEntity<ManagementRequestDto> getManagementRequest(Integer id) {
+    public ResponseEntity<ManagementRequestDetailedViewDto> getManagementRequest(Integer id) {
         return Option.of(id)
-                .map(service::getRequest)
-                .map(Optional::get)
-                .map(managementRequestDtoConverter::toDto)
+                .map(service::getRequestView)
+                .map(managementRequestDetailedViewDtoConverter::convert)
                 .map(ResponseEntity::ok).get();
     }
 

@@ -31,7 +31,6 @@ import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
@@ -47,7 +46,8 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import java.util.NoSuchElementException;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 
 @Service
 @Transactional
@@ -68,25 +68,20 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
 
     @Override
     public ClientDeletionRequest add(ClientDeletionRequest request) {
-        final SecurityServerIdEntity serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
-        final ClientIdEntity clientId = clientIds.findOrCreate(ClientIdEntity.ensure(request.getClientId()));
+        final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
+        final ClientIdEntity clientId = clientIds.findOne(ClientIdEntity.ensure(request.getClientId()));
 
         final var requestEntity = new ClientDeletionRequestEntity(request.getOrigin(), serverId, clientId);
 
         SecurityServerEntity securityServer = servers.findBy(serverId, clientId).getOrElseThrow(() ->
-                new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND));
+                new DataIntegrityException(SECURITY_SERVER_NOT_FOUND));
 
-        //todo: somewhat inefficient, could also directly delete the association entity
         SecurityServerClientEntity client = clients.findOneBy(clientId).getOrElseThrow(() ->
-                new NoSuchElementException("No value present"));
-        for (var it = client.getServerClients().iterator(); it.hasNext(); ) {
-            var item = it.next();
-            if (item.getSecurityServer() == securityServer) {
-                it.remove();
-                break;
-            }
-        }
+                new DataIntegrityException(MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND));
 
+        client.getServerClients()
+                .removeIf(serverClientEntity ->
+                        serverClientEntity.getSecurityServer() == securityServer);
         /*
          * Note. The legacy implementation revokes existing pending registration requests. However, that does
          * not seem right since if a request is pending, there is no registration that could be deleted,
@@ -96,7 +91,7 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
         return Option.of(requestEntity)
                 .map(RequestEntity::getOrigin)
                 .flatMap(origin -> Option.of(serverId)
-                        .map(serverIds::findOrCreate)
+                        .map(serverIds::findOne)
                         .map(dbSecurityServerId -> new ClientDeletionRequestEntity(origin, dbSecurityServerId, clientId)))
                 .map(requests::save)
                 .map(requestMapper::toDto)

@@ -27,8 +27,11 @@
 
 package org.niis.xroad.cs.test.glue;
 
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Step;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.niis.xroad.cs.test.api.FeignCertificationServicesApi;
@@ -38,14 +41,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.ZoneOffset;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.CERTIFICATION_SERVICE_ID;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.NEW_OCSP_RESPONDER_URL;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.OCSP_RESPONDER_ID;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
+import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCertHolder;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -58,12 +65,15 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignIntermediateCasApi intermediateCasApi;
 
+    private ResponseEntity<Set<CertificateAuthorityDto>> intermediateCaResponse;
     private Integer intermediateCaId;
+    private X509CertificateHolder generatedCertificate;
 
     @When("intermediate CA added to certification service")
     public void addIntermediateCa() throws Exception {
         final Integer certificationServiceId = getRequiredStepData(CERTIFICATION_SERVICE_ID);
-        final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert());
+        generatedCertificate = generateAuthCertHolder("CN=Subject");
+        final MultipartFile certificate = new MockMultipartFile("certificate", generatedCertificate.getEncoded());
         final ResponseEntity<CertificateAuthorityDto> response = certificationServicesApi
                 .addCertificationServiceIntermediateCa(certificationServiceId, certificate);
 
@@ -74,9 +84,54 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         intermediateCaId = response.getBody().getId();
     }
 
+    @When("intermediate CAs are retrieved")
+    public void getIntermediateCa() throws Exception {
+        final Integer certificationServiceId = getRequiredStepData(CERTIFICATION_SERVICE_ID);
+
+        intermediateCaResponse = certificationServicesApi.getCertificationServiceIntermediateCas(certificationServiceId);
+
+        validate(intermediateCaResponse)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
+    }
+
+    @Step("deleted intermediate CA is not present")
+    public void intermediateCasIsDeleted() {
+        final Integer certificationServiceId = getRequiredStepData(CERTIFICATION_SERVICE_ID);
+        intermediateCaResponse = certificationServicesApi.getCertificationServiceIntermediateCas(certificationServiceId);
+
+        validate(Objects.requireNonNull(intermediateCaResponse))
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(0, "body.size()"))
+                .execute();
+    }
+
+    @Step("intermediate CA is as follows")
+    public void intermediateCasValidated(DataTable dataTable) {
+        var values = dataTable.asMap();
+
+
+        validate(Objects.requireNonNull(intermediateCaResponse))
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1, "body.size()"))
+                .assertion(equalsAssertion(intermediateCaId, "body[0].id"))
+                .assertion(notNullAssertion("body[0].caCertificate.hash"))
+                .assertion(equalsAssertion(values.get("$issuerDistinguishedName"),
+                        "body[0].caCertificate.issuerDistinguishedName"))
+                .assertion(equalsAssertion(values.get("$subjectDistinguishedName"),
+                        "body[0].caCertificate.subjectDistinguishedName"))
+                .assertion(equalsAssertion(values.get("$subjectCommonName"),
+                        "body[0].caCertificate.subjectCommonName"))
+                .assertion(equalsAssertion(generatedCertificate.getNotBefore().toInstant().atOffset(ZoneOffset.UTC),
+                        "body[0].caCertificate.notBefore"))
+                .assertion(equalsAssertion(generatedCertificate.getNotAfter().toInstant().atOffset(ZoneOffset.UTC),
+                        "body[0].caCertificate.notAfter"))
+                .execute();
+    }
+
     @When("OCSP responder is added to intermediate CA")
     public void ocspResponderIsAddedToIntermediateCA() throws Exception {
-        final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert());
+        final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert("CN=Subject"));
         final String url = "https://" + UUID.randomUUID();
 
         final ResponseEntity<OcspResponderDto> response = intermediateCasApi
@@ -126,4 +181,13 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @When("intermediate CA is deleted")
+    public void deleteIntermediateCa() {
+        final ResponseEntity<Void> response = intermediateCasApi
+                .deleteIntermediateCa(intermediateCaId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                .execute();
+    }
 }

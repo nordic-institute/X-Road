@@ -33,6 +33,7 @@ Some tags are not only for sorting and filtering, but they also add additional b
 | Tag        | Description                                                                                                                                                                                                                          |
 |------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | @Modifying | This means that scenario has made modifications in the database. <br/>Test framework will drop and recreate schema after these scenarios.<br/>**Modifying scenarios will always execute sequentially and isolated from other tests** |
+| @ResetDB   | Before scenario is executed, database will be reset and liquibase would repopulate it.                                                                                                                                               |
 
 ### Scenario step data management
 

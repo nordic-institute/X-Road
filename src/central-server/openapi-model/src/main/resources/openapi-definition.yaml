@@ -3314,7 +3314,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementRequest'
+                $ref: '#/components/schemas/ManagementRequestDetailedView'
         '400':
           description: invalid request
         '401':
@@ -4460,7 +4460,7 @@ components:
         items:
           description: Management Requests
           items:
-            $ref: '#/components/schemas/ManagementRequest'
+            $ref: '#/components/schemas/ManagementRequestListView'
           type: array
         paging_metadata:
           $ref: '#/components/schemas/PagingMetadata'
@@ -4790,6 +4790,9 @@ components:
           SERVER: "SecurityServerId"
           SUBSYSTEM: "ClientId"
       properties:
+        encoded_id:
+          type: string
+          description: Encoded Security Server Id
         instance_id:
           description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: FI
@@ -4871,6 +4874,17 @@ components:
         - member_class
         - member_code
         - server_code
+    ManagementRequestDetailedView:
+      type: object
+      description: Management Request detailed view
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequestListView'
+      properties:
+        client_owner_name:
+          type: string
+          readOnly: true
+        certificateDetails:
+          $ref: '#/components/schemas/CertificateDetails'
     ManagementRequest:
       type: object
       description: Management request
@@ -4901,6 +4915,37 @@ components:
           description: Encoded Security Server ID
         status:
           $ref: '#/components/schemas/ManagementRequestStatus'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - type
+        - source
+        - securityserverId
+    ManagementRequestListView:
+      type: object
+      description: Management Request view
+      properties:
+        id:
+          type: integer
+          description: request id
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/ManagementRequestType'
+        origin:
+          $ref: '#/components/schemas/ManagementRequestOrigin'
+        security_server_owner:
+          type: string
+          readOnly: true
+        security_server_id:
+          $ref: '#/components/schemas/SecurityServerId'
+        address:
+          type: string
+        status:
+          $ref: '#/components/schemas/ManagementRequestStatus'
+        clientId:
+          $ref: '#/components/schemas/ClientId'
         created_at:
           type: string
           format: date-time

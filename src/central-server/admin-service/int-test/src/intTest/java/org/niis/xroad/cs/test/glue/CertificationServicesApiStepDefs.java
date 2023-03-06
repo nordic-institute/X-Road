@@ -48,7 +48,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
 
     @When("Certification service is created")
     public void createCertificationService() throws Exception {
-        MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert());
+        MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert("CN=Subject"));
         String certificateProfileInfo = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";
 
         final ResponseEntity<ApprovedCertificationServiceDto> response = certificationServicesApi

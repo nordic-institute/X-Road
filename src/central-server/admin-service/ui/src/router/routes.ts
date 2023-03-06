@@ -242,47 +242,50 @@ const routes: RouteConfig[] = [
             meta: { permissions: [Permissions.VIEW_SECURITY_SERVERS] },
           },
           {
-            path: ':id',
+            path: ':serverId',
             components: {
               default: SecurityServer,
               pageNavigation: PageNavigation,
             },
             props: { default: true },
-            redirect: '/security-servers/:id/details',
+            redirect: '/security-servers/:serverId/details',
             meta: { permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS] },
             children: [
               {
                 name: RouteName.SecurityServerDetails,
                 path: 'details',
                 component: SecurityServerDetails,
-                props: { default: true },
                 meta: {
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
                 },
+                props: true,
               },
               {
                 name: RouteName.SecurityServerManagementRequests,
                 path: 'managementrequests',
                 component: SecurityServerManagementRequests,
-                props: { default: true },
                 meta: {
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
                 },
+                props: true,
               },
               {
                 name: RouteName.SecurityServerAuthenticationCertificates,
                 path: 'authenticationcertificates',
                 component: SecurityServerAuthenticationCertificates,
-                props: { default: true },
                 meta: {
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
                 },
+                props: true,
               },
               {
                 name: RouteName.SecurityServerClients,
                 path: 'clients',
                 component: SecurityServerClients,
-                props: { default: true },
+                meta: {
+                  permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
+                },
+                props: true,
               },
             ],
           },

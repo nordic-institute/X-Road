@@ -27,15 +27,19 @@
 <template>
   <div id="certification-service-view">
     <div class="table-toolbar mt-0 pl-0">
-        <div class="xrd-view-title">
-          {{ certificationServiceStore.currentCertificationService.name }}
-        </div>
-        <xrd-button outlined @click="navigateToCertificateDetails()" data-test="view-certificate-button">
-          {{ $t('trustServices.viewCertificate') }}
-        </xrd-button>
+      <div class="xrd-view-title">
+        {{ certificationServiceStore.currentCertificationService.name }}
+      </div>
+      <xrd-button
+        outlined
+        data-test="view-certificate-button"
+        @click="navigateToCertificateDetails()"
+      >
+        {{ $t('trustServices.viewCertificate') }}
+      </xrd-button>
     </div>
     <PageNavigation
-      :items="certificationServiceNavigationItems"
+      :tabs="certificationServiceNavigationTabs"
     ></PageNavigation>
     <router-view />
   </div>
@@ -44,9 +48,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import PageNavigation, {
-  NavigationItem,
+  PageNavigationTab,
 } from '@/components/layout/PageNavigation.vue';
-import {Colors, RouteName} from '@/global';
+import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useCertificationServiceStore } from '@/store/modules/trust-services';
 
@@ -69,47 +73,58 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(useCertificationServiceStore),
-    certificationServiceNavigationItems(): NavigationItem[] {
+    certificationServiceNavigationTabs(): PageNavigationTab[] {
       return [
         {
-          url: `/certification-services/${this.certificationServiceId}/details`,
-          label: this.$t(
-            'trustServices.trustService.pagenavigation.details',
-          ) as string,
+          key: 'certification-service-details-tab-button',
+          name: 'trustServices.trustService.pagenavigation.details',
+          to: {
+            name: RouteName.CertificationServiceDetails,
+          },
+          permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
         },
+
         {
-          url: `/certification-services/${this.certificationServiceId}/settings`,
-          label: this.$t(
-            'trustServices.trustService.pagenavigation.settings',
-          ) as string,
+          key: 'certification-service-settings-tab-button',
+          name: 'trustServices.trustService.pagenavigation.settings',
+          to: {
+            name: RouteName.CertificationServiceSettings,
+          },
+          permissions: [Permissions.EDIT_APPROVED_CA],
         },
+
         {
-          url: `/certification-services/${this.certificationServiceId}/ocsp-responders`,
-          label: this.$t(
-            'trustServices.trustService.pagenavigation.ocspResponders',
-          ) as string,
+          key: 'certification-service-ocsp-responders-tab-button',
+          name: 'trustServices.trustService.pagenavigation.ocspResponders',
+          to: {
+            name: RouteName.CertificationServiceOcspResponders,
+          },
+          permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
         },
+
         {
-          url: `/certification-services/${this.certificationServiceId}/intermediate-cas`,
-          label: this.$t(
-            'trustServices.trustService.pagenavigation.intermediateCas',
-          ) as string,
+          key: 'certification-service-intermediate-cas-tab-button',
+          name: 'trustServices.trustService.pagenavigation.intermediateCas',
+          to: {
+            name: RouteName.CertificationServiceIntermediateCas,
+          },
+          permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
         },
       ];
     },
+  },
+  created() {
+    this.certificationServiceStore.loadById(this.certificationServiceId);
   },
   methods: {
     navigateToCertificateDetails() {
       this.$router.push({
         name: RouteName.CertificationServiceCertificateDetails,
         params: {
-          certificationServiceId: String(this.certificationServiceId)
-        }
+          certificationServiceId: String(this.certificationServiceId),
+        },
       });
     },
-  },
-  created() {
-    this.certificationServiceStore.loadById(this.certificationServiceId);
   },
 });
 </script>

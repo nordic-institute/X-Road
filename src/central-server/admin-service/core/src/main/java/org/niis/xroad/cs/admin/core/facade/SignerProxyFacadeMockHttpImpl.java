@@ -93,7 +93,7 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
 
     @Override
     public void initSoftwareToken(char[] password) throws Exception {
-        throw new NotImplementedException("initSoftwareToken not implemented yet.");
+        restTemplate.put("/initSoftwareToken/", password);
     }
 
     @Override

@@ -25,10 +25,21 @@
  */
 package org.niis.xroad.cs.test;
 
+import org.mockserver.client.MockServerClient;
+import org.niis.xroad.cs.test.container.ExtMockServerContainer;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration
 @EnableFeignClients(basePackages = {"org.niis.xroad.cs.test.api"})
 public class CsAdminServiceTestConfiguration {
+
+    @Bean
+    @Lazy
+    public MockServerClient mockServerClient(final ExtMockServerContainer mockServerAuxContainer) {
+        return new MockServerClient(mockServerAuxContainer.getTestContainer().getHost(),
+                mockServerAuxContainer.getTestContainer().getServerPort());
+    }
 }

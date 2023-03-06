@@ -29,19 +29,15 @@ package org.niis.xroad.cs.test.container.service;
 import com.nortal.test.testcontainers.TestContainerNetworkProvider;
 import com.nortal.test.testcontainers.TestContainerService;
 import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
-import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
-@Slf4j
 @Primary
 @Service
 public class ExtTestContainerService extends TestContainerService {
-
 
     public ExtTestContainerService(@NotNull final TestContainerNetworkProvider testContainerNetworkProvider,
                                    @NotNull final TestableContainerProperties testableContainerProperties) {
@@ -54,12 +50,6 @@ public class ExtTestContainerService extends TestContainerService {
         applicationContainer.waitingFor(Wait.forLogMessage(".*Started Main in.*", 1));
 
         super.startContainer(applicationContainer);
-
-        attachLogger(applicationContainer);
     }
 
-    private void attachLogger(final GenericContainer<?> applicationContainer) {
-        Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(log).withSeparateOutputStreams();
-        applicationContainer.followOutput(logConsumer);
-    }
 }

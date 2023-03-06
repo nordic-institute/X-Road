@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,26 +24,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.dto;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import * as api from '@/util/api';
+import {
+  ManagementServicesConfiguration,
+  ServiceProviderId,
+} from '@/openapi-types';
+import { defineStore } from 'pinia';
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
-import org.niis.xroad.cs.admin.api.domain.Origin;
-
-import java.time.Instant;
-
-@Getter
-@RequiredArgsConstructor
-public class ManagementRequestInfoDto {
-    private final int id;
-    private final ManagementRequestType type;
-    private final Origin origin;
-    private final String serverOwnerName;
-    private final SecurityServerId serverId;
-    private final ManagementRequestStatus status;
-    private final Instant createdAt;
+interface ManagementServicesState {
+  managementServicesConfiguration: ManagementServicesConfiguration;
 }
+
+export const managementServicesStore = defineStore('managementServicesStore', {
+  state: (): ManagementServicesState => {
+    return {
+      managementServicesConfiguration: {
+        wsdl_address: '',
+        services_address: '',
+        security_server_owners_global_group_code: '',
+        security_server_id: '',
+        service_provider_name: '',
+        service_provider_id: '',
+      },
+    };
+  },
+  persist: true,
+  actions: {
+    async fetchManagementServicesConfiguration() {
+      return api
+        .get<ManagementServicesConfiguration>(
+          '/management-services-configuration',
+        )
+        .then((resp) => {
+          this.managementServicesConfiguration = resp.data;
+        });
+    },
+    updateManagementServicesConfiguration(
+      serviceProviderId: ServiceProviderId,
+    ) {
+      return api
+        .patch<ManagementServicesConfiguration>(
+          '/management-services-configuration',
+          serviceProviderId,
+        )
+        .then((resp) => {
+          this.managementServicesConfiguration = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+  },
+});

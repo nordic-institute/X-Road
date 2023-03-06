@@ -29,6 +29,7 @@ package org.niis.xroad.cs.test.utils;
 
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
@@ -37,46 +38,67 @@ import javax.security.auth.x500.X500Principal;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
 import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
+import java.util.regex.Pattern;
+
+import static java.lang.ClassLoader.getSystemResourceAsStream;
 
 public final class CertificateUtils {
 
     private CertificateUtils() {
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public static byte[] generateAuthCert() throws NoSuchAlgorithmException, OperatorCreationException, IOException {
-        var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(1024);
-        var subjectKey = keyPairGenerator.generateKeyPair();
-        return generateAuthCert(subjectKey.getPublic(), subjectKey.getPrivate());
+    public static byte[] generateAuthCert(String certDistinguishedName) throws Exception {
+        return generateAuthCertHolder(certDistinguishedName).getEncoded();
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    private static byte[] generateAuthCert(PublicKey subjectKey, PrivateKey privateKey) throws OperatorCreationException, IOException {
+    public static X509CertificateHolder generateAuthCertHolder(String subjectDistinguishedName) throws Exception {
+        var keyFactory = KeyFactory.getInstance("RSA");
+        var certificateFactory = CertificateFactory.getInstance("X.509");
+        PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(readCaCertPrivateKeyBytes()));
+        var caCertificate = (X509Certificate) certificateFactory
+                .generateCertificate(getSystemResourceAsStream("container-files/etc/xroad/globalconf/root-ca.pem"));
+        return generateAuthCert(caCertificate, privateKey, subjectDistinguishedName);
+    }
+
+    private static byte[] readCaCertPrivateKeyBytes() throws IOException {
+        var keyInputStream = getSystemResourceAsStream("container-files/etc/xroad/globalconf/root-ca.key");
+        String key = new String(keyInputStream.readAllBytes(), StandardCharsets.ISO_8859_1);
+        Pattern parse = Pattern.compile("(?m)(?s)^---*BEGIN.*---*$(.*)^---*END.*---*$.*");
+        String encoded = parse.matcher(key).replaceFirst("$1");
+        return Base64.getMimeDecoder().decode(encoded);
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private static X509CertificateHolder generateAuthCert(X509Certificate issuerCertificate, PrivateKey privateKey,
+                                                          String subjectDistinguishedName)
+            throws OperatorCreationException, IOException {
         var signer = new JcaContentSignerBuilder("SHA256withRSA").build(privateKey);
-        var issuer = new X500Principal("CN=Issuer");
-        var subject = new X500Principal("CN=Subject");
+        var subject = new X500Principal(subjectDistinguishedName);
+
 
         return new JcaX509v3CertificateBuilder(
-                issuer,
+                issuerCertificate.getSubjectX500Principal(),
                 BigInteger.ONE,
                 Date.from(Instant.now()),
                 Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
                 subject,
-                subjectKey)
+                issuerCertificate.getPublicKey())
                 .addExtension(Extension.create(
                         Extension.keyUsage,
                         true,
                         new KeyUsage(KeyUsage.digitalSignature)))
-                .build(signer)
-                .getEncoded();
+                .build(signer);
     }
 
 }

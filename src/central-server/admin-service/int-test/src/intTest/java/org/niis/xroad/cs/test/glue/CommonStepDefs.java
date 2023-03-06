@@ -26,9 +26,9 @@
 package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
+import com.nortal.test.asserts.JsonPathAssertions;
 import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
-import lombok.Getter;
 
 public class CommonStepDefs extends BaseStepDefs {
 
@@ -41,8 +41,11 @@ public class CommonStepDefs extends BaseStepDefs {
         SECURITY_OFFICER("3964334d-1f65-4629-a4a4-73c62ade0c9c"),
         MANAGEMENT_SERVICE("de628164-9485-409c-b654-7dda28bb3872");
 
-        @Getter
         private final String token;
+
+        public String getHeaderToken() {
+            return String.format("X-ROAD-APIKEY TOKEN=%s", this.token);
+        }
 
         TokenType(String token) {
             this.token = token;
@@ -74,6 +77,22 @@ public class CommonStepDefs extends BaseStepDefs {
                         .actualValue(responseCode)
                         .expectedValue(statusCode)
                         .build())
+                .execute();
+    }
+
+    @Step("Response is of status code {int} and error code {string}")
+    public void systemStatusIsValidated(int statusCode, String errorCode) {
+        int responseCode = getRequiredStepData(StepDataKey.RESPONSE_STATUS);
+        String errorResponse = getRequiredStepData(StepDataKey.ERROR_RESPONSE_BODY);
+
+        validate(errorResponse)
+                .assertion(new Assertion.Builder()
+                        .message("Verify status code")
+                        .expression("=")
+                        .actualValue(responseCode)
+                        .expectedValue(statusCode)
+                        .build())
+                .assertion(JsonPathAssertions.equalsAssertion(errorCode, "$.error.code"))
                 .execute();
     }
 

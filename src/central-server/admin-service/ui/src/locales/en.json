@@ -44,7 +44,8 @@
     "submit": "Submit",
     "unregister": "Unregister",
     "upload": "Upload",
-    "yes": "Yes"
+    "yes": "Yes",
+    "select": "Select"
   },
   "alert": {
     "count": "Amount of same errors:",
@@ -387,7 +388,19 @@
     "removeClient": "Remove Client",
     "securityServerId": "Server Identifier",
     "securityServerOwnerName": "Server Owner Name",
-    "showOnlyPending": "Show only pending requests"
+    "showOnlyPending": "Show only pending requests",
+    "dialog": {
+      "approve": {
+        "title": "Approve management request",
+        "bodyMessage": "Are you sure you want to approve the management request ID {id} from server {serverId}?",
+        "successMessage": "Management request ID {id} from {serverId} approved"
+      },
+      "decline": {
+        "title": "Decline management request",
+        "bodyMessage": "Are you sure you want to decline the management request ID {id} from server {serverId}?",
+        "successMessage": "Management request ID {id} from {serverId} declined"
+      }
+    }
   },
   "members": {
     "addMember": "Add member",
@@ -481,8 +494,21 @@
     "instanceIdentifier": "Instance Identifier",
     "managementServiceSecurityServer": "Management Services' Security Server",
     "managementServices": "Management Services",
+    "selectSubsystem": {
+      "title": "Select subsystem",
+      "search": "Search",
+      "name": "Name",
+      "memberClass": "Class",
+      "memberCode": "Code",
+      "subsystemCode": "Subsystem",
+      "xroadInstance": "Instance",
+      "type": "Type"
+    },
+    "serviceProvider": {
+      "changedSuccess": "Service Provider changed successfully"
+    },
     "memberClasses": "Member classes",
-    "securityServerOwnerroupCode": "Security Server Owners Group Code",
+    "securityServerOwnerGroupCode": "Security Server Owners Group Code",
     "serviceProviderIdentifier": "Service Provider Identifier",
     "serviceProviderName": "Service Provider Name",
     "systemParameters": "System Parameters",

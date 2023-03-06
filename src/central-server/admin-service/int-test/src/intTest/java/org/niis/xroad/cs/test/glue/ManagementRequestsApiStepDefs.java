@@ -29,9 +29,13 @@ package org.niis.xroad.cs.test.glue;
 
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
@@ -40,13 +44,16 @@ import org.springframework.http.ResponseEntity;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto.SECURITY_SERVER;
-import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.APPROVED;
-import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.WAITING;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto.valueOf;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.fromValue;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_DELETION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DELETION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.OK;
+
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ManagementRequestsApiStepDefs extends BaseStepDefs {
@@ -55,41 +62,56 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     private FeignManagementRequestsApi managementRequestsApi;
 
     private Integer managementRequestId;
+    private byte[] authenticationCertificate;
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    @Step("new security server {string} authentication certificate registered")
-    public void newSecurityServerRegistered(String serverId) throws Exception {
-        final String[] idParts = StringUtils.split(serverId, ':');
+    @Step("new security server {string} authentication certificate registered with origin {string}")
+    public void newSecurityServerRegistered(String securityServerId, String origin) throws Exception {
+        generateAuthenticationCertificate();
+        final String[] idParts = StringUtils.split(securityServerId, ':');
         final var managementRequest = new AuthenticationCertificateRegistrationRequestDto();
         managementRequest.setServerAddress("security-server-address-" + idParts[3]);
-        managementRequest.setSecurityServerId(serverId);
-        managementRequest.setAuthenticationCertificate(CertificateUtils.generateAuthCert());
+        managementRequest.setSecurityServerId(securityServerId);
+        managementRequest.setAuthenticationCertificate(authenticationCertificate);
         managementRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);
+        managementRequest.setOrigin(ManagementRequestOriginDto.valueOf(origin));
+
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+        this.managementRequestId = response.getBody().getId();
+    }
+
+    @Step("authentication certificate of {string} is deleted")
+    public void deleteAuthCert(String serverId) {
+        final var managementRequest = new AuthenticationCertificateDeletionRequestDto();
         managementRequest.setOrigin(SECURITY_SERVER);
+        managementRequest.setType(AUTH_CERT_DELETION_REQUEST);
+        managementRequest.setSecurityServerId(serverId);
+        managementRequest.setAuthenticationCertificate(authenticationCertificate);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(ACCEPTED))
-                .assertion(equalsAssertion(WAITING, "body.status", "Verify status"))
                 .execute();
     }
 
-    @Step("management request is approved")
-    public void managementRequestIsApproved() {
-        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.approveManagementRequest(managementRequestId);
-
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(APPROVED, "body.status", "Verify status"))
-                .execute();
-    }
-
-    @Step("client {string} is registered as security server {string} client")
-    public void memberIsRegisteredAsSecurityServerClient(String memberId, String securityServerId) {
+    @Step("client {string} is registered as security server {string} client from {string}")
+    public void memberIsRegisteredAsSecurityServerClient(String memberId, String securityServerId, String origin) {
         final ClientRegistrationRequestDto managementRequest = new ClientRegistrationRequestDto();
         managementRequest.setType(CLIENT_REGISTRATION_REQUEST);
+        managementRequest.setOrigin(valueOf(origin));
+        managementRequest.setSecurityServerId(securityServerId);
+        managementRequest.setClientId(memberId);
+
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+        this.managementRequestId = response.getBody().getId();
+    }
+
+    @Step("member {string} is deleted as security server {string} client")
+    public void memberIsDeletedAsSecurityServerClient(String memberId, String securityServerId) {
+        final ClientDeletionRequestDto managementRequest = new ClientDeletionRequestDto();
+        managementRequest.setType(CLIENT_DELETION_REQUEST);
         managementRequest.setOrigin(SECURITY_SERVER);
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setClientId(memberId);
@@ -99,7 +121,6 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(ACCEPTED))
-                .assertion(equalsAssertion(WAITING, "body.status", "Verify status"))
                 .execute();
     }
 
@@ -116,25 +137,66 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(ACCEPTED))
-                .assertion(equalsAssertion(WAITING, "body.status", "Verify status"))
                 .execute();
     }
 
-    @Step("new client {string} is registered for security server {string}")
-    public void newClientIsRegisteredForSecurityServer(String clientId, String securityServerId) {
-
-        final ClientRegistrationRequestDto clientRegDto = new ClientRegistrationRequestDto();
-        clientRegDto.setOrigin(SECURITY_SERVER);
-        clientRegDto.setType(CLIENT_REGISTRATION_REQUEST);
-        clientRegDto.setSecurityServerId(securityServerId);
-        clientRegDto.setClientId(clientId);
-
-        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(clientRegDto);
+    @Step("management request is approved")
+    public void managementRequestIsApproved() {
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.approveManagementRequest(managementRequestId);
         this.managementRequestId = response.getBody().getId();
 
         validate(response)
-                .assertion(equalsStatusCodeAssertion(ACCEPTED))
-                .assertion(equalsAssertion(WAITING, "body.status", "Verify status"))
+                .assertion(equalsStatusCodeAssertion(OK))
                 .execute();
+    }
+
+    @Step("management request is declined")
+    public void managementRequestIsDeclined() {
+        final ResponseEntity<Void> response = managementRequestsApi.revokeManagementRequest(managementRequestId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
+    }
+
+    @Step("management request is with status {string}")
+    public void checkManagementRequestStatus(String status) {
+        final ResponseEntity<ManagementRequestDetailedViewDto> response =
+                managementRequestsApi.getManagementRequest(managementRequestId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(fromValue(status), "body.status", "Verify status"))
+                .execute();
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    @Step("details of management request can be retrieved for security server {string}")
+    public void getManagementRequestDetails(String securityServerId) {
+        final ResponseEntity<ManagementRequestDetailedViewDto> response =
+                managementRequestsApi.getManagementRequest(managementRequestId);
+        final String[] securityServerIdParts = StringUtils.split(securityServerId, ':');
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion("security-server-address-" + securityServerIdParts[3],
+                        "body.address", "Verify server address"))
+                .assertion(equalsAssertion(securityServerIdParts[0], "body.securityServerId.instanceId",
+                        "Verify server instance"))
+                .assertion(equalsAssertion(securityServerIdParts[1], "body.securityServerId.memberClass",
+                        "Verify server member class"))
+                .assertion(equalsAssertion(securityServerIdParts[2], "body.securityServerId.memberCode",
+                        "Verify server member code"))
+                .assertion(equalsAssertion(AUTH_CERT_REGISTRATION_REQUEST, "body.type",
+                        "Verify request type"))
+                .assertion(equalsAssertion(SECURITY_SERVER, "body.origin",
+                        "Verify request origin"))
+                .execute();
+    }
+
+    private void generateAuthenticationCertificate() throws Exception {
+        if (authenticationCertificate == null) {
+            authenticationCertificate = CertificateUtils.generateAuthCert("CN=Subject");
+        }
     }
 }

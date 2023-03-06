@@ -26,18 +26,7 @@
             ALTER SEQUENCE apikey_roles_id_seq RESTART WITH 1001000;
         </sql>
     </changeSet>
-    <changeSet id="initialize-cs" author="ricardas">
-        <sql>
-            <![CDATA[
-            -- noinspection SqlResolve
-            INSERT INTO system_parameters
-               (key, value, created_at, updated_at, ha_node_name)
-            VALUES ('centralServerAddress', 'cs', '2022-01-01 01:00:00.000000', '2022-01-02 01:00:00.000000', 'node_0'),
-                   ('instanceIdentifier', 'CS', '2022-01-01 01:00:00.000000', '2022-01-02 01:00:00.000000', 'node_0'),
-                   ('securityServerOwnersGroup', 'security-server-owners', '2022-01-01 01:00:00.000000', '2022-01-02 01:00:00.000000', 'node_0');
-            ]]>
-        </sql>
-    </changeSet>
+
     <changeSet id="internal-configuration-testdata" author="vpaliliunas">
         <comment>Test data for configuration info apis testing
         </comment>
@@ -74,6 +63,7 @@
             VALUES ('security-server-owners','Security server owners', now(), now());
         </sql>
     </changeSet>
+
     <changeSet id="add-configuration-signing-keys" author="ovidijus">
         <comment>Add signing keys for configuration sources.</comment>
         <sql>

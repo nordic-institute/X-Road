@@ -9,7 +9,7 @@
 - [\[ARC-SS\] Security Server Architecture](Architecture/arc-ss_x-road_security_server_architecture.md)
 - [\[ARC-CP\] Configuration Proxy Architecture](Architecture/arc-cp_x-road_configuration_proxy_architecture.md)
 - [\[ARC-CS\] Central Server Architecture](Architecture/arc-cs_x-road_central_server_architecture.md)
-- [\[SPEC-AL\] Audit Log Events](Architecture/spec-al_x-road_audit_log_events_1.7_Y-883-17.docx)
+- [\[SPEC-AL\] Audit Log Events](Architecture/spec-al_x-road_audit_log_events.md)
 - [\[ARC-TEC\] Technologies used in X-Road](Architecture/arc-tec_x-road_technologies.md)
 - [\[ARC-OPMOND\] Operational Monitoring Daemon Architecture](OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md)
 - [\[ARC-ENVMON\] Environmental Monitoring Architecture](EnvironmentalMonitoring/Monitoring-architecture.md)

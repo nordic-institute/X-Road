@@ -26,11 +26,14 @@
  */
 package org.niis.xroad.cs.admin.api.domain;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 
 import java.time.Instant;
 
@@ -42,23 +45,16 @@ public class ManagementRequestView {
     private int id;
     private Origin origin;
     private String comments;
-    private String type;
+    private ManagementRequestType type;
     private Long securityServerIdentifierId;
     private Long requestProcessingId;
-    private ManagementRequestStatus requestProcessingStatus;
+    private ManagementRequestStatus status;
     private String securityServerOwnerName;
-    private String xroadInstance;
-    private String memberCode;
-
-    private String memberClass;
-
-    private String serverCode;
-
+    private SecurityServerId securityServerId;
+    private String clientOwnerName;
+    private ClientId clientId;
+    private byte[] authCert;
+    private CertificateDetails certificateDetails;
+    private String address;
     private Instant createdAt;
-
-    public SecurityServerId getSecurityServerId() {
-        return SecurityServerId.Conf.create(xroadInstance, memberClass, memberCode, serverCode);
-    }
-
-
 }

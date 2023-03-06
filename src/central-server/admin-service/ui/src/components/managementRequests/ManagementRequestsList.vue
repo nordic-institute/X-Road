@@ -77,7 +77,7 @@
       </template>
 
       <template #[`item.security_server_id`]="{ item }">
-        <div>{{ item.security_server_id }}</div>
+        <div>{{ item.security_server_id.encoded_id }}</div>
       </template>
 
       <template #[`item.status`]="{ item }">
@@ -85,17 +85,7 @@
       </template>
 
       <template #[`item.button`]="{ item }">
-        <div class="cs-table-actions-wrap management-requests-table">
-          <div v-if="item.status === 'WAITING'">
-            <xrd-button text :outlined="false">
-              {{ $t('action.approve') }}
-            </xrd-button>
-
-            <xrd-button text :outlined="false">
-              {{ $t('action.decline') }}
-            </xrd-button>
-          </div>
-        </div>
+        <actions-cell :management-request="item" @approve="changeOptions" @decline="changeOptions" />
       </template>
     </v-data-table>
   </div>
@@ -106,13 +96,13 @@ import Vue, { PropType } from 'vue';
 import { RouteName } from '@/global';
 import StatusCell from '@/components/managementRequests/ManagementRequestStatusCell.vue';
 import TypeCell from '@/components/managementRequests/ManagementRequestTypeCell.vue';
+import ActionsCell from '@/components/managementRequests/ManagementRequestActionsCell.vue';
 import { DataOptions, DataTableHeader } from 'vuetify';
-import { mapActions, mapState, mapStores } from 'pinia';
+import { mapActions, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
 import XrdFilter from '@/components/ui/XrdFilter.vue';
 import { managementRequestsStore } from '@/store/modules/managementRequestStore';
-import { userStore } from '@/store/modules/user';
 import { ManagementRequestsFilter } from '@/openapi-types';
 
 export enum Scope {
@@ -131,6 +121,7 @@ let that: any;
 export default Vue.extend({
   name: 'ManagementRequestsList',
   components: {
+    ActionsCell,
     StatusCell,
     TypeCell,
     XrdFilter,
@@ -151,7 +142,6 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(managementRequestsStore),
-    ...mapState(userStore, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
         {
@@ -276,9 +266,5 @@ export default Vue.extend({
 .only-pending {
   display: flex;
   justify-content: flex-end;
-}
-
-.management-requests-table {
-  min-width: 182px;
 }
 </style>

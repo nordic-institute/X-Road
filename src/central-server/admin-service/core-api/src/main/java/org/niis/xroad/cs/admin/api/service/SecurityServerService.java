@@ -58,6 +58,8 @@ public interface SecurityServerService {
 
     Option<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress);
 
+    void delete(SecurityServerId serverId);
+
     void deleteAuthCertificate(SecurityServerId serverId, Integer certificateId);
 
 }

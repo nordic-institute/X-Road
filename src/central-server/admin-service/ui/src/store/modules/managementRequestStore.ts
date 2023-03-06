@@ -30,13 +30,14 @@ import { DataOptions } from 'vuetify';
 import axios, { AxiosRequestConfig } from 'axios';
 import {
   ManagementRequest,
+  ManagementRequestListView,
   ManagementRequestsFilter,
   PagedManagementRequests,
   PagingMetadata,
 } from '@/openapi-types';
 
 export interface State {
-  items: ManagementRequest[];
+  items: ManagementRequestListView[];
   pagingOptions: PagingMetadata;
 }
 
@@ -70,6 +71,14 @@ export const managementRequestsStore = defineStore('managementRequests', {
           this.items = resp.data.items || [];
           this.pagingOptions = resp.data.paging_metadata;
         });
+    },
+    approve(id: number) {
+      return axios.post<ManagementRequest>(
+        `/management-requests/${id}/approval`,
+      );
+    },
+    decline(id: number) {
+      return axios.delete(`/management-requests/${id}`);
     },
   },
 });

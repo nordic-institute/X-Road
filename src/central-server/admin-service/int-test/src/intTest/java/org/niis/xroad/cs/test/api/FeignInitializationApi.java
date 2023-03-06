@@ -26,8 +26,38 @@
 package org.niis.xroad.cs.test.api;
 
 import org.niis.xroad.cs.openapi.InitializationApi;
+import org.niis.xroad.cs.openapi.model.InitialServerConfDto;
+import org.niis.xroad.cs.openapi.model.InitializationStatusDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.validation.Valid;
+
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @FeignClient(name = "initializationApi", path = "/api/v1")
 public interface FeignInitializationApi extends InitializationApi {
+    @RequestMapping(
+            method = RequestMethod.POST,
+            value = "/initialization",
+            produces = {"application/json"},
+            consumes = {"application/json"}
+    )
+    ResponseEntity<Void> initCentralServerWithHeader(
+            @Valid @RequestBody(required = false) InitialServerConfDto initialServerConfDto,
+            @RequestHeader(AUTHORIZATION) String authentication
+    );
+
+    @RequestMapping(
+            method = RequestMethod.GET,
+            value = "/initialization/status",
+            produces = { "application/json" }
+    )
+    ResponseEntity<InitializationStatusDto> getInitializationStatusWithHeader(
+            @RequestHeader(AUTHORIZATION) String authentication
+    );
 }

@@ -116,6 +116,18 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @Step("security servers list does not contain {string}")
+    public void securityServersListDoesNotContainServer(String serverId) {
+        final ResponseEntity<PagedSecurityServersDto> response = securityServersApi
+                .findSecurityServers("", new PagingSortingParametersDto());
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(0, "body.items.?[id=='" + serverId + "'].size",
+                        "Servers list contains id " + serverId))
+                .execute();
+    }
+
     @Step("security server {string} clients contains {string}")
     public void securityServerClientsContains(String serverId, String clientId) {
         final ResponseEntity<Set<ClientDto>> response = securityServersApi.getSecurityServerClients(serverId);
@@ -183,13 +195,33 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(1, "body.size", "Auth cert is present in the response"))
                 .assertion(notNullAssertion("body[0].id"))
-                .assertion(equalsAssertion("Issuer", "body[0].issuerCommonName",
+                .assertion(equalsAssertion("Cyber", "body[0].issuerCommonName",
                         "Auth cert \"issuerCommonName\" should match"))
                 .assertion(equalsAssertion("1", "body[0].serial",
                         "Auth cert \"serial\" should match"))
                 .assertion(equalsAssertion("CN=Subject", "body[0].subjectDistinguishedName",
                         "Auth cert \"subjectDistinguishedName\" should match"))
                 .assertion(notNullAssertion("body[0].notAfter"))
+                .execute();
+    }
+
+    @Step("security server {string} has no authentication certificates")
+    public void securityServerHasNoAuthenticationCertificates(String serverId) {
+        final ResponseEntity<Set<SecurityServerAuthenticationCertificateDetailsDto>> response =
+                securityServersApi.getSecurityServerAuthCerts(serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(0, "body.size", "SS has not auth certificates"))
+                .execute();
+    }
+
+    @Step("user deletes security server {string}")
+    public void userDeletesSecurityServer(String serverId) {
+        final ResponseEntity<Void> response = securityServersApi.deleteSecurityServer(serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
                 .execute();
     }
 
@@ -210,4 +242,5 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         return String.format("%s:%s:%s:%s", randomAlphabetic(3), randomAlphabetic(3),
                 randomAlphabetic(3), randomAlphabetic(3));
     }
+
 }
