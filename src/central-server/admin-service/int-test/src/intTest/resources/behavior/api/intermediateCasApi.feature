@@ -11,7 +11,7 @@ Feature: Intermediate CAS API
     When intermediate CAs are retrieved
     Then intermediate CA is as follows
       | #$hash                    | [not_null]  |
-      | $issuerDistinguishedName  | CN=Issuer   |
+      | $issuerDistinguishedName  | EMAILADDRESS=aaa@bbb.ccc, CN=Cyber, OU=ITO, O=Cybernetica, C=EE   |
       | $subjectDistinguishedName | CN=Subject  |
       | $subjectCommonName        | Subject     |
       | $notBefore                | [generated] |

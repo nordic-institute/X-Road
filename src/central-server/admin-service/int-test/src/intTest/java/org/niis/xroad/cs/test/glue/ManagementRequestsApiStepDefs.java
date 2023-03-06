@@ -200,7 +200,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     @SneakyThrows
     private byte[] getExistingOrCreateNewCertificate(String serverId) {
         if (!certificates.containsKey(serverId)) {
-            certificates.put(serverId, CertificateUtils.generateAuthCert());
+            certificates.put(serverId, CertificateUtils.generateAuthCert("CN=Subject"));
         }
         return certificates.get(serverId);
     }

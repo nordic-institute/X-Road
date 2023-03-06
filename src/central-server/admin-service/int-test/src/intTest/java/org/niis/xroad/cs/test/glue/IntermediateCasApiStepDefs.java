@@ -72,7 +72,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
     @When("intermediate CA added to certification service")
     public void addIntermediateCa() throws Exception {
         final Integer certificationServiceId = getRequiredStepData(CERTIFICATION_SERVICE_ID);
-        generatedCertificate = generateAuthCertHolder();
+        generatedCertificate = generateAuthCertHolder("CN=Subject");
         final MultipartFile certificate = new MockMultipartFile("certificate", generatedCertificate.getEncoded());
         final ResponseEntity<CertificateAuthorityDto> response = certificationServicesApi
                 .addCertificationServiceIntermediateCa(certificationServiceId, certificate);
@@ -131,7 +131,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     @When("OCSP responder is added to intermediate CA")
     public void ocspResponderIsAddedToIntermediateCA() throws Exception {
-        final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert());
+        final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert("CN=Subject"));
         final String url = "https://" + UUID.randomUUID();
 
         final ResponseEntity<OcspResponderDto> response = intermediateCasApi
