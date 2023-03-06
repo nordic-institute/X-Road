@@ -81,7 +81,8 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         getKeyOldOcspResponderCertHash = certificateResponse.getBody().getHash();
 
         final String newUrl = "https://updated-ocsp-responder-url-" + UUID.randomUUID();
-        MultipartFile newCertificate = new MockMultipartFile("certificate", generateAuthCert());
+        MultipartFile newCertificate = new MockMultipartFile("certificate",
+                generateAuthCert("CN=DifferentSubject"));
 
         final ResponseEntity<OcspResponderDto> response = ocspRespondersApi
                 .updateOcspResponder(ocspResponderId, newUrl, newCertificate);

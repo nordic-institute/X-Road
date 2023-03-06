@@ -196,7 +196,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
 
     private void generateAuthenticationCertificate() throws Exception {
         if (authenticationCertificate == null) {
-            authenticationCertificate = CertificateUtils.generateAuthCert();
+            authenticationCertificate = CertificateUtils.generateAuthCert("CN=Subject");
         }
     }
 }

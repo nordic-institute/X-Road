@@ -182,7 +182,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(1, "body.size", "Auth cert is present in the response"))
                 .assertion(notNullAssertion("body[0].id"))
-                .assertion(equalsAssertion("Issuer", "body[0].issuerCommonName",
+                .assertion(equalsAssertion("Cyber", "body[0].issuerCommonName",
                         "Auth cert \"issuerCommonName\" should match"))
                 .assertion(equalsAssertion("1", "body[0].serial",
                         "Auth cert \"serial\" should match"))

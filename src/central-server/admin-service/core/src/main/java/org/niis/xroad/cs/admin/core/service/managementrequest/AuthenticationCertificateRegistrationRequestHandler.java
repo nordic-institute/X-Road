@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
@@ -114,8 +115,12 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
                 throw new ValidationFailureException(INVALID_AUTH_CERTIFICATE);
             }
 
-            //todo: verify that certificate is issued by a known CA
+            //verify that certificate is issued by a known CA
+            var instanceId = GlobalConf.getInstanceIdentifier();
+            var caCert = GlobalConf.getCaCert(instanceId, authCert);
+            authCert.verify(caCert.getPublicKey());
 
+            authCert.checkValidity();
             validatedCert = authCert.getEncoded();
         } catch (Exception e) {
             throw new ValidationFailureException(INVALID_AUTH_CERTIFICATE, e);
