@@ -134,16 +134,37 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
     public void securityServerClientsContains(String serverId, String clientId) {
         final ResponseEntity<Set<ClientDto>> response = securityServersApi.getSecurityServerClients(serverId);
 
-        final String[] idParts = split(clientId, ':');
-
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(1,
-                        "body.?[xroadId.instanceId =='" + idParts[0] + "' "
-                                + "and xroadId.memberClass == '" + idParts[1] + "' "
-                                + "and xroadId.memberCode == '" + idParts[2] + "'].size",
+                        "body.?[" + xroadIdEqualsCondition(clientId) + "].size",
                         "Clients list contains " + clientId))
                 .execute();
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private String xroadIdEqualsCondition(String clientId) {
+        final String[] idParts = split(clientId, ':');
+        String condition = "xroadId.instanceId =='" + idParts[0] + "' "
+                + "and xroadId.memberClass == '" + idParts[1] + "' "
+                + "and xroadId.memberCode == '" + idParts[2] + "'";
+        if (idParts.length > 3) {
+            condition += " and xroadId.subsystemCode == '" + idParts[3] + "'";
+        }
+        return condition;
+    }
+
+    @Step("security server {string} clients do not contain {string}")
+    public void securityServeClientsDoNotContain(String serverId, String clientId) {
+        final ResponseEntity<Set<ClientDto>> response = securityServersApi.getSecurityServerClients(serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(0,
+                        "body.?[" + xroadIdEqualsCondition(clientId) + "].size",
+                        "Clients list contains " + clientId))
+                .execute();
+
     }
 
     @Step("security server {string} has no clients")
@@ -268,4 +289,6 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                     .execute();
         }
     }
+
+
 }

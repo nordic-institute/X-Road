@@ -75,4 +75,13 @@ public class SubsystemsApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(NO_CONTENT))
                 .execute();
     }
+
+    @Step("subsystem {string} is unregistered from {string}")
+    public void subsystemIsUnregisteredFromSecurityServer(String subsystemId, String serverId) {
+        final ResponseEntity<Void> response = subsystemsApi.unregisterSubsystem(subsystemId, serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                .execute();
+    }
 }
