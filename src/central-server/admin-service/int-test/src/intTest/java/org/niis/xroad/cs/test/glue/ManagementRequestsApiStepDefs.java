@@ -28,6 +28,7 @@
 package org.niis.xroad.cs.test.glue;
 
 import io.cucumber.java.en.Step;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
@@ -41,6 +42,9 @@ import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto.SECURITY_SERVER;
@@ -62,17 +66,16 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     private FeignManagementRequestsApi managementRequestsApi;
 
     private Integer managementRequestId;
-    private byte[] authenticationCertificate;
+    private Map<String, byte[]> certificates = new HashMap<>();
 
     @SuppressWarnings("checkstyle:MagicNumber")
     @Step("new security server {string} authentication certificate registered with origin {string}")
-    public void newSecurityServerRegistered(String securityServerId, String origin) throws Exception {
-        generateAuthenticationCertificate();
+    public void newSecurityServerRegistered(String securityServerId, String origin) {
         final String[] idParts = StringUtils.split(securityServerId, ':');
         final var managementRequest = new AuthenticationCertificateRegistrationRequestDto();
         managementRequest.setServerAddress("security-server-address-" + idParts[3]);
         managementRequest.setSecurityServerId(securityServerId);
-        managementRequest.setAuthenticationCertificate(authenticationCertificate);
+        managementRequest.setAuthenticationCertificate(getExistingOrCreateNewCertificate(securityServerId));
         managementRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);
         managementRequest.setOrigin(ManagementRequestOriginDto.valueOf(origin));
 
@@ -86,7 +89,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         managementRequest.setOrigin(SECURITY_SERVER);
         managementRequest.setType(AUTH_CERT_DELETION_REQUEST);
         managementRequest.setSecurityServerId(serverId);
-        managementRequest.setAuthenticationCertificate(authenticationCertificate);
+        managementRequest.setAuthenticationCertificate(getExistingOrCreateNewCertificate(serverId));
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
@@ -194,9 +197,11 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    private void generateAuthenticationCertificate() throws Exception {
-        if (authenticationCertificate == null) {
-            authenticationCertificate = CertificateUtils.generateAuthCert("CN=Subject");
+    @SneakyThrows
+    private byte[] getExistingOrCreateNewCertificate(String serverId) {
+        if (!certificates.containsKey(serverId)) {
+            certificates.put(serverId, CertificateUtils.generateAuthCert("CN=Subject-" + serverId));
         }
+        return certificates.get(serverId);
     }
 }

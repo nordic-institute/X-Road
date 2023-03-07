@@ -60,10 +60,19 @@ public class AuthenticationFeignClientInterceptor implements FeignClientIntercep
         if (StringUtils.isNotBlank(chain.request().header(HttpHeaders.AUTHORIZATION))) {
             return chain.proceed(chain.request());
         }
+        if (!isTokenConfiguredForScenario()) {
+            return chain.proceed(chain.request());
+        }
 
         var request = chain.request().newBuilder()
                 .addHeader(HttpHeaders.AUTHORIZATION, getToken());
         return chain.proceed(request.build());
+    }
+
+    private boolean isTokenConfiguredForScenario() {
+        return Optional.ofNullable(scenarioContextProvider.getIfAvailable())
+                .map(scenarioContext -> scenarioContext.getStepData(TOKEN_TYPE.name()))
+                .isPresent();
     }
 
     private String getToken() {

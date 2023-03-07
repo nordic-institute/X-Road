@@ -38,6 +38,8 @@ import org.springframework.http.HttpStatus;
 
 import java.util.Optional;
 
+import static com.nortal.test.asserts.Assertions.equalsAssertion;
+
 /**
  * Base class for all step definitions. Provides convenience methods and most commonly used beans.
  */
@@ -58,6 +60,14 @@ public abstract class BaseStepDefs {
                 .expression("statusCode")
                 .expectedValue(expected)
                 .build();
+    }
+
+    protected Assertion isTrue(String expression) {
+        return equalsAssertion(true, expression, "Expression should evaluate to True");
+    }
+
+    protected Assertion isFalse(String expression) {
+        return equalsAssertion(false, expression, "Expression should evaluate to False");
     }
 
     protected Assertion isNull(String expression) {
@@ -123,6 +133,7 @@ public abstract class BaseStepDefs {
         CERTIFICATION_SERVICE_ID,
         OCSP_RESPONDER_ID,
         NEW_OCSP_RESPONDER_URL,
-        TOKEN_TYPE
+        TOKEN_TYPE,
+        RESULT_LIST,
     }
 }

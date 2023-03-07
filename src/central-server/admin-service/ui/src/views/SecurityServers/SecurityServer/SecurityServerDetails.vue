@@ -28,124 +28,103 @@
   Member details view
 -->
 <template>
-  <main data-test="security-server-details-view" class="mt-8">
-    <!-- Security Server Details -->
-    <div id="security-server-details">
-      <info-card
-        :title-text="$t('securityServers.ownerName')"
-        :info-text="securityServer.ownerName"
-        data-test="security-server-owner-name"
-        :action-text="$t('action.edit')"
-        @actionClicked="editOwnerName"
-      />
-
-      <info-card
-        :title-text="$t('securityServers.ownerClass')"
-        :info-text="securityServer.ownerClass"
-        data-test="security-server-owner-class"
-      />
-
-      <info-card
-        :title-text="$t('securityServers.ownerCode')"
-        :info-text="securityServer.ownerCode"
-        data-test="security-server-owner-code"
-      />
-    </div>
-
-    <info-card
-      class="mb-6"
-      :title-text="$t('securityServers.serverCode')"
-      :info-text="securityServer.serverCode"
-      data-test="security-server-server-code"
+  <div>
+    <XrdEmptyPlaceholder
+      :data="securityServer"
+      :loading="loading"
+      :no-items-text="$t('noData.noData')"
+      skeleton-type="table-heading"
     />
-
-    <info-card
-      class="mb-6"
-      :title-text="$t('securityServers.address')"
-      :info-text="securityServer.address"
-      data-test="security-server-address"
-      :action-text="$t('action.edit')"
-      @actionClicked="editAddress"
-    />
-
-    <info-card
-      :title-text="$t('securityServers.registered')"
-      :info-text="securityServer.registered"
-      data-test="security-server-registered"
-    />
-
-    <div class="delete-action" @click="showVerifyCodeDialog = true">
-      <div>
-        <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
-          >mdi-close-circle</v-icon
-        >
-      </div>
-      <div class="action-text">
-        {{ $t('securityServers.securityServer.deleteSecurityServer') }}
-        "{{ securityServer.serverCode }}"
-      </div>
-    </div>
-
-    <!-- Delete Security Server - Check code dialog -->
-
-    <v-dialog
-      v-if="showVerifyCodeDialog"
-      v-model="showVerifyCodeDialog"
-      width="500"
-      persistent
+    <main
+      v-if="securityServer && !loading"
+      data-test="security-server-details-view"
+      class="mt-8"
     >
-      <ValidationObserver ref="deleteDialog" v-slot="{ invalid }">
-        <v-card class="xrd-card">
-          <v-card-title>
-            <span class="headline">{{
-              $t('securityServers.securityServer.deleteSecurityServer')
-            }}</span>
-          </v-card-title>
-          <v-card-text class="pt-4">
-            {{
-              $t('securityServers.securityServer.areYouSure', {
-                serverCode: securityServer.serverCode,
-              })
-            }}
-            <div class="dlg-input-width pt-4">
-              <ValidationProvider
-                v-slot="{ errors }"
-                ref="serverCodeInput"
-                name="init.identifier"
-                :rules="{ required: true, is: securityServer.serverCode }"
-                data-test="instance-identifier--validation"
-              >
-                <v-text-field
-                  v-model="offeredCode"
-                  outlined
-                  :label="$t('securityServers.securityServer.enterCode')"
-                  autofocus
-                  data-test="add-local-group-code-input"
-                  :error-messages="errors"
-                ></v-text-field>
-              </ValidationProvider>
-            </div>
-          </v-card-text>
-          <v-card-actions class="xrd-card-actions">
-            <v-spacer></v-spacer>
-            <xrd-button outlined @click="cancelDelete()">{{
-              $t('action.cancel')
-            }}</xrd-button>
-            <xrd-button :disabled="invalid" @click="deleteServer()">{{
-              $t('action.delete')
-            }}</xrd-button>
-          </v-card-actions>
-        </v-card>
-      </ValidationObserver>
-    </v-dialog>
-  </main>
+      <!-- Security Server Details -->
+      <div id="security-server-details">
+        <info-card
+          :title-text="$t('securityServers.ownerName')"
+          :info-text="securityServer.owner_name"
+          data-test="security-server-owner-name"
+          :action-text="$t('action.edit')"
+          @actionClicked="editOwnerName"
+        />
+
+        <info-card
+          :title-text="$t('securityServers.ownerClass')"
+          :info-text="securityServer.xroad_id.member_class"
+          data-test="security-server-owner-class"
+        />
+
+        <info-card
+          :title-text="$t('securityServers.ownerCode')"
+          :info-text="securityServer.xroad_id.member_code"
+          data-test="security-server-owner-code"
+        />
+      </div>
+
+      <info-card
+        class="mb-6"
+        :title-text="$t('securityServers.serverCode')"
+        :info-text="securityServer.xroad_id.server_code"
+        data-test="security-server-server-code"
+      />
+
+      <info-card
+        class="mb-6"
+        data-test="security-server-address"
+        :title-text="$t('securityServers.address')"
+        :info-text="securityServer.server_address"
+        :action-text="$t('action.edit')"
+        :show-action="canEditAddress"
+        @actionClicked="$refs.editAddressDialog.open()"
+      />
+
+      <info-card
+        :title-text="$t('securityServers.registered')"
+        :info-text="securityServer.created_at | formatDateTimeSeconds"
+        data-test="security-server-registered"
+      />
+
+      <div class="delete-action" @click="$refs.deleteDialog.open()">
+        <div>
+          <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
+            >mdi-close-circle
+          </v-icon>
+        </div>
+        <div v-if="canDeleteServer" class="action-text">
+          {{ $t('securityServers.securityServer.deleteSecurityServer') }}
+          "{{ securityServer.xroad_id.server_code }}"
+        </div>
+      </div>
+
+      <!-- Delete Security Server - Check code dialog -->
+
+      <delete-security-server-address-dialog
+        ref="deleteDialog"
+        :server-code="securityServer.xroad_id.server_code"
+        :security-server-id="serverId"
+        @delete="deleteServer"
+      />
+      <edit-security-server-address-dialog
+        ref="editAddressDialog"
+        :address="securityServer.server_address"
+        :security-server-id="serverId"
+      />
+    </main>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
-import { Colors } from '@/global';
-import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
+import { Colors, Permissions, RouteName } from '@/global';
+import { mapState, mapStores } from 'pinia';
+import { useSecurityServerStore } from '@/store/modules/security-servers';
+import { SecurityServer } from '@/openapi-types';
+import { userStore } from '@/store/modules/user';
+import EditSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/EditSecurityServerAddressDialog.vue';
+import DeleteSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerAddressDialog.vue';
 
 /**
  * Component for a Security server details view
@@ -153,47 +132,45 @@ import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 export default Vue.extend({
   name: 'SecurityServerDetails',
   components: {
+    DeleteSecurityServerAddressDialog,
+    EditSecurityServerAddressDialog,
     InfoCard,
-    ValidationObserver,
-    ValidationProvider,
+  },
+  props: {
+    serverId: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
-      searchServers: '',
-      searchGroups: '',
-      loading: false,
-      loadingGroups: false,
-      showOnlyPending: false,
       colors: Colors,
-      showVerifyCodeDialog: false,
-      offeredCode: '',
-      securityServer: {
-        ownerName: 'NIIS',
-        ownerClass: 'ORG',
-        ownerCode: '555',
-        serverCode: 'NIIS-SS1',
-        address: 'xroad-lxd-ss1.net',
-        registered: '2020-11-10 16:55:01',
-      },
     };
   },
-
+  computed: {
+    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useSecurityServerStore),
+    securityServer(): SecurityServer | null {
+      return this.securityServerStore.currentSecurityServer;
+    },
+    loading(): boolean {
+      return this.securityServerStore.currentSecurityServerLoading;
+    },
+    canEditAddress(): boolean {
+      return this.hasPermission(Permissions.EDIT_SECURITY_SERVER_ADDRESS);
+    },
+    canDeleteServer(): boolean {
+      return this.hasPermission(Permissions.DELETE_SECURITY_SERVER);
+    },
+  },
   methods: {
     editOwnerName(): void {
       // do something
     },
-    editAddress(): void {
-      // do something
-    },
-
     deleteServer() {
-      // Delete action
-      this.showVerifyCodeDialog = false;
-      this.offeredCode = '';
-    },
-    cancelDelete() {
-      this.showVerifyCodeDialog = false;
-      this.offeredCode = '';
+      this.$router.push({
+        name: RouteName.SecurityServers,
+      });
     },
   },
 });
@@ -237,6 +214,7 @@ export default Vue.extend({
   cursor: pointer;
   display: flex;
   flex-direction: row;
+
   .action-text {
     margin-top: 2px;
   }

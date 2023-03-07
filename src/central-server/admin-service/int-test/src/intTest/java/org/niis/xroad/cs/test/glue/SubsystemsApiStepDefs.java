@@ -37,6 +37,7 @@ import org.springframework.http.ResponseEntity;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.SUBSYSTEM;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SubsystemsApiStepDefs extends BaseStepDefs {
@@ -66,5 +67,12 @@ public class SubsystemsApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @Step("subsystem {string} is deleted")
+    public void subsystemIsDeleted(String subsystemId) {
+        final ResponseEntity<Void> response = subsystemsApi.deleteSubsystem(subsystemId);
 
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                .execute();
+    }
 }

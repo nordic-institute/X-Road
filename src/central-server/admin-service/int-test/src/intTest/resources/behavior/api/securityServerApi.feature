@@ -10,6 +10,32 @@ Feature: Security Server API
     And management request is approved
     And Authentication header is set to SYSTEM_ADMINISTRATOR
     Then security servers list contains 'CS:TEST:member-1:SS-X'
+    And security servers list sorting by unknown field fails
+
+  @Modifying
+  Scenario Outline: Security servers list sorting
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And member class 'TEST' is created
+    And member class 'ANOTHER' is created
+    And new member 'CS:TEST:member-1' is added
+    And new member 'CS:ANOTHER:member-2' is added
+    And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new security server 'CS:ANOTHER:member-2:SS-A' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And Authentication header is set to SYSTEM_ADMINISTRATOR
+    When user requests security servers list sorted by '<$sortField>' '<$sortDirection>'
+    Then the list is sorted by '<$responseFieldExpression>' '<$sortDirection>'
+    Examples:
+      | $sortField            | $sortDirection | $responseFieldExpression |
+      | xroad_id.server_code  | desc           | xroadId.serverCode       |
+      | xroad_id.server_code  | asc            | xroadId.serverCode       |
+      | xroad_id.member_code  | desc           | xroadId.memberCode       |
+      | xroad_id.member_code  | asc            | xroadId.memberCode       |
+      | xroad_id.member_class | desc           | xroadId.memberClass      |
+      | xroad_id.member_class | asc            | xroadId.memberClass      |
+      | owner_name            | desc           | ownerName                |
+      | owner_name            | asc            | ownerName                |
 
   @Modifying
   Scenario: Get security server details

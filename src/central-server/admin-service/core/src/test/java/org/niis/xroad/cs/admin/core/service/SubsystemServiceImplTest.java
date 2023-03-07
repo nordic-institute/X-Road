@@ -63,6 +63,7 @@ import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapperImpl
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -77,6 +78,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_EXISTS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @ExtendWith(MockitoExtension.class)
 public class SubsystemServiceImplTest implements WithInOrder {
@@ -88,6 +98,8 @@ public class SubsystemServiceImplTest implements WithInOrder {
     private SecurityServerClientNameRepository securityServerClientNameRepository;
     @Mock
     private XRoadMemberRepository xRoadMemberRepository;
+    @Mock
+    private AuditDataHelper auditDataHelper;
 
     @Spy
     private ClientIdMapper clientIdMapper = new ClientIdMapperImpl();
@@ -101,7 +113,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
 
     @Nested
     @DisplayName("add(Client clientDto)")
-    class AddMethod implements WithInOrder {
+    class AddMethod {
         private final String memberName = "member name";
         private final MemberId memberId = MemberId.create("TEST", "CLASS", "MEMBER");
         private final SubsystemId subsystemId = SubsystemId.create("TEST", "CLASS", "MEMBER", "SUBSYSTEM");
@@ -124,6 +136,10 @@ public class SubsystemServiceImplTest implements WithInOrder {
             verify(subsystemRepository).save(any());
             verify(securityServerClientNameRepository).save(captor.capture());
 
+            verify(auditDataHelper).put(MEMBER_CLASS, memberId.getMemberClass());
+            verify(auditDataHelper).put(MEMBER_CODE, memberId.getMemberCode());
+            verify(auditDataHelper).put(MEMBER_SUBSYSTEM_CODE, subsystemId.getSubsystemCode());
+
             assertThat(captor.getValue().getName()).isEqualTo(memberName);
             assertThat(captor.getValue().getIdentifier().toShortString()).isEqualTo(subsystemId.toShortString());
         }
@@ -143,6 +159,9 @@ public class SubsystemServiceImplTest implements WithInOrder {
                     .containsExactly(subsystemId.toShortString());
 
             verify(subsystemRepository).findOneBy(subsystemId);
+            verify(auditDataHelper).put(MEMBER_CLASS, memberId.getMemberClass());
+            verify(auditDataHelper).put(MEMBER_CODE, memberId.getMemberCode());
+            verify(auditDataHelper).put(MEMBER_SUBSYSTEM_CODE, subsystemId.getSubsystemCode());
         }
     }
 
@@ -182,6 +201,10 @@ public class SubsystemServiceImplTest implements WithInOrder {
                 inOrder.verify(securityServer).getServerId();
                 inOrder.verify(subsystem).getServerClients();
             });
+            verify(auditDataHelper).put(SERVER_CODE, securityServerId.getServerCode());
+            verify(auditDataHelper).put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+            verify(auditDataHelper).put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+            verify(auditDataHelper).put(CLIENT_IDENTIFIER, subsystemClientId);
         }
 
         @Test
@@ -192,10 +215,12 @@ public class SubsystemServiceImplTest implements WithInOrder {
             Executable testable = () -> subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
 
             NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
-            assertEquals(ErrorMessage.SUBSYSTEM_NOT_FOUND.getDescription(), actualThrown.getMessage());
-            inOrder().verify(inOrder -> {
-                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
-            });
+            assertEquals(SUBSYSTEM_NOT_FOUND.getDescription(), actualThrown.getMessage());
+            verify(subsystemRepository).findOneBy(subsystemClientId);
+            verify(auditDataHelper).put(SERVER_CODE, securityServerId.getServerCode());
+            verify(auditDataHelper).put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+            verify(auditDataHelper).put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+            verify(auditDataHelper).put(CLIENT_IDENTIFIER, subsystemClientId);
         }
 
         @Test
@@ -207,20 +232,23 @@ public class SubsystemServiceImplTest implements WithInOrder {
             Executable testable = () -> subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
 
             NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
-            assertEquals(
-                    ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER.getDescription(), actualThrown.getMessage()
+            assertEquals(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER.getDescription(), actualThrown.getMessage()
             );
             inOrder().verify(inOrder -> {
                 inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
                 inOrder.verify(subsystem).getServerClients();
             });
+            verify(auditDataHelper).put(SERVER_CODE, securityServerId.getServerCode());
+            verify(auditDataHelper).put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+            verify(auditDataHelper).put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+            verify(auditDataHelper).put(CLIENT_IDENTIFIER, subsystemClientId);
         }
 
     }
 
     @Nested
     @DisplayName("deleteSubsystem(ClientId subsystemClientId)")
-    class DeleteSubsystem implements WithInOrder {
+    class DeleteSubsystem {
 
         @Mock
         private SubsystemEntity subsystem;
@@ -236,11 +264,13 @@ public class SubsystemServiceImplTest implements WithInOrder {
 
             subsystemService.deleteSubsystem(subsystemClientId);
 
-            inOrder().verify(inOrder -> {
-                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
-                inOrder.verify(subsystem).getServerClients();
-                inOrder.verify(subsystemRepository).deleteById(any());
-            });
+            verify(subsystemRepository).findOneBy(subsystemClientId);
+            verify(subsystem).getServerClients();
+            verify(subsystemRepository).deleteById(any());
+
+            verify(auditDataHelper).put(MEMBER_CLASS, subsystemClientId.getMemberClass());
+            verify(auditDataHelper).put(MEMBER_CODE, subsystemClientId.getMemberCode());
+            verify(auditDataHelper).put(MEMBER_SUBSYSTEM_CODE, subsystemClientId.getSubsystemCode());
         }
 
         @Test
@@ -251,10 +281,12 @@ public class SubsystemServiceImplTest implements WithInOrder {
             Executable testable = () -> subsystemService.deleteSubsystem(subsystemClientId);
 
             NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
-            assertEquals(ErrorMessage.SUBSYSTEM_NOT_FOUND.getDescription(), actualThrown.getMessage());
-            inOrder().verify(inOrder -> {
-                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
-            });
+            assertEquals(SUBSYSTEM_NOT_FOUND.getDescription(), actualThrown.getMessage());
+            verify(subsystemRepository).findOneBy(subsystemClientId);
+
+            verify(auditDataHelper).put(MEMBER_CLASS, subsystemClientId.getMemberClass());
+            verify(auditDataHelper).put(MEMBER_CODE, subsystemClientId.getMemberCode());
+            verify(auditDataHelper).put(MEMBER_SUBSYSTEM_CODE, subsystemClientId.getSubsystemCode());
         }
 
         @Test
@@ -267,10 +299,11 @@ public class SubsystemServiceImplTest implements WithInOrder {
 
             ValidationFailureException actualThrown = assertThrows(ValidationFailureException.class, testable);
             assertEquals(ErrorMessage.SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED.getDescription(), actualThrown.getMessage());
-            inOrder().verify(inOrder -> {
-                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
-                inOrder.verify(subsystem).getServerClients();
-            });
+            verify(subsystemRepository).findOneBy(subsystemClientId);
+            verify(subsystem).getServerClients();
+            verify(auditDataHelper).put(MEMBER_CLASS, subsystemClientId.getMemberClass());
+            verify(auditDataHelper).put(MEMBER_CODE, subsystemClientId.getMemberCode());
+            verify(auditDataHelper).put(MEMBER_SUBSYSTEM_CODE, subsystemClientId.getSubsystemCode());
         }
 
     }

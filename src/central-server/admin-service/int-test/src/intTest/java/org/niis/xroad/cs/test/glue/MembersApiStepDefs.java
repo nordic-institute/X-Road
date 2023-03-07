@@ -31,6 +31,7 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.ClientIdDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
+import org.niis.xroad.cs.openapi.model.SubsystemDto;
 import org.niis.xroad.cs.test.api.FeignMembersApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -90,6 +91,26 @@ public class MembersApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(1, "body.?[groupCode=='" + globalGroupCode + "'].size()",
                         "Verify groups contains " + globalGroupCode))
+                .execute();
+    }
+
+    @Step("member {string} subsystems contains {string}")
+    public void memberSubsystemsContainsSubsystem(String memberId, String subsystemCode) {
+        final ResponseEntity<Set<SubsystemDto>> response = membersApi.getSubsystems(memberId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1, "body.?[subsystemId.subsystemCode == '" + subsystemCode + "'].size"))
+                .execute();
+    }
+
+    @Step("member {string} subsystems does not contain {string}")
+    public void memberSubsystemsNotContainsSubsystem(String memberId, String subsystemCode) {
+        final ResponseEntity<Set<SubsystemDto>> response = membersApi.getSubsystems(memberId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(0, "body.?[subsystemId.subsystemCode == '" + subsystemCode + "'].size"))
                 .execute();
     }
 
