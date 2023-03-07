@@ -66,7 +66,6 @@ public enum ErrorMessage {
     OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED("Cannot perform delete action on server owners group"),
     GLOBAL_GROUP_EXISTS("Global group with the same code already exists."),
     SECURITY_SERVER_NOT_FOUND("Security server not found"),
-    AUTH_CERTIFICATE_NOT_FOUND("Authentication certificate not found"),
     CERTIFICATION_SERVICE_NOT_FOUND("Certification service not found."),
     INVALID_CERTIFICATE("Invalid X.509 certificate"),
     INTERMEDIATE_CA_NOT_FOUND("Intermediate CA not found"),

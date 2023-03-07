@@ -63,9 +63,8 @@ import static java.util.Map.entry;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SECURITY_SERVER_ADDRESS;
-import static org.springframework.http.ResponseEntity.noContent;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER_AUTH_CERT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SECURITY_SERVER_ADDRESS;
 import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
 
