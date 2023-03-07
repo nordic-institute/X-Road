@@ -10,7 +10,7 @@ configurations {
 
 dependencies {
     intTestImplementation project(path:":central-server:admin-service:infra-jpa", configuration:"changelogJar")
-    intTestImplementation project(':central-server:openapi-model')
+    intTestImplementation project(":central-server:openapi-model")
 
     intTestImplementation("com.nortal.test:test-automation-core:$testAutomationFrameworkVersion")
     intTestImplementation("com.nortal.test:test-automation-assert:$testAutomationFrameworkVersion")
@@ -20,6 +20,7 @@ dependencies {
     intTestImplementation("org.liquibase:liquibase-core:$liquibaseVersion")
     intTestImplementation("org.testcontainers:postgresql:1.17.6") //TODO test automation should release BOM module
     intTestImplementation("org.postgresql:postgresql:$postgresqlVersion")
+    intTestImplementation("org.projectlombok:lombok:${lombokVersion}")
 }
 
 test {

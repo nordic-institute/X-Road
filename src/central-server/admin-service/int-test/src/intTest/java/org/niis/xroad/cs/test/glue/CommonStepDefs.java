@@ -29,6 +29,13 @@ import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.JsonPathAssertions;
 import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+
+import java.util.List;
+
+import static org.junit.Assert.assertTrue;
+import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESULT_LIST;
 
 public class CommonStepDefs extends BaseStepDefs {
 
@@ -94,6 +101,28 @@ public class CommonStepDefs extends BaseStepDefs {
                         .build())
                 .assertion(JsonPathAssertions.equalsAssertion(errorCode, "$.error.code"))
                 .execute();
+    }
+
+    @Step("the list is sorted by {string} {string}")
+    public void theListIsSorted(String fieldExpression, String order) {
+        boolean desc = "desc".equalsIgnoreCase(order);
+        List<Object> items = getRequiredStepData(RESULT_LIST);
+
+        for (int i = 0; i < items.size() - 1; i++) {
+            var current = evalExpression(items.get(i), fieldExpression);
+            var next = evalExpression(items.get(i + 1), fieldExpression);
+
+            if (desc) {
+                assertTrue(current.compareTo(next) > 0);
+            } else {
+                assertTrue(current.compareTo(next) < 0);
+            }
+        }
+    }
+
+    private String evalExpression(Object item, String expression) {
+        Expression exp = new SpelExpressionParser().parseExpression(expression + ".toUpperCase()");
+        return (String) exp.getValue(item);
     }
 
 }

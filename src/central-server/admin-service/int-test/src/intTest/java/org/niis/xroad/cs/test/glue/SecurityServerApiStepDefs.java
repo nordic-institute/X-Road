@@ -46,6 +46,8 @@ import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.junit.Assert.fail;
+import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESULT_LIST;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -199,7 +201,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                         "Auth cert \"issuerCommonName\" should match"))
                 .assertion(equalsAssertion("1", "body[0].serial",
                         "Auth cert \"serial\" should match"))
-                .assertion(equalsAssertion("CN=Subject", "body[0].subjectDistinguishedName",
+                .assertion(equalsAssertion("CN=Subject-" + serverId, "body[0].subjectDistinguishedName",
                         "Auth cert \"subjectDistinguishedName\" should match"))
                 .assertion(notNullAssertion("body[0].notAfter"))
                 .execute();
@@ -231,4 +233,39 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 randomAlphabetic(3), randomAlphabetic(3));
     }
 
+    @Step("user requests security servers list sorted by {string} {string}")
+    public void userRequestsSecurityServersListSortedBy(String sortBy, String order) {
+        final ResponseEntity<PagedSecurityServersDto> response = securityServersApi
+                .findSecurityServers(null, getPagingSortingParameter(sortBy, order));
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .execute();
+
+        putStepData(RESULT_LIST, response.getBody().getItems());
+    }
+
+    private PagingSortingParametersDto getPagingSortingParameter(String sortBy, String order) {
+        final PagingSortingParametersDto dto = new PagingSortingParametersDto();
+        dto.setSort(sortBy);
+        dto.setDesc("desc".equalsIgnoreCase(order));
+        return dto;
+    }
+
+    @Step("security servers list sorting by unknown field fails")
+    public void securityServersListSortingByUnknownFieldFails() {
+        try {
+            securityServersApi.findSecurityServers("not_relevant", new PagingSortingParametersDto().sort("unknown_field"));
+            fail("Should fail.");
+        } catch (FeignException feignException) {
+            validate(feignException.status())
+                    .assertion(new Assertion.Builder()
+                            .message("Verify status code")
+                            .expression("=")
+                            .actualValue(feignException.status())
+                            .expectedValue(BAD_REQUEST.value())
+                            .build())
+                    .execute();
+        }
+    }
 }

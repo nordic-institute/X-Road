@@ -25,29 +25,91 @@
  */
 package org.niis.xroad.cs.test.glue;
 
-import io.cucumber.java.en.Then;
+import com.nortal.test.asserts.Assertion;
+import feign.FeignException;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.openapi.model.CentralServerAddressDto;
 import org.niis.xroad.cs.openapi.model.SystemStatusDto;
+import org.niis.xroad.cs.openapi.model.VersionDto;
 import org.niis.xroad.cs.test.api.FeignSystemApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
+import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static com.nortal.test.asserts.Assertions.notNullAssertion;
+import static org.junit.Assert.fail;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SystemApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignSystemApi feignSystemApi;
 
-    private ResponseEntity<SystemStatusDto> response;
+    private ResponseEntity<SystemStatusDto> savedResponse;
 
-    @Then("System status is requested")
+    @Step("system status is requested")
     public void systemStatusIsRequested() {
-        response = feignSystemApi.getSystemStatus();
+        savedResponse = feignSystemApi.getSystemStatus();
     }
 
-    @Then("System status is validated")
+    @Step("system status is validated")
     public void systemStatusIsValidated() {
+        validateSystemStatusResponse(savedResponse);
+    }
+
+    private void validateSystemStatusResponse(ResponseEntity<SystemStatusDto> response) {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
+                .assertion(notNullAssertion("body"))
+                .assertion(notNullAssertion("body.initializationStatus"))
+                .assertion(notNullAssertion("body.highAvailabilityStatus"))
+                .assertion(equalsAssertion("node_0", "body.highAvailabilityStatus.nodeName"))
+                .assertion(isFalse("body.highAvailabilityStatus.isHaConfigured"))
                 .execute();
+    }
+
+    @Step("system version endpoint returns version")
+    public void verifySystemVersionEndpoint() {
+        final ResponseEntity<VersionDto> systemVersion = feignSystemApi.getSystemVersion();
+        validate(systemVersion)
+                .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
+                .assertion(notNullAssertion("body.info"))
+                .assertion(isTrue("body.info.length > 0"))
+                .assertion(isFalse("body.info.contains(\"@version@\")"))
+                .assertion(isFalse("body.info.contains(\"@buildType@\")"))
+                .assertion(isFalse("body.info.contains(\"@gitCommitDate@\")"))
+                .assertion(isFalse("body.info.contains(\"@gitCommitHash@\")"))
+                .execute();
+    }
+
+
+    @Step("updating central server address with url {string} should fail")
+    public void updatingCentralServerAddressWithInvalidAddressShouldFail(String url) {
+        final CentralServerAddressDto dto = new CentralServerAddressDto();
+        dto.setCentralServerAddress(url);
+        try {
+            feignSystemApi.updateCentralServerAddress(dto);
+            fail("Setting invalid url should fail");
+        } catch (FeignException feignException) {
+            validate(feignException.status())
+                    .assertion(new Assertion.Builder()
+                            .message("Verify status code")
+                            .expression("=")
+                            .actualValue(feignException.status())
+                            .expectedValue(BAD_REQUEST.value())
+                            .build())
+                    .execute();
+        }
+    }
+
+    @Step("updating central server address with {string} should succeed")
+    public void updatingCentralServerAddressWithValidUrlShouldSucceed(String url) {
+        final CentralServerAddressDto dto = new CentralServerAddressDto();
+        dto.setCentralServerAddress(url);
+
+        final ResponseEntity<SystemStatusDto> response = feignSystemApi.updateCentralServerAddress(dto);
+
+        validateSystemStatusResponse(response);
     }
 }
