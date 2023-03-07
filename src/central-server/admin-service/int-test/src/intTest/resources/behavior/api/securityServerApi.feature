@@ -93,6 +93,9 @@ Feature: Security Server API
     And new member 'CS:TEST:member-2' is added
     And client 'CS:TEST:member-2' is registered as security server 'CS:TEST:member-1:SS-X' client from 'SECURITY_SERVER'
     And management request is approved
+    And new member 'CS:TEST:member-3' is added
+    And client 'CS:TEST:member-3' is registered as security server 'CS:TEST:member-1:SS-X' client from 'SECURITY_SERVER'
+    And management request is approved
     Then security servers list contains 'CS:TEST:member-1:SS-X'
     When user deletes security server 'CS:TEST:member-1:SS-X'
     Then security servers list does not contain 'CS:TEST:member-1:SS-X'

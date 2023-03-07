@@ -79,9 +79,9 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
         SecurityServerClientEntity client = clients.findOneBy(clientId).getOrElseThrow(() ->
                 new DataIntegrityException(MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND));
 
-        client.getServerClients()
-                .removeIf(serverClientEntity ->
-                        serverClientEntity.getSecurityServer() == securityServer);
+        securityServer.getServerClients()
+                .removeIf(serverClient -> serverClient.getSecurityServerClient() == client);
+
         /*
          * Note. The legacy implementation revokes existing pending registration requests. However, that does
          * not seem right since if a request is pending, there is no registration that could be deleted,
