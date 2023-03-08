@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,12 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.repository;
+package org.niis.xroad.restapi.common.backup.repository;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.common.backup.service.BackupValidator;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
@@ -39,6 +40,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,33 +50,46 @@ import java.util.stream.Stream;
  */
 @Slf4j
 @Repository
+@RequiredArgsConstructor
 public class BackupRepository {
-
     private static final String CONFIGURATION_BACKUP_PATH = SystemProperties.getConfBackupPath();
     // Set maximum number of levels of directories to visit, subdirectories are excluded
     private static final int DIR_MAX_DEPTH = 1;
     private static final String INVALID_BACKUP_FILENAME = "invalid backup filename";
 
+    private final BackupValidator backupValidator;
+
     /**
      * Read backup files from configuration backup path
-     * @return
+     *
+     * @return list of backup files
      */
     public List<File> getBackupFiles() {
-        try (Stream<Path> walk = Files.walk(Paths.get(CONFIGURATION_BACKUP_PATH), DIR_MAX_DEPTH)) {
-            return walk.filter(this::isValidBackupFilename).map(this::getFile).collect(Collectors.toList());
+        var backupPath = Paths.get(CONFIGURATION_BACKUP_PATH);
+        if (!Files.exists(backupPath)) {
+            log.warn("Backup directory [{}] does not exist. Usually this means conf backup was never executed",
+                    CONFIGURATION_BACKUP_PATH);
+            return Collections.emptyList();
+        }
+
+        try (Stream<Path> walk = Files.walk(backupPath, DIR_MAX_DEPTH)) {
+            return walk
+                    .filter(path -> backupValidator.isValidBackupFilename(path.getFileName().toString()))
+                    .map(Path::toFile)
+                    .collect(Collectors.toList());
         } catch (IOException ioe) {
-            log.error("can't read backup files from configuration path (" + CONFIGURATION_BACKUP_PATH + ")");
+            log.error("can't read backup files from configuration path ({}})", CONFIGURATION_BACKUP_PATH);
             throw new RuntimeException(ioe);
         }
     }
 
     /**
      * Get the creation date/time of a backup file
-     * @param filename
-     * @return
+     *
+     * @param path file path to get creation date
+     * @return date
      */
-    public OffsetDateTime getCreatedAt(String filename) {
-        Path path = getFilePath(filename);
+    public OffsetDateTime getCreatedAt(Path path) {
         try {
             BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
             return attr.creationTime().toInstant().atOffset(ZoneOffset.UTC);
@@ -86,92 +101,85 @@ public class BackupRepository {
 
     /**
      * Delete a backup file
-     * @param filename
+     *
+     * @param filename backup filename to delete
      */
     public void deleteBackupFile(String filename) {
-        if (!FormatUtils.isValidBackupFilename(filename)) {
+        if (!backupValidator.isValidBackupFilename(filename)) {
             throw new RuntimeException(INVALID_BACKUP_FILENAME);
         }
         Path path = getFilePath(filename);
         try {
             Files.deleteIfExists(path);
         } catch (IOException ioe) {
-            log.error("can't delete backup file (" + path.toString() + ")");
+            log.error("can't delete backup file ({})", path);
             throw new RuntimeException("deleting backup file failed");
         }
     }
 
     /**
      * Read backup file's content
-     * @param filename
-     * @return
+     *
+     * @param filename backup filename
+     * @return backup content
      */
     public byte[] readBackupFile(String filename) {
-        if (!FormatUtils.isValidBackupFilename(filename)) {
+        if (!backupValidator.isValidBackupFilename(filename)) {
             throw new RuntimeException(INVALID_BACKUP_FILENAME);
         }
         Path path = getFilePath(filename);
         try {
             return Files.readAllBytes(path);
         } catch (IOException ioe) {
-            log.error("can't read backup file's content (" + path.toString() + ")");
+            log.error("can't read backup file's content ({})", path);
             throw new RuntimeException(ioe);
         }
     }
 
     /**
      * Writes backup file's content to disk
-     * @param filename
-     * @param content
-     * @return
+     *
+     * @param filename backup filename
+     * @param content  backup contents
+     * @return backup creation date
      */
     public OffsetDateTime writeBackupFile(String filename, byte[] content) {
-        if (!FormatUtils.isValidBackupFilename(filename)) {
+        if (!backupValidator.isValidBackupFilename(filename)) {
             throw new RuntimeException(INVALID_BACKUP_FILENAME);
         }
         Path path = getFilePath(filename);
         try {
             Files.write(path, content);
-            return getCreatedAt(path.getFileName().toString());
+            return getCreatedAt(path);
         } catch (IOException ioe) {
-            log.error("can't write backup file's content (" + path.toString() + ")");
+            log.error("can't write backup file's content ({})", path);
             throw new RuntimeException(ioe);
         }
     }
+
     /**
      * Return configuration backup path with a trailing slash
-     * @return
      */
     public String getConfigurationBackupPath() {
-        return CONFIGURATION_BACKUP_PATH  + (CONFIGURATION_BACKUP_PATH.endsWith(File.separator) ? "" : File.separator);
-    }
-
-    private File getFile(Path path) {
-        return new File(path.toString());
+        return CONFIGURATION_BACKUP_PATH + (CONFIGURATION_BACKUP_PATH.endsWith(File.separator) ? "" : File.separator);
     }
 
     /**
      * Return absolute path to (possible) backup file with given filename
-     * @param filename
-     * @return
+     *
+     * @param filename backup filename
+     * @return path to the file
      */
     public Path getFilePath(String filename) {
         return Paths.get(getConfigurationBackupPath(), filename);
     }
 
-    /**
-     * Check if the given filename is valid and meets the defined criteria
-     * @param path
-     * @return
-     */
-    private boolean isValidBackupFilename(Path path) {
-        return FormatUtils.isValidBackupFilename(path.getFileName().toString());
-    }
 
     /**
      * Check if a backup file with the given name already exists
-     * @param filename
-     * @return
+     *
+     * @param filename backup filename
+     * @return true if file exists
      */
     public boolean fileExists(String filename) {
         return getFilePath(filename).toFile().exists();

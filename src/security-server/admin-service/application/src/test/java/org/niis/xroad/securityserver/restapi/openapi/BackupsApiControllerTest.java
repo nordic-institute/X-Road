@@ -31,16 +31,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.niis.xroad.restapi.common.backup.dto.BackupFile;
+import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
+import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
-import org.niis.xroad.securityserver.restapi.dto.BackupFile;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOut;
-import org.niis.xroad.securityserver.restapi.service.BackupFileNotFoundException;
-import org.niis.xroad.securityserver.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.securityserver.restapi.service.RestoreProcessFailedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -203,7 +203,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void addBackup() throws Exception {
         BackupFile backupFile = new BackupFile(BACKUP_FILE_1_NAME);
-        when(backupService.generateBackup()).thenReturn(backupFile);
+        when(backupGenerator.generateBackup()).thenReturn(backupFile);
 
         ResponseEntity<Backup> response = backupsApiController.addBackup();
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -213,7 +213,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void addBackupFails() throws Exception {
-        doThrow(new InterruptedException("")).when(backupService).generateBackup();
+        doThrow(new InterruptedException("")).when(backupGenerator).generateBackup();
 
         try {
             ResponseEntity<Backup> response = backupsApiController.addBackup();
@@ -266,7 +266,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void uploadBackupFileInvalidBackupFile() throws Exception {
-        Mockito.doThrow(new InvalidBackupFileException("")).when(backupService)
+        Mockito.doThrow(new BackupInvalidFileException("")).when(backupService)
                 .uploadBackup(any(Boolean.class), any(String.class), any());
 
         try {

@@ -23,15 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.restapi.common.backup.dto;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import lombok.Data;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_FILENAME;
+import java.time.OffsetDateTime;
 
-public class InvalidFilenameException extends ServiceException {
-    public InvalidFilenameException(String msg) {
-        super(msg, new ErrorDeviation(ERROR_INVALID_FILENAME));
+/**
+ * DTO for backup files
+ */
+@Data
+public class BackupFile {
+    private String filename;
+    private OffsetDateTime createdAt;
+
+    public BackupFile(String filename) {
+        this.filename = filename;
     }
 }

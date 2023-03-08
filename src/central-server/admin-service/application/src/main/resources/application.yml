@@ -44,3 +44,8 @@ server:
 
 logging:
   config: file:/etc/xroad/conf.d/centralserver-admin-service-logback.xml
+
+script:
+  generate-backup:
+    path: /usr/share/xroad/scripts/backup_xroad_center_configuration.sh
+    valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.tar$"

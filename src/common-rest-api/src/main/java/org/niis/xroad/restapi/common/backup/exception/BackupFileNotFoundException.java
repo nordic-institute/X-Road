@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,22 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.common.backup.exception;
+
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.NotFoundException;
+
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_FILE_NOT_FOUND;
 
 /**
- * Service layer exception, which is thrown if some item is not found
+ * If backup file was not found
  */
-public class NotFoundException extends ServiceException {
-    public NotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
+public class BackupFileNotFoundException extends NotFoundException {
+    public BackupFileNotFoundException(String filename) {
+        this("Backup file with name " + filename + " not found",
+                new ErrorDeviation(ERROR_BACKUP_FILE_NOT_FOUND));
     }
 
-    public NotFoundException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-
-    public NotFoundException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
+    public BackupFileNotFoundException(String filename, ErrorDeviation errorDeviation) {
+        super("Backup file with name " + filename + " not found",
+                errorDeviation);
     }
 }

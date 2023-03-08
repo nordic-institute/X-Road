@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.After;
 import org.junit.Before;
+import org.niis.xroad.restapi.common.backup.service.BackupService;
 import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
@@ -36,7 +37,6 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCert
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.repository.InternalTlsCertificateRepository;
-import org.niis.xroad.securityserver.restapi.service.BackupService;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
@@ -47,6 +47,7 @@ import org.niis.xroad.securityserver.restapi.service.KeyService;
 import org.niis.xroad.securityserver.restapi.service.NotificationService;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.securityserver.restapi.service.RestoreService;
+import org.niis.xroad.securityserver.restapi.service.SecurityServerConfigurationBackupGenerator;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
@@ -83,6 +84,8 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     CertificateAuthorityService certificateAuthorityService;
     @MockBean
     BackupService backupService;
+    @MockBean
+    SecurityServerConfigurationBackupGenerator backupGenerator;
     @MockBean
     RestoreService restoreService;
     @MockBean

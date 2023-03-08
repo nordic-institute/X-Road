@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.test.glue;
 
-import io.cucumber.java.en.When;
+import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.cs.test.api.FeignCertificationServicesApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignCertificationServicesApi certificationServicesApi;
 
-    @When("Certification service is created")
+    @Step("Certification service is created")
     public void createCertificationService() throws Exception {
         MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert());
         String certificateProfileInfo = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";

@@ -38,7 +38,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Date;
-import java.util.regex.Pattern;
 
 /**
  * Format utils
@@ -48,11 +47,6 @@ public final class FormatUtils {
     public static final String HTTP_PROTOCOL = "http://";
     public static final String URL_HOST_REGEX = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*"
             + "([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
-    // Criteria for a valid backup file name:
-    // 1) cannot start with "."
-    // 2) must contain one or more word characters ([a-zA-Z_0-9.-]),
-    // 3) must end with ".gpg"
-    private static final Pattern BACKUP_FILENAME_PATTERN = Pattern.compile("^(?!\\.)[\\w\\.\\-]+\\.gpg$");
 
     private FormatUtils() {
         // noop
@@ -60,6 +54,7 @@ public final class FormatUtils {
 
     /**
      * Converts Date to OffsetDateTime with ZoneOffset.UTC
+     *
      * @param date
      * @return OffsetDateTime with offset ZoneOffset.UTC
      * @see ZoneOffset#UTC
@@ -70,6 +65,7 @@ public final class FormatUtils {
 
     /**
      * Converts Instant to OffsetDateTime with ZoneOffset.UTC
+     *
      * @param instant
      * @return OffsetDateTime with offset ZoneOffset.UTC
      * @see ZoneOffset#UTC
@@ -97,6 +93,7 @@ public final class FormatUtils {
      * Validates a URL. A valid URL will start with either <i>http://</i> or <i>https://</i>. The host part of the URL
      * should also conform to <a href="http://www.ietf.org/rfc/rfc3490.txt">RFC 3490</a>
      * and {@link FormatUtils#URL_HOST_REGEX}
+     *
      * @param url
      * @return true or false depending on the validity of the provided url
      */
@@ -107,7 +104,7 @@ public final class FormatUtils {
         try {
             URL u = new URL(url);
             String asciiHost = IDN.toASCII(u.getHost());
-            return  asciiHost.matches(URL_HOST_REGEX);
+            return asciiHost.matches(URL_HOST_REGEX);
         } catch (MalformedURLException | IllegalArgumentException e) {
             return false;
         }
@@ -119,6 +116,7 @@ public final class FormatUtils {
 
     /**
      * Get the full service name (e.g. myService.v1) from ServiceType object
+     *
      * @param serviceType
      * @return full service name as String
      */
@@ -135,6 +133,7 @@ public final class FormatUtils {
      * in case of NumberFormatException we throw ResourceNotFoundException. Client should not
      * know about id parameter details, such as "it should be numeric" -
      * the resource with given id just cant be found, and that's all there is to it
+     *
      * @param id as String
      * @return id as Long
      */
@@ -150,6 +149,7 @@ public final class FormatUtils {
 
     /**
      * Count occurrences of searched char
+     *
      * @param from
      * @param searched
      * @return occurences, or zero if String was null
@@ -163,16 +163,8 @@ public final class FormatUtils {
     }
 
     /**
-     * Check if the given filename is valid and meets the defined criteria
-     * @param filename
-     * @return
-     */
-    public static boolean isValidBackupFilename(String filename) {
-        return BACKUP_FILENAME_PATTERN.matcher(filename).matches();
-    }
-
-    /**
      * Encode a string to a base64 string
+     *
      * @param toBeEncoded string to be encoded
      * @return
      */

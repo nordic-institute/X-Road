@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.dto.BackupFile;
+import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 
 import java.util.ArrayList;

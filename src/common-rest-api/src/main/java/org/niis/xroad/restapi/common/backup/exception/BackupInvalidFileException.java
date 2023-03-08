@@ -23,22 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.common.backup.exception;
+
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 
-/**
- * Service layer exception, which is thrown if some item is not found
- */
-public class NotFoundException extends ServiceException {
-    public NotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_BACKUP_FILE;
 
-    public NotFoundException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-
-    public NotFoundException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
+public class BackupInvalidFileException extends ServiceException {
+    public BackupInvalidFileException(String msg) {
+        super(msg, new ErrorDeviation(ERROR_INVALID_BACKUP_FILE));
     }
 }

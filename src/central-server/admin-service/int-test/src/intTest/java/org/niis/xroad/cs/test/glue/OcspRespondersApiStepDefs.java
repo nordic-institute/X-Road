@@ -29,8 +29,7 @@ package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.AssertionOperation;
-import io.cucumber.java.en.And;
-import io.cucumber.java.en.When;
+import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.niis.xroad.cs.test.api.FeignOcspRespondersApi;
@@ -54,7 +53,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
 
     private String getKeyOldOcspResponderCertHash;
 
-    @When("OCSP responder url is updated")
+    @Step("OCSP responder url is updated")
     public void updateOcspResponderUrl() {
         Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
@@ -71,7 +70,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
     }
 
 
-    @When("OCSP responder url and certificate is updated")
+    @Step("OCSP responder url and certificate is updated")
     public void ocspResponderUrlAndCertificateIsUpdated() throws Exception {
         Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
@@ -93,7 +92,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         putStepData(NEW_OCSP_RESPONDER_URL, newUrl);
     }
 
-    @And("the OCSP responder certificate was updated")
+    @Step("the OCSP responder certificate was updated")
     public void theOCSPResponderCertificateWasUpdated() {
         Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
