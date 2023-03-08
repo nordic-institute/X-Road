@@ -189,6 +189,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
             doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
             doReturn(serverClients).when(subsystem).getServerClients();
             doReturn(securityServer).when(serverClient).getSecurityServer();
+            doReturn(serverClients).when(securityServer).getServerClients();
             doReturn(securityServerId).when(securityServer).getServerId();
 
             subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
@@ -199,7 +200,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
                 inOrder.verify(subsystem).getServerClients();
                 inOrder.verify(serverClient).getSecurityServer();
                 inOrder.verify(securityServer).getServerId();
-                inOrder.verify(subsystem).getServerClients();
+                inOrder.verify(securityServer).getServerClients();
             });
             verify(auditDataHelper).put(SERVER_CODE, securityServerId.getServerCode());
             verify(auditDataHelper).put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());

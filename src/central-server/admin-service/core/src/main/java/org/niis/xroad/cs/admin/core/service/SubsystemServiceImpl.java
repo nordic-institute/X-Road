@@ -136,7 +136,8 @@ public class SubsystemServiceImpl implements SubsystemService {
                 .filter(sc -> securityServerId.equals(sc.getSecurityServer().getServerId()))
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER));
-        subsystem.getServerClients().remove(serverClient);
+
+        serverClient.getSecurityServer().getServerClients().remove(serverClient);
     }
 
     @Override

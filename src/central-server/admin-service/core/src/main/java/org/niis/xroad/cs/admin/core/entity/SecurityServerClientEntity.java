@@ -80,8 +80,7 @@ public abstract class SecurityServerClientEntity extends AuditableEntity {
     @Getter
     private ClientIdEntity identifier;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "securityServerClient", cascade = CascadeType.ALL,
-            orphanRemoval = true)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "securityServerClient")
     @Access(AccessType.FIELD)
     @Getter
     @Setter

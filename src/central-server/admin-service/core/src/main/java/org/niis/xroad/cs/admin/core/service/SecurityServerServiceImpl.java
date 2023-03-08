@@ -174,19 +174,24 @@ public class SecurityServerServiceImpl implements SecurityServerService {
 
     private void registerClientDeletionRequests(SecurityServerEntity securityServerEntity) {
         final String comment = String.format("%s deletion", securityServerEntity.getServerId().toString());
-        securityServerEntity.getServerClients().stream()
-                .map(client -> new ClientDeletionRequest(CENTER, securityServerEntity.getServerId(),
-                        client.getSecurityServerClient().getIdentifier()))
-                .peek(req -> req.setComments(comment))
-                .forEach(managementRequestService::add);
+        final List<ClientDeletionRequest> clientDeletionRequests =
+                securityServerEntity.getServerClients().stream()
+                        .map(client -> new ClientDeletionRequest(CENTER, securityServerEntity.getServerId(),
+                                client.getSecurityServerClient().getIdentifier()))
+                        .peek(req -> req.setComments(comment))
+                        .collect(toList());
+        clientDeletionRequests.forEach(managementRequestService::add);
     }
 
     private void registerAuthCertsDeleteRequests(SecurityServerEntity securityServerEntity) {
         final String comment = String.format("%s deletion", securityServerEntity.getServerId().toString());
-        securityServerEntity.getAuthCerts().stream()
-                .map(cert -> new AuthenticationCertificateDeletionRequest(CENTER, securityServerEntity.getServerId(), cert.getCert()))
-                .peek(req -> req.setComments(comment))
-                .forEach(managementRequestService::add);
+        final List<AuthenticationCertificateDeletionRequest> certDeletionRequests =
+                securityServerEntity.getAuthCerts().stream()
+                        .map(cert -> new AuthenticationCertificateDeletionRequest(CENTER,
+                                securityServerEntity.getServerId(), cert.getCert()))
+                        .peek(req -> req.setComments(comment))
+                        .collect(toList());
+        certDeletionRequests.forEach(managementRequestService::add);
     }
 
     private void updateServerOwnersGroup(SecurityServerEntity securityServerEntity) {
