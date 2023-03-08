@@ -73,7 +73,7 @@ export default Vue.extend({
       type: Boolean,
       required: false,
       default: true,
-    }
+    },
   },
   methods: {
     emitActionClick(): void {

@@ -50,12 +50,11 @@
 </template>
 
 <script lang="ts">
-
-import Vue from "vue";
-import {mapActions, mapStores} from "pinia";
-import {useCertificationServiceStore} from "@/store/modules/trust-services";
-import {ApprovedCertificationService} from "@/openapi-types";
-import {notificationsStore} from "@/store/modules/notifications";
+import Vue from 'vue';
+import { mapActions, mapStores } from 'pinia';
+import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { ApprovedCertificationService } from '@/openapi-types';
+import { notificationsStore } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'EditCertProfileDialog',
@@ -69,10 +68,10 @@ export default Vue.extend({
     return {
       certProfile: this.certificationService.certificate_profile_info,
       loading: false,
-    }
+    };
   },
   computed: {
-    ...mapStores(useCertificationServiceStore)
+    ...mapStores(useCertificationServiceStore),
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
@@ -81,18 +80,22 @@ export default Vue.extend({
     },
     updateCertificationServiceSettings(): void {
       this.loading = true;
-      this.certificationServiceStore.update(
-        this.certificationService.id, {certificate_profile_info: this.certProfile, tls_auth: `${this.certificationService.tls_auth}`}
-      )
+      this.certificationServiceStore
+        .update(this.certificationService.id, {
+          certificate_profile_info: this.certProfile,
+          tls_auth: `${this.certificationService.tls_auth}`,
+        })
         .then(() => {
-          this.showSuccess(this.$t('trustServices.trustService.settings.saveSuccess'));
+          this.showSuccess(
+            this.$t('trustServices.trustService.settings.saveSuccess'),
+          );
           this.$emit('tlsAuthChanged');
         })
         .catch((error) => {
           this.showError(error);
         })
         .finally(() => (this.loading = false));
-    }
-  }
+    },
+  },
 });
 </script>

@@ -45,7 +45,9 @@
           <v-text-field
             v-model="partFileTitle"
             outlined
-            :label="$t('globalConf.cfgParts.dialog.upload.uploadConfigurationPart')"
+            :label="
+              $t('globalConf.cfgParts.dialog.upload.uploadConfigurationPart')
+            "
             append-icon="icon-Upload"
             data-test="timestamping-service-file-input"
             @click="upload"

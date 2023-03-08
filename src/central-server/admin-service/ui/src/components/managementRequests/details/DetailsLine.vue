@@ -36,9 +36,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
-import { ManagementRequestDetailedView } from '@/openapi-types';
-import ManagementRequestStatusCell from '../MrStatusCell.vue';
+import Vue from 'vue';
 
 export default Vue.extend({
   props: {
@@ -52,10 +50,6 @@ export default Vue.extend({
       default: '',
     },
   },
-
-  computed: {},
-
-  methods: {},
 });
 </script>
 

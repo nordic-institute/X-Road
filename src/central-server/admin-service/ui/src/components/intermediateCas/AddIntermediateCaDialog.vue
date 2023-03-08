@@ -47,8 +47,8 @@
             autofocus
             :label="$t('trustServices.uploadCertificate')"
             append-icon="icon-Upload"
-            @click="upload"
             data-test="add-intermediate-ca-cert-input"
+            @click="upload"
           ></v-text-field>
         </xrd-file-upload>
       </div>

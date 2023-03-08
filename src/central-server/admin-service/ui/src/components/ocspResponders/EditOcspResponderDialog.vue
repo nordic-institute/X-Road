@@ -64,9 +64,17 @@
             >
               {{ $t('trustServices.viewCertificate') }}
             </xrd-button>
-            <xrd-button text data-test="upload-ocsp-responder-certificate" @click="certUploadActive = true">
+            <xrd-button
+              text
+              data-test="upload-ocsp-responder-certificate"
+              @click="certUploadActive = true"
+            >
               <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
-              {{ $t('trustServices.trustService.ocspResponders.edit.dialog.uploadCertificate') }}
+              {{
+                $t(
+                  'trustServices.trustService.ocspResponders.edit.dialog.uploadCertificate',
+                )
+              }}
             </xrd-button>
           </div>
         </div>
@@ -94,25 +102,26 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import {mapActions, mapStores} from "pinia";
-import {useOcspResponderStore} from "@/store/modules/trust-services";
-import {notificationsStore} from "@/store/modules/notifications";
-import {FileUploadResult} from "@niis/shared-ui";
-import {OcspResponder} from "@/openapi-types";
-import {RouteName} from "@/global";
-import {ValidationObserver, ValidationProvider} from "vee-validate";
+import Vue from 'vue';
+import { mapActions, mapStores } from 'pinia';
+import { useOcspResponderStore } from '@/store/modules/trust-services';
+import { notificationsStore } from '@/store/modules/notifications';
+import { FileUploadResult } from '@niis/shared-ui';
+import { OcspResponder } from '@/openapi-types';
+import { RouteName } from '@/global';
+import { ValidationObserver, ValidationProvider } from 'vee-validate';
 
 export default Vue.extend({
   name: 'EditOcspResponderDialog',
   components: {
     ValidationProvider,
-    ValidationObserver
+    ValidationObserver,
   },
   props: {
     ocspResponder: {
-      type: Object as () => OcspResponder
-    }
+      type: Object as () => OcspResponder,
+      required: true,
+    },
   },
   data() {
     return {
@@ -135,8 +144,8 @@ export default Vue.extend({
       this.$router.push({
         name: RouteName.OcspResponderCertificateDetails,
         params: {
-          ocspResponderId: String(this.ocspResponder.id)
-        }
+          ocspResponderId: String(this.ocspResponder.id),
+        },
       });
     },
     onFileUploaded(result: FileUploadResult): void {
@@ -145,9 +154,12 @@ export default Vue.extend({
     },
     update(): void {
       this.loading = true;
-      this.ocspResponderServiceStore.updateOcspResponder(this.ocspResponder.id, this.ocspUrl, this.certFile)
+      this.ocspResponderServiceStore
+        .updateOcspResponder(this.ocspResponder.id, this.ocspUrl, this.certFile)
         .then(() => {
-          this.showSuccess(this.$t('trustServices.trustService.ocspResponders.edit.success'));
+          this.showSuccess(
+            this.$t('trustServices.trustService.ocspResponders.edit.success'),
+          );
           this.$emit('save');
         })
         .catch((error) => {
@@ -158,6 +170,6 @@ export default Vue.extend({
     cancel(): void {
       this.$emit('cancel');
     },
-  }
+  },
 });
 </script>

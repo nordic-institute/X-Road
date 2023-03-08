@@ -51,9 +51,7 @@
             </span>
           </template>
           <template #[`item.content_identifier`]="{ item }">
-            <span
-              :data-test="`configuration-part-${item.content_identifier}`"
-            >
+            <span :data-test="`configuration-part-${item.content_identifier}`">
               {{ item.content_identifier }}
             </span>
           </template>
@@ -90,12 +88,12 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import {mapState, mapStores} from 'pinia';
-import {useConfigurationSourceStore} from '@/store/modules/configuration-sources';
-import {ConfigurationPart, ConfigurationType} from '@/openapi-types';
-import {Prop} from 'vue/types/options';
-import {DataTableHeader} from 'vuetify';
-import {userStore} from '@/store/modules/user';
+import { mapState, mapStores } from 'pinia';
+import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
+import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
+import { Prop } from 'vue/types/options';
+import { DataTableHeader } from 'vuetify';
+import { userStore } from '@/store/modules/user';
 import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.vue';
 import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
 

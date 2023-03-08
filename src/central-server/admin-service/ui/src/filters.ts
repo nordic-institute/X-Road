@@ -25,7 +25,6 @@
  * THE SOFTWARE.
  */
 import Vue from 'vue';
-import i18n from './i18n';
 
 Vue.filter('capitalize', (value: string): string => {
   if (!value) {
@@ -114,7 +113,9 @@ export const formatDateTimeSeconds = (value: string): string => {
 
   const date = new Date(value);
 
-  return formatDateTime(value) + ':' + date.getSeconds().toString().padStart(2, '0');
+  return (
+    formatDateTime(value) + ':' + date.getSeconds().toString().padStart(2, '0')
+  );
 };
 
 Vue.filter('formatDateTime', formatDateTime);

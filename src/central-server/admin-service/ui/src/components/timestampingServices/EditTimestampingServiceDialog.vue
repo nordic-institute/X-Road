@@ -71,7 +71,11 @@
               @click="certUploadActive = true"
             >
               <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
-              {{ $t('trustServices.timestampingService.dialog.edit.uploadCertificate') }}
+              {{
+                $t(
+                  'trustServices.timestampingService.dialog.edit.uploadCertificate',
+                )
+              }}
             </xrd-button>
           </div>
         </div>
@@ -142,9 +146,15 @@ export default Vue.extend({
       this.loading = true;
 
       this.timestampingServicesStore
-        .updateTimestampingService(this.tsaService.id, this.tasUrl, this.certFile)
+        .updateTimestampingService(
+          this.tsaService.id,
+          this.tasUrl,
+          this.certFile,
+        )
         .then(() => {
-          this.showSuccess(this.$t('trustServices.timestampingService.dialog.edit.success'));
+          this.showSuccess(
+            this.$t('trustServices.timestampingService.dialog.edit.success'),
+          );
           this.$emit('save');
         })
         .catch((error) => {
