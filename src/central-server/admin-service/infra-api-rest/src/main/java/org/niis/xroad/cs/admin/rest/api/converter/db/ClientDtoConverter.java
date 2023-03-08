@@ -46,7 +46,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static ee.ria.xroad.common.util.Fn.self;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
@@ -133,16 +132,6 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
         }
 
         throw new IllegalArgumentException("Invalid client type: " + clientType);
-    }
-
-    public <T extends SecurityServerClient> Function<SecurityServerClient, T> expectType(Class<T> clazz) {
-        return securityServerClient -> {
-            if (!clazz.isAssignableFrom(securityServerClient.getClass())) {
-                throw new IllegalArgumentException(
-                        "Invalid client type: " + securityServerClient.getIdentifier().getObjectType());
-            }
-            return (T) securityServerClient;
-        };
     }
 
     @Service
