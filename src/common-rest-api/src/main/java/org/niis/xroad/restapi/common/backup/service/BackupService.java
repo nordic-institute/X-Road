@@ -41,7 +41,6 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
 
@@ -63,12 +62,7 @@ public class BackupService {
      * @return list of backup files
      */
     public List<BackupFile> getBackupFiles() {
-        return backupRepository.getBackupFiles().stream()
-                .map(file -> {
-                    var backupFile = new BackupFile(file.getName());
-                    backupFile.setCreatedAt(backupRepository.getCreatedAt(file.toPath()));
-                    return backupFile;
-                }).collect(Collectors.toList());
+        return backupRepository.getBackupFiles();
     }
 
     /**
@@ -126,9 +120,8 @@ public class BackupService {
         }
 
         OffsetDateTime createdAt = backupRepository.writeBackupFile(filename, fileBytes);
-        BackupFile backupFile = new BackupFile(filename);
-        backupFile.setCreatedAt(createdAt);
-        return backupFile;
+
+        return new BackupFile(filename, createdAt);
     }
 
     /**

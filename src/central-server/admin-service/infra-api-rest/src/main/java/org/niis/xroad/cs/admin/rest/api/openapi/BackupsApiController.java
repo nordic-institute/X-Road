@@ -60,13 +60,13 @@ public class BackupsApiController implements BackupsApi {
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Void> deleteBackup(String filename) {
-        throw new NotImplementedException("not implemented yet");
+        throw new NotImplementedException("deleteBackup not implemented yet");
     }
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Resource> downloadBackup(String filename) {
-        throw new NotImplementedException("not implemented yet");
+        throw new NotImplementedException("downloadBackup not implemented yet");
     }
 
     @Override
@@ -80,12 +80,12 @@ public class BackupsApiController implements BackupsApi {
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<TokensLoggedOutDto> restoreBackup(String filename) {
-        throw new NotImplementedException("not implemented yet");
+        throw new NotImplementedException("restoreBackup not implemented yet");
     }
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<BackupDto> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
-        throw new NotImplementedException("not implemented yet");
+        throw new NotImplementedException("uploadBackup not implemented yet");
     }
 }

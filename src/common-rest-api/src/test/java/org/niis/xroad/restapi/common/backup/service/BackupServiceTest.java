@@ -41,7 +41,6 @@ import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -73,8 +72,6 @@ class BackupServiceTest {
     @InjectMocks
     BackupService backupService;
 
-    private static final String BASE_DIR = "/tmp/backups/";
-
     private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.gpg";
 
     private static final String BACKUP_FILE_1_CREATED_AT = "2020-02-19T03:15:02.451Z";
@@ -90,7 +87,7 @@ class BackupServiceTest {
     private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "content".getBytes());
 
     @Test
-    public void getBackups() {
+    void getBackups() {
         createBackupList();
         List<BackupFile> backups = backupService.getBackupFiles();
 
@@ -102,7 +99,7 @@ class BackupServiceTest {
     }
 
     @Test
-    public void getBackupsEmptyList() {
+    void getBackupsEmptyList() {
         when(backupRepository.getBackupFiles()).thenReturn(new ArrayList<>());
 
         List<BackupFile> backups = backupService.getBackupFiles();
@@ -111,7 +108,7 @@ class BackupServiceTest {
     }
 
     @Test
-    public void getBackupsException() {
+    void getBackupsException() {
         when(backupRepository.getBackupFiles())
                 .thenThrow(new RuntimeException());
 
@@ -119,8 +116,8 @@ class BackupServiceTest {
     }
 
     @Test
-    public void deleteBackup() throws BackupFileNotFoundException {
-        List<File> files = createBackupList();
+    void deleteBackup() throws BackupFileNotFoundException {
+        List<BackupFile> files = createBackupList();
         doAnswer(invocation -> {
             files.remove(0);
             return null;
@@ -131,13 +128,13 @@ class BackupServiceTest {
     }
 
     @Test
-    public void deleteNonExistingBackup() {
+    void deleteNonExistingBackup() {
         assertThatThrownBy(() -> backupService.deleteBackup("test_file.tar"))
                 .isInstanceOf(BackupFileNotFoundException.class);
     }
 
     @Test
-    public void downloadBackup() throws Exception {
+    void downloadBackup() throws Exception {
         byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
         when(backupRepository.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
         createBackupList();
@@ -147,14 +144,14 @@ class BackupServiceTest {
     }
 
     @Test
-    public void downloadNonExistingBackup() {
+    void downloadNonExistingBackup() {
         assertThatThrownBy(() -> backupService.readBackupFile("test_file.tar"))
                 .isInstanceOf(BackupFileNotFoundException.class);
     }
 
 
     @Test
-    public void uploadBackup() throws Exception {
+    void uploadBackup() throws Exception {
         MultipartFile multipartFile = createMultipartFile(BACKUP_FILE_1_NAME);
 
         when(backupValidator.isValidBackupFilename(BACKUP_FILE_1_NAME)).thenReturn(true);
@@ -171,14 +168,14 @@ class BackupServiceTest {
     }
 
     @Test
-    public void uploadBackupWithInvalidFilename() {
+    void uploadBackupWithInvalidFilename() {
         assertThatThrownBy(() -> backupService.uploadBackup(true, mockMultipartFile.getOriginalFilename(),
                 mockMultipartFile.getBytes()))
                 .isInstanceOf(InvalidFilenameException.class);
     }
 
     @Test
-    public void uploadBackupFileAlreadyExistsNoOverwrite() {
+    void uploadBackupFileAlreadyExistsNoOverwrite() {
         MultipartFile multipartFile = createMultipartFile(BACKUP_FILE_1_NAME);
         when(backupRepository.fileExists(any(String.class))).thenReturn(true);
         when(backupValidator.isValidBackupFilename(BACKUP_FILE_1_NAME)).thenReturn(true);
@@ -196,17 +193,12 @@ class BackupServiceTest {
         return new MockMultipartFile(filename, filename, "multipart/form-data", "void".getBytes());
     }
 
-    private List<File> createBackupList() {
-        var file1 = new File(BASE_DIR + BACKUP_FILE_1_NAME);
-        var file2 = new File(BASE_DIR + BACKUP_FILE_2_NAME);
-
-        List<File> files = Lists.newArrayList(file1, file2);
+    private List<BackupFile> createBackupList() {
+        var file1 = new BackupFile(BACKUP_FILE_1_NAME, ofEpochMilli(BACKUP_FILE_1_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC));
+        var file2 = new BackupFile(BACKUP_FILE_2_NAME, ofEpochMilli(BACKUP_FILE_2_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC));
+        List<BackupFile> files = Lists.newArrayList(file1, file2);
 
         when(backupRepository.getBackupFiles()).thenReturn(files);
-        when(backupRepository.getCreatedAt(file1.toPath()))
-                .thenReturn(ofEpochMilli(BACKUP_FILE_1_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC));
-        when(backupRepository.getCreatedAt(file2.toPath()))
-                .thenReturn(ofEpochMilli(BACKUP_FILE_2_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC));
 
         return files;
     }

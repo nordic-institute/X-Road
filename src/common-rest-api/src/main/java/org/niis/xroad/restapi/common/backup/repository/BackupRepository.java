@@ -29,7 +29,11 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.common.backup.dto.BackupFile;
+import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
+import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
 import org.niis.xroad.restapi.common.backup.service.BackupValidator;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
@@ -44,6 +48,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_DELETION_FAILED;
 
 /**
  * Backup repository
@@ -64,7 +70,7 @@ public class BackupRepository {
      *
      * @return list of backup files
      */
-    public List<File> getBackupFiles() {
+    public List<BackupFile> getBackupFiles() {
         var backupPath = Paths.get(CONFIGURATION_BACKUP_PATH);
         if (!Files.exists(backupPath)) {
             log.warn("Backup directory [{}] does not exist.",
@@ -75,27 +81,24 @@ public class BackupRepository {
         try (Stream<Path> walk = Files.walk(backupPath, DIR_MAX_DEPTH)) {
             return walk
                     .filter(path -> backupValidator.isValidBackupFilename(path.getFileName().toString()))
-                    .map(Path::toFile)
+                    .map(path -> {
+                        var file = path.toFile();
+                        return new BackupFile(file.getName(), getCreatedAt(file.toPath()));
+                    })
                     .collect(Collectors.toList());
         } catch (IOException ioe) {
-            log.error("can't read backup files from configuration path ({}})", CONFIGURATION_BACKUP_PATH);
-            throw new RuntimeException(ioe);
+            log.error("can't read backup files from configuration path ({}})", CONFIGURATION_BACKUP_PATH, ioe);
+            return Collections.emptyList();
         }
     }
 
-    /**
-     * Get the creation date/time of a backup file
-     *
-     * @param path file path to get creation date
-     * @return date
-     */
-    public OffsetDateTime getCreatedAt(Path path) {
+    private OffsetDateTime getCreatedAt(Path path) {
         try {
             BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
             return attr.creationTime().toInstant().atOffset(ZoneOffset.UTC);
         } catch (IOException ioe) {
-            log.error("can't read backup file's creation time (" + path.toString() + ")");
-            throw new RuntimeException(ioe);
+            log.error("can't read backup file's creation time ({})", path);
+            return null;
         }
     }
 
@@ -104,16 +107,16 @@ public class BackupRepository {
      *
      * @param filename backup filename to delete
      */
-    public void deleteBackupFile(String filename) {
+    public void deleteBackupFile(String filename) throws BackupFileNotFoundException {
         if (!backupValidator.isValidBackupFilename(filename)) {
-            throw new RuntimeException(INVALID_BACKUP_FILENAME);
+            throw new BackupFileNotFoundException(filename);
         }
-        Path path = getFilePath(filename);
+        var path = getFilePath(filename);
         try {
             Files.deleteIfExists(path);
         } catch (IOException ioe) {
             log.error("can't delete backup file ({})", path);
-            throw new RuntimeException("deleting backup file failed");
+            throw new BackupFileNotFoundException(filename, new ErrorDeviation(ERROR_BACKUP_DELETION_FAILED));
         }
     }
 
@@ -123,16 +126,16 @@ public class BackupRepository {
      * @param filename backup filename
      * @return backup content
      */
-    public byte[] readBackupFile(String filename) {
+    public byte[] readBackupFile(String filename) throws BackupFileNotFoundException {
         if (!backupValidator.isValidBackupFilename(filename)) {
-            throw new RuntimeException(INVALID_BACKUP_FILENAME);
+            throw new BackupFileNotFoundException(filename);
         }
-        Path path = getFilePath(filename);
+        var path = getFilePath(filename);
         try {
             return Files.readAllBytes(path);
         } catch (IOException ioe) {
             log.error("can't read backup file's content ({})", path);
-            throw new RuntimeException(ioe);
+            throw new BackupFileNotFoundException(filename);
         }
     }
 
@@ -143,17 +146,17 @@ public class BackupRepository {
      * @param content  backup contents
      * @return backup creation date
      */
-    public OffsetDateTime writeBackupFile(String filename, byte[] content) {
+    public OffsetDateTime writeBackupFile(String filename, byte[] content) throws BackupInvalidFileException {
         if (!backupValidator.isValidBackupFilename(filename)) {
-            throw new RuntimeException(INVALID_BACKUP_FILENAME);
+            throw new BackupInvalidFileException(INVALID_BACKUP_FILENAME);
         }
-        Path path = getFilePath(filename);
+        var path = getFilePath(filename);
         try {
             Files.write(path, content);
             return getCreatedAt(path);
         } catch (IOException ioe) {
             log.error("can't write backup file's content ({})", path);
-            throw new RuntimeException(ioe);
+            throw new BackupInvalidFileException("Failed to write backup file");
         }
     }
 
