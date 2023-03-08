@@ -67,7 +67,7 @@ public class BackupRepository {
     public List<File> getBackupFiles() {
         var backupPath = Paths.get(CONFIGURATION_BACKUP_PATH);
         if (!Files.exists(backupPath)) {
-            log.warn("Backup directory [{}] does not exist. Usually this means conf backup was never executed",
+            log.warn("Backup directory [{}] does not exist.",
                     CONFIGURATION_BACKUP_PATH);
             return Collections.emptyList();
         }
