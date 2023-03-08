@@ -42,14 +42,29 @@ public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
         settingsManagementServicesPageObj.serviceProviderIdentifier().shouldHave(Condition.text(serviceProviderIdentifier));
     }
 
+    @Step("service provider identifier field should be empty")
+    public void serviceProviderIdentifierFieldIsEmpty() {
+        settingsManagementServicesPageObj.serviceProviderIdentifier().shouldBe(Condition.empty);
+    }
+
     @Step("service provider name field should have value {}")
     public void serviceProviderNameFieldHasText(String serviceProviderName) {
         settingsManagementServicesPageObj.serviceProviderName().shouldHave(Condition.text(serviceProviderName));
     }
 
+    @Step("service provider name field should be empty")
+    public void serviceProviderNameFieldIsEmpty() {
+        settingsManagementServicesPageObj.serviceProviderName().shouldHave(Condition.empty);
+    }
+
     @Step("security server field should have value {}")
     public void securityServerFieldHasText(String securityServer) {
         settingsManagementServicesPageObj.securityServer().shouldHave(Condition.text(securityServer));
+    }
+
+    @Step("security server field should be empty")
+    public void securityServerFieldIsEmpty() {
+        settingsManagementServicesPageObj.securityServer().shouldHave(Condition.empty);
     }
 
     @Step("wsdl address field should have value {}")
