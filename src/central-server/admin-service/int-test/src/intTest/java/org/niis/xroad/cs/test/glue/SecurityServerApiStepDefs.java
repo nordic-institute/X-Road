@@ -290,5 +290,19 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         }
     }
 
+    @Step("security servers list, query {string} paged by {int}, page {int} contains {int} entries, {int} in total")
+    public void securityServersListQueryPaged(String q, int pageSize, int pageNumber, int itemsCount, int totalCount) {
+        PagingSortingParametersDto params = new PagingSortingParametersDto();
+        params.setLimit(pageSize);
+        params.setOffset(pageNumber - 1);
+        final ResponseEntity<PagedSecurityServersDto> response = securityServersApi.findSecurityServers(q, params);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(itemsCount, "body.items.size()"))
+                .assertion(equalsAssertion(itemsCount, "body.pagingMetadata.items"))
+                .assertion(equalsAssertion(totalCount, "body.pagingMetadata.totalItems"))
+                .execute();
+    }
 
 }

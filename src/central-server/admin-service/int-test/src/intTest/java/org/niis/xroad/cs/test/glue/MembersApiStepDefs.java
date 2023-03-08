@@ -52,6 +52,11 @@ public class MembersApiStepDefs extends BaseStepDefs {
 
     @Step("new member {string} is added")
     public void newMemberCSEEMemberEEIsCreated(String memberId) {
+        newMemberAddedWithName(memberId, "Member name for " + memberId);
+    }
+
+    @Step("new member {string} is added with name {string}")
+    public void newMemberAddedWithName(String memberId, String name) {
         final String[] idParts = split(memberId, ':');
 
         final ClientIdDto clientIdDto = new ClientIdDto()
@@ -61,7 +66,7 @@ public class MembersApiStepDefs extends BaseStepDefs {
         clientIdDto.setInstanceId(idParts[0]);
 
         final ClientDto dto = new ClientDto()
-                .memberName("Member name for " + memberId)
+                .memberName(name)
                 .xroadId(clientIdDto);
 
         final ResponseEntity<ClientDto> response = membersApi.addMember(dto);
@@ -70,6 +75,7 @@ public class MembersApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(CREATED))
                 .execute();
     }
+
 
     @Step("member {string} is not in global group {string}")
     public void memberCSEEMemberIsNotInGlobalGroupSecurityServerOwners(String memberId, String globalGroupCode) {

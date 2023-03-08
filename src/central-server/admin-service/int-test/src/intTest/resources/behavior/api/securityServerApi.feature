@@ -38,6 +38,36 @@ Feature: Security Server API
       | owner_name            | asc            | ownerName                |
 
   @Modifying
+  Scenario Outline: Security server list paging and query
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And member class 'TEST' is created
+    And new member 'CS:TEST:member' is added with name 'name first'
+    And new member 'CS:TEST:another' is added with name 'name second'
+    And new security server 'CS:TEST:member:SS-1' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new security server 'CS:TEST:member:SS-3' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new security server 'CS:TEST:another:SS-2' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    Then security servers list, query '<$query>' paged by <$pageSize>, page <$requestedPage> contains <$itemsInPage> entries, <$itemsTotal> in total
+    Examples:
+      | $query          | $pageSize | $requestedPage | $itemsInPage | $itemsTotal |
+      |                 | 2         | 1              | 2            | 3           |
+      |                 | 2         | 2              | 1            | 3           |
+      |                 | 2         | 3              | 0            | 3           |
+      | TEST            | 2         | 1              | 2            | 3           |
+      | TEST            | 2         | 2              | 1            | 3           |
+      | member          | 2         | 1              | 2            | 2           |
+      | another         | 2         | 1              | 1            | 1           |
+      | SS              | 5         | 1              | 3            | 3           |
+      | SS-1            | 2         | 1              | 1            | 1           |
+      | SS-2            | 2         | 1              | 1            | 1           |
+      | SS-3            | 2         | 1              | 1            | 1           |
+      | first           | 2         | 1              | 2            | 2           |
+      | second          | 2         | 1              | 1            | 1           |
+      | should not find | 25        | 1              | 0            | 0           |
+
+  @Modifying
   Scenario: Get security server details
     Given Authentication header is set to MANAGEMENT_SERVICE
     And member class 'TEST' is created
