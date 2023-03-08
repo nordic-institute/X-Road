@@ -145,7 +145,9 @@
     </v-card>
     <SelectSubsystemDialog
       :dialog="showSelectSubsystemDialog"
-      :defaultSubsystemId="managementServicesConfiguration.service_provider_id"
+      :default-subsystem-id="
+        managementServicesConfiguration.service_provider_id
+      "
       @select="updateServiceProvider"
       @cancel="hideSelectSubsystemDialog"
     >

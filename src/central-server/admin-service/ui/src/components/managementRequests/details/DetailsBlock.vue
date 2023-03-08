@@ -25,15 +25,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="details-block" :data-test="blockTitleKey">
-    <!-- System Parameters -->
+  <section class="details-block" :data-test="blockTitleKey">
     <div class="mb-6">
       <v-card class="pb-4" flat>
-        <div class="card-top">
-          <div class="card-main-title">
+        <header class="card-top">
+          <h2 class="card-main-title">
             {{ $t(blockTitleKey) }}
-          </div>
-        </div>
+          </h2>
+        </header>
 
         <table class="xrd-table mt-0 pb-3">
           <tbody>
@@ -42,7 +41,7 @@
         </table>
       </v-card>
     </div>
-  </div>
+  </section>
 </template>
 
 <script lang="ts">

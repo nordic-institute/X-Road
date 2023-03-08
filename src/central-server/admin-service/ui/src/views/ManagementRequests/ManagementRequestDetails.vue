@@ -32,9 +32,9 @@
       :no-items-text="$t('noData.noData')"
       skeleton-type="table-heading"
     />
-    <div v-if="managementRequest && !loading" id="management-request-view">
-      <div class="table-toolbar align-fix mt-0 pl-0">
-        <div class="xrd-view-title">{{ typeText }}</div>
+    <main v-if="managementRequest && !loading" id="management-request-view">
+      <header class="table-toolbar align-fix mt-0 pl-0">
+        <h1 class="xrd-view-title">{{ typeText }}</h1>
         <div
           v-if="managementRequest.status === 'WAITING'"
           :data-test="`actions-for-MR-${managementRequest.id}`"
@@ -56,7 +56,7 @@
             {{ $t('action.decline') }}
           </xrd-button>
         </div>
-      </div>
+      </header>
 
       <mr-information :management-request="managementRequest" />
       <div class="management-request-additional-details">
@@ -84,7 +84,7 @@
         :security-server-id="managementRequest.security_server_id.encoded_id"
         @decline="fetchData"
       />
-    </div>
+    </main>
   </div>
 </template>
 
@@ -126,7 +126,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      loading: false, //is data being loaded
+      loading: false,
     };
   },
   computed: {

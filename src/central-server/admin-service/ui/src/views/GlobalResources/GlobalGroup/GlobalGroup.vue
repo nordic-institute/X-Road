@@ -36,7 +36,11 @@
       <div class="title-search">
         <div class="xrd-view-title">{{ globalGroup.code }}</div>
       </div>
-      <xrd-button v-if="allowGroupDelete" data-test="remove-group-button" outlined @click="showDeleteGroupDialog = true"
+      <xrd-button
+        v-if="allowGroupDelete"
+        data-test="remove-group-button"
+        outlined
+        @click="showDeleteGroupDialog = true"
         ><v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
         {{ $t('globalGroup.deleteGroup') }}</xrd-button
       >
@@ -66,7 +70,10 @@
         >
       </div>
       <div class="only-pending mt-0">
-        <xrd-button v-if="allowAddAndRemoveGroupMembers" data-test="add-member-button" @click="showAddDialog = true"
+        <xrd-button
+          v-if="allowAddAndRemoveGroupMembers"
+          data-test="add-member-button"
+          @click="showAddDialog = true"
           ><v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon>
           {{ $t('globalGroup.addMembers') }}</xrd-button
         >
@@ -77,12 +84,12 @@
     <v-data-table
       :loading="loading"
       :headers="membersHeaders"
-      :items="this.globalGroupStore.members"
+      :items="globalGroupStore.members"
       :search="filter.query"
       :must-sort="true"
       :items-per-page="10"
       :options.sync="pagingSortingOptions"
-      :server-items-length="this.globalGroupStore.pagingOptions.total_items"
+      :server-items-length="globalGroupStore.pagingOptions.total_items"
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
@@ -98,9 +105,12 @@
 
       <template #[`item.button`]>
         <div class="cs-table-actions-wrap">
-          <xrd-button v-if="allowAddAndRemoveGroupMembers" text :outlined="false">{{
-            $t('action.remove')
-          }}</xrd-button>
+          <xrd-button
+            v-if="allowAddAndRemoveGroupMembers"
+            text
+            :outlined="false"
+            >{{ $t('action.remove') }}</xrd-button
+          >
         </div>
       </template>
 

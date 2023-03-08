@@ -205,7 +205,8 @@ export default Vue.extend({
     setSelectedSubsystems() {
       const filteredList = this.selectableSubsystems?.filter(
         (subsystem) =>
-          `SUBSYSTEM:${toIdentifier(subsystem.xroad_id)}` ===  this.defaultSubsystemId,
+          `SUBSYSTEM:${toIdentifier(subsystem.xroad_id)}` ===
+          this.defaultSubsystemId,
       );
 
       if (filteredList) {

@@ -217,9 +217,6 @@ export function toIdentifier(client: ClientId): string {
 export function managementTypeToText(
   type: ManagementRequestType | undefined,
 ): string {
-  if (!type) {
-    return '';
-  }
   switch (type) {
     case ManagementRequestType.OWNER_CHANGE_REQUEST:
       return i18n.t('managementRequests.changeOwner') as string;

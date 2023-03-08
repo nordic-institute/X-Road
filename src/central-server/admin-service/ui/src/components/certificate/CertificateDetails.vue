@@ -26,27 +26,30 @@
  -->
 <template>
   <main>
-    <div class="certificate-details-wrapper xrd-default-shadow" v-if="certificateDetails">
+    <div
+      v-if="certificateDetails"
+      class="certificate-details-wrapper xrd-default-shadow"
+    >
       <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
       <div class="pl-4">
-        <template>
+        <section>
           <div class="dtlv-cert-hash mt-8">
             <certificateHash :hash="certificateDetails.hash" />
           </div>
           <div class="mt-6">
             <certificateInfo :certificate="certificateDetails" />
           </div>
-        </template>
+        </section>
       </div>
     </div>
   </main>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import CertificateHash from "@/components/certificate/CertificateHash.vue";
-import CertificateInfo from "@/components/certificate/CertificateInfo.vue";
-import {CertificateDetails} from "@/openapi-types";
+import Vue from 'vue';
+import CertificateHash from '@/components/certificate/CertificateHash.vue';
+import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
+import { CertificateDetails } from '@/openapi-types';
 
 export default Vue.extend({
   name: 'CertificateDetails',
@@ -56,14 +59,15 @@ export default Vue.extend({
   },
   props: {
     certificateDetails: {
-      type: Object as () => CertificateDetails
-    }
+      type: Object as () => CertificateDetails,
+      required: true,
+    },
   },
   methods: {
     close(): void {
       this.$router.go(-1);
-    }
-  }
+    },
+  },
 });
 </script>
 

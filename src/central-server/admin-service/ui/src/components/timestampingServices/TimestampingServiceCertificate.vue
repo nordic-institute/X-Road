@@ -55,9 +55,9 @@ export default Vue.extend({
     ...mapStores(timestampingServicesStore),
   },
   created() {
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
     const find = this.timestampingServicesStore.timestampingServices.find(
-      tsa => tsa.id === this.timestampingServiceId,
+      (tsa) => tsa.id === this.timestampingServiceId,
     );
 
     if (find) {

@@ -128,10 +128,11 @@ export default Vue.extend({
           tls_auth: this.tlsAuthOnly.toString(),
           certificate_profile_info: this.certProfile,
         };
-        this.$emit('save', certService, { done : () => {
+        this.$emit('save', certService, {
+          done: () => {
             this.loading = false;
             this.clearForm();
-          }
+          },
         });
       }
     },

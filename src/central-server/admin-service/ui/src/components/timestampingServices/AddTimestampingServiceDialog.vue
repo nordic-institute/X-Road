@@ -115,7 +115,9 @@ export default Vue.extend({
       this.timestampingServicesStore
         .addTimestampingService(this.tasUrl, this.certFile)
         .then(() => {
-          this.showSuccess(this.$t('trustServices.timestampingService.dialog.add.success'));
+          this.showSuccess(
+            this.$t('trustServices.timestampingService.dialog.add.success'),
+          );
           this.$emit('save');
         })
         .catch((error) => {

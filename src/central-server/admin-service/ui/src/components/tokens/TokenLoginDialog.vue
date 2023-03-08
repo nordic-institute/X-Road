@@ -102,12 +102,13 @@ export default Vue.extend({
         .catch((error) => {
           const metadata: string[] = error.response?.data?.error?.metadata;
           if (metadata && metadata.length > 0) {
-            (this.$refs.tokenPin as InstanceType<typeof ValidationProvider>)
-              .setErrors(
-                metadata.map(
-                  (code) => this.$t('tokens.errors.' + code) as string,
-                ),
-              );
+            (
+              this.$refs.tokenPin as InstanceType<typeof ValidationProvider>
+            ).setErrors(
+              metadata.map(
+                (code) => this.$t('tokens.errors.' + code) as string,
+              ),
+            );
           }
           this.showError(error);
         })

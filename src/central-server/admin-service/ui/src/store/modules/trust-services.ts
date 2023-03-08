@@ -121,9 +121,9 @@ export const useOcspResponderStore = defineStore('ocspResponderService', {
   getters: {
     getCurrentCaOcspRespondersPath(): string {
       if ((this.currentCa as ApprovedCertificationService).name) {
-        return `/certification-services/${this.currentCa!.id}/ocsp-responders`;
+        return `/certification-services/${this.currentCa?.id}/ocsp-responders`;
       } else {
-        return `/intermediate-cas/${this.currentCa!.id}/ocsp-responders`;
+        return `/intermediate-cas/${this.currentCa?.id}/ocsp-responders`;
       }
     },
   },
@@ -239,7 +239,8 @@ export const timestampingServicesStore = defineStore('timestampingServices', {
         .then((resp) => (this.timestampingServices = resp.data));
     },
     delete(id: number) {
-      return axios.delete(`/timestamping-services/${id}`)
+      return axios
+        .delete(`/timestamping-services/${id}`)
         .finally(() => this.fetchTimestampingServices());
     },
     addTimestampingService(url: string, certificate: File) {

@@ -40,7 +40,7 @@
         <xrd-icon-base class="key-icon">
           <XrdIconKey />
         </xrd-icon-base>
-        <span :data-test="`key-label-text`">{{keyLabel(item)}}</span>
+        <span :data-test="`key-label-text`">{{ keyLabel(item) }}</span>
       </template>
       <template #[`item.createdAt`]="{ item }">
         {{ item.created_at | formatDateTime }}

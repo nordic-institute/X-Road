@@ -36,7 +36,7 @@
     >
       <template #content>
         <div class="dlg-input-width">
-            {{ $t('globalGroup.areYouSure', { group: groupCode }) }}
+          {{ $t('globalGroup.areYouSure', { group: groupCode }) }}
         </div>
       </template>
     </xrd-simple-dialog>
@@ -72,5 +72,4 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

@@ -89,7 +89,7 @@
 
 import Vue from 'vue';
 import CertificateLine from './CertificateLine.vue';
-import {CertificateDetails} from "@/openapi-types";
+import { CertificateDetails } from '@/openapi-types';
 
 export default Vue.extend({
   components: {

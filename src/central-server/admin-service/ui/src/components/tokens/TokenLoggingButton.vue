@@ -82,6 +82,12 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      showLoginDialog: false,
+      showLogoutDialog: false,
+    };
+  },
   computed: {
     ...mapState(userStore, ['hasPermission']),
     showLogin(): boolean {
@@ -103,12 +109,6 @@ export default Vue.extend({
       );
     },
   },
-  data() {
-    return {
-      showLoginDialog: false,
-      showLogoutDialog: false,
-    };
-  },
   methods: {
     tokenLoggedIn(): void {
       this.showLoginDialog = false;
@@ -117,7 +117,7 @@ export default Vue.extend({
     tokenLoggedOut(): void {
       this.showLogoutDialog = false;
       this.$emit('token-logout');
-    }
+    },
   },
 });
 </script>
