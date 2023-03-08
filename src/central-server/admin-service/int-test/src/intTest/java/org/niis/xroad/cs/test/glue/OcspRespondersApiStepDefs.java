@@ -29,8 +29,7 @@ package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.AssertionOperation;
-import io.cucumber.java.en.And;
-import io.cucumber.java.en.When;
+import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.niis.xroad.cs.test.api.FeignOcspRespondersApi;
@@ -44,6 +43,7 @@ import java.util.UUID;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.NEW_OCSP_RESPONDER_URL;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.OCSP_RESPONDER_ID;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -54,7 +54,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
 
     private String getKeyOldOcspResponderCertHash;
 
-    @When("OCSP responder url is updated")
+    @Step("OCSP responder url is updated")
     public void updateOcspResponderUrl() {
         Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
@@ -71,7 +71,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
     }
 
 
-    @When("OCSP responder url and certificate is updated")
+    @Step("OCSP responder url and certificate is updated")
     public void ocspResponderUrlAndCertificateIsUpdated() throws Exception {
         Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
@@ -94,7 +94,7 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
         putStepData(NEW_OCSP_RESPONDER_URL, newUrl);
     }
 
-    @And("the OCSP responder certificate was updated")
+    @Step("the OCSP responder certificate was updated")
     public void theOCSPResponderCertificateWasUpdated() {
         Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
@@ -109,6 +109,16 @@ public class OcspRespondersApiStepDefs extends BaseStepDefs {
                         .operation(AssertionOperation.NOT_EQUALS)
                         .expectedValue(getKeyOldOcspResponderCertHash)
                         .build())
+                .execute();
+    }
+
+    @Step("OCSP responder is deleted by id")
+    public void ocspResponderIsDeletedById() {
+        Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
+
+        final ResponseEntity<Void> response = ocspRespondersApi.deleteOcspResponder(ocspResponderId);
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
                 .execute();
     }
 }

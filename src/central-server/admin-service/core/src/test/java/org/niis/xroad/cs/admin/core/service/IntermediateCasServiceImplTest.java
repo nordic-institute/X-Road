@@ -49,6 +49,7 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.security.cert.CertificateEncodingException;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -182,12 +183,12 @@ class IntermediateCasServiceImplTest {
         when(caInfoRepository.findById(ID)).thenReturn(Optional.of(caInfo));
         when(caInfo.getApprovedCa()).thenReturn(new ApprovedCaEntity());
         final OcspInfoEntity ocspResponderToDelete = ocspInfoEntity(OCSP_INFO_ID);
-        when(caInfo.getOcspInfos()).thenReturn(Set.of(ocspResponderToDelete));
+        final Set<OcspInfoEntity> ocspResponders = new HashSet<>(Set.of(ocspResponderToDelete));
+        when(caInfo.getOcspInfos()).thenReturn(ocspResponders);
 
         intermediateCasService.deleteOcspResponder(ID, OCSP_INFO_ID);
 
-        verify(ocspInfoRepository).delete(ocspResponderToDelete);
-
+        assertThat(ocspResponders).hasSize(0);
         verify(auditDataHelper).put(OCSP_ID, OCSP_INFO_ID);
     }
 
