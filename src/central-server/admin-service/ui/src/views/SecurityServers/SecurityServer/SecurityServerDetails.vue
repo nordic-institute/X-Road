@@ -24,9 +24,6 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<!--
-  Member details view
--->
 <template>
   <div>
     <XrdEmptyPlaceholder
@@ -92,26 +89,30 @@
             >mdi-close-circle
           </v-icon>
         </div>
-        <div v-if="canDeleteServer" class="action-text">
-          {{ $t('securityServers.securityServer.deleteSecurityServer') }}
-          "{{ securityServer.xroad_id.server_code }}"
+        <div
+          v-if="canDeleteServer"
+          class="action-text"
+          data-test="btn-delete-security-server"
+        >
+          {{
+            `${$t('securityServers.securityServer.deleteSecurityServer')} "${
+              securityServer.xroad_id.server_code
+            }"`
+          }}
         </div>
       </div>
-
-      <!-- Delete Security Server - Check code dialog -->
-
-      <delete-security-server-address-dialog
-        ref="deleteDialog"
-        :server-code="securityServer.xroad_id.server_code"
-        :security-server-id="serverId"
-        @delete="deleteServer"
-      />
-      <edit-security-server-address-dialog
-        ref="editAddressDialog"
-        :address="securityServer.server_address"
-        :security-server-id="serverId"
-      />
     </main>
+    <delete-security-server-address-dialog
+      ref="deleteDialog"
+      :server-code="serveCode"
+      :security-server-id="serverId"
+      @deleted="deleteServer"
+    />
+    <edit-security-server-address-dialog
+      ref="editAddressDialog"
+      :address="address"
+      :security-server-id="serverId"
+    />
   </div>
 </template>
 
@@ -119,12 +120,13 @@
 import Vue from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { Colors, Permissions, RouteName } from '@/global';
-import { mapState, mapStores } from 'pinia';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { useSecurityServerStore } from '@/store/modules/security-servers';
 import { SecurityServer } from '@/openapi-types';
 import { userStore } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/EditSecurityServerAddressDialog.vue';
 import DeleteSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerAddressDialog.vue';
+import { notificationsStore } from '@/store/modules/notifications';
 
 /**
  * Component for a Security server details view
@@ -162,15 +164,25 @@ export default Vue.extend({
     canDeleteServer(): boolean {
       return this.hasPermission(Permissions.DELETE_SECURITY_SERVER);
     },
+    address(): string | null {
+      return this.securityServer?.server_address || null;
+    },
+    serveCode(): string | null {
+      return this.securityServer?.xroad_id.server_code || null;
+    },
   },
   methods: {
+    ...mapActions(notificationsStore, ['showSuccess']),
     editOwnerName(): void {
       // do something
     },
     deleteServer() {
-      this.$router.push({
+      this.$router.replace({
         name: RouteName.SecurityServers,
       });
+      this.showSuccess(
+        this.$t('securityServers.dialogs.deleteAddress.success'),
+      );
     },
   },
 });
