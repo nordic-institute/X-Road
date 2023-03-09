@@ -72,7 +72,7 @@ public class BackupService {
      * @throws BackupFileNotFoundException if backup file is not found
      */
     public void deleteBackup(String filename) throws BackupFileNotFoundException {
-        auditDataHelper.putBackupFilename(backupRepository.getFilePath(filename));
+        auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
         if (getBackup(filename).isEmpty()) {
             throw new BackupFileNotFoundException(filename);
         }
@@ -109,7 +109,7 @@ public class BackupService {
      */
     public BackupFile uploadBackup(boolean ignoreWarnings, String filename, byte[] fileBytes)
             throws InvalidFilenameException, UnhandledWarningsException, BackupInvalidFileException {
-        auditDataHelper.putBackupFilename(backupRepository.getFilePath(filename));
+        auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
         if (!backupValidator.isValidBackupFilename(filename)) {
             throw new InvalidFilenameException("uploading backup file failed because of invalid filename ("
                     + filename + ")");

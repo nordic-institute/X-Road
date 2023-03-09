@@ -66,7 +66,7 @@ public abstract class BaseConfigurationBackupGenerator {
     public BackupFile generateBackup() throws InterruptedException, BackupFileNotFoundException {
         String filename = generateBackupFileName();
 
-        auditDataHelper.putBackupFilename(backupRepository.getFilePath(filename));
+        auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
 
         try {
             var args = getScriptArgs(filename);

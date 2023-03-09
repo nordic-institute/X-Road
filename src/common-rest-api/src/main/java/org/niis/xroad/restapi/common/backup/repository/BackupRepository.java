@@ -111,7 +111,7 @@ public class BackupRepository {
         if (!backupValidator.isValidBackupFilename(filename)) {
             throw new BackupFileNotFoundException(filename);
         }
-        var path = getFilePath(filename);
+        var path = getAbsoluteBackupFilePath(filename);
         try {
             Files.deleteIfExists(path);
         } catch (IOException ioe) {
@@ -130,7 +130,7 @@ public class BackupRepository {
         if (!backupValidator.isValidBackupFilename(filename)) {
             throw new BackupFileNotFoundException(filename);
         }
-        var path = getFilePath(filename);
+        var path = getAbsoluteBackupFilePath(filename);
         try {
             return Files.readAllBytes(path);
         } catch (IOException ioe) {
@@ -150,7 +150,7 @@ public class BackupRepository {
         if (!backupValidator.isValidBackupFilename(filename)) {
             throw new BackupInvalidFileException(INVALID_BACKUP_FILENAME);
         }
-        var path = getFilePath(filename);
+        var path = getAbsoluteBackupFilePath(filename);
         try {
             Files.write(path, content);
             return getCreatedAt(path);
@@ -173,8 +173,8 @@ public class BackupRepository {
      * @param filename backup filename
      * @return path to the file
      */
-    public Path getFilePath(String filename) {
-        return Paths.get(getConfigurationBackupPath(), filename);
+    public Path getAbsoluteBackupFilePath(String filename) {
+        return Paths.get(CONFIGURATION_BACKUP_PATH).resolve(filename);
     }
 
 
@@ -185,6 +185,6 @@ public class BackupRepository {
      * @return true if file exists
      */
     public boolean fileExists(String filename) {
-        return getFilePath(filename).toFile().exists();
+        return getAbsoluteBackupFilePath(filename).toFile().exists();
     }
 }

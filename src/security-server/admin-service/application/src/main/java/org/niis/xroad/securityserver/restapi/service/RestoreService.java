@@ -77,7 +77,7 @@ public class RestoreService {
      */
     public synchronized void restoreFromBackup(String fileName) throws BackupFileNotFoundException,
             InterruptedException, RestoreProcessFailedException {
-        auditDataHelper.putBackupFilename(backupRepository.getFilePath(fileName));
+        auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(fileName));
         String configurationBackupPath = backupRepository.getConfigurationBackupPath();
         String backupFilePath = configurationBackupPath + fileName;
         File backupFile = new File(backupFilePath);
