@@ -46,6 +46,7 @@
           class="search-input"
           autofocus
           append-icon="icon-Search"
+          data-test="management-subsystem-search-field"
         >
         </v-text-field>
 
@@ -63,6 +64,13 @@
           class="elevation-0 data-table"
           @update:options="changeOptions"
         >
+          <template #[`item.data-table-select`]="{ isSelected, select }">
+            <v-simple-checkbox
+              data-test="management-subsystem-checkbox"
+              :value="isSelected"
+              @input="select($event)"
+            ></v-simple-checkbox>
+          </template>
           <template #[`item.member_name`]="{ item }">
             <div>{{ item.member_name }}</div>
           </template>
@@ -96,7 +104,7 @@
 
         <xrd-button
           :disabled="!selectedSubsystems || selectedSubsystems.length === 0"
-          data-test="select-button"
+          data-test="management-subsystem-select-button"
           @click="select()"
           >{{ $t('action.select') }}</xrd-button
         >

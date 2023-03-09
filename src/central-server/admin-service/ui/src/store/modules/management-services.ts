@@ -36,7 +36,7 @@ interface ManagementServicesState {
   managementServicesConfiguration: ManagementServicesConfiguration;
 }
 
-export const managementServicesStore = defineStore('managementServicesStore', {
+export const managementServicesStore = defineStore('managementServices', {
   state: (): ManagementServicesState => {
     return {
       managementServicesConfiguration: {
