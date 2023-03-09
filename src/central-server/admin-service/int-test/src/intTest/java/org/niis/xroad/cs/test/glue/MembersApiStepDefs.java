@@ -27,13 +27,17 @@
 
 package org.niis.xroad.cs.test.glue;
 
+import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.ClientIdDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
+import org.niis.xroad.cs.openapi.model.MemberNameDto;
+import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SubsystemDto;
 import org.niis.xroad.cs.test.api.FeignMembersApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Set;
@@ -42,6 +46,7 @@ import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.MEMBER;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -51,7 +56,7 @@ public class MembersApiStepDefs extends BaseStepDefs {
     private FeignMembersApi membersApi;
 
     @Step("new member {string} is added")
-    public void newMemberCSEEMemberEEIsCreated(String memberId) {
+    public void newMemberIsCreated(String memberId) {
         newMemberAddedWithName(memberId, "Member name for " + memberId);
     }
 
@@ -70,15 +75,12 @@ public class MembersApiStepDefs extends BaseStepDefs {
                 .xroadId(clientIdDto);
 
         final ResponseEntity<ClientDto> response = membersApi.addMember(dto);
-
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(CREATED))
-                .execute();
+        validateMemberResponse(response, CREATED, memberId, name);
     }
 
 
     @Step("member {string} is not in global group {string}")
-    public void memberCSEEMemberIsNotInGlobalGroupSecurityServerOwners(String memberId, String globalGroupCode) {
+    public void memberIsNotInGlobalGroup(String memberId, String globalGroupCode) {
         final ResponseEntity<Set<MemberGlobalGroupDto>> response = membersApi.getMemberGlobalGroups(memberId);
 
         validate(response)
@@ -86,11 +88,10 @@ public class MembersApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(0, "body.?[groupCode=='" + globalGroupCode + "'].size()",
                         "Verify groups do not contain " + globalGroupCode))
                 .execute();
-
     }
 
     @Step("member {string} is in global group {string}")
-    public void memberCSEEMemberIsInGlobalGroupSecurityServerOwners(String memberId, String globalGroupCode) {
+    public void memberIsInGlobalGroup(String memberId, String globalGroupCode) {
         final ResponseEntity<Set<MemberGlobalGroupDto>> response = membersApi.getMemberGlobalGroups(memberId);
 
         validate(response)
@@ -117,6 +118,90 @@ public class MembersApiStepDefs extends BaseStepDefs {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(0, "body.?[subsystemId.subsystemCode == '" + subsystemCode + "'].size"))
+                .execute();
+    }
+
+    @Step("user can retrieve member {string} details")
+    public void userCanRetrieveMemberDetails(String memberId) {
+        final ResponseEntity<ClientDto> response = membersApi.getMember(memberId);
+
+        validateMemberResponse(response, OK, memberId, "Member name for " + memberId);
+    }
+
+    @Step("user deletes member {string}")
+    public void userCanDeleteMember(String memberId) {
+        final ResponseEntity<Void> response = membersApi.deleteMember(memberId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                .execute();
+    }
+
+    @Step("user requests member {string} details")
+    public void userRequestsMemberDetails(String memberId) {
+        try {
+            var result = membersApi.getMember(memberId);
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("user updates member {string} name to {string}")
+    public void userUpdatesMemberName(String memberId, String memberName) {
+        final var response = membersApi.updateMemberName(memberId, new MemberNameDto().memberName(memberName));
+
+        validateMemberResponse(response, OK, memberId, memberName);
+    }
+
+    private void validateMemberResponse(ResponseEntity<ClientDto> response, HttpStatus status,
+                                        String memberId, String memberName) {
+        final String[] idParts = memberId.split(":");
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(status))
+                .assertion(equalsAssertion(memberName, "body.memberName"))
+                .assertion(equalsAssertion(MEMBER, "body.xroadId.type"))
+                .assertion(equalsAssertion(idParts[0], "body.xroadId.instanceId"))
+                .assertion(equalsAssertion(idParts[1], "body.xroadId.memberClass"))
+                .assertion(equalsAssertion(idParts[2], "body.xroadId.memberCode"))
+                .execute();
+    }
+
+    @Step("member {string} name is {string}")
+    public void validateMemberName(String memberId, String memberName) {
+        final var response = membersApi.getMember(memberId);
+
+        validateMemberResponse(response, OK, memberId, memberName);
+    }
+
+    @Step("member {string} owned servers contains {string}")
+    public void memberOwnedServersContains(String memberId, String serverId) {
+        final ResponseEntity<Set<SecurityServerDto>> response = membersApi.getOwnedServers(memberId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1, "body.?[id=='" + serverId + "'].size()"))
+                .execute();
+    }
+
+    @Step("Owned servers list for not existing member should be empty")
+    public void validateOwnedServersIsEmpty() {
+        final var response = membersApi.getOwnedServers(randomMemberId(3));
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(0, "body.size()"))
+                .execute();
+    }
+
+    @Step("Global groups for not existing member should be empty")
+    public void validateGlobalGroupsIsEmpty() {
+        final var response = membersApi.getMemberGlobalGroups(randomMemberId(3));
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(0, "body.size()"))
                 .execute();
     }
 

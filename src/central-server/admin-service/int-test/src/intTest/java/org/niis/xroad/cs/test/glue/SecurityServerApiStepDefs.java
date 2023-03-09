@@ -43,7 +43,6 @@ import java.util.Set;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.junit.Assert.fail;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESULT_LIST;
@@ -250,8 +249,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private String randomSecurityServerId() {
-        return String.format("%s:%s:%s:%s", randomAlphabetic(3), randomAlphabetic(3),
-                randomAlphabetic(3), randomAlphabetic(3));
+        return randomMemberId(4);
     }
 
     @Step("user requests security servers list sorted by {string} {string}")
