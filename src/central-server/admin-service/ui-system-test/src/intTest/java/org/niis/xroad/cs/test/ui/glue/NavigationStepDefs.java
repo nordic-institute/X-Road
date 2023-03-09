@@ -58,6 +58,11 @@ public class NavigationStepDefs extends BaseUiStepDefs {
         commonPageObj.menu.settingsTab().click();
     }
 
+    @Step("Security Servers tab is selected")
+    public void navigateSecurityServersTab() {
+        commonPageObj.menu.securityServersTab().click();
+    }
+
     @Step("System settings sub-tab is selected")
     public void navigateSystemSettingsSubTa() {
         commonPageObj.subMenu.settingsTab().click();
