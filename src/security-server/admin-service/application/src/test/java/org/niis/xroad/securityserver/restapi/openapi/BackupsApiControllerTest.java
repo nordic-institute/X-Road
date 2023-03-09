@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -50,12 +50,13 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Set;
 
+import static java.time.Instant.ofEpochMilli;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -90,17 +91,15 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Before
     public void setup() {
-        BackupFile bf1 = new BackupFile(BACKUP_FILE_1_NAME);
-        bf1.setCreatedAt(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
-        BackupFile bf2 = new BackupFile(BACKUP_FILE_2_NAME);
-        bf2.setCreatedAt(new Date(BACKUP_FILE_2_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
+        BackupFile bf1 = new BackupFile(BACKUP_FILE_1_NAME, ofEpochMilli(BACKUP_FILE_1_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC));
+        BackupFile bf2 = new BackupFile(BACKUP_FILE_2_NAME, ofEpochMilli(BACKUP_FILE_2_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC));
 
         doReturn(new ArrayList<>(Arrays.asList(bf1, bf2))).when(backupService).getBackupFiles();
         doReturn(false).when(tokenService).hasHardwareTokens();
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void getBackups() throws Exception {
         ResponseEntity<Set<Backup>> response = backupsApiController.getBackups();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -122,7 +121,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void getBackupsEmptyList() {
         when(backupService.getBackupFiles()).thenReturn(new ArrayList<>());
 
@@ -134,7 +133,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void getBackupsException() {
         when(backupService.getBackupFiles()).thenThrow(new RuntimeException());
 
@@ -147,7 +146,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void deleteBackup() {
         ResponseEntity<Void> response = backupsApiController
                 .deleteBackup(BACKUP_FILE_1_NAME);
@@ -156,7 +155,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void deleteNonExistingBackup() throws BackupFileNotFoundException {
         String filename = "test_file.gpg";
 
@@ -171,7 +170,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void downloadBackup() throws Exception {
         byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
         when(backupService.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
@@ -184,7 +183,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void downloadNonExistingBackup() throws BackupFileNotFoundException {
         String filename = "test_file.tar";
 
@@ -200,9 +199,9 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void addBackup() throws Exception {
-        BackupFile backupFile = new BackupFile(BACKUP_FILE_1_NAME);
+        BackupFile backupFile = new BackupFile(BACKUP_FILE_1_NAME, Instant.now().atOffset(ZoneOffset.UTC));
         when(backupGenerator.generateBackup()).thenReturn(backupFile);
 
         ResponseEntity<Backup> response = backupsApiController.addBackup();
@@ -211,7 +210,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void addBackupFails() throws Exception {
         doThrow(new InterruptedException("")).when(backupGenerator).generateBackup();
 
@@ -224,9 +223,9 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void uploadBackup() throws Exception {
-        BackupFile backupFile = new BackupFile(BACKUP_FILE_1_NAME);
+        BackupFile backupFile = new BackupFile(BACKUP_FILE_1_NAME, Instant.now().atOffset(ZoneOffset.UTC));
 
         when(backupService.uploadBackup(any(Boolean.class), any(String.class), any())).thenReturn(backupFile);
 
@@ -236,7 +235,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void uploadBackupWithInvalidFilename() throws Exception {
         MockMultipartFile mockMultipartWithInvalidName = new MockMultipartFile("test", "/test.gpg",
                 "multipart/form-data", "content".getBytes());
@@ -250,7 +249,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void uploadBackupFileAlreadyExists() throws Exception {
         Mockito.doThrow(new UnhandledWarningsException(new WarningDeviation(""))).when(backupService)
                 .uploadBackup(any(Boolean.class), any(String.class), any());
@@ -264,7 +263,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
+    @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void uploadBackupFileInvalidBackupFile() throws Exception {
         Mockito.doThrow(new BackupInvalidFileException("")).when(backupService)
                 .uploadBackup(any(Boolean.class), any(String.class), any());
@@ -278,7 +277,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void restoreFromBackup() {
         ResponseEntity<TokensLoggedOut> response = backupsApiController
                 .restoreBackup(BACKUP_FILE_1_NAME);
@@ -288,7 +287,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void restoreFromBackupWithLoggedOutTokens() {
         when(tokenService.hasHardwareTokens()).thenReturn(true);
         ResponseEntity<TokensLoggedOut> response = backupsApiController
@@ -299,7 +298,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void restoreFromBackupNotFound() throws Exception {
         Mockito.doThrow(new BackupFileNotFoundException("")).when(restoreService).restoreFromBackup(any());
         try {
@@ -311,7 +310,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void restoreFromBackupInterrupted() throws Exception {
         doThrow(new InterruptedException()).when(restoreService).restoreFromBackup(any());
         try {
@@ -323,10 +322,10 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void restoreFromBackupFailed() throws Exception {
         Mockito.doThrow(new RestoreProcessFailedException(
-                new ProcessFailedException("process failed"), "restore failed"))
+                        new ProcessFailedException("process failed"), "restore failed"))
                 .when(restoreService).restoreFromBackup(any());
         try {
             backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
