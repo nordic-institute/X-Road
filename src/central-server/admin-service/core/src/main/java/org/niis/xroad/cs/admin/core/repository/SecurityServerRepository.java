@@ -46,4 +46,7 @@ public interface SecurityServerRepository extends
     Option<SecurityServerEntity> findBy(SecurityServerId serverId);
 
     long count(SecurityServerId id);
+
+    boolean existsBy(SecurityServerId serverId);
+
 }

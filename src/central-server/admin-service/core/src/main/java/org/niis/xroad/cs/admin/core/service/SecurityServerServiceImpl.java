@@ -48,9 +48,11 @@ import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
+import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
+import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.data.domain.Page;
@@ -65,6 +67,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.AUTH_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ADDRESS;
@@ -78,6 +81,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
 public class SecurityServerServiceImpl implements SecurityServerService {
 
     private final StableSortHelper stableSortHelper;
+    private final AuthCertRepository authCertRepository;
     private final SecurityServerRepository securityServerRepository;
     private final ManagementRequestService managementRequestService;
     private final ClientService clientService;
@@ -200,6 +204,26 @@ public class SecurityServerServiceImpl implements SecurityServerService {
             groupMemberService.removeMemberFromGlobalGroup(
                     MemberId.create(owner.getIdentifier()), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
         }
+    }
+
+    @Override
+    public void deleteAuthCertificate(SecurityServerId serverId, Integer certificateId) {
+        auditDataHelper.put(OWNER_CLASS, serverId.getMemberClass());
+        auditDataHelper.put(OWNER_CODE, serverId.getMemberCode());
+        auditDataHelper.put(SERVER_CODE, serverId.getServerCode());
+
+        if (!securityServerRepository.existsBy(serverId)) {
+            throw new NotFoundException(SECURITY_SERVER_NOT_FOUND);
+        }
+
+        final AuthCertEntity authCertificate = authCertRepository.findById(certificateId)
+                .filter(authCertEntity -> authCertEntity.getSecurityServer().getServerId().equals(serverId))
+                .orElseThrow(() -> new NotFoundException(AUTH_CERTIFICATE_NOT_FOUND));
+
+        auditDataHelper.putCertificateHash(authCertificate.getCert());
+
+        final var certDeletionRequest = new AuthenticationCertificateDeletionRequest(CENTER, serverId, authCertificate.getCert());
+        managementRequestService.add(certDeletionRequest);
     }
 
 }

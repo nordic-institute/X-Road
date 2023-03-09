@@ -78,6 +78,10 @@ public interface JpaSecurityServerRepository extends
         );
     }
 
+    default boolean existsBy(SecurityServerId serverId) {
+        return exists(serverIdSpec(serverId));
+    }
+
     default long count(SecurityServerId id) {
         return count(serverIdSpec(id));
     }

@@ -62,6 +62,7 @@ import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
+import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.service.managementrequest.ManagementRequestServiceImpl;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -71,6 +72,7 @@ import org.springframework.data.domain.PageImpl;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 
@@ -82,11 +84,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
 import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
@@ -106,15 +110,14 @@ class SecurityServerServiceImplTest implements WithInOrder {
     private ClientService clientService;
     @Mock
     private SecurityServerRepository securityServerRepository;
-
     @Mock
-    private SecurityServerMapper securityServerMapper;
-
+    private AuthCertRepository authCertRepository;
     @Mock
     private CertificateConverter certificateConverter;
-
     @Mock
     private AuditDataHelper auditDataHelper;
+    @Mock
+    private SecurityServerMapper securityServerMapper;
 
     @InjectMocks
     private SecurityServerServiceImpl securityServerService;
@@ -372,6 +375,99 @@ class SecurityServerServiceImplTest implements WithInOrder {
             verify(auditDataHelper).put(SERVER_CODE, "SERVER-CODE");
             verify(auditDataHelper).put(OWNER_CODE, "MEMBER");
             verify(auditDataHelper).put(OWNER_CLASS, "CLASS");
+        }
+    }
+
+    @Nested
+    class DeleteAuthCertificate {
+
+        private final Integer certificateId = new Random().nextInt();
+        private final byte[] certBytes = new byte[]{1, 2, 3, 4, 5};
+        private final String instance = "INSTANCE";
+        private final String memberClass = "CLASS";
+        private final String memberCode = "CODE";
+        private final String serverCode = "SERVER-CODE";
+        private final SecurityServerId securityServerId = SecurityServerId.Conf.create(instance, memberClass, memberCode, serverCode);
+        private final SecurityServerIdEntity securityServerIdEntity = SecurityServerIdEntity.create(securityServerId);
+
+        @Mock
+        private AuthCertEntity authCertEntity;
+
+        @Captor
+        private ArgumentCaptor<AuthenticationCertificateDeletionRequest> argCaptor;
+
+        @Test
+        void deleteAuthCertificateShouldThrowServerNotFound() {
+            when(securityServerRepository.existsBy(securityServerId)).thenReturn(false);
+
+            assertThatThrownBy(() -> securityServerService.deleteAuthCertificate(securityServerId, certificateId))
+                    .isInstanceOf(NotFoundException.class)
+                    .hasMessage("Security server not found");
+
+            verify(auditDataHelper).put(OWNER_CLASS, memberClass);
+            verify(auditDataHelper).put(OWNER_CODE, memberCode);
+            verify(auditDataHelper).put(RestApiAuditProperty.SERVER_CODE, serverCode);
+            verifyNoMoreInteractions(auditDataHelper);
+
+            verifyNoInteractions(authCertRepository, managementRequestService);
+        }
+
+        @Test
+        void deleteAuthCertificateShouldThrowCertificateNotFound() {
+            when(securityServerRepository.existsBy(securityServerId)).thenReturn(true);
+            when(authCertRepository.findById(certificateId)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> securityServerService.deleteAuthCertificate(securityServerId, certificateId))
+                    .isInstanceOf(NotFoundException.class)
+                    .hasMessage("Authentication certificate not found");
+
+            verify(auditDataHelper).put(OWNER_CLASS, memberClass);
+            verify(auditDataHelper).put(OWNER_CODE, memberCode);
+            verify(auditDataHelper).put(RestApiAuditProperty.SERVER_CODE, serverCode);
+            verifyNoMoreInteractions(auditDataHelper);
+            verifyNoInteractions(managementRequestService);
+        }
+
+        @Test
+        void deleteAuthCertificateShouldThrowCertificateNotFoundWhenCertBelongsToOtherServer() {
+            when(securityServerRepository.existsBy(securityServerId)).thenReturn(true);
+            when(authCertRepository.findById(certificateId)).thenReturn(Optional.of(authCertEntity));
+            when(authCertEntity.getSecurityServer()).thenReturn(securityServerEntity);
+            when(securityServerEntity.getServerId()).thenReturn(mock(SecurityServerIdEntity.class));
+
+            assertThatThrownBy(() -> securityServerService.deleteAuthCertificate(securityServerId, certificateId))
+                    .isInstanceOf(NotFoundException.class)
+                    .hasMessage("Authentication certificate not found");
+
+            verify(auditDataHelper).put(OWNER_CLASS, memberClass);
+            verify(auditDataHelper).put(OWNER_CODE, memberCode);
+            verify(auditDataHelper).put(RestApiAuditProperty.SERVER_CODE, serverCode);
+            verifyNoMoreInteractions(auditDataHelper);
+            verifyNoInteractions(managementRequestService);
+        }
+
+        @Test
+        void deleteAuthCertificate() {
+            when(securityServerRepository.existsBy(securityServerId)).thenReturn(true);
+            when(authCertRepository.findById(certificateId)).thenReturn(Optional.of(authCertEntity));
+            when(authCertEntity.getSecurityServer()).thenReturn(securityServerEntity);
+            when(securityServerEntity.getServerId()).thenReturn(securityServerIdEntity);
+            when(authCertEntity.getCert()).thenReturn(certBytes);
+
+            securityServerService.deleteAuthCertificate(securityServerId, certificateId);
+
+            verify(auditDataHelper).put(OWNER_CLASS, memberClass);
+            verify(auditDataHelper).put(OWNER_CODE, memberCode);
+            verify(auditDataHelper).put(RestApiAuditProperty.SERVER_CODE, serverCode);
+            verify(auditDataHelper).putCertificateHash(certBytes);
+            verify(managementRequestService).add(argCaptor.capture());
+
+            final AuthenticationCertificateDeletionRequest certDeletionRequest = argCaptor.getValue();
+
+            assertThat(certDeletionRequest.getAuthCert()).isEqualTo(certBytes);
+            assertThat(certDeletionRequest.getManagementRequestType()).isEqualTo(AUTH_CERT_DELETION_REQUEST);
+            assertThat(certDeletionRequest.getOrigin()).isEqualTo(CENTER);
+            assertThat(certDeletionRequest.getSecurityServerId()).isEqualTo(securityServerId);
         }
     }
 }

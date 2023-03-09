@@ -115,6 +115,7 @@ public enum RestApiAuditEvent {
     SKIP_UNREGISTER_AUTH_CERT("Skip unregistration of authentication certificate"),
     UPDATE_TOKEN_NAME("Set friendly name to token"),
     UPDATE_KEY_NAME("Set friendly name to key"),
+    DELETE_SECURITY_SERVER_AUTH_CERT("Delete authentication certificate of security server"),
 
     // backup and restore events
     BACKUP("Back up configuration"),

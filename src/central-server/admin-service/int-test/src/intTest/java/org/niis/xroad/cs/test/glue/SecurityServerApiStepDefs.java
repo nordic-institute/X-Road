@@ -248,6 +248,18 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @Step("user can delete security server {string} authentication certificate")
+    public void userCanDeleteSecurityServerAuthenticationCertificate(String serverId) {
+        final var certificatesResponse = securityServersApi.getSecurityServerAuthCerts(serverId);
+        final Integer certificateId = certificatesResponse.getBody().stream().findFirst()
+                .map(SecurityServerAuthenticationCertificateDetailsDto::getId).get();
+
+        final ResponseEntity<Void> response = securityServersApi.deleteSecurityServerAuthCert(serverId, certificateId);
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                .execute();
+    }
+
     @SuppressWarnings("checkstyle:MagicNumber")
     private String randomSecurityServerId() {
         return String.format("%s:%s:%s:%s", randomAlphabetic(3), randomAlphabetic(3),

@@ -47,8 +47,8 @@ public class AuthenticationCertificateDeletionRequest extends Request {
         super(origin, identifier);
     }
 
-    public AuthenticationCertificateDeletionRequest(Origin origin, SecurityServerId identifier, byte[] authCert) {
-        this(origin, identifier);
+    public AuthenticationCertificateDeletionRequest(Origin origin, SecurityServerId securityServerId, byte[] authCert) {
+        this(origin, securityServerId);
         this.authCert = authCert;
     }
 
