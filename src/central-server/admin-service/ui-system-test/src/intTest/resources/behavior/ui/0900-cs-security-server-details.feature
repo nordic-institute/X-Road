@@ -1,6 +1,6 @@
 @CentralServer
 @SecurityServers
-Feature: CS: Security servers: Details
+Feature: CS: Security server: Details
 
   Background:
     Given CentralServer login page is open
