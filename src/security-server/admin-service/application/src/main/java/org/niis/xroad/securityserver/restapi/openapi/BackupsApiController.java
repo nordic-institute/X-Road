@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,6 +27,12 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.common.backup.dto.BackupFile;
+import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
+import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
+import org.niis.xroad.restapi.common.backup.exception.InvalidFilenameException;
+import org.niis.xroad.restapi.common.backup.service.BackupService;
+import org.niis.xroad.restapi.common.backup.service.BackupValidator;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -34,18 +40,13 @@ import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
-import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.converter.BackupConverter;
-import org.niis.xroad.securityserver.restapi.dto.BackupFile;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupExt;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOut;
-import org.niis.xroad.securityserver.restapi.service.BackupFileNotFoundException;
-import org.niis.xroad.securityserver.restapi.service.BackupService;
-import org.niis.xroad.securityserver.restapi.service.InvalidBackupFileException;
-import org.niis.xroad.securityserver.restapi.service.InvalidFilenameException;
 import org.niis.xroad.securityserver.restapi.service.RestoreProcessFailedException;
 import org.niis.xroad.securityserver.restapi.service.RestoreService;
+import org.niis.xroad.securityserver.restapi.service.SecurityServerConfigurationBackupGenerator;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -73,8 +74,10 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BA
 @RequiredArgsConstructor
 public class BackupsApiController implements BackupsApi {
     private final BackupService backupService;
+    private final BackupValidator backupValidator;
     private final RestoreService restoreService;
     private final BackupConverter backupConverter;
+    private final SecurityServerConfigurationBackupGenerator backupGenerator;
     private final TokenService tokenService;
 
     @Override
@@ -115,10 +118,12 @@ public class BackupsApiController implements BackupsApi {
     @AuditEventMethod(event = RestApiAuditEvent.BACKUP)
     public ResponseEntity<Backup> addBackup() {
         try {
-            BackupFile backupFile = backupService.generateBackup();
+            BackupFile backupFile = backupGenerator.generateBackup();
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
         } catch (InterruptedException e) {
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_GENERATE_BACKUP_INTERRUPTED));
+        } catch (BackupFileNotFoundException e) {
+            throw new InternalServerErrorException(e.getErrorDeviation());
         }
     }
 
@@ -127,13 +132,15 @@ public class BackupsApiController implements BackupsApi {
     @AuditEventMethod(event = RestApiAuditEvent.BACKUP)
     public ResponseEntity<BackupExt> addBackupExt() {
         try {
-            BackupFile backupFile = backupService.generateBackup();
+            BackupFile backupFile = backupGenerator.generateBackup();
             BackupExt backupExt = new BackupExt();
             backupExt.setBackup(backupConverter.convert(backupFile));
             backupExt.setLocalConfPresent((new File("/etc/xroad/services/local.conf")).exists());
             return new ResponseEntity<>(backupExt, HttpStatus.CREATED);
         } catch (InterruptedException e) {
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_GENERATE_BACKUP_INTERRUPTED));
+        } catch (BackupFileNotFoundException e) {
+            throw new InternalServerErrorException(e.getErrorDeviation());
         }
     }
 
@@ -145,7 +152,7 @@ public class BackupsApiController implements BackupsApi {
             BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, getValidOriginalFilename(file),
                     file.getBytes());
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
-        } catch (InvalidFilenameException | UnhandledWarningsException | InvalidBackupFileException e) {
+        } catch (InvalidFilenameException | UnhandledWarningsException | BackupInvalidFileException e) {
             throw new BadRequestException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -171,12 +178,6 @@ public class BackupsApiController implements BackupsApi {
         return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
     }
 
-    /**
-     * Get original filename from Multipartfile, or throw {@link InvalidFilenameException}
-     * if filename is not allowed
-     * @param file
-     * @return
-     */
     private String getValidOriginalFilename(MultipartFile file) throws InvalidFilenameException {
         String filename = file.getOriginalFilename();
         validateFilename(filename);
@@ -184,7 +185,7 @@ public class BackupsApiController implements BackupsApi {
     }
 
     private void validateFilename(String filename) throws InvalidFilenameException {
-        if (!FormatUtils.isValidBackupFilename(filename)) {
+        if (!backupValidator.isValidBackupFilename(filename)) {
             throw new InvalidFilenameException("invalid filename (" + filename + ")");
         }
     }
