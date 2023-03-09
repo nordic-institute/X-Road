@@ -28,10 +28,7 @@
 package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.CollectionCondition;
-import com.codeborne.selenide.SelenideElement;
 import io.cucumber.java.en.Step;
-import org.apache.commons.collections.ListUtils;
-import org.assertj.core.api.Assertions;
 import org.niis.xroad.cs.test.ui.page.SecurityServerClientsPageObj;
 import org.niis.xroad.cs.test.ui.page.SecurityServerNavigationObj;
 
@@ -59,8 +56,7 @@ public class SecurityServerClientsStepDefs extends BaseUiStepDefs {
     @Step("A client with name: {}, code: {}, class: {} & subsystem: {} is listed")
     public void clientIsListed(String memberName, String memberCode, String memberClass, String subsystem) {
         securityServerClientsPageObj.listRowOf(memberName, memberCode, memberClass, subsystem)
-                .shouldBe(visible)
-                .click();
+                .shouldBe(visible);
     }
 
     @Step("user can sort list by subsystem")
