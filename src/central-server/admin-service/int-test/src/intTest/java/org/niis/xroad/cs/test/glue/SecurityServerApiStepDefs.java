@@ -43,7 +43,6 @@ import java.util.Set;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.junit.Assert.fail;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESULT_LIST;
@@ -262,8 +261,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private String randomSecurityServerId() {
-        return String.format("%s:%s:%s:%s", randomAlphabetic(3), randomAlphabetic(3),
-                randomAlphabetic(3), randomAlphabetic(3));
+        return randomMemberId(4);
     }
 
     @Step("user requests security servers list sorted by {string} {string}")
@@ -302,5 +300,19 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         }
     }
 
+    @Step("security servers list, queried with {string} paged by {int}, page {int} contains {int} entries, {int} in total")
+    public void securityServersListQueryPaged(String q, int pageSize, int pageNumber, int itemsCount, int totalCount) {
+        PagingSortingParametersDto params = new PagingSortingParametersDto();
+        params.setLimit(pageSize);
+        params.setOffset(pageNumber - 1);
+        final ResponseEntity<PagedSecurityServersDto> response = securityServersApi.findSecurityServers(q, params);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(itemsCount, "body.items.size()"))
+                .assertion(equalsAssertion(itemsCount, "body.pagingMetadata.items"))
+                .assertion(equalsAssertion(totalCount, "body.pagingMetadata.totalItems"))
+                .execute();
+    }
 
 }

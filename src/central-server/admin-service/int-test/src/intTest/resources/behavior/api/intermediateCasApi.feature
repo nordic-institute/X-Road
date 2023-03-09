@@ -34,10 +34,18 @@ Feature: Intermediate CAS API
     Then intermediate CA has 3 OCSP responders
 
   Scenario: Deleting OCSP responder from intermediate CA
-    Given Certification service is created
-    And intermediate CA added to certification service
+    Given intermediate CA added to certification service
     And OCSP responder is added to intermediate CA
-    Then OCSP responder is deleted from intermediate CA
+    And intermediate CA has 1 OCSP responders
+    When OCSP responder is deleted from intermediate CA
+    Then intermediate CA has 0 OCSP responders
+
+  Scenario: Deleting OCSP responder from intermediate CA #2
+    Given intermediate CA added to certification service
+    And OCSP responder is added to intermediate CA
+    And intermediate CA has 1 OCSP responders
+    When OCSP responder is deleted by id
+    Then intermediate CA has 0 OCSP responders
 
   Scenario: Modify the OCSP responder of intermediate CA
     Given intermediate CA added to certification service

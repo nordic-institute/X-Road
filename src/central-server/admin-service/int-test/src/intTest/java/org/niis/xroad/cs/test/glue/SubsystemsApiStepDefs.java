@@ -27,6 +27,7 @@
 
 package org.niis.xroad.cs.test.glue;
 
+import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.ClientIdDto;
@@ -34,8 +35,11 @@ import org.niis.xroad.cs.test.api.FeignSubsystemsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
+import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.apache.commons.lang3.StringUtils.split;
+import static org.junit.Assert.fail;
 import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.SUBSYSTEM;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
@@ -83,5 +87,29 @@ public class SubsystemsApiStepDefs extends BaseStepDefs {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(NO_CONTENT))
                 .execute();
+    }
+
+    @Step("unregistering subsystem {string} from security server {string} should fail")
+    public void unregisteringSubsystemFromSecurityServerIdShouldFail(String subsystemId, String serverId) {
+        try {
+            subsystemsApi.unregisterSubsystem(subsystemId, serverId);
+            fail("Should fail.");
+        } catch (FeignException exception) {
+            validate(exception)
+                    .assertion(equalsAssertion(BAD_REQUEST.value(), "status"))
+                    .execute();
+        }
+    }
+
+    @Step("deleting subsystem {string} should fail")
+    public void deletingSubsystemShouldFail(String subsystemId) {
+        try {
+            subsystemsApi.deleteSubsystem(subsystemId);
+            fail("Should fail.");
+        } catch (FeignException exception) {
+            validate(exception)
+                    .assertion(equalsAssertion(BAD_REQUEST.value(), "status"))
+                    .execute();
+        }
     }
 }

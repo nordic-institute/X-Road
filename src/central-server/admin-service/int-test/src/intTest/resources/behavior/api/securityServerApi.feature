@@ -38,6 +38,33 @@ Feature: Security Server API
       | owner_name            | asc            | ownerName                |
 
   @Modifying
+  Scenario: Security server list paging and query
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And member class 'TEST' is created
+    And new member 'CS:TEST:member' is added with name 'name first'
+    And new member 'CS:TEST:another' is added with name 'name second'
+    And new security server 'CS:TEST:member:SS-1' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new security server 'CS:TEST:member:SS-3' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new security server 'CS:TEST:another:SS-2' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    Then security servers list, queried with '' paged by 2, page 1 contains 2 entries, 3 in total
+    And security servers list, queried with '' paged by 2, page 2 contains 1 entries, 3 in total
+    And security servers list, queried with '' paged by 2, page 3 contains 0 entries, 3 in total
+    And security servers list, queried with 'TEST' paged by 2, page 1 contains 2 entries, 3 in total
+    And security servers list, queried with 'TEST' paged by 2, page 2 contains 1 entries, 3 in total
+    And security servers list, queried with 'member' paged by 2, page 1 contains 2 entries, 2 in total
+    And security servers list, queried with 'another' paged by 2, page 1 contains 1 entries, 1 in total
+    And security servers list, queried with 'SS' paged by 5, page 1 contains 3 entries, 3 in total
+    And security servers list, queried with 'SS-1' paged by 2, page 1 contains 1 entries, 1 in total
+    And security servers list, queried with 'SS-2' paged by 2, page 1 contains 1 entries, 1 in total
+    And security servers list, queried with 'SS-3' paged by 2, page 1 contains 1 entries, 1 in total
+    And security servers list, queried with 'first' paged by 2, page 1 contains 2 entries, 2 in total
+    And security servers list, queried with 'second' paged by 2, page 1 contains 1 entries, 1 in total
+    And security servers list, queried with 'should not find' paged by 25, page 1 contains 0 entries, 0 in total
+
+  @Modifying
   Scenario: Get security server details
     Given Authentication header is set to MANAGEMENT_SERVICE
     And member class 'TEST' is created

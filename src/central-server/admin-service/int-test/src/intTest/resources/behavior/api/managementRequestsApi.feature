@@ -80,6 +80,7 @@ Feature: Management requests API
     And management request is with status 'APPROVED'
     And member 'CS:E2E:member-1' is not in global group 'security-server-owners'
     And member 'CS:E2E:member-2' is in global group 'security-server-owners'
+    And member 'CS:E2E:member-2' owned servers contains 'CS:E2E:member-2:SS-X'
 
   @Modifying
   Scenario: View management request details

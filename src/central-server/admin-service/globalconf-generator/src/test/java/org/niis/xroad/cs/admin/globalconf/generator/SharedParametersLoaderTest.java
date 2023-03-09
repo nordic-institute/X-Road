@@ -257,17 +257,17 @@ class SharedParametersLoaderTest {
         assertThat(members)
                 .hasSize(2)
                 .satisfiesExactly(
-                member -> {
-                    assertThat(member.getMemberCode()).isEqualTo("M1");
-                    assertThat(member.getSubsystems()).map(SharedParameters.Subsystem::getSubsystemCode)
-                            .containsOnly("S1");
-                },
-                member -> {
-                    assertThat(member.getMemberCode()).isEqualTo("M2");
-                    assertThat(member.getSubsystems()).map(SharedParameters.Subsystem::getSubsystemCode)
-                            .containsOnly("S1", "S2");
-                }
-        );
+                        member -> {
+                            assertThat(member.getMemberCode()).isEqualTo("M1");
+                            assertThat(member.getSubsystems()).map(SharedParameters.Subsystem::getSubsystemCode)
+                                    .containsOnly("S1");
+                        },
+                        member -> {
+                            assertThat(member.getMemberCode()).isEqualTo("M2");
+                            assertThat(member.getSubsystems()).map(SharedParameters.Subsystem::getSubsystemCode)
+                                    .containsOnly("S1", "S2");
+                        }
+                );
     }
 
     private List<FlattenedSecurityServerClientView> getClients() {

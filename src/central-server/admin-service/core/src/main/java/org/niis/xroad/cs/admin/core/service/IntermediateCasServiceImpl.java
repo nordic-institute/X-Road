@@ -117,7 +117,7 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND));
 
-        ocspInfoRepository.delete(ocspResponder);
+        intermediateCa.getOcspInfos().remove(ocspResponder);
 
         auditDataHelper.put(OCSP_ID, ocspResponder.getId());
     }

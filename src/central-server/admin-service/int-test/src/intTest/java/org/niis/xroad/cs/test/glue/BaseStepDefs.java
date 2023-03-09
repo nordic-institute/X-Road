@@ -31,14 +31,17 @@ import com.nortal.test.asserts.ValidationHelper;
 import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.test.container.service.MockServerService;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 /**
  * Base class for all step definitions. Provides convenience methods and most commonly used beans.
@@ -121,6 +124,20 @@ public abstract class BaseStepDefs {
     protected <T> T getRequiredStepData(StepDataKey key) throws AssertionFailedError {
         return scenarioContext.getRequiredStepData(key.name());
     }
+
+    /**
+     * Generate random member id.
+     *
+     * @param parts - number of id parts.
+     * @return generated id
+     */
+    @SuppressWarnings("checkstyle:MagicNumber")
+    protected String randomMemberId(int parts) {
+        String[] idParts = new String[parts];
+        Arrays.setAll(idParts, index -> randomAlphabetic(3));
+        return StringUtils.join(idParts, ":");
+    }
+
 
     /**
      * An enumerated key for data transfer between steps.
