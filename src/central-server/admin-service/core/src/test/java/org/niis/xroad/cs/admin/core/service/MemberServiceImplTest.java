@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.junit.helper.WithInOrder;
 
 import io.vavr.control.Option;
 import org.assertj.core.api.Assertions;
@@ -66,6 +65,8 @@ import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -80,13 +81,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_EXISTS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_NAME;
 
 @ExtendWith(MockitoExtension.class)
-class MemberServiceImplTest implements WithInOrder {
+class MemberServiceImplTest {
     private static final String MEMBER_CLASS = "CLASS";
 
     @Mock
@@ -99,6 +101,8 @@ class MemberServiceImplTest implements WithInOrder {
     private MemberClassRepository memberClassRepository;
     @Mock
     private SecurityServerMapper securityServerMapper;
+    @Mock
+    private AuditDataHelper auditData;
 
     @Spy
     private ClientIdMapper clientIdMapper = new ClientIdMapperImpl();
@@ -114,7 +118,7 @@ class MemberServiceImplTest implements WithInOrder {
 
     @Nested
     @DisplayName("add(Client clientDto)")
-    class AddMethod implements WithInOrder {
+    class AddMethod {
         private final String memberName = "member name";
         private final MemberId memberId = MemberId.create("TEST", MEMBER_CLASS, "MEMBER");
 
@@ -136,6 +140,10 @@ class MemberServiceImplTest implements WithInOrder {
 
             verify(xRoadMemberRepository).save(any());
             verify(securityServerClientNameRepository).save(captor.capture());
+
+            verify(auditData).put(MEMBER_NAME, memberName);
+            verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+            verify(auditData).put(MEMBER_CODE, "MEMBER");
 
             assertThat(captor.getValue().getName()).isEqualTo(memberName);
             assertThat(captor.getValue().getIdentifier().toShortString()).isEqualTo(memberId.toShortString());
@@ -160,12 +168,16 @@ class MemberServiceImplTest implements WithInOrder {
 
             verify(xRoadMemberRepository).findOneBy(memberId);
             verify(xRoadMemberRepository, never()).save(any());
+
+            verify(auditData).put(MEMBER_NAME, memberName);
+            verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+            verify(auditData).put(MEMBER_CODE, "MEMBER");
         }
     }
 
     @Nested
     @DisplayName("findMember(ClientId clientId)")
-    class FindMember implements WithInOrder {
+    class FindMember {
 
         private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
 
@@ -185,7 +197,7 @@ class MemberServiceImplTest implements WithInOrder {
 
     @Nested
     @DisplayName("deleteMember(ClientId clientId)")
-    class DeleteMember implements WithInOrder {
+    class DeleteMember {
         private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
 
         @Mock
@@ -198,10 +210,10 @@ class MemberServiceImplTest implements WithInOrder {
 
             memberService.delete(clientId);
 
-            inOrder().verify(inOrder -> {
-                inOrder.verify(xRoadMemberRepository).findMember(clientId);
-                inOrder.verify(xRoadMemberRepository).delete(any());
-            });
+            verify(xRoadMemberRepository).findMember(clientId);
+            verify(xRoadMemberRepository).delete(xRoadMember);
+            verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+            verify(auditData).put(MEMBER_CODE, "MEMBER");
         }
 
         @Test
@@ -213,15 +225,15 @@ class MemberServiceImplTest implements WithInOrder {
 
             NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
             assertEquals(ErrorMessage.MEMBER_NOT_FOUND.getDescription(), actualThrown.getMessage());
-            inOrder().verify(inOrder -> {
-                inOrder.verify(xRoadMemberRepository).findMember(clientId);
-            });
+            verify(xRoadMemberRepository).findMember(clientId);
+            verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+            verify(auditData).put(MEMBER_CODE, "MEMBER");
         }
     }
 
     @Nested
     @DisplayName("updateMemberName(clientId, newName)")
-    class UpdateName implements WithInOrder {
+    class UpdateName {
 
         private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
 
@@ -241,12 +253,16 @@ class MemberServiceImplTest implements WithInOrder {
             assertTrue(result.isDefined());
             verify(xRoadMember).setName("new name");
             verify(securityServerClientName).setName("new name");
+
+            verify(auditData).put(MEMBER_NAME, "new name");
+            verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
+            verify(auditData).put(MEMBER_CODE, "MEMBER");
         }
     }
 
     @Nested
     @DisplayName("findMemberGlobalGroups(ClientId memberId)")
-    class FindMemberGlobalGroups implements WithInOrder {
+    class FindMemberGlobalGroups {
 
         private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
 
@@ -264,12 +280,11 @@ class MemberServiceImplTest implements WithInOrder {
 
     @Nested
     @DisplayName("getMemberOwnedServers(ClientId memberId)")
-    class GetMemberOwnedServers implements WithInOrder {
+    class GetMemberOwnedServers {
         private final ClientId clientId = ClientId.Conf.create("TEST", MEMBER_CLASS, "MEMBER");
 
         @Mock
         private XRoadMemberEntity xRoadMember;
-
 
         @Test
         void shouldReturnMemberOwnedServers() {
@@ -287,7 +302,7 @@ class MemberServiceImplTest implements WithInOrder {
 
 
             verify(xRoadMemberRepository).findMember(clientId);
-            verify(xRoadMember, times(1)).getOwnedServers();
+            verify(xRoadMember).getOwnedServers();
 
             assertEquals(securityServersMock.size(), result.size());
 
@@ -302,9 +317,7 @@ class MemberServiceImplTest implements WithInOrder {
 
             final Set<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
 
-            inOrder().verify(inOrder -> {
-                inOrder.verify(xRoadMemberRepository).findMember(clientId);
-            });
+            verify(xRoadMemberRepository).findMember(clientId);
             assertTrue(CollectionUtils.isEmpty(result));
         }
     }
