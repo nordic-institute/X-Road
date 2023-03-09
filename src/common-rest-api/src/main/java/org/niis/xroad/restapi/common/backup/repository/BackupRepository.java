@@ -87,7 +87,7 @@ public class BackupRepository {
                     })
                     .collect(Collectors.toList());
         } catch (IOException ioe) {
-            log.error("can't read backup files from configuration path ({}})", CONFIGURATION_BACKUP_PATH, ioe);
+            log.error("can't read backup files from configuration path ({})", CONFIGURATION_BACKUP_PATH, ioe);
             return Collections.emptyList();
         }
     }
