@@ -38,7 +38,7 @@ Feature: Security Server API
       | owner_name            | asc            | ownerName                |
 
   @Modifying
-  Scenario Outline: Security server list paging and query
+  Scenario: Security server list paging and query
     Given Authentication header is set to MANAGEMENT_SERVICE
     And member class 'TEST' is created
     And new member 'CS:TEST:member' is added with name 'name first'
@@ -49,23 +49,20 @@ Feature: Security Server API
     And management request is approved
     And new security server 'CS:TEST:another:SS-2' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
-    Then security servers list, query '<$query>' paged by <$pageSize>, page <$requestedPage> contains <$itemsInPage> entries, <$itemsTotal> in total
-    Examples:
-      | $query          | $pageSize | $requestedPage | $itemsInPage | $itemsTotal |
-      |                 | 2         | 1              | 2            | 3           |
-      |                 | 2         | 2              | 1            | 3           |
-      |                 | 2         | 3              | 0            | 3           |
-      | TEST            | 2         | 1              | 2            | 3           |
-      | TEST            | 2         | 2              | 1            | 3           |
-      | member          | 2         | 1              | 2            | 2           |
-      | another         | 2         | 1              | 1            | 1           |
-      | SS              | 5         | 1              | 3            | 3           |
-      | SS-1            | 2         | 1              | 1            | 1           |
-      | SS-2            | 2         | 1              | 1            | 1           |
-      | SS-3            | 2         | 1              | 1            | 1           |
-      | first           | 2         | 1              | 2            | 2           |
-      | second          | 2         | 1              | 1            | 1           |
-      | should not find | 25        | 1              | 0            | 0           |
+    Then security servers list, queried with '' paged by 2, page 1 contains 2 entries, 3 in total
+    And security servers list, queried with '' paged by 2, page 2 contains 1 entries, 3 in total
+    And security servers list, queried with '' paged by 2, page 3 contains 0 entries, 3 in total
+    And security servers list, queried with 'TEST' paged by 2, page 1 contains 2 entries, 3 in total
+    And security servers list, queried with 'TEST' paged by 2, page 2 contains 1 entries, 3 in total
+    And security servers list, queried with 'member' paged by 2, page 1 contains 2 entries, 2 in total
+    And security servers list, queried with 'another' paged by 2, page 1 contains 1 entries, 1 in total
+    And security servers list, queried with 'SS' paged by 5, page 1 contains 3 entries, 3 in total
+    And security servers list, queried with 'SS-1' paged by 2, page 1 contains 1 entries, 1 in total
+    And security servers list, queried with 'SS-2' paged by 2, page 1 contains 1 entries, 1 in total
+    And security servers list, queried with 'SS-3' paged by 2, page 1 contains 1 entries, 1 in total
+    And security servers list, queried with 'first' paged by 2, page 1 contains 2 entries, 2 in total
+    And security servers list, queried with 'second' paged by 2, page 1 contains 1 entries, 1 in total
+    And security servers list, queried with 'should not find' paged by 25, page 1 contains 0 entries, 0 in total
 
   @Modifying
   Scenario: Get security server details

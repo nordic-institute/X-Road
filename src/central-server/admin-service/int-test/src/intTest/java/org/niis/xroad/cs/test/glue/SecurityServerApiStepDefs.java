@@ -288,7 +288,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         }
     }
 
-    @Step("security servers list, query {string} paged by {int}, page {int} contains {int} entries, {int} in total")
+    @Step("security servers list, queried with {string} paged by {int}, page {int} contains {int} entries, {int} in total")
     public void securityServersListQueryPaged(String q, int pageSize, int pageNumber, int itemsCount, int totalCount) {
         PagingSortingParametersDto params = new PagingSortingParametersDto();
         params.setLimit(pageSize);
