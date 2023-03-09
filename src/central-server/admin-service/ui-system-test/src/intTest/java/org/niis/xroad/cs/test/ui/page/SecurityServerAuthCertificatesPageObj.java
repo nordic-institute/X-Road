@@ -27,19 +27,34 @@
 
 package org.niis.xroad.cs.test.ui.page;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 
 @SuppressWarnings("InnerClassMayBeStatic")
-public class SecurityServerNavigationObj {
-    public SelenideElement clientsTab() {
-        var xpath = "//a[@data-test='security-server-clients-tab-button']";
-        return $x(xpath);
+public class SecurityServerAuthCertificatesPageObj {
+
+    public SelenideElement listRowOf(String certAuthorityName, String serialNumber, String subject) {
+        var xpath = "//div[@data-test='security-server-authentication-certificates-view']"
+                + "//table/tbody/tr[(normalize-space(td[1]/div/text()) = '%s') "
+                + " and (td[2] = '%s') and (td[3] = '%s')]";
+
+        return $x(String.format(xpath, certAuthorityName, serialNumber, subject));
     }
 
-    public SelenideElement authenticationCertificatesTab() {
-        var xpath = "//a[@data-test='security-server-auth-certs-tab-button']";
-        return $x(xpath);
+    public ElementsCollection columnHeaders() {
+        var xpath = "//div[@data-test='security-server-authentication-certificates-view']//thead/tr/th/span";
+        return $$x(xpath);
+    }
+    public SelenideElement columnHeader(int idx) {
+        var xpath = "//div[@data-test='security-server-authentication-certificates-view']//thead/tr/th[%d]";
+        return $x(String.format(xpath, idx));
+    }
+
+    public ElementsCollection columnValues(int idx) {
+        var xpath = "//div[@data-test='security-server-authentication-certificates-view']//tbody";
+        return $x(xpath).findAll(String.format("tr>td:nth-child(%d)", idx));
     }
 }
