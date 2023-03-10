@@ -1,6 +1,5 @@
 @MemberClass
 @Modifying
-@RunThis
 Feature: Member Class Api
 
   Background:
@@ -23,8 +22,8 @@ Feature: Member Class Api
     And new member 'CS:TEST:member' is added
     And Authentication header is set to SYSTEM_ADMINISTRATOR
     When member class 'TEST' is deleted
-#   todo: enable Then Response is of status code 500 and error code 'member_class_is_in_use'
-#    And member class list contains 0 items
+    Then Response is of status code 409 and error code 'member_class_is_in_use'
+    And member class list contains 1 items
 
   Scenario: List member classes
     Given member class 'TEST-1' is created

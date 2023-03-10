@@ -56,7 +56,6 @@ public class MemberClassesApiStepDefs extends BaseStepDefs {
         memberClassIsCreatedWithDescriptionClassDescription(memberClassCode, "Description for member class " + memberClassCode);
     }
 
-
     @Step("member class {string} is created with description {string}")
     public void memberClassIsCreatedWithDescriptionClassDescription(String code, String description) {
         try {
