@@ -78,7 +78,7 @@ public class MemberClassesApiController implements MemberClassesApi {
     public ResponseEntity<Void> deleteMemberClass(String code) {
         auditData.put(RestApiAuditProperty.CODE, code);
         service.delete(code);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @Override
