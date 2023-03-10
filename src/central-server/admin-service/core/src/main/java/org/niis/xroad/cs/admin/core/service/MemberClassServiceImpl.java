@@ -43,9 +43,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_EXISTS;
@@ -99,23 +97,23 @@ public class MemberClassServiceImpl implements MemberClassService {
 
     @Override
     public MemberClass update(final MemberClass memberClass) {
-        return memberClassRepository.findByCode(memberClass.getCode()).toTry()
-                .filter(Objects::nonNull, () ->
-                        new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberClass.getCode()))
-                .andThen(persistedMemberClass -> persistedMemberClass.setDescription(memberClass.getDescription()))
-                .map(memberClassRepository::save)
-                .map(memberClassMapper::toTarget)
-                .get();
+        final MemberClassEntity entity = memberClassRepository.findByCode(memberClass.getCode())
+                .getOrElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberClass.getCode()));
+
+        entity.setDescription(memberClass.getDescription());
+        final MemberClassEntity saved = memberClassRepository.save(entity);
+        return memberClassMapper.toTarget(saved);
     }
 
     @Override
     public void delete(String code) {
+        final MemberClassEntity entity = memberClassRepository.findByCode(code)
+                .getOrElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", code));
 
-        memberClassRepository.findByCode(code)
-                .toTry()
-                .filter(Objects::nonNull, () -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", code))
-                .filter(Predicate.not(members::existsByMemberClass), () ->
-                        new DataIntegrityException(MEMBER_CLASS_IS_IN_USE, "code", code))
-                .andThen(memberClassRepository::delete);
+        if (members.existsByMemberClass(entity)) {
+            throw new DataIntegrityException(MEMBER_CLASS_IS_IN_USE, "code", code);
+        }
+
+        memberClassRepository.delete(entity);
     }
 }

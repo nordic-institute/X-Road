@@ -26,34 +26,223 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import org.junit.jupiter.api.Disabled;
+import io.vavr.control.Option;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
+import org.niis.xroad.cs.admin.api.exception.NotFoundException;
+import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
+import org.niis.xroad.cs.admin.core.entity.mapper.MemberClassMapperImpl;
+import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
+import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.springframework.data.domain.Sort;
 
-import javax.transaction.Transactional;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
-@Disabled
-public class MemberClassServiceImplTest {
+@ExtendWith(MockitoExtension.class)
+//@Disabled
+class MemberClassServiceImplTest {
 
-    @Autowired
-    private MemberClassServiceImpl service;
+    private static final String CODE = "code";
+    private static final String DESCRIPTION = "description";
 
-    private static final int MEMBER_CLASSES_IN_IMPORT_SQL = 3;
+    @Mock
+    private XRoadMemberRepository members;
+    @Mock
+    private MemberClassRepository memberClassRepository;
+    @Mock
+    private AuditDataHelper auditData;
 
-    @Test
-    @Transactional
-    public void testService() {
-        service.add(new MemberClass("TEST", "Description"));
-        service.add(new MemberClass("TEST2", "Description"));
-        var all = service.findAll();
-        assertEquals((MEMBER_CLASSES_IN_IMPORT_SQL + 2), all.size());
-        service.delete("TEST");
-        service.update(new MemberClass("TEST2", "Description2"));
-        final MemberClass test2 = service.findByCode("TEST2").getOrElse(() -> null);
-        assertEquals("Description2", test2.getDescription());
+    @Spy
+    private MemberClassMapperImpl memberClassMapper;
+
+    @InjectMocks
+    private MemberClassServiceImpl memberClassService;
+
+    private final MemberClassEntity memberClassEntity = new MemberClassEntity(CODE, DESCRIPTION);
+
+    @Nested
+    class FindAll {
+
+        @Captor
+        private ArgumentCaptor<Sort> argumentCaptor;
+
+        @Test
+        void findAll() {
+            List<MemberClassEntity> list = List.of(memberClassEntity, memberClassEntity);
+            when(memberClassRepository.findAllSortedBy(isA(Sort.class)))
+                    .thenReturn(list);
+
+            final java.util.List<MemberClass> result = memberClassService.findAll();
+
+            assertThat(result).hasSize(2);
+            verify(memberClassRepository).findAllSortedBy(argumentCaptor.capture());
+            assertThat(argumentCaptor.getValue().iterator().next()).satisfies(order -> {
+                assertThat(order.isIgnoreCase()).isTrue();
+                assertThat(order.getProperty()).isEqualTo("code");
+            });
+        }
+    }
+
+    @Nested
+    class FindByCode {
+
+        @Test
+        void findByCode() {
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.of(memberClassEntity));
+
+            final Option<MemberClass> result = memberClassService.findByCode(CODE);
+
+            assertThat(result.isDefined()).isTrue();
+            assertThat(result.get().getCode()).isEqualTo(CODE);
+            assertThat(result.get().getDescription()).isEqualTo(DESCRIPTION);
+            verify(memberClassMapper).toTarget(memberClassEntity);
+        }
+
+        @Test
+        void findByCodeShouldReturnEmpty() {
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.none());
+
+            final Option<MemberClass> result = memberClassService.findByCode(CODE);
+
+            assertThat(result.isEmpty()).isTrue();
+            verifyNoInteractions(memberClassMapper);
+        }
+    }
+
+    @Nested
+    class Add {
+
+        @Captor
+        private ArgumentCaptor<MemberClassEntity> argumentCaptor;
+
+        @Test
+        void add() {
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.none());
+            when(memberClassRepository.save(isA(MemberClassEntity.class))).thenReturn(memberClassEntity);
+
+            MemberClass dto = new MemberClass(CODE, DESCRIPTION);
+            final MemberClass result = memberClassService.add(dto);
+
+            verify(memberClassRepository).save(argumentCaptor.capture());
+            assertThat(argumentCaptor.getValue()).satisfies(memberClass -> {
+                        assertThat(memberClass.getCode()).isEqualTo(CODE);
+                        assertThat(memberClass.getDescription()).isEqualTo(DESCRIPTION);
+                    }
+            );
+            assertThat(result.getCode()).isEqualTo(CODE);
+            assertThat(result.getDescription()).isEqualTo(DESCRIPTION);
+        }
+
+        @Test
+        void addShouldFailWhenCodeExists() {
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.of(memberClassEntity));
+
+            assertThatThrownBy(() -> memberClassService.add(new MemberClass(CODE, DESCRIPTION)))
+                    .isInstanceOf(DataIntegrityException.class)
+                    .hasMessage("Member class with the same code already exists.");
+
+            verifyNoMoreInteractions(memberClassRepository);
+        }
+    }
+
+    @Nested
+    class Update {
+
+        @Captor
+        private ArgumentCaptor<MemberClassEntity> argumentCaptor;
+
+        @Mock
+        private MemberClassEntity memberClassEntityMock;
+
+        @Test
+        void update() {
+            when(memberClassEntityMock.getCode()).thenReturn(CODE);
+            when(memberClassEntityMock.getDescription()).thenReturn(DESCRIPTION);
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.of(memberClassEntityMock));
+            when(memberClassRepository.save(memberClassEntityMock)).thenReturn(memberClassEntityMock);
+
+            final MemberClass result = memberClassService.update(new MemberClass(CODE, DESCRIPTION));
+
+            verify(memberClassEntityMock).setDescription(DESCRIPTION);
+
+            verify(memberClassRepository).save(argumentCaptor.capture());
+            assertThat(argumentCaptor.getValue()).satisfies(memberClass -> {
+                        assertThat(memberClass.getCode()).isEqualTo(CODE);
+                        assertThat(memberClass.getDescription()).isEqualTo(DESCRIPTION);
+                    }
+            );
+            assertThat(result.getCode()).isEqualTo(CODE);
+            assertThat(result.getDescription()).isEqualTo(DESCRIPTION);
+        }
+
+        @Test
+        void updateShouldThrowNotFound() {
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.none());
+
+            assertThatThrownBy(() -> memberClassService.update(new MemberClass(CODE, DESCRIPTION)))
+                    .isInstanceOf(NotFoundException.class)
+                    .hasMessage("No member class with the specified code found.");
+
+            verifyNoMoreInteractions(memberClassRepository);
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void delete() {
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.of(memberClassEntity));
+            when(members.existsByMemberClass(memberClassEntity)).thenReturn(FALSE);
+
+            memberClassService.delete(CODE);
+
+            verify(memberClassRepository).delete(memberClassEntity);
+        }
+
+        @Test
+        void deleteShouldThrowNotFound() {
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.none());
+
+            assertThatThrownBy(() -> memberClassService.delete(CODE))
+                    .isInstanceOf(NotFoundException.class)
+                    .hasMessage("No member class with the specified code found.");
+
+            verifyNoMoreInteractions(memberClassRepository);
+        }
+
+        @Test
+        void deleteShouldFailWhenMembersExist() {
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.of(memberClassEntity));
+            when(members.existsByMemberClass(memberClassEntity)).thenReturn(TRUE);
+
+            assertThatThrownBy(() -> memberClassService.delete(CODE))
+                    .isInstanceOf(DataIntegrityException.class)
+                    .hasMessage("Cannot delete member class: Found X-Road members belonging to the class."
+                            + " Only classes with no registered members can be deleted.");
+
+            verifyNoMoreInteractions(memberClassRepository);
+        }
     }
 
 }
