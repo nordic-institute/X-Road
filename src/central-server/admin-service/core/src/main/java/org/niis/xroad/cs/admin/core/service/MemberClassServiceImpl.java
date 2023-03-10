@@ -37,6 +37,7 @@ import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.MemberClassMapper;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +50,8 @@ import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_IS_IN_USE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DESCRIPTION;
 
 /**
  * MemberClass Service
@@ -62,6 +65,7 @@ public class MemberClassServiceImpl implements MemberClassService {
     private final XRoadMemberRepository members;
 
     private final MemberClassMapper memberClassMapper;
+    private final AuditDataHelper auditData;
 
     @Override
     public List<MemberClass> findAll() {
@@ -79,6 +83,9 @@ public class MemberClassServiceImpl implements MemberClassService {
 
     @Override
     public MemberClass add(final MemberClass memberClass) {
+        auditData.put(CODE, memberClass.getCode());
+        auditData.put(DESCRIPTION, memberClass.getDescription());
+
         Consumer<MemberClassEntity> ensureNotExists = __ -> {
             boolean exists = memberClass.getId() > 0
                     || memberClassRepository.findByCode(memberClass.getCode()).isDefined();
@@ -95,11 +102,17 @@ public class MemberClassServiceImpl implements MemberClassService {
                 .get();
     }
 
+    private MemberClassEntity get(String code) {
+        return memberClassRepository.findByCode(code)
+                .getOrElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", code));
+    }
+
     @Override
     public MemberClass update(final MemberClass memberClass) {
-        final MemberClassEntity entity = memberClassRepository.findByCode(memberClass.getCode())
-                .getOrElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberClass.getCode()));
+        auditData.put(CODE, memberClass.getCode());
+        auditData.put(DESCRIPTION, memberClass.getDescription());
 
+        final MemberClassEntity entity = get(memberClass.getCode());
         entity.setDescription(memberClass.getDescription());
         final MemberClassEntity saved = memberClassRepository.save(entity);
         return memberClassMapper.toTarget(saved);
@@ -107,9 +120,8 @@ public class MemberClassServiceImpl implements MemberClassService {
 
     @Override
     public void delete(String code) {
-        final MemberClassEntity entity = memberClassRepository.findByCode(code)
-                .getOrElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", code));
-
+        auditData.put(CODE, code);
+        final MemberClassEntity entity = get(code);
         if (members.existsByMemberClass(entity)) {
             throw new DataIntegrityException(MEMBER_CLASS_IS_IN_USE, "code", code);
         }

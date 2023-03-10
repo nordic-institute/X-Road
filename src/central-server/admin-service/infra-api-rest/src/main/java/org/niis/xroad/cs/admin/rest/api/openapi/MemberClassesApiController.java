@@ -32,10 +32,7 @@ import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.rest.api.converter.db.MemberClassDtoConverter;
 import org.niis.xroad.cs.openapi.MemberClassesApi;
 import org.niis.xroad.cs.openapi.model.MemberClassDto;
-import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,6 +42,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_MEMBER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_MEMBER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_CLASS;
+import static org.springframework.http.ResponseEntity.noContent;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -53,17 +54,12 @@ import static java.util.stream.Collectors.toSet;
 public class MemberClassesApiController implements MemberClassesApi {
 
     private final MemberClassService service;
-    private final AuditDataHelper auditData;
-
     private final MemberClassDtoConverter memberClassDtoConverter;
 
     @Override
     @PreAuthorize("hasAuthority('ADD_MEMBER_CLASS')")
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_MEMBER_CLASS)
+    @AuditEventMethod(event = ADD_MEMBER_CLASS)
     public ResponseEntity<MemberClassDto> addMemberClass(MemberClassDto memberClassDto) {
-        auditData.put(RestApiAuditProperty.CODE, memberClassDto.getCode());
-        auditData.put(RestApiAuditProperty.DESCRIPTION, memberClassDto.getDescription());
-
         return Option.of(memberClassDto)
                 .map(memberClassDtoConverter::fromDto)
                 .map(service::add)
@@ -74,26 +70,24 @@ public class MemberClassesApiController implements MemberClassesApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_MEMBER_CLASS')")
-    @AuditEventMethod(event = RestApiAuditEvent.DELETE_MEMBER_CLASS)
+    @AuditEventMethod(event = DELETE_MEMBER_CLASS)
     public ResponseEntity<Void> deleteMemberClass(String code) {
-        auditData.put(RestApiAuditProperty.CODE, code);
         service.delete(code);
-        return ResponseEntity.noContent().build();
+        return noContent().build();
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public ResponseEntity<Set<MemberClassDto>> getMemberClasses() {
-        return ResponseEntity.ok(service.findAll().stream().map(memberClassDtoConverter::toDto).collect(toSet()));
+        return ResponseEntity.ok(service.findAll().stream()
+                .map(memberClassDtoConverter::toDto)
+                .collect(toSet()));
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_MEMBER_CLASS')")
-    @AuditEventMethod(event = RestApiAuditEvent.EDIT_MEMBER_CLASS)
+    @AuditEventMethod(event = EDIT_MEMBER_CLASS)
     public ResponseEntity<MemberClassDto> updateMemberClassDescription(String code, MemberClassDto memberClassDto) {
-        auditData.put(RestApiAuditProperty.CODE, code);
-        auditData.put(RestApiAuditProperty.DESCRIPTION, memberClassDto.getDescription());
-
         return Option.of(memberClassDto)
                 .map(memberClassDtoConverter::fromDto)
                 .map(service::update)
@@ -101,4 +95,5 @@ public class MemberClassesApiController implements MemberClassesApi {
                 .map(ResponseEntity::ok)
                 .get();
     }
+
 }

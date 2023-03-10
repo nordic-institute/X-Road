@@ -44,6 +44,7 @@ import org.niis.xroad.cs.admin.core.entity.mapper.MemberClassMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
@@ -151,6 +152,9 @@ class MemberClassServiceImplTest {
             );
             assertThat(result.getCode()).isEqualTo(CODE);
             assertThat(result.getDescription()).isEqualTo(DESCRIPTION);
+
+            verify(auditData).put(RestApiAuditProperty.CODE, CODE);
+            verify(auditData).put(RestApiAuditProperty.DESCRIPTION, DESCRIPTION);
         }
 
         @Test
@@ -162,6 +166,8 @@ class MemberClassServiceImplTest {
                     .hasMessage("Member class with the same code already exists.");
 
             verifyNoMoreInteractions(memberClassRepository);
+            verify(auditData).put(RestApiAuditProperty.CODE, CODE);
+            verify(auditData).put(RestApiAuditProperty.DESCRIPTION, DESCRIPTION);
         }
     }
 
@@ -193,6 +199,8 @@ class MemberClassServiceImplTest {
             );
             assertThat(result.getCode()).isEqualTo(CODE);
             assertThat(result.getDescription()).isEqualTo(DESCRIPTION);
+            verify(auditData).put(RestApiAuditProperty.CODE, CODE);
+            verify(auditData).put(RestApiAuditProperty.DESCRIPTION, DESCRIPTION);
         }
 
         @Test
@@ -204,6 +212,8 @@ class MemberClassServiceImplTest {
                     .hasMessage("No member class with the specified code found.");
 
             verifyNoMoreInteractions(memberClassRepository);
+            verify(auditData).put(RestApiAuditProperty.CODE, CODE);
+            verify(auditData).put(RestApiAuditProperty.DESCRIPTION, DESCRIPTION);
         }
     }
 
@@ -218,6 +228,7 @@ class MemberClassServiceImplTest {
             memberClassService.delete(CODE);
 
             verify(memberClassRepository).delete(memberClassEntity);
+            verify(auditData).put(RestApiAuditProperty.CODE, CODE);
         }
 
         @Test
@@ -229,6 +240,7 @@ class MemberClassServiceImplTest {
                     .hasMessage("No member class with the specified code found.");
 
             verifyNoMoreInteractions(memberClassRepository);
+            verify(auditData).put(RestApiAuditProperty.CODE, CODE);
         }
 
         @Test
@@ -242,6 +254,7 @@ class MemberClassServiceImplTest {
                             + " Only classes with no registered members can be deleted.");
 
             verifyNoMoreInteractions(memberClassRepository);
+            verify(auditData).put(RestApiAuditProperty.CODE, CODE);
         }
     }
 
