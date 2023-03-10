@@ -26,17 +26,17 @@
  */
 package org.niis.xroad.cs.admin.core.repository;
 
-import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MemberClassRepository extends
         GenericRepository<MemberClassEntity, Long>,
         FindOrCreateAwareRepository<MemberClassEntity, Long> {
 
-    Option<MemberClassEntity> findByCode(String code);
+    Optional<MemberClassEntity> findByCode(String code);
 
     List<MemberClassEntity> findAllSortedBy(Sort sort);
 }

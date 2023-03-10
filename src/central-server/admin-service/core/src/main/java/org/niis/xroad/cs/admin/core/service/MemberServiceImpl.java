@@ -97,7 +97,7 @@ public class MemberServiceImpl implements MemberService {
 
     private XRoadMemberEntity saveMember(MemberCreationRequest request) {
         var memberClass = memberClassRepository.findByCode(request.getMemberClass())
-                .getOrElseThrow(() -> new NotFoundException(
+                .orElseThrow(() -> new NotFoundException(
                         MEMBER_CLASS_NOT_FOUND,
                         "code",
                         request.getMemberClass()

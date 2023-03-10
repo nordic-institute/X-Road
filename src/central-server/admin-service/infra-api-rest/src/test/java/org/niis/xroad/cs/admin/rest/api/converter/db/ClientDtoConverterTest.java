@@ -52,6 +52,8 @@ import org.niis.xroad.cs.openapi.model.ClientIdDto;
 import org.niis.xroad.cs.openapi.model.XRoadIdDto;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -240,7 +242,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
             doReturn(memberClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.MEMBER).when(clientIdDto).getType();
             doReturn(MEMBER_CLASS_CODE).when(clientIdDto).getMemberClass();
-            doReturn(Option.of(memberClass)).when(memberClassService).findByCode(MEMBER_CLASS_CODE);
+            doReturn(Optional.of(memberClass)).when(memberClassService).findByCode(MEMBER_CLASS_CODE);
             doReturn(MEMBER_NAME).when(clientDto).getMemberName();
             doReturn(MEMBER_CLASS_CODE).when(memberClientId).getMemberClass();
             doReturn(MEMBER_CLASS_CODE).when(memberClass).getCode();
@@ -275,7 +277,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
             doReturn(memberClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.MEMBER).when(clientIdDto).getType();
             doReturn(MEMBER_CLASS_CODE).when(clientIdDto).getMemberClass();
-            doReturn(Option.none()).when(memberClassService).findByCode(MEMBER_CLASS_CODE);
+            doReturn(Optional.empty()).when(memberClassService).findByCode(MEMBER_CLASS_CODE);
 
             ThrowingCallable testable = () -> converter.fromDto(clientDto);
 

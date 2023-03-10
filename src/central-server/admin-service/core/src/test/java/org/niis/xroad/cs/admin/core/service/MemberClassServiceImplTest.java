@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import io.vavr.control.Option;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,6 +47,7 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -109,11 +109,11 @@ class MemberClassServiceImplTest {
 
         @Test
         void findByCode() {
-            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.of(memberClassEntity));
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.of(memberClassEntity));
 
-            final Option<MemberClass> result = memberClassService.findByCode(CODE);
+            final Optional<MemberClass> result = memberClassService.findByCode(CODE);
 
-            assertThat(result.isDefined()).isTrue();
+            assertThat(result).isPresent();
             assertThat(result.get().getCode()).isEqualTo(CODE);
             assertThat(result.get().getDescription()).isEqualTo(DESCRIPTION);
             verify(memberClassMapper).toTarget(memberClassEntity);
@@ -121,11 +121,11 @@ class MemberClassServiceImplTest {
 
         @Test
         void findByCodeShouldReturnEmpty() {
-            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.none());
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.empty());
 
-            final Option<MemberClass> result = memberClassService.findByCode(CODE);
+            final Optional<MemberClass> result = memberClassService.findByCode(CODE);
 
-            assertThat(result.isEmpty()).isTrue();
+            assertThat(result).isEmpty();
             verifyNoInteractions(memberClassMapper);
         }
     }
@@ -138,7 +138,7 @@ class MemberClassServiceImplTest {
 
         @Test
         void add() {
-            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.none());
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.empty());
             when(memberClassRepository.save(isA(MemberClassEntity.class))).thenReturn(memberClassEntity);
 
             MemberClass dto = new MemberClass(CODE, DESCRIPTION);
@@ -159,7 +159,7 @@ class MemberClassServiceImplTest {
 
         @Test
         void addShouldFailWhenCodeExists() {
-            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.of(memberClassEntity));
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.of(memberClassEntity));
 
             assertThatThrownBy(() -> memberClassService.add(new MemberClass(CODE, DESCRIPTION)))
                     .isInstanceOf(DataIntegrityException.class)
@@ -184,7 +184,7 @@ class MemberClassServiceImplTest {
         void update() {
             when(memberClassEntityMock.getCode()).thenReturn(CODE);
             when(memberClassEntityMock.getDescription()).thenReturn(DESCRIPTION);
-            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.of(memberClassEntityMock));
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.of(memberClassEntityMock));
             when(memberClassRepository.save(memberClassEntityMock)).thenReturn(memberClassEntityMock);
 
             final MemberClass result = memberClassService.update(new MemberClass(CODE, DESCRIPTION));
@@ -205,7 +205,7 @@ class MemberClassServiceImplTest {
 
         @Test
         void updateShouldThrowNotFound() {
-            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.none());
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> memberClassService.update(new MemberClass(CODE, DESCRIPTION)))
                     .isInstanceOf(NotFoundException.class)
@@ -222,7 +222,7 @@ class MemberClassServiceImplTest {
 
         @Test
         void delete() {
-            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.of(memberClassEntity));
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.of(memberClassEntity));
             when(members.existsByMemberClass(memberClassEntity)).thenReturn(FALSE);
 
             memberClassService.delete(CODE);
@@ -233,7 +233,7 @@ class MemberClassServiceImplTest {
 
         @Test
         void deleteShouldThrowNotFound() {
-            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.none());
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> memberClassService.delete(CODE))
                     .isInstanceOf(NotFoundException.class)
@@ -245,7 +245,7 @@ class MemberClassServiceImplTest {
 
         @Test
         void deleteShouldFailWhenMembersExist() {
-            when(memberClassRepository.findByCode(CODE)).thenReturn(Option.of(memberClassEntity));
+            when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.of(memberClassEntity));
             when(members.existsByMemberClass(memberClassEntity)).thenReturn(TRUE);
 
             assertThatThrownBy(() -> memberClassService.delete(CODE))

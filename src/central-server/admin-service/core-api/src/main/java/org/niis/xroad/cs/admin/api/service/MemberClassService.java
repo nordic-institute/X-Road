@@ -26,12 +26,12 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
-import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * MemberClass Service
@@ -48,7 +48,7 @@ public interface MemberClassService {
      *
      * @param code member class code
      */
-    Option<MemberClass> findByCode(String code);
+    Optional<MemberClass> findByCode(String code);
 
     /**
      * Add a new member class

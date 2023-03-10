@@ -70,6 +70,7 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -129,7 +130,7 @@ class MemberServiceImplTest {
             when(xRoadMemberRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             when(memberClassRepository.findByCode(MEMBER_CLASS))
-                    .thenReturn(Option.of(new MemberClassEntity(MEMBER_CLASS, "")));
+                    .thenReturn(Optional.of(new MemberClassEntity(MEMBER_CLASS, "")));
 
             SecurityServerClient result = memberService.add(new MemberCreationRequest(memberName, MEMBER_CLASS, memberId));
 

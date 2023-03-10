@@ -26,8 +26,8 @@
  */
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
-import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.rest.api.converter.db.MemberClassDtoConverter;
 import org.niis.xroad.cs.openapi.MemberClassesApi;
@@ -46,6 +46,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_MEMBER_C
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_CLASS;
 import static org.springframework.http.ResponseEntity.noContent;
+import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -60,12 +61,8 @@ public class MemberClassesApiController implements MemberClassesApi {
     @PreAuthorize("hasAuthority('ADD_MEMBER_CLASS')")
     @AuditEventMethod(event = ADD_MEMBER_CLASS)
     public ResponseEntity<MemberClassDto> addMemberClass(MemberClassDto memberClassDto) {
-        return Option.of(memberClassDto)
-                .map(memberClassDtoConverter::fromDto)
-                .map(service::add)
-                .map(memberClassDtoConverter::toDto)
-                .map(ResponseEntity::ok)
-                .get();
+        final MemberClass memberClass = service.add(memberClassDtoConverter.fromDto(memberClassDto));
+        return ok(memberClassDtoConverter.toDto(memberClass));
     }
 
     @Override
@@ -79,7 +76,7 @@ public class MemberClassesApiController implements MemberClassesApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public ResponseEntity<Set<MemberClassDto>> getMemberClasses() {
-        return ResponseEntity.ok(service.findAll().stream()
+        return ok(service.findAll().stream()
                 .map(memberClassDtoConverter::toDto)
                 .collect(toSet()));
     }
@@ -88,12 +85,8 @@ public class MemberClassesApiController implements MemberClassesApi {
     @PreAuthorize("hasAuthority('EDIT_MEMBER_CLASS')")
     @AuditEventMethod(event = EDIT_MEMBER_CLASS)
     public ResponseEntity<MemberClassDto> updateMemberClassDescription(String code, MemberClassDto memberClassDto) {
-        return Option.of(memberClassDto)
-                .map(memberClassDtoConverter::fromDto)
-                .map(service::update)
-                .map(memberClassDtoConverter::toDto)
-                .map(ResponseEntity::ok)
-                .get();
+        final MemberClass memberClass = service.update(memberClassDtoConverter.fromDto(memberClassDto));
+        return ok(memberClassDtoConverter.toDto(memberClass));
     }
 
 }
