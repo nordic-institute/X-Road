@@ -32,6 +32,7 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.MemberClassDto;
 import org.niis.xroad.cs.test.api.FeignMemberClassesApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Set;
@@ -40,6 +41,7 @@ import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.ERROR_RESPONSE_BODY;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE_STATUS;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -64,16 +66,17 @@ public class MemberClassesApiStepDefs extends BaseStepDefs {
 
             final ResponseEntity<MemberClassDto> response = memberClassesApi.addMemberClass(dto);
 
-            validateMemberClassResponse(response, code, description);
+            validateMemberClassResponse(response, CREATED, code, description);
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
     }
 
-    private void validateMemberClassResponse(ResponseEntity<MemberClassDto> response, String code, String description) {
+    private void validateMemberClassResponse(ResponseEntity<MemberClassDto> response, HttpStatus expectedStatus,
+                                             String code, String description) {
         validate(response)
-                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsStatusCodeAssertion(expectedStatus))
                 .assertion(equalsAssertion(code, "body.code"))
                 .assertion(equalsAssertion(description, "body.description"))
                 .assertion(notNullAssertion("body.createdAt"))
@@ -100,7 +103,7 @@ public class MemberClassesApiStepDefs extends BaseStepDefs {
 
         final ResponseEntity<MemberClassDto> response = memberClassesApi.updateMemberClassDescription(code, dto);
 
-        validateMemberClassResponse(response, code, description);
+        validateMemberClassResponse(response, OK, code, description);
     }
 
     @Step("member class list contains {int} items")

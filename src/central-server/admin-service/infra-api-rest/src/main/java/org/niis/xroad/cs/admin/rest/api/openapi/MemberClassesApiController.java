@@ -45,8 +45,10 @@ import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_CLASS;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
+import static org.springframework.http.ResponseEntity.status;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -62,7 +64,7 @@ public class MemberClassesApiController implements MemberClassesApi {
     @AuditEventMethod(event = ADD_MEMBER_CLASS)
     public ResponseEntity<MemberClassDto> addMemberClass(MemberClassDto memberClassDto) {
         final MemberClass memberClass = service.add(memberClassDtoConverter.fromDto(memberClassDto));
-        return ok(memberClassDtoConverter.toDto(memberClass));
+        return status(CREATED).body(memberClassDtoConverter.toDto(memberClass));
     }
 
     @Override
