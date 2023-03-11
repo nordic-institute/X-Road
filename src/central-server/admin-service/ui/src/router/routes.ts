@@ -25,6 +25,8 @@
  * THE SOFTWARE.
  */
 
+import SecurityServerAuthenticationCertificate
+  from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
 import { Route, RouteConfig } from 'vue-router';
 import TabsBase from '@/components/layout/TabsBase.vue';
 
@@ -284,6 +286,20 @@ const routes: RouteConfig[] = [
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
                 },
                 props: true,
+              },
+              {
+                name: RouteName.SecurityServerAuthenticationCertificate,
+                path: 'authenticationcertificates/:authenticationCertificateId',
+                component: SecurityServerAuthenticationCertificate,
+                props(route: Route): { authenticationCertificateId: number } {
+                  const authenticationCertificateId = Number(
+                    route.params.authenticationCertificateId,
+                  );
+                  return { authenticationCertificateId };
+                },
+                meta: {
+                  permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
+                },
               },
               {
                 name: RouteName.SecurityServerClients,
