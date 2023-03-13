@@ -29,6 +29,7 @@ import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.JsonPathAssertions;
 import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.test.utils.ScenarioValueEvaluator;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
@@ -92,15 +93,18 @@ public class CommonStepDefs extends BaseStepDefs {
         int responseCode = getRequiredStepData(StepDataKey.RESPONSE_STATUS);
         String errorResponse = getRequiredStepData(StepDataKey.ERROR_RESPONSE_BODY);
 
-        validate(errorResponse)
+        var validation = validate(errorResponse)
                 .assertion(new Assertion.Builder()
                         .message("Verify status code")
                         .expression("=")
                         .actualValue(responseCode)
                         .expectedValue(statusCode)
-                        .build())
-                .assertion(JsonPathAssertions.equalsAssertion(errorCode, "$.error.code"))
-                .execute();
+                        .build());
+
+        if (!ScenarioValueEvaluator.isValidationIgnored(errorCode)) {
+            validation.assertion(JsonPathAssertions.equalsAssertion(errorCode, "$.error.code"));
+        }
+        validation.execute();
     }
 
     @Step("the list is sorted by {string} {string}")

@@ -39,10 +39,14 @@ public class PageRequestConverter {
 
     public PageRequest convert(PagingSortingParametersDto pagingSorting,
                                SortParameterConverter sortParameterConverter) {
-        return PageRequest.of(
-                pagingSorting.getOffset(),
-                pagingSorting.getLimit(),
-                convertToSort(pagingSorting, sortParameterConverter));
+        try {
+            return PageRequest.of(
+                    pagingSorting.getOffset(),
+                    pagingSorting.getLimit(),
+                    convertToSort(pagingSorting, sortParameterConverter));
+        } catch (IllegalArgumentException illegalArgumentException) {
+            throw new BadRequestException(illegalArgumentException);
+        }
     }
 
     private Sort convertToSort(PagingSortingParametersDto pagingSorting,

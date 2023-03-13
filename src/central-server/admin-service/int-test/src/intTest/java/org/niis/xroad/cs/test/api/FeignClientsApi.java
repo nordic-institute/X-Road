@@ -1,6 +1,5 @@
-/*
+/**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,31 +23,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.cs.test.api;
 
-import org.niis.xroad.cs.openapi.ManagementRequestsApi;
-import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
-import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
+import org.niis.xroad.cs.openapi.ClientsApi;
+import org.niis.xroad.cs.openapi.model.ClientTypeDto;
+import org.niis.xroad.cs.openapi.model.PagedClientsDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "managementRequestsApi", path = "/api/v1")
-public interface FeignManagementRequestsApi extends ManagementRequestsApi {
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
 
-    /**
-     * An overridden method with additional annotations.
-     */
+@FeignClient(name = "clientsApi", path = "/api/v1")
+public interface FeignClientsApi extends ClientsApi {
+
     @Override
-    @GetMapping(
-            value = "/management-requests",
-            produces = {"application/json"}
-    )
-    ResponseEntity<PagedManagementRequestsDto> findManagementRequests(
-            @SpringQueryMap ManagementRequestsFilterDto filter,
-            @SpringQueryMap PagingSortingParametersDto pagingSorting
+    @GetMapping(value = "/clients", produces = {"application/json"})
+    ResponseEntity<PagedClientsDto> findClients(
+            @Size(max = 25) @Valid @RequestParam(value = "q", required = false) String q,
+            @SpringQueryMap @Valid PagingSortingParametersDto pagingSorting,
+            @Size(min = 0, max = 255) @Valid @RequestParam(value = "name", required = false) String name,
+            @Size(min = 0, max = 255) @Valid @RequestParam(value = "instance", required = false) String instance,
+            @Size(min = 0, max = 255) @Valid @RequestParam(value = "member_class", required = false) String memberClass,
+            @Size(min = 0, max = 255) @Valid @RequestParam(value = "member_code", required = false) String memberCode,
+            @Size(min = 0, max = 255) @Valid @RequestParam(value = "subsystem_code", required = false) String subsystemCode,
+            @Valid @RequestParam(value = "client_type", required = false) ClientTypeDto clientType,
+            @Valid @RequestParam(value = "security_server", required = false) String securityServer
     );
 }
