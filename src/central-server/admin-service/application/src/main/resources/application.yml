@@ -48,4 +48,4 @@ logging:
 script:
   generate-backup:
     path: /usr/share/xroad/scripts/backup_xroad_center_configuration.sh
-    valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.tar$"
+    valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.gpg$"
