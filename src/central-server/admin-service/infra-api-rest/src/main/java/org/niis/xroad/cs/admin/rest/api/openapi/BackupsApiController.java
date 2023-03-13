@@ -51,6 +51,8 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.springframework.http.HttpStatus.CREATED;
+
 @Controller
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
@@ -98,10 +100,12 @@ public class BackupsApiController implements BackupsApi {
         try {
             final BackupFile backupFile = backupService.uploadBackup(ignoreWarnings,
                     file.getOriginalFilename(), file.getBytes());
-            return ResponseEntity.accepted().body(backupDtoConverter.toTarget(backupFile));
+            return ResponseEntity.status(CREATED).body(backupDtoConverter.toTarget(backupFile));
         } catch (InvalidFilenameException | UnhandledWarningsException
-                 | BackupInvalidFileException | IOException e) {
-            throw new BadRequestException(e.getMessage());
+                 | BackupInvalidFileException e) {
+            throw new BadRequestException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

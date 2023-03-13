@@ -61,7 +61,7 @@ public class BackupStepDefs extends BaseStepDefs {
         Set<BackupDto> backups = getRequiredStepData(StepDataKey.RESPONSE_BODY);
 
         Boolean containsBackup = backups.stream()
-                .anyMatch(backup -> backup.getFilename().equals(backupName));
+                .filter(backup -> backup.getFilename().equals(backupName)).count() == 1;
 
         assertEquals(Boolean.valueOf(condition), containsBackup);
     }
