@@ -101,12 +101,12 @@ public class MemberClassServiceImpl implements MemberClassService {
     }
 
     @Override
-    public MemberClass update(final MemberClass memberClass) {
-        auditData.put(CODE, memberClass.getCode());
-        auditData.put(DESCRIPTION, memberClass.getDescription());
+    public MemberClass updateDescription(String code, String description) {
+        auditData.put(CODE, code);
+        auditData.put(DESCRIPTION, description);
 
-        final MemberClassEntity entity = get(memberClass.getCode());
-        entity.setDescription(memberClass.getDescription());
+        final MemberClassEntity entity = get(code);
+        entity.setDescription(description);
         final MemberClassEntity saved = memberClassRepository.save(entity);
         return memberClassMapper.toTarget(saved);
     }

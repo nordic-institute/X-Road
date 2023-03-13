@@ -31,6 +31,7 @@ import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.rest.api.converter.db.MemberClassDtoConverter;
 import org.niis.xroad.cs.openapi.MemberClassesApi;
+import org.niis.xroad.cs.openapi.model.MemberClassDescriptionDto;
 import org.niis.xroad.cs.openapi.model.MemberClassDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -86,9 +87,7 @@ public class MemberClassesApiController implements MemberClassesApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_MEMBER_CLASS')")
     @AuditEventMethod(event = EDIT_MEMBER_CLASS)
-    public ResponseEntity<MemberClassDto> updateMemberClassDescription(String code, MemberClassDto memberClassDto) {
-        final MemberClass memberClass = service.update(memberClassDtoConverter.fromDto(memberClassDto));
-        return ok(memberClassDtoConverter.toDto(memberClass));
+    public ResponseEntity<MemberClassDto> updateMemberClass(String code, MemberClassDescriptionDto memberClassDescriptionDto) {
+        return ok(memberClassDtoConverter.toDto(service.updateDescription(code, memberClassDescriptionDto.getDescription())));
     }
-
 }

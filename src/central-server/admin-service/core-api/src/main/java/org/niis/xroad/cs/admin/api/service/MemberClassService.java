@@ -59,11 +59,11 @@ public interface MemberClassService {
     MemberClass add(MemberClass memberClass);
 
     /**
-     * Update member class
+     * Update member class description
      *
      * @throws NotFoundException if the member class does not exist
      */
-    MemberClass update(MemberClass memberClass);
+    MemberClass updateDescription(String code, String description);
 
     /**
      * Delete member class.

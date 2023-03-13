@@ -181,13 +181,13 @@ class MemberClassServiceImplTest {
         private MemberClassEntity memberClassEntityMock;
 
         @Test
-        void update() {
+        void updateDescription() {
             when(memberClassEntityMock.getCode()).thenReturn(CODE);
             when(memberClassEntityMock.getDescription()).thenReturn(DESCRIPTION);
             when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.of(memberClassEntityMock));
             when(memberClassRepository.save(memberClassEntityMock)).thenReturn(memberClassEntityMock);
 
-            final MemberClass result = memberClassService.update(new MemberClass(CODE, DESCRIPTION));
+            final MemberClass result = memberClassService.updateDescription(CODE, DESCRIPTION);
 
             verify(memberClassEntityMock).setDescription(DESCRIPTION);
 
@@ -207,7 +207,7 @@ class MemberClassServiceImplTest {
         void updateShouldThrowNotFound() {
             when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> memberClassService.update(new MemberClass(CODE, DESCRIPTION)))
+            assertThatThrownBy(() -> memberClassService.updateDescription(CODE, DESCRIPTION))
                     .isInstanceOf(NotFoundException.class)
                     .hasMessage("No member class with the specified code found.");
 

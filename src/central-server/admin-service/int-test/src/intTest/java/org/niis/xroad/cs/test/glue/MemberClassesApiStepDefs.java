@@ -29,6 +29,7 @@ package org.niis.xroad.cs.test.glue;
 
 import feign.FeignException;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.openapi.model.MemberClassDescriptionDto;
 import org.niis.xroad.cs.openapi.model.MemberClassDto;
 import org.niis.xroad.cs.test.api.FeignMemberClassesApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,11 +97,10 @@ public class MemberClassesApiStepDefs extends BaseStepDefs {
 
     @Step("member class {string} description is updated to {string}")
     public void memberClassDescriptionIsUpdated(String code, String description) {
-        final MemberClassDto dto = new MemberClassDto()
-                .code(code)
+        final MemberClassDescriptionDto dto = new MemberClassDescriptionDto()
                 .description(description);
 
-        final ResponseEntity<MemberClassDto> response = memberClassesApi.updateMemberClassDescription(code, dto);
+        final ResponseEntity<MemberClassDto> response = memberClassesApi.updateMemberClass(code, dto);
 
         validateMemberClassResponse(response, OK, code, description);
     }
