@@ -96,7 +96,7 @@ public class ClientsApiController implements ClientsApi {
                         .setMemberCodeSearch(memberCode)
                         .setSubsystemCodeSearch(subsystemCode)
                         .setClientType(clientTypeDtoConverter.fromDto(clientTypeDto));
-        if (!StringUtils.isEmpty(encodedSecurityServerId)) {
+        if (StringUtils.isNotEmpty(encodedSecurityServerId)) {
             SecurityServerId id = securityServerIdConverter.convert(encodedSecurityServerId);
             securityServerService.find(id)
                     .onEmpty(() -> {
