@@ -27,21 +27,28 @@
 
 package org.niis.xroad.cs.test.api;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.cs.openapi.ManagementRequestsApi;
 import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
 import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 @FeignClient(name = "managementRequestsApi", path = "/api/v1")
 public interface FeignManagementRequestsApi extends ManagementRequestsApi {
 
     @Override
-    default ResponseEntity<PagedManagementRequestsDto> findManagementRequests(ManagementRequestsFilterDto filter,
-                                                                              PagingSortingParametersDto pagingSorting) {
-        // Feign can't generate due to "Method has too many Body parameters"
-        throw new NotImplementedException();
-    }
+    @RequestMapping(
+            method = RequestMethod.GET,
+            value = "/management-requests",
+            produces = {"application/json"}
+    )
+    ResponseEntity<PagedManagementRequestsDto> findManagementRequests(
+            @SpringQueryMap ManagementRequestsFilterDto filter,
+            @SpringQueryMap PagingSortingParametersDto pagingSorting
+    );
+
 }

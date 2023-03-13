@@ -58,7 +58,6 @@ import static org.junit.Assert.fail;
 public class ApiSecurityCheckStepDefs extends BaseStepDefs {
 
     private static final Map<String, Set<String>> SKIP_ENDPOINTS = Map.of(
-            "FeignManagementRequestsApi", Set.of("findManagementRequests")
     );
 
     @Autowired
