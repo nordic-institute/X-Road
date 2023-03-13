@@ -33,12 +33,13 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
+import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
-import org.niis.xroad.securityserver.restapi.repository.BackupRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -76,7 +77,7 @@ public class RestoreService {
      */
     public synchronized void restoreFromBackup(String fileName) throws BackupFileNotFoundException,
             InterruptedException, RestoreProcessFailedException {
-        auditDataHelper.putBackupFilename(backupRepository.getFilePath(fileName));
+        auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(fileName));
         String configurationBackupPath = backupRepository.getConfigurationBackupPath();
         String backupFilePath = configurationBackupPath + fileName;
         File backupFile = new File(backupFilePath);

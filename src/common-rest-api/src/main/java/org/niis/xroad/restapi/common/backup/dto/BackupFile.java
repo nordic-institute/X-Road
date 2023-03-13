@@ -1,6 +1,5 @@
-/*
+/**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,31 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.restapi.common.backup.dto;
 
-package org.niis.xroad.cs.test.api;
+import lombok.Value;
 
-import org.niis.xroad.cs.openapi.ManagementRequestsApi;
-import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
-import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
-import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.cloud.openfeign.SpringQueryMap;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import java.time.OffsetDateTime;
 
-@FeignClient(name = "managementRequestsApi", path = "/api/v1")
-public interface FeignManagementRequestsApi extends ManagementRequestsApi {
-
-    /**
-     * An overridden method with additional annotations.
-     */
-    @Override
-    @GetMapping(
-            value = "/management-requests",
-            produces = {"application/json"}
-    )
-    ResponseEntity<PagedManagementRequestsDto> findManagementRequests(
-            @SpringQueryMap ManagementRequestsFilterDto filter,
-            @SpringQueryMap PagingSortingParametersDto pagingSorting
-    );
+/**
+ * DTO for backup files
+ */
+@Value
+public class BackupFile {
+    String filename;
+    OffsetDateTime createdAt;
 }

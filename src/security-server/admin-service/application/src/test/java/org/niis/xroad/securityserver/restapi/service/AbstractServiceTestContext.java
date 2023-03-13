@@ -31,9 +31,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Before;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
-import org.niis.xroad.securityserver.restapi.repository.BackupRepository;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;

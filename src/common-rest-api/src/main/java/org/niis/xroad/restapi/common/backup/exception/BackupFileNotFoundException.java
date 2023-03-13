@@ -1,6 +1,5 @@
-/*
+/**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,31 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.restapi.common.backup.exception;
 
-package org.niis.xroad.cs.test.api;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.NotFoundException;
 
-import org.niis.xroad.cs.openapi.ManagementRequestsApi;
-import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
-import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
-import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.cloud.openfeign.SpringQueryMap;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_FILE_NOT_FOUND;
 
-@FeignClient(name = "managementRequestsApi", path = "/api/v1")
-public interface FeignManagementRequestsApi extends ManagementRequestsApi {
+/**
+ * If backup file was not found
+ */
+public class BackupFileNotFoundException extends NotFoundException {
+    public BackupFileNotFoundException(String filename) {
+        this("Backup file with name " + filename + " not found",
+                new ErrorDeviation(ERROR_BACKUP_FILE_NOT_FOUND));
+    }
 
-    /**
-     * An overridden method with additional annotations.
-     */
-    @Override
-    @GetMapping(
-            value = "/management-requests",
-            produces = {"application/json"}
-    )
-    ResponseEntity<PagedManagementRequestsDto> findManagementRequests(
-            @SpringQueryMap ManagementRequestsFilterDto filter,
-            @SpringQueryMap PagingSortingParametersDto pagingSorting
-    );
+    public BackupFileNotFoundException(String filename, ErrorDeviation errorDeviation) {
+        super("Backup file with name " + filename + " not found",
+                errorDeviation);
+    }
 }

@@ -1,6 +1,5 @@
-/*
+/**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,31 +23,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.restapi.common.backup.service;
 
-package org.niis.xroad.cs.test.api;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import org.niis.xroad.cs.openapi.ManagementRequestsApi;
-import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
-import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
-import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.cloud.openfeign.SpringQueryMap;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import javax.annotation.PostConstruct;
 
-@FeignClient(name = "managementRequestsApi", path = "/api/v1")
-public interface FeignManagementRequestsApi extends ManagementRequestsApi {
+import java.util.regex.Pattern;
+
+@Component
+public class BackupValidator {
+    /**
+     * Default criteria for a valid backup file name:
+     * 1) cannot start with "."
+     * 2) must contain one or more word characters ([a-zA-Z_0-9.-]),
+     * 3) must end with ".gpg" or ".tar" depending on env.
+     */
+    private final String backupFileNamePatternStr;
+
+    private Pattern backupFileNamePattern;
+
+    public BackupValidator(@Value("${script.generate-backup.valid-filename-pattern}") String backupFileNamePatternStr) {
+        this.backupFileNamePatternStr = backupFileNamePatternStr;
+    }
+
+    @PostConstruct
+    public void initialize() {
+        backupFileNamePattern = Pattern.compile(backupFileNamePatternStr);
+    }
 
     /**
-     * An overridden method with additional annotations.
+     * Check if the given filename is valid and meets the defined criteria
+     *
+     * @param filename backup filename to validate
+     * @return validity status
      */
-    @Override
-    @GetMapping(
-            value = "/management-requests",
-            produces = {"application/json"}
-    )
-    ResponseEntity<PagedManagementRequestsDto> findManagementRequests(
-            @SpringQueryMap ManagementRequestsFilterDto filter,
-            @SpringQueryMap PagingSortingParametersDto pagingSorting
-    );
+    public boolean isValidBackupFilename(String filename) {
+        return backupFileNamePattern.matcher(filename).matches();
+    }
 }

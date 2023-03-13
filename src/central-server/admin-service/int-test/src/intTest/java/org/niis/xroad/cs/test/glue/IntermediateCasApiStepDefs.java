@@ -29,8 +29,6 @@ package org.niis.xroad.cs.test.glue;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
@@ -69,7 +67,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
     private Integer intermediateCaId;
     private X509CertificateHolder generatedCertificate;
 
-    @When("intermediate CA added to certification service")
+    @Step("intermediate CA added to certification service")
     public void addIntermediateCa() throws Exception {
         final Integer certificationServiceId = getRequiredStepData(CERTIFICATION_SERVICE_ID);
         generatedCertificate = generateAuthCertHolder("CN=Subject");
@@ -84,7 +82,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         intermediateCaId = response.getBody().getId();
     }
 
-    @When("intermediate CAs are retrieved")
+    @Step("intermediate CAs are retrieved")
     public void getIntermediateCa() throws Exception {
         final Integer certificationServiceId = getRequiredStepData(CERTIFICATION_SERVICE_ID);
 
@@ -129,7 +127,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @When("OCSP responder is added to intermediate CA")
+    @Step("OCSP responder is added to intermediate CA")
     public void ocspResponderIsAddedToIntermediateCA() throws Exception {
         final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert("CN=Subject"));
         final String url = "https://" + UUID.randomUUID();
@@ -144,7 +142,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
         putStepData(OCSP_RESPONDER_ID, response.getBody().getId());
     }
 
-    @Then("intermediate CA has {int} OCSP responders")
+    @Step("intermediate CA has {int} OCSP responders")
     public void intermediateCAHasOCSPResponders(int count) {
         final ResponseEntity<Set<OcspResponderDto>> response = intermediateCasApi.getIntermediateCaOcspResponders(intermediateCaId);
 
@@ -155,7 +153,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     }
 
-    @Then("intermediate CA has the updated OCSP responder")
+    @Step("intermediate CA has the updated OCSP responder")
     public void intermediateCAHasUpdatedOCSPResponder() {
         final ResponseEntity<Set<OcspResponderDto>> response = intermediateCasApi
                 .getIntermediateCaOcspResponders(intermediateCaId);
@@ -169,7 +167,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @When("OCSP responder is deleted from intermediate CA")
+    @Step("OCSP responder is deleted from intermediate CA")
     public void ocspResponderIsDeletedFromIntermediateCA() {
         final Integer ocspResponderId = getRequiredStepData(OCSP_RESPONDER_ID);
 
@@ -181,7 +179,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @When("intermediate CA is deleted")
+    @Step("intermediate CA is deleted")
     public void deleteIntermediateCa() {
         final ResponseEntity<Void> response = intermediateCasApi
                 .deleteIntermediateCa(intermediateCaId);

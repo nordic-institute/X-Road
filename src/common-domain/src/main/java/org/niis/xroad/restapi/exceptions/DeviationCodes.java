@@ -45,6 +45,7 @@ public final class DeviationCodes {
     public static final String ERROR_AUTH_CERT_NOT_SUPPORTED = "auth_cert_not_supported";
     public static final String ERROR_BACKUP_FILE_NOT_FOUND = "backup_file_not_found";
     public static final String ERROR_BACKUP_GENERATION_FAILED = "backup_generation_failed";
+    public static final String ERROR_BACKUP_DELETION_FAILED = "backup_deletion_failed";
     public static final String ERROR_BACKUP_RESTORE_INTERRUPTED = "backup_restore_interrupted";
     public static final String ERROR_BACKUP_RESTORE_PROCESS_FAILED = "restore_process_failed";
     public static final String ERROR_BASE_ENDPOINT_NOT_FOUND = "base_endpoint_not_found";

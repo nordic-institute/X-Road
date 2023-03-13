@@ -1,6 +1,5 @@
-/*
+/**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,31 +23,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.test.utils;
 
-package org.niis.xroad.cs.test.api;
+import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import org.niis.xroad.cs.openapi.ManagementRequestsApi;
-import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
-import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
-import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.cloud.openfeign.SpringQueryMap;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import java.util.regex.Pattern;
 
-@FeignClient(name = "managementRequestsApi", path = "/api/v1")
-public interface FeignManagementRequestsApi extends ManagementRequestsApi {
+@UtilityClass
+public class ScenarioValueEvaluator {
+    private static final Pattern PATTERN_RANDOM_STR = Pattern.compile("\\$RND-STR-(\\d{1,3})\\$");
+
+    private static final String VALUE_SKIP_VALIDATION = "$NOT-VALIDATED$";
 
     /**
-     * An overridden method with additional annotations.
+     * Evaluate ar replace any present placeholders.
      */
-    @Override
-    @GetMapping(
-            value = "/management-requests",
-            produces = {"application/json"}
-    )
-    ResponseEntity<PagedManagementRequestsDto> findManagementRequests(
-            @SpringQueryMap ManagementRequestsFilterDto filter,
-            @SpringQueryMap PagingSortingParametersDto pagingSorting
-    );
+    public static String evaluateValue(String value) {
+        if (StringUtils.isNotBlank(value)) {
+            var matcher = PATTERN_RANDOM_STR.matcher(value);
+            if (matcher.find()) {
+                String matchedNumber = matcher.group(1);
+                int numberValue = Integer.parseInt(matchedNumber);
+                return generateRandomString(numberValue);
+            }
+        }
+        return value;
+    }
+
+    public static boolean isValidationIgnored(String value) {
+        return VALUE_SKIP_VALIDATION.equals(value);
+    }
+
+    public static String generateRandomString(int length) {
+        boolean useLetters = true;
+        boolean useNumbers = true;
+        return RandomStringUtils.random(length, useLetters, useNumbers);
+    }
 }

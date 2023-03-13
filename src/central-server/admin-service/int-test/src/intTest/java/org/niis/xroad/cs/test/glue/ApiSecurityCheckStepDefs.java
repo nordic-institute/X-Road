@@ -57,8 +57,7 @@ import static org.junit.Assert.fail;
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ApiSecurityCheckStepDefs extends BaseStepDefs {
 
-    private static final Map<String, Set<String>> SKIP_ENDPOINTS = Map.of(
-    );
+    private static final Map<String, Set<String>> SKIP_ENDPOINTS = Map.of();
 
     @Autowired
     private ApplicationContext applicationContext;

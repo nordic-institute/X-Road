@@ -23,15 +23,20 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.util;
+package org.niis.xroad.restapi.util;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.util.FormatUtils;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Date;
 
+import static java.lang.System.currentTimeMillis;
+import static java.time.Instant.ofEpochMilli;
+import static java.time.ZoneOffset.UTC;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -66,18 +71,6 @@ public class FormatUtilsTest {
     }
 
     @Test
-    public void invalidBackupFilename() {
-        assertFalse(FormatUtils.isValidBackupFilename("/b.gpg"));
-        assertFalse(FormatUtils.isValidBackupFilename("../b.gpg"));
-        assertFalse(FormatUtils.isValidBackupFilename("a/b.gpg"));
-    }
-
-    @Test
-    public void validBackupFilename() {
-        assertTrue(FormatUtils.isValidBackupFilename("b.gpg"));
-    }
-
-    @Test
     public void invalidUrlProtocol() {
         assertFalse(FormatUtils.isValidUrl(INVALID_PROTOCOL));
     }
@@ -91,5 +84,17 @@ public class FormatUtilsTest {
     public void offsetDateTimeConversion() {
         Date now = new Date();
         assertEquals(now, FormatUtils.fromOffsetDateTimeToDate(FormatUtils.fromDateToOffsetDateTime(now)));
+    }
+
+    @Test
+    public void testFromInstantToOffsetDateTime() {
+        final Instant instant = ofEpochMilli(currentTimeMillis());
+
+        final OffsetDateTime offsetDateTime = FormatUtils.fromInstantToOffsetDateTime(instant);
+
+        assertEquals(UTC, offsetDateTime.getOffset());
+        assertEquals(instant, offsetDateTime.toInstant());
+
+        assertNull(FormatUtils.fromInstantToOffsetDateTime(null));
     }
 }

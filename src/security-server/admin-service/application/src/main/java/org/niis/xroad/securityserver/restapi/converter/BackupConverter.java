@@ -26,7 +26,7 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.securityserver.restapi.dto.BackupFile;
+import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 import org.springframework.stereotype.Component;
 

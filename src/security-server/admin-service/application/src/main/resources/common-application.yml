@@ -75,6 +75,7 @@ script:
     args: -n internal -f -S -p 2>&1
   generate-backup:
     path: /usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh
+    valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.gpg$"
   internal-configuration-verifier:
     path: /usr/share/xroad/scripts/verify_internal_configuration.sh
   external-configuration-verifier:
