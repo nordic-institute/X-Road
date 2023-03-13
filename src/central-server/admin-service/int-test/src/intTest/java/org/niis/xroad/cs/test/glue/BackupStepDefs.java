@@ -78,4 +78,15 @@ public class BackupStepDefs extends BaseStepDefs {
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
     }
+
+    @Step("Backup named {} is downloaded")
+    public void backupIsDownloaded(String backupFilename) {
+        try {
+            var result = backupsApi.downloadBackup(backupFilename);
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
 }
