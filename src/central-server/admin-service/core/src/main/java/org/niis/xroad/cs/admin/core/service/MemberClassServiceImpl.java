@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import io.vavr.control.Option;
-import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
@@ -37,20 +35,21 @@ import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.MemberClassMapper;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_IS_IN_USE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DESCRIPTION;
 
 /**
  * MemberClass Service
@@ -64,6 +63,7 @@ public class MemberClassServiceImpl implements MemberClassService {
     private final XRoadMemberRepository members;
 
     private final MemberClassMapper memberClassMapper;
+    private final AuditDataHelper auditData;
 
     @Override
     public List<MemberClass> findAll() {
@@ -74,48 +74,51 @@ public class MemberClassServiceImpl implements MemberClassService {
     }
 
     @Override
-    public Option<MemberClass> findByCode(String code) {
+    public Optional<MemberClass> findByCode(String code) {
         return memberClassRepository.findByCode(code)
                 .map(memberClassMapper::toTarget);
     }
 
     @Override
     public MemberClass add(final MemberClass memberClass) {
-        Consumer<MemberClassEntity> ensureNotExists = __ -> {
-            boolean exists = memberClass.getId() > 0
-                    || memberClassRepository.findByCode(memberClass.getCode()).isDefined();
-            if (exists) {
-                throw new DataIntegrityException(MEMBER_CLASS_EXISTS, memberClass.getCode());
-            }
-        };
+        auditData.put(CODE, memberClass.getCode());
+        auditData.put(DESCRIPTION, memberClass.getDescription());
+
+        boolean exists = memberClass.getId() > 0
+                || memberClassRepository.findByCode(memberClass.getCode()).isPresent();
+        if (exists) {
+            throw new DataIntegrityException(MEMBER_CLASS_EXISTS, memberClass.getCode());
+        }
 
         var memberClassEntity = new MemberClassEntity(memberClass.getCode(), memberClass.getDescription());
-        return Try.success(memberClassEntity)
-                .andThen(ensureNotExists)
-                .map(memberClassRepository::save)
-                .map(memberClassMapper::toTarget)
-                .get();
+        final MemberClassEntity savedEntity = memberClassRepository.save(memberClassEntity);
+        return memberClassMapper.toTarget(savedEntity);
+    }
+
+    private MemberClassEntity get(String code) {
+        return memberClassRepository.findByCode(code)
+                .orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", code));
     }
 
     @Override
-    public MemberClass update(final MemberClass memberClass) {
-        return memberClassRepository.findByCode(memberClass.getCode()).toTry()
-                .filter(Objects::nonNull, () ->
-                        new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberClass.getCode()))
-                .andThen(persistedMemberClass -> persistedMemberClass.setDescription(memberClass.getDescription()))
-                .map(memberClassRepository::save)
-                .map(memberClassMapper::toTarget)
-                .get();
+    public MemberClass updateDescription(String code, String description) {
+        auditData.put(CODE, code);
+        auditData.put(DESCRIPTION, description);
+
+        final MemberClassEntity entity = get(code);
+        entity.setDescription(description);
+        final MemberClassEntity saved = memberClassRepository.save(entity);
+        return memberClassMapper.toTarget(saved);
     }
 
     @Override
     public void delete(String code) {
+        auditData.put(CODE, code);
+        final MemberClassEntity entity = get(code);
+        if (members.existsByMemberClass(entity)) {
+            throw new DataIntegrityException(MEMBER_CLASS_IS_IN_USE, "code", code);
+        }
 
-        memberClassRepository.findByCode(code)
-                .toTry()
-                .filter(Objects::nonNull, () -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", code))
-                .filter(Predicate.not(members::existsByMemberClass), () ->
-                        new DataIntegrityException(MEMBER_CLASS_IS_IN_USE, "code", code))
-                .andThen(memberClassRepository::delete);
+        memberClassRepository.delete(entity);
     }
 }

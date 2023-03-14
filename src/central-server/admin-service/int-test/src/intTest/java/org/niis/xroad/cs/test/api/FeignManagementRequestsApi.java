@@ -27,6 +27,8 @@
 
 package org.niis.xroad.cs.test.api;
 
+import feign.QueryMapEncoder;
+import feign.querymap.FieldQueryMapEncoder;
 import org.niis.xroad.cs.openapi.ManagementRequestsApi;
 import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
 import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
@@ -36,19 +38,37 @@ import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.Map;
+
 @FeignClient(name = "managementRequestsApi", path = "/api/v1")
 public interface FeignManagementRequestsApi extends ManagementRequestsApi {
 
     /**
-     * An overridden method with additional annotations.
+     * An overridden method to handle parameters.
      */
     @Override
     @GetMapping(
             value = "/management-requests",
             produces = {"application/json"}
     )
-    ResponseEntity<PagedManagementRequestsDto> findManagementRequests(
-            @SpringQueryMap ManagementRequestsFilterDto filter,
-            @SpringQueryMap PagingSortingParametersDto pagingSorting
-    );
+    default ResponseEntity<PagedManagementRequestsDto> findManagementRequests(
+            ManagementRequestsFilterDto filter,
+            PagingSortingParametersDto pagingSorting) {
+        final QueryMapEncoder encoder = new FieldQueryMapEncoder();
+        final Map<String, Object> params = encoder.encode(filter);
+        params.putAll(encoder.encode(pagingSorting));
+
+        return this.findManagementRequestsInternal(params);
+    }
+
+    /**
+     * Workaround method to handle params, as Feign does not support several @SpringQueryMap.
+     */
+    @GetMapping(
+            value = "/management-requests",
+            produces = {"application/json"}
+    )
+    ResponseEntity<PagedManagementRequestsDto> findManagementRequestsInternal(
+            @SpringQueryMap Map<String, Object> params);
+
 }

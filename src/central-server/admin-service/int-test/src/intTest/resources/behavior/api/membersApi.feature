@@ -2,12 +2,25 @@
 Feature: Members Api
 
   @Modifying
+  Scenario: Create new member
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
+    And new member 'CS:TEST:member' is added
+    And user can retrieve member 'CS:TEST:member' details
+    Then adding new member 'CS:TEST:member' should fail
+
+  @Modifying
   Scenario: Get member details
     Given Authentication header is set to MANAGEMENT_SERVICE
     And member class 'TEST' is created
     And Authentication header is set to REGISTRATION_OFFICER
     When new member 'CS:TEST:member' is added
     Then user can retrieve member 'CS:TEST:member' details
+    When user requests member 'INVALID-FORMAT' details
+    Then Response is of status code 400
+    When user requests member 'CS:TEST:member:subsystem' details
+    Then Response is of status code 400
 
   @Modifying
   Scenario: Delete member
@@ -16,7 +29,7 @@ Feature: Members Api
     And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member' is added
     When user deletes member 'CS:TEST:member'
-    When user requests member 'CS:TEST:member' details
+    And user requests member 'CS:TEST:member' details
     Then Response is of status code 404 and error code 'member_not_found'
 
   @Modifying
@@ -27,6 +40,10 @@ Feature: Members Api
     And new member 'CS:TEST:member' is added with name 'memberName'
     When user updates member 'CS:TEST:member' name to 'anotherName'
     Then member 'CS:TEST:member' name is 'anotherName'
+    When user updates member 'NOT:EXISTING:MEMBER' name to 'awesome'
+    Then Response is of status code 404 and error code 'member_not_found'
+    When user updates member 'WRONG-ID-FORMAT' name to 'something'
+    Then Response is of status code 400
 
   Scenario: Owned servers and global groups for not existing members
     Given Authentication header is set to REGISTRATION_OFFICER

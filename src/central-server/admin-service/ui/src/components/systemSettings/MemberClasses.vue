@@ -225,7 +225,7 @@ export default Vue.extend({
         try {
           await (this.adding
             ? this.memberClassStore.add(this.activeItem)
-            : this.memberClassStore.update(this.activeItem));
+            : this.memberClassStore.update(this.activeItem.code, this.activeItem.description));
           this.notificationsStoreStore.showSuccess(
             this.$t('systemSettings.memberClassSaved'),
           );

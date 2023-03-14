@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.cs.admin.rest.api.converter.db;
 
-import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.converter.DtoConverter;
@@ -72,20 +71,18 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
         ClientDto clientDto = new ClientDto();
         clientDto.setId(clientId.toShortString());
         clientDto.setXroadId(clientIdDto);
-        clientDto.setCreatedAt(Option.of(source.getCreatedAt())
+        clientDto.setCreatedAt(Optional.ofNullable(source.getCreatedAt())
                 .map(instant -> instant.atOffset(dtoZoneOffset))
-                .getOrNull());
-        clientDto.setUpdatedAt(Option.of(source.getUpdatedAt())
+                .orElse(null));
+        clientDto.setUpdatedAt(Optional.ofNullable(source.getUpdatedAt())
                 .map(instant -> instant.atOffset(dtoZoneOffset))
-                .getOrNull());
+                .orElse(null));
 
         if (source instanceof XRoadMember) {
             XRoadMember xRoadMember = (XRoadMember) source;
             clientDto.setMemberName(xRoadMember.getName());
-
         } else if (source instanceof Subsystem) {
             // do nothing
-
         } else {
             throw new IllegalStateException("Unknown client type: " + source.getClass().getName());
         }
@@ -105,7 +102,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                     String memberClassCode = clientIdDto.getMemberClass();
                     MemberClass memberClass = memberClassService
                             .findByCode(memberClassCode)
-                            .getOrElseThrow(() -> new NotFoundException(
+                            .orElseThrow(() -> new NotFoundException(
                                     MEMBER_CLASS_NOT_FOUND,
                                     "code",
                                     memberClassCode
@@ -156,14 +153,10 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                     clientIdDto.setType(xRoadObjectTypeDtoMapper.toDto(source.getType()));
                 }));
                 if (source.getCreatedAt() != null) {
-                    clientDto.setCreatedAt(Option.of(source.getCreatedAt())
-                            .map(instant -> instant.atOffset(dtoZoneOffset))
-                            .getOrNull());
+                    clientDto.setCreatedAt(source.getCreatedAt().atOffset(dtoZoneOffset));
                 }
                 if (source.getUpdatedAt() != null) {
-                    clientDto.setUpdatedAt(Option.of(source.getUpdatedAt())
-                            .map(instant -> instant.atOffset(dtoZoneOffset))
-                            .getOrNull());
+                    clientDto.setUpdatedAt(source.getUpdatedAt().atOffset(dtoZoneOffset));
                 }
             });
         }

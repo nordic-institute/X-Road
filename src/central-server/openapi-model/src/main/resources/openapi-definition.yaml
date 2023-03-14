@@ -1890,11 +1890,11 @@ paths:
       summary: delete a member class
       tags:
         - member-classes
-    put:
+    patch:
       tags:
         - member-classes
-      summary: Update member class description # note: this is PATCH in other similar endpoints
-      operationId: updateMemberClassDescription
+      summary: Update member class
+      operationId: updateMemberClass
       description: CS Administrator updates a member class description.
       parameters:
         - in: path
@@ -1912,10 +1912,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MemberClass'
+              $ref: '#/components/schemas/MemberClassDescription'
       responses:
         '200':
-          description: the new status of the updated member class
+          description: updated member class
           content:
             application/json:
               schema:

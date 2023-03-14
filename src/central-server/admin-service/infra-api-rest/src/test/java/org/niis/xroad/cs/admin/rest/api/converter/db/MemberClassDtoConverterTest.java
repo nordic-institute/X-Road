@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.rest.api.converter.db;
 
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
-import io.vavr.control.Option;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -42,6 +41,8 @@ import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.rest.api.converter.AbstractDtoConverterTest;
 import org.niis.xroad.cs.openapi.model.MemberClassDto;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -103,7 +104,7 @@ public class MemberClassDtoConverterTest extends AbstractDtoConverterTest implem
         @DisplayName("should use persisted entity if present")
         public void shouldUsePersistedEntityIfPresent() {
             doReturn(MEMBER_CLASS_CODE).when(memberClassDto).getCode();
-            doReturn(Option.of(memberClass)).when(memberClassService).findByCode(MEMBER_CLASS_CODE);
+            doReturn(Optional.of(memberClass)).when(memberClassService).findByCode(MEMBER_CLASS_CODE);
 
             MemberClass converted = converter.fromDto(memberClassDto);
 
@@ -120,7 +121,7 @@ public class MemberClassDtoConverterTest extends AbstractDtoConverterTest implem
         @DisplayName("should create new entity if missing")
         public void shouldCreateNewEntityIfMissing() {
             doReturn(MEMBER_CLASS_CODE).when(memberClassDto).getCode();
-            doReturn(Option.none()).when(memberClassService).findByCode(MEMBER_CLASS_CODE);
+            doReturn(Optional.empty()).when(memberClassService).findByCode(MEMBER_CLASS_CODE);
             doReturn(DESCRIPTION).when(memberClassDto).getDescription();
 
             MemberClass converted = converter.fromDto(memberClassDto);

@@ -45,10 +45,7 @@ import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.cs.openapi.model.MemberNameDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SubsystemDto;
-import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -61,6 +58,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_MEMBER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_MEMBER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_NAME;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -70,7 +70,6 @@ public class MembersApiController implements MembersApi {
 
     private final MemberService memberService;
     private final SubsystemService subsystemService;
-    private final AuditDataHelper auditData;
     private final ClientDtoConverter clientDtoConverter;
     private final ClientIdConverter clientIdConverter;
     private final SubsystemDtoConverter subsystemDtoConverter;
@@ -80,11 +79,8 @@ public class MembersApiController implements MembersApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_NEW_MEMBER')")
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_MEMBER)
+    @AuditEventMethod(event = ADD_MEMBER)
     public ResponseEntity<ClientDto> addMember(ClientDto clientDto) {
-        auditData.put(RestApiAuditProperty.MEMBER_NAME, clientDto.getMemberName());
-        auditData.put(RestApiAuditProperty.MEMBER_CLASS, clientDto.getXroadId().getMemberClass());
-        auditData.put(RestApiAuditProperty.MEMBER_CODE, clientDto.getXroadId().getMemberCode());
 
         return Try.success(clientDto)
                 .map(memberCreationRequestMapper::toTarget)
@@ -96,12 +92,11 @@ public class MembersApiController implements MembersApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_MEMBER')")
-    @AuditEventMethod(event = RestApiAuditEvent.DELETE_MEMBER)
+    @AuditEventMethod(event = DELETE_MEMBER)
     public ResponseEntity<Void> deleteMember(String id) {
         verifyMemberId(id);
         ClientId clientId = clientIdConverter.convertId(id);
-        auditData.put(RestApiAuditProperty.MEMBER_CLASS, clientId.getMemberClass());
-        auditData.put(RestApiAuditProperty.MEMBER_CODE, clientId.getMemberCode());
+
         memberService.delete(clientId);
         return ResponseEntity.noContent().build();
     }
@@ -112,7 +107,6 @@ public class MembersApiController implements MembersApi {
         verifyMemberId(id);
         return Option.of(id)
                 .map(clientIdConverter::convertId)
-                .peek(clientId -> auditData.put(RestApiAuditProperty.CLIENT_IDENTIFIER, clientId))
                 .flatMap(memberService::findMember)
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity::ok)
@@ -155,11 +149,11 @@ public class MembersApiController implements MembersApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('EDIT_MEMBER_NAME_AND_ADMIN_CONTACT')")
+    @AuditEventMethod(event = EDIT_MEMBER_NAME)
     public ResponseEntity<ClientDto> updateMemberName(String id, MemberNameDto memberName) {
         verifyMemberId(id);
         return Option.of(id)
                 .map(clientIdConverter::convertId)
-                .peek(clientId -> auditData.put(RestApiAuditProperty.CLIENT_IDENTIFIER, clientId))
                 .flatMap(clientId -> memberService.updateMemberName(clientId, memberName.getMemberName()))
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity::ok)

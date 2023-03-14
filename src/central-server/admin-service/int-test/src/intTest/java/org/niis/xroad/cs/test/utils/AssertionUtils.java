@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,19 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.repository;
 
-import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
-import org.springframework.data.domain.Sort;
+package org.niis.xroad.cs.test.utils;
+
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface MemberClassRepository extends
-        GenericRepository<MemberClassEntity, Long>,
-        FindOrCreateAwareRepository<MemberClassEntity, Long> {
+public final class AssertionUtils {
 
-    Optional<MemberClassEntity> findByCode(String code);
+    private AssertionUtils() {
+    }
 
-    List<MemberClassEntity> findAllSortedBy(Sort sort);
+    public static boolean isTheListSorted(List<Object> items, boolean desc, String fieldExpression) {
+        for (int i = 0; i < items.size() - 1; i++) {
+            var current = evalExpression(items.get(i), fieldExpression);
+            var next = evalExpression(items.get(i + 1), fieldExpression);
+
+            if (desc && current.compareTo(next) < 0) {
+                return false;
+            } else if (!desc && current.compareTo(next) > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String evalExpression(Object item, String expression) {
+        Expression exp = new SpelExpressionParser().parseExpression(expression + ".toUpperCase()");
+        return (String) exp.getValue(item);
+    }
 }

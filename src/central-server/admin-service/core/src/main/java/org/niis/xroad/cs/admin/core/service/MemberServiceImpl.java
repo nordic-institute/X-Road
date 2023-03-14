@@ -47,6 +47,7 @@ import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -59,6 +60,9 @@ import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_NAME;
 
 @Service
 @Transactional
@@ -73,9 +77,13 @@ public class MemberServiceImpl implements MemberService {
     private final SecurityServerMapper securityServerMapper;
     private final SecurityServerClientMapper securityServerClientMapper;
     private final GlobalGroupMemberMapper globalGroupMemberMapper;
+    private final AuditDataHelper auditData;
 
     @Override
     public XRoadMember add(MemberCreationRequest request) {
+        auditData.put(MEMBER_NAME, request.getMemberName());
+        auditData.put(MEMBER_CLASS, request.getClientId().getMemberClass());
+        auditData.put(MEMBER_CODE, request.getClientId().getMemberCode());
 
         final boolean exists = xRoadMemberRepository.findOneBy(request.getClientId()).isDefined();
         if (exists) {
@@ -89,7 +97,7 @@ public class MemberServiceImpl implements MemberService {
 
     private XRoadMemberEntity saveMember(MemberCreationRequest request) {
         var memberClass = memberClassRepository.findByCode(request.getMemberClass())
-                .getOrElseThrow(() -> new NotFoundException(
+                .orElseThrow(() -> new NotFoundException(
                         MEMBER_CLASS_NOT_FOUND,
                         "code",
                         request.getMemberClass()
@@ -105,6 +113,9 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void delete(ClientId clientId) {
+        auditData.put(MEMBER_CLASS, clientId.getMemberClass());
+        auditData.put(MEMBER_CODE, clientId.getMemberCode());
+
         XRoadMemberEntity member = xRoadMemberRepository.findMember(clientId)
                 .getOrElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
         xRoadMemberRepository.delete(member);
@@ -135,6 +146,9 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public Option<XRoadMember> updateMemberName(ClientId clientId, String newName) {
+        auditData.put(MEMBER_NAME, newName);
+        auditData.put(MEMBER_CLASS, clientId.getMemberClass());
+        auditData.put(MEMBER_CODE, clientId.getMemberCode());
         return xRoadMemberRepository.findMember(clientId)
                 .peek(xRoadMember -> updateName(xRoadMember, newName))
                 .map(securityServerClientMapper::toDto);
@@ -151,7 +165,6 @@ public class MemberServiceImpl implements MemberService {
 
         securityServerClientNameRepository.findByIdentifierIn(identifiers)
                 .forEach(x -> x.setName(newName));
-
     }
 
     private void saveSecurityServerClientName(XRoadMemberEntity xRoadMember) {
