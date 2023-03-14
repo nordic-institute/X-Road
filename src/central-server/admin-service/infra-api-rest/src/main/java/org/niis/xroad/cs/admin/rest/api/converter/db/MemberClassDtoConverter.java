@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.rest.api.converter.db;
 
-import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.converter.DtoConverter;
@@ -36,8 +35,7 @@ import org.niis.xroad.cs.openapi.model.MemberClassDto;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;
-import java.util.Objects;
-import java.util.function.Supplier;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.util.Fn.self;
 
@@ -54,30 +52,23 @@ public class MemberClassDtoConverter extends DtoConverter<MemberClass, MemberCla
         return self(new MemberClassDto(), self -> {
             self.setCode(source.getCode());
             self.setDescription(source.getDescription());
-            self.setCreatedAt(Option.of(source.getCreatedAt())
+            self.setCreatedAt(Optional.ofNullable(source.getCreatedAt())
                     .map(instant -> instant.atOffset(dtoZoneOffset))
-                    .getOrNull());
-            self.setUpdatedAt(Option.of(source.getUpdatedAt())
+                    .orElse(null));
+            self.setUpdatedAt(Optional.ofNullable(source.getUpdatedAt())
                     .map(instant -> instant.atOffset(dtoZoneOffset))
-                    .getOrNull());
+                    .orElse(null));
         });
     }
 
     @Override
     public MemberClass fromDto(MemberClassDto source) {
         String memberClassCode = source.getCode();
-        Supplier<MemberClass> newMemberClass = () -> {
-            return new MemberClass(
-                    memberClassCode,
-                    source.getDescription()
-            );
-        };
 
         return memberClassService
                 .findByCode(memberClassCode)
-                .filter(Objects::nonNull)
                 .map(memberClass -> setDescription(memberClass, source.getDescription()))
-                .getOrElse(newMemberClass);
+                .orElseGet(() -> new MemberClass(memberClassCode, source.getDescription()));
     }
 
     private MemberClass setDescription(MemberClass memberClass, String description) {

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository;
 
-import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.springframework.data.domain.Sort;
@@ -34,6 +33,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface JpaMemberClassRepository extends
@@ -41,7 +41,7 @@ public interface JpaMemberClassRepository extends
         JpaFindOrCreateAwareRepository<MemberClassEntity, Long>,
         MemberClassRepository {
 
-    Option<MemberClassEntity> findByCode(String code);
+    Optional<MemberClassEntity> findByCode(String code);
 
     List<MemberClassEntity> findAllSortedBy(Sort sort);
 }

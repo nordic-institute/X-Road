@@ -87,3 +87,57 @@ Feature: Management requests API
     And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is with status 'WAITING'
     Then details of management request can be retrieved for security server 'CS:E2E:member-1:SS-X'
+
+  @Modifying
+  Scenario: Management requests list
+    Given new member 'CS:E2E:member-2' is added
+    And new member 'CS:E2E:member-3' is added
+    And new security server 'CS:E2E:member-1:SS-1' authentication certificate registered with origin 'SECURITY_SERVER' and approved
+    And new security server 'CS:E2E:member-1:SS-2' authentication certificate registered with origin 'SECURITY_SERVER' and approved
+    And new security server 'CS:E2E:member-1:SS-3' authentication certificate registered with origin 'SECURITY_SERVER' and approved
+    And new security server 'CS:E2E:member-1:SS-4' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is declined
+    And new security server 'CS:E2E:member-1:SS-5' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-1' client from 'CENTER'
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And management request is approved
+    And client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-3' client from 'SECURITY_SERVER'
+    And management request is approved
+    And owner of security server 'CS:E2E:member-1:SS-3' can be changed to 'CS:E2E:member-2'
+    And management request is approved
+    And authentication certificate of 'CS:E2E:member-1:SS-2' is deleted
+    And client 'CS:E2E:member-3' is registered as security server 'CS:E2E:member-1:SS-1' client from 'SECURITY_SERVER'
+    And management request is approved
+    And member 'CS:E2E:member-3' is deleted as security server 'CS:E2E:member-1:SS-1' client
+    Then management request list endpoint queried and verified using params
+      | $q   | $status  | $origin         | $serverId            | $types                                                 | $sortBy               | $desc | $pageSize | $page | $itemsInPage | $total | $sortFieldExp                  |
+      |      |          |                 |                      |                                                        |                       |       |           |       | 11           | 11     |                               |
+      |      |          |                 |                      |                                                        |                       |       | 5         | 1     | 5            | 11     |                               |
+      |      |          |                 |                      |                                                        |                       |       | 5         | 2     | 5            | 11     |                               |
+      |      |          |                 |                      |                                                        |                       |       | 3         | 9     | 0            | 11     |                               |
+      | SS   |          |                 |                      |                                                        |                       |       | 5         | 9     | 0            | 11     |                               |
+      | SS-3 |          |                 |                      |                                                        |                       |       | 5         | 9     | 0            | 3      |                               |
+      |      | WAITING  |                 |                      |                                                        |                       |       | 5         | 1     | 1            | 1      |                               |
+      |      | DECLINED |                 |                      |                                                        |                       |       | 5         | 1     | 1            | 1      |                               |
+      |      | APPROVED |                 |                      |                                                        |                       |       | 5         | 1     | 5            | 7      |                               |
+      |      | APPROVED |                 |                      |                                                        |                       |       | 5         | 2     | 2            | 7      |                               |
+      | SS-3 | APPROVED |                 |                      |                                                        |                       |       | 5         | 1     | 3            | 3      |                               |
+      |      |          | CENTER          |                      |                                                        |                       |       |           | 1     | 1            | 1      |                               |
+      |      |          | SECURITY_SERVER |                      |                                                        |                       |       | 3         | 1     | 3            | 10     |                               |
+      | SS-3 | APPROVED | SECURITY_SERVER |                      |                                                        |                       |       | 4         | 1     | 3            | 3      |                               |
+      |      |          |                 | CS:E2E:member-1:SS-4 |                                                        |                       |       |           |       | 1            | 1      |                               |
+      |      |          |                 |                      | AUTH_CERT_REGISTRATION_REQUEST                         |                       |       |           |       | 5            | 5      |                               |
+      |      |          |                 |                      | CLIENT_REGISTRATION_REQUEST                            |                       |       | 2         | 1     | 2            | 3      |                               |
+      |      |          |                 |                      | OWNER_CHANGE_REQUEST                                   |                       |       |           |       | 1            | 1      |                               |
+      |      |          |                 |                      | CLIENT_DELETION_REQUEST                                |                       |       |           |       | 1            | 1      |                               |
+      |      |          |                 |                      | AUTH_CERT_DELETION_REQUEST                             |                       |       |           |       | 1            | 1      |                               |
+      |      | APPROVED |                 |                      | AUTH_CERT_REGISTRATION_REQUEST,CLIENT_DELETION_REQUEST |                       |       |           |       | 3            | 3      |                               |
+      | SS-1 |          |                 |                      | AUTH_CERT_REGISTRATION_REQUEST,CLIENT_DELETION_REQUEST |                       |       |           |       | 4            | 4      |                               |
+      |      |          | CENTER          |                      | OWNER_CHANGE_REQUEST                                   |                       |       |           |       | 0            | 0      |                               |
+      |      |          |                 |                      |                                                        | id                    | true  |           |       | 11           | 11     | id.toString()                            |
+      |      |          |                 |                      |                                                        | created_at            | false |           |       | 11           | 11     | created_at                    |
+      |      |          |                 |                      |                                                        | type                  | true  |           |       | 11           | 11     | type                          |
+      |      |          |                 |                      |                                                        | security_server_owner | false |           |       | 11           | 11     | security_server_owner         |
+      |      |          |                 |                      |                                                        | security_server_id    | true  |           |       | 11           | 11     | security_server_id.encoded_id |
+      |      |          |                 |                      |                                                        | status                | false |           |       | 11           | 11     | status                        |

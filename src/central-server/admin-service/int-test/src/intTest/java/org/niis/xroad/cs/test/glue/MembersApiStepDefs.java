@@ -44,7 +44,9 @@ import java.util.Set;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.apache.commons.lang3.StringUtils.split;
+import static org.junit.Assert.fail;
 import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.MEMBER;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -78,6 +80,17 @@ public class MembersApiStepDefs extends BaseStepDefs {
         validateMemberResponse(response, CREATED, memberId, name);
     }
 
+    @Step("adding new member {string} should fail")
+    public void addingNewMemberShouldFail(String memberId) {
+        try {
+            newMemberIsCreated(memberId);
+            fail("should fail");
+        } catch (FeignException exception) {
+            validate(exception)
+                    .assertion(equalsAssertion(CONFLICT.value(), "status"))
+                    .execute();
+        }
+    }
 
     @Step("member {string} is not in global group {string}")
     public void memberIsNotInGlobalGroup(String memberId, String globalGroupCode) {
@@ -150,9 +163,13 @@ public class MembersApiStepDefs extends BaseStepDefs {
 
     @Step("user updates member {string} name to {string}")
     public void userUpdatesMemberName(String memberId, String memberName) {
-        final var response = membersApi.updateMemberName(memberId, new MemberNameDto().memberName(memberName));
-
-        validateMemberResponse(response, OK, memberId, memberName);
+        try {
+            final var response = membersApi.updateMemberName(memberId, new MemberNameDto().memberName(memberName));
+            validateMemberResponse(response, OK, memberId, memberName);
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
     }
 
     private void validateMemberResponse(ResponseEntity<ClientDto> response, HttpStatus status,

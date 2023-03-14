@@ -75,7 +75,6 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_ACTIVATIN
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_DELETING_SIGNING_KEY;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.KEY_GENERATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNING_KEY_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_MUST_BE_LOGGED_IN;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
 
@@ -262,18 +261,6 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             configurationSigningKeyRepository.save(signingKey);
         } catch (Exception e) {
             throw new SigningKeyException(ERROR_ACTIVATING_SIGNING_KEY, e);
-        }
-    }
-
-    private void validateForActivation(final ConfigurationSigningKeyEntity signingKey) {
-        final TokenInfo tokenInfo;
-        try {
-            tokenInfo = signerProxyFacade.getToken(signingKey.getTokenIdentifier());
-        } catch (Exception e) {
-            throw new SigningKeyException(ERROR_ACTIVATING_SIGNING_KEY, e);
-        }
-        if (!tokenInfo.isActive()) {
-            throw new SigningKeyException(TOKEN_MUST_BE_LOGGED_IN);
         }
     }
 

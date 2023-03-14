@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { MemberClass } from '@/openapi-types';
+import { MemberClass, MemberClassDescription } from '@/openapi-types';
 import { defineStore } from 'pinia';
 
 export interface State {
@@ -48,9 +48,12 @@ export const useMemberClassStore = defineStore('memberClass', {
         .delete(`/member-classes/${memberClass.code}`, {})
         .finally(() => this.fetchAll());
     },
-    update(memberClass: MemberClass) {
+    update(code: string, description: string) {
+      const memberClassDescription: MemberClassDescription = {
+        description: description,
+      };
       return axios
-        .put(`/member-classes/${memberClass.code}`, memberClass)
+        .patch(`/member-classes/${code}`, memberClassDescription)
         .finally(() => this.fetchAll());
     },
     add(memberClass: MemberClass) {
