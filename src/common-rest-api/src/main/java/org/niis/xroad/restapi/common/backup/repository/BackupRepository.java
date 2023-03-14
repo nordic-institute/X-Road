@@ -150,6 +150,11 @@ public class BackupRepository {
         if (!backupValidator.isValidBackupFilename(filename)) {
             throw new BackupInvalidFileException(INVALID_BACKUP_FILENAME);
         }
+        var backupDirectoryPath = new File(getConfigurationBackupPath());
+        if (backupDirectoryPath.mkdirs()) {
+            log.info("backup directory was created");
+        }
+
         var path = getAbsoluteBackupFilePath(filename);
         try {
             Files.write(path, content);
