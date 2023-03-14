@@ -27,6 +27,9 @@
 
 package org.niis.xroad.cs.test.glue;
 
+import com.nortal.test.asserts.Assertion;
+import com.nortal.test.asserts.ValidationHelper;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
@@ -37,16 +40,30 @@ import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
+import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static java.lang.Boolean.TRUE;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.math.NumberUtils.createInteger;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto.SECURITY_SERVER;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto.valueOf;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.fromValue;
@@ -55,6 +72,7 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DELETION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
+import static org.niis.xroad.cs.test.utils.AssertionUtils.isTheListSorted;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -210,4 +228,62 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         }
         return certificates.get(serverId);
     }
+
+    @Step("management request list endpoint queried and verified using params")
+    public void managementRequestListEndpointQueriedAndVerifiedUsingParams(DataTable table) {
+        for (Map<String, String> params : table.asMaps()) {
+            ManagementRequestsFilterDto filter = new ManagementRequestsFilterDto()
+                    .query(params.get("$q"))
+                    .status(paramToEnum(params.get("$status"), ManagementRequestStatusDto::fromValue))
+                    .types(toTypes(params.get("$types")))
+                    .origin(paramToEnum(params.get("$origin"), ManagementRequestOriginDto::fromValue))
+                    .serverId(params.get("$serverId"));
+
+            final Boolean desc = ofNullable(params.get("$desc")).map(Boolean::valueOf).orElse(null);
+
+            PagingSortingParametersDto pagingSorting = new PagingSortingParametersDto()
+                    .sort(params.get("$sortBy"))
+                    .desc(desc)
+                    .limit(createInteger(params.get("$pageSize")))
+                    .offset(ofNullable(params.get("$page")).map(p -> createInteger(p) - 1).orElse(null));
+
+            final var response = managementRequestsApi.findManagementRequests(filter, pagingSorting);
+
+            final ValidationHelper validations = validate(response)
+                    .assertion(equalsStatusCodeAssertion(OK))
+                    .assertion(equalsAssertion(createInteger(params.get("$itemsInPage")), "body.items.size()"))
+                    .assertion(equalsAssertion(createInteger(params.get("$itemsInPage")), "body.pagingMetadata.items"))
+                    .assertion(equalsAssertion(createInteger(params.get("$total")), "body.pagingMetadata.totalItems"));
+            if (isNotBlank(params.get("$sortFieldExp"))) {
+                validations.assertion(new Assertion.Builder()
+                        .message("Verify items are sorted")
+                        .expression("=")
+                        .actualValue(isTheListSorted(Collections.singletonList(response.getBody().getItems()), TRUE.equals(desc),
+                                params.get("$sortFieldExp")))
+                        .expectedValue(true)
+                        .build());
+            }
+
+
+            validations.execute();
+        }
+    }
+
+
+    private <T> T paramToEnum(String value, Function<String, T> fn) {
+        return ofNullable(value)
+                .map(fn)
+                .orElse(null);
+    }
+
+    private List<ManagementRequestTypeDto> toTypes(String types) {
+        if (isBlank(types)) {
+            return null;
+        }
+
+        return Arrays.stream(types.split(","))
+                .map(ManagementRequestTypeDto::fromValue)
+                .collect(toList());
+    }
+
 }
