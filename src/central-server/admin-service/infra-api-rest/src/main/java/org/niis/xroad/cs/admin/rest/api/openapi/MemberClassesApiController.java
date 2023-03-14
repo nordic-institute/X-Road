@@ -43,7 +43,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -85,7 +86,7 @@ public class MemberClassesApiController implements MemberClassesApi {
     public ResponseEntity<List<MemberClassDto>> getMemberClasses() {
         return ResponseEntity.ok(service.findAll().stream()
                 .map(memberClassDtoConverter::toDto)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
     @Override

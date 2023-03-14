@@ -66,9 +66,9 @@ import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -185,7 +185,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
         @Test
         @DisplayName("Should unregister subsystem")
         void shouldUnregisterSubsystem() {
-            Set<ServerClientEntity> serverClients = Stream.of(serverClient).collect(Collectors.toSet());
+            Set<ServerClientEntity> serverClients = Stream.of(serverClient).collect(toSet());
             doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
             doReturn(serverClients).when(subsystem).getServerClients();
             doReturn(securityServer).when(serverClient).getSecurityServer();

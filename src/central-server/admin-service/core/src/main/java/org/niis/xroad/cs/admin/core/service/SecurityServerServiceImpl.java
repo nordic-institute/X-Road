@@ -63,9 +63,9 @@ import javax.transaction.Transactional;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.AUTH_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
@@ -145,7 +145,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
                 .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND))
                 .getAuthCerts().stream()
                 .map(certificateConverter::toCertificateDetails)
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     @Override

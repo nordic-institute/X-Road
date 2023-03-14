@@ -31,7 +31,8 @@ import lombok.Getter;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * view / openapi -layer details for IdentifierValidationErrors
@@ -66,7 +67,7 @@ public enum IdentifierValidationErrorInfo {
             return EnumSet.noneOf(IdentifierValidationErrorInfo.class);
         }
         List<IdentifierValidationErrorInfo> infos = validationErrors.stream()
-                .map(IdentifierValidationErrorInfo::of).collect(Collectors.toList());
+                .map(IdentifierValidationErrorInfo::of).collect(toList());
         return EnumSet.copyOf(infos);
     }
 }

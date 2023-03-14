@@ -44,8 +44,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.LOGIN_TOKEN;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.LOGOUT_TOKEN;
 import static org.springframework.http.ResponseEntity.ok;
@@ -67,7 +67,7 @@ public class TokensApiController implements TokensApi {
         Set<TokenInfo> tokens = tokensService.getTokens();
         return ok(tokens.stream()
                 .map(tokenDtoMapper::toTarget)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
     @Override

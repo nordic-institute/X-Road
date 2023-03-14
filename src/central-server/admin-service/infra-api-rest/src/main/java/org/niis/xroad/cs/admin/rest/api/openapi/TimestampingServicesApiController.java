@@ -44,8 +44,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_TSP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_TSP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_TIMESTAMP_SERVICE;
@@ -90,7 +90,7 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     public ResponseEntity<List<TimestampingServiceDto>> getTimestampingServices() {
         return ok(timestampingServicesService.getTimestampingServices().stream()
                 .map(timestampingServiceMapper::toTarget)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
     @Override

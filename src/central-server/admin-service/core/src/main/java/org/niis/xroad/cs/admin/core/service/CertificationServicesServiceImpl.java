@@ -55,10 +55,11 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTICATION_ONLY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CA_ID;
@@ -168,7 +169,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         var approvedCa = getById(certificationServiceId);
         return approvedCa.getCaInfo().getOcspInfos().stream()
                 .map(ocspResponderConverter::toModel)
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     @Override
@@ -176,7 +177,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         return approvedCaRepository.findAll()
                 .stream()
                 .map(approvedCaConverter::convert)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private void addAuditData(ApprovedCaEntity approvedCa) {

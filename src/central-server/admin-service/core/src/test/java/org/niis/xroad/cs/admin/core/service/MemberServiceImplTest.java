@@ -70,8 +70,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -292,7 +292,7 @@ class MemberServiceImplTest implements WithInOrder {
             assertEquals(securityServersMock.size(), result.size());
 
             Assertions.assertThat(result.stream()
-                            .map(SecurityServer::getServerCode).collect(Collectors.toList()))
+                            .map(SecurityServer::getServerCode).collect(toList()))
                     .hasSameElementsAs(List.of("SS0", "SS1"));
         }
 

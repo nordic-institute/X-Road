@@ -60,9 +60,9 @@ import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.Fn.self;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Service
@@ -200,7 +200,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         return Optional.ofNullable(types)
                 .map(managementRequestTypes -> managementRequestTypes.stream()
                         .map(requestTypeConverter::convertToA)
-                        .collect(Collectors.toList()))
+                        .collect(toList()))
                 .orElseGet(Collections::emptyList);
     }
 

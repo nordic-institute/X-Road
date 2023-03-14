@@ -59,7 +59,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -128,7 +127,7 @@ public class MembersApiController implements MembersApi {
                         clientIdConverter.convertId(id))
                 .stream()
                 .map(subsystemDtoConverter::toDto)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
     @Override

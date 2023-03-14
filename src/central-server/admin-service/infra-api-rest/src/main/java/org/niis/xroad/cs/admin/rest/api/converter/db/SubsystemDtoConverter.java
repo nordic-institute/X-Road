@@ -36,9 +36,8 @@ import org.niis.xroad.cs.openapi.model.SubsystemDto;
 import org.niis.xroad.cs.openapi.model.UsedSecurityServersDto;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Collectors;
-
 import static ee.ria.xroad.common.util.Fn.self;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -63,7 +62,7 @@ public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto>
                 usedSecurityServersDto.setStatus(securityServerRegStatus != null
                         ? securityServerRegStatus.name() : null);
                 return usedSecurityServersDto;
-            }).collect(Collectors.toList()));
+            }).collect(toList()));
         });
     }
 

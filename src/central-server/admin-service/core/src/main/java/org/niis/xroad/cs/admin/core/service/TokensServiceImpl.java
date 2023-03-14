@@ -48,11 +48,11 @@ import javax.transaction.Transactional;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_FINAL_TRY;
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_LOCKED;
 import static java.lang.Integer.parseInt;
+import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_GETTING_TOKENS;
@@ -83,7 +83,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         try {
             return signerProxyFacade.getTokens().stream()
                     .map(tokenInfoMapper::toTarget)
-                    .collect(Collectors.toSet());
+                    .collect(toSet());
         } catch (Exception e) {
             throw new TokenException(ERROR_GETTING_TOKENS, e);
         }

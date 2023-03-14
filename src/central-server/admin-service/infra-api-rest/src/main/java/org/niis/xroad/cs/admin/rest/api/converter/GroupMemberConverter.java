@@ -37,7 +37,8 @@ import org.springframework.stereotype.Component;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Component
 public class GroupMemberConverter {
@@ -57,7 +58,7 @@ public class GroupMemberConverter {
     public List<MemberGlobalGroupDto> convertMemberGlobalGroups(Collection<GlobalGroupMember> entities) {
         return entities.stream()
                 .map(this::convertMemberGlobalGroup)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     public MemberGlobalGroupDto convertMemberGlobalGroup(GlobalGroupMember entity) {
@@ -82,6 +83,6 @@ public class GroupMemberConverter {
     private List<XRoadObjectType> toTypes(GroupMembersFilterDto filter) {
         return filter.getTypes() != null ? filter.getTypes().stream()
                 .map(type -> XRoadObjectType.forIdentifierOf(type.toString()))
-                .collect(Collectors.toList()) : null;
+                .collect(toList()) : null;
     }
 }

@@ -46,8 +46,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_INTERMEDIATE_CA_OCSP_RESPONDER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERMEDIATE_CA;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_OCSP_RESPONDER;
@@ -108,7 +108,7 @@ public class IntermediateCasController implements IntermediateCasApi {
     public ResponseEntity<List<OcspResponderDto>> getIntermediateCaOcspResponders(Integer id) {
         return ok(intermediateCasService.getOcspResponders(id).stream()
                 .map(ocspResponderDtoConverter::toDto)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
 }

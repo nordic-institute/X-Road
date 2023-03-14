@@ -49,8 +49,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @Controller
@@ -84,7 +84,7 @@ public class BackupsApiController implements BackupsApi {
     public ResponseEntity<List<BackupDto>> getBackups() {
         return ResponseEntity.ok(backupService.getBackupFiles().stream()
                 .map(backupDtoConverter::toTarget)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
     @Override

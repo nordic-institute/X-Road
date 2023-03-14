@@ -34,7 +34,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
 
 import static java.lang.ClassLoader.getSystemResourceAsStream;
 import static org.junit.Assert.assertEquals;
@@ -58,7 +58,7 @@ public class BackupStepDefs extends BaseStepDefs {
 
     @Step("Backups contains {} backup: {}")
     public void isContainingBackup(String backupName, String condition) {
-        Set<BackupDto> backups = getRequiredStepData(StepDataKey.RESPONSE_BODY);
+        List<BackupDto> backups = getRequiredStepData(StepDataKey.RESPONSE_BODY);
 
         Boolean containsBackup = backups.stream()
                 .filter(backup -> backup.getFilename().equals(backupName)).count() == 1;

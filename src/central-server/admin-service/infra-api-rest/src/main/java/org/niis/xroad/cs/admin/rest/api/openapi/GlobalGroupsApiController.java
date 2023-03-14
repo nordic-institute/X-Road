@@ -53,9 +53,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Map.entry;
+import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -108,7 +108,7 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     public ResponseEntity<List<GlobalGroupResourceDto>> findGlobalGroups() {
         return ResponseEntity.ok(globalGroupService.findGlobalGroups().stream()
                 .map(globalGroupConverter::convert)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
     @Override

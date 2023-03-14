@@ -43,8 +43,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_CONFIGURATION_PART;
 import static org.niis.xroad.restapi.openapi.ControllerUtil.createAttachmentResourceResponse;
 import static org.niis.xroad.restapi.util.MultipartFileUtils.readBytes;
@@ -78,7 +78,7 @@ public class ConfigurationPartsController implements ConfigurationPartsApi {
                 configurationService.getConfigurationParts(ConfigurationSourceType.valueOf(configurationType.getValue()))
                         .stream()
                         .map(configurationPartsDtoConverter::convert)
-                        .collect(Collectors.toList()));
+                        .collect(toList()));
     }
 
     @Override

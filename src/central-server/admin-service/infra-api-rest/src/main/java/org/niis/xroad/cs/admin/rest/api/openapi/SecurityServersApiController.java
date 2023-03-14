@@ -56,9 +56,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Map.entry;
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER_AUTH_CERT;
@@ -138,7 +138,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     public ResponseEntity<List<SecurityServerAuthenticationCertificateDetailsDto>> getSecurityServerAuthCerts(String id) {
         var result = securityServerService.findAuthCertificates(securityServerIdConverter.convertId(id)).stream()
                 .map(certificateDetailsDtoConverter::convert)
-                .collect(Collectors.toList());
+                .collect(toList());
         return ResponseEntity.ok(result);
     }
 
@@ -147,7 +147,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     public ResponseEntity<List<ClientDto>> getSecurityServerClients(String id) {
         return ok(securityServerService.findClients(securityServerIdConverter.convertId(id))
                 .stream().map(flattenedSecurityServerClientViewDtoConverter::toDto)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
     @Override

@@ -31,7 +31,8 @@ import org.niis.xroad.cs.openapi.model.GroupMembersFilterModelDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Component
 @RequiredArgsConstructor
@@ -43,19 +44,19 @@ public class GroupMemberFilterModelConverter {
         result.setInstances(members.stream()
                 .map(m -> m.getIdentifier().getXRoadInstance())
                 .distinct()
-                .collect(Collectors.toList()));
+                .collect(toList()));
         result.setMemberClasses(members.stream()
                 .map(m -> m.getIdentifier().getMemberClass())
                 .distinct()
-                .collect(Collectors.toList()));
+                .collect(toList()));
         result.setCodes(members.stream()
                 .map(m -> m.getIdentifier().getMemberCode())
                 .distinct()
-                .collect(Collectors.toList()));
+                .collect(toList()));
         result.setSubsystems(members.stream()
                 .map(m -> m.getIdentifier().getSubsystemCode())
                 .distinct()
-                .collect(Collectors.toList()));
+                .collect(toList()));
         return result;
     }
 }

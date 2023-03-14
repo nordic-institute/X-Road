@@ -51,8 +51,8 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.GLOBAL_GROUP_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.GLOBAL_GROUP_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED;
@@ -75,7 +75,7 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     public List<GlobalGroup> findGlobalGroups() {
         return globalGroupRepository.findAll().stream()
                 .map(globalGroupMapper::toTarget)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
@@ -114,7 +114,7 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     public List<GlobalGroupMember> getGroupMembersFilterModel(Integer groupId) {
         return globalGroupMemberRepository.findByGlobalGroupId(groupId).stream()
                 .map(globalGroupMemberMapper::toTarget)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
