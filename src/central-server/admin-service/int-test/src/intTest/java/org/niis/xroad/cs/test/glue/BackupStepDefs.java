@@ -37,12 +37,15 @@ import java.io.IOException;
 import java.util.List;
 
 import static java.lang.ClassLoader.getSystemResourceAsStream;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class BackupStepDefs extends BaseStepDefs {
     @Autowired
     private FeignBackupsApi backupsApi;
+
+    private BackupDto newBackup;
 
     @Step("Backups are retrieved")
     public void getBackups() {
@@ -73,10 +76,35 @@ public class BackupStepDefs extends BaseStepDefs {
         try {
             var result = backupsApi.uploadBackup(false, backup);
             putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
+    }
+
+    @Step("Backup is created")
+    public void createBackup() {
+        try {
+            var result = backupsApi.addBackup();
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            newBackup = result.getBody();
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("it contains data of new backup file")
+    public void containsBackupData() {
+        assertThat(newBackup).isNotNull();
+        final var mustMatchOne = 1;
+        List<BackupDto> backups = getRequiredStepData(StepDataKey.RESPONSE_BODY);
+        var count = backups.stream()
+                .filter(backup -> newBackup.getFilename().equals(backup.getFilename()))
+                .filter(backup -> newBackup.getCreatedAt().equals(backup.getCreatedAt()))
+                .count();
+        assertThat(count).isEqualTo(mustMatchOne);
     }
 
     @Step("Backup named {} is downloaded")

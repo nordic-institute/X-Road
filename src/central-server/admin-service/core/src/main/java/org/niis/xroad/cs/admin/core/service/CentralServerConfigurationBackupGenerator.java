@@ -47,7 +47,7 @@ import java.util.ArrayList;
 public class CentralServerConfigurationBackupGenerator extends BaseConfigurationBackupGenerator {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(BACKUP_FILENAME_DATE_TIME_FORMAT);
-    private static final String FILE_NAME_FORMAT = "conf_backup_%s.gpg";
+    private static final String FILE_NAME_FORMAT = "conf_backup_%s.tar";
     private static final String ARG_VALUES_AS_ENC_BASE64 = "-b";
     private static final String ARG_INSTANCE_ID = "-i";
     private static final String ARG_NODE_NAME = "-n";

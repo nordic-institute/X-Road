@@ -1,6 +1,16 @@
 @Backups
 Feature: Backups API
 
+  @ClearBackups
+  Scenario: New backup can be created
+    Given Authentication header is set to SYSTEM_ADMINISTRATOR
+    When Backup is created
+    Then Response is of status code 201
+    When Backups are retrieved
+    Then Response is of status code 200
+    And it contains data of new backup file
+
+  @ClearBackups
   Scenario: Backup can be uploaded
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
     And Backup test_backup.tar is uploaded
@@ -29,6 +39,12 @@ Feature: Backups API
     Given Authentication header is set to REGISTRATION_OFFICER
     When Backup test_backup.tar is uploaded
     Then Response is of status code 403
+
+  Scenario: New backup creation is forbidden for non privileged user
+    Given Authentication header is set to REGISTRATION_OFFICER
+    When Backup is created
+    Then Response is of status code 403
+
 
   Scenario: Backup can be downloaded
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
