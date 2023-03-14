@@ -40,9 +40,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil.caseInsensitiveLike;
 
 @Repository
@@ -58,7 +58,7 @@ public interface JpaManagementRequestViewRepository extends JpaRepository<Manage
         final List<String> entityTypes = ofNullable(criteria.getTypes())
                 .map(managementRequestTypes -> criteria.getTypes().stream()
                         .map(ManagementRequestViewEntity.ManagementRequestTypeDiscriminatorMapping::getDiscriminator)
-                        .collect(Collectors.toList()))
+                        .collect(toList()))
                 .orElseGet(Collections::emptyList);
 
         return (root, query, builder) -> {

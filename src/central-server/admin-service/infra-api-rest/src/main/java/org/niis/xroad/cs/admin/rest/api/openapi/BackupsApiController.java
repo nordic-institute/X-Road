@@ -48,9 +48,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @Controller
@@ -81,10 +81,10 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
-    public ResponseEntity<Set<BackupDto>> getBackups() {
+    public ResponseEntity<List<BackupDto>> getBackups() {
         return ResponseEntity.ok(backupService.getBackupFiles().stream()
                 .map(backupDtoConverter::toTarget)
-                .collect(Collectors.toSet()));
+                .collect(toList()));
     }
 
     @Override

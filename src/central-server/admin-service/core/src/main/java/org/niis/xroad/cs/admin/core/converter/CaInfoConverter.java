@@ -37,8 +37,8 @@ import org.springframework.stereotype.Component;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_CERTIFICATE;
 
@@ -55,7 +55,7 @@ public class CaInfoConverter {
                 .setCaCertificate(certConverter.toCertificateDetails(caInfo.getCert()))
                 .setOcspResponders(caInfo.getOcspInfos().stream()
                         .map(ocspResponderConverter::toModel)
-                        .collect(Collectors.toList()))
+                        .collect(toList()))
                 .setUpdatedAt(caInfo.getUpdatedAt())
                 .setCreatedAt(caInfo.getCreatedAt());
     }

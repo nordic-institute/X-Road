@@ -39,8 +39,8 @@ import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -203,7 +203,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
         assertEquals(2, clientsPage.getNumberOfElements());
         assertEquals(0, clientsPage.getNumber());
         assertEquals(Arrays.asList(1000010, 1000002),
-                clientsPage.get().map(FlattenedSecurityServerClientViewEntity::getId).collect(Collectors.toList()));
+                clientsPage.get().map(FlattenedSecurityServerClientViewEntity::getId).collect(toList()));
 
         page = page.next();
         clientsPage = repository.findAll(
@@ -212,7 +212,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
         assertEquals(1, clientsPage.getNumberOfElements());
         assertEquals(1, clientsPage.getNumber());
         assertEquals(Arrays.asList(1000001),
-                clientsPage.get().map(FlattenedSecurityServerClientViewEntity::getId).collect(Collectors.toList()));
+                clientsPage.get().map(FlattenedSecurityServerClientViewEntity::getId).collect(toList()));
     }
 
     @Test
@@ -251,7 +251,7 @@ public class FlattenedSecurityServerClientViewRepositoryTest extends AbstractRep
         assertEquals(MEMBERS_TOTAL_COUNT, memberPage.getTotalElements());
         assertEquals(5, memberPage.getNumberOfElements());
         assertEquals(0, memberPage.getNumber());
-        var pageClients = memberPage.stream().collect(Collectors.toList());
+        var pageClients = memberPage.stream().collect(toList());
         assertEquals(5, pageClients.size());
     }
 

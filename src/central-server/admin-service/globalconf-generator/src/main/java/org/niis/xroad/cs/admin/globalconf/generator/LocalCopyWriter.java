@@ -36,8 +36,8 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
 @Slf4j
@@ -97,7 +97,7 @@ class LocalCopyWriter {
                 .map(Path::toAbsolutePath)
                 .map(Path::toString)
                 .sorted()
-                .collect(Collectors.joining("\n"));
+                .collect(joining("\n"));
 
         FileUtils.writeString(fileListPath(), fileList);
     }

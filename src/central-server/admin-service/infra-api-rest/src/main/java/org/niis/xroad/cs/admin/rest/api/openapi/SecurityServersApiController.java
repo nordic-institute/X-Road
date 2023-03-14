@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
-import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
@@ -56,11 +55,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import static java.util.Map.entry;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER_AUTH_CERT;
@@ -137,20 +135,19 @@ public class SecurityServersApiController implements SecurityServersApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVER_DETAILS')")
-    public ResponseEntity<Set<SecurityServerAuthenticationCertificateDetailsDto>> getSecurityServerAuthCerts(String id) {
-        Set<SecurityServerAuthenticationCertificateDetails> authCerts =
-                securityServerService.findAuthCertificates(securityServerIdConverter.convertId(id));
-        return ResponseEntity.ok(
-                authCerts.stream().map(certificateDetailsDtoConverter::convert).collect(Collectors.toSet())
-        );
+    public ResponseEntity<List<SecurityServerAuthenticationCertificateDetailsDto>> getSecurityServerAuthCerts(String id) {
+        var result = securityServerService.findAuthCertificates(securityServerIdConverter.convertId(id)).stream()
+                .map(certificateDetailsDtoConverter::convert)
+                .collect(toList());
+        return ResponseEntity.ok(result);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVER_DETAILS')")
-    public ResponseEntity<Set<ClientDto>> getSecurityServerClients(String id) {
+    public ResponseEntity<List<ClientDto>> getSecurityServerClients(String id) {
         return ok(securityServerService.findClients(securityServerIdConverter.convertId(id))
                 .stream().map(flattenedSecurityServerClientViewDtoConverter::toDto)
-                .collect(toSet()));
+                .collect(toList()));
     }
 
     @Override

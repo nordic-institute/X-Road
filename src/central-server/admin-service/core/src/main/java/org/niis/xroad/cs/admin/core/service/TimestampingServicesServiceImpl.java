@@ -43,10 +43,10 @@ import javax.transaction.Transactional;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
+import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TIMESTAMPING_AUTHORITY_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSA_CERT_HASH_ALGORITHM;
@@ -70,7 +70,7 @@ public class TimestampingServicesServiceImpl implements TimestampingServicesServ
     public Set<ApprovedTsa> getTimestampingServices() {
         return approvedTsaRepository.findAll().stream()
                 .map(approvedTsaMapper::toTarget)
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     @Override

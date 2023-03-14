@@ -55,8 +55,8 @@ import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
@@ -131,17 +131,17 @@ public class MemberServiceImpl implements MemberService {
     public List<GlobalGroupMember> getMemberGlobalGroups(ClientId memberId) {
         return globalGroupMemberRepository.findMemberGroups(memberId)
                 .stream().map(globalGroupMemberMapper::toTarget)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
-    public Set<SecurityServer> getMemberOwnedServers(ClientId memberId) {
+    public List<SecurityServer> getMemberOwnedServers(ClientId memberId) {
         return xRoadMemberRepository.findMember(memberId)
                 .map(XRoadMemberEntity::getOwnedServers)
                 .map(securityServerEntities -> securityServerEntities.stream()
                         .map(securityServerMapper::toTarget)
-                        .collect(Collectors.toSet()))
-                .getOrElse(Set.of());
+                        .collect(toList()))
+                .getOrElse(List.of());
     }
 
     @Override

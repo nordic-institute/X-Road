@@ -51,8 +51,8 @@ import javax.transaction.Transactional;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_FOUND;
@@ -115,7 +115,7 @@ public class SubsystemServiceImpl implements SubsystemService {
         return xRoadMemberRepository.findMember(id)
                 .getOrElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND))
                 .getSubsystems().stream().map(subsystemConverter::toDto)
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     @Override

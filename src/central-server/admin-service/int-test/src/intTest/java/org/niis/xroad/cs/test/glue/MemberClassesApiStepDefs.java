@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Set;
+import java.util.List;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
@@ -86,7 +86,7 @@ public class MemberClassesApiStepDefs extends BaseStepDefs {
 
     @Step("member class {string} has description {string}")
     public void memberClassHasDescription(String code, String description) {
-        final ResponseEntity<Set<MemberClassDto>> response = memberClassesApi.getMemberClasses();
+        final ResponseEntity<List<MemberClassDto>> response = memberClassesApi.getMemberClasses();
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -107,7 +107,7 @@ public class MemberClassesApiStepDefs extends BaseStepDefs {
 
     @Step("member class list contains {int} items")
     public void memberClassListContainsItems(int count) {
-        final ResponseEntity<Set<MemberClassDto>> response = memberClassesApi.getMemberClasses();
+        final ResponseEntity<List<MemberClassDto>> response = memberClassesApi.getMemberClasses();
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))

@@ -33,8 +33,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -96,7 +96,7 @@ public final class DeviationTestUtils {
     public static void assertWarningWithoutMetadata(String warningCode, DeviationAware deviationAware) {
         List<String> warningCodes = deviationAware.getWarningDeviations().stream()
                 .map(Deviation::getCode)
-                .collect(Collectors.toList());
+                .collect(toList());
         deviationAware.getWarningDeviations()
                 .forEach(warningDeviation -> assertNull(warningDeviation.getMetadata()));
         assertTrue(warningCodes.contains(warningCode));

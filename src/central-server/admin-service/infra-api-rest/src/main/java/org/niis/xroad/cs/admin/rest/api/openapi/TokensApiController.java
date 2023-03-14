@@ -42,9 +42,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.LOGIN_TOKEN;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.LOGOUT_TOKEN;
 import static org.springframework.http.ResponseEntity.ok;
@@ -62,9 +63,11 @@ public class TokensApiController implements TokensApi {
     @PreAuthorize(
             "hasAuthority('VIEW_INTERNAL_CONFIGURATION_SOURCE') or hasAuthority('VIEW_EXTERNAL_CONFIGURATION_SOURCE')"
     )
-    public ResponseEntity<Set<TokenDto>> getTokens() {
+    public ResponseEntity<List<TokenDto>> getTokens() {
         Set<TokenInfo> tokens = tokensService.getTokens();
-        return ok(tokens.stream().map(tokenDtoMapper::toTarget).collect(Collectors.toSet()));
+        return ok(tokens.stream()
+                .map(tokenDtoMapper::toTarget)
+                .collect(toList()));
     }
 
     @Override

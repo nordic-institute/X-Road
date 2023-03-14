@@ -47,8 +47,9 @@ import org.springframework.stereotype.Service;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_CLASS;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_CODE;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM;
@@ -119,18 +120,18 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
             if (ownedServers != null && !ownedServers.isEmpty()) {
                 securityServers.addAll(ownedServers.stream()
                         .map(SecurityServer::getServerId)
-                        .collect(Collectors.toList()));
+                        .collect(toList()));
             }
         }
 
         securityServers.addAll(securityServerClient.getServerClients().stream()
                 .map(ServerClient::getServerId)
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         return securityServers.stream()
                 .map(securityServerId -> securityServerId.asEncodedId(true))
                 .sorted()
-                .collect(Collectors.joining("; "));
+                .collect(joining("; "));
     }
 
 

@@ -155,19 +155,16 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
                 requestHelper.getCurrentRequestUrl());
     }
 
-    // package private wrapper method for AuditLogger.log, to enable easier mocking in tests
     public void callAuditLoggerLogSuccess(RestApiAuditEvent event, String user, Map<String, Object> data,
                                    String auth, String url) {
         AuditLogger.log(event.getEventName(), user, data, auth, url);
     }
 
-    // package private wrapper method for AuditLogger.log, to enable easier mocking in tests
     public void callAuditLoggerLogFailure(RestApiAuditEvent event, String user, String reason,
                                           Map<String, Object> data, String auth, String url) {
         AuditLogger.log(event.getEventName(), user, reason, data, auth, url);
     }
 
-    // package private wrapper method for AuditLogger.log, to enable easier mocking in tests
     public void callAuditLoggerLogWarning(RestApiAuditEvent event, String user, String reason,
                                           Map<String, Object> data, String auth, String url) {
         AuditLogger.logWarning(event.getEventName(), user, reason, data, auth, url);

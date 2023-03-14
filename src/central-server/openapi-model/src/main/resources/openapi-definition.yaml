@@ -70,7 +70,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Backup'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: list of central server backups
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -313,7 +313,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApprovedCertificationServiceListItem'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: list of certification services
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -513,7 +513,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/CertificateAuthority'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: list of intermediate certificate authorities belonging to the certification service
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -584,7 +584,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/OcspResponder'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: list of ocsp responders belonging to the certification service
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -655,7 +655,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/GlobalGroupResource'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: list of global groups
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1068,7 +1068,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ConfigurationPart'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: global conf parts
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -1240,7 +1240,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Token'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: list of tokens
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1372,7 +1372,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/TrustedAnchor'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: list of anchors
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1691,7 +1691,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/OcspResponder'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: list of ocsp responders belonging to the intermediate certificate authority
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -1808,7 +1808,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/MemberClass'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: array of member classes
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -2109,7 +2109,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Subsystem'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: array of subsystems
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -2148,7 +2148,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/MemberGlobalGroup'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: List of member's global groups
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -2185,7 +2185,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/SecurityServer'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: List of member's global groups
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -2745,7 +2745,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/SecurityServerAuthenticationCertificateDetails'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: list of auth certs
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -2860,7 +2860,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Client'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: list of clients
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -3054,7 +3054,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/TimestampingService'
                 type: array
-                uniqueItems: true
+                uniqueItems: false
           description: list of timestamping services
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -3639,7 +3639,7 @@ components:
           items:
             $ref: '#/components/schemas/KeyUsage'
           type: array
-          uniqueItems: true
+          uniqueItems: false
         not_after:
           description: certificate validity not after
           example: '2022-01-17T00:00:00.001Z'

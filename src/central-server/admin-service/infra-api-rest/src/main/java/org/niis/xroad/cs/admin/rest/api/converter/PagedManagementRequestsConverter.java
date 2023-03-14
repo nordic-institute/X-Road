@@ -35,7 +35,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Component
 @RequiredArgsConstructor
@@ -51,7 +52,7 @@ public class PagedManagementRequestsConverter {
 
         List<ManagementRequestListViewDto> items = page.get()
                 .map(managementRequestListViewDtoConverter::convert)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         PagedManagementRequestsDto result = new PagedManagementRequestsDto();
         result.setItems(items);

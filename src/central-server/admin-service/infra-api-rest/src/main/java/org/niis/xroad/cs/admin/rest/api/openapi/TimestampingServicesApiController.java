@@ -43,9 +43,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_TSP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_TSP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_TIMESTAMP_SERVICE;
@@ -87,10 +87,10 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_TSAS')")
-    public ResponseEntity<Set<TimestampingServiceDto>> getTimestampingServices() {
+    public ResponseEntity<List<TimestampingServiceDto>> getTimestampingServices() {
         return ok(timestampingServicesService.getTimestampingServices().stream()
                 .map(timestampingServiceMapper::toTarget)
-                .collect(Collectors.toSet()));
+                .collect(toList()));
     }
 
     @Override

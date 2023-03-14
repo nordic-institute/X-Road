@@ -65,6 +65,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.ACTIVATE;
@@ -102,7 +103,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     public List<ConfigurationSigningKey> findByTokenIdentifier(final String tokenId) {
         return configurationSigningKeyRepository.findByTokenIdentifier(tokenId).stream()
                 .map(configurationSigningKeyMapper::toTarget)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
@@ -117,7 +118,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                     var key = configurationSigningKeyMapper.toTarget(signingKey);
                     return mapWithDetails(token, key, keyInfo);
                 })
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private ConfigurationSigningKeyWithDetails mapWithDetails(final ee.ria.xroad.signer.protocol.dto.TokenInfo token,

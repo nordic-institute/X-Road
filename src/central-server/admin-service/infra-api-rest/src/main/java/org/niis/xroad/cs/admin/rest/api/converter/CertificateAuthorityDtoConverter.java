@@ -33,13 +33,13 @@ import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CertificateAuthorityDtoConverter extends BaseConverter {
 
     CertificateAuthorityDto convert(CertificateAuthority certificateAuthority);
 
-    Set<CertificateAuthorityDto> convert(Collection<CertificateAuthority> certificateAuthorities);
+    List<CertificateAuthorityDto> convert(Collection<CertificateAuthority> certificateAuthorities);
 
 }

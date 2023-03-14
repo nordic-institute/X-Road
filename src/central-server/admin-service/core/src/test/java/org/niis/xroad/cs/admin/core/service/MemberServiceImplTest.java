@@ -72,8 +72,8 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -299,7 +299,7 @@ class MemberServiceImplTest {
             doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
             doReturn(securityServersMock).when(xRoadMember).getOwnedServers();
 
-            final Set<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
+            final List<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
 
 
             verify(xRoadMemberRepository).findMember(clientId);
@@ -308,7 +308,7 @@ class MemberServiceImplTest {
             assertEquals(securityServersMock.size(), result.size());
 
             Assertions.assertThat(result.stream()
-                            .map(SecurityServer::getServerCode).collect(Collectors.toList()))
+                            .map(SecurityServer::getServerCode).collect(toList()))
                     .hasSameElementsAs(List.of("SS0", "SS1"));
         }
 
@@ -316,7 +316,7 @@ class MemberServiceImplTest {
         void shouldReturnEmptySetWhenMemberNotFound() {
             doReturn(Option.none()).when(xRoadMemberRepository).findMember(clientId);
 
-            final Set<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
+            final List<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
 
             verify(xRoadMemberRepository).findMember(clientId);
             assertTrue(CollectionUtils.isEmpty(result));

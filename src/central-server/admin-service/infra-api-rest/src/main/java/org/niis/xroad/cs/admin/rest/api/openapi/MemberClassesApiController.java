@@ -40,9 +40,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Set;
+import java.util.List;
 
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_CLASS;
@@ -78,10 +78,10 @@ public class MemberClassesApiController implements MemberClassesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public ResponseEntity<Set<MemberClassDto>> getMemberClasses() {
+    public ResponseEntity<List<MemberClassDto>> getMemberClasses() {
         return ok(service.findAll().stream()
                 .map(memberClassDtoConverter::toDto)
-                .collect(toSet()));
+                .collect(toList()));
     }
 
     @Override
