@@ -36,19 +36,16 @@ import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
 import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
 import org.niis.xroad.restapi.common.backup.exception.InvalidFilenameException;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
+import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -60,7 +57,6 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
-
 import static org.springframework.http.HttpStatus.CREATED;
 
 @Controller
@@ -78,7 +74,7 @@ public class BackupsApiController implements BackupsApi {
         try {
             BackupFile backupFile = centralServerConfigurationBackupGenerator.generateBackup();
             return ResponseEntity
-                    .status(HttpStatus.CREATED)
+                    .status(CREATED)
                     .body(backupDtoConverter.toTarget(backupFile));
         } catch (InterruptedException e) {
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_GENERATE_BACKUP_INTERRUPTED));
