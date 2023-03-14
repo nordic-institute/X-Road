@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div
+  <main
     data-test="security-server-authentication-certificates-view"
     class="mt-8"
   >
@@ -33,8 +33,7 @@
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="certificationServices"
-      :search="search"
+      :items="authenticationCertificates"
       :must-sort="true"
       :items-per-page="-1"
       class="elevation-0 data-table"
@@ -42,18 +41,28 @@
       :loader-height="2"
       hide-default-footer
     >
-      <template #[`item.certificationAuthority`]="{ item }">
-        <div class="icon-cell">
-          <xrd-icon-base class="mr-4"><XrdIconCertificate /></xrd-icon-base>
-          {{ item.certificationAuthority }}
+      <template #[`item.issuer_common_name`]="{ item }">
+        <div class="icon-cell" @click="navigateToCertificateDetails(item.id)">
+          <xrd-icon-base icon-name="certificate" class="mr-4"
+            ><XrdIconCertificate
+          /></xrd-icon-base>
+          {{ item.issuer_common_name }}
         </div>
       </template>
+      <template #[`item.not_after`]="{ item }">
+        {{ item.not_after | formatDateTime }}
+      </template>
 
-      <template #[`item.button`]>
+      <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
-          <xrd-button text :outlined="false">{{
-            $t('action.delete')
-          }}</xrd-button>
+          <xrd-button
+            v-if="hasDeletePermission"
+            text
+            :outlined="false"
+            @click="openDeleteConfirmationDialog(item.id)"
+          >
+            {{ $t('action.delete') }}
+          </xrd-button>
         </div>
       </template>
 
@@ -61,39 +70,42 @@
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
-  </div>
+
+    <DeleteAuthenticationCertificateDialog
+      v-if="showDeleteConfirmationDialog"
+      :authentication-certificate-id="authCertIdForDeletion"
+      @cancel="cancelDeletion"
+      @delete="finishDeletion"
+    >
+    </DeleteAuthenticationCertificateDialog>
+  </main>
 </template>
 
 <script lang="ts">
-/**
- * View for 'security server authentication certificates' tab
- */
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
+import DeleteAuthenticationCertificateDialog from '@/components/securityServers/DeleteAuthenticationCertificateDialog.vue';
+import { Permissions, RouteName } from '@/global';
+import { userStore } from '@/store/modules/user';
+import { mapState, mapStores } from 'pinia';
+import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
+import { securityServerAuthCertStore } from '@/store/modules/security-servers-authentication-certificates';
 
 export default Vue.extend({
+  components: { DeleteAuthenticationCertificateDialog },
   data() {
     return {
-      search: '' as string,
       loading: false,
-      showOnlyPending: false,
-      certificationServices: [
-        {
-          certificationAuthority: 'X-Road test',
-          serialNumber: '12',
-          subject: '/C=/FI/O=NIIS/CN=xroad-lxd-ss1',
-          expires: '2024-04-08',
-        },
-        {
-          certificationAuthority: 'Test CA CN',
-          serialNumber: '4',
-          subject: '/C=/FI/O=NIIS/CN=xroad-lxd-ss3',
-          expires: '2024-03-13',
-        },
-      ],
+      showDeleteConfirmationDialog: false,
+      authCertIdForDeletion: undefined as number | undefined,
     };
   },
   computed: {
+    ...mapStores(securityServerAuthCertStore),
+    ...mapState(userStore, ['hasPermission']),
+    authenticationCertificates(): SecurityServerAuthenticationCertificateDetails[] {
+      return this.securityServerAuthCertStore.authenticationCertificates;
+    },
     headers(): DataTableHeader[] {
       return [
         {
@@ -101,7 +113,7 @@ export default Vue.extend({
             'securityServers.securityServer.certificationAuthority',
           ) as string,
           align: 'start',
-          value: 'certificationAuthority',
+          value: 'issuer_common_name',
           class: 'xrd-table-header',
         },
         {
@@ -109,19 +121,19 @@ export default Vue.extend({
             'securityServers.securityServer.serialNumber',
           ) as string,
           align: 'start',
-          value: 'serialNumber',
+          value: 'serial',
           class: 'xrd-table-header',
         },
         {
           text: this.$t('securityServers.securityServer.subject') as string,
           align: 'start',
-          value: 'subject',
+          value: 'subject_distinguished_name',
           class: 'xrd-table-header',
         },
         {
           text: this.$t('securityServers.securityServer.expires') as string,
           align: 'start',
-          value: 'expires',
+          value: 'not_after',
           class: 'xrd-table-header',
         },
         {
@@ -133,6 +145,39 @@ export default Vue.extend({
       ];
     },
   },
+  created() {
+    this.fetchSecurityServerAuthenticationCertificates();
+  },
+  methods: {
+    fetchSecurityServerAuthenticationCertificates(): void {
+      this.loading = true;
+      this.securityServerAuthCertStore
+        .fetch(this.$route.params.serverId)
+        .finally(() => (this.loading = false));
+    },
+    hasDeletePermission(): boolean {
+      return this.hasPermission(Permissions.DELETE_SECURITY_SERVER_AUTH_CERT);
+    },
+    openDeleteConfirmationDialog(authCertId: number): void {
+      this.authCertIdForDeletion = authCertId;
+      this.showDeleteConfirmationDialog = true;
+    },
+    cancelDeletion(): void {
+      this.showDeleteConfirmationDialog = false;
+    },
+    finishDeletion(): void {
+      this.showDeleteConfirmationDialog = false;
+      this.fetchSecurityServerAuthenticationCertificates();
+    },
+    navigateToCertificateDetails(authCertId: number): void {
+      this.$router.push({
+        name: RouteName.SecurityServerAuthenticationCertificate,
+        params: {
+          authenticationCertificateId: authCertId.toString(),
+        },
+      });
+    },
+  },
 });
 </script>
 <style lang="scss" scoped>
@@ -142,6 +187,7 @@ export default Vue.extend({
   color: $XRoad-Purple100;
   font-weight: 600;
   font-size: 14px;
+  cursor: pointer;
 }
 
 .align-fix {
