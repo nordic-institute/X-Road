@@ -283,7 +283,7 @@ class MemberServiceImplTest implements WithInOrder {
             doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
             doReturn(securityServersMock).when(xRoadMember).getOwnedServers();
 
-            final Set<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
+            final List<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
 
 
             verify(xRoadMemberRepository).findMember(clientId);
@@ -300,7 +300,7 @@ class MemberServiceImplTest implements WithInOrder {
         void shouldReturnEmptySetWhenMemberNotFound() {
             doReturn(Option.none()).when(xRoadMemberRepository).findMember(clientId);
 
-            final Set<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
+            final List<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
 
             inOrder().verify(inOrder -> {
                 inOrder.verify(xRoadMemberRepository).findMember(clientId);

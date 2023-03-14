@@ -35,7 +35,6 @@ import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
 
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -72,7 +71,7 @@ class GroupMemberConverterTest {
 
     @Test
     void testConvertMemberGlobalGroups() {
-        final Set<MemberGlobalGroupDto> result = converter.convertMemberGlobalGroups(List.of(
+        final List<MemberGlobalGroupDto> result = converter.convertMemberGlobalGroups(List.of(
                 mockEntity(1, "CS1", "ORG1", "111", "subsystem1"),
                 mockEntity(2, "CS2", "ORG2", "222", null)
         ));

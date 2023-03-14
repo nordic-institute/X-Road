@@ -40,8 +40,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
@@ -63,7 +63,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignIntermediateCasApi intermediateCasApi;
 
-    private ResponseEntity<Set<CertificateAuthorityDto>> intermediateCaResponse;
+    private ResponseEntity<List<CertificateAuthorityDto>> intermediateCaResponse;
     private Integer intermediateCaId;
     private X509CertificateHolder generatedCertificate;
 
@@ -144,7 +144,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     @Step("intermediate CA has {int} OCSP responders")
     public void intermediateCAHasOCSPResponders(int count) {
-        final ResponseEntity<Set<OcspResponderDto>> response = intermediateCasApi.getIntermediateCaOcspResponders(intermediateCaId);
+        final ResponseEntity<List<OcspResponderDto>> response = intermediateCasApi.getIntermediateCaOcspResponders(intermediateCaId);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -155,7 +155,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     @Step("intermediate CA has the updated OCSP responder")
     public void intermediateCAHasUpdatedOCSPResponder() {
-        final ResponseEntity<Set<OcspResponderDto>> response = intermediateCasApi
+        final ResponseEntity<List<OcspResponderDto>> response = intermediateCasApi
                 .getIntermediateCaOcspResponders(intermediateCaId);
 
         final String newOcspResponderUrl = getRequiredStepData(NEW_OCSP_RESPONDER_URL);

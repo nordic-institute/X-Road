@@ -37,7 +37,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
@@ -87,7 +87,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
 
     @Step("timestamping services list contains added timestamping service")
     public void timestampingServicesListContainsNewTimestampingService() {
-        final ResponseEntity<Set<TimestampingServiceDto>> response = timestampingServicesApi.getTimestampingServices();
+        final ResponseEntity<List<TimestampingServiceDto>> response = timestampingServicesApi.getTimestampingServices();
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -144,7 +144,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
 
     @Step("timestamping services list does not contain added timestamping service")
     public void timestampingServicesListDoesNotContainAddedTimestampingService() {
-        final ResponseEntity<Set<TimestampingServiceDto>> response = timestampingServicesApi.getTimestampingServices();
+        final ResponseEntity<List<TimestampingServiceDto>> response = timestampingServicesApi.getTimestampingServices();
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))

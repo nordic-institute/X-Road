@@ -34,7 +34,7 @@ import org.niis.xroad.cs.openapi.model.ApprovedCertificationServiceDto;
 import org.niis.xroad.cs.openapi.model.ApprovedCertificationServiceListItemDto;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ApprovedCertificationServiceDtoConverter extends BaseConverter {
@@ -43,6 +43,6 @@ public interface ApprovedCertificationServiceDtoConverter extends BaseConverter 
 
     ApprovedCertificationServiceListItemDto convertListItem(CertificationServiceListItem listItem);
 
-    Set<ApprovedCertificationServiceListItemDto> convertListItems(Collection<CertificationServiceListItem> items);
+    List<ApprovedCertificationServiceListItemDto> convertListItems(Collection<CertificationServiceListItem> items);
 
 }

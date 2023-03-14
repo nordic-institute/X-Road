@@ -53,7 +53,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.Boolean.parseBoolean;
@@ -125,22 +125,22 @@ public class CertificationServicesController implements CertificationServicesApi
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
-    public ResponseEntity<Set<CertificateAuthorityDto>> getCertificationServiceIntermediateCas(Integer id) {
+    public ResponseEntity<List<CertificateAuthorityDto>> getCertificationServiceIntermediateCas(Integer id) {
         return ok(certificateAuthorityDtoConverter.convert(certificationServicesService.getIntermediateCas(id)));
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
-    public ResponseEntity<Set<OcspResponderDto>> getCertificationServiceOcspResponders(Integer id) {
+    public ResponseEntity<List<OcspResponderDto>> getCertificationServiceOcspResponders(Integer id) {
         return ok(certificationServicesService.getOcspResponders(id).stream()
                 .map(ocspResponderDtoConverter::toDto)
-                .collect(Collectors.toSet())
+                .collect(Collectors.toList())
         );
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CAS')")
-    public ResponseEntity<Set<ApprovedCertificationServiceListItemDto>> getCertificationServices() {
+    public ResponseEntity<List<ApprovedCertificationServiceListItemDto>> getCertificationServices() {
         return ok(approvedCertificationServiceDtoConverter.convertListItems(certificationServicesService.getCertificationServices()));
     }
 

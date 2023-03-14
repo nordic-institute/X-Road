@@ -39,7 +39,7 @@ import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Set;
+import java.util.List;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
@@ -131,7 +131,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
 
     @Step("security server {string} clients contains {string}")
     public void securityServerClientsContains(String serverId, String clientId) {
-        final ResponseEntity<Set<ClientDto>> response = securityServersApi.getSecurityServerClients(serverId);
+        final ResponseEntity<List<ClientDto>> response = securityServersApi.getSecurityServerClients(serverId);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -155,7 +155,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
 
     @Step("security server {string} clients do not contain {string}")
     public void securityServeClientsDoNotContain(String serverId, String clientId) {
-        final ResponseEntity<Set<ClientDto>> response = securityServersApi.getSecurityServerClients(serverId);
+        final ResponseEntity<List<ClientDto>> response = securityServersApi.getSecurityServerClients(serverId);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -168,7 +168,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
 
     @Step("security server {string} has no clients")
     public void securityServerHasNoClients(String serverId) {
-        final ResponseEntity<Set<ClientDto>> response = securityServersApi.getSecurityServerClients(serverId);
+        final ResponseEntity<List<ClientDto>> response = securityServersApi.getSecurityServerClients(serverId);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -210,7 +210,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
 
     @Step("user can get security server {string} authentication certificates")
     public void userCanGetSecurityServerAuthenticationCertificates(String serverId) {
-        final ResponseEntity<Set<SecurityServerAuthenticationCertificateDetailsDto>> response =
+        final ResponseEntity<List<SecurityServerAuthenticationCertificateDetailsDto>> response =
                 securityServersApi.getSecurityServerAuthCerts(serverId);
 
         validate(response)
@@ -229,7 +229,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
 
     @Step("security server {string} has no authentication certificates")
     public void securityServerHasNoAuthenticationCertificates(String serverId) {
-        final ResponseEntity<Set<SecurityServerAuthenticationCertificateDetailsDto>> response =
+        final ResponseEntity<List<SecurityServerAuthenticationCertificateDetailsDto>> response =
                 securityServersApi.getSecurityServerAuthCerts(serverId);
 
         validate(response)

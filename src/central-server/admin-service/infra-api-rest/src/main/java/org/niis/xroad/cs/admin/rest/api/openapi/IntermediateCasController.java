@@ -45,9 +45,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_INTERMEDIATE_CA_OCSP_RESPONDER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERMEDIATE_CA;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_OCSP_RESPONDER;
@@ -105,10 +105,10 @@ public class IntermediateCasController implements IntermediateCasApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CA_DETAILS')")
-    public ResponseEntity<Set<OcspResponderDto>> getIntermediateCaOcspResponders(Integer id) {
+    public ResponseEntity<List<OcspResponderDto>> getIntermediateCaOcspResponders(Integer id) {
         return ok(intermediateCasService.getOcspResponders(id).stream()
                 .map(ocspResponderDtoConverter::toDto)
-                .collect(toSet()));
+                .collect(Collectors.toList()));
     }
 
 }

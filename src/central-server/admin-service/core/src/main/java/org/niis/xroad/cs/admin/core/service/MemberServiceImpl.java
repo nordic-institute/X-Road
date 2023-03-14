@@ -124,13 +124,13 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public Set<SecurityServer> getMemberOwnedServers(ClientId memberId) {
+    public List<SecurityServer> getMemberOwnedServers(ClientId memberId) {
         return xRoadMemberRepository.findMember(memberId)
                 .map(XRoadMemberEntity::getOwnedServers)
                 .map(securityServerEntities -> securityServerEntities.stream()
                         .map(securityServerMapper::toTarget)
-                        .collect(Collectors.toSet()))
-                .getOrElse(Set.of());
+                        .collect(Collectors.toList()))
+                .getOrElse(List.of());
     }
 
     @Override

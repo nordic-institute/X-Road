@@ -58,10 +58,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -122,39 +122,36 @@ public class MembersApiController implements MembersApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_DETAILS')")
-    public ResponseEntity<Set<SubsystemDto>> getSubsystems(String id) {
+    public ResponseEntity<List<SubsystemDto>> getSubsystems(String id) {
         verifyMemberId(id);
         return ResponseEntity.ok(subsystemService.findByMemberIdentifier(
                         clientIdConverter.convertId(id))
                 .stream()
                 .map(subsystemDtoConverter::toDto)
-                .collect(toSet()));
+                .collect(Collectors.toList()));
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
-    public ResponseEntity<Set<MemberGlobalGroupDto>> getMemberGlobalGroups(final String memberId) {
+    public ResponseEntity<List<MemberGlobalGroupDto>> getMemberGlobalGroups(final String memberId) {
         verifyMemberId(memberId);
 
-        return Try.success(memberId)
-                .map(clientIdConverter::convertId)
-                .map(memberService::getMemberGlobalGroups)
-                .map(groupMemberConverter::convertMemberGlobalGroups)
-                .map(ResponseEntity::ok)
-                .get();
+        var result = memberService.getMemberGlobalGroups(clientIdConverter.convertId(memberId)).stream()
+                .map(groupMemberConverter::convertMemberGlobalGroup)
+                .collect(toList());
+        return ResponseEntity.ok(result);
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
-    public ResponseEntity<Set<SecurityServerDto>> getOwnedServers(final String memberId) {
+    public ResponseEntity<List<SecurityServerDto>> getOwnedServers(final String memberId) {
         verifyMemberId(memberId);
 
-        return Try.success(memberId)
-                .map(clientIdConverter::convertId)
-                .map(memberService::getMemberOwnedServers)
-                .map(servers -> servers.stream().map(securityServerDtoConverter::toDto).collect(Collectors.toSet()))
-                .map(ResponseEntity::ok)
-                .get();
+        var result = memberService.getMemberOwnedServers(clientIdConverter.convertId(memberId)).stream()
+                .map(securityServerDtoConverter::toDto)
+                .collect(toList());
+
+        return ResponseEntity.ok(result);
     }
 
     @Override

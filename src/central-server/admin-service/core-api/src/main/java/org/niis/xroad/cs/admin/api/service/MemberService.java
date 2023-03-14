@@ -35,7 +35,6 @@ import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 
 import java.util.List;
-import java.util.Set;
 
 public interface MemberService {
 
@@ -47,7 +46,7 @@ public interface MemberService {
 
     List<GlobalGroupMember> getMemberGlobalGroups(ClientId memberId);
 
-    Set<SecurityServer> getMemberOwnedServers(ClientId memberId);
+    List<SecurityServer> getMemberOwnedServers(ClientId memberId);
 
     Option<XRoadMember> updateMemberName(ClientId clientId, String newName);
 }

@@ -42,9 +42,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -83,8 +82,10 @@ public class MemberClassesApiController implements MemberClassesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public ResponseEntity<Set<MemberClassDto>> getMemberClasses() {
-        return ResponseEntity.ok(service.findAll().stream().map(memberClassDtoConverter::toDto).collect(toSet()));
+    public ResponseEntity<List<MemberClassDto>> getMemberClasses() {
+        return ResponseEntity.ok(service.findAll().stream()
+                .map(memberClassDtoConverter::toDto)
+                .collect(Collectors.toList()));
     }
 
     @Override

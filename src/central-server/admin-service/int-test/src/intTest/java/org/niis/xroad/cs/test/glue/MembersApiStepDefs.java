@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Set;
+import java.util.List;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.apache.commons.lang3.StringUtils.split;
@@ -81,7 +81,7 @@ public class MembersApiStepDefs extends BaseStepDefs {
 
     @Step("member {string} is not in global group {string}")
     public void memberIsNotInGlobalGroup(String memberId, String globalGroupCode) {
-        final ResponseEntity<Set<MemberGlobalGroupDto>> response = membersApi.getMemberGlobalGroups(memberId);
+        final ResponseEntity<List<MemberGlobalGroupDto>> response = membersApi.getMemberGlobalGroups(memberId);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -92,7 +92,7 @@ public class MembersApiStepDefs extends BaseStepDefs {
 
     @Step("member {string} is in global group {string}")
     public void memberIsInGlobalGroup(String memberId, String globalGroupCode) {
-        final ResponseEntity<Set<MemberGlobalGroupDto>> response = membersApi.getMemberGlobalGroups(memberId);
+        final ResponseEntity<List<MemberGlobalGroupDto>> response = membersApi.getMemberGlobalGroups(memberId);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -103,7 +103,7 @@ public class MembersApiStepDefs extends BaseStepDefs {
 
     @Step("member {string} subsystems contains {string}")
     public void memberSubsystemsContainsSubsystem(String memberId, String subsystemCode) {
-        final ResponseEntity<Set<SubsystemDto>> response = membersApi.getSubsystems(memberId);
+        final ResponseEntity<List<SubsystemDto>> response = membersApi.getSubsystems(memberId);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -113,7 +113,7 @@ public class MembersApiStepDefs extends BaseStepDefs {
 
     @Step("member {string} subsystems does not contain {string}")
     public void memberSubsystemsNotContainsSubsystem(String memberId, String subsystemCode) {
-        final ResponseEntity<Set<SubsystemDto>> response = membersApi.getSubsystems(memberId);
+        final ResponseEntity<List<SubsystemDto>> response = membersApi.getSubsystems(memberId);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -177,7 +177,7 @@ public class MembersApiStepDefs extends BaseStepDefs {
 
     @Step("member {string} owned servers contains {string}")
     public void memberOwnedServersContains(String memberId, String serverId) {
-        final ResponseEntity<Set<SecurityServerDto>> response = membersApi.getOwnedServers(memberId);
+        final ResponseEntity<List<SecurityServerDto>> response = membersApi.getOwnedServers(memberId);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))

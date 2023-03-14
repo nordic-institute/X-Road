@@ -52,7 +52,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Map.entry;
@@ -105,10 +105,10 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_GLOBAL_GROUPS')")
-    public ResponseEntity<Set<GlobalGroupResourceDto>> findGlobalGroups() {
+    public ResponseEntity<List<GlobalGroupResourceDto>> findGlobalGroups() {
         return ResponseEntity.ok(globalGroupService.findGlobalGroups().stream()
                 .map(globalGroupConverter::convert)
-                .collect(Collectors.toSet()));
+                .collect(Collectors.toList()));
     }
 
     @Override

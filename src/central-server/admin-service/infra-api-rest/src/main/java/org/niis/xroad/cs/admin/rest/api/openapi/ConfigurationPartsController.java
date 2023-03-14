@@ -42,7 +42,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_CONFIGURATION_PART;
@@ -73,12 +73,12 @@ public class ConfigurationPartsController implements ConfigurationPartsApi {
     @Override
     @PreAuthorize("(hasAuthority('VIEW_INTERNAL_CONFIGURATION_SOURCE') and #configurationType.value == 'INTERNAL') "
             + "or (hasAuthority('VIEW_EXTERNAL_CONFIGURATION_SOURCE') and #configurationType.value == 'EXTERNAL')")
-    public ResponseEntity<Set<ConfigurationPartDto>> getConfigurationParts(ConfigurationTypeDto configurationType) {
+    public ResponseEntity<List<ConfigurationPartDto>> getConfigurationParts(ConfigurationTypeDto configurationType) {
         return ok(
                 configurationService.getConfigurationParts(ConfigurationSourceType.valueOf(configurationType.getValue()))
                         .stream()
                         .map(configurationPartsDtoConverter::convert)
-                        .collect(Collectors.toSet()));
+                        .collect(Collectors.toList()));
     }
 
     @Override

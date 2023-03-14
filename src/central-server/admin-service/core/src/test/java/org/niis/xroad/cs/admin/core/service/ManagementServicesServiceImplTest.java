@@ -49,6 +49,7 @@ import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -138,7 +139,7 @@ class ManagementServicesServiceImplTest {
             serverClient0.setServerId(SecurityServerId.create(clientId, "SS0"));
             xRoadMember.setServerClients(Set.of(serverClient0));
 
-            when(memberService.getMemberOwnedServers(any())).thenReturn(Set.of(new SecurityServer(xRoadMember, "SS1")));
+            when(memberService.getMemberOwnedServers(any())).thenReturn(List.of(new SecurityServer(xRoadMember, "SS1")));
 
             var result = managementServicesService.getManagementServicesConfiguration();
 

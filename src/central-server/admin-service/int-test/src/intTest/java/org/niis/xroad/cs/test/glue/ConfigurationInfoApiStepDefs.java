@@ -48,7 +48,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
-import java.util.Set;
+import java.util.List;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
@@ -80,7 +80,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
     @Step("EXTERNAL configuration parts exists")
     public void viewExternalConfParts() {
-        final ResponseEntity<Set<ConfigurationPartDto>> response = configurationPartsApi
+        final ResponseEntity<List<ConfigurationPartDto>> response = configurationPartsApi
                 .getConfigurationParts(EXTERNAL);
 
         validate(response)
@@ -102,7 +102,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
     @Step("INTERNAL configuration parts exists")
     @SuppressWarnings("checkstyle:MagicNumber")
     public void viewInternalConfParts() {
-        final ResponseEntity<Set<ConfigurationPartDto>> response = configurationPartsApi
+        final ResponseEntity<List<ConfigurationPartDto>> response = configurationPartsApi
                 .getConfigurationParts(INTERNAL);
 
         validate(response)
@@ -236,7 +236,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
     @Step("{} configuration part {} was not uploaded")
     public void configurationPartWasNotUploaded(String configurationType, String contentIdentifier) {
-        final ResponseEntity<Set<ConfigurationPartDto>> response = configurationPartsApi
+        final ResponseEntity<List<ConfigurationPartDto>> response = configurationPartsApi
                 .getConfigurationParts(ConfigurationTypeDto.fromValue(configurationType));
 
         validate(response)
@@ -263,7 +263,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
     @Step("{} configuration part {} is updated")
     public void configurationPartIsUpdated(String configurationType, String contentIdentifier) {
-        final ResponseEntity<Set<ConfigurationPartDto>> response = configurationPartsApi
+        final ResponseEntity<List<ConfigurationPartDto>> response = configurationPartsApi
                 .getConfigurationParts(ConfigurationTypeDto.fromValue(configurationType));
 
         validate(response)

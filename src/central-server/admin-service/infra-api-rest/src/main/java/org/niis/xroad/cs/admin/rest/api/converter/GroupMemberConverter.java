@@ -37,7 +37,6 @@ import org.springframework.stereotype.Component;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -55,13 +54,13 @@ public class GroupMemberConverter {
                 .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
     }
 
-    public Set<MemberGlobalGroupDto> convertMemberGlobalGroups(Collection<GlobalGroupMember> entities) {
+    public List<MemberGlobalGroupDto> convertMemberGlobalGroups(Collection<GlobalGroupMember> entities) {
         return entities.stream()
                 .map(this::convertMemberGlobalGroup)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
-    private MemberGlobalGroupDto convertMemberGlobalGroup(GlobalGroupMember entity) {
+    public MemberGlobalGroupDto convertMemberGlobalGroup(GlobalGroupMember entity) {
         return new MemberGlobalGroupDto()
                 .groupCode(entity.getGlobalGroup().getGroupCode())
                 .subsystem(entity.getIdentifier().getSubsystemCode())
