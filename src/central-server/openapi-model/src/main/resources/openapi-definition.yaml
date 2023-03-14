@@ -2797,46 +2797,6 @@ paths:
       summary: delete a security server's authentication certificate
       tags:
         - security-servers
-    get:
-      description: <h3>CS administrator views a Security Server's authentication certificate.</h3>
-      operationId: getSecurityServerAuthCert
-      parameters:
-        - description: id of the security server
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
-        - description: unique identifier of the certificate
-          in: path
-          name: certificateId
-          required: true
-          schema:
-            format: int32
-            type: integer
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CertificateDetails'
-          description: auth cert
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: get a security server's authentication certificate
-      tags:
-        - security-servers
   /security-servers/{id}/clients:
     get:
       description: <h3>CS administrator views a Security Server's clients.</h3>

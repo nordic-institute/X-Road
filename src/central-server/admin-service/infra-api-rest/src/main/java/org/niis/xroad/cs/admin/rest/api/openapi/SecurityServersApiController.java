@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
@@ -37,7 +36,6 @@ import org.niis.xroad.cs.admin.rest.api.converter.SecurityServerConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ClientDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.SecurityServerDtoConverter;
 import org.niis.xroad.cs.openapi.SecurityServersApi;
-import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
@@ -126,11 +124,6 @@ public class SecurityServersApiController implements SecurityServersApi {
                 .map(securityServerDtoConverter::toDto)
                 .map(ResponseEntity::ok)
                 .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
-    }
-
-    @Override
-    public ResponseEntity<CertificateDetailsDto> getSecurityServerAuthCert(String id, Integer certificateId) {
-        throw new NotImplementedException("getSecurityServerAuthCert not implemented yet");
     }
 
     @Override
