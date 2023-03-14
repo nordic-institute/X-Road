@@ -156,7 +156,8 @@
     "tokenPin": "Token PIN",
     "keyLabel": "Key friendly name",
     "securityServerAddress": "Security server address",
-    "serverCode": "Server code"
+    "serverCode": "Server code",
+    "securityServerCode": "Security server code"
   },
   "filters": {
     "apply": "Apply",
@@ -502,6 +503,14 @@
         "clients": "Clients",
         "details": "Details",
         "managementRequests": "Management Requests"
+      },
+      "dialog": {
+        "deleteAuthCertificate": {
+          "title": "Delete Authentication Certificate",
+          "content": "Are you sure you want to delete the Authentication Certificate Test CA from the system configuration? Enter the server code to confirm.",
+          "securityServerCode": "Enter Security Server Code",
+          "success": "Security server authentication certificate deleted successfully"
+        }
       }
     },
     "dialogs": {

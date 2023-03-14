@@ -31,8 +31,15 @@ import org.niis.xroad.cs.admin.rest.api.converter.BackupDtoConverter;
 import org.niis.xroad.cs.openapi.BackupsApi;
 import org.niis.xroad.cs.openapi.model.BackupDto;
 import org.niis.xroad.cs.openapi.model.TokensLoggedOutDto;
+import org.niis.xroad.restapi.common.backup.dto.BackupFile;
+import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
+import org.niis.xroad.restapi.common.backup.exception.InvalidFilenameException;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,8 +47,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.springframework.http.HttpStatus.CREATED;
 
 @Controller
 @PreAuthorize("denyAll")
@@ -85,7 +95,17 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    @AuditEventMethod(event = RestApiAuditEvent.UPLOAD_BACKUP)
     public ResponseEntity<BackupDto> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
-        throw new NotImplementedException("uploadBackup not implemented yet");
+        try {
+            final BackupFile backupFile = backupService.uploadBackup(ignoreWarnings,
+                    file.getOriginalFilename(), file.getBytes());
+            return ResponseEntity.status(CREATED).body(backupDtoConverter.toTarget(backupFile));
+        } catch (InvalidFilenameException | UnhandledWarningsException
+                 | BackupInvalidFileException e) {
+            throw new BadRequestException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

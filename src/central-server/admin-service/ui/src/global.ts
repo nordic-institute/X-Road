@@ -62,6 +62,7 @@ export enum RouteName {
   SecurityServerDetails = 'security-server-details',
   SecurityServerManagementRequests = 'security-server-management-requests',
   SecurityServerAuthenticationCertificates = 'security-server-authentication-certificates',
+  SecurityServerAuthenticationCertificate = 'security-server-authentication-certificate',
   SecurityServerClients = 'security-server-clients',
   Forbidden = 'forbidden',
 }

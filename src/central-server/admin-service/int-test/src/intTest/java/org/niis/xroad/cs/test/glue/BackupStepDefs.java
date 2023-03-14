@@ -27,8 +27,17 @@ package org.niis.xroad.cs.test.glue;
 
 import feign.FeignException;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.openapi.model.BackupDto;
 import org.niis.xroad.cs.test.api.FeignBackupsApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.Set;
+
+import static java.lang.ClassLoader.getSystemResourceAsStream;
+import static org.junit.Assert.assertEquals;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class BackupStepDefs extends BaseStepDefs {
@@ -36,9 +45,33 @@ public class BackupStepDefs extends BaseStepDefs {
     private FeignBackupsApi backupsApi;
 
     @Step("Backups are retrieved")
-    public void getIntermediateCa() {
+    public void getBackups() {
         try {
             var result = backupsApi.getBackups();
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("Backups contains {} backup: {}")
+    public void isContainingBackup(String backupName, String condition) {
+        Set<BackupDto> backups = getRequiredStepData(StepDataKey.RESPONSE_BODY);
+
+        Boolean containsBackup = backups.stream()
+                .filter(backup -> backup.getFilename().equals(backupName)).count() == 1;
+
+        assertEquals(Boolean.valueOf(condition), containsBackup);
+    }
+
+    @Step("Backup {} is uploaded")
+    public void uploadBackup(String fileName) throws IOException {
+        MultipartFile backup = new MockMultipartFile("file", fileName, null,
+                getSystemResourceAsStream("files/backups/" + fileName));
+        try {
+            var result = backupsApi.uploadBackup(false, backup);
             putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
