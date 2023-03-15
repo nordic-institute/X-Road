@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -35,4 +38,8 @@ import org.springframework.context.annotation.Configuration;
 })
 @Configuration
 public class BootstrapConfiguration {
+    @Bean
+    public ExternalProcessRunner externalProcessRunner() {
+        return new ExternalProcessRunner();
+    }
 }

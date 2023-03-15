@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.test.glue;
 
+import com.nortal.test.asserts.Assertion;
+import com.nortal.test.asserts.ValidationHelper;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.BackupDto;
@@ -36,9 +38,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
+import static java.lang.Boolean.TRUE;
 import static java.lang.ClassLoader.getSystemResourceAsStream;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.niis.xroad.cs.test.utils.AssertionUtils.collectionContains;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class BackupStepDefs extends BaseStepDefs {
@@ -97,14 +100,17 @@ public class BackupStepDefs extends BaseStepDefs {
 
     @Step("it contains data of new backup file")
     public void containsBackupData() {
-        assertThat(newBackup).isNotNull();
-        final var mustMatchOne = 1;
         List<BackupDto> backups = getRequiredStepData(StepDataKey.RESPONSE_BODY);
-        var count = backups.stream()
-                .filter(backup -> newBackup.getFilename().equals(backup.getFilename()))
-                .filter(backup -> newBackup.getCreatedAt().equals(backup.getCreatedAt()))
-                .count();
-        assertThat(count).isEqualTo(mustMatchOne);
+        final ValidationHelper validations = validate(backups)
+                .assertion(new Assertion.Builder()
+                        .message("List contains new backup")
+                        .expression("=")
+                        .actualValue(collectionContains(backups, backup -> newBackup.getFilename().equals(backup.getFilename()),
+                                backup -> newBackup.getCreatedAt().equals(backup.getCreatedAt())))
+                        .expectedValue(TRUE)
+                        .build());
+
+        validations.execute();
     }
 
     @Step("Backup named {} is downloaded")
