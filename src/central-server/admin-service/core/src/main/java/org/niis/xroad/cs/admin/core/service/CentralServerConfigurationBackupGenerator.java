@@ -57,7 +57,7 @@ public class CentralServerConfigurationBackupGenerator extends BaseConfiguration
     private final HAConfigStatus haConfigStatus;
 
     public CentralServerConfigurationBackupGenerator(
-            @Value("${script.generate-backup.path}") String generateBackupScriptPath,
+            @Value("${script.generate-backup.path}") final String generateBackupScriptPath,
             final BackupService backupService,
             final BackupRepository backupRepository,
             final ExternalProcessRunner externalProcessRunner,
