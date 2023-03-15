@@ -48,6 +48,11 @@ public class NavigationStepDefs extends BaseUiStepDefs {
         commonPageObj.menu.globalConfiguration().click();
     }
 
+    @Step("Management requests tab is selected")
+    public void managementRequestsTabIsSelected() {
+        commonPageObj.menu.managementRequests().click();
+    }
+
     @Step("CentralServer Settings tab is selected")
     public void navigateSettingsTab() {
         commonPageObj.menu.settingsTab().click();

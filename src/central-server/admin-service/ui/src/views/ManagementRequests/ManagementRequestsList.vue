@@ -41,6 +41,7 @@
           :value="'WAITING'"
           :label="$t('managementRequests.showOnlyPending')"
           class="custom-checkbox"
+          data-test="show-only-pending-requests"
         ></v-checkbox>
       </div>
     </div>
@@ -59,6 +60,7 @@
       :loader-height="2"
       :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
       @update:options="changeOptions"
+      data-test="management-requests-table"
     >
       <template #[`item.id`]="{ item }">
         <management-request-id-cell :management-request="item" />

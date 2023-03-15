@@ -46,6 +46,10 @@ public class CommonPageObj {
             return $x(getTabXpath("Members"));
         }
 
+        public SelenideElement managementRequests() {
+            return $x(getTabXpath("Management Requests"));
+        }
+
         public SelenideElement trustServices() {
             return $x(getTabXpath("Trust Services"));
         }

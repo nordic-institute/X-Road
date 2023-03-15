@@ -84,4 +84,11 @@ public abstract class BaseUiStepDefs {
     private boolean isMacOsBrowser() {
         return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
     }
+
+    /**
+     * An enumerated key for data transfer between steps.
+     */
+    public enum StepDataKey {
+        TOKEN_TYPE,
+    }
 }

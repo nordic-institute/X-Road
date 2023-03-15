@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.cs.test.ui.container;
 
-import com.nortal.test.testcontainers.AbstractTestableContainerSetup;
+import com.nortal.test.testcontainers.AbstractTestableSpringBootContainerSetup;
 import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +43,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ContainerSetup extends AbstractTestableContainerSetup {
+public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
     private final TargetHostUrlProvider targetHostUrlProvider;
 
     @Value("${test-automation.custom.package-repo}")
@@ -65,8 +65,13 @@ public class ContainerSetup extends AbstractTestableContainerSetup {
     }
 
     @Override
+    public int[] getTargetContainerExposedPorts() {
+        return super.getTargetContainerExposedPorts();
+    }
+
+    @Override
     public void additionalBuilderConfiguration(@NotNull DockerfileBuilder dockerfileBuilder) {
-        //do nothing
+        dockerfileBuilder.copy(".", ".");
     }
 
     @NotNull
