@@ -30,9 +30,7 @@ package org.niis.xroad.cs.test.utils;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
 
 public final class AssertionUtils {
 
@@ -51,15 +49,6 @@ public final class AssertionUtils {
             }
         }
         return true;
-    }
-
-    @SafeVarargs
-    public static <T> boolean collectionContains(final Collection<T> items, final Predicate<T>... predicates) {
-        var stream = items.stream();
-        for (final Predicate<T> pred : predicates) {
-            stream = stream.filter(pred);
-        }
-        return stream.count() == 1;
     }
 
     private static String evalExpression(Object item, String expression) {

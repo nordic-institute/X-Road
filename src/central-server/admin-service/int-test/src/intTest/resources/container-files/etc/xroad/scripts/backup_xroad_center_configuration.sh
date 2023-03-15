@@ -39,7 +39,7 @@ done
   fi
 
 echo $BACKUP_FILENAME
-sleep 2 # to avoid overlapping timestamps
 touch2 $BACKUP_FILENAME
+sleep 2 # to avoid overlapping timestamps
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh
