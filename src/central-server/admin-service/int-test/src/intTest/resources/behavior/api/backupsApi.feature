@@ -35,6 +35,7 @@ Feature: Backups API
     When Backups are retrieved
     Then Response is of status code 403
 
+  @ClearBackups
   Scenario: Backup upload is forbidden for non privileged user
     Given Authentication header is set to REGISTRATION_OFFICER
     When Backup test_backup.tar is uploaded
@@ -45,10 +46,12 @@ Feature: Backups API
     When Backup is created
     Then Response is of status code 403
 
-
+  @ClearBackups
   Scenario: Backup can be downloaded
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
-    When Backup named test-backup.tar is downloaded
+    And Backup test_backup.tar is uploaded
+    And Response is of status code 201
+    When Backup named test_backup.tar is downloaded
     Then Response is of status code 200
 
   Scenario: Backup can't be found for download
