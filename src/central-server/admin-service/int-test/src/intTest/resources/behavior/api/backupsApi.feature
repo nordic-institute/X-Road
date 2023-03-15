@@ -29,3 +29,13 @@ Feature: Backups API
     Given Authentication header is set to REGISTRATION_OFFICER
     When Backup test_backup.tar is uploaded
     Then Response is of status code 403
+
+  Scenario: Backup can be downloaded
+    Given Authentication header is set to SYSTEM_ADMINISTRATOR
+    When Backup named test-backup.tar is downloaded
+    Then Response is of status code 200
+
+  Scenario: Backup can't be found for download
+    Given Authentication header is set to SYSTEM_ADMINISTRATOR
+    When Backup named doesnt-exist-test-backup.tar is downloaded
+    Then Response is of status code 404

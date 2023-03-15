@@ -32,6 +32,7 @@ import org.niis.xroad.cs.openapi.BackupsApi;
 import org.niis.xroad.cs.openapi.model.BackupDto;
 import org.niis.xroad.cs.openapi.model.TokensLoggedOutDto;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
+import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
 import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
 import org.niis.xroad.restapi.common.backup.exception.InvalidFilenameException;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
@@ -39,6 +40,7 @@ import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -76,7 +78,13 @@ public class BackupsApiController implements BackupsApi {
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Resource> downloadBackup(String filename) {
-        throw new NotImplementedException("downloadBackup not implemented yet");
+        byte[] backupFile;
+        try {
+            backupFile = backupService.readBackupFile(filename);
+        } catch (BackupFileNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+        return ControllerUtil.createAttachmentResourceResponse(backupFile, filename);
     }
 
     @Override
