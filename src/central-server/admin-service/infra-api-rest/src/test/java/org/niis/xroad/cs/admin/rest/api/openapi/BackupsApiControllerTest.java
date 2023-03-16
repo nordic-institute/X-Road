@@ -1,6 +1,5 @@
 /**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,22 +23,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.config;
+package org.niis.xroad.cs.admin.rest.api.openapi;
 
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.cs.admin.rest.api.exception.InternalServerErrorException;
+import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
+import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
 
-@ComponentScan(basePackages = {
-        "org.niis.xroad.cs.admin",
-        "org.niis.xroad.restapi"
-})
-@Configuration
-public class BootstrapConfiguration {
-    @Bean
-    public ExternalProcessRunner externalProcessRunner() {
-        return new ExternalProcessRunner();
+@ExtendWith(MockitoExtension.class)
+class BackupsApiControllerTest {
+
+    @InjectMocks
+    private BackupsApiController backupsApiController;
+
+    @Mock
+    private BaseConfigurationBackupGenerator centralServerConfigurationBackupGenerator;
+
+    @Test
+    void addBackupShouldHandleInterruptedException() throws InterruptedException, BackupFileNotFoundException {
+        when(centralServerConfigurationBackupGenerator.generateBackup()).thenThrow(new InterruptedException());
+        var error = assertThrowsExactly(InternalServerErrorException.class, backupsApiController::addBackup);
+        Assertions.assertThat(error.getErrorDeviation().getCode()).isEqualTo(ERROR_GENERATE_BACKUP_INTERRUPTED);
     }
 }

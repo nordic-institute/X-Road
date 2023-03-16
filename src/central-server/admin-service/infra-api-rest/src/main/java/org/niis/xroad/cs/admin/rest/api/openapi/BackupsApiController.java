@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.cs.admin.rest.api.converter.BackupDtoConverter;
+import org.niis.xroad.cs.admin.rest.api.exception.InternalServerErrorException;
 import org.niis.xroad.cs.openapi.BackupsApi;
 import org.niis.xroad.cs.openapi.model.BackupDto;
 import org.niis.xroad.cs.openapi.model.TokensLoggedOutDto;
@@ -36,8 +37,10 @@ import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundExceptio
 import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
 import org.niis.xroad.restapi.common.backup.exception.InvalidFilenameException;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
+import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
@@ -53,6 +56,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @Controller
@@ -62,11 +66,21 @@ import static org.springframework.http.HttpStatus.CREATED;
 public class BackupsApiController implements BackupsApi {
     private final BackupService backupService;
     private final BackupDtoConverter backupDtoConverter;
+    private final BaseConfigurationBackupGenerator centralServerConfigurationBackupGenerator;
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<BackupDto> addBackup() {
-        throw new NotImplementedException("not implemented yet");
+        try {
+            BackupFile backupFile = centralServerConfigurationBackupGenerator.generateBackup();
+            return ResponseEntity
+                    .status(CREATED)
+                    .body(backupDtoConverter.toTarget(backupFile));
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_GENERATE_BACKUP_INTERRUPTED));
+        } catch (BackupFileNotFoundException e) {
+            throw new InternalServerErrorException(e.getErrorDeviation());
+        }
     }
 
     @Override

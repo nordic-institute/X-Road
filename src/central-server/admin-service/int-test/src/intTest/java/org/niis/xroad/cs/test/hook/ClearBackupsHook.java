@@ -24,22 +24,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.config;
+package org.niis.xroad.cs.test.hook;
 
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import com.nortal.test.core.services.CucumberScenarioProvider;
+import com.nortal.test.core.services.hooks.AfterScenarioHook;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.cs.test.container.service.ExtTestContainerService;
+import org.springframework.stereotype.Component;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class ClearBackupsHook implements AfterScenarioHook {
+    private static final String TAG_CLEAR_BACKUPS = "@ClearBackups";
 
-@ComponentScan(basePackages = {
-        "org.niis.xroad.cs.admin",
-        "org.niis.xroad.restapi"
-})
-@Configuration
-public class BootstrapConfiguration {
-    @Bean
-    public ExternalProcessRunner externalProcessRunner() {
-        return new ExternalProcessRunner();
+    private final ExtTestContainerService extTestContainerService;
+
+    @Override
+    public void after(CucumberScenarioProvider cucumberScenarioProvider) {
+        assert cucumberScenarioProvider != null;
+
+        var resetBackups = cucumberScenarioProvider.getCucumberScenario().getSourceTagNames()
+                .stream()
+                .anyMatch(TAG_CLEAR_BACKUPS::equalsIgnoreCase);
+
+        if (resetBackups) {
+            log.info("Scenario [{}] was marked as {}. Clearing backups.",
+                    cucumberScenarioProvider.getCucumberScenario().getName(),
+                    TAG_CLEAR_BACKUPS);
+            extTestContainerService.clearBackupsDir();
+        }
     }
 }

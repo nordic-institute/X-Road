@@ -25,24 +25,39 @@
  */
 package org.niis.xroad.cs.test.glue;
 
+import com.nortal.test.asserts.Assertion;
+import com.nortal.test.asserts.AssertionOperation;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.BackupDto;
 import org.niis.xroad.cs.test.api.FeignBackupsApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static java.lang.ClassLoader.getSystemResourceAsStream;
 import static org.junit.Assert.assertEquals;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class BackupStepDefs extends BaseStepDefs {
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+    private static final String FILE_NAME_FORMAT = "conf_backup_%s.tar";
     @Autowired
     private FeignBackupsApi backupsApi;
+
+    private ResponseEntity<BackupDto> newBackup;
 
     @Step("Backups are retrieved")
     public void getBackups() {
@@ -50,6 +65,7 @@ public class BackupStepDefs extends BaseStepDefs {
             var result = backupsApi.getBackups();
             putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
             putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
+            putStepData(StepDataKey.RESPONSE, result);
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -73,10 +89,42 @@ public class BackupStepDefs extends BaseStepDefs {
         try {
             var result = backupsApi.uploadBackup(false, backup);
             putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
+    }
+
+    @Step("Backup is created")
+    public void createBackup() {
+        try {
+            newBackup = backupsApi.addBackup();
+            putStepData(StepDataKey.RESPONSE_STATUS, newBackup.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("it contains data of new backup file")
+    public void containsBackupData() {
+        validate(newBackup)
+                .assertion(equalsStatusCodeAssertion(CREATED))
+                .assertion(notNullAssertion("body.createdAt"))
+                .assertion(new Assertion.Builder()
+                        .message("Filename matches created at date/time")
+                        .expression("body.filename")
+                        .operation(AssertionOperation.LIST_CONTAINS_VALUE)
+                        .expectedValue(expectedFilename(newBackup.getBody().getCreatedAt()))
+                        .build())
+                .execute();
+
+        validate(getRequiredStepData(StepDataKey.RESPONSE))
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(newBackup.getBody().getCreatedAt(), "body[0].createdAt"))
+                .assertion(equalsAssertion(newBackup.getBody().getFilename(), "body[0].filename"))
+                .execute();
     }
 
     @Step("Backup named {} is downloaded")
@@ -88,5 +136,12 @@ public class BackupStepDefs extends BaseStepDefs {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
+    }
+
+    private List<String> expectedFilename(OffsetDateTime dateTime) {
+        return Stream.of(dateTime, dateTime.minusSeconds(1), dateTime.plusSeconds(1))
+                .map(dt -> dt.format(DATE_TIME_FORMATTER))
+                .map(dt -> String.format(FILE_NAME_FORMAT, dt))
+                .collect(Collectors.toList());
     }
 }

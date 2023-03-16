@@ -35,9 +35,13 @@ import org.springframework.stereotype.Service;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
+import java.io.IOException;
+
 @Primary
 @Service
 public class ExtTestContainerService extends TestContainerService {
+
+    private GenericContainer<?> container;
 
     public ExtTestContainerService(@NotNull final TestContainerNetworkProvider testContainerNetworkProvider,
                                    @NotNull final TestableContainerProperties testableContainerProperties) {
@@ -46,10 +50,19 @@ public class ExtTestContainerService extends TestContainerService {
 
     @Override
     protected void startContainer(@NotNull final GenericContainer<?> applicationContainer) {
+        this.container = applicationContainer;
         //Adding additional wait condition. It's completely optional.
         applicationContainer.waitingFor(Wait.forLogMessage(".*Started Main in.*", 1));
 
         super.startContainer(applicationContainer);
     }
 
+
+    public void clearBackupsDir() {
+        try {
+            container.execInContainer("rm", "-rf", "/var/lib/xroad/backup/");
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Failed to clear up backups dir", e);
+        }
+    }
 }
