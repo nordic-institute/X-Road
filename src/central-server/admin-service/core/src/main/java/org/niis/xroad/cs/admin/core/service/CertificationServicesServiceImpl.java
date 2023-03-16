@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.commonui.CertificateProfileInfoValidator;
-
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
@@ -47,19 +45,19 @@ import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.niis.xroad.cs.admin.core.repository.CaInfoRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
+import org.niis.xroad.cs.admin.core.validation.CertificateProfileInfoValidator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTICATION_ONLY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CA_ID;
@@ -146,7 +144,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     }
 
     @Override
-    public Set<CertificateAuthority> getIntermediateCas(Integer certificationServiceId) {
+    public List<CertificateAuthority> getIntermediateCas(Integer certificationServiceId) {
         final ApprovedCaEntity approvedCa = getById(certificationServiceId);
         return caInfoConverter.toCertificateAuthorities(approvedCa.getIntermediateCaInfos());
     }
@@ -165,11 +163,12 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     }
 
     @Override
-    public Set<OcspResponder> getOcspResponders(Integer certificationServiceId) {
+    public List<OcspResponder> getOcspResponders(Integer certificationServiceId) {
         var approvedCa = getById(certificationServiceId);
         return approvedCa.getCaInfo().getOcspInfos().stream()
                 .map(ocspResponderConverter::toModel)
-                .collect(toSet());
+                .sorted(Comparator.comparing(OcspResponder::getId))
+                .collect(toList());
     }
 
     @Override

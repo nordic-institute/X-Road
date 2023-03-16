@@ -148,6 +148,18 @@ public abstract class BaseStepDefs {
         return StringUtils.join(idParts, ":");
     }
 
+    /**
+     * Safely parse string to integer. Null-safe
+     *
+     * @param value value to convert
+     * @return integer or null
+     */
+    protected Integer safeToInt(String value) {
+        if (value == null) {
+            return null;
+        }
+        return Integer.valueOf(value);
+    }
 
     /**
      * An enumerated key for data transfer between steps.

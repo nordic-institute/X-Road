@@ -107,7 +107,7 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
-    public ResponseEntity<Void> deleteCertificationService(String id) {
+    public ResponseEntity<Void> deleteCertificationService(Integer id) {
         throw new NotImplementedException("deleteCertificationService not implemented yet");
     }
 

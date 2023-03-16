@@ -27,6 +27,7 @@
 
 package org.niis.xroad.cs.test.glue;
 
+import feign.FeignException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -47,8 +48,11 @@ import java.util.UUID;
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.CERTIFICATION_SERVICE_ID;
+import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.ERROR_RESPONSE_BODY;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.NEW_OCSP_RESPONDER_URL;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.OCSP_RESPONDER_ID;
+import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE;
+import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE_STATUS;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCertHolder;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -70,16 +74,30 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
     @Step("intermediate CA added to certification service")
     public void addIntermediateCa() throws Exception {
         final Integer certificationServiceId = getRequiredStepData(CERTIFICATION_SERVICE_ID);
-        generatedCertificate = generateAuthCertHolder("CN=Subject");
-        final MultipartFile certificate = new MockMultipartFile("certificate", generatedCertificate.getEncoded());
-        final ResponseEntity<CertificateAuthorityDto> response = certificationServicesApi
-                .addCertificationServiceIntermediateCa(certificationServiceId, certificate);
 
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(CREATED))
-                .execute();
+        addIntermediateCa("Subject", certificationServiceId);
+    }
 
-        intermediateCaId = response.getBody().getId();
+    @Step("intermediate CA  with name {string} is added to certification service with id {}")
+    public void addIntermediateCa(String name, Integer certificationServiceId) throws Exception {
+        try {
+            generatedCertificate = generateAuthCertHolder("CN=" + name);
+            final MultipartFile certificate = new MockMultipartFile("certificate", generatedCertificate.getEncoded());
+            final ResponseEntity<CertificateAuthorityDto> response = certificationServicesApi
+                    .addCertificationServiceIntermediateCa(certificationServiceId, certificate);
+
+            validate(response)
+                    .assertion(equalsStatusCodeAssertion(CREATED))
+                    .execute();
+
+            intermediateCaId = response.getBody().getId();
+
+            putStepData(RESPONSE, response);
+            putStepData(RESPONSE_STATUS, response.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(RESPONSE_STATUS, feignException.status());
+            putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
     }
 
     @Step("intermediate CAs are retrieved")

@@ -359,9 +359,8 @@ paths:
           name: id
           required: true
           schema:
-            format: text
             minLength: 1
-            type: string
+            type: integer
       responses:
         '204':
           description: certification service deletion was successful
