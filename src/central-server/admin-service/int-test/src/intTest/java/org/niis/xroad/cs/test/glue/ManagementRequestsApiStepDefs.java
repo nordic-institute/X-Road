@@ -264,7 +264,6 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                         .build());
             }
 
-
             validations.execute();
         }
     }
