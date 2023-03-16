@@ -1,6 +1,5 @@
 @GlobalGroups
 @Modifying
-@RunThis
 Feature: Global groups API
 
   #The global group 'security-server-owners' is created by default. So initially there is 1 global group.

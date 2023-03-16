@@ -33,7 +33,6 @@ import com.nortal.test.asserts.ValidationHelper;
 import feign.FeignException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
-import io.cucumber.java.en.Then;
 import org.niis.xroad.cs.openapi.model.ClientTypeDto;
 import org.niis.xroad.cs.openapi.model.GlobalGroupCodeAndDescriptionDto;
 import org.niis.xroad.cs.openapi.model.GlobalGroupDescriptionDto;
@@ -115,7 +114,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Then("global group {string} description is {string}")
+    @Step("global group {string} description is {string}")
     public void globalGroupTestGroupDescriptionIsNewDescription(String groupCode, String description) {
         final ResponseEntity<GlobalGroupResourceDto> response = globalGroupsApi.getGlobalGroup(resolveGlobalGroupId(groupCode));
 
