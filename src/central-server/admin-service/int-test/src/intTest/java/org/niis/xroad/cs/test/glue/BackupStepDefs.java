@@ -143,5 +143,16 @@ public class BackupStepDefs extends BaseStepDefs {
                 .map(dt -> dt.format(DATE_TIME_FORMATTER))
                 .map(dt -> String.format(FILE_NAME_FORMAT, dt))
                 .collect(Collectors.toList());
+
+    }
+
+    @Step("Central server is restored from {}")
+    public void restoreFromBackup(String fileName) {
+        var response = backupsApi.restoreBackup(fileName);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(isTrue("body.hsmTokensLoggedOut"))
+                .execute();
     }
 }

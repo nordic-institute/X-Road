@@ -31,6 +31,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
+import org.niis.xroad.restapi.common.backup.exception.RestoreProcessFailedException;
+import org.niis.xroad.restapi.common.backup.service.RestoreService;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,7 +43,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
-public class RestoreServiceTest extends AbstractServiceTestContext {
+public class SecurityServerRestoreServiceTest extends AbstractServiceTestContext {
     private static final String MOCK_SUCCESS_SCRIPT = "src/test/resources/script/success.sh";
     private static final String MOCK_FAIL_SCRIPT = "src/test/resources/script/fail.sh";
 

@@ -28,7 +28,8 @@ import axios from 'axios';
 import {
   PagedSecurityServers,
   PagingMetadata,
-  SecurityServer, SecurityServerAddress,
+  SecurityServer,
+  SecurityServerAddress,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';

@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -72,6 +73,9 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
     private static final String KEY_MIN_PIN_LENGTH = "Min PIN length";
     private static final String KEY_MAX_PIN_LENGTH = "Max PIN length";
 
+    // duplicate definition, since we dont want add direct dependency on signer
+    public static final String SOFTWARE_TOKEN_ID = "0";
+
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final AuditDataHelper auditDataHelper;
     private final SignerProxyFacade signerProxyFacade;
@@ -84,6 +88,16 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
             return signerProxyFacade.getTokens().stream()
                     .map(tokenInfoMapper::toTarget)
                     .collect(toSet());
+        } catch (Exception e) {
+            throw new TokenException(ERROR_GETTING_TOKENS, e);
+        }
+    }
+
+    @Override
+    public boolean hasHardwareTokens() {
+        try {
+            List<ee.ria.xroad.signer.protocol.dto.TokenInfo> tokens = signerProxyFacade.getTokens();
+            return tokens.stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
         } catch (Exception e) {
             throw new TokenException(ERROR_GETTING_TOKENS, e);
         }

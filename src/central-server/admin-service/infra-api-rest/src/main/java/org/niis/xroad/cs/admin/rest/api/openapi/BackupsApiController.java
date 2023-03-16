@@ -27,6 +27,7 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.cs.admin.rest.api.converter.BackupDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.exception.InternalServerErrorException;
 import org.niis.xroad.cs.openapi.BackupsApi;
@@ -36,8 +37,10 @@ import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
 import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
 import org.niis.xroad.restapi.common.backup.exception.InvalidFilenameException;
+import org.niis.xroad.restapi.common.backup.exception.RestoreProcessFailedException;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
 import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
+import org.niis.xroad.restapi.common.backup.service.RestoreService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -46,6 +49,7 @@ import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -56,8 +60,10 @@ import java.io.IOException;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_INTERRUPTED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
 import static org.springframework.http.HttpStatus.CREATED;
+
 
 @Controller
 @PreAuthorize("denyAll")
@@ -65,6 +71,8 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 public class BackupsApiController implements BackupsApi {
     private final BackupService backupService;
+    private final RestoreService restoreService;
+    private final TokensService tokensService;
     private final BackupDtoConverter backupDtoConverter;
     private final BaseConfigurationBackupGenerator centralServerConfigurationBackupGenerator;
 
@@ -110,9 +118,21 @@ public class BackupsApiController implements BackupsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    @PreAuthorize("hasAuthority('RESTORE_CONFIGURATION')")
+    @AuditEventMethod(event = RestApiAuditEvent.RESTORE_BACKUP)
     public ResponseEntity<TokensLoggedOutDto> restoreBackup(String filename) {
-        throw new NotImplementedException("restoreBackup not implemented yet");
+        boolean hasHardwareTokens = tokensService.hasHardwareTokens();
+        TokensLoggedOutDto tokensLoggedOut = new TokensLoggedOutDto().hsmTokensLoggedOut(hasHardwareTokens);
+        try {
+            restoreService.restoreFromBackup(filename);
+        } catch (BackupFileNotFoundException e) {
+            throw new BadRequestException(e);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_BACKUP_RESTORE_INTERRUPTED));
+        } catch (RestoreProcessFailedException e) {
+            throw new InternalServerErrorException(e);
+        }
+        return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
     }
 
     @Override

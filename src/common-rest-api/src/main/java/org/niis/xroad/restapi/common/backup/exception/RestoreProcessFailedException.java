@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -22,8 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.restapi.common.backup.exception;
 
-public enum BackupRestoreEvent {
-    START, END;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
+
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED;
+
+public class RestoreProcessFailedException extends ServiceException {
+    public RestoreProcessFailedException(Throwable t, String msg) {
+        super(msg, t, new ErrorDeviation(ERROR_BACKUP_RESTORE_PROCESS_FAILED));
+    }
 }

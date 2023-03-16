@@ -37,6 +37,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Profile("int-test")
 @ConditionalOnProperty(value = "signerProxyMockUri")
@@ -92,13 +95,14 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     @Override
-    public void initSoftwareToken(char[] password) throws Exception {
+    public void initSoftwareToken(char[] password) {
         restTemplate.put("/initSoftwareToken/", password);
     }
 
     @Override
     public List<TokenInfo> getTokens() throws Exception {
-        throw new NotImplementedException("getTokens not implemented yet.");
+        final String response = restTemplate.getForObject("/getTokens", String.class);
+        return parseTokenInfoList(response);
     }
 
     @Override
@@ -107,9 +111,17 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
         return parseTokenInfo(response);
     }
 
-    private TokenInfo parseTokenInfo(String tokenString) throws Exception {
-        final JsonNode json = objectMapper.readTree(tokenString);
+    private List<TokenInfo> parseTokenInfoList(String tokenListString) throws JsonProcessingException {
+        final JsonNode json = objectMapper.readTree(tokenListString);
+        return StreamSupport.stream(json.spliterator(), true).map(this::parseTokenInfo).collect(Collectors.toList());
+    }
 
+    private TokenInfo parseTokenInfo(String tokenString) throws JsonProcessingException {
+        final JsonNode json = objectMapper.readTree(tokenString);
+        return parseTokenInfo(json);
+    }
+
+    private TokenInfo parseTokenInfo(JsonNode json) {
         // todo when needed
         final List<KeyInfo> keyInfoList = List.of();
 
