@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Optional;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
@@ -61,6 +62,15 @@ public abstract class BaseStepDefs {
         return new Assertion.Builder()
                 .message("Verify status code")
                 .expression("statusCode")
+                .expectedValue(expected)
+                .build();
+    }
+
+    protected Assertion collectionEqualsAssertion(Collection<?> expected, String expression) {
+        return new Assertion.Builder()
+                .message("Verify collection equals")
+                .operation(AssertionOperation.LIST_EQUALS)
+                .expression(expression)
                 .expectedValue(expected)
                 .build();
     }
