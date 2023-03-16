@@ -109,10 +109,4 @@ public class ClientsStepDefs extends BaseStepDefs {
 
     }
 
-    private Integer safeToInt(String value) {
-        if (value == null) {
-            return null;
-        }
-        return Integer.valueOf(value);
-    }
 }

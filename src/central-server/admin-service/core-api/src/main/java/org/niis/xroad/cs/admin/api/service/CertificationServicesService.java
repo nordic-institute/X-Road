@@ -34,7 +34,6 @@ import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
 
 import java.util.List;
-import java.util.Set;
 
 public interface CertificationServicesService {
     CertificationService add(ApprovedCertificationService approvedCa);
@@ -49,11 +48,11 @@ public interface CertificationServicesService {
 
     CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert);
 
-    Set<CertificateAuthority> getIntermediateCas(Integer certificationServiceId);
+    List<CertificateAuthority> getIntermediateCas(Integer certificationServiceId);
 
     List<CertificationServiceListItem> getCertificationServices();
 
     OcspResponder addOcspResponder(OcspResponderAddRequest ocspResponder);
 
-    Set<OcspResponder> getOcspResponders(Integer certificationServiceId);
+    List<OcspResponder> getOcspResponders(Integer certificationServiceId);
 }

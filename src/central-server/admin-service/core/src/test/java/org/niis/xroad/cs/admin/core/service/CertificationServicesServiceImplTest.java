@@ -85,8 +85,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
 @ExtendWith(MockitoExtension.class)
 class CertificationServicesServiceImplTest {
-    private static final String NAME = "test-name";
-
     private static final Integer ID = 123;
     private static final Instant VALID_FROM = Instant.now().minus(1, DAYS);
     private static final Instant VALID_TO = Instant.now().plus(1, DAYS);
@@ -206,7 +204,7 @@ class CertificationServicesServiceImplTest {
     void getIntermediateCas() {
         when(approvedCaRepository.findById(ID)).thenReturn(Optional.of(approvedCa()));
 
-        final Set<CertificateAuthority> intermediateCas = service.getIntermediateCas(ID);
+        final List<CertificateAuthority> intermediateCas = service.getIntermediateCas(ID);
 
         assertEquals(2, intermediateCas.size());
         intermediateCas
