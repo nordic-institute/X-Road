@@ -39,9 +39,9 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
-import org.niis.xroad.securityserver.restapi.service.BackupRestoreEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;

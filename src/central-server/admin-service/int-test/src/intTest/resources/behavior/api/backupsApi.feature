@@ -63,3 +63,10 @@ Feature: Backups API
     Given Authentication header is set to REGISTRATION_OFFICER
     When Backup is created
     Then Response is of status code 403
+
+  @ClearBackups
+  Scenario: Restore central server configuration from a backup
+    Given Authentication header is set to SYSTEM_ADMINISTRATOR
+    And Backup test_backup.tar is uploaded
+    And Signer.getTokens response is mocked
+    Then Central server is restored from test_backup.tar

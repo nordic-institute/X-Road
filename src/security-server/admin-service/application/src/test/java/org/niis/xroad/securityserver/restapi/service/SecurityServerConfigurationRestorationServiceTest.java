@@ -31,6 +31,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
+import org.niis.xroad.restapi.common.backup.exception.RestoreProcessFailedException;
+import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,12 +43,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
-public class RestoreServiceTest extends AbstractServiceTestContext {
+public class SecurityServerConfigurationRestorationServiceTest extends AbstractServiceTestContext {
     private static final String MOCK_SUCCESS_SCRIPT = "src/test/resources/script/success.sh";
     private static final String MOCK_FAIL_SCRIPT = "src/test/resources/script/fail.sh";
 
     @Autowired
-    RestoreService restoreService;
+    ConfigurationRestorationService configurationRestorationService;
 
     @Autowired
     TokenService tokenService;
@@ -60,7 +62,7 @@ public class RestoreServiceTest extends AbstractServiceTestContext {
 
     @Before
     public void setup() throws Exception {
-        restoreService.setConfigurationRestoreScriptPath(MOCK_SUCCESS_SCRIPT);
+        configurationRestorationService.setConfigurationRestoreScriptPath(MOCK_SUCCESS_SCRIPT);
         File tempBackupFile = tempFolder.newFile(tempBackupFilename);
         when(backupRepository.getConfigurationBackupPath()).thenReturn(tempBackupFile.getParent() + File.separator);
         notificationService = new NotificationService(globalConfFacade, tokenService) {
@@ -73,14 +75,14 @@ public class RestoreServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void restoreFromBackup() throws Exception {
-        restoreService.restoreFromBackup(tempBackupFilename);
+        configurationRestorationService.restoreFromBackup(tempBackupFilename);
         assertTrue(true);
     }
 
     @Test
     public void restoreFromNonExistingBackup() throws Exception {
         try {
-            restoreService.restoreFromBackup("no-backups-here.tar");
+            configurationRestorationService.restoreFromBackup("no-backups-here.tar");
             fail("should have thrown an exception");
         } catch (BackupFileNotFoundException e) {
             Assert.assertEquals(DeviationCodes.ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
@@ -89,9 +91,9 @@ public class RestoreServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void restoreFromBackupFail() throws Exception {
-        restoreService.setConfigurationRestoreScriptPath(MOCK_FAIL_SCRIPT);
+        configurationRestorationService.setConfigurationRestoreScriptPath(MOCK_FAIL_SCRIPT);
         try {
-            restoreService.restoreFromBackup(tempBackupFilename);
+            configurationRestorationService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
         } catch (RestoreProcessFailedException e) {
             Assert.assertEquals(DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
@@ -100,9 +102,9 @@ public class RestoreServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void restoreFromBackupNotExecutable() throws Exception {
-        restoreService.setConfigurationRestoreScriptPath("path/to/nowhere.sh");
+        configurationRestorationService.setConfigurationRestoreScriptPath("path/to/nowhere.sh");
         try {
-            restoreService.restoreFromBackup(tempBackupFilename);
+            configurationRestorationService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
         } catch (RestoreProcessFailedException e) {
             Assert.assertEquals(DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());

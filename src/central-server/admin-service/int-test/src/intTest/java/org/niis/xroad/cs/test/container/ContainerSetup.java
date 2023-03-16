@@ -88,7 +88,8 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
         envConfig.put("spring.datasource.username", "xrd");
         envConfig.put("spring.datasource.password", "secret");
         envConfig.put("signerProxyMockUri", mockServerContainer.getEndpoint());
-        envConfig.put("script.generate-backup.path", "/etc/xroad/scripts/backup_xroad_center_configuration.sh");
+        envConfig.put("script.generate-backup.path", "/usr/share/xroad/scripts/backup_xroad_center_configuration.sh");
+        envConfig.put("script.restore-configuration.path", "/usr/share/xroad/scripts/restore_xroad_center_configuration.sh");
         return envConfig;
     }
 

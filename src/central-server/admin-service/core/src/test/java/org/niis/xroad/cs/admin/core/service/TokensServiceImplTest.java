@@ -68,6 +68,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
+import static org.niis.xroad.cs.admin.core.service.TokensServiceImpl.SOFTWARE_TOKEN_ID;
 
 @ExtendWith(MockitoExtension.class)
 class TokensServiceImplTest {
@@ -257,21 +258,46 @@ class TokensServiceImplTest {
         assertAuditMessages();
     }
 
-    private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(TokenStatusInfo status,
+    @Test
+    void hasHardwareTokensReturnsTrue() throws Exception {
+        ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo("1");
+        when(signerProxyFacade.getTokens()).thenReturn(List.of(signerTokenInfo));
+
+        boolean result = tokensService.hasHardwareTokens();
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void hasHardwareTokensReturnsFalse() throws Exception {
+        ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo(SOFTWARE_TOKEN_ID);
+        when(signerProxyFacade.getTokens()).thenReturn(List.of(signerTokenInfo));
+
+        boolean result = tokensService.hasHardwareTokens();
+
+        assertThat(result).isFalse();
+    }
+
+    private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(String tokenId,
+                                                                     TokenStatusInfo status,
                                                                      Map<String, String> tokenParams,
                                                                      List<KeyInfo> keyInfos) {
         return new ee.ria.xroad.signer.protocol.dto.TokenInfo(
-                "type", TOKEN_FRIENDLY_NAME, TOKEN_ID, false, true,
+                "type", TOKEN_FRIENDLY_NAME, tokenId, false, true,
                 false, TOKEN_SERIAL_NUMBER, "label", 13, status, keyInfos, tokenParams
         );
     }
 
     private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(TokenStatusInfo status) {
-        return mockTokenInfo(status, new HashMap<>(), new ArrayList<>());
+        return mockTokenInfo(TOKEN_ID, status, new HashMap<>(), new ArrayList<>());
     }
 
     private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(Map<String, String> tokenParams) {
-        return mockTokenInfo(OK, tokenParams, new ArrayList<>());
+        return mockTokenInfo(TOKEN_ID, OK, tokenParams, new ArrayList<>());
+    }
+
+    private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(String tokenId) {
+        return mockTokenInfo(tokenId, OK, new HashMap<>(), new ArrayList<>());
     }
 
     private void assertAuditMessages() {

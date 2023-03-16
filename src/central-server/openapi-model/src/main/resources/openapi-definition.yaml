@@ -274,7 +274,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokensLoggedOut'
+                $ref: '#/components/schemas/BackupRestorationStatus'
           description: restore was successful
         '400':
           content:
@@ -4693,7 +4693,7 @@ components:
       example: OK
       format: text
       type: string
-    TokensLoggedOut:
+    BackupRestorationStatus:
       description: response that tells if hsm tokens were logged out during the restore process
       properties:
         hsm_tokens_logged_out:

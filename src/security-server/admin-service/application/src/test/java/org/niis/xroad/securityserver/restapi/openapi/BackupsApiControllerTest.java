@@ -34,6 +34,7 @@ import org.mockito.Mockito;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
 import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
+import org.niis.xroad.restapi.common.backup.exception.RestoreProcessFailedException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
@@ -41,7 +42,6 @@ import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOut;
-import org.niis.xroad.securityserver.restapi.service.RestoreProcessFailedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -300,7 +300,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void restoreFromBackupNotFound() throws Exception {
-        Mockito.doThrow(new BackupFileNotFoundException("")).when(restoreService).restoreFromBackup(any());
+        Mockito.doThrow(new BackupFileNotFoundException("")).when(configurationRestorationService).restoreFromBackup(any());
         try {
             backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
             fail("should throw BadRequestException");
@@ -312,7 +312,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void restoreFromBackupInterrupted() throws Exception {
-        doThrow(new InterruptedException()).when(restoreService).restoreFromBackup(any());
+        doThrow(new InterruptedException()).when(configurationRestorationService).restoreFromBackup(any());
         try {
             backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
             fail("should throw InternalServerErrorException");
@@ -326,7 +326,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     public void restoreFromBackupFailed() throws Exception {
         Mockito.doThrow(new RestoreProcessFailedException(
                         new ProcessFailedException("process failed"), "restore failed"))
-                .when(restoreService).restoreFromBackup(any());
+                .when(configurationRestorationService).restoreFromBackup(any());
         try {
             backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
             fail("should throw InternalServerErrorException");
