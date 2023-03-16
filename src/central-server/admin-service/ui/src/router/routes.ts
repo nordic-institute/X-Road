@@ -25,8 +25,7 @@
  * THE SOFTWARE.
  */
 
-import SecurityServerAuthenticationCertificate
-  from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
+import SecurityServerAuthenticationCertificate from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
 import { Route, RouteConfig } from 'vue-router';
 import TabsBase from '@/components/layout/TabsBase.vue';
 
