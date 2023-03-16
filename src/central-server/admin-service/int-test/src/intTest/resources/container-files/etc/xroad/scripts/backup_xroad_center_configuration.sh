@@ -40,6 +40,5 @@ done
 
 echo $BACKUP_FILENAME
 touch2 $BACKUP_FILENAME
-sleep 2 # to avoid overlapping timestamps
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

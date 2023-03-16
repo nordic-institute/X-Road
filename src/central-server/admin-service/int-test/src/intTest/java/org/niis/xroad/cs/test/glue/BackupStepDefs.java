@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.test.glue;
 
+import com.nortal.test.asserts.Assertion;
+import com.nortal.test.asserts.AssertionOperation;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.BackupDto;
@@ -38,6 +40,8 @@ import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
@@ -48,7 +52,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class BackupStepDefs extends BaseStepDefs {
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");//conf_backup_20230313-132037.gpg
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
     private static final String FILE_NAME_FORMAT = "conf_backup_%s.tar";
     @Autowired
     private FeignBackupsApi backupsApi;
@@ -108,7 +112,12 @@ public class BackupStepDefs extends BaseStepDefs {
         validate(newBackup)
                 .assertion(equalsStatusCodeAssertion(CREATED))
                 .assertion(notNullAssertion("body.createdAt"))
-                .assertion(equalsAssertion(expectedFilename(newBackup.getBody().getCreatedAt()), "body.filename"))
+                .assertion(new Assertion.Builder()
+                        .message("Filename matches created at date/time")
+                        .expression("body.filename")
+                        .operation(AssertionOperation.LIST_CONTAINS_VALUE)
+                        .expectedValue(expectedFilename(newBackup.getBody().getCreatedAt()))
+                        .build())
                 .execute();
 
         validate(getRequiredStepData(StepDataKey.RESPONSE))
@@ -129,7 +138,10 @@ public class BackupStepDefs extends BaseStepDefs {
         }
     }
 
-    private String expectedFilename(OffsetDateTime dateTime) {
-        return dateTime == null ? "no_time" : String.format(FILE_NAME_FORMAT, dateTime.format(DATE_TIME_FORMATTER));
+    private List<String> expectedFilename(OffsetDateTime dateTime) {
+        return Stream.of(dateTime, dateTime.minusSeconds(1), dateTime.plusSeconds(1))
+                .map(dt -> dt.format(DATE_TIME_FORMATTER))
+                .map(dt -> String.format(FILE_NAME_FORMAT, dt))
+                .collect(Collectors.toList());
     }
 }
