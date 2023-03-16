@@ -25,9 +25,7 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import {
-  SecurityServerAuthenticationCertificateDetails,
-} from '@/openapi-types';
+import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
 import { defineStore } from 'pinia';
 
 interface SecurityServerAuthCertState {
@@ -39,7 +37,7 @@ export const securityServerAuthCertStore = defineStore(
   {
     state: (): SecurityServerAuthCertState => {
       return {
-        authenticationCertificates: []
+        authenticationCertificates: [],
       };
     },
     persist: true,
