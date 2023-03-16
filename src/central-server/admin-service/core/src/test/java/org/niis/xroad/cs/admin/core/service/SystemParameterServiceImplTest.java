@@ -26,36 +26,41 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.SystemParameter;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.entity.mapper.SystemParameterMapper;
+import org.niis.xroad.cs.admin.core.entity.mapper.SystemParameterMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.service.SystemParameterService.INSTANCE_IDENTIFIER;
 
-@Disabled
+@ExtendWith(MockitoExtension.class)
 class SystemParameterServiceImplTest {
 
-    @Autowired
+    @Mock
     SystemParameterRepository systemParameterRepository;
-    @Autowired
-    SystemParameterServiceImpl systemParameterService;
-
-    @Autowired
-    @Qualifier("testHaConfig")
+    @Spy
+    SystemParameterMapper systemParameterMapper = new SystemParameterMapperImpl();
+    @Mock
     HAConfigStatus currentHaConfigStatus;
 
-    @Test
-    void mockContextLoads() {
-        assertTrue(true);
+    @InjectMocks
+    SystemParameterServiceImpl systemParameterService;
+
+    @BeforeEach
+    void setUp() {
+        when(systemParameterRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -66,15 +71,15 @@ class SystemParameterServiceImplTest {
                         INSTANCE_IDENTIFIER,
                         instanceTestValue
                 );
+
         assertEquals(instanceTestValue, systemParameter.getValue());
-        String storedSystemParameterValue = systemParameterService.getInstanceIdentifier();
-        assertEquals(instanceTestValue, storedSystemParameterValue);
     }
 
-    // This works only when postgresql-specific HA triggers are defined. E.g. NOT with embedded test databases.
-    @Disabled("HA-specific test cases need postgresql db")
     @Test
     void systemParameterValueStoredHaEnabled() {
+        when(currentHaConfigStatus.getCurrentHaNodeName()).thenReturn("node_1");
+        when(currentHaConfigStatus.isHaConfigured()).thenReturn(true);
+
         final String centralServerAddress = "example.org";
         SystemParameter systemParameter = systemParameterService
                 .updateOrCreateParameter(
@@ -82,15 +87,6 @@ class SystemParameterServiceImplTest {
                         centralServerAddress
                 );
         assertEquals(centralServerAddress, systemParameter.getValue());
-        String storedSystemParameterValue = systemParameterService.getCentralServerAddress();
-        assertEquals(centralServerAddress, storedSystemParameterValue);
     }
 
-    @TestConfiguration
-    static class TestHaConfig {
-        @Bean(name = "testHaConfig")
-        HAConfigStatus createTestHaConfig() {
-            return new HAConfigStatus("node_1", true);
-        }
-    }
 }

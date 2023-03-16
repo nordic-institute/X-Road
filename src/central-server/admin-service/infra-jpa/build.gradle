@@ -8,14 +8,6 @@ dependencies {
 
     api('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation("org.hibernate.validator:hibernate-validator")
-
-    //TODO test dependencies should be reviewed once tests are moved to different layer.
-    testImplementation project(':common-test')
-    testImplementation(testFixtures(project(":common-rest-api")))
-    testImplementation('org.springframework.boot:spring-boot-starter-test')
-    testImplementation('org.springframework.security:spring-security-test')
-    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
-    testImplementation('org.liquibase:liquibase-core')
 }
 
 configurations {
