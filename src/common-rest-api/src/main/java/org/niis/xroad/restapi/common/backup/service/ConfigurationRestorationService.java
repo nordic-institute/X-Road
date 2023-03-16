@@ -49,7 +49,7 @@ import java.io.File;
 @Slf4j
 @PreAuthorize("isAuthenticated()")
 @AllArgsConstructor
-public abstract class RestoreService {
+public abstract class ConfigurationRestorationService {
 
     private final ExternalProcessRunner externalProcessRunner;
     private final BackupRepository backupRepository;

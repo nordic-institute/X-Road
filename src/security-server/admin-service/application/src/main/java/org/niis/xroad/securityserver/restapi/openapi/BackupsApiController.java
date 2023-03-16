@@ -34,7 +34,7 @@ import org.niis.xroad.restapi.common.backup.exception.InvalidFilenameException;
 import org.niis.xroad.restapi.common.backup.exception.RestoreProcessFailedException;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
 import org.niis.xroad.restapi.common.backup.service.BackupValidator;
-import org.niis.xroad.restapi.common.backup.service.RestoreService;
+import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -75,7 +75,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BA
 public class BackupsApiController implements BackupsApi {
     private final BackupService backupService;
     private final BackupValidator backupValidator;
-    private final RestoreService restoreService;
+    private final ConfigurationRestorationService configurationRestorationService;
     private final BackupConverter backupConverter;
     private final SecurityServerConfigurationBackupGenerator backupGenerator;
     private final TokenService tokenService;
@@ -167,7 +167,7 @@ public class BackupsApiController implements BackupsApi {
         // If hardware tokens exist prior to the restore -> they will be logged out by the restore script
         TokensLoggedOut tokensLoggedOut = new TokensLoggedOut().hsmTokensLoggedOut(hasHardwareTokens);
         try {
-            restoreService.restoreFromBackup(filename);
+            configurationRestorationService.restoreFromBackup(filename);
         } catch (BackupFileNotFoundException e) {
             throw new BadRequestException(e);
         } catch (InterruptedException e) {

@@ -55,7 +55,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CentralServerRestoreServiceTest {
+class CentralServerConfigurationRestorationServiceTest {
 
     @Mock
     private ExternalProcessRunner externalProcessRunner;
@@ -73,7 +73,7 @@ class CentralServerRestoreServiceTest {
     private HAConfigStatus haConfigStatus;
 
     @InjectMocks
-    private CentralServerRestoreService centralServerRestoreService;
+    private CentralServerConfigurationRestorationService configurationRestorationService;
 
     @Test
     void shouldSuccessfullyRestoreFromBackupWithHaConfigured() throws Exception {
@@ -86,7 +86,7 @@ class CentralServerRestoreServiceTest {
                 + " -n " + FormatUtils.encodeStringToBase64(currentHaNodeName), 0, List.of()
         );
 
-        centralServerRestoreService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
+        configurationRestorationService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
         GlobalConf.reload(new EmptyGlobalConf() {
             @Override
             public String getInstanceIdentifier() {
@@ -105,7 +105,7 @@ class CentralServerRestoreServiceTest {
                 "-n", FormatUtils.encodeStringToBase64(currentHaNodeName))
         ).thenReturn(processResult);
 
-        centralServerRestoreService.restoreFromBackup(backupFileName);
+        configurationRestorationService.restoreFromBackup(backupFileName);
 
         verify(auditDataHelper).putBackupFilename(Paths.get(configurationBackupPath + backupFileName));
         verify(eventPublisher).publishEvent(BackupRestoreEvent.START);
@@ -124,7 +124,7 @@ class CentralServerRestoreServiceTest {
                  0, List.of()
         );
 
-        centralServerRestoreService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
+        configurationRestorationService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
         GlobalConf.reload(new EmptyGlobalConf() {
             @Override
             public String getInstanceIdentifier() {
@@ -141,7 +141,7 @@ class CentralServerRestoreServiceTest {
                 "-f", FormatUtils.encodeStringToBase64(configurationBackupPath + backupFileName))
         ).thenReturn(processResult);
 
-        centralServerRestoreService.restoreFromBackup(backupFileName);
+        configurationRestorationService.restoreFromBackup(backupFileName);
 
         verify(auditDataHelper).putBackupFilename(Paths.get(configurationBackupPath + backupFileName));
         verify(eventPublisher).publishEvent(BackupRestoreEvent.START);
@@ -158,7 +158,7 @@ class CentralServerRestoreServiceTest {
                 .thenReturn(Paths.get(configurationBackupPath + backupFileName));
         when(backupRepository.getConfigurationBackupPath()).thenReturn(configurationBackupPath);
 
-        assertThrows(BackupFileNotFoundException.class, () -> centralServerRestoreService.restoreFromBackup(backupFileName));
+        assertThrows(BackupFileNotFoundException.class, () -> configurationRestorationService.restoreFromBackup(backupFileName));
         verify(auditDataHelper).putBackupFilename(Paths.get(configurationBackupPath + backupFileName));
     }
 
@@ -168,7 +168,7 @@ class CentralServerRestoreServiceTest {
         String configurationBackupPath = "src/test/resources/backup/";
         String backupFileName = "backup.tar";
 
-        centralServerRestoreService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
+        configurationRestorationService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
         GlobalConf.reload(new EmptyGlobalConf() {
             @Override
             public String getInstanceIdentifier() {
@@ -185,7 +185,7 @@ class CentralServerRestoreServiceTest {
                 "-f", FormatUtils.encodeStringToBase64(configurationBackupPath + backupFileName))
         ).thenThrow(new ProcessFailedException("message"));
 
-        assertThrows(RestoreProcessFailedException.class, () -> centralServerRestoreService.restoreFromBackup(backupFileName));
+        assertThrows(RestoreProcessFailedException.class, () -> configurationRestorationService.restoreFromBackup(backupFileName));
 
         verify(auditDataHelper).putBackupFilename(Paths.get(configurationBackupPath + backupFileName));
         verify(eventPublisher).publishEvent(BackupRestoreEvent.START);

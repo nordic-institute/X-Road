@@ -29,7 +29,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
-import org.niis.xroad.restapi.common.backup.service.RestoreService;
+import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -40,11 +40,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SecurityServerRestoreService extends RestoreService {
+public class SecurityServerConfigurationRestorationService extends ConfigurationRestorationService {
 
     private final CurrentSecurityServerId currentSecurityServerId;
 
-    public SecurityServerRestoreService(
+    public SecurityServerConfigurationRestorationService(
             CurrentSecurityServerId currentSecurityServerId, ExternalProcessRunner externalProcessRunner,
             BackupRepository backupRepository, ApiKeyService apiKeyService, AuditDataHelper auditDataHelper,
             PersistenceUtils persistenceUtils, ApplicationEventPublisher eventPublisher,

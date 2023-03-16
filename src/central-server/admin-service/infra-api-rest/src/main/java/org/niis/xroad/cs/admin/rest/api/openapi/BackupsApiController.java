@@ -32,7 +32,7 @@ import org.niis.xroad.cs.admin.rest.api.converter.BackupDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.exception.InternalServerErrorException;
 import org.niis.xroad.cs.openapi.BackupsApi;
 import org.niis.xroad.cs.openapi.model.BackupDto;
-import org.niis.xroad.cs.openapi.model.TokensLoggedOutDto;
+import org.niis.xroad.cs.openapi.model.BackupRestorationStatusDto;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
 import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
@@ -40,7 +40,7 @@ import org.niis.xroad.restapi.common.backup.exception.InvalidFilenameException;
 import org.niis.xroad.restapi.common.backup.exception.RestoreProcessFailedException;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
 import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
-import org.niis.xroad.restapi.common.backup.service.RestoreService;
+import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -71,7 +71,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 public class BackupsApiController implements BackupsApi {
     private final BackupService backupService;
-    private final RestoreService restoreService;
+    private final ConfigurationRestorationService configurationRestorationService;
     private final TokensService tokensService;
     private final BackupDtoConverter backupDtoConverter;
     private final BaseConfigurationBackupGenerator centralServerConfigurationBackupGenerator;
@@ -120,11 +120,10 @@ public class BackupsApiController implements BackupsApi {
     @Override
     @PreAuthorize("hasAuthority('RESTORE_CONFIGURATION')")
     @AuditEventMethod(event = RestApiAuditEvent.RESTORE_BACKUP)
-    public ResponseEntity<TokensLoggedOutDto> restoreBackup(String filename) {
+    public ResponseEntity<BackupRestorationStatusDto> restoreBackup(String filename) {
         boolean hasHardwareTokens = tokensService.hasHardwareTokens();
-        TokensLoggedOutDto tokensLoggedOut = new TokensLoggedOutDto().hsmTokensLoggedOut(hasHardwareTokens);
         try {
-            restoreService.restoreFromBackup(filename);
+            configurationRestorationService.restoreFromBackup(filename);
         } catch (BackupFileNotFoundException e) {
             throw new BadRequestException(e);
         } catch (InterruptedException e) {
@@ -132,7 +131,8 @@ public class BackupsApiController implements BackupsApi {
         } catch (RestoreProcessFailedException e) {
             throw new InternalServerErrorException(e);
         }
-        return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
+        BackupRestorationStatusDto restorationStatus = new BackupRestorationStatusDto().hsmTokensLoggedOut(hasHardwareTokens);
+        return new ResponseEntity<>(restorationStatus, HttpStatus.OK);
     }
 
     @Override

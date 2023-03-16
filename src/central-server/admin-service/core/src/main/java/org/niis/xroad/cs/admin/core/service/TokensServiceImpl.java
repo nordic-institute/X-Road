@@ -46,7 +46,6 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -96,8 +95,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
     @Override
     public boolean hasHardwareTokens() {
         try {
-            List<ee.ria.xroad.signer.protocol.dto.TokenInfo> tokens = signerProxyFacade.getTokens();
-            return tokens.stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
+            return signerProxyFacade.getTokens().stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
         } catch (Exception e) {
             throw new TokenException(ERROR_GETTING_TOKENS, e);
         }
