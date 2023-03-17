@@ -86,7 +86,7 @@ public class ExceptionTranslator {
         } else if (e instanceof CodedException) {
             // map fault code and string from core CodedException
             CodedException c = (CodedException) e;
-            Deviation deviation = new Deviation(CORE_CODED_EXCEPTION_PREFIX + c.getFaultCode(), c.getFaultString());
+            Deviation deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + c.getFaultCode(), c.getFaultString());
             errorDto.setError(convert(deviation));
         } else if (e instanceof MethodArgumentNotValidException) {
             errorDto.setError(validationErrorHelper.createError((MethodArgumentNotValidException) e));

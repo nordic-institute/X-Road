@@ -39,6 +39,9 @@ import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Date;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ID_NOT_A_NUMBER;
+import static org.niis.xroad.restapi.exceptions.ErrorDeviation.newError;
+
 /**
  * Format utils
  */
@@ -142,7 +145,7 @@ public final class FormatUtils {
         try {
             groupId = Long.valueOf(id);
         } catch (NumberFormatException nfe) {
-            throw new ResourceNotFoundException("bad id", nfe);
+            throw new ResourceNotFoundException(nfe, newError(ERROR_ID_NOT_A_NUMBER));
         }
         return groupId;
     }

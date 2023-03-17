@@ -29,6 +29,9 @@ package org.niis.xroad.restapi.exceptions;
  * Enumeration class for Management API error and warning codes
  */
 public final class DeviationCodes {
+    public static final String ERROR_GENERIC_INTERNAL_ERROR = "internal_error"; //TODO might be removed later
+    public static final String ERROR_ID_NOT_A_NUMBER = "id_not_a_number";
+
     public static final String ERROR_ACCESSRIGHT_NOT_FOUND = "accessright_not_found";
     public static final String ERROR_ACTION_NOT_POSSIBLE = "action_not_possible";
     /**

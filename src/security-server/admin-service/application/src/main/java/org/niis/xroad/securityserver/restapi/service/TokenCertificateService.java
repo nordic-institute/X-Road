@@ -54,7 +54,7 @@ import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
-import org.niis.xroad.securityserver.restapi.openapi.InternalServerErrorException;
+import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;

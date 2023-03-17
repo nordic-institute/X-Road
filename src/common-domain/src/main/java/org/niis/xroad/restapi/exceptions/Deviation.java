@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,7 +37,7 @@ import java.util.List;
  * and possible metadata describing the deviation details.
  */
 @Getter
-public class Deviation implements Serializable {
+public abstract class Deviation implements Serializable {
     private final String code;
     private final List<String> metadata;
 
@@ -46,7 +46,7 @@ public class Deviation implements Serializable {
      * @param code
      * @param metadata
      */
-    public Deviation(String code, List<String> metadata) {
+    protected Deviation(String code, List<String> metadata) {
         this.code = code;
         this.metadata = metadata;
     }
@@ -56,7 +56,7 @@ public class Deviation implements Serializable {
      * @param code
      * @param metadataItem
      */
-    public Deviation(String code, String metadataItem) {
+    protected Deviation(String code, String metadataItem) {
         this.code = code;
         this.metadata = Collections.singletonList(metadataItem);
     }
@@ -66,7 +66,7 @@ public class Deviation implements Serializable {
      * Create new deviation without metadata
      * @param code
      */
-    public Deviation(String code) {
+    protected Deviation(String code) {
         this.code = code;
         this.metadata = null;
     }

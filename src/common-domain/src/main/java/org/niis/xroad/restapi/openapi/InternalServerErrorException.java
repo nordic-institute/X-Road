@@ -23,44 +23,59 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi;
+package org.niis.xroad.restapi.openapi;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.openapi.OpenApiException;
+import org.niis.xroad.restapi.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.Collection;
 
 /**
- * Thrown if there was a conflict, for example tried to add an item which already exists.
- * Results in http 409 CONFLICT
+ * Thrown if internal server error occurs.
+ * Results in http 500 INTERNAL_SERVER_ERROR
  */
-@ResponseStatus(value = HttpStatus.CONFLICT)
-public class ConflictException extends OpenApiException {
-    public ConflictException() {
+@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+public class InternalServerErrorException extends DeviationAwareRuntimeException {
+
+    public InternalServerErrorException(DeviationAwareException ex) {
+        super(ex, ex.getErrorDeviation(), ex.getWarningDeviations());
     }
 
-    public ConflictException(DeviationAwareException e) {
-        super(e, e.getErrorDeviation(), e.getWarningDeviations());
+    public InternalServerErrorException(DeviationAware deviations) {
+        super(deviations.getErrorDeviation(), deviations.getWarningDeviations());
     }
 
-    public ConflictException(String msg) {
+    public InternalServerErrorException() {
+    }
+
+    public InternalServerErrorException(String msg) {
         super(msg);
     }
 
-    public ConflictException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
-        super(errorDeviation, warningDeviations);
-    }
-
-    public ConflictException(String msg, ErrorDeviation errorDeviation) {
+    public InternalServerErrorException(String msg, ErrorDeviation errorDeviation) {
         super(msg, errorDeviation);
     }
 
-    public ConflictException(ErrorDeviation errorDeviation) {
+    public InternalServerErrorException(String msg, Throwable t, ErrorDeviation errorDeviation) {
+        super(msg, t, errorDeviation);
+    }
+
+    public InternalServerErrorException(Throwable t, ErrorDeviation errorDeviation,
+            Collection<WarningDeviation> warningDeviations) {
+        super(t, errorDeviation, warningDeviations);
+    }
+
+    public InternalServerErrorException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
+        super(errorDeviation, warningDeviations);
+    }
+
+    public InternalServerErrorException(ErrorDeviation errorDeviation) {
         super(errorDeviation);
+    }
+
+    public InternalServerErrorException(Throwable t, ErrorDeviation errorDeviation) {
+        super(t, errorDeviation);
     }
 
 }
