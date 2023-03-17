@@ -53,7 +53,7 @@ import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSendingFailedException;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
-import org.niis.xroad.securityserver.restapi.util.ResourceUtils;
+import org.niis.xroad.restapi.util.ResourceUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

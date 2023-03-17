@@ -92,7 +92,7 @@ import org.niis.xroad.securityserver.restapi.service.ServiceClientService;
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.securityserver.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
-import org.niis.xroad.securityserver.restapi.util.ResourceUtils;
+import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.securityserver.restapi.wsdl.UnsupportedOpenApiVersionException;
