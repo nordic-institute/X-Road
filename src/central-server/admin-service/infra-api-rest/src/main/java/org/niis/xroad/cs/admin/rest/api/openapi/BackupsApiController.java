@@ -26,7 +26,6 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.cs.admin.rest.api.converter.BackupDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.exception.InternalServerErrorException;
@@ -78,6 +77,7 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    @AuditEventMethod(event = RestApiAuditEvent.BACKUP)
     public ResponseEntity<BackupDto> addBackup() {
         try {
             BackupFile backupFile = centralServerConfigurationBackupGenerator.generateBackup();
@@ -93,8 +93,14 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    @AuditEventMethod(event = RestApiAuditEvent.DELETE_BACKUP)
     public ResponseEntity<Void> deleteBackup(String filename) {
-        throw new NotImplementedException("deleteBackup not implemented yet");
+        try {
+            backupService.deleteBackup(filename);
+            return ResponseEntity.noContent().build();
+        } catch (BackupFileNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
     }
 
     @Override
