@@ -1410,6 +1410,37 @@ paths:
       summary: CS administrator uploads a new additional trusted anchor
       tags:
         - trusted-anchors
+  /trusted-anchors/preview:
+    post:
+      description: <h3>Administrator uploads a trusted anchor file for preview.</h3>
+      operationId: previewTrustedAnchor
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              description: trusted anchor file
+              format: binary
+              type: string
+        description: the trusted anchor file to validate
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnchorFilePreview'
+          description: the trusted anchor preview
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: CS administrator uploads a trusted anchor file for preview
+      tags:
+        - trusted-anchors
   /trusted-anchors/{hash}:
     delete:
       description: <h3>Administrator deletes a trusted anchor.</h3>
@@ -4723,6 +4754,28 @@ components:
         - created_at
         - instance_identifier
         - possible_actions
+      type: object
+    AnchorFilePreview:
+      description: trusted anchor file information
+      properties:
+        instance_identifier:
+          description: instance identifier
+          example: CS
+          format: text
+          type: string
+        generated_at:
+          description: timestamp
+          example: '2023-03-17T00:00:00.001Z'
+          format: date-time
+          readOnly: true
+          type: string
+        hash:
+          description: trusted anchor file hash
+          example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
+          format: hash
+          maxLength: 255
+          minLength: 1
+          type: string
       type: object
     User:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'

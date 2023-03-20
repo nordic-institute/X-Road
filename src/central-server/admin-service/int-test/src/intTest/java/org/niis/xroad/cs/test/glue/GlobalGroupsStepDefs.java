@@ -28,7 +28,6 @@
 package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
-import com.nortal.test.asserts.JsonPathAssertions;
 import com.nortal.test.asserts.ValidationHelper;
 import feign.FeignException;
 import io.cucumber.datatable.DataTable;
@@ -235,18 +234,6 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
         } catch (FeignException feignException) {
             validateErrorResponse(status, error, feignException);
         }
-    }
-
-    private void validateErrorResponse(int expectedStatus, String expectedErrorCode, FeignException feignException) {
-        validate(feignException.contentUTF8())
-                .assertion(new Assertion.Builder()
-                        .message("Verify status code")
-                        .expression("=")
-                        .actualValue(feignException.status())
-                        .expectedValue(expectedStatus)
-                        .build())
-                .assertion(JsonPathAssertions.equalsAssertion(expectedErrorCode, "$.error.code"))
-                .execute();
     }
 
     @Step("deleting global group {string} fails with status code {int} and error code {string}")

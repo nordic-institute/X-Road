@@ -97,6 +97,7 @@ public enum ErrorMessage {
     INSTANCE_IDENTIFIER_NOT_SET("System parameter for instance identifier not set"),
     CENTRAL_SERVER_ADDRESS_NOT_SET("System parameter for central server address not set"),
     ERROR_RECREATING_ANCHOR("Error re-creating anchor file"),
+    MALFORMED_ANCHOR("Malformed anchor file"),
     CONFIGURATION_SIGNING_KEY_NOT_FOUND("Configuration Signing Key not found"),
     CERTIFICATE_PROFILE_INFO_CLASS_NOT_FOUND("Certificate profile info class was not found");
 

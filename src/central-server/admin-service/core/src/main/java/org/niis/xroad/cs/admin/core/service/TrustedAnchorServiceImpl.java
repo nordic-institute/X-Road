@@ -26,8 +26,13 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
+import org.niis.xroad.cs.admin.api.domain.TrustedAnchorPreview;
+import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
 import org.niis.xroad.cs.admin.core.entity.mapper.TrustedAnchorMapper;
 import org.niis.xroad.cs.admin.core.repository.TrustedAnchorRepository;
@@ -37,7 +42,9 @@ import javax.transaction.Transactional;
 
 import java.util.List;
 
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MALFORMED_ANCHOR;
 
 @Service
 @RequiredArgsConstructor
@@ -52,4 +59,17 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
                 .map(trustedAnchorMapper::toTarget)
                 .collect(toList());
     }
+
+    @Override
+    public TrustedAnchorPreview preview(byte[] trustedAnchorFile) {
+        try {
+            final ConfigurationAnchorV2 anchorV2 = new ConfigurationAnchorV2(trustedAnchorFile);
+            final String hash = CryptoUtils.hexDigest(DEFAULT_ANCHOR_HASH_ALGORITHM_ID, trustedAnchorFile).toUpperCase();
+            return new TrustedAnchorPreview(anchorV2.getInstanceIdentifier(),
+                    anchorV2.getGeneratedAt().toInstant(), hash);
+        } catch (Exception e) {
+            throw new ValidationFailureException(MALFORMED_ANCHOR);
+        }
+    }
+
 }
