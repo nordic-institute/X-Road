@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,21 +26,22 @@
  -->
 <template>
   <xrd-button
+    v-if="canBackup"
+    data-test="backup-delete"
+    class="xrd-table-button"
     :min_width="50"
     text
+    :loading="deleting"
     :outlined="false"
-    class="xrd-table-button"
-    data-test="backup-restore"
     @click="showConfirmation = true"
-    >{{ $t('action.restore') }}
+    >{{ $t('action.delete') }}
     <xrd-confirm-dialog
       :dialog="showConfirmation"
-      :loading="restoring"
-      title="backup.action.restore.dialog.title"
-      text="backup.action.restore.dialog.confirmation"
-      :data="{ file: backup.filename }"
+      title="backup.deleteBackup.dialog.title"
+      text="backup.deleteBackup.dialog.confirmation"
+      :data="{ file: filename }"
       @cancel="showConfirmation = false"
-      @accept="restoreBackup"
+      @accept="deleteBackup"
     />
   </xrd-button>
 </template>
@@ -47,56 +49,48 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import { Backup } from '@/openapi-types';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
-import { mapActions } from 'pinia';
-import { useAlerts } from '@/store/modules/alerts';
-import { useNotifications } from '@/store/modules/notifications';
+import { BackupHandler } from './backup-handler';
 
 export default Vue.extend({
-  name: 'RestoreBackupButton',
+  name: 'DeleteBackupButton',
   props: {
-    backup: {
-      type: Object as Prop<Backup>,
+    canBackup: {
+      type: Boolean,
+      required: true,
+    },
+    filename: {
+      type: String,
+      required: true,
+    },
+    backupHandler: {
+      type: Object as Prop<BackupHandler>,
       required: true,
     },
   },
   data() {
     return {
-      showConfirmation: false as boolean,
-      restoring: false as boolean,
+      deleting: false,
+      showConfirmation: false,
     };
   },
+
   methods: {
-    ...mapActions(useAlerts, ['checkAlertStatus']),
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    restoreBackup() {
-      this.restoring = true;
-      api
-        .put(
-          `/backups/${encodePathParameter(this.backup.filename)}/restore`,
-          {},
+    deleteBackup() {
+      this.deleting = true;
+      this.showConfirmation = false;
+      this.backupHandler
+        .delete(this.filename)
+        .then(() =>
+          this.backupHandler.showSuccess('backup.deleteBackup.success', {
+            file: this.filename,
+          }),
         )
-        .then(() => {
-          this.$emit('restored');
-          this.showSuccess(
-            this.$t('backup.action.restore.success', {
-              file: this.backup.filename,
-            }),
-          );
-        })
-        .catch((error) => this.showError(error))
-        .finally(() => {
-          this.showConfirmation = false;
-          this.restoring = false;
-          this.checkAlertStatus();
-        });
+        .then(() => this.$emit('refresh-backups'))
+        .catch((error) => this.backupHandler.showError(error))
+        .finally(() => (this.deleting = false));
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-@import '../../../assets/tables';
-</style>
+<style lang="scss" scoped></style>
