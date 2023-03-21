@@ -4376,13 +4376,6 @@ components:
       example: LOGIN
       format: enum
       type: string
-    PossibleAnchorAction:
-      description: an action to change state or edit anchors # set of values not final or complete
-      enum:
-        - DOWNLOAD
-      example: LOGIN
-      format: enum
-      type: string
     PossibleKeyAction:
       description: an action to change state or edit keys # set of values not final or complete
       enum:
@@ -4744,16 +4737,10 @@ components:
           maxLength: 255
           minLength: 1
           type: string
-        possible_actions:
-          description: array containing the possible actions that can be done for this item # potential-common-api
-          items:
-            $ref: '#/components/schemas/PossibleAnchorAction'
-          type: array
       required:
         - hash
         - created_at
         - instance_identifier
-        - possible_actions
       type: object
     AnchorFilePreview:
       description: trusted anchor file information
