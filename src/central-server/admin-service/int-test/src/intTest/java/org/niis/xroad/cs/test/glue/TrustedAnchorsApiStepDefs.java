@@ -31,6 +31,7 @@ package org.niis.xroad.cs.test.glue;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.AnchorFilePreviewDto;
+import org.niis.xroad.cs.openapi.model.TrustedAnchorDto;
 import org.niis.xroad.cs.test.api.FeignTrustedAnchorsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileUrlResource;
@@ -40,8 +41,10 @@ import org.springframework.http.ResponseEntity;
 import java.time.OffsetDateTime;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static java.lang.ClassLoader.getSystemResource;
 import static org.junit.Assert.fail;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -50,16 +53,17 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignTrustedAnchorsApi trustedAnchorsApi;
 
-    @Step("user can upload trusted anchor for preview")
-    public void userUploadTrustedAnchorFileForPreview() {
+    @Step("user can upload trusted anchor {string} for preview")
+    public void userUploadTrustedAnchorFileForPreview(String filename) {
         final ResponseEntity<AnchorFilePreviewDto> response = trustedAnchorsApi
-                .previewTrustedAnchor(getFileAsResource("trusted-anchor.xml"));
+                .previewTrustedAnchor(getFileAsResource(filename));
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion("CS0", "body.instanceIdentifier"))
                 .assertion(equalsAssertion(OffsetDateTime.parse("2023-02-15T09:26:34.235Z"), "body.generatedAt"))
-                .assertion(equalsAssertion("402A4F9405D29BEDC9EEA26DECEC11945DC9A83E291FB292A6E4DF1D", "body.hash"))
+                .assertion(equalsAssertion("40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D",
+                        "body.hash"))
                 .execute();
     }
 
@@ -76,4 +80,18 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
     private Resource getFileAsResource(String filename) {
         return new FileUrlResource(getSystemResource("files/trusted-anchor/" + filename));
     }
+
+    @Step("user uploads trusted anchor file {string}")
+    public void userUploadsTrustedAnchorFile(String filename) {
+        final ResponseEntity<TrustedAnchorDto> response = trustedAnchorsApi.uploadTrustedAnchor(getFileAsResource(filename));
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(CREATED))
+                .assertion(equalsAssertion("40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D",
+                        "body.hash"))
+                .assertion(notNullAssertion("body.createdAt"))
+                .assertion(notNullAssertion("body.updatedAt"))
+                .execute();
+    }
+
 }

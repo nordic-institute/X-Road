@@ -103,6 +103,7 @@ public enum RestApiAuditProperty {
 
     ANCHOR_FILE_HASH,
     ANCHOR_FILE_HASH_ALGORITHM,
+    ANCHOR_URLS,
     GENERATED_AT,
     TSP_NAME,
     TSP_URL,

@@ -34,6 +34,7 @@ import org.niis.xroad.cs.admin.rest.api.converter.TrustedAnchorConverter;
 import org.niis.xroad.cs.openapi.TrustedAnchorsApi;
 import org.niis.xroad.cs.openapi.model.AnchorFilePreviewDto;
 import org.niis.xroad.cs.openapi.model.TrustedAnchorDto;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -43,8 +44,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_TRUSTED_ANCHOR;
 import static org.niis.xroad.restapi.util.ResourceUtils.springResourceToBytesOrThrowBadRequest;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.ResponseEntity.ok;
+import static org.springframework.http.ResponseEntity.status;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -79,8 +83,13 @@ public class TrustedAnchorsApiController implements TrustedAnchorsApi {
     }
 
     @Override
+    @AuditEventMethod(event = ADD_TRUSTED_ANCHOR)
+    @PreAuthorize("hasAuthority('UPLOAD_TRUSTED_ANCHOR')")
     public ResponseEntity<TrustedAnchorDto> uploadTrustedAnchor(Resource body) {
-        throw new NotImplementedException("uploadTrustedAnchor not implemented yet.");
+        return status(CREATED).body(
+                trustedAnchorConverter.toTarget(
+                        trustedAnchorService.upload(springResourceToBytesOrThrowBadRequest(body)))
+        );
     }
 
 }

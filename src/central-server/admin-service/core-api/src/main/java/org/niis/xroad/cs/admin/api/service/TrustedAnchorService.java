@@ -35,4 +35,7 @@ public interface TrustedAnchorService {
     List<TrustedAnchor> findAll();
 
     TrustedAnchorPreview preview(byte[] trustedAnchorFile);
+
+    TrustedAnchor upload(byte[] trustedAnchor);
+
 }

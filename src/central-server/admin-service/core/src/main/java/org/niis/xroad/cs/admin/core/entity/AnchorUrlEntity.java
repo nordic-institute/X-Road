@@ -76,6 +76,11 @@ public class AnchorUrlEntity {
     @Setter
     private Set<AnchorUrlCertEntity> anchorUrlCerts = new HashSet<>(0);
 
+    public void addAnchorUrlCert(AnchorUrlCertEntity anchorUrlCertEntity) {
+        anchorUrlCertEntity.setAnchorUrl(this);
+        anchorUrlCerts.add(anchorUrlCertEntity);
+    }
+
 }
 
 

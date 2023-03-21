@@ -216,16 +216,14 @@ public class AuditDataHelper {
      * @return calculated formatted hash
      */
     public String putAnchorHash(byte[] bytes) {
-        String algorithm = CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
-        String hash = null;
+        String formattedHash = null;
         try {
-            hash = CryptoUtils.hexDigest(algorithm, bytes);
+            formattedHash = CryptoUtils.calculateAnchorHashDelimited(bytes);
         } catch (Exception e) {
             log.error("audit logging certificate hash forming failed", e);
         }
-        String formattedHash = formatHash(hash);
         put(RestApiAuditProperty.ANCHOR_FILE_HASH, formattedHash);
-        put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, algorithm);
+        put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID);
         return formattedHash;
     }
 

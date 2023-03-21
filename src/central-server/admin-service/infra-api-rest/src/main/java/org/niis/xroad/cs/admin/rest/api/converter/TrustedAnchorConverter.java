@@ -29,15 +29,21 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.niis.xroad.cs.admin.api.converter.GenericMapper;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchorPreview;
 import org.niis.xroad.cs.openapi.model.AnchorFilePreviewDto;
+import org.niis.xroad.cs.openapi.model.TrustedAnchorDto;
 
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 import static org.mapstruct.ReportingPolicy.ERROR;
 
 @Mapper(componentModel = SPRING, unmappedTargetPolicy = ERROR)
-public interface TrustedAnchorConverter extends GenericMapper {
+public interface TrustedAnchorConverter extends GenericUniDirectionalMapper<TrustedAnchor, TrustedAnchorDto> {
+
+    @Override
+    @Mapping(target = "hash", source = "trustedAnchorHash")
+    TrustedAnchorDto toTarget(TrustedAnchor trustedAnchor);
 
     @Mapping(target = "generatedAt", expression = "java(fromInstant(preview.getGeneratedAt()))")
     AnchorFilePreviewDto toPreview(TrustedAnchorPreview preview);
