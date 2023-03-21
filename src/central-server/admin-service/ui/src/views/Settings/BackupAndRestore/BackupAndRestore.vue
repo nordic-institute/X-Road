@@ -31,55 +31,23 @@
         <div class="xrd-view-title">
           {{ $t('tab.settings.backupAndRestore') }}
         </div>
-        <xrd-search v-model="search" />
+        <xrd-search v-model="filter" />
       </div>
-      <div>
-        <xrd-button
-          color="primary"
-          outlined
-          :loading="creatingBackup"
-          data-test="backup-create-configuration"
-          @click="createBackup"
-        >
-          <xrd-icon-base :color="colors.Purple100" class="xrd-large-button-icon"
-            ><XrdIconDatabaseBackup
-          /></xrd-icon-base>
-
-          {{ $t('backup.backupConfiguration.button') }}
-        </xrd-button>
-        <xrd-file-upload
-          v-slot="{ upload }"
-          accepts=".tar"
-          @file-changed="onFileUploaded"
-        >
-          <xrd-button
-            color="primary"
-            :loading="uploadingBackup"
-            class="ml-5"
-            data-test="backup-upload"
-            @click="upload"
-          >
-            <xrd-icon-base class="xrd-large-button-icon"
-              ><XrdIconUpload
-            /></xrd-icon-base>
-
-            {{ $t('backup.uploadBackup.button') }}
-          </xrd-button>
-        </xrd-file-upload>
-        <xrd-confirm-dialog
-          v-if="uploadedFile !== null"
-          :dialog="needsConfirmation"
-          title="backup.uploadBackup.confirmationDialog.title"
-          data-test="backup-upload-confirm-overwrite-dialog"
-          text="backup.uploadBackup.confirmationDialog.confirmation"
-          :data="{ name: uploadedFile.name }"
-          :loading="uploadingBackup"
-          @cancel="needsConfirmation = false"
-          @accept="overwriteBackup"
-        />
-      </div>
+      <xrd-backups-toolbar
+        accepts=".tar"
+        :backup-handler="backupHandler()"
+        :can-backup="canBackup"
+        @refresh-backups="fetchBackups"
+      />
     </div>
-    <BackupsDataTable :search="search" />
+    <xrd-backups-data-table
+      :filter="filter"
+      :backups="backups"
+      :loading="loading"
+      :can-backup="canBackup"
+      :backup-handler="backupHandler()"
+      @refresh-backups="fetchBackups"
+    />
   </div>
 </template>
 
@@ -88,48 +56,69 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
-import { FileUploadResult } from '@niis/shared-ui';
 import { Colors } from '@/global';
+import { mapActions, mapStores } from 'pinia';
+import { useBackupsStore } from '@/store/modules/backups';
+import { notificationsStore } from '@/store/modules/notifications';
+import VueI18n from 'vue-i18n';
+import Values = VueI18n.Values;
+import { Backup } from "@/openapi-types";
 
 export default Vue.extend({
-  components: {
-    BackupsDataTable,
-  },
   data() {
     return {
-      search: '' as string,
-      creatingBackup: false,
-      uploadingBackup: false,
-      needsConfirmation: false,
-      uploadedFile: null as File | null,
+      filter: '',
+      canBackup: true,
+      loading: false,
       colors: Colors,
     };
   },
+  computed: {
+    ...mapStores(useBackupsStore),
+    backups(): Backup[] {
+      return this.backupStore.backups;
+    },
+  },
+  created() {
+    this.fetchBackups();
+  },
   methods: {
-    async createBackup() {
-      this.creatingBackup = true;
-      await new Promise<void>((res) => {
-        setTimeout(() => res(), 1000);
-      });
-      this.creatingBackup = false;
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    backupHandler() {
+      return {
+        showSuccess: this.displaySuccess,
+        showError: this.showError,
+        delete: this.deleteBackup,
+        download: this.downloadBackup,
+        upload: this.uploadBackup,
+        create: this.createBackup,
+        restore: this.restoreFromBackup,
+      };
     },
-    // This linter disable can be removed when actually implementing the function
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async onFileUploaded(result: FileUploadResult) {
-      this.uploadingBackup = true;
-      this.uploadedFile = new File([], 'file name');
-      await new Promise<void>((res) => {
-        setTimeout(() => res(), 1000);
-      });
-      this.uploadingBackup = false;
+    fetchBackups() {
+      this.loading = true;
+      this.backupStore
+        .getBackups()
+        .catch((error) => this.showError(error))
+        .finally(() => (this.loading = false));
     },
-    async overwriteBackup() {
-      this.uploadingBackup = true;
-      await new Promise<void>((res) => {
-        setTimeout(() => res(), 1000);
-      });
-      this.uploadingBackup = false;
+    createBackup() {
+      return this.backupStore.createBackup().then((resp) => resp.data);
+    },
+    deleteBackup(filename: string) {
+      return this.backupStore.deleteBackup(filename);
+    },
+    restoreFromBackup(filename: string) {
+      return this.backupStore.restoreFromBackup(filename);
+    },
+    downloadBackup(filename: string) {
+      return this.backupStore.downloadBackup(filename);
+    },
+    uploadBackup(backupFile: File, ignoreWarnings = false) {
+      return this.backupStore.uploadBackup(backupFile, ignoreWarnings);
+    },
+    displaySuccess(textKey: string, data: Values = {}) {
+      this.showSuccess(this.$t(textKey, data));
     },
   },
 });

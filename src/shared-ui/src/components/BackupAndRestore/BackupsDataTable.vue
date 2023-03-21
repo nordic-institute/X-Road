@@ -29,8 +29,8 @@
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="backups"
-      :search="search"
+      :items="filteredBackups"
+      :search="filter"
       :must-sort="true"
       :items-per-page="-1"
       class="elevation-0 data-table"
@@ -38,26 +38,25 @@
       :loader-height="2"
       hide-default-footer
     >
-      <template #[`item.hash`]="{ item }">
-        <div class="hash-cell">
-          <xrd-icon-base class="mr-4 xrd-clickable"
-            ><XrdIconCertificate
-          /></xrd-icon-base>
-          <div>{{ item.hash }}</div>
-        </div>
-      </template>
-
-      <template #[`item.button`]>
+      <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
-          <xrd-button
-            text
-            :outlined="false"
-            class="xrd-table-button"
-            data-test="backup-download"
-            >{{ $t('action.download') }}
-          </xrd-button>
-          <restore-backup-button />
-          <delete-backup-button />
+          <download-backup-button
+            :filename="item.filename"
+            :can-backup="canBackup"
+            :backup-handler="backupHandler"
+          />
+          <restore-backup-button
+            :filename="item.filename"
+            :can-backup="canBackup"
+            :backup-handler="backupHandler"
+            @refresh-backups="$emit('refresh-backups')"
+          />
+          <delete-backup-button
+            :filename="item.filename"
+            :can-backup="canBackup"
+            :backup-handler="backupHandler"
+            @refresh-backups="$emit('refresh-backups')"
+          />
         </div>
       </template>
 
@@ -71,48 +70,55 @@
 <script lang="ts">
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
-import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupButton.vue';
-import RestoreBackupButton from '@/views/Settings/BackupAndRestore/RestoreBackupButton.vue';
+import DeleteBackupButton from './DeleteBackupButton.vue';
+import RestoreBackupButton from './RestoreBackupButton.vue';
+import DownloadBackupButton from './DownloadBackupButton.vue';
+import { BackupHandler, BackupItem } from './backup-handler';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
   components: {
+    DownloadBackupButton,
     DeleteBackupButton,
     RestoreBackupButton,
   },
   props: {
-    search: {
+    backups: {
+      type: Array as Prop<BackupItem[]>,
+      required: true,
+    },
+    filter: {
       type: String,
+      default: '',
+    },
+    loading: {
+      type: Boolean,
+      required: true,
+    },
+    backupHandler: {
+      type: Object as Prop<BackupHandler>,
+      required: true,
+    },
+    canBackup: {
+      type: Boolean,
       required: true,
     },
   },
-  data() {
-    return {
-      loading: false,
-      backups: [
-        {
-          name: 'conf_backup_20210404-092511.tar',
-        },
-        {
-          name: 'conf_backup_20210505-105548.tar',
-        },
-        {
-          name: 'conf_backup_20210608-1012548.tar',
-        },
-      ],
-    };
-  },
-
   computed: {
+    filteredBackups(): BackupItem[] {
+      return this.backups;
+    },
     headers(): DataTableHeader[] {
       return [
         {
           text: this.$t('global.name') as string,
           align: 'start',
-          value: 'name',
+          value: 'filename',
           class: 'xrd-table-header backups-table-header-name',
         },
         {
           text: '',
+          align: 'end',
           value: 'button',
           sortable: false,
           class: 'xrd-table-header backups-table-header-buttons',
@@ -123,6 +129,4 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
-@import '~styles/tables';
-</style>
+<style lang="scss" scoped></style>

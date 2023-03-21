@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,75 +27,53 @@
 <template>
   <xrd-button
     v-if="canBackup"
-    :min_width="50"
-    :loading="deleting"
-    text
-    :outlined="false"
+    data-test="backup-download"
     class="xrd-table-button"
-    data-test="backup-delete"
-    @click="showConfirmation = true"
-    >{{ $t('action.delete') }}
-    <xrd-confirm-dialog
-      :dialog="showConfirmation"
-      title="backup.action.delete.dialog.title"
-      text="backup.action.delete.dialog.confirmation"
-      :data="{ file: backup.filename }"
-      @cancel="showConfirmation = false"
-      @accept="deleteBackup"
-    />
+    text
+    :min_width="50"
+    :outlined="false"
+    :loading="downloading"
+    @click="downloadBackup"
+    >{{ $t('action.download') }}
   </xrd-button>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import { Backup } from '@/openapi-types';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
-import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+import { BackupHandler } from './backup-handler';
 
 export default Vue.extend({
-  name: 'DeleteBackupButton',
+  name: 'DownloadBackupButton',
   props: {
     canBackup: {
       type: Boolean,
-      default: false,
       required: true,
     },
-    backup: {
-      type: Object as Prop<Backup>,
+    filename: {
+      type: String,
+      required: true,
+    },
+    backupHandler: {
+      type: Object as Prop<BackupHandler>,
       required: true,
     },
   },
   data() {
     return {
-      showConfirmation: false,
-      deleting: false,
+      downloading: false,
     };
   },
+
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    async deleteBackup() {
-      this.deleting = true;
-      this.showConfirmation = false;
-      api
-        .remove(`/backups/${encodePathParameter(this.backup.filename)}`)
-        .then(() => {
-          this.$emit('deleted');
-          this.showSuccess(
-            this.$t('backup.action.delete.success', {
-              file: this.backup.filename,
-            }),
-          );
-        })
-        .catch((error) => this.showError(error))
-        .finally(() => (this.deleting = false));
+    downloadBackup() {
+      this.downloading = true;
+      this.backupHandler
+        .download(this.filename)
+        .finally(() => (this.downloading = false));
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-@import '../../../assets/tables';
-</style>
+<style lang="scss" scoped></style>
