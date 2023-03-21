@@ -25,7 +25,8 @@
  */
 package org.niis.xroad.restapi.util;
 
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -34,15 +35,15 @@ import java.util.Date;
 import static java.lang.System.currentTimeMillis;
 import static java.time.Instant.ofEpochMilli;
 import static java.time.ZoneOffset.UTC;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test FormatUtils
  */
-public class FormatUtilsTest {
+class FormatUtilsTest {
     private static final String VALID_HTTP_URL = "http://foo.bar:8080/baz";
     private static final String VALID_HTTPS_URL = "https://foo.bar:8080/baz";
     private static final String INVALID_HOST = "https://foobar.:8080/baz";
@@ -51,43 +52,43 @@ public class FormatUtilsTest {
     private static final String NON_ASCII_HOST = "https://テスト.ホスト:8080/baz";
 
     @Test
-    public void validHttpUrl() {
+    void validHttpUrl() {
         assertTrue(FormatUtils.isValidUrl(VALID_HTTP_URL));
     }
 
     @Test
-    public void validHttpsUrl() {
+    void validHttpsUrl() {
         assertTrue(FormatUtils.isValidUrl(VALID_HTTPS_URL));
     }
 
     @Test
-    public void validNonAsciiUrl() {
+    void validNonAsciiUrl() {
         assertTrue(FormatUtils.isValidUrl(NON_ASCII_HOST));
     }
 
     @Test
-    public void invalidUrlHost() {
+    void invalidUrlHost() {
         assertFalse(FormatUtils.isValidUrl(INVALID_HOST));
     }
 
     @Test
-    public void invalidUrlProtocol() {
+    void invalidUrlProtocol() {
         assertFalse(FormatUtils.isValidUrl(INVALID_PROTOCOL));
     }
 
     @Test
-    public void malformedUrlProtocol() {
+    void malformedUrlProtocol() {
         assertFalse(FormatUtils.isValidUrl(MALFORMED_PROTOCOL));
     }
 
     @Test
-    public void offsetDateTimeConversion() {
+    void offsetDateTimeConversion() {
         Date now = new Date();
         assertEquals(now, FormatUtils.fromOffsetDateTimeToDate(FormatUtils.fromDateToOffsetDateTime(now)));
     }
 
     @Test
-    public void testFromInstantToOffsetDateTime() {
+    void testFromInstantToOffsetDateTime() {
         final Instant instant = ofEpochMilli(currentTimeMillis());
 
         final OffsetDateTime offsetDateTime = FormatUtils.fromInstantToOffsetDateTime(instant);

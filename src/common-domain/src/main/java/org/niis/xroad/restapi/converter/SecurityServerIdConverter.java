@@ -29,9 +29,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
+
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
 
 /**
  * Converter for encoded client ids
@@ -46,6 +48,7 @@ public class SecurityServerIdConverter extends AbstractConverter<SecurityServerI
     /**
      * encoded security server id =
      * <instance_id>:<member_class>:<member_code>:<security_server_code>
+     *
      * @param encodedId
      * @return
      */
@@ -64,12 +67,13 @@ public class SecurityServerIdConverter extends AbstractConverter<SecurityServerI
         int separators = FormatUtils.countOccurences(encodedId,
                 XRoadId.ENCODED_ID_SEPARATOR);
         if (separators != SECURITY_SERVER_CODE_INDEX) {
-            throw new BadRequestException("Invalid security server id " + encodedId);
+            throw new ValidationFailureException(INVALID_ENCODED_ID, encodedId);
         }
     }
 
     /**
      * Convert securityServerId into encoded id
+     *
      * @param securityServerId
      * @return
      */

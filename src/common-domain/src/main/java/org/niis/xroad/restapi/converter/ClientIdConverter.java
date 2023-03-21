@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
 
 /**
  * Converter for encoded client ids
@@ -50,6 +51,7 @@ public class ClientIdConverter extends AbstractConverter<ClientId, String> {
 
     /**
      * Convert ClientId into encoded member id
+     *
      * @return
      */
     public String convertId(ClientId clientId) {
@@ -58,6 +60,7 @@ public class ClientIdConverter extends AbstractConverter<ClientId, String> {
 
     /**
      * Convert ClientId into encoded member id
+     *
      * @param clientId
      * @return
      */
@@ -67,13 +70,14 @@ public class ClientIdConverter extends AbstractConverter<ClientId, String> {
 
     /**
      * Convert encoded member id into ClientId
+     *
      * @param encodedId
      * @return ClientId
-     * @throws BadRequestException if encoded id could not be decoded
+     * @throws ValidationFailureException if encoded id could not be decoded
      */
-    public ClientId.Conf convertId(String encodedId) throws BadRequestException {
+    public ClientId.Conf convertId(String encodedId) throws ValidationFailureException {
         if (!isEncodedClientId(encodedId)) {
-            throw new BadRequestException("Invalid client id " + encodedId);
+            throw new ValidationFailureException(INVALID_ENCODED_ID, encodedId);
         }
         List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
@@ -82,7 +86,7 @@ public class ClientIdConverter extends AbstractConverter<ClientId, String> {
         String subsystemCode = null;
         if (parts.size() != (MEMBER_CODE_INDEX + 1)
                 && parts.size() != (SUBSYSTEM_CODE_INDEX + 1)) {
-            throw new BadRequestException("Invalid client id " + encodedId);
+            throw new ValidationFailureException(INVALID_ENCODED_ID, encodedId);
         }
         if (parts.size() == (SUBSYSTEM_CODE_INDEX + 1)) {
             subsystemCode = parts.get(SUBSYSTEM_CODE_INDEX);
@@ -92,11 +96,12 @@ public class ClientIdConverter extends AbstractConverter<ClientId, String> {
 
     /**
      * Convert a list of encoded member ids to ClientIds
+     *
      * @param encodedIds
      * @return List of ClientIds
-     * @throws BadRequestException if encoded id could not be decoded
+     * @throws ValidationFailureException if encoded id could not be decoded
      */
-    public List<ClientId> convertIds(List<String> encodedIds) throws BadRequestException {
+    public List<ClientId> convertIds(List<String> encodedIds) throws ValidationFailureException {
         return encodedIds.stream().map(this::convertId).collect(Collectors.toList());
     }
 
