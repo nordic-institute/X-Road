@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.dto.AlertStatus;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.springframework.context.event.EventListener;

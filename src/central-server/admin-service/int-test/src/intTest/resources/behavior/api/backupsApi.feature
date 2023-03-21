@@ -40,6 +40,17 @@ Feature: Backups API
     When Backup named test_backup.tar is downloaded
     Then Response is of status code 200
 
+  @Modifying
+  @ClearBackups
+  Scenario: Backup can be deleted
+    Given Backup test_backup.tar is uploaded
+    And Response is of status code 201
+    When Backup test_backup.tar is deleted
+    Then Response is of status code 204
+    And Backups are retrieved
+    And Response is of status code 200
+    And Backups contains test_backup.tar backup: FALSE
+
   Scenario: Backup can't be found for download
     When Backup named doesnt-exist-test-backup.tar is downloaded
     Then Response is of status code 404
@@ -63,3 +74,15 @@ Feature: Backups API
     Given Authentication header is set to REGISTRATION_OFFICER
     When Backup is created
     Then Response is of status code 403
+
+  Scenario: Backup deletion is forbidden for non privileged user
+    Given Authentication header is set to REGISTRATION_OFFICER
+    When Backup test_backup.tar is deleted
+    Then Response is of status code 403
+
+  @ClearBackups
+  Scenario: Restore central server configuration from a backup
+    Given Authentication header is set to SYSTEM_ADMINISTRATOR
+    And Backup test_backup.tar is uploaded
+    And Signer.getTokens response is mocked
+    Then Central server is restored from test_backup.tar

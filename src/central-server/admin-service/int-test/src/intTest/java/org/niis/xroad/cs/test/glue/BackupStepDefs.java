@@ -107,6 +107,17 @@ public class BackupStepDefs extends BaseStepDefs {
         }
     }
 
+    @Step("Backup {} is deleted")
+    public void deleteBackup(String fileName) {
+        try {
+            var response = backupsApi.deleteBackup(fileName);
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
     @Step("it contains data of new backup file")
     public void containsBackupData() {
         validate(newBackup)
@@ -143,5 +154,16 @@ public class BackupStepDefs extends BaseStepDefs {
                 .map(dt -> dt.format(DATE_TIME_FORMATTER))
                 .map(dt -> String.format(FILE_NAME_FORMAT, dt))
                 .collect(Collectors.toList());
+
+    }
+
+    @Step("Central server is restored from {}")
+    public void restoreFromBackup(String fileName) {
+        var response = backupsApi.restoreBackup(fileName);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(isTrue("body.hsmTokensLoggedOut"))
+                .execute();
     }
 }

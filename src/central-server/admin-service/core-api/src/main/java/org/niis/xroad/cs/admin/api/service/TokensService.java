@@ -40,4 +40,6 @@ public interface TokensService {
 
     Set<TokenInfo> getTokens();
 
+    boolean hasHardwareTokens();
+
 }
