@@ -56,25 +56,29 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import { Colors } from '@/global';
-import { mapActions, mapStores } from 'pinia';
+import { Colors, Permissions } from '@/global';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { useBackupsStore } from '@/store/modules/backups';
 import { notificationsStore } from '@/store/modules/notifications';
 import VueI18n from 'vue-i18n';
 import Values = VueI18n.Values;
-import { Backup } from "@/openapi-types";
+import { Backup } from '@/openapi-types';
+import { userStore } from '@/store/modules/user';
 
 export default Vue.extend({
   data() {
     return {
       filter: '',
-      canBackup: true,
       loading: false,
       colors: Colors,
     };
   },
   computed: {
     ...mapStores(useBackupsStore),
+    ...mapState(userStore, ['hasPermission']),
+    canBackup(): boolean {
+      return this.hasPermission(Permissions.BACKUP_CONFIGURATION);
+    },
     backups(): Backup[] {
       return this.backupStore.backups;
     },
