@@ -81,31 +81,31 @@ is permitted only by a license agreement between X-ROAD and the aforementioned l
 
 ## 3 Correct and Incorrect Examples of Use
 
-### 1	The following are examples of proper and improper usage of these trademarks of NIIS:
+### 1 The following are examples of proper and improper usage of these trademarks of NIIS:
 
-*	Correct: \<your product name\> for \<NIIS Trademarks and Logos\>
-*	Correct: \<your product/company name\> plug-in for \<NIIS Trademarks and Logos\>
-*	Correct: \<your product name\> compatible with \<NIIS Trademarks and Logos\>
-*	Correct: \<your product name\> for use with \<NIIS Trademarks and Logos \>
-*	Incorrect: \<NIIS Trademarks and Logos\> \<your product name\>
-*	Incorrect: \<NIIS Trademarks and Logos\> by \<your company name\>
-*	Incorrect: \<NIIS Trademarks and Logos\> – \<your product name\>
-*	Incorrect: \<your product/company name\> – \<NIIS Trademarks and Logos\>
+- Correct: \<your product name\> for \<NIIS Trademarks and Logos\>
+- Correct: \<your product/company name\> plug-in for \<NIIS Trademarks and Logos\>
+- Correct: \<your product name\> compatible with \<NIIS Trademarks and Logos\>
+- Correct: \<your product name\> for use with \<NIIS Trademarks and Logos \>
+- Incorrect: \<NIIS Trademarks and Logos\> \<your product name\>
+- Incorrect: \<NIIS Trademarks and Logos\> by \<your company name\>
+- Incorrect: \<NIIS Trademarks and Logos\> – \<your product name\>
+- Incorrect: \<your product/company name\> – \<NIIS Trademarks and Logos\>
 
-### 2	Here are examples of correct logos (noting that any actual use must also comply with the other requirements described in CVI’s). For proper usage and how to determine clear space (logo safe area), ask for the logo’s CVI from NIIS (info@niis.org):
+### 2 Here are examples of correct logos (noting that any actual use must also comply with the other requirements described in CVI’s). For proper usage and how to determine clear space (logo safe area), ask for the logo’s CVI from NIIS (info@niis.org):
 
-|NIIS                                                        |X-ROAD                                                                                                                                |
-|:----------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------:|
-|![NIIS logo example 1](./doc/trademark_imgs/niis_logo_1.png)| The X-ROAD logo is a graphic whole consisting of a logotype and logomark.<br>The registered trademark symbol forms part of the logo. |
-|![NIIS logo example 2](./doc/trademark_imgs/niis_logo_2.png)|![X-Road logo example](./doc/trademark_imgs/xrd_logo_1.jpg)                                                                           |
-|![NIIS logo example 3](./doc/trademark_imgs/niis_logo_3.png)|                                                                                                                                      |
+|                          NIIS                           |                                                                X-ROAD                                                                |
+| :-----------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
+| ![NIIS logo example 1](./img/trademark/niis_logo_1.png) | The X-ROAD logo is a graphic whole consisting of a logotype and logomark.<br>The registered trademark symbol forms part of the logo. |
+| ![NIIS logo example 2](./img/trademark/niis_logo_2.png) |                                        ![X-Road logo example](./img/trademark/xrd_logo_1.jpg)                                        |
+| ![NIIS logo example 3](./img/trademark/niis_logo_3.png) |                                                                                                                                      |
 
 ### 3 Here are examples of incorrect logos. The logo should not be altered in any way. Do not add, remove, or resize any elements or colours of the existing logo, X-ROAD logo, for example:
 
-|                                                                                                                             |                                                                                                                          |                                                                                                                                     |                                                                                                                                                 |
-|:---------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------:|
-| ![Bad example 1](./doc/trademark_imgs/bad_example_1.jpg)<br>Don’t add outlines, special effects, or other graphic elements. | ![Bad example 2](./doc/trademark_imgs/bad_example_2.jpg)<br>Don’t alter or add copy to the logo. Don’t change the fonts. | ![Bad example 3](./doc/trademark_imgs/bad_example_3.jpg)<br>Make sure the logo is entirely legible and on a contrasting background. | ![Bad example 4](./doc/trademark_imgs/bad_example_4.jpg)<br>Don’t distort the logo.                                                             |
-| ![Bad example 5](./doc/trademark_imgs/bad_example_5.jpg)<br>Don’t change or remove logo elements.                           |	![Bad example 6](./doc/trademark_imgs/bad_example_6.jpg)<br>Don’t change the colours of the logo.                        | ![Bad example 7](./doc/trademark_imgs/bad_example_7.jpg)<br>Don’t put the logo in shape.                                            | ![Bad example 8](./doc/trademark_imgs/bad_example_8.jpg)<br>Don’t allow the logo to get cut off or be covered. The entire logo must be visible. |
+|                                                                                                                        |                                                                                                                     |                                                                                                                                |                                                                                                                                            |
+| :--------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Bad example 1](./img/trademark/bad_example_1.jpg)<br>Don’t add outlines, special effects, or other graphic elements. | ![Bad example 2](./img/trademark/bad_example_2.jpg)<br>Don’t alter or add copy to the logo. Don’t change the fonts. | ![Bad example 3](./img/trademark/bad_example_3.jpg)<br>Make sure the logo is entirely legible and on a contrasting background. |                               ![Bad example 4](./img/trademark/bad_example_4.jpg)<br>Don’t distort the logo.                               |
+|              ![Bad example 5](./img/trademark/bad_example_5.jpg)<br>Don’t change or remove logo elements.              |            ![Bad example 6](./img/trademark/bad_example_6.jpg)<br>Don’t change the colours of the logo.             |                      ![Bad example 7](./img/trademark/bad_example_7.jpg)<br>Don’t put the logo in shape.                       | ![Bad example 8](./img/trademark/bad_example_8.jpg)<br>Don’t allow the logo to get cut off or be covered. The entire logo must be visible. |
 
 ## 4 Questions and Comments
 
