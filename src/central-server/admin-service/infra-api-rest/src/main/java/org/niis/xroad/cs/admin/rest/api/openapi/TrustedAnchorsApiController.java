@@ -32,7 +32,6 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
 import org.niis.xroad.cs.admin.rest.api.converter.TrustedAnchorConverter;
 import org.niis.xroad.cs.openapi.TrustedAnchorsApi;
-import org.niis.xroad.cs.openapi.model.AnchorFilePreviewDto;
 import org.niis.xroad.cs.openapi.model.TrustedAnchorDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -76,8 +75,8 @@ public class TrustedAnchorsApiController implements TrustedAnchorsApi {
 
     @Override
     @PreAuthorize("hasAuthority('UPLOAD_TRUSTED_ANCHOR')")
-    public ResponseEntity<AnchorFilePreviewDto> previewTrustedAnchor(Resource body) {
-        return ok(trustedAnchorConverter.toPreview(
+    public ResponseEntity<TrustedAnchorDto> previewTrustedAnchor(Resource body) {
+        return ok(trustedAnchorConverter.toTarget(
                 trustedAnchorService.preview(springResourceToBytesOrThrowBadRequest(body)))
         );
     }

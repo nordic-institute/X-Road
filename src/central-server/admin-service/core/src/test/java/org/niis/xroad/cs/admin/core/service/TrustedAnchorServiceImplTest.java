@@ -35,7 +35,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
-import org.niis.xroad.cs.admin.api.domain.TrustedAnchorPreview;
 import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.TrustedAnchorMapperImpl;
@@ -87,13 +86,13 @@ class TrustedAnchorServiceImplTest {
         void preview() throws Exception {
             final byte[] bytes = readAllBytes(Paths.get(getSystemResource("trusted-anchor/trusted-anchor.xml").toURI()));
 
-            final TrustedAnchorPreview preview = trustedAnchorService.preview(bytes);
+            final TrustedAnchor preview = trustedAnchorService.preview(bytes);
 
             final Date anchorDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").parse("2023-02-15T09:26:34.235Z");
 
             assertThat(preview.getInstanceIdentifier()).isEqualTo("CS0");
             assertThat(preview.getGeneratedAt()).isEqualTo(anchorDate.toInstant());
-            assertThat(preview.getHash()).isEqualTo(
+            assertThat(preview.getTrustedAnchorHash()).isEqualTo(
                     "40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D"
             );
         }

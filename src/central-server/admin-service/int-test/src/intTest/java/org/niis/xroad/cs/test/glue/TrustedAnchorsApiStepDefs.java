@@ -30,7 +30,6 @@ package org.niis.xroad.cs.test.glue;
 
 import feign.FeignException;
 import io.cucumber.java.en.Step;
-import org.niis.xroad.cs.openapi.model.AnchorFilePreviewDto;
 import org.niis.xroad.cs.openapi.model.TrustedAnchorDto;
 import org.niis.xroad.cs.test.api.FeignTrustedAnchorsApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,6 @@ import org.springframework.http.ResponseEntity;
 import java.time.OffsetDateTime;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static java.lang.ClassLoader.getSystemResource;
 import static org.junit.Assert.fail;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -55,7 +53,7 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
 
     @Step("user can upload trusted anchor {string} for preview")
     public void userUploadTrustedAnchorFileForPreview(String filename) {
-        final ResponseEntity<AnchorFilePreviewDto> response = trustedAnchorsApi
+        final ResponseEntity<TrustedAnchorDto> response = trustedAnchorsApi
                 .previewTrustedAnchor(getFileAsResource(filename));
 
         validate(response)
@@ -89,8 +87,8 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(CREATED))
                 .assertion(equalsAssertion("40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D",
                         "body.hash"))
-                .assertion(notNullAssertion("body.createdAt"))
-                .assertion(notNullAssertion("body.updatedAt"))
+                .assertion(equalsAssertion("CS0", "body.instanceIdentifier"))
+                .assertion(equalsAssertion(OffsetDateTime.parse("2023-02-15T09:26:34.235Z"), "body.generatedAt"))
                 .execute();
     }
 

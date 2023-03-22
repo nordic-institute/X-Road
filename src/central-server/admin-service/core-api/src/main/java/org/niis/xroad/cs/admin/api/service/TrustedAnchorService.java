@@ -27,14 +27,13 @@
 package org.niis.xroad.cs.admin.api.service;
 
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
-import org.niis.xroad.cs.admin.api.domain.TrustedAnchorPreview;
 
 import java.util.List;
 
 public interface TrustedAnchorService {
     List<TrustedAnchor> findAll();
 
-    TrustedAnchorPreview preview(byte[] trustedAnchorFile);
+    TrustedAnchor preview(byte[] trustedAnchorFile);
 
     TrustedAnchor upload(byte[] trustedAnchor);
 

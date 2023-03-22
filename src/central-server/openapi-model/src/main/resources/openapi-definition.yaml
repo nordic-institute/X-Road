@@ -1428,8 +1428,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AnchorFilePreview'
-          description: the trusted anchor preview
+                $ref: '#/components/schemas/TrustedAnchor'
+          description: the trusted anchor
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4726,24 +4726,7 @@ components:
           type: boolean
       type: object
     TrustedAnchor:
-      allOf:
-        - $ref: '#/components/schemas/ModificationTimestamps'
-      description: trusted anchor for globalconf
-      properties:
-        hash:
-          description: anchor hash
-          example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
-          format: hash
-          maxLength: 255
-          minLength: 1
-          type: string
-      required:
-        - hash
-        - created_at
-        - instance_identifier
-      type: object
-    AnchorFilePreview:
-      description: trusted anchor file information
+      description: trusted anchor
       properties:
         instance_identifier:
           description: instance identifier
@@ -4757,12 +4740,16 @@ components:
           readOnly: true
           type: string
         hash:
-          description: trusted anchor file hash
+          description: anchor hash
           example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
           format: hash
           maxLength: 255
           minLength: 1
           type: string
+      required:
+        - hash
+        - created_at
+        - instance_identifier
       type: object
     User:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'

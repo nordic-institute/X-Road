@@ -31,8 +31,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
-import org.niis.xroad.cs.admin.api.domain.TrustedAnchorPreview;
-import org.niis.xroad.cs.openapi.model.AnchorFilePreviewDto;
 import org.niis.xroad.cs.openapi.model.TrustedAnchorDto;
 
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
@@ -44,8 +42,5 @@ public interface TrustedAnchorConverter extends GenericUniDirectionalMapper<Trus
     @Override
     @Mapping(target = "hash", source = "trustedAnchorHash")
     TrustedAnchorDto toTarget(TrustedAnchor trustedAnchor);
-
-    @Mapping(target = "generatedAt", expression = "java(fromInstant(preview.getGeneratedAt()))")
-    AnchorFilePreviewDto toPreview(TrustedAnchorPreview preview);
 
 }

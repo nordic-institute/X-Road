@@ -32,7 +32,6 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationLocation;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
-import org.niis.xroad.cs.admin.api.domain.TrustedAnchorPreview;
 import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
@@ -49,7 +48,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateAnchorHashDelimited;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MALFORMED_ANCHOR;
@@ -79,11 +77,10 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
     }
 
     @Override
-    public TrustedAnchorPreview preview(byte[] trustedAnchorFile) {
+    public TrustedAnchor preview(byte[] trustedAnchorFile) {
         try {
             final ConfigurationAnchorV2 anchorV2 = new ConfigurationAnchorV2(trustedAnchorFile);
-            return new TrustedAnchorPreview(anchorV2.getInstanceIdentifier(),
-                    anchorV2.getGeneratedAt().toInstant(), calculateAnchorHashDelimited(trustedAnchorFile));
+            return trustedAnchorMapper.map(anchorV2, trustedAnchorFile);
         } catch (Exception e) {
             throw new ValidationFailureException(MALFORMED_ANCHOR);
         }
@@ -115,7 +112,6 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
         Path tempFile = null;
         try {
             tempFile = Files.createTempFile("temp-trusted-anchor-", ".xml");
-
             Files.write(tempFile, trustedAnchor);
             configurationVerifier.verifyConfiguration(configVerifierScriptPath, tempFile.toAbsolutePath().toString());
         } catch (Exception e) {
