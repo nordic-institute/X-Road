@@ -30,12 +30,12 @@ Feature: Management services API
   Scenario: Update management services configuration fails, missing subsystem
     Given Authentication header is set to SECURITY_OFFICER
     When Management services provider id is set to "CS:E2E:member-for-management:Random"
-    Then Response is of status code 404
+    Then Response is of status code 404 and error code "subsystem_not_found"
 
   Scenario: Update management services configuration fails, not a subsystem
     Given Authentication header is set to SECURITY_OFFICER
     When Management services provider id is set to "CS:E2E:member-for-management"
-    Then Response is of status code 400
+    Then Response is of status code 400 and error code "invalid_service_provider_id"
 
   Scenario: Get management services configuration is successful on freshly initialized instance
     Given Authentication header is set to SECURITY_OFFICER

@@ -67,8 +67,8 @@ import java.util.Set;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.AUTH_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SS_AUTH_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ADDRESS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
@@ -221,7 +221,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
 
         final AuthCertEntity authCertificate = authCertRepository.findById(certificateId)
                 .filter(authCertEntity -> authCertEntity.getSecurityServer().getServerId().equals(serverId))
-                .orElseThrow(() -> new NotFoundException(AUTH_CERTIFICATE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SS_AUTH_CERTIFICATE_NOT_FOUND));
 
         auditDataHelper.putCertificateHash(authCertificate.getCert());
 

@@ -53,7 +53,7 @@ Feature: Backups API
 
   Scenario: Backup can't be found for download
     When Backup named doesnt-exist-test-backup.tar is downloaded
-    Then Response is of status code 404
+    Then Response is of status code 404 and error code "backup_file_not_found"
 
   Scenario: Backup upload is forbidden for non privileged user
     Given Authentication header is set to REGISTRATION_OFFICER

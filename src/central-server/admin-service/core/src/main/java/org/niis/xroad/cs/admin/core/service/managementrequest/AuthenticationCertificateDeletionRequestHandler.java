@@ -44,7 +44,7 @@ import javax.transaction.Transactional;
 
 import java.util.Arrays;
 
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_AUTH_CERTIFICATE;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_AUTH_CERTIFICATE;
 
 /**
  * Service for handling authentication certificate deletion requests
@@ -67,7 +67,7 @@ public class AuthenticationCertificateDeletionRequestHandler implements
         requestEntity.setAuthCert(request.getAuthCert());
 
         if (!authCerts.existsByCert(request.getAuthCert())) {
-            throw new DataIntegrityException(INVALID_AUTH_CERTIFICATE);
+            throw new DataIntegrityException(MR_INVALID_AUTH_CERTIFICATE);
         }
 
         SecurityServerEntity server = servers.findBy(serverId)

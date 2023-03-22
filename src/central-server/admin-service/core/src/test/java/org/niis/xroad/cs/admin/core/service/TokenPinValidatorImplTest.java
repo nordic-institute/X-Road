@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.core.util.DeviationTestUtils;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 
@@ -62,7 +63,7 @@ class TokenPinValidatorImplTest {
         assertThatExceptionOfType(ValidationFailureException.class)
                 .isThrownBy(() -> tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray()))
                 .satisfies(e -> DeviationTestUtils.assertErrorWithMetadata(
-                        DeviationCodes.ERROR_WEAK_PIN, e, DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH,
+                        ErrorMessage.TOKEN_WEAK_PIN.getCode(), e, DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH,
                         String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
                         DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
                         String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT)));

@@ -57,8 +57,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_NOT_SUPPORTED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_NOT_SUPPORTED;
 
 /**
  * Implements generic management request services that do not depend on the request type.
@@ -88,14 +88,14 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     public ManagementRequestView getRequestView(int requestId) {
         return managementRequestViewRepository.findById(requestId)
                 .map(viewMapper::toTarget)
-                .orElseThrow(() -> new NotFoundException(MANAGEMENT_REQUEST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MR_NOT_FOUND));
     }
 
     @Override
     public ManagementRequestType getRequestType(int id) {
         return requests.findById(id)
                 .map(RequestEntity::getManagementRequestType)
-                .orElseThrow(() -> new NotFoundException(MANAGEMENT_REQUEST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MR_NOT_FOUND));
     }
 
     /**
@@ -138,7 +138,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         var request = findRequest(requestId);
         if (!EnumSet.of(ManagementRequestStatus.WAITING, ManagementRequestStatus.SUBMITTED_FOR_APPROVAL)
                 .contains(request.getProcessingStatus())) {
-            throw new ValidationFailureException(ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE);
+            throw new ValidationFailureException(ErrorMessage.MR_INVALID_STATE);
         }
 
         if (request instanceof RequestWithProcessingEntity) {
@@ -151,13 +151,13 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
             requests.save(request);
         } else {
             // should not happen since simple requests can not be pending
-            throw new DataIntegrityException(MANAGEMENT_REQUEST_NOT_SUPPORTED);
+            throw new DataIntegrityException(MR_NOT_SUPPORTED);
         }
     }
 
     private <T extends RequestEntity> T findRequest(int requestId) {
         return (T) requests.findById(requestId)
-                .orElseThrow(() -> new NotFoundException(MANAGEMENT_REQUEST_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MR_NOT_FOUND));
     }
 
     /*
@@ -172,7 +172,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
                 .map(Option::get)
                 .headOption()
                 .getOrElseThrow(() -> {
-                    throw new ServiceException(MANAGEMENT_REQUEST_NOT_SUPPORTED);
+                    throw new ServiceException(MR_NOT_SUPPORTED);
                 });
     }
 

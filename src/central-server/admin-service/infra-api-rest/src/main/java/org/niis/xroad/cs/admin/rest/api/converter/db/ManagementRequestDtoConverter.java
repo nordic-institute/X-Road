@@ -63,7 +63,7 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.util.Fn.self;
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_UNKNOWN_TYPE;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_UNKNOWN_TYPE;
 
 @Slf4j
 @Service
@@ -111,7 +111,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             result = self(new OwnerChangeRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
 
         } else {
-            throw new ValidationFailureException(MANAGEMENT_REQUEST_UNKNOWN_TYPE, request);
+            throw new ValidationFailureException(MR_UNKNOWN_TYPE, request);
         }
 
         return result.id(request.getId())
@@ -167,7 +167,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     fromEncodedId(req.getClientId()));
 
         } else {
-            throw new ValidationFailureException(MANAGEMENT_REQUEST_UNKNOWN_TYPE, request);
+            throw new ValidationFailureException(MR_UNKNOWN_TYPE, request);
         }
     }
 

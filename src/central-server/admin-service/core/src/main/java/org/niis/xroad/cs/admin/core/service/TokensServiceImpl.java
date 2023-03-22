@@ -53,9 +53,9 @@ import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_GETTING_TOKENS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_ACTIVATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_DEACTIVATION_FAILED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_FETCH_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_INCORRECT_PIN_FORMAT;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_PIN_FINAL_TRY;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_PIN_LOCKED;
@@ -86,7 +86,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
                     .map(tokenInfoMapper::toTarget)
                     .collect(toSet());
         } catch (Exception e) {
-            throw new ServiceException(ERROR_GETTING_TOKENS, e);
+            throw new ServiceException(TOKEN_FETCH_FAILED, e);
         }
     }
 
@@ -95,7 +95,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         try {
             return signerProxyFacade.getTokens().stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
         } catch (Exception e) {
-            throw new ServiceException(ERROR_GETTING_TOKENS, e);
+            throw new ServiceException(TOKEN_FETCH_FAILED, e);
         }
     }
 

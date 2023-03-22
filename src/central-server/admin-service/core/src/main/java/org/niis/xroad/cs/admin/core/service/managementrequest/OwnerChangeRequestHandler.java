@@ -60,15 +60,15 @@ import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.APPROVED;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_CLIENT_ALREADY_OWNER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_EXISTS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_MEMBER_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_OWNER_MUST_BE_CLIENT;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_OWNER_MUST_BE_MEMBER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_SERVER_CODE_EXISTS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_SERVER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_CLIENT_ALREADY_OWNER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_EXISTS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_STATE_FOR_APPROVAL;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_MEMBER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_OWNER_MUST_BE_CLIENT;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_OWNER_MUST_BE_MEMBER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_CODE_EXISTS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 
 @Service
@@ -113,29 +113,29 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
     private void validateRequest(OwnerChangeRequest request) {
         // New owner cannot be a subsystem
         if (StringUtils.isNotBlank(request.getClientId().getSubsystemCode())) {
-            throw new ValidationFailureException(MANAGEMENT_REQUEST_OWNER_MUST_BE_MEMBER);
+            throw new ValidationFailureException(MR_OWNER_MUST_BE_MEMBER);
         }
 
         final SecurityServerEntity securityServer = servers.findBy(request.getSecurityServerId())
-                .getOrElseThrow(() -> new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_NOT_FOUND,
+                .getOrElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
                         request.getSecurityServerId().toString()));
 
         // New owner must be registered as a client on the security server
         final boolean clientRegistered = securityServer.getServerClients().stream()
                 .anyMatch(serverClient -> ClientId.equals(serverClient.getSecurityServerClient().getIdentifier(), request.getClientId()));
         if (!clientRegistered) {
-            throw new ValidationFailureException(MANAGEMENT_REQUEST_OWNER_MUST_BE_CLIENT);
+            throw new ValidationFailureException(MR_OWNER_MUST_BE_CLIENT);
         }
 
         // Client cannot be the current owner of the security server
         if (ClientId.equals(securityServer.getOwner().getIdentifier(), request.getClientId())) {
-            throw new ValidationFailureException(MANAGEMENT_REQUEST_CLIENT_ALREADY_OWNER);
+            throw new ValidationFailureException(MR_CLIENT_ALREADY_OWNER);
         }
 
         // Check that server with the new server id does not exist yet
         final long count = servers.count(SecurityServerId.create(request.getClientId(), securityServer.getServerCode()));
         if (count > 0) {
-            throw new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_CODE_EXISTS);
+            throw new DataIntegrityException(MR_SERVER_CODE_EXISTS);
         }
     }
 
@@ -146,7 +146,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
                 EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
 
         if (!pendingRequests.isEmpty()) {
-            throw new DataIntegrityException(MANAGEMENT_REQUEST_EXISTS);
+            throw new DataIntegrityException(MR_EXISTS);
         }
     }
 
@@ -155,16 +155,16 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         Integer requestId = request.getId();
 
         final OwnerChangeRequestEntity ownerChangeRequestEntity = ownerChangeRequestRepository.findById(requestId)
-                .orElseThrow(() -> new ValidationFailureException(MANAGEMENT_REQUEST_NOT_FOUND, valueOf(requestId)));
+                .orElseThrow(() -> new ValidationFailureException(MR_NOT_FOUND, valueOf(requestId)));
 
         validateRequestStatus(ownerChangeRequestEntity, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
 
         final SecurityServerEntity securityServer = servers.findBy(ownerChangeRequestEntity.getSecurityServerId())
-                .getOrElseThrow(() -> new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_NOT_FOUND,
+                .getOrElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
                         ownerChangeRequestEntity.getSecurityServerId().toString()));
 
         final XRoadMemberEntity newOwner = members.findOneBy(ownerChangeRequestEntity.getClientId())
-                .getOrElseThrow(() -> new DataIntegrityException(MANAGEMENT_REQUEST_MEMBER_NOT_FOUND,
+                .getOrElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND,
                         ownerChangeRequestEntity.getClientId().toString()));
 
         final XRoadMemberEntity currentOwner = securityServer.getOwner();
@@ -186,7 +186,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
 
     private void validateRequestStatus(OwnerChangeRequestEntity requestEntity, EnumSet<ManagementRequestStatus> allowedStatuses) {
         if (!allowedStatuses.contains(requestEntity.getProcessingStatus())) {
-            throw new ValidationFailureException(MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL,
+            throw new ValidationFailureException(MR_INVALID_STATE_FOR_APPROVAL,
                     valueOf(requestEntity.getId()));
         }
     }

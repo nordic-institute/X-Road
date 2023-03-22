@@ -18,9 +18,9 @@ Feature: Members Api
     When new member 'CS:TEST:member' is added
     Then user can retrieve member 'CS:TEST:member' details
     When user requests member 'INVALID-FORMAT' details
-    Then Response is of status code 400
+    Then Response is of status code 400 and error code "invalid_member_id"
     When user requests member 'CS:TEST:member:subsystem' details
-    Then Response is of status code 400
+    Then Response is of status code 400 and error code "invalid_member_id"
 
   @Modifying
   Scenario: Delete member
@@ -43,7 +43,7 @@ Feature: Members Api
     When user updates member 'NOT:EXISTING:MEMBER' name to 'awesome'
     Then Response is of status code 404 and error code 'member_not_found'
     When user updates member 'WRONG-ID-FORMAT' name to 'something'
-    Then Response is of status code 400
+    Then Response is of status code 400 and error code "invalid_member_id"
 
   Scenario: Owned servers and global groups for not existing members
     Given Authentication header is set to REGISTRATION_OFFICER

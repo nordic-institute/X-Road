@@ -47,7 +47,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_CLIENT_REGISTRATION_NOT_FOUND;
 
 @Service
 @Transactional
@@ -77,7 +77,7 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
                 new SecurityServerNotFoundException(serverId));
 
         SecurityServerClientEntity client = clients.findOneBy(clientId).getOrElseThrow(() ->
-                new NotFoundException(MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND));
+                new NotFoundException(MR_CLIENT_REGISTRATION_NOT_FOUND));
 
         securityServer.getServerClients()
                 .removeIf(serverClient -> serverClient.getSecurityServerClient() == client);

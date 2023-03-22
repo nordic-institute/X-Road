@@ -60,10 +60,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INITIALIZATION_CONFLICT_FAILURE;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_INIT_PARAMS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SOFTWARE_TOKEN_INIT_FAILED;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_SIGNER_PIN_POLICY_FAILED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_ALREADY_INITIALIZED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_INVALID_PARAMS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SIGNER_PIN_POLICY_FAILED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SOFTWARE_TOKEN_FAILED;
 
 @SuppressWarnings("checkstyle:TodoComment")
 @Slf4j
@@ -162,10 +162,10 @@ public class InitializationServiceImpl implements InitializationService {
                         && ((CodedException) e).getFaultCode().contains(ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE)) {
                     log.warn("Signer saw Token pin policy failure, remember to restart also the central server after "
                             + "configuring policy enforcement", e);
-                    throw new ValidationFailureException(TOKEN_SIGNER_PIN_POLICY_FAILED);
+                    throw new ValidationFailureException(INIT_SIGNER_PIN_POLICY_FAILED);
                 }
                 log.warn("Software token initialization failed", e);
-                throw new DataIntegrityException(SOFTWARE_TOKEN_INIT_FAILED, e);
+                throw new DataIntegrityException(INIT_SOFTWARE_TOKEN_FAILED, e);
             }
         }
     }
@@ -177,7 +177,7 @@ public class InitializationServiceImpl implements InitializationService {
 
 
         if (isSWTokenInitialized && isServerAddressInitialized && isInstanceIdentifierInitialized) {
-            throw new DataIntegrityException(INITIALIZATION_CONFLICT_FAILURE);
+            throw new DataIntegrityException(INIT_ALREADY_INITIALIZED);
         }
         List<String> errorMetadata = new ArrayList<>();
         if (isSWTokenInitialized && !configDto.getSoftwareTokenPin().isEmpty()) {
@@ -200,7 +200,7 @@ public class InitializationServiceImpl implements InitializationService {
         }
         if (!errorMetadata.isEmpty()) {
             log.debug("collected errors {}", String.join(", ", errorMetadata));
-            throw new ValidationFailureException(INVALID_INIT_PARAMS, errorMetadata);
+            throw new ValidationFailureException(INIT_INVALID_PARAMS, errorMetadata);
         }
     }
 
