@@ -31,10 +31,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
-import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
-import org.niis.xroad.restapi.common.backup.exception.RestoreProcessFailedException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
@@ -66,9 +66,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_BACKUP_FILE;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_FILENAME;
 
 /**
  * Test BackupsApiController
+ * TODO tests should be reviewed as they're not really testing anything meaningful.
  */
 public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
@@ -157,10 +162,10 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
-    public void deleteNonExistingBackup() throws BackupFileNotFoundException {
+    public void deleteNonExistingBackup() throws NotFoundException {
         String filename = "test_file.gpg";
 
-        Mockito.doThrow(new BackupFileNotFoundException("")).when(backupService).deleteBackup(filename);
+        Mockito.doThrow(new NotFoundException(BACKUP_FILE_NOT_FOUND)).when(backupService).deleteBackup(filename);
 
         try {
             ResponseEntity<Void> response = backupsApiController.deleteBackup(filename);
@@ -185,10 +190,10 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
-    public void downloadNonExistingBackup() throws BackupFileNotFoundException {
+    public void downloadNonExistingBackup() throws NotFoundException {
         String filename = "test_file.tar";
 
-        Mockito.doThrow(new BackupFileNotFoundException("")).when(backupService).readBackupFile(filename);
+        Mockito.doThrow(new NotFoundException(BACKUP_FILE_NOT_FOUND)).when(backupService).readBackupFile(filename);
 
         try {
             ResponseEntity<Resource> response = backupsApiController
@@ -238,13 +243,16 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void uploadBackupWithInvalidFilename() throws Exception {
+        Mockito.doThrow(new ValidationFailureException(INVALID_FILENAME)).when(backupService)
+                .uploadBackup(any(Boolean.class), any(String.class), any());
+
         MockMultipartFile mockMultipartWithInvalidName = new MockMultipartFile("test", "/test.gpg",
                 "multipart/form-data", "content".getBytes());
         try {
             ResponseEntity<Backup> response = backupsApiController.uploadBackup(true,
                     mockMultipartWithInvalidName);
             fail("should throw BadRequestException");
-        } catch (BadRequestException expected) {
+        } catch (ValidationFailureException expected) {
             Assert.assertEquals("invalid_filename", expected.getErrorDeviation().getCode());
         }
     }
@@ -266,13 +274,13 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void uploadBackupFileInvalidBackupFile() throws Exception {
-        Mockito.doThrow(new BackupInvalidFileException("")).when(backupService)
+        Mockito.doThrow(new ServiceException(INVALID_BACKUP_FILE)).when(backupService)
                 .uploadBackup(any(Boolean.class), any(String.class), any());
 
         try {
             ResponseEntity<Backup> response = backupsApiController.uploadBackup(false, mockMultipartFile);
             fail("should throw BadRequestException");
-        } catch (BadRequestException expected) {
+        } catch (ServiceException expected) {
             // success
         }
     }
@@ -301,11 +309,11 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void restoreFromBackupNotFound() throws Exception {
-        Mockito.doThrow(new BackupFileNotFoundException("")).when(configurationRestorationService).restoreFromBackup(any());
+        Mockito.doThrow(new NotFoundException(BACKUP_FILE_NOT_FOUND)).when(configurationRestorationService).restoreFromBackup(any());
         try {
             backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
             fail("should throw BadRequestException");
-        } catch (BadRequestException e) {
+        } catch (NotFoundException e) {
             Assert.assertEquals(DeviationCodes.ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
         }
     }
@@ -325,13 +333,13 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void restoreFromBackupFailed() throws Exception {
-        Mockito.doThrow(new RestoreProcessFailedException(
+        Mockito.doThrow(new ServiceException(BACKUP_RESTORATION_FAILED,
                         new ProcessFailedException("process failed"), "restore failed"))
                 .when(configurationRestorationService).restoreFromBackup(any());
         try {
             backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
             fail("should throw InternalServerErrorException");
-        } catch (InternalServerErrorException e) {
+        } catch (ServiceException e) {
             Assert.assertEquals(DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }

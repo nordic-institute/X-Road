@@ -38,12 +38,12 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.AbstractDtoConverterTest;
@@ -52,6 +52,8 @@ import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerIdDto;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -143,7 +145,7 @@ public class SecurityServerDtoConverterTest extends AbstractDtoConverterTest imp
             doReturn(memberId).when(securityServerId).getOwner();
             doReturn(Option.of(xRoadMember)).when(memberService).findMember(memberId);
             doReturn(SERVER_CODE).when(securityServerIdDto).getServerCode();
-            doReturn(Option.of(securityServer)).when(securityServerService).findByOwnerAndServerCode(xRoadMember, SERVER_CODE);
+            doReturn(Optional.of(securityServer)).when(securityServerService).findByOwnerAndServerCode(xRoadMember, SERVER_CODE);
 
             SecurityServer converted = converter.fromDto(securityServerDto);
 
@@ -166,7 +168,7 @@ public class SecurityServerDtoConverterTest extends AbstractDtoConverterTest imp
             doReturn(memberId).when(securityServerId).getOwner();
             doReturn(Option.of(xRoadMember)).when(memberService).findMember(memberId);
             doReturn(SERVER_CODE).when(securityServerIdDto).getServerCode();
-            doReturn(Option.none()).when(securityServerService).findByOwnerAndServerCode(xRoadMember, SERVER_CODE);
+            doReturn(Optional.empty()).when(securityServerService).findByOwnerAndServerCode(xRoadMember, SERVER_CODE);
             doReturn(SERVER_ADDRESS).when(securityServerDto).getServerAddress();
 
             SecurityServer converted = converter.fromDto(securityServerDto);

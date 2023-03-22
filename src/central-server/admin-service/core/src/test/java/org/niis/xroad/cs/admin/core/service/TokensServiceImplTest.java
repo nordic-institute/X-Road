@@ -36,17 +36,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.exception.SignerProxyException;
-import org.niis.xroad.cs.admin.api.exception.TokenException;
-import org.niis.xroad.cs.admin.api.exception.TokenPinFinalTryException;
-import org.niis.xroad.cs.admin.api.exception.TokenPinLockedException;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.core.converter.TokenInfoMapper;
+import org.niis.xroad.cs.admin.core.exception.SignerProxyException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
@@ -111,7 +109,7 @@ class TokensServiceImplTest {
         doThrow(new Exception()).when(signerProxyFacade).getTokens();
 
         assertThatThrownBy(() -> tokensService.getTokens())
-                .isInstanceOf(TokenException.class)
+                .isInstanceOf(ServiceException.class)
                 .hasMessage("Error getting tokens");
     }
 
@@ -131,7 +129,7 @@ class TokensServiceImplTest {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
-                .isInstanceOf(TokenPinLockedException.class)
+                .isInstanceOf(ValidationFailureException.class)
                 .hasMessage("Token PIN locked");
 
         assertAuditMessages();
@@ -143,7 +141,7 @@ class TokensServiceImplTest {
         doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
-                .isInstanceOf(TokenPinFinalTryException.class)
+                .isInstanceOf(ValidationFailureException.class)
                 .hasMessage("Tries left: 1");
         assertAuditMessages();
         verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);
@@ -155,7 +153,7 @@ class TokensServiceImplTest {
         doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
-                .isInstanceOf(TokenPinLockedException.class)
+                .isInstanceOf(ValidationFailureException.class)
                 .hasMessage("Token PIN locked");
         assertAuditMessages();
         verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);

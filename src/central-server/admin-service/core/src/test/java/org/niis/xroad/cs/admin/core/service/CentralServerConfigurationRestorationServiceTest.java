@@ -36,9 +36,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
-import org.niis.xroad.restapi.common.backup.exception.RestoreProcessFailedException;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -121,7 +121,7 @@ class CentralServerConfigurationRestorationServiceTest {
         String backupFileName = "backup.tar";
         ExternalProcessRunner.ProcessResult processResult = new ExternalProcessRunner.ProcessResult(configurationRestoreScriptPath
                 + " -b -i VEVTVA== -f " + FormatUtils.encodeStringToBase64(configurationBackupPath + backupFileName),
-                 0, List.of()
+                0, List.of()
         );
 
         configurationRestorationService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
@@ -158,7 +158,7 @@ class CentralServerConfigurationRestorationServiceTest {
                 .thenReturn(Paths.get(configurationBackupPath + backupFileName));
         when(backupRepository.getConfigurationBackupPath()).thenReturn(configurationBackupPath);
 
-        assertThrows(BackupFileNotFoundException.class, () -> configurationRestorationService.restoreFromBackup(backupFileName));
+        assertThrows(NotFoundException.class, () -> configurationRestorationService.restoreFromBackup(backupFileName));
         verify(auditDataHelper).putBackupFilename(Paths.get(configurationBackupPath + backupFileName));
     }
 
@@ -185,7 +185,7 @@ class CentralServerConfigurationRestorationServiceTest {
                 "-f", FormatUtils.encodeStringToBase64(configurationBackupPath + backupFileName))
         ).thenThrow(new ProcessFailedException("message"));
 
-        assertThrows(RestoreProcessFailedException.class, () -> configurationRestorationService.restoreFromBackup(backupFileName));
+        assertThrows(ServiceException.class, () -> configurationRestorationService.restoreFromBackup(backupFileName));
 
         verify(auditDataHelper).putBackupFilename(Paths.get(configurationBackupPath + backupFileName));
         verify(eventPublisher).publishEvent(BackupRestoreEvent.START);

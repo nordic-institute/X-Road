@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,7 +32,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.*;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ConflictException;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.InternalServerErrorException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.converter.ServiceConverter;
@@ -97,7 +101,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @PreAuthorize("hasAuthority('ENABLE_DISABLE_WSDL')")
     @AuditEventMethod(event = DISABLE_SERVICE_DESCRIPTION)
     public ResponseEntity<Void> disableServiceDescription(String id,
-            ServiceDescriptionDisabledNotice serviceDescriptionDisabledNotice) {
+                                                          ServiceDescriptionDisabledNotice serviceDescriptionDisabledNotice) {
         String disabledNotice = null;
         if (serviceDescriptionDisabledNotice != null) {
             disabledNotice = serviceDescriptionDisabledNotice.getDisabledNotice();
@@ -129,7 +133,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @PreAuthorize("hasAnyAuthority('EDIT_WSDL', 'EDIT_OPENAPI3', 'EDIT_REST')")
     @AuditEventMethod(event = EDIT_SERVICE_DESCRIPTION)
     public ResponseEntity<ServiceDescription> updateServiceDescription(String id,
-            ServiceDescriptionUpdate serviceDescriptionUpdate) {
+                                                                       ServiceDescriptionUpdate serviceDescriptionUpdate) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescriptionType updatedServiceDescription = null;
 
@@ -160,13 +164,13 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
             }
 
         } catch (WsdlParser.WsdlNotFoundException | OpenApiParser.ParsingException | UnhandledWarningsException
-                | InvalidUrlException | ServiceDescriptionService.WrongServiceDescriptionTypeException
-                | InvalidWsdlException | InvalidServiceUrlException | UnsupportedOpenApiVersionException e) {
+                 | InvalidUrlException | ServiceDescriptionService.WrongServiceDescriptionTypeException
+                 | InvalidWsdlException | InvalidServiceUrlException | UnsupportedOpenApiVersionException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
-                | ServiceDescriptionService.WsdlUrlAlreadyExistsException
-                | ServiceDescriptionService.UrlAlreadyExistsException
-                | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException
+                 | ServiceDescriptionService.UrlAlreadyExistsException
+                 | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);
@@ -189,11 +193,11 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                     serviceDescriptionService.refreshServiceDescription(serviceDescriptionId,
                             ignoreWarnings.getIgnoreWarnings()));
         } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException | InvalidUrlException
-                | InvalidWsdlException | ServiceDescriptionService.WrongServiceDescriptionTypeException
-                | OpenApiParser.ParsingException | InvalidServiceUrlException | UnsupportedOpenApiVersionException e) {
+                 | InvalidWsdlException | ServiceDescriptionService.WrongServiceDescriptionTypeException
+                 | OpenApiParser.ParsingException | InvalidServiceUrlException | UnsupportedOpenApiVersionException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
-                | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
+                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);

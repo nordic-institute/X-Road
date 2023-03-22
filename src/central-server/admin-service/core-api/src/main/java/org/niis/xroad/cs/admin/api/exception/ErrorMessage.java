@@ -27,92 +27,106 @@
 package org.niis.xroad.cs.admin.api.exception;
 
 import lombok.Getter;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.DeviationProvider;
 
-import java.util.Arrays;
-
-public enum ErrorMessage {
-    MEMBER_CLASS_IS_IN_USE("Cannot delete member class: Found X-Road members belonging to the class."
+public enum ErrorMessage implements DeviationProvider {
+    MEMBER_CLASS_IS_IN_USE("member_class_is_in_use", "Cannot delete member class: Found X-Road members belonging to the class."
             + " Only classes with no registered members can be deleted."),
-    MEMBER_CLASS_NOT_FOUND("No member class with the specified code found."),
-    MEMBER_CLASS_EXISTS("Member class with the same code already exists."),
-    MEMBER_NOT_FOUND("No member with the specified code found."),
-    MEMBER_EXISTS("Member with the same code already exists."),
+    MEMBER_CLASS_NOT_FOUND("member_class_not_found", "No member class with the specified code found."),
+    MEMBER_CLASS_EXISTS("member_class_exists", "Member class with the same code already exists."),
+    MEMBER_NOT_FOUND("member_not_found", "No member with the specified code found."),
+    MEMBER_EXISTS("member_exists", "Member with the same code already exists."),
 
-    SUBSYSTEM_EXISTS("Subsystem with the same code already exists."),
-    SUBSYSTEM_NOT_FOUND("Subsystem with specified code not found."),
-    SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED("Cannot delete already registered subsystem."),
-    SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER("Subsystem is not registered to the given security server."),
+    SUBSYSTEM_EXISTS("subsystem_exists", "Subsystem with the same code already exists."),
+    SUBSYSTEM_NOT_FOUND("subsystem_not_found", "Subsystem with specified code not found."),
+    SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED("subsystem_registered_and_cannot_be_deleted", "Cannot delete already registered subsystem."),
+    SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER("subsystem_not_registered_to_security_server",
+            "Subsystem is not registered to the given security server."),
 
-    MANAGEMENT_REQUEST_NOT_FOUND("No management request with the specified id found."),
-    MANAGEMENT_REQUEST_EXISTS("A pending management request already exists."),
-    MANAGEMENT_REQUEST_SECURITY_SERVER_EXISTS("Certificate is already registered."),
-    INVALID_AUTH_CERTIFICATE("Invalid authentication certificate"),
-    AUTH_CERTIFICATE_NOT_FOUND("Authentication certificate not found"),
-    MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL("Management request can not be approved"),
-    MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND("Security server owner not found"),
-    MANAGEMENT_REQUEST_INVALID_STATE("Requested operation can not be applied in this state"),
-    MANAGEMENT_REQUEST_NOT_SUPPORTED(("Unknown management request type")),
-    MANAGEMENT_REQUEST_SERVER_NOT_FOUND("Security server not found"),
-    MANAGEMENT_REQUEST_CANNOT_REGISTER_OWNER("Cannot register owner as a client"),
-    MANAGEMENT_REQUEST_MEMBER_NOT_FOUND("Member does not exist"),
-    MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND("Client registration does not exist"),
-    MANAGEMENT_REQUEST_CLIENT_ALREADY_REGISTERED("Client already registered to a server"),
-    MANAGEMENT_REQUEST_OWNER_MUST_BE_MEMBER("Owner must be a member"),
-    MANAGEMENT_REQUEST_OWNER_MUST_BE_CLIENT("Owner is not registered as client on the security server"),
-    MANAGEMENT_REQUEST_CLIENT_ALREADY_OWNER("Client is already owner of the security server"),
-    MANAGEMENT_REQUEST_SERVER_CODE_EXISTS("Mewmber already owns a security server with server code"),
-    GLOBAL_GROUP_NOT_FOUND("Global group by given id does not exist"),
-    OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED("Cannot perform delete action on server owners group"),
-    GLOBAL_GROUP_EXISTS("Global group with the same code already exists."),
-    SECURITY_SERVER_NOT_FOUND("Security server not found"),
-    CERTIFICATION_SERVICE_NOT_FOUND("Certification service not found."),
-    INVALID_CERTIFICATE("Invalid X.509 certificate"),
-    INTERMEDIATE_CA_NOT_FOUND("Intermediate CA not found"),
-    TIMESTAMPING_AUTHORITY_NOT_FOUND("Timestamping authority not found"),
-    OCSP_RESPONDER_NOT_FOUND("OCSP Responder not found"),
-    INVALID_URL("Invalid url"),
-    CONFIGURATION_NOT_FOUND("Configuration Source not found"),
-    CONFIGURATION_PART_FILE_NOT_FOUND("Configuration part file not found"),
-    CONFIGURATION_PART_VALIDATOR_NOT_FOUND("Configuration part validator not found"),
-    UNKNOWN_CONFIGURATION_PART("Unknown configuration part"),
-    CONFIGURATION_PART_VALIDATION_FAILED("Configuration part validation failed"),
-    ERROR_GETTING_TOKENS("Error getting tokens"),
-    TOKEN_NOT_FOUND("Token not found"),
-    TOKEN_ACTIVATION_FAILED("Token activation failed"),
-    TOKEN_DEACTIVATION_FAILED("Token deactivation failed"),
-    TOKEN_PIN_LOCKED("Token PIN locked"),
-    TOKEN_PIN_FINAL_TRY("Tries left: 1"),
-    SIGNER_PROXY_ERROR("Signer proxy exception"),
-    TOKEN_INCORRECT_PIN_FORMAT("Incorrect PIN format"),
-    TOKEN_ACTION_NOT_POSSIBLE("Token action not possible"),
-    SIGNING_KEY_ACTION_NOT_POSSIBLE("Singing key action not possible"),
-    KEY_GENERATION_FAILED("Singing key generation failed"),
-    SIGNING_KEY_NOT_FOUND("Signing key not found"),
-    ERROR_DELETING_SIGNING_KEY("Error deleting signing key"),
-    ERROR_ACTIVATING_SIGNING_KEY("Error activating signing key"),
-    ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED("Active configuration signing key cannot be deleted"),
-    TOKEN_MUST_BE_LOGGED_IN("Signing Key cannot be activated on not logged in token"),
-    NO_CONFIGURATION_SIGNING_KEYS_CONFIGURED("No configuration signing keys configured"),
-    INSTANCE_IDENTIFIER_NOT_SET("System parameter for instance identifier not set"),
-    CENTRAL_SERVER_ADDRESS_NOT_SET("System parameter for central server address not set"),
-    ERROR_RECREATING_ANCHOR("Error re-creating anchor file"),
-    CONFIGURATION_SIGNING_KEY_NOT_FOUND("Configuration Signing Key not found"),
-    CERTIFICATE_PROFILE_INFO_CLASS_NOT_FOUND("Certificate profile info class was not found");
+    MANAGEMENT_REQUEST_NOT_FOUND("management_request_not_found", "No management request with the specified id found."),
+    MANAGEMENT_REQUEST_EXISTS("management_request_exists", "A pending management request already exists."),
+    MANAGEMENT_REQUEST_SECURITY_SERVER_EXISTS("management_request_security_server_exists", "Certificate is already registered."),
+    INVALID_AUTH_CERTIFICATE("invalid_auth_certificate", "Invalid authentication certificate"),
+    AUTH_CERTIFICATE_NOT_FOUND("auth_certificate_not_found", "Authentication certificate not found"),
+
+    MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL("management_request_invalid_state_for_approval",
+            "Management request can not be approved"),
+    MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND("management_request_server_owner_not_found", "Security server owner not found"),
+    MANAGEMENT_REQUEST_INVALID_STATE("management_request_invalid_state", "Requested operation can not be applied in this state"),
+    MANAGEMENT_REQUEST_NOT_SUPPORTED("management_request_not_supported", "Unknown management request type"),
+    MANAGEMENT_REQUEST_CANNOT_REGISTER_OWNER("management_request_cannot_register_owner", "Cannot register owner as a client"),
+    MANAGEMENT_REQUEST_MEMBER_NOT_FOUND("management_request_member_not_found", "Member does not exist"),
+    MANAGEMENT_REQUEST_SERVER_NOT_FOUND("management_request_server_not_found", "Security server not found"),
+    MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND("management_request_client_registration_not_found",
+            "Client registration does not exist"),
+    MANAGEMENT_REQUEST_CLIENT_ALREADY_REGISTERED("client_already_registered", "Client already registered to a server"),
+    MANAGEMENT_REQUEST_OWNER_MUST_BE_MEMBER("owner_must_be_member", "Owner must be a member"),
+    MANAGEMENT_REQUEST_OWNER_MUST_BE_CLIENT("owner_must_be_client", "Owner is not registered as client on the security server"),
+    MANAGEMENT_REQUEST_CLIENT_ALREADY_OWNER("client_already_owner", "Client is already owner of the security server"),
+    MANAGEMENT_REQUEST_SERVER_CODE_EXISTS("server_code_exists", "Member already owns a security server with server code"),
+    MANAGEMENT_REQUEST_UNKNOWN_TYPE("management_request_unknown_type", "Unknown request type"),
+
+    INVALID_SERVICE_PROVIDER_ID("invalid_service_provider_id", "Invalid service provider id"),
+    INVALID_MEMBER_ID("invalid_member_id", "Invalid member id"),
+    INVALID_SUBSYSTEM_ID("invalid_subsystem_id", "Invalid subsystem id"),
+    GLOBAL_GROUP_NOT_FOUND("global_group_not_found", "Global group by given id does not exist"),
+    OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED("owners_global_group_cannot_be_deleted", "Cannot perform delete action on server owners group"),
+    GLOBAL_GROUP_EXISTS("global_group_exists", "Global group with the same code already exists."),
+    SECURITY_SERVER_NOT_FOUND("security_server_not_found", "Security server not found"),
+    CERTIFICATION_SERVICE_NOT_FOUND("certification_service_not_found", "Certification service not found."),
+    INVALID_CERTIFICATE("invalid_certificate", "Invalid X.509 certificate"),
+    INTERMEDIATE_CA_NOT_FOUND("intermediate_ca_not_found", "Intermediate CA not found"),
+    TIMESTAMPING_AUTHORITY_NOT_FOUND("timestamping_authority_not_found", "Timestamping authority not found"),
+    OCSP_RESPONDER_NOT_FOUND("ocsp_responder_not_found", "OCSP Responder not found"),
+    INVALID_URL("invalid_url", "Invalid url"),
+    CONFIGURATION_NOT_FOUND("configuration_not_found", "Configuration Source not found"),
+    CONFIGURATION_PART_FILE_NOT_FOUND("configuration_part_file_not_found", "Configuration part file not found"),
+    CONFIGURATION_PART_VALIDATOR_NOT_FOUND("configuration_part_validator_not_found", "Configuration part validator not found"),
+    UNKNOWN_CONFIGURATION_PART("unknown_configuration_part", "Unknown configuration part"),
+    CONFIGURATION_PART_VALIDATION_FAILED("configuration_part_validation_failed", "Configuration part validation failed"),
+    ERROR_GETTING_TOKENS("error_getting_tokens", "Error getting tokens"),
+    TOKEN_NOT_FOUND("token_not_found", "Token not found"),
+    TOKEN_ACTIVATION_FAILED("token_activation_failed", "Token activation failed"),
+    TOKEN_DEACTIVATION_FAILED("token_deactivation_failed", "Token deactivation failed"),
+    TOKEN_PIN_LOCKED("token_pin_locked", "Token PIN locked"),
+    TOKEN_PIN_FINAL_TRY("token_pin_final_try", "Tries left: 1"),
+    SIGNER_PROXY_ERROR("signer_proxy_error", "Signer proxy exception"),
+    TOKEN_INCORRECT_PIN_FORMAT("token_incorrect_pin_format", "Incorrect PIN format"),
+    TOKEN_ACTION_NOT_POSSIBLE("token_action_not_possible", "Token action not possible"),
+    SIGNING_KEY_ACTION_NOT_POSSIBLE("signing_key_action_not_possible", "Singing key action not possible"),
+    KEY_GENERATION_FAILED("key_generation_failed", "Singing key generation failed"),
+    SIGNING_KEY_NOT_FOUND("signing_key_not_found", "Signing key not found"),
+    ERROR_DELETING_SIGNING_KEY("error_deleting_signing_key", "Error deleting signing key"),
+    ERROR_ACTIVATING_SIGNING_KEY("error_activating_signing_key", "Error activating signing key"),
+    ACTIVE_SIGNING_KEY_CANNOT_BE_DELETED("active_signing_key_cannot_be_deleted", "Active configuration signing key cannot be deleted"),
+    TOKEN_MUST_BE_LOGGED_IN("token_must_be_logged_in", "Signing Key cannot be activated on not logged in token"),
+    NO_CONFIGURATION_SIGNING_KEYS_CONFIGURED("no_configuration_signing_keys_configured", "No configuration signing keys configured"),
+    INSTANCE_IDENTIFIER_NOT_SET("instance_identifier_not_set", "System parameter for instance identifier not set"),
+    CENTRAL_SERVER_ADDRESS_NOT_SET("central_server_address_not_set", "System parameter for central server address not set"),
+    ERROR_RECREATING_ANCHOR("error_recreating_anchor", "Error re-creating anchor file"),
+    CONFIGURATION_SIGNING_KEY_NOT_FOUND("configuration_signing_key_not_found", "Configuration Signing Key not found"),
+    CERTIFICATE_PROFILE_INFO_CLASS_NOT_FOUND("certificate_profile_info_class_not_found", "Certificate profile info class was not found"),
+
+    SOFTWARE_TOKEN_INIT_FAILED("software_token_init_failed", "Software token initialization failed"),
+    INVALID_INIT_PARAMS("invalid_init_params", "Empty, missing or redundant parameters provided for initialization"),
+    INITIALIZATION_CONFLICT_FAILURE("initialization_conflict_failure", "Central server Initialization failed, already fully initialized"),
+    INVALID_CHARACTERS("invalid_characters", "The provided pin code contains invalid characters"),
+
+    TOKEN_WEAK_PIN("weak_pin", "The provided pin code was too weak"),
+    TOKEN_SIGNER_PIN_POLICY_FAILED("token_signer_pin_policy_failed", "Token pin policy failure at Signer"),
+    INVALID_PAGINATION_PROPERTIES("invalid_pagination_properties", "Pagination has invalid properties"),
+    INVALID_SORTING_PROPERTIES("invalid_sort_properties", "Invalid sort parameter");
 
 
     @Getter
-    final String description;
+    private final String code;
 
-    ErrorMessage(String description) {
+    @Getter
+    private final String description;
+
+    ErrorMessage(final String code, final String description) {
+        this.code = code;
         this.description = description;
     }
 
-    public ErrorDeviation asDeviation(String... metadataItem) {
-        if (metadataItem != null && metadataItem.length > 0) {
-            return new ErrorDeviation(name().toLowerCase(), Arrays.asList(metadataItem));
-        } else {
-            return new ErrorDeviation(name().toLowerCase());
-        }
-    }
 }

@@ -27,6 +27,7 @@
 package org.niis.xroad.common.exception;
 
 import lombok.NonNull;
+import org.apache.http.HttpStatus;
 import org.niis.xroad.restapi.exceptions.DeviationProvider;
 
 /**
@@ -59,5 +60,10 @@ public class ValidationFailureException extends ServiceException {
                                       final Throwable cause,
                                       final Object... metadata) {
         super(deviationProvider, cause, metadata);
+    }
+
+    @Override
+    public int getHttpStatus() {
+        return HttpStatus.SC_BAD_REQUEST;
     }
 }

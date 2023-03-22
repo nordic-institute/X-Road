@@ -31,8 +31,8 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_GENERATION_FAILED;
 
 @Slf4j
@@ -63,7 +64,7 @@ public abstract class BaseConfigurationBackupGenerator {
      *                              interrupted thread has already been handled with so you can choose to ignore this exception if you
      *                              so please.</b>
      */
-    public BackupFile generateBackup() throws InterruptedException, BackupFileNotFoundException {
+    public BackupFile generateBackup() throws InterruptedException {
         String filename = generateBackupFileName();
 
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
@@ -85,8 +86,7 @@ public abstract class BaseConfigurationBackupGenerator {
 
         Optional<BackupFile> backupFile = backupService.getBackup(filename);
         if (backupFile.isEmpty()) {
-            throw new BackupFileNotFoundException(filename,
-                    new ErrorDeviation(ERROR_BACKUP_GENERATION_FAILED));
+            throw new ServiceException(BACKUP_GENERATION_FAILED);
         }
         return backupFile.get();
     }

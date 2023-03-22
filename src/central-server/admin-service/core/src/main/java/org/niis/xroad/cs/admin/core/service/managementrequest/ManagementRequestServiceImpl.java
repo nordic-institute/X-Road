@@ -29,16 +29,16 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
-import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.exception.UncheckedServiceException;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
@@ -58,6 +58,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_NOT_SUPPORTED;
 
 /**
  * Implements generic management request services that do not depend on the request type.
@@ -150,7 +151,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
             requests.save(request);
         } else {
             // should not happen since simple requests can not be pending
-            throw new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_NOT_SUPPORTED);
+            throw new DataIntegrityException(MANAGEMENT_REQUEST_NOT_SUPPORTED);
         }
     }
 
@@ -171,7 +172,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
                 .map(Option::get)
                 .headOption()
                 .getOrElseThrow(() -> {
-                    throw new UncheckedServiceException(ErrorMessage.MANAGEMENT_REQUEST_NOT_SUPPORTED);
+                    throw new ServiceException(MANAGEMENT_REQUEST_NOT_SUPPORTED);
                 });
     }
 

@@ -40,14 +40,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
-import org.niis.xroad.cs.admin.api.exception.EntityExistsException;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
@@ -161,7 +161,7 @@ class MemberServiceImplTest {
 
             Executable testable = () -> memberService.add(new MemberCreationRequest(memberName, MEMBER_CLASS, memberId));
 
-            EntityExistsException exception = assertThrows(EntityExistsException.class, testable);
+            DataIntegrityException exception = assertThrows(DataIntegrityException.class, testable);
             assertEquals(MEMBER_EXISTS.getDescription(), exception.getMessage());
             assertThat(exception.getErrorDeviation().getMetadata())
                     .hasSize(1)

@@ -34,7 +34,7 @@ import ee.ria.xroad.common.conf.monitoringconf.MonitoringParametersSchemaValidat
 
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 
 import java.util.UUID;
 

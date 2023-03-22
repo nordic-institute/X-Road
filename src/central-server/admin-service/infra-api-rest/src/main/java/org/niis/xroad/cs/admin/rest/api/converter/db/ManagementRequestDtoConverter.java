@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.converter.db;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
@@ -53,7 +54,6 @@ import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;
@@ -63,6 +63,7 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.util.Fn.self;
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_UNKNOWN_TYPE;
 
 @Slf4j
 @Service
@@ -110,7 +111,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             result = self(new OwnerChangeRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
 
         } else {
-            throw new BadRequestException("Unknown request type");
+            throw new ValidationFailureException(MANAGEMENT_REQUEST_UNKNOWN_TYPE, request);
         }
 
         return result.id(request.getId())
@@ -166,7 +167,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     fromEncodedId(req.getClientId()));
 
         } else {
-            throw new BadRequestException("Unknown request type");
+            throw new ValidationFailureException(MANAGEMENT_REQUEST_UNKNOWN_TYPE, request);
         }
     }
 

@@ -28,7 +28,6 @@ package org.niis.xroad.common.exception.util;
 
 import lombok.Getter;
 import org.niis.xroad.restapi.exceptions.DeviationProvider;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 public enum CommonDeviationMessage implements DeviationProvider {
     INTERNAL_ERROR("internal_error", "Internal error. See server logs for more details"),
@@ -41,9 +40,12 @@ public enum CommonDeviationMessage implements DeviationProvider {
     API_KEY_INVALID_ROLE("invalid_role", "Invalid role"),
     INVALID_FILENAME("invalid_filename", "Invalid filename"),
     INVALID_BACKUP_FILE("invalid_backup_file", "Invalid backup file"),
+
     BACKUP_FILE_NOT_FOUND("backup_file_not_found", "Backup was not found"),
     BACKUP_GENERATION_FAILED("backup_generation_failed", "Failed to generate backup"),
     BACKUP_GENERATION_INTERRUPTED("generate_backup_interrupted", "Backup generation has been interrupted"),
+    BACKUP_RESTORATION_FAILED("restore_process_failed", "Failed to generate backup"),
+    BACKUP_RESTORATION_INTERRUPTED("backup_restore_interrupted", "Backup restoration has been interrupted"),
     BACKUP_DELETION_FAILED("backup_deletion_failed", "Failed to delete backup");
 
     @Getter
@@ -55,11 +57,5 @@ public enum CommonDeviationMessage implements DeviationProvider {
         this.code = code;
         this.description = description;
     }
-
-    @Override
-    public ErrorDeviation asDeviation(String... metadataItem) {
-        return null;
-    }
-
 
 }

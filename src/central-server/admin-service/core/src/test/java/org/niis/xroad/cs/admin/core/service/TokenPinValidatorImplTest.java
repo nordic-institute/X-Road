@@ -30,10 +30,11 @@ import ee.ria.xroad.common.util.TokenPinPolicy;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.cs.admin.api.exception.InvalidCharactersException;
-import org.niis.xroad.cs.admin.api.exception.WeakPinException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.core.util.DeviationTestUtils;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 /**
  * test token pin validator
@@ -52,35 +53,31 @@ class TokenPinValidatorImplTest {
     }
 
     @Test
-    void validateSoftwareTokenPinSuccess() throws Exception {
+    void validateSoftwareTokenPinSuccess() {
         tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_PIN.toCharArray());
     }
 
     @Test
-    void validateSoftwareTokenPinWeak() throws Exception {
-        try {
-            tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray());
-        } catch (WeakPinException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(
-                    DeviationCodes.ERROR_WEAK_PIN, expected, DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH,
-                    String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
-                    DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
-                    String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
-        }
+    void validateSoftwareTokenPinWeak() {
+        assertThatExceptionOfType(ValidationFailureException.class)
+                .isThrownBy(() -> tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray()))
+                .satisfies(e -> DeviationTestUtils.assertErrorWithMetadata(
+                        DeviationCodes.ERROR_WEAK_PIN, e, DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH,
+                        String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
+                        DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
+                        String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT)));
     }
 
     @Test
-    void validateSoftwareTokenPinNotEnforcedSuccess() throws Exception {
+    void validateSoftwareTokenPinNotEnforcedSuccess() {
         tokenPinValidator.setTokenPinEnforced(false);
         tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray());
     }
 
     @Test
-    void validateSoftwareTokenPinInvalid() throws Exception {
-        try {
-            tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_INVALID_PIN.toCharArray());
-        } catch (InvalidCharactersException expected) {
-            // done
-        }
+    void validateSoftwareTokenPinInvalid() {
+        assertThatExceptionOfType(ValidationFailureException.class)
+                .isThrownBy(() -> tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_INVALID_PIN.toCharArray()));
+
     }
 }

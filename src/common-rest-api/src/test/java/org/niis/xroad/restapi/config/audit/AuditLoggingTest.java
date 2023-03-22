@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -55,6 +55,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -167,7 +168,7 @@ class AuditLoggingTest {
                 @PathVariable(URL_VAR1) String var1,
                 @PathVariable(URL_VAR2) String var2) {
             if (BAD_VALUE.equals(var1)) {
-                throw new BadRequestException("bad request");
+                throw new ValidationFailureException(INTERNAL_ERROR);
             }
             auditDataHelper.put(RestApiAuditProperty.ID, var1);
             auditDataHelper.put(RestApiAuditProperty.CERT_ID, var2);

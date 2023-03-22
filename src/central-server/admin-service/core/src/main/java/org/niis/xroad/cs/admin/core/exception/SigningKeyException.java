@@ -25,15 +25,19 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.api.exception;
+package org.niis.xroad.cs.admin.core.exception;
 
-public class ConfigurationPartException  extends UncheckedServiceException {
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 
-    public ConfigurationPartException(ErrorMessage code, String... metadata) {
+public class SigningKeyException extends ServiceException {
+
+    public SigningKeyException(ErrorMessage code, Object... metadata) {
         super(code, metadata);
     }
 
-    public ConfigurationPartException(ErrorMessage code, Throwable cause, String... metadata) {
+    public SigningKeyException(ErrorMessage code, Throwable cause, Object... metadata) {
         super(code, cause, metadata);
     }
+
 }

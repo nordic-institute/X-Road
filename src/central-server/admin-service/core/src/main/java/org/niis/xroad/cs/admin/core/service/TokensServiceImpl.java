@@ -30,17 +30,15 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.CodedException;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
-import org.niis.xroad.cs.admin.api.exception.SignerProxyException;
-import org.niis.xroad.cs.admin.api.exception.TokenException;
-import org.niis.xroad.cs.admin.api.exception.TokenPinFinalTryException;
-import org.niis.xroad.cs.admin.api.exception.TokenPinLockedException;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.cs.admin.core.converter.TokenInfoMapper;
+import org.niis.xroad.cs.admin.core.exception.SignerProxyException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
@@ -88,7 +86,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
                     .map(tokenInfoMapper::toTarget)
                     .collect(toSet());
         } catch (Exception e) {
-            throw new TokenException(ERROR_GETTING_TOKENS, e);
+            throw new ServiceException(ERROR_GETTING_TOKENS, e);
         }
     }
 
@@ -97,7 +95,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         try {
             return signerProxyFacade.getTokens().stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
         } catch (Exception e) {
-            throw new TokenException(ERROR_GETTING_TOKENS, e);
+            throw new ServiceException(ERROR_GETTING_TOKENS, e);
         }
     }
 
@@ -107,7 +105,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         addAuditData(token);
 
         if (USER_PIN_LOCKED == token.getStatus()) {
-            throw new TokenPinLockedException(TOKEN_PIN_LOCKED);
+            throw new ValidationFailureException(TOKEN_PIN_LOCKED);
         }
 
         tokenActionsResolver.requireAction(LOGIN, token, configurationSigningKeysService.findByTokenIdentifier(token.getId()));
@@ -118,9 +116,9 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         } catch (CodedException codedException) {
             final ee.ria.xroad.signer.protocol.dto.TokenInfo token1 = getToken(tokenLoginRequest.getTokenId());
             if (USER_PIN_FINAL_TRY == token1.getStatus()) {
-                throw new TokenPinFinalTryException(TOKEN_PIN_FINAL_TRY);
+                throw new ValidationFailureException(TOKEN_PIN_FINAL_TRY);
             } else if (USER_PIN_LOCKED == token1.getStatus()) {
-                throw new TokenPinLockedException(TOKEN_PIN_LOCKED);
+                throw new ValidationFailureException(TOKEN_PIN_LOCKED);
             }
             throw new SignerProxyException(TOKEN_ACTIVATION_FAILED, codedException, codedException.getFaultCode());
         } catch (Exception exception) {

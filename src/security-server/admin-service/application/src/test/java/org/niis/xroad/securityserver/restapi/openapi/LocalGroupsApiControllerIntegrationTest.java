@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
@@ -95,7 +96,7 @@ public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControll
         try {
             localGroupsApiController.getLocalGroup(TestUtils.INVALID_GROUP_ID);
             fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
             // nothing should be found
         }
     }

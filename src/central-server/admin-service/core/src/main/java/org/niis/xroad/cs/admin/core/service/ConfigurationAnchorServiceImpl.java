@@ -33,11 +33,11 @@ import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.niis.xroad.cs.admin.api.exception.ConfigurationSourceException;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
@@ -65,6 +65,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Optional;
 
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_RECREATING_ANCHOR;
@@ -89,7 +90,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         try {
             JAXB_CTX = JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
-            throw new RuntimeException("Failed to initialize JAXB context", e);
+            throw new ServiceException(INTERNAL_ERROR, e);
         }
     }
 
@@ -118,14 +119,14 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
 
         final var instanceIdentifier = Optional.ofNullable(systemParameterService.getInstanceIdentifier())
                 .filter(StringUtils::isNotEmpty)
-                .orElseThrow(() -> new ConfigurationSourceException(INSTANCE_IDENTIFIER_NOT_SET));
+                .orElseThrow(() -> new ServiceException(INSTANCE_IDENTIFIER_NOT_SET));
 
         final var configurationSource = configurationSourceRepository.findBySourceTypeOrCreate(
                 configurationType.name().toLowerCase(),
                 haConfigStatus);
 
         if (CollectionUtils.isEmpty(configurationSource.getConfigurationSigningKeys())) {
-            throw new ConfigurationSourceException(NO_CONFIGURATION_SIGNING_KEYS_CONFIGURED);
+            throw new ServiceException(NO_CONFIGURATION_SIGNING_KEYS_CONFIGURED);
         }
 
         final var sources = configurationSourceRepository.findAllBySourceType(configurationType.name().toLowerCase());
@@ -169,7 +170,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
             marshaller.marshal(root, writer);
             return writer.toString();
         } catch (DatatypeConfigurationException | JAXBException e) {
-            throw new ConfigurationSourceException(ERROR_RECREATING_ANCHOR);
+            throw new ServiceException(ERROR_RECREATING_ANCHOR);
         }
     }
 

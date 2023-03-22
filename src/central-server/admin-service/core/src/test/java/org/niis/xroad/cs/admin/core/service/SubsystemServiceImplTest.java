@@ -39,16 +39,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
-import org.niis.xroad.cs.admin.api.exception.EntityExistsException;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientNameEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -152,7 +152,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
 
             Executable testable = () -> subsystemService.add(new SubsystemCreationRequest(memberId, subsystemId));
 
-            EntityExistsException exception = assertThrows(EntityExistsException.class, testable);
+            DataIntegrityException exception = assertThrows(DataIntegrityException.class, testable);
             assertEquals(SUBSYSTEM_EXISTS.getDescription(), exception.getMessage());
             assertThat(exception.getErrorDeviation().getMetadata())
                     .hasSize(1)

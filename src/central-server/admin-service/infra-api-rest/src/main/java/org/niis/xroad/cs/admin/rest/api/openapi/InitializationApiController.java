@@ -28,11 +28,6 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.exception.InvalidCharactersException;
-import org.niis.xroad.cs.admin.api.exception.InvalidInitParamsException;
-import org.niis.xroad.cs.admin.api.exception.ServerAlreadyFullyInitializedException;
-import org.niis.xroad.cs.admin.api.exception.SoftwareTokenInitException;
-import org.niis.xroad.cs.admin.api.exception.WeakPinException;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
 import org.niis.xroad.cs.admin.rest.api.converter.model.InitialServerConfDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.InitializationStatusDtoConverter;
@@ -41,10 +36,7 @@ import org.niis.xroad.cs.openapi.model.InitialServerConfDto;
 import org.niis.xroad.cs.openapi.model.InitializationStatusDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -73,16 +65,8 @@ public class InitializationApiController implements InitializationApi {
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     @AuditEventMethod(event = RestApiAuditEvent.INIT_CENTRAL_SERVER)
     public ResponseEntity<Void> initCentralServer(@Validated InitialServerConfDto config) {
-        try {
-            var configDto = initialServerConfDtoConverter.toDto(config);
-            initializationService.initialize(configDto);
-        } catch (ServerAlreadyFullyInitializedException e) {
-            throw new ConflictException(e);
-        } catch (SoftwareTokenInitException e) {
-            throw new InternalServerErrorException(e);
-        } catch (InvalidInitParamsException | InvalidCharactersException | WeakPinException e) {
-            throw new BadRequestException(e);
-        }
+        var configDto = initialServerConfDtoConverter.toDto(config);
+        initializationService.initialize(configDto);
 
         return ResponseEntity.ok().build();
     }

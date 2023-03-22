@@ -32,8 +32,8 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
-import org.niis.xroad.restapi.common.backup.exception.RestoreProcessFailedException;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.ApiKeyService;
@@ -42,6 +42,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.io.File;
+
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
 
 /**
  * service class for restoring security server configuration from a backup
@@ -64,19 +67,19 @@ public abstract class ConfigurationRestorationService {
     /**
      * Restores the security server configuration from a backup. Any tokens that are not software tokens are logged
      * out by the current restore script.
+     *
      * @param fileName name of the backup file
-     * @throws BackupFileNotFoundException
-     * @throws InterruptedException          execution of the restore script was interrupted
-     * @throws RestoreProcessFailedException if the restore script fails or does not execute
+     * @throws InterruptedException execution of the restore script was interrupted
+     * @throws ServiceException     if the restore script fails or does not execute
      */
-    public synchronized void restoreFromBackup(String fileName) throws BackupFileNotFoundException,
-            InterruptedException, RestoreProcessFailedException {
+    public synchronized void restoreFromBackup(String fileName) throws
+            InterruptedException, ServiceException {
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(fileName));
         String configurationBackupPath = backupRepository.getConfigurationBackupPath();
         String backupFilePath = configurationBackupPath + fileName;
         File backupFile = new File(backupFilePath);
         if (!backupFile.isFile()) {
-            throw new BackupFileNotFoundException("backup file " + backupFilePath + " does not exist");
+            throw new NotFoundException(BACKUP_FILE_NOT_FOUND, backupFilePath);
         }
         String[] arguments = buildArguments(backupFilePath);
         try {
@@ -98,7 +101,7 @@ public abstract class ConfigurationRestorationService {
             persistenceUtils.evictPoolConnections();
 
         } catch (ProcessFailedException | ProcessNotExecutableException e) {
-            throw new RestoreProcessFailedException(e, "restoring from a backup failed");
+            throw new ServiceException(BACKUP_RESTORATION_FAILED, e);
         } finally {
             eventPublisher.publishEvent(BackupRestoreEvent.END);
             apiKeyService.clearApiKeyCaches();
@@ -108,6 +111,7 @@ public abstract class ConfigurationRestorationService {
 
     /**
      * Encodes args with base64 and returns all options and args as an array
+     *
      * @param backupFilePath
      * @return
      */

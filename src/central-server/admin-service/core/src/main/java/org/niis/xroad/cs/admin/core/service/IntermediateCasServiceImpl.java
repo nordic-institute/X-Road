@@ -28,10 +28,10 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.IntermediateCasService;
 import org.niis.xroad.cs.admin.core.converter.CaInfoConverter;
 import org.niis.xroad.cs.admin.core.converter.OcspResponderConverter;

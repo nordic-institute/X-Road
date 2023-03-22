@@ -27,10 +27,12 @@ package org.niis.xroad.restapi.exceptions;
 
 import ee.ria.xroad.common.CodedException;
 
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -64,12 +66,12 @@ public class ExceptionTranslator {
      * Use provided status or override it with value from
      * Exception's ResponseStatus annotation if one exists
      *
-     * @param e exception to convert
+     * @param e             exception to convert
      * @param defaultStatus status to be used if not specified with method annotation
-     * @return  ResponseEntity with properly filled ErrorInfo
+     * @return ResponseEntity with properly filled ErrorInfo
      */
     public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
-        HttpStatus status = getAnnotatedResponseStatus(e, defaultStatus);
+        HttpStatus status = resolveHttpStatus(e, defaultStatus);
         ErrorInfo errorDto = new ErrorInfo();
         errorDto.setStatus(status.value());
         if (e instanceof DeviationAware) {
@@ -97,7 +99,10 @@ public class ExceptionTranslator {
                             List.of(constraintViolation.getMessage())));
             errorDto.setError(new CodeWithDetails().code(ERROR_VALIDATION_FAILURE).validationErrors(violations));
         }
-        return new ResponseEntity<>(errorDto, status);
+
+        return ResponseEntity.status(status)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(errorDto);
     }
 
     private CodeWithDetails convert(Deviation deviation) {
@@ -109,5 +114,12 @@ public class ExceptionTranslator {
             }
         }
         return result;
+    }
+
+    public HttpStatus resolveHttpStatus(Exception e, HttpStatus defaultStatus) {
+        if (e instanceof ServiceException) {
+            return HttpStatus.resolve(((ServiceException) e).getHttpStatus());
+        }
+        return getAnnotatedResponseStatus(e, defaultStatus);
     }
 }

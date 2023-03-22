@@ -29,11 +29,11 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
-import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
 import org.niis.xroad.restapi.common.backup.service.BackupValidator;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
@@ -49,7 +49,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_DELETION_FAILED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_DELETION_FAILED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_BACKUP_FILE;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_FILENAME;
 
 /**
  * Backup repository
@@ -61,7 +64,6 @@ public class BackupRepository {
     private static final String CONFIGURATION_BACKUP_PATH = SystemProperties.getConfBackupPath();
     // Set maximum number of levels of directories to visit, subdirectories are excluded
     private static final int DIR_MAX_DEPTH = 1;
-    private static final String INVALID_BACKUP_FILENAME = "invalid backup filename";
 
     private final BackupValidator backupValidator;
 
@@ -107,16 +109,16 @@ public class BackupRepository {
      *
      * @param filename backup filename to delete
      */
-    public void deleteBackupFile(String filename) throws BackupFileNotFoundException {
+    public void deleteBackupFile(String filename) throws NotFoundException {
         if (!backupValidator.isValidBackupFilename(filename)) {
-            throw new BackupFileNotFoundException(filename);
+            throw new NotFoundException(BACKUP_FILE_NOT_FOUND, filename);
         }
         var path = getAbsoluteBackupFilePath(filename);
         try {
             Files.deleteIfExists(path);
         } catch (IOException ioe) {
             log.error("can't delete backup file ({})", path);
-            throw new BackupFileNotFoundException(filename, new ErrorDeviation(ERROR_BACKUP_DELETION_FAILED));
+            throw new NotFoundException(BACKUP_DELETION_FAILED, filename);
         }
     }
 
@@ -126,16 +128,16 @@ public class BackupRepository {
      * @param filename backup filename
      * @return backup content
      */
-    public byte[] readBackupFile(String filename) throws BackupFileNotFoundException {
+    public byte[] readBackupFile(String filename) throws NotFoundException {
         if (!backupValidator.isValidBackupFilename(filename)) {
-            throw new BackupFileNotFoundException(filename);
+            throw new NotFoundException(BACKUP_FILE_NOT_FOUND, filename);
         }
         var path = getAbsoluteBackupFilePath(filename);
         try {
             return Files.readAllBytes(path);
         } catch (IOException ioe) {
             log.error("can't read backup file's content ({})", path);
-            throw new BackupFileNotFoundException(filename);
+            throw new NotFoundException(BACKUP_FILE_NOT_FOUND, filename);
         }
     }
 
@@ -146,9 +148,9 @@ public class BackupRepository {
      * @param content  backup contents
      * @return backup creation date
      */
-    public OffsetDateTime writeBackupFile(String filename, byte[] content) throws BackupInvalidFileException {
+    public OffsetDateTime writeBackupFile(String filename, byte[] content) {
         if (!backupValidator.isValidBackupFilename(filename)) {
-            throw new BackupInvalidFileException(INVALID_BACKUP_FILENAME);
+            throw new ValidationFailureException(INVALID_FILENAME, filename);
         }
         var backupDirectoryPath = new File(getConfigurationBackupPath());
         if (backupDirectoryPath.mkdirs()) {
@@ -161,7 +163,7 @@ public class BackupRepository {
             return getCreatedAt(path);
         } catch (IOException ioe) {
             log.error("can't write backup file's content ({})", path);
-            throw new BackupInvalidFileException("Failed to write backup file");
+            throw new ServiceException(INVALID_BACKUP_FILE, ioe);
         }
     }
 

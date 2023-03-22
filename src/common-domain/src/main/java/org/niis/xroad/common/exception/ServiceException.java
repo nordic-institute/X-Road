@@ -27,6 +27,7 @@
 package org.niis.xroad.common.exception;
 
 import lombok.NonNull;
+import org.apache.http.HttpStatus;
 import org.bouncycastle.util.Arrays;
 import org.niis.xroad.restapi.exceptions.DeviationAwareException;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
@@ -49,7 +50,7 @@ public class ServiceException extends DeviationAwareRuntimeException {
      */
     public ServiceException(@NonNull final DeviationProvider deviationProvider,
                             final Object... metadata) {
-        super(deviationProvider.asDeviation(resolveMetadata(metadata)));
+        super(deviationProvider.getDescription(), deviationProvider.asDeviation(resolveMetadata(metadata)));
     }
 
     /**
@@ -62,7 +63,7 @@ public class ServiceException extends DeviationAwareRuntimeException {
     public ServiceException(@NonNull final DeviationProvider deviationProvider,
                             final Throwable cause,
                             final Object... metadata) {
-        super(cause, deviationProvider.asDeviation(resolveMetadata(metadata)));
+        super(deviationProvider.getDescription(), cause, deviationProvider.asDeviation(resolveMetadata(metadata)));
     }
 
     /**
@@ -81,6 +82,10 @@ public class ServiceException extends DeviationAwareRuntimeException {
      */
     public ServiceException(@NonNull final DeviationAwareException exception) {
         super(exception, exception.getErrorDeviation());
+    }
+
+    public int getHttpStatus() {
+        return HttpStatus.SC_INTERNAL_SERVER_ERROR;
     }
 
     private static String[] resolveMetadata(Object[] metadataObjects) {

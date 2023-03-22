@@ -30,11 +30,13 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Origin;
-import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.GroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
@@ -105,7 +107,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
 
         if (CENTER.equals(origin)) {
             members.findOneBy(serverId.getOwner())
-                    .getOrElseThrow(() -> new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND));
+                    .getOrElseThrow(() -> new NotFoundException(MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND));
         }
 
         final byte[] validatedCert;
@@ -197,8 +199,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
         //check prerequisites (member exists)
         XRoadMemberEntity owner = members
                 .findOneBy(serverId.getOwner())
-                .getOrElseThrow(() ->
-                        new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND));
+                .getOrElseThrow(() -> new SecurityServerNotFoundException(serverId));
 
         //create new security server if necessary
         final String serverCode = serverId.getServerCode();

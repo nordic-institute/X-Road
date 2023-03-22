@@ -30,11 +30,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
-import org.niis.xroad.cs.admin.api.exception.EntityExistsException;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientNameEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
@@ -86,7 +86,7 @@ public class SubsystemServiceImpl implements SubsystemService {
 
         final boolean exists = subsystemRepository.findOneBy(request.getSubsystemId()).isDefined();
         if (exists) {
-            throw new EntityExistsException(SUBSYSTEM_EXISTS, request.getSubsystemId().toShortString());
+            throw new DataIntegrityException(SUBSYSTEM_EXISTS, request.getSubsystemId().toShortString());
         }
 
         var persistedEntity = saveSubsystem(request);

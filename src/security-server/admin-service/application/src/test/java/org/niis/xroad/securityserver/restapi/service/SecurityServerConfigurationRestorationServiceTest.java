@@ -30,8 +30,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
-import org.niis.xroad.restapi.common.backup.exception.RestoreProcessFailedException;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +84,7 @@ public class SecurityServerConfigurationRestorationServiceTest extends AbstractS
         try {
             configurationRestorationService.restoreFromBackup("no-backups-here.tar");
             fail("should have thrown an exception");
-        } catch (BackupFileNotFoundException e) {
+        } catch (NotFoundException e) {
             Assert.assertEquals(DeviationCodes.ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
         }
     }
@@ -95,7 +95,7 @@ public class SecurityServerConfigurationRestorationServiceTest extends AbstractS
         try {
             configurationRestorationService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
-        } catch (RestoreProcessFailedException e) {
+        } catch (ServiceException e) {
             Assert.assertEquals(DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
@@ -106,7 +106,7 @@ public class SecurityServerConfigurationRestorationServiceTest extends AbstractS
         try {
             configurationRestorationService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
-        } catch (RestoreProcessFailedException e) {
+        } catch (ServiceException e) {
             Assert.assertEquals(DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
