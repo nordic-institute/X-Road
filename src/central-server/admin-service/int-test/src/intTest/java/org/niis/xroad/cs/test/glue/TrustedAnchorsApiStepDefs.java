@@ -81,7 +81,7 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
         return new FileUrlResource(getSystemResource("files/trusted-anchor/" + filename));
     }
 
-    @Step("user uploads trusted anchor file {string}")
+    @Step("trusted anchor file {string} is uploaded")
     public void userUploadsTrustedAnchorFile(String filename) {
         final ResponseEntity<TrustedAnchorDto> response = trustedAnchorsApi.uploadTrustedAnchor(getFileAsResource(filename));
 

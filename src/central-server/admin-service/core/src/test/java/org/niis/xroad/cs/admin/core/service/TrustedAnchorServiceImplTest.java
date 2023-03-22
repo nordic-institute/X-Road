@@ -41,6 +41,7 @@ import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.TrustedAnchorMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.TrustedAnchorRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.service.ConfigurationVerifier;
 
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -53,18 +54,24 @@ import static java.util.Optional.empty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_URLS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GENERATED_AT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INSTANCE_IDENTIFIER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_UNREACHABLE;
 
 @ExtendWith(MockitoExtension.class)
 class TrustedAnchorServiceImplTest {
 
     @Mock
     private TrustedAnchorRepository trustedAnchorRepository;
+    @Mock
+    private ConfigurationVerifier configurationVerifier;
     @Spy
     private TrustedAnchorMapperImpl trustedAnchorMapper;
     @Mock
@@ -118,11 +125,33 @@ class TrustedAnchorServiceImplTest {
             verify(auditDataHelper).putDate(GENERATED_AT, anchorDate);
             verify(auditDataHelper).put(ANCHOR_URLS, Set.of("http://cs0/internalconf?version=2"));
 
+            verify(configurationVerifier).verifyConfiguration(any(), any());
+
             assertThat(result.getTrustedAnchorHash()).isEqualTo(
                     "40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D");
             assertThat(result.getTrustedAnchorFile()).isEqualTo(bytes);
             assertThat(result.getGeneratedAt()).isEqualTo(anchorDate.toInstant());
             assertThat(result.getAnchorUrls()).hasSize(1);
+        }
+
+        @Test
+        void uploadNewVerificationShouldFail() throws Exception {
+            final byte[] bytes = readAllBytes(Paths.get(getSystemResource("trusted-anchor/trusted-anchor.xml").toURI()));
+
+            doThrow(new ConfigurationVerifier.ConfigurationVerificationException(ERROR_CONF_VERIFICATION_UNREACHABLE))
+                    .when(configurationVerifier).verifyConfiguration(any(), any());
+
+            assertThatThrownBy(() -> trustedAnchorService.upload(bytes))
+                    .isInstanceOf(ValidationFailureException.class)
+                    .hasMessage("Trusted anchor file verification failed");
+
+            final Date anchorDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").parse("2023-02-15T09:26:34.235Z");
+            verify(auditDataHelper).putAnchorHash(bytes);
+            verify(auditDataHelper).put(INSTANCE_IDENTIFIER, "CS0");
+            verify(auditDataHelper).putDate(GENERATED_AT, anchorDate);
+            verify(auditDataHelper).put(ANCHOR_URLS, Set.of("http://cs0/internalconf?version=2"));
+
+            verifyNoMoreInteractions(trustedAnchorRepository);
         }
     }
 

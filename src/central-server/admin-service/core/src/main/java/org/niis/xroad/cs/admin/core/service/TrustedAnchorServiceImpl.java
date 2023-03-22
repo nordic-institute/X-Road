@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationLocation;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.FileUtils;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchorPreview;
 import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
@@ -38,17 +39,21 @@ import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.TrustedAnchorMapper;
 import org.niis.xroad.cs.admin.core.repository.TrustedAnchorRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateAnchorHashDelimited;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MALFORMED_ANCHOR;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ANCHOR_VERIFICATION_FAILED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_URLS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GENERATED_AT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INSTANCE_IDENTIFIER;
@@ -61,9 +66,10 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
     private final TrustedAnchorRepository trustedAnchorRepository;
     private final TrustedAnchorMapper trustedAnchorMapper;
     private final AuditDataHelper auditDataHelper;
+    private final ConfigurationVerifier configurationVerifier;
 
     @Value("${script.external-configuration-verifier.path}")
-    final String configVerifierScriptPath;
+    private final String configVerifierScriptPath;
 
     @Override
     public List<TrustedAnchor> findAll() {
@@ -106,15 +112,18 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
     }
 
     private void validateTrustedAnchor(byte[] trustedAnchor) {
-        // todo: CommonUi::ScriptUtils.verify_external_configuration(@temp_anchor_path)
-//        try {
-//            final Path tempFile = Files.createTempFile("temp-trusted-anchor", ".xml");
-//            Files.write(tempFile, trustedAnchor);
-//
-//            verifier.verifyInternalConfiguration(tempFile.toAbsolutePath().toString());
-//
-//        } catch (Exception e) {
-//
-//        }
+        Path tempFile = null;
+        try {
+            tempFile = Files.createTempFile("temp-trusted-anchor-", ".xml");
+
+            Files.write(tempFile, trustedAnchor);
+            configurationVerifier.verifyConfiguration(configVerifierScriptPath, tempFile.toAbsolutePath().toString());
+        } catch (Exception e) {
+            throw new ValidationFailureException(TRUSTED_ANCHOR_VERIFICATION_FAILED, e);
+        } finally {
+            if (tempFile != null) {
+                FileUtils.deleteQuietly(tempFile.toFile());
+            }
+        }
     }
 }
