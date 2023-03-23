@@ -35,15 +35,12 @@ import org.niis.xroad.cs.test.api.FeignTrustedAnchorsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileUrlResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
 
-import java.time.OffsetDateTime;
+import java.util.List;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static java.lang.ClassLoader.getSystemResource;
-import static org.junit.Assert.fail;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
@@ -51,27 +48,15 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
     @Autowired
     private FeignTrustedAnchorsApi trustedAnchorsApi;
 
-    @Step("user can upload trusted anchor {string} for preview")
-    public void userUploadTrustedAnchorFileForPreview(String filename) {
-        final ResponseEntity<TrustedAnchorDto> response = trustedAnchorsApi
-                .previewTrustedAnchor(getFileAsResource(filename));
-
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion("CS0", "body.instanceIdentifier"))
-                .assertion(equalsAssertion(OffsetDateTime.parse("2023-02-15T09:26:34.235Z"), "body.generatedAt"))
-                .assertion(equalsAssertion("40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D",
-                        "body.hash"))
-                .execute();
-    }
-
-    @Step("uploading invalid trusted anchor file {string} fails with status code {int} and message {string}")
-    public void uploadingInvalidTrustedAnchorFileFails(String filename, int status, String errorMessage) {
+    @Step("user uploads trusted anchor {string} for preview")
+    public void userUploadsTrustedAnchorFileForPreview(String filename) {
         try {
-            trustedAnchorsApi.previewTrustedAnchor(getFileAsResource(filename));
-            fail("Should fail");
+            var result = trustedAnchorsApi.previewTrustedAnchor(getFileAsResource(filename));
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
         } catch (FeignException feignException) {
-            validateErrorResponse(status, errorMessage, feignException);
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
     }
 
@@ -81,15 +66,53 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
 
     @Step("trusted anchor file {string} is uploaded")
     public void userUploadsTrustedAnchorFile(String filename) {
-        final ResponseEntity<TrustedAnchorDto> response = trustedAnchorsApi.uploadTrustedAnchor(getFileAsResource(filename));
+        try {
+            var result = trustedAnchorsApi.uploadTrustedAnchor(getFileAsResource(filename));
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("trusted anchor response contains instance {string} and hash {string}")
+    public void validateTrustedAnchorResponse(String instanceid, String hash) {
+        final TrustedAnchorDto response = getRequiredStepData(StepDataKey.RESPONSE_BODY);
 
         validate(response)
-                .assertion(equalsStatusCodeAssertion(CREATED))
-                .assertion(equalsAssertion("40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D",
-                        "body.hash"))
-                .assertion(equalsAssertion("CS0", "body.instanceIdentifier"))
-                .assertion(equalsAssertion(OffsetDateTime.parse("2023-02-15T09:26:34.235Z"), "body.generatedAt"))
+                .assertion(equalsAssertion(hash, "hash"))
+                .assertion(equalsAssertion(instanceid, "instanceIdentifier"))
+                .assertion(notNullAssertion("generatedAt"))
                 .execute();
     }
 
+    @Step("trusted anchors list contains hash {string}")
+    public void trustedAnchorsListContainsHash(String hash) {
+        final List<TrustedAnchorDto> response = getRequiredStepData(StepDataKey.RESPONSE_BODY);
+
+        validate(response)
+                .assertion(equalsAssertion(1, "#this.?[hash == '" + hash + "'].size()"))
+                .execute();
+    }
+
+    @Step("trusted anchors list contains {int} items")
+    public void trustedAnchorsListContainsItems(int size) {
+        final List<TrustedAnchorDto> response = getRequiredStepData(StepDataKey.RESPONSE_BODY);
+        validate(response)
+                .assertion(equalsAssertion(size, "#this.size()"))
+                .execute();
+    }
+
+    @Step("trusted anchors list is retrieved")
+    public void trustedAnchorsListIsRetrieved() {
+        try {
+            var result = trustedAnchorsApi.getTrustedAnchors();
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
 }

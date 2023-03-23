@@ -42,6 +42,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_TRUSTED_ANCHOR;
 import static org.niis.xroad.restapi.util.ResourceUtils.springResourceToBytesOrThrowBadRequest;
@@ -69,8 +70,11 @@ public class TrustedAnchorsApiController implements TrustedAnchorsApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_TRUSTED_ANCHORS')")
     public ResponseEntity<List<TrustedAnchorDto>> getTrustedAnchors() {
-        throw new NotImplementedException("getTrustedAnchors not implemented yet.");
+        return ok(trustedAnchorService.findAll().stream()
+                .map(trustedAnchorConverter::toTarget)
+                .collect(Collectors.toList()));
     }
 
     @Override
