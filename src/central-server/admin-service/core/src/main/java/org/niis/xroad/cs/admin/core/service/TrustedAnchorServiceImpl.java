@@ -51,6 +51,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MALFORMED_ANCHOR;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ANCHOR_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ANCHOR_VERIFICATION_FAILED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_URLS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GENERATED_AT;
@@ -106,6 +107,13 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
 
         final TrustedAnchorEntity saved = trustedAnchorRepository.save(entity);
         return trustedAnchorMapper.toTarget(saved);
+    }
+
+    @Override
+    public TrustedAnchor findByHash(String hash) {
+        return trustedAnchorRepository.findFirstByTrustedAnchorHash(hash)
+                .map(trustedAnchorMapper::toTarget)
+                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND));
     }
 
     private void validateTrustedAnchor(byte[] trustedAnchor) {

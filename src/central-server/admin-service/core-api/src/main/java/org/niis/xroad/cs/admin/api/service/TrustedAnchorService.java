@@ -37,4 +37,5 @@ public interface TrustedAnchorService {
 
     TrustedAnchor upload(byte[] trustedAnchor);
 
+    TrustedAnchor findByHash(String hash);
 }
