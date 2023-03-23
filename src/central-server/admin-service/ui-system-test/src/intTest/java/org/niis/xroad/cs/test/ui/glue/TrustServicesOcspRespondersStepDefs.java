@@ -52,7 +52,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().should(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
 
-        final byte[] certificate = CertificateUtils.generateAuthCert(url);
+        final byte[] certificate = CertificateUtils.generateAuthCert("CN=Subject-" + url);
 
         ocspRespondersPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
         ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl().setValue(url);
@@ -120,7 +120,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     public void userIsAbleChangeTheCertificate(String url) throws Exception {
         ocspRespondersPageObj.addEditDialog.btnUploadCertificate().click();
 
-        final byte[] certificate = CertificateUtils.generateAuthCert(url);
+        final byte[] certificate = CertificateUtils.generateAuthCert("CN=Subject-" + url);
         ocspRespondersPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
         commonPageObj.dialog.btnSave().click();
 

@@ -126,7 +126,7 @@
                 {{ $t('apiKey.createApiKey.step.keyDetails.apiKey') }}
               </v-col>
               <v-col cols="6" sm="9" class="action-row">
-                <div>{{ apiKey.key }}</div>
+                <div data-test="created-apikey">{{ apiKey.key }}</div>
 
                 <xrd-button
                   v-if="apiKey.key"

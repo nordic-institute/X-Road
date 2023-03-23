@@ -4,6 +4,7 @@ logging:
     ROOT: INFO
     cucumber: TRACE
     org.springframework: INFO
+    com.nortal.test: TRACE # TRACE is helpful for development
 
 test-automation:
   report-name: xroad-cs-ui-test-suite
@@ -18,9 +19,11 @@ test-automation:
       tags: "not @Skip"
   containers:
     testable-container:
-      jar-debug-enabled: false
-      reuse-between-runs: false
+      jar-debug-enabled: true
+      debug-port: 9000
+      reuse-between-runs: true
       internal-http-port: 4000
+      spring-profiles-to-activate: system-test
   selenide:
     browser: CHROME # Options: CHROME, EDGE, FIREFOX, OPERA, SAFARI (works only with Mac)
     browser-size: "1280x900"
@@ -33,8 +36,8 @@ test-automation:
     proxy-host: 127.0.0.1
     file-download: proxy
   custom:
-    package-host: "replace-me"
+    package-host: "https://s3-eu-west-1.amazonaws.com/niis-xroad-development"
     package-source: develop-7.x
     package-repo: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/debian"
     package-repo-key: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/jenkins@niis.org.gpg"
-    #central-server-url-override: "replace-me" #Use when you want to run against custom target.
+    central-server-url-override: "https://localhost:4000" #Use when you want to run against custom target.

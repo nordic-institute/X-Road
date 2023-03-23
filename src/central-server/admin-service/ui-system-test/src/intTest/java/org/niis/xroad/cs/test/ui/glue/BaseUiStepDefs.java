@@ -81,6 +81,16 @@ public abstract class BaseUiStepDefs {
         scenarioProvider.getCucumberScenario().attach(scr, MediaType.IMAGE_PNG_VALUE, screenshotName);
     }
 
+    /**
+     * Put a value in scenario context. Value can be accessed through getStepData.
+     *
+     * @param key   value key. Non-null.
+     * @param value value
+     */
+    protected void putStepData(StepDataKey key, Object value) {
+        scenarioContext.putStepData(key.name(), value);
+    }
+
     private boolean isMacOsBrowser() {
         return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
     }

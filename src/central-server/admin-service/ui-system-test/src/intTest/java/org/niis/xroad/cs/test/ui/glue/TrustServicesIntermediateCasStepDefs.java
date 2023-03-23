@@ -64,7 +64,7 @@ public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().should(enabled);
         commonPageObj.dialog.btnSave().shouldNotBe(enabled);
 
-        final byte[] certificate = CertificateUtils.generateAuthCert(name);
+        final byte[] certificate = CertificateUtils.generateAuthCert("CN=Subject-" + name);
 
         testCertificate = CertificateUtils.readCertificate(certificate);
 

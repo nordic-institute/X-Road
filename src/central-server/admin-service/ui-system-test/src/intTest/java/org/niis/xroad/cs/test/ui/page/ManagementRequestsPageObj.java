@@ -34,6 +34,11 @@ import static org.openqa.selenium.By.xpath;
 @SuppressWarnings("InnerClassMayBeStatic")
 public class ManagementRequestsPageObj {
 
+    public final RequestInformation requestInformation = new RequestInformation();
+    public final SecurityServerInformation securityServerInformation = new SecurityServerInformation();
+    public final Certificate certificate = new Certificate();
+    public final Client client = new Client();
+
     public SelenideElement showOnlyPendingRequests() {
         return $x("//input[@data-test='show-only-pending-requests']");
     }
@@ -43,60 +48,155 @@ public class ManagementRequestsPageObj {
     }
 
     @SuppressWarnings("checkstyle:OperatorWrap")
-    public SelenideElement tableWithHeaders(String id, String created) {
-        var xpath = "./thead//tr[th/span[contains(text(), '%s')] " +
-                "and th/span[contains(text(), '%s')]]";
-        return table().find(xpath(String.format(xpath, id, created)));
+    public SelenideElement tableWithHeaders(String id, String created, String type, String serverOwnerName, String serverIdentifier,
+                                            String status) {
+        var columnString = "th/span[contains(text(), '%s')]";
+        var and = " and ";
+        var xpath = "./thead//tr[" + columnString +
+                and + columnString +
+                and + columnString +
+                and + columnString +
+                and + columnString +
+                and + columnString + "]";
+        return table().find(xpath(String.format(xpath, id, created, type, serverOwnerName, serverIdentifier, status)));
     }
 
-    public SelenideElement tableServicesRowOf(String url) {
-        var xpath = "./tbody/tr/td[contains(text(), '%s')]";
-        return table().find(xpath(String.format(xpath, url)));
+    public SelenideElement tableRowOf(String text) {
+        var xpath = "./tbody/tr/td/div[contains(text(), '%s')]";
+        return table().find(xpath(String.format(xpath, text)));
     }
 
-    public SelenideElement tableLoading() {
-        return $x("//tr[@class='v-data-table__progress']");
+    public SelenideElement titleOfDetails(String title) {
+        var xpath = "//h1[contains(text(), '%s')]";
+        return $x(String.format(xpath, title));
     }
 
-    public SelenideElement buttonLoading() {
-        return $x("//span[@class='v-btn__loader']");
+    public SelenideElement titleOfSection(String title) {
+        var xpath = "//h2[contains(text(), '%s')]";
+        return $x(String.format(xpath, title));
     }
 
-    public SelenideElement tableServicesCol(int colIndex) {
+    public SelenideElement search() {
+        return $x("//div[@data-test='management-requests-search']");
+    }
+
+    public SelenideElement searchInput() {
+        return $x("//input[@data-test='search-input']");
+    }
+
+    public SelenideElement tableCol(int colIndex) {
         var xpath = "./thead/tr/th[%d]";
         return table().find(xpath(String.format(xpath, colIndex)));
     }
 
-    public SelenideElement btnViewTimestampingService(String url) {
-        var xpath = "./..//td/div/button[@data-test='view-timestamping-service-certificate']";
-        return tableServicesRowOf(url).find(xpath(xpath));
+    public SelenideElement btnApproveManagementRequest(String text) {
+        var xpath = "../..//td/div/div/button[@data-test='approve-button']";
+        return tableRowOf(text).find(xpath(xpath));
     }
 
-    public SelenideElement btnEditTimestampingService(String url) {
-        var xpath = "./..//td/div/button[@data-test='edit-timestamping-service']";
-        return tableServicesRowOf(url).find(xpath(xpath));
+    public SelenideElement btnApproveManagementRequest() {
+        var xpath = "../..//td/div/div/button[@data-test='approve-button']";
+        return table().find(xpath(xpath));
     }
 
-    public SelenideElement btnDeleteTimestampingService(String url) {
-        var xpath = "./..//td/div/button[@data-test='delete-timestamping-service']";
-        return tableServicesRowOf(url).find(xpath(xpath));
+    public SelenideElement btnDeclineManagementRequest(String url) {
+        var xpath = "../..//td/div/div/button[@data-test='decline-button']";
+        return tableRowOf(url).find(xpath(xpath));
     }
 
-    public class AddEditDialog {
-        public SelenideElement inputUrl() {
-            return $x("//input[@data-test='timestamping-service-url-input']");
-        }
+    public SelenideElement btnDeclineManagementRequest() {
+        var xpath = "../..//td/div/div/button[@data-test='decline-button']";
+        return table().find(xpath(xpath));
+    }
 
-        public SelenideElement inputCertificateFile() {
-            return $x("//input[@type='file']");
-        }
+    public SelenideElement clickableRequestId(String status, String type, String securityServerId) {
+        var statusXpath = "../..//div[contains(text(),'%s')]";
+        var typeXpath = "../../..//span[text()='%s']";
+        var requestIdXpath = "../../..//div[contains(@class,'request-id')]";
+        return tableRowOf(securityServerId)
+                .find(xpath(String.format(statusXpath, status)))
+                .find(xpath(String.format(typeXpath, type)))
+                .find(xpath(requestIdXpath));
+    }
 
-        public SelenideElement btnViewCertificate() {
-            return $x("//div/div/button[@data-test='view-timestamping-service-certificate']");
+    public class RequestInformation {
+        public SelenideElement requestId() {
+            return $x("//td[@data-test='managementRequestDetails.requestId']");
         }
+        public SelenideElement received() {
+            return $x("//td[@data-test='managementRequestDetails.received']");
+        }
+        public SelenideElement source() {
+            return $x("//td[@data-test='managementRequestDetails.source']");
+        }
+        public SelenideElement status() {
+            return $x("//td[@data-test='managementRequestDetails.status']");
+        }
+        public SelenideElement comments() {
+            return $x("//td[@data-test='managementRequestDetails.comments']");
+        }
+    }
 
-        public SelenideElement btnUploadCertificate() {
-            return $x("//button[@data-test='upload-timestamping-service-certificate']");
+    public class SecurityServerInformation {
+        private SelenideElement securityServerInformation() {
+            return $x("//section[@data-test='managementRequestDetails.securityServerInformation']");
+        }
+        public SelenideElement ownerName() {
+            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerName']";
+            return securityServerInformation().find(xpath(xpath));
+        }
+        public SelenideElement ownerClass() {
+            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerClass']";
+            return securityServerInformation().find(xpath(xpath));
+        }
+        public SelenideElement ownerCode() {
+            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerCode']";
+            return securityServerInformation().find(xpath(xpath));
+        }
+        public SelenideElement serverCode() {
+            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.serverCode']";
+            return securityServerInformation().find(xpath(xpath));
+        }
+        public SelenideElement address() {
+            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.address']";
+            return securityServerInformation().find(xpath(xpath));
+        }
+    }
+
+    public class Certificate {
+        public SelenideElement ca() {
+            return $x("//td[@data-test='managementRequestDetails.ca']");
+        }
+        public SelenideElement serialNumber() {
+            return $x("//td[@data-test='managementRequestDetails.serialNumber']");
+        }
+        public SelenideElement subject() {
+            return $x("//td[@data-test='managementRequestDetails.subject']");
+        }
+        public SelenideElement expires() {
+            return $x("//td[@data-test='managementRequestDetails.expires']");
+        }
+    }
+
+    public class Client {
+        private SelenideElement clientInformation() {
+            return $x("//section[@data-test='managementRequestDetails.clientInformation']");
+        }
+        public SelenideElement ownerName() {
+            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerName']";
+            return clientInformation().find(xpath(xpath));
+        }
+        public SelenideElement ownerClass() {
+            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerClass']";
+            return clientInformation().find(xpath(xpath));
+        }
+        public SelenideElement ownerCode() {
+            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerCode']";
+            return clientInformation().find(xpath(xpath));
+        }
+        public SelenideElement subsystemCode() {
+            var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.subsystemCode']";
+            return clientInformation().find(xpath(xpath));
         }
     }
 }

@@ -47,7 +47,7 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().should(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
 
-        final byte[] certificate = CertificateUtils.generateAuthCert(url);
+        final byte[] certificate = CertificateUtils.generateAuthCert("CN=Subject-" + url);
 
         timestampingServicesPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
         timestampingServicesPageObj.addEditDialog.inputUrl().setValue(url);
@@ -103,7 +103,7 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
     public void userIsAbleChangeTheCertificate(String url) throws Exception {
         timestampingServicesPageObj.addEditDialog.btnUploadCertificate().click();
 
-        final byte[] certificate = CertificateUtils.generateAuthCert(url);
+        final byte[] certificate = CertificateUtils.generateAuthCert("CN=Subject-" + url);
         timestampingServicesPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
 
         commonPageObj.dialog.btnSave().click();

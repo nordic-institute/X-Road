@@ -36,7 +36,7 @@ import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 
-@FeignClient(name = "managementRequestsApi", path = "/api/v1")
+@FeignClient(name = "managementRequestsApi", path = "/api/v1", url = "https://localhost:4000")
 public interface FeignManagementRequestsApi extends ManagementRequestsApi {
 
     /**

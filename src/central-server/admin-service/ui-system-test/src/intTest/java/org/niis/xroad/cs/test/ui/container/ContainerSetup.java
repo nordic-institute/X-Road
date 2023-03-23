@@ -92,7 +92,7 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
         Path csDockerRoot = Paths.get("../../../../Docker/centralserver/");
         Path dockerfilePath = csDockerRoot.resolve("Dockerfile");
 
-        return new ImageFromDockerfile("cs-system-test", true)
+        return new ImageFromDockerfile("cs-system-test", false)
                 .withBuildArg("DIST", "jammy")
                 .withBuildArg("REPO", packageRepo)
                 .withBuildArg("REPO_KEY", packageRepoKey)

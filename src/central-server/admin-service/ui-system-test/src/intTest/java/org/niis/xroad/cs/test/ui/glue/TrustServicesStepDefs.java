@@ -56,7 +56,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         trustServicesPageObj.btnAddCertificationService().click();
 
         certificationServiceName = "e2e-test-cert-service-" + UUID.randomUUID();
-        final byte[] certificate = CertificateUtils.generateAuthCert(certificationServiceName);
+        final byte[] certificate = CertificateUtils.generateAuthCert("CN=Subject-" + certificationServiceName);
 
         testCertificate = CertificateUtils.readCertificate(certificate);
 

@@ -38,6 +38,7 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
     private final SettingsApiKeysPageObj apiKeysPage = new SettingsApiKeysPageObj();
 
     private String createdApiKeyId;
+    private String createdApiKey;
 
     @Step("Create API key button is clicked")
     public void clickCreateApiKey() {
@@ -110,6 +111,17 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
         createdApiKeyId = apiKeysPage.wizard.createdApiKeyId()
                 .shouldBe(Condition.visible)
                 .text();
+    }
+
+    @Step("Get API key")
+    public void getApiKey() {
+        this.createdApiKey = apiKeysPage.wizard.createdApiKey().text();
+    }
+
+    @Step("Authentication header is set to {tokenType}")
+    public void authenticationHeaderIsSet(CommonStepDefs.TokenType type) {
+        type.setToken(this.createdApiKey);
+        putStepData(StepDataKey.TOKEN_TYPE, type);
     }
 
     @Step("Newly created API key is {selenideValidation} in the list")

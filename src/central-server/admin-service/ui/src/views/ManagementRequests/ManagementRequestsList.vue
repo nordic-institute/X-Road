@@ -32,7 +32,7 @@
         <div class="xrd-view-title align-fix">
           {{ $t('tab.main.managementRequests') }}
         </div>
-        <xrd-search v-model="filter.query" class="margin-fix" />
+        <xrd-search v-model="filter.query" class="margin-fix" data-test="management-requests-search"/>
         <xrd-filter class="ml-4 margin-fix" />
       </div>
       <div class="only-pending">

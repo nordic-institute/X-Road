@@ -50,7 +50,7 @@ public class NavigationStepDefs extends BaseUiStepDefs {
 
     @Step("Management requests tab is selected")
     public void managementRequestsTabIsSelected() {
-        commonPageObj.menu.managementRequests().click();
+        commonPageObj.menu.managementRequestsTab().click();
     }
 
     @Step("CentralServer Settings tab is selected")
