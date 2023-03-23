@@ -25,9 +25,11 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.api.dto;
+package org.niis.xroad.cs.test.api;
 
-public enum PossibleAnchorAction {
+import org.niis.xroad.cs.openapi.TrustedAnchorsApi;
+import org.springframework.cloud.openfeign.FeignClient;
 
-    DOWNLOAD,
+@FeignClient(name = "trustedAnchorsApi", path = "/api/v1")
+public interface FeignTrustedAnchorsApi extends TrustedAnchorsApi {
 }

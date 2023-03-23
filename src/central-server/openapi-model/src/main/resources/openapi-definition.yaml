@@ -1410,6 +1410,37 @@ paths:
       summary: CS administrator uploads a new additional trusted anchor
       tags:
         - trusted-anchors
+  /trusted-anchors/preview:
+    post:
+      description: <h3>Administrator uploads a trusted anchor file for preview.</h3>
+      operationId: previewTrustedAnchor
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              description: trusted anchor file
+              format: binary
+              type: string
+        description: the trusted anchor file to validate
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedAnchor'
+          description: the trusted anchor
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: CS administrator uploads a trusted anchor file for preview
+      tags:
+        - trusted-anchors
   /trusted-anchors/{hash}:
     delete:
       description: <h3>Administrator deletes a trusted anchor.</h3>
@@ -4345,13 +4376,6 @@ components:
       example: LOGIN
       format: enum
       type: string
-    PossibleAnchorAction:
-      description: an action to change state or edit anchors # set of values not final or complete
-      enum:
-        - DOWNLOAD
-      example: LOGIN
-      format: enum
-      type: string
     PossibleKeyAction:
       description: an action to change state or edit keys # set of values not final or complete
       enum:
@@ -4702,10 +4726,19 @@ components:
           type: boolean
       type: object
     TrustedAnchor:
-      allOf:
-        - $ref: '#/components/schemas/ModificationTimestamps'
-      description: trusted anchor for globalconf
+      description: trusted anchor
       properties:
+        instance_identifier:
+          description: instance identifier
+          example: CS
+          format: text
+          type: string
+        generated_at:
+          description: timestamp
+          example: '2023-03-17T00:00:00.001Z'
+          format: date-time
+          readOnly: true
+          type: string
         hash:
           description: anchor hash
           example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
@@ -4713,16 +4746,10 @@ components:
           maxLength: 255
           minLength: 1
           type: string
-        possible_actions:
-          description: array containing the possible actions that can be done for this item # potential-common-api
-          items:
-            $ref: '#/components/schemas/PossibleAnchorAction'
-          type: array
       required:
         - hash
         - created_at
         - instance_identifier
-        - possible_actions
       type: object
     User:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'

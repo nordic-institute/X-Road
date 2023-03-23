@@ -54,3 +54,6 @@ spring:
   main:
     lazy-initialization: true
 
+script:
+  external-configuration-verifier:
+    path: /usr/share/xroad/scripts/verify_external_configuration.sh

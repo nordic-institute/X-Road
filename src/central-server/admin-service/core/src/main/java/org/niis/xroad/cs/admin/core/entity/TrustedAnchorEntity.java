@@ -83,6 +83,13 @@ public class TrustedAnchorEntity extends AuditableEntity {
     @Getter
     @Setter
     private Set<AnchorUrlEntity> anchorUrls = new HashSet<>(0);
+
+    public void addAnchorUrl(AnchorUrlEntity anchorUrlEntity) {
+        anchorUrlEntity.setTrustedAnchor(this);
+        anchorUrls.add(anchorUrlEntity);
+        super.preUpdate();
+    }
+
 }
 
 
