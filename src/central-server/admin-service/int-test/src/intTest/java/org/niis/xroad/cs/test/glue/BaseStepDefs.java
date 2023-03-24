@@ -27,10 +27,12 @@ package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.AssertionOperation;
+import com.nortal.test.asserts.JsonPathAssertions;
 import com.nortal.test.asserts.ValidationHelper;
 import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
+import feign.FeignException;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.test.container.service.MockServerService;
 import org.opentest4j.AssertionFailedError;
@@ -102,6 +104,18 @@ public abstract class BaseStepDefs {
 
     protected ValidationHelper validate(Object context) {
         return new ValidationHelper(validationService, context, "Validate response");
+    }
+
+    protected void validateErrorResponse(int expectedStatus, String expectedErrorCode, FeignException feignException) {
+        validate(feignException.contentUTF8())
+                .assertion(new Assertion.Builder()
+                        .message("Verify status code")
+                        .expression("=")
+                        .actualValue(feignException.status())
+                        .expectedValue(expectedStatus)
+                        .build())
+                .assertion(JsonPathAssertions.equalsAssertion(expectedErrorCode, "$.error.code"))
+                .execute();
     }
 
     /**

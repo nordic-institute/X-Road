@@ -102,21 +102,34 @@
       }
     }
   },
-  "backup": {
-    "action": {
-      "restore": {
-        "dialog": {
-          "confirmation": "Are you sure you want to restore from {file}?",
-          "restoringTitle": "Restoring from backup in progress",
-          "title": "Are you sure?"
-        }
+  "backup":{
+    "createBackup": {
+      "button": "Back up config.",
+      "messages": {
+        "success": "Backup {file} successfully created"
       }
     },
-    "backupConfiguration": {
-      "button": "Back up config."
-    },
     "uploadBackup": {
-      "button": "Upload backup"
+      "button": "Upload backup",
+      "confirmationDialog": {
+        "confirmation": "File {name} already exists, are you sure you want to overwrite it?",
+        "title": "File already exists"
+      },
+      "success": "Backup {file} uploaded successfully"
+    },
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "Are you sure you want to delete backup {file}?",
+        "title": "Are you sure?"
+      },
+      "success": "Backup {file} deleted"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "Are you sure you want to restore from {file}?",
+        "title": "Are you sure?"
+      },
+      "success": "Configuration restored from {file}"
     }
   },
   "customValidation": {

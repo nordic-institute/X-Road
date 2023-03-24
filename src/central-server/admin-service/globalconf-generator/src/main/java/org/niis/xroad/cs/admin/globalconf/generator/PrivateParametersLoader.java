@@ -73,12 +73,12 @@ class PrivateParametersLoader {
         configurationAnchor.setInstanceIdentifier(trustedAnchor.getInstanceIdentifier());
         configurationAnchor.setGeneratedAt(trustedAnchor.getGeneratedAt());
         configurationAnchor.setSources(trustedAnchor.getAnchorUrls().stream()
-                .map(this::toCounfigurationSource)
+                .map(this::toConfigurationSource)
                 .collect(toList()));
         return configurationAnchor;
     }
 
-    private PrivateParameters.ConfigurationSource toCounfigurationSource(AnchorUrl anchorUrl) {
+    private PrivateParameters.ConfigurationSource toConfigurationSource(AnchorUrl anchorUrl) {
         var configurationSource = new PrivateParameters.ConfigurationSource();
         configurationSource.setDownloadURL(anchorUrl.getUrl());
         configurationSource.setVerificationCerts(

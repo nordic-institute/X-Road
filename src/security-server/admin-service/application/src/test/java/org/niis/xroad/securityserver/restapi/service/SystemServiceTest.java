@@ -42,6 +42,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
+import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
@@ -210,7 +211,7 @@ public class SystemServiceTest {
     public void replaceAnchorFailVerification() throws Exception {
         Mockito.doThrow(new ConfigurationVerifier.ConfigurationVerificationException(
                 DeviationCodes.ERROR_MISSING_PRIVATE_PARAMS))
-                .when(configurationVerifier).verifyInternalConfiguration(any());
+                .when(configurationVerifier).verifyConfiguration(any(), any());
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         try {
             systemService.replaceAnchor(anchorBytes);

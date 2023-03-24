@@ -28,5 +28,9 @@ package org.niis.xroad.cs.admin.core.repository;
 
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 
+import java.util.Optional;
+
 public interface TrustedAnchorRepository extends GenericRepository<TrustedAnchorEntity, Integer> {
+
+    Optional<TrustedAnchorEntity> findFirstByInstanceIdentifier(String instanceIdentifier);
 }

@@ -24,10 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.restapi.util;
 
-package org.niis.xroad.cs.admin.api.dto;
+import org.apache.commons.io.IOUtils;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.springframework.core.io.Resource;
 
-public enum PossibleAnchorAction {
+import java.io.IOException;
+import java.io.InputStream;
 
-    DOWNLOAD,
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_RESOURCE_READ;
+
+/**
+ * Resource utils
+ */
+public final class ResourceUtils {
+    private ResourceUtils() {
+        // noop
+    }
+
+    /**
+     * Read bytes from {@link Resource}. Also handles closing the stream.
+     * @param resource
+     * @return byte array
+     * @throws BadRequestException
+     */
+    public static byte[] springResourceToBytesOrThrowBadRequest(Resource resource) {
+        byte[] resourceBytes;
+        try (InputStream is = resource.getInputStream()) {
+            resourceBytes = IOUtils.toByteArray(is);
+        } catch (IOException ex) {
+            throw new BadRequestException("cannot read resource", ex,
+                    new ErrorDeviation(ERROR_RESOURCE_READ));
+        }
+        return resourceBytes;
+    }
 }

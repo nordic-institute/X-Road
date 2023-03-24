@@ -67,6 +67,7 @@
           <template #[`item.data-table-select`]="{ isSelected, select }">
             <v-simple-checkbox
               data-test="management-subsystem-checkbox"
+              :ripple="false"
               :value="isSelected"
               @input="select($event)"
             ></v-simple-checkbox>
@@ -105,7 +106,7 @@
         <xrd-button
           :disabled="!selectedSubsystems || selectedSubsystems.length === 0"
           data-test="management-subsystem-select-button"
-          @click="select()"
+          @click="selectSubSystem()"
           >{{ $t('action.select') }}</xrd-button
         >
       </v-card-actions>
@@ -225,7 +226,7 @@ export default Vue.extend({
       this.$emit('cancel');
       this.clearForm();
     },
-    select(): void {
+    selectSubSystem(): void {
       this.$emit('select', this.selectedSubsystems);
       this.clearForm();
     },

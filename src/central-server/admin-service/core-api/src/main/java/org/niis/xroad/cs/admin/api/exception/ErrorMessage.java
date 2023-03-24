@@ -113,6 +113,9 @@ public enum ErrorMessage implements DeviationProvider {
     TOKEN_ACTION_NOT_POSSIBLE("token_action_not_possible", "Token action not possible"),
     TOKEN_FETCH_FAILED("token_fetch_failed", "Error getting tokens"),
 
+    MALFORMED_ANCHOR("malformed_anchor", "Malformed anchor file"),
+    TRUSTED_ANCHOR_VERIFICATION_FAILED("trusted_anchor_verification_failed", "Trusted anchor file verification failed"),
+
     INVALID_PAGINATION_PROPERTIES("invalid_pagination_properties", "Pagination has invalid properties"),
     INVALID_SORTING_PROPERTIES("invalid_sort_properties", "Invalid sort parameter");
 

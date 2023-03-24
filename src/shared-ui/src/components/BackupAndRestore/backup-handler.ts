@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,40 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.util;
 
-import org.apache.commons.io.IOUtils;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.springframework.core.io.Resource;
+import { Values } from "vue-i18n";
 
-import java.io.IOException;
-import java.io.InputStream;
+export interface BackupItem {
+  filename: string;
+  local_conf_present?: boolean;
+}
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_RESOURCE_READ;
+export interface BackupHandler {
+  showError(error: unknown): void;
 
-/**
- * Resource utils
- */
-public final class ResourceUtils {
-    private ResourceUtils() {
-        // noop
-    }
+  showWarning(textKey: string, data?: Values): void;
 
-    /**
-     * Read bytes from {@link Resource}. Also handles closing the stream.
-     * @param resource
-     * @return byte array
-     * @throws BadRequestException
-     */
-    public static byte[] springResourceToBytesOrThrowBadRequest(Resource resource) {
-        byte[] resourceBytes;
-        try (InputStream is = resource.getInputStream()) {
-            resourceBytes = IOUtils.toByteArray(is);
-        } catch (IOException ex) {
-            throw new BadRequestException("cannot read resource", ex,
-                    new ErrorDeviation(ERROR_RESOURCE_READ));
-        }
-        return resourceBytes;
-    }
+  showSuccess(textKey: string, data?: Values): void;
+
+  upload(backupFile: File, ignoreWarnings?: boolean): Promise<BackupItem>;
+
+  create(): Promise<BackupItem>;
+
+  delete(filename: string): Promise<unknown>;
+
+  download(filename: string): Promise<unknown>;
+
+  restore(filename: string): Promise<unknown>;
 }

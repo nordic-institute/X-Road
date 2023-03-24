@@ -1,0 +1,13 @@
+#!/bin/bash
+if [ "$1" = "upgrade" ]; then
+  if dpkg --compare-versions "#LAST_SUPPORTED_VERSION#" gt "$2"; then
+    echo "ERROR: Upgrade supported from #LAST_SUPPORTED_VERSION# or newer" >&2
+    exit 1
+  fi
+fi
+
+# Free potentially occupied ports when upgrading from legacy installation
+if [[ "$1" = "upgrade" ]]; then
+  invoke-rc.d --quiet xroad-jetty stop &>/dev/null || true
+  invoke-rc.d --quiet nginx try-restart &>/dev/null || true
+fi

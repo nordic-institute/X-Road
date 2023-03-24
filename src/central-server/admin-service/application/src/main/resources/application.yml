@@ -51,3 +51,5 @@ script:
     valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.tar$"
   restore-configuration:
     path: /usr/share/xroad/scripts/restore_xroad_center_configuration.sh
+  external-configuration-verifier:
+    path: /usr/share/xroad/scripts/verify_external_configuration.sh
