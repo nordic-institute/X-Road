@@ -28,7 +28,7 @@ package org.niis.xroad.restapi.util;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.common.exception.NotFoundException;
 
 import java.net.IDN;
 import java.net.MalformedURLException;
@@ -38,6 +38,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Date;
+
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ERROR_ID_NOT_A_NUMBER;
 
 /**
  * Format utils
@@ -137,12 +139,12 @@ public final class FormatUtils {
      * @param id as String
      * @return id as Long
      */
-    public static Long parseLongIdOrThrowNotFound(String id) throws ResourceNotFoundException {
+    public static Long parseLongIdOrThrowNotFound(String id) throws NotFoundException {
         Long groupId = null;
         try {
             groupId = Long.valueOf(id);
         } catch (NumberFormatException nfe) {
-            throw new ResourceNotFoundException("bad id", nfe);
+            throw new NotFoundException(ERROR_ID_NOT_A_NUMBER, nfe);
         }
         return groupId;
     }

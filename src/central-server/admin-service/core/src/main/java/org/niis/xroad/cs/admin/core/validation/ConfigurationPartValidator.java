@@ -31,7 +31,7 @@ import ee.ria.xroad.common.conf.globalconfextension.OcspFetchIntervalSchemaValid
 import ee.ria.xroad.common.conf.globalconfextension.OcspNextUpdateSchemaValidator;
 import ee.ria.xroad.common.conf.monitoringconf.MonitoringParametersSchemaValidator;
 
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_MONITORING;

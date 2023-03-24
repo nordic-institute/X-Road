@@ -67,6 +67,6 @@ public class ApiKeyAuthenticationHelper {
                 return apiKeyType;
             }
         }
-        throw new ApiKeyService.ApiKeyNotFoundException("api key not found");
+        throw new ApiKeyService.ApiKeyNotFoundException();
     }
 }

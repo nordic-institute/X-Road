@@ -27,14 +27,14 @@ package org.niis.xroad.restapi.common.backup.service;
 
 
 import com.google.common.collect.Lists;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
-import org.niis.xroad.restapi.common.backup.exception.InvalidFilenameException;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -51,7 +51,10 @@ import static java.time.Instant.ofEpochMilli;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
@@ -61,16 +64,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALRE
  */
 @ExtendWith(MockitoExtension.class)
 class BackupServiceTest {
-
-    @Mock
-    AuditDataHelper auditDataHelper;
-    @Mock
-    BackupRepository backupRepository;
-    @Mock
-    BackupValidator backupValidator;
-
-    @InjectMocks
-    BackupService backupService;
 
     private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.gpg";
 
@@ -84,7 +77,22 @@ class BackupServiceTest {
 
     private static final Long BACKUP_FILE_2_CREATED_AT_MILLIS = 1581477302684L;
 
+    @Mock
+    AuditDataHelper auditDataHelper;
+    @Mock
+    BackupValidator backupValidator;
+
+    BackupRepository backupRepository;
+    BackupService backupService;
+
     private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "content".getBytes());
+
+
+    @BeforeEach
+    void setUp() {
+        backupRepository = spy(new BackupRepository(backupValidator));
+        backupService = new BackupService(backupRepository, auditDataHelper);
+    }
 
     @Test
     void getBackups() {
@@ -116,7 +124,7 @@ class BackupServiceTest {
     }
 
     @Test
-    void deleteBackup() throws BackupFileNotFoundException {
+    void deleteBackup() {
         List<BackupFile> files = createBackupList();
         doAnswer(invocation -> {
             files.remove(0);
@@ -130,13 +138,14 @@ class BackupServiceTest {
     @Test
     void deleteNonExistingBackup() {
         assertThatThrownBy(() -> backupService.deleteBackup("test_file.tar"))
-                .isInstanceOf(BackupFileNotFoundException.class);
+                .isInstanceOf(NotFoundException.class);
     }
 
     @Test
     void downloadBackup() throws Exception {
         byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
-        when(backupRepository.readBackupFile(BACKUP_FILE_1_NAME)).thenReturn(bytes);
+        doReturn(bytes).when(backupRepository).readBackupFile(BACKUP_FILE_1_NAME);
+
         createBackupList();
 
         byte[] response = backupService.readBackupFile(BACKUP_FILE_1_NAME);
@@ -146,7 +155,7 @@ class BackupServiceTest {
     @Test
     void downloadNonExistingBackup() {
         assertThatThrownBy(() -> backupService.readBackupFile("test_file.tar"))
-                .isInstanceOf(BackupFileNotFoundException.class);
+                .isInstanceOf(NotFoundException.class);
     }
 
 
@@ -154,9 +163,8 @@ class BackupServiceTest {
     void uploadBackup() throws Exception {
         MultipartFile multipartFile = createMultipartFile(BACKUP_FILE_1_NAME);
 
-        when(backupValidator.isValidBackupFilename(BACKUP_FILE_1_NAME)).thenReturn(true);
-        when(backupRepository.writeBackupFile(BACKUP_FILE_1_NAME, multipartFile.getBytes()))
-                .thenReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
+        doReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC))
+                .when(backupRepository).writeBackupFile(BACKUP_FILE_1_NAME, multipartFile.getBytes());
 
         BackupFile backupFile = backupService.uploadBackup(true, multipartFile.getOriginalFilename(),
                 multipartFile.getBytes());
@@ -171,14 +179,14 @@ class BackupServiceTest {
     void uploadBackupWithInvalidFilename() {
         assertThatThrownBy(() -> backupService.uploadBackup(true, mockMultipartFile.getOriginalFilename(),
                 mockMultipartFile.getBytes()))
-                .isInstanceOf(InvalidFilenameException.class);
+                .isInstanceOf(ValidationFailureException.class);
     }
 
     @Test
     void uploadBackupFileAlreadyExistsNoOverwrite() {
         MultipartFile multipartFile = createMultipartFile(BACKUP_FILE_1_NAME);
-        when(backupRepository.fileExists(any(String.class))).thenReturn(true);
-        when(backupValidator.isValidBackupFilename(BACKUP_FILE_1_NAME)).thenReturn(true);
+
+        doReturn(true).when(backupRepository).fileExists(anyString());
 
         assertThatThrownBy(() -> backupService.uploadBackup(false, multipartFile.getOriginalFilename(),
                 multipartFile.getBytes()))

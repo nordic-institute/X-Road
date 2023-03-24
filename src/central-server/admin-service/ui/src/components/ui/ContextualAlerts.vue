@@ -62,7 +62,7 @@
               </div>
 
               <!-- Special case for pin code validation -->
-              <div v-if="notification.errorCode === 'weak_pin'">
+              <div v-if="notification.errorCode === 'token_weak_pin'">
                 <div>
                   {{
                     $t(`error_code.${notification.metaData[0]}`) +

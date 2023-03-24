@@ -49,6 +49,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
     /**
      * no args
      */
+    @Deprecated
     public DeviationAwareRuntimeException() {
         super();
         this.errorDeviation = null;
@@ -58,6 +59,7 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
     /**
      * @param msg
      */
+    @Deprecated
     public DeviationAwareRuntimeException(String msg) {
         super(msg);
         this.errorDeviation = null;
@@ -72,14 +74,6 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
         super(msg);
         this.errorDeviation = errorDeviation;
         this.warningDeviations = null;
-    }
-
-    /**
-     * @param msg
-     * @param t
-     */
-    public DeviationAwareRuntimeException(String msg, Throwable t) {
-        this(msg, t, null, null);
     }
 
     /**
@@ -119,13 +113,6 @@ public class DeviationAwareRuntimeException extends RuntimeException implements 
             Collection<WarningDeviation> warningDeviations) {
         this.errorDeviation = errorDeviation;
         this.warningDeviations = warningDeviations;
-    }
-
-    /**
-     * @param t
-     */
-    public DeviationAwareRuntimeException(Throwable t) {
-        this(t, null, null);
     }
 
     /**

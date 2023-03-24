@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.cs.admin.api.exception.InvalidCharactersException;
-import org.niis.xroad.cs.admin.api.exception.WeakPinException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 
 public interface TokenPinValidator {
 
-    void validateSoftwareTokenPin(char[] softwareTokenPin) throws InvalidCharactersException, WeakPinException;
+    void validateSoftwareTokenPin(char[] softwareTokenPin) throws ValidationFailureException;
 }

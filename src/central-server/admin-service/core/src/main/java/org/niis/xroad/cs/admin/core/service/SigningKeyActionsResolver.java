@@ -27,9 +27,9 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.PossibleKeyAction;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;

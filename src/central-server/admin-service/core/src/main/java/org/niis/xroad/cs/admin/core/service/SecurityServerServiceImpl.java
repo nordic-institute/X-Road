@@ -28,8 +28,8 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
@@ -41,7 +41,6 @@ import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.GroupMemberService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
@@ -62,13 +61,14 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.AUTH_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SS_AUTH_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ADDRESS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
@@ -98,8 +98,8 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     }
 
     @Override
-    public Option<SecurityServer> find(SecurityServerId id) {
-        return securityServerRepository.findBy(id)
+    public Optional<SecurityServer> find(SecurityServerId id) {
+        return securityServerRepository.findBy(id).toJavaOptional()
                 .map(securityServerMapper::toTarget);
     }
 
@@ -118,9 +118,9 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     }
 
     @Override
-    public Option<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode) {
+    public Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode) {
         //TODO we should map back to entities just for lookups.
-        return securityServerRepository.findByOwnerIdAndServerCode(owner.getId(), serverCode)
+        return securityServerRepository.findByOwnerIdAndServerCode(owner.getId(), serverCode).toJavaOptional()
                 .map(securityServerMapper::toTarget);
     }
 
@@ -149,14 +149,17 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     }
 
     @Override
-    public Option<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress) {
+    public Optional<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress) {
         auditDataHelper.put(SERVER_CODE, serverId.getServerCode());
         auditDataHelper.put(OWNER_CODE, serverId.getOwner().getMemberCode());
         auditDataHelper.put(OWNER_CLASS, serverId.getOwner().getMemberClass());
         auditDataHelper.put(ADDRESS, newAddress);
 
-        return securityServerRepository.findBy(serverId)
-                .peek(securityServer -> securityServer.setAddress(newAddress))
+        return securityServerRepository.findBy(serverId).toJavaOptional()
+                .map(securityServer -> {
+                    securityServer.setAddress(newAddress);
+                    return securityServer;
+                })
                 .map(securityServerMapper::toTarget);
     }
 
@@ -218,7 +221,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
 
         final AuthCertEntity authCertificate = authCertRepository.findById(certificateId)
                 .filter(authCertEntity -> authCertEntity.getSecurityServer().getServerId().equals(serverId))
-                .orElseThrow(() -> new NotFoundException(AUTH_CERTIFICATE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SS_AUTH_CERTIFICATE_NOT_FOUND));
 
         auditDataHelper.putCertificateHash(authCertificate.getCert());
 

@@ -30,11 +30,13 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Origin;
-import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.GroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
@@ -64,12 +66,12 @@ import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITT
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_AUTH_CERTIFICATE;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_EXISTS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_SECURITY_SERVER_EXISTS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_EXISTS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_AUTH_CERTIFICATE;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_STATE_FOR_APPROVAL;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SECURITY_SERVER_EXISTS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_OWNER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 
 /**
@@ -105,14 +107,14 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
 
         if (CENTER.equals(origin)) {
             members.findOneBy(serverId.getOwner())
-                    .getOrElseThrow(() -> new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND));
+                    .getOrElseThrow(() -> new NotFoundException(MR_SERVER_OWNER_NOT_FOUND));
         }
 
         final byte[] validatedCert;
         try {
             final X509Certificate authCert = readCertificate(request.getAuthCert());
             if (!isAuthCert(authCert)) {
-                throw new ValidationFailureException(INVALID_AUTH_CERTIFICATE);
+                throw new ValidationFailureException(MR_INVALID_AUTH_CERTIFICATE);
             }
 
             //verify that certificate is issued by a known CA
@@ -123,11 +125,11 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
             authCert.checkValidity();
             validatedCert = authCert.getEncoded();
         } catch (Exception e) {
-            throw new ValidationFailureException(INVALID_AUTH_CERTIFICATE, e);
+            throw new ValidationFailureException(MR_INVALID_AUTH_CERTIFICATE, e);
         }
 
         if (authCerts.existsByCert(validatedCert)) {
-            throw new DataIntegrityException(MANAGEMENT_REQUEST_SECURITY_SERVER_EXISTS);
+            throw new DataIntegrityException(MR_SECURITY_SERVER_EXISTS);
         }
 
         List<AuthenticationCertificateRegistrationRequestEntity> pendingRequests =
@@ -149,10 +151,10 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
                     authCertRegRequest.getRequestProcessing().setStatus(SUBMITTED_FOR_APPROVAL);
                     break;
                 }
-                throw new DataIntegrityException(MANAGEMENT_REQUEST_EXISTS,
+                throw new DataIntegrityException(MR_EXISTS,
                         valueOf(existingRequest.getId()));
             default:
-                throw new DataIntegrityException(MANAGEMENT_REQUEST_EXISTS);
+                throw new DataIntegrityException(MR_EXISTS);
         }
 
 
@@ -184,11 +186,11 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     public AuthenticationCertificateRegistrationRequest approve(AuthenticationCertificateRegistrationRequest request) {
         Integer requestId = request.getId();
         final AuthenticationCertificateRegistrationRequestEntity requestEntity = authCertReqRequests.findById(requestId)
-                .orElseThrow(() -> new ValidationFailureException(MANAGEMENT_REQUEST_NOT_FOUND, valueOf(requestId)));
+                .orElseThrow(() -> new ValidationFailureException(MR_NOT_FOUND, valueOf(requestId)));
 
         //check state
         if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(requestEntity.getProcessingStatus())) {
-            throw new ValidationFailureException(MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL,
+            throw new ValidationFailureException(MR_INVALID_STATE_FOR_APPROVAL,
                     valueOf(requestEntity.getId()));
         }
 
@@ -197,8 +199,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
         //check prerequisites (member exists)
         XRoadMemberEntity owner = members
                 .findOneBy(serverId.getOwner())
-                .getOrElseThrow(() ->
-                        new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_OWNER_NOT_FOUND));
+                .getOrElseThrow(() -> new SecurityServerNotFoundException(serverId));
 
         //create new security server if necessary
         final String serverCode = serverId.getServerCode();

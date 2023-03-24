@@ -30,12 +30,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
-import org.niis.xroad.cs.admin.api.exception.EntityExistsException;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientNameEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
@@ -87,7 +87,7 @@ public class MemberServiceImpl implements MemberService {
 
         final boolean exists = xRoadMemberRepository.findOneBy(request.getClientId()).isDefined();
         if (exists) {
-            throw new EntityExistsException(MEMBER_EXISTS, request.getClientId().toShortString());
+            throw new DataIntegrityException(MEMBER_EXISTS, request.getClientId().toShortString());
         }
 
         var persistedEntity = saveMember(request);

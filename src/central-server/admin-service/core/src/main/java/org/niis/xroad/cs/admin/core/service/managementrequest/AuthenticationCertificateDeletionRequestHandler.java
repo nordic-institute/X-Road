@@ -27,8 +27,9 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
-import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
@@ -43,8 +44,7 @@ import javax.transaction.Transactional;
 
 import java.util.Arrays;
 
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_AUTH_CERTIFICATE;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_AUTH_CERTIFICATE;
 
 /**
  * Service for handling authentication certificate deletion requests
@@ -67,12 +67,11 @@ public class AuthenticationCertificateDeletionRequestHandler implements
         requestEntity.setAuthCert(request.getAuthCert());
 
         if (!authCerts.existsByCert(request.getAuthCert())) {
-            throw new DataIntegrityException(INVALID_AUTH_CERTIFICATE);
+            throw new DataIntegrityException(MR_INVALID_AUTH_CERTIFICATE);
         }
 
         SecurityServerEntity server = servers.findBy(serverId)
-                .getOrElseThrow(() ->
-                        new DataIntegrityException(SECURITY_SERVER_NOT_FOUND));
+                .getOrElseThrow(() -> new SecurityServerNotFoundException(serverId));
 
         server.getAuthCerts()
                 .removeIf(item -> Arrays.equals(item.getCert(), request.getAuthCert()));

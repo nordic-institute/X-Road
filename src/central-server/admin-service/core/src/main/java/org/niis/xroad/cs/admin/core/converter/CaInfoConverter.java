@@ -29,8 +29,8 @@ package org.niis.xroad.cs.admin.core.converter;
 import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.springframework.stereotype.Component;
 

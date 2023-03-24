@@ -27,8 +27,7 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
@@ -123,7 +122,7 @@ public class SecurityServersApiController implements SecurityServersApi {
         return securityServerService.find(securityServerIdConverter.convertId(id))
                 .map(securityServerDtoConverter::toDto)
                 .map(ResponseEntity::ok)
-                .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND, id));
     }
 
     @Override
@@ -138,6 +137,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVER_DETAILS')")
     public ResponseEntity<List<ClientDto>> getSecurityServerClients(String id) {
+
         return ok(securityServerService.findClients(securityServerIdConverter.convertId(id))
                 .stream().map(flattenedSecurityServerClientViewDtoConverter::toDto)
                 .collect(toList()));
@@ -151,6 +151,6 @@ public class SecurityServersApiController implements SecurityServersApi {
         return securityServerService.updateSecurityServerAddress(securityServerId, securityServerAddress.getServerAddress())
                 .map(securityServerDtoConverter::toDto)
                 .map(ResponseEntity::ok)
-                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.SECURITY_SERVER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND, id));
     }
 }

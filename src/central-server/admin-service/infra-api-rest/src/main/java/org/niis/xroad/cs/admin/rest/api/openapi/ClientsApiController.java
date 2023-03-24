@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
@@ -41,7 +42,6 @@ import org.niis.xroad.cs.openapi.model.ClientTypeDto;
 import org.niis.xroad.cs.openapi.model.PagedClientsDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -98,11 +98,9 @@ public class ClientsApiController implements ClientsApi {
                         .setClientType(clientTypeDtoConverter.fromDto(clientTypeDto));
         if (StringUtils.isNotEmpty(encodedSecurityServerId)) {
             SecurityServerId id = securityServerIdConverter.convert(encodedSecurityServerId);
-            securityServerService.find(id)
-                    .onEmpty(() -> {
-                        throw new BadRequestException("Security server does not exist");
-                    })
-                    .map(securityServer -> params.setSecurityServerId(securityServer.getId()));
+            var securityServer = securityServerService.find(id)
+                    .orElseThrow(() -> new SecurityServerNotFoundException(id));
+            params.setSecurityServerId(securityServer.getId());
         }
         Page<ClientDto> page = clientService.find(params, pageRequest)
                 .map(flattenedSecurityServerClientViewDtoConverter::toDto);

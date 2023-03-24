@@ -40,12 +40,12 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.niis.xroad.cs.admin.api.exception.ConfigurationPartException;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
@@ -358,7 +358,7 @@ class ConfigurationServiceImplTest {
                 assertThrows(CodedException.class, () -> configurationService.uploadConfigurationPart(INTERNAL,
                         "NON-EXISTING", "fn", FILE_DATA));
 
-                assertThrows(ConfigurationPartException.class, () -> configurationService.uploadConfigurationPart(EXTERNAL,
+                assertThrows(ServiceException.class, () -> configurationService.uploadConfigurationPart(EXTERNAL,
                         "TEST-CONFIGURATION-PART", "fn", FILE_DATA));
             }
         }

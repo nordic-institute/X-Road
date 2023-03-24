@@ -39,6 +39,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
@@ -63,7 +64,6 @@ import org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -210,7 +210,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
             Executable testable = () -> converter.toDto(illegalRequest);
 
-            BadRequestException actualThrown = assertThrows(BadRequestException.class, testable);
+            ValidationFailureException actualThrown = assertThrows(ValidationFailureException.class, testable);
             assertEquals("Unknown request type", actualThrown.getMessage());
             inOrder(illegalRequest).verifyNoMoreInteractions();
         }

@@ -34,15 +34,12 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.InitialServerConfDto;
 import org.niis.xroad.cs.admin.api.dto.InitializationStatusDto;
 import org.niis.xroad.cs.admin.api.dto.TokenInitStatus;
-import org.niis.xroad.cs.admin.api.exception.InvalidCharactersException;
-import org.niis.xroad.cs.admin.api.exception.InvalidInitParamsException;
-import org.niis.xroad.cs.admin.api.exception.ServerAlreadyFullyInitializedException;
-import org.niis.xroad.cs.admin.api.exception.SoftwareTokenInitException;
-import org.niis.xroad.cs.admin.api.exception.WeakPinException;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
@@ -63,15 +60,18 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_ALREADY_INITIALIZED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_INVALID_PARAMS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SIGNER_PIN_POLICY_FAILED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SOFTWARE_TOKEN_FAILED;
 
 @SuppressWarnings("checkstyle:TodoComment")
 @Slf4j
 @Service
-@Transactional(rollbackOn = WeakPinException.class)
+@Transactional(rollbackOn = ValidationFailureException.class)
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class InitializationServiceImpl implements InitializationService {
-
     private final SignerProxyFacade signerProxyFacade;
     private final GlobalGroupRepository globalGroupRepository;
     private final SystemParameterService systemParameterService;
@@ -105,10 +105,8 @@ public class InitializationServiceImpl implements InitializationService {
         return initStatusInfo;
     }
 
-
-    public void initialize(InitialServerConfDto configDto)
-            throws ServerAlreadyFullyInitializedException, SoftwareTokenInitException, InvalidCharactersException,
-            WeakPinException, InvalidInitParamsException {
+    @Override
+    public void initialize(InitialServerConfDto configDto) {
 
         log.debug("initializing server with {}", configDto);
 
@@ -162,15 +160,12 @@ public class InitializationServiceImpl implements InitializationService {
             } catch (Exception e) {
                 if (e instanceof CodedException
                         && ((CodedException) e).getFaultCode().contains(ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE)) {
-                    log.warn(new StringBuilder().append("Signer saw Token pin policy failure, ")
-                                    .append("remember to restart also the central server after ")
-                                    .append("configuring policy enforcement")
-                                    .toString(),
-                            e);
-                    throw new WeakPinException("Token pin policy failure at Signer");
+                    log.warn("Signer saw Token pin policy failure, remember to restart also the central server after "
+                            + "configuring policy enforcement", e);
+                    throw new ValidationFailureException(INIT_SIGNER_PIN_POLICY_FAILED);
                 }
                 log.warn("Software token initialization failed", e);
-                throw new SoftwareTokenInitException("Software token initialization failed", e);
+                throw new DataIntegrityException(INIT_SOFTWARE_TOKEN_FAILED, e);
             }
         }
     }
@@ -178,14 +173,11 @@ public class InitializationServiceImpl implements InitializationService {
     private void validateConfigParameters(InitialServerConfDto configDto,
                                           boolean isSWTokenInitialized,
                                           boolean isServerAddressInitialized,
-                                          boolean isInstanceIdentifierInitialized)
-            throws ServerAlreadyFullyInitializedException, InvalidInitParamsException {
+                                          boolean isInstanceIdentifierInitialized) {
 
 
         if (isSWTokenInitialized && isServerAddressInitialized && isInstanceIdentifierInitialized) {
-            throw new ServerAlreadyFullyInitializedException(
-                    "Central server Initialization failed, already fully initialized"
-            );
+            throw new DataIntegrityException(INIT_ALREADY_INITIALIZED);
         }
         List<String> errorMetadata = new ArrayList<>();
         if (isSWTokenInitialized && !configDto.getSoftwareTokenPin().isEmpty()) {
@@ -208,8 +200,7 @@ public class InitializationServiceImpl implements InitializationService {
         }
         if (!errorMetadata.isEmpty()) {
             log.debug("collected errors {}", String.join(", ", errorMetadata));
-            throw new InvalidInitParamsException("Empty, missing or redundant parameters provided for initialization",
-                    errorMetadata);
+            throw new ValidationFailureException(INIT_INVALID_PARAMS, errorMetadata);
         }
     }
 

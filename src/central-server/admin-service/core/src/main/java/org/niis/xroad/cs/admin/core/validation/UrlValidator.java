@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.admin.core.validation;
 
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.springframework.stereotype.Component;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_URL;

@@ -70,8 +70,10 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_UPLOAD_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERIC_INTERNAL_ERROR;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MALFORMED_ANCHOR;
+import static org.niis.xroad.restapi.exceptions.ErrorDeviation.newError;
 
 /**
  * Service that handles system services
@@ -198,7 +200,7 @@ public class SystemService {
         } catch (IllegalArgumentException e) {
             throw new InvalidDistinguishedNameException(e);
         } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | OperatorCreationException e) {
-            throw new DeviationAwareRuntimeException(e);
+            throw new DeviationAwareRuntimeException(e, newError(ERROR_GENERIC_INTERNAL_ERROR));
         }
         return csrBytes;
     }

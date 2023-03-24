@@ -26,37 +26,37 @@
  */
 package org.niis.xroad.restapi.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.io.IOUtils;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_RESOURCE_READ;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ERROR_RESOURCE_READ;
+
 
 /**
  * Resource utils
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ResourceUtils {
-    private ResourceUtils() {
-        // noop
-    }
 
     /**
      * Read bytes from {@link Resource}. Also handles closing the stream.
-     * @param resource
+     *
+     * @param resource resource
      * @return byte array
-     * @throws BadRequestException
+     * @throws org.niis.xroad.common.exception.ValidationFailureException
      */
     public static byte[] springResourceToBytesOrThrowBadRequest(Resource resource) {
         byte[] resourceBytes;
         try (InputStream is = resource.getInputStream()) {
             resourceBytes = IOUtils.toByteArray(is);
         } catch (IOException ex) {
-            throw new BadRequestException("cannot read resource", ex,
-                    new ErrorDeviation(ERROR_RESOURCE_READ));
+            throw new ValidationFailureException(ERROR_RESOURCE_READ, ex);
         }
         return resourceBytes;
     }

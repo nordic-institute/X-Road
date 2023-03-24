@@ -27,7 +27,7 @@ Feature: Initialization API
       | $instanceIdentifier      | E2E_CS  |
       | $centralServerAddress    | e2e-cs  |
     When Server is initialized with address "e2e-cs", instance-identifier "E2E_CS", token pin "1234-VALID"
-    Then Response is of status code 400 and error code "invalid_init_params"
+    Then Response is of status code 400 and error code "init_invalid_params"
 
   @ResetDB
   @Modifying
@@ -56,7 +56,7 @@ Feature: Initialization API
     Then Response is of status code 400 and error code "<$errorCode>"
     Examples:
       | $tokenPin  | $instanceIdentifier  | $centralServerAddress   | $errorCode         |
-      | 12         | E2E_CS               | e2e-cs                  | weak_pin           |
+      | 12         | E2E_CS               | e2e-cs                  | token_weak_pin           |
       |            | E2E_CS               | e2e-cs                  | validation_failure |
       | 1234-VALID | INSTANCE::::%INVALID | e2e-cs                  | validation_failure |
       | 1234-VALID |                      | e2e-cs                  | validation_failure |

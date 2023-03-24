@@ -33,12 +33,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
-import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.GroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
@@ -74,12 +74,12 @@ import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.APPROVE
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_CLIENT_ALREADY_OWNER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_EXISTS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_OWNER_MUST_BE_CLIENT;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_OWNER_MUST_BE_MEMBER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_SERVER_CODE_EXISTS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_SERVER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_CLIENT_ALREADY_OWNER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_EXISTS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_OWNER_MUST_BE_CLIENT;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_OWNER_MUST_BE_MEMBER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_CODE_EXISTS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 
 @ExtendWith(MockitoExtension.class)
@@ -163,7 +163,7 @@ class OwnerChangeRequestHandlerTest {
 
         assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
                 .isInstanceOf(DataIntegrityException.class)
-                .hasMessage(MANAGEMENT_REQUEST_EXISTS.getDescription());
+                .hasMessage(MR_EXISTS.getDescription());
     }
 
     @Test
@@ -177,7 +177,7 @@ class OwnerChangeRequestHandlerTest {
 
         assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
                 .isInstanceOf(ValidationFailureException.class)
-                .hasMessage(MANAGEMENT_REQUEST_OWNER_MUST_BE_MEMBER.getDescription());
+                .hasMessage(MR_OWNER_MUST_BE_MEMBER.getDescription());
     }
 
     @Test
@@ -192,7 +192,7 @@ class OwnerChangeRequestHandlerTest {
 
         assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
                 .isInstanceOf(DataIntegrityException.class)
-                .hasMessage(MANAGEMENT_REQUEST_SERVER_NOT_FOUND.getDescription());
+                .hasMessage(MR_SERVER_NOT_FOUND.getDescription());
     }
 
     @Test
@@ -209,7 +209,7 @@ class OwnerChangeRequestHandlerTest {
 
         assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
                 .isInstanceOf(ValidationFailureException.class)
-                .hasMessage(MANAGEMENT_REQUEST_OWNER_MUST_BE_CLIENT.getDescription());
+                .hasMessage(MR_OWNER_MUST_BE_CLIENT.getDescription());
     }
 
     @Test
@@ -232,7 +232,7 @@ class OwnerChangeRequestHandlerTest {
 
         assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
                 .isInstanceOf(ValidationFailureException.class)
-                .hasMessage(MANAGEMENT_REQUEST_CLIENT_ALREADY_OWNER.getDescription());
+                .hasMessage(MR_CLIENT_ALREADY_OWNER.getDescription());
     }
 
     @Test
@@ -258,7 +258,7 @@ class OwnerChangeRequestHandlerTest {
 
         assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
                 .isInstanceOf(DataIntegrityException.class)
-                .hasMessage(MANAGEMENT_REQUEST_SERVER_CODE_EXISTS.getDescription());
+                .hasMessage(MR_SERVER_CODE_EXISTS.getDescription());
     }
 
     private ServerClientEntity mockServerClientEntity(MemberIdEntity memberId) {

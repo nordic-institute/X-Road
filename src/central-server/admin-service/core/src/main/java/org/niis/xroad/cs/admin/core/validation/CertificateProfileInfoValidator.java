@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.core.validation;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_PROFILE_INFO_CLASS_NOT_FOUND;
 

@@ -32,13 +32,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
-import org.niis.xroad.cs.admin.api.exception.UncheckedServiceException;
 
 import java.security.cert.CertificateEncodingException;
 import java.util.Arrays;
@@ -97,7 +97,7 @@ public class ManagementRequestServiceImplTest {
         when(clientDeletionRequestHandler.narrow(any())).thenReturn(Option.none());
         when(ownerChangeRequestHandler.narrow(any())).thenReturn(Option.none());
 
-        assertThrows(UncheckedServiceException.class, () -> service.add(new IncorrectRequest()));
+        assertThrows(ServiceException.class, () -> service.add(new IncorrectRequest()));
 
         verify(certificateRegistrationRequestHandler, never()).add(any());
         verify(clientRegistrationRequestHandler, never()).add(any());
