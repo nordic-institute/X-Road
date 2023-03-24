@@ -25,68 +25,34 @@
    THE SOFTWARE.
  -->
 <template>
-  <div id="anchor" class="mt-4">
-    <v-card flat>
-      <div class="card-top">
-        <div class="card-main-title">{{ $t('globalConf.anchor.title') }}</div>
-        <div class="card-corner-button pr-4">
-          <xrd-button
-            v-if="showRecreateAnchorButton"
-            data-test="re-create-anchor-button"
-            :loading="loading"
-            outlined
-            class="mr-4"
-            @click="recreateConfigurationAnchor()"
-          >
-            <xrd-icon-base class="xrd-large-button-icon">
-              <XrdIconAdd />
-            </xrd-icon-base>
+  <configuration-anchor-item  :anchor="anchor" :loading="loading">
+    <xrd-button
+      v-if="showRecreateAnchorButton"
+      data-test="re-create-anchor-button"
+      :loading="loading"
+      outlined
+      class="mr-4"
+      @click="recreateConfigurationAnchor()"
+    >
+      <xrd-icon-base class="xrd-large-button-icon">
+        <XrdIconAdd />
+      </xrd-icon-base>
 
-            {{ $t('globalConf.anchor.recreate') }}
-          </xrd-button>
-          <xrd-button
-            v-if="showDownloadAnchorButton"
-            data-test="download-anchor-button"
-            :loading="loading"
-            outlined
-            @click="downloadConfigurationAnchor()"
-          >
-            <xrd-icon-base class="xrd-large-button-icon">
-              <XrdIconDownload />
-            </xrd-icon-base>
-            {{ $t('globalConf.anchor.download') }}
-          </xrd-button>
-        </div>
-      </div>
-      <v-card-text class="px-0">
-        <v-data-table
-          v-if="anchors"
-          :headers="headers"
-          :items="anchors"
-          :items-per-page="-1"
-          :loading="loading"
-          item-key="hash"
-          hide-default-footer
-          class="anchors-table"
-        >
-          <template #[`item.hash`]="{ item }">
-            <xrd-icon-base class="internal-conf-icon">
-              <XrdIconCertificate />
-            </xrd-icon-base>
-            <span data-test="anchor-hash">{{ item.hash }}</span>
-          </template>
-          <template #[`item.created_at`]="{ item }">
-            <span data-test="anchor-created-at">{{
-              item.created_at | formatDateTimeSeconds
-            }}</span>
-          </template>
-          <template #footer>
-            <div class="custom-footer"></div>
-          </template>
-        </v-data-table>
-      </v-card-text>
-    </v-card>
-  </div>
+      {{ $t('globalConf.anchor.recreate') }}
+    </xrd-button>
+    <xrd-button
+      v-if="showDownloadAnchorButton"
+      data-test="download-anchor-button"
+      :loading="loading"
+      outlined
+      @click="downloadConfigurationAnchor()"
+    >
+      <xrd-icon-base class="xrd-large-button-icon">
+        <XrdIconDownload />
+      </xrd-icon-base>
+      {{ $t('globalConf.anchor.download') }}
+    </xrd-button>
+  </configuration-anchor-item>
 </template>
 
 <script lang="ts">
@@ -95,12 +61,16 @@ import { notificationsStore } from '@/store/modules/notifications';
 import { userStore } from '@/store/modules/user';
 import Vue from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { ConfigurationAnchor, ConfigurationType } from '@/openapi-types';
+import { ConfigurationType } from '@/openapi-types';
 import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
 import { Prop } from 'vue/types/options';
 import { DataTableHeader } from 'vuetify';
+import ConfigurationAnchorItem, {
+  Anchor,
+} from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
 
 export default Vue.extend({
+  components: { ConfigurationAnchorItem },
   props: {
     configurationType: {
       type: String as Prop<ConfigurationType>,
@@ -115,11 +85,14 @@ export default Vue.extend({
   computed: {
     ...mapStores(useConfigurationSourceStore),
     ...mapState(userStore, ['hasPermission']),
-    anchors(): ConfigurationAnchor[] {
+    anchor(): Anchor | null {
+      const title = this.$t('globalConf.anchor.title').toString();
       const anchor = this.configurationSourceStore.getAnchor(
         this.configurationType,
       );
-      return anchor.hash ? [anchor] : [];
+      return anchor.hash
+        ? { hash: anchor.hash, createdAt: anchor.created_at, title }
+        : null;
     },
     headers(): DataTableHeader[] {
       return [
