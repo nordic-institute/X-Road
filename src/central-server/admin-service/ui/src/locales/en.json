@@ -102,7 +102,7 @@
       }
     }
   },
-  "backup":{
+  "backup": {
     "createBackup": {
       "button": "Back up config.",
       "messages": {
@@ -187,7 +187,6 @@
     "no_configuration_signing_keys_configured": "No configuration signing keys configured",
     "ocsp_responder_not_found": "OCSP Responder not found",
     "owners_global_group_cannot_be_deleted": "Cannot perform delete action on server owners group",
-    "security_server_not_found": "Security server not found",
     "signer_proxy_error": "Signer proxy exception",
     "signing_key_action_not_possible": "Singing key action not possible",
     "signing_key_not_found": "Signing key not found",
@@ -207,7 +206,31 @@
     "token_pin_final_try": "Tries left: 1",
     "token_pin_locked": "Token PIN locked",
     "token_weak_pin": "The provided pin code was too weak",
-    "unknown_configuration_part": "Unknown configuration part"
+    "unknown_configuration_part": "Unknown configuration part",
+    "malformed_anchor": "Malformed anchor file",
+    "trusted_anchor_verification_failed": "Trusted anchor verification failed",
+    "internal_error": "Internal error. See server logs for more details",
+    "invalid_parameters": "Validation failure",
+    "security_server_not_found": "Security server not found",
+    "invalid_encoded_id": "Invalid encoded id",
+    "id_not_a_number": "Id is not a number",
+    "api_key_not_found": "Api key not found",
+    "invalid_role": "Invalid role",
+    "invalid_filename": "Invalid filename",
+    "invalid_backup_file": "Invalid backup file",
+    "backup_file_not_found": "Backup was not found",
+    "backup_generation_failed": "Failed to generate backup",
+    "generate_backup_interrupted": "Backup generation has been interrupted",
+    "restore_process_failed": "Failed to generate backup",
+    "backup_restore_interrupted": "Backup restoration has been interrupted",
+    "backup_deletion_failed": "Failed to delete backup",
+    "resource_read_failed": "Failed to read resource",
+    "conf_verification.anchor_not_for_external_source": "Configuration verification failed: anchor_not_for_external_source",
+    "conf_verification.missing_private_params": "Configuration verification failed: missing_private_params",
+    "conf_verification.other": "Configuration verification failed: other",
+    "conf_verification.outdated": "Configuration verification failed: outdated",
+    "conf_verification.signature_invalid": "Configuration verification failed: signature_invalid",
+    "conf_verification.unreachable": "Configuration verification failed: unreachable"
   },
   "fields": {
     "init": {
@@ -421,7 +444,7 @@
       }
     }
   },
-  "cert" : {
+  "cert": {
     "certificate": "Certificate",
     "hashInfo": "Hash (SHA-1)",
     "rsaExp": "RSA Public Key Exponent",
@@ -457,7 +480,7 @@
     "pending": "Pending",
     "rejected": "Rejected",
     "revoked": "Revoked",
-    "unknown" : "Unknown",
+    "unknown": "Unknown",
     "removeCertificate": "Remove Certificate",
     "removeClient": "Remove Client",
     "securityServerId": "Server Identifier",
@@ -684,7 +707,7 @@
       "addedSuccessfully": "Timestamping service added successfully"
     },
     "trustService": {
-      "details" : {
+      "details": {
         "subjectDistinguishedName": "Subject distinguished name",
         "issuerDistinguishedName": "Issuer distinguished name"
       },
@@ -793,5 +816,5 @@
     "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
     "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
   },
-  "validation.is":"The {_field_} field must have a value of \"{other}\""
+  "validation.is": "The {_field_} field must have a value of \"{other}\""
 }
