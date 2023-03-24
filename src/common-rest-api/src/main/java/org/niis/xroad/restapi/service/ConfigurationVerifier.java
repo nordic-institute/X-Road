@@ -31,15 +31,16 @@ import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.restapi.exceptions.DeviationProvider;
 import org.springframework.stereotype.Component;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_OTHER;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_OUTDATED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_SIGNATURE;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_UNREACHABLE;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MISSING_PRIVATE_PARAMS;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_VERIFICATION_OTHER;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_VERIFICATION_OUTDATED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_VERIFICATION_SIGNATURE;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_VERIFICATION_UNREACHABLE;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.MISSING_PRIVATE_PARAMS;
 
 /**
  * Verify internal and external configurations
@@ -77,17 +78,17 @@ public class ConfigurationVerifier {
             case 0:
                 break;
             case EXIT_STATUS_ANCHOR_NOT_FOR_EXTERNAL_SOURCE:
-                throw new ConfigurationVerificationException(ERROR_ANCHOR_NOT_FOR_EXTERNAL_SOURCE);
+                throw new ConfigurationVerificationException(ANCHOR_NOT_FOR_EXTERNAL_SOURCE);
             case EXIT_STATUS_MISSING_PRIVATE_PARAMS:
-                throw new ConfigurationVerificationException(ERROR_MISSING_PRIVATE_PARAMS);
+                throw new ConfigurationVerificationException(MISSING_PRIVATE_PARAMS);
             case EXIT_STATUS_UNREACHABLE:
-                throw new ConfigurationVerificationException(ERROR_CONF_VERIFICATION_UNREACHABLE);
+                throw new ConfigurationVerificationException(CONF_VERIFICATION_UNREACHABLE);
             case EXIT_STATUS_OUTDATED:
-                throw new ConfigurationVerificationException(ERROR_CONF_VERIFICATION_OUTDATED);
+                throw new ConfigurationVerificationException(CONF_VERIFICATION_OUTDATED);
             case EXIT_STATUS_INVALID_SIGNATURE:
-                throw new ConfigurationVerificationException(ERROR_CONF_VERIFICATION_SIGNATURE);
+                throw new ConfigurationVerificationException(CONF_VERIFICATION_SIGNATURE);
             case EXIT_STATUS_OTHER:
-                throw new ConfigurationVerificationException(ERROR_CONF_VERIFICATION_OTHER);
+                throw new ConfigurationVerificationException(CONF_VERIFICATION_OTHER);
             default:
                 throw new RuntimeException("Internal configuration verifier exited with an unknown code: " + exitCode);
         }
@@ -100,8 +101,8 @@ public class ConfigurationVerifier {
         /**
          * @param errorCode i18n key for an error code string
          */
-        public ConfigurationVerificationException(String errorCode) {
-            super("Configuration verification failed: " + errorCode, new ErrorDeviation(errorCode));
+        public ConfigurationVerificationException(DeviationProvider errorCode) {
+            super(errorCode);
         }
     }
 }

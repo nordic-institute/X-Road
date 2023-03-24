@@ -34,8 +34,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.TrustedAnchorMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.TrustedAnchorRepository;
@@ -59,10 +59,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_VERIFICATION_UNREACHABLE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_URLS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GENERATED_AT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INSTANCE_IDENTIFIER;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_UNREACHABLE;
 
 @ExtendWith(MockitoExtension.class)
 class TrustedAnchorServiceImplTest {
@@ -137,7 +137,7 @@ class TrustedAnchorServiceImplTest {
         void uploadNewVerificationShouldFail() throws Exception {
             final byte[] bytes = readAllBytes(Paths.get(getSystemResource("trusted-anchor/trusted-anchor.xml").toURI()));
 
-            doThrow(new ConfigurationVerifier.ConfigurationVerificationException(ERROR_CONF_VERIFICATION_UNREACHABLE))
+            doThrow(new ConfigurationVerifier.ConfigurationVerificationException(CONF_VERIFICATION_UNREACHABLE))
                     .when(configurationVerifier).verifyConfiguration(any(), any());
 
             assertThatThrownBy(() -> trustedAnchorService.upload(bytes))

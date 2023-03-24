@@ -31,8 +31,8 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationLocation;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.TrustedAnchorMapper;

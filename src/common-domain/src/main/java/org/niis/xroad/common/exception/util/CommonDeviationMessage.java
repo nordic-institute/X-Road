@@ -46,7 +46,22 @@ public enum CommonDeviationMessage implements DeviationProvider {
     BACKUP_GENERATION_INTERRUPTED("generate_backup_interrupted", "Backup generation has been interrupted"),
     BACKUP_RESTORATION_FAILED("restore_process_failed", "Failed to generate backup"),
     BACKUP_RESTORATION_INTERRUPTED("backup_restore_interrupted", "Backup restoration has been interrupted"),
-    BACKUP_DELETION_FAILED("backup_deletion_failed", "Failed to delete backup");
+    BACKUP_DELETION_FAILED("backup_deletion_failed", "Failed to delete backup"),
+
+    ERROR_RESOURCE_READ("resource_read_failed", "Failed to read resource"),
+
+    ANCHOR_NOT_FOR_EXTERNAL_SOURCE("conf_verification.anchor_not_for_external_source",
+            "Configuration verification failed: anchor_not_for_external_source"),
+    MISSING_PRIVATE_PARAMS("conf_verification.missing_private_params",
+            "Configuration verification failed: missing_private_params"),
+    CONF_VERIFICATION_OTHER("conf_verification.other",
+            "Configuration verification failed: other"),
+    CONF_VERIFICATION_OUTDATED("conf_verification.outdated",
+            "Configuration verification failed: outdated"),
+    CONF_VERIFICATION_SIGNATURE("conf_verification.signature_invalid",
+            "Configuration verification failed: signature_invalid"),
+    CONF_VERIFICATION_UNREACHABLE("conf_verification.unreachable",
+            "Configuration verification failed: unreachable");
 
     @Getter
     private final String code;
