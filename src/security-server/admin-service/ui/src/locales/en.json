@@ -555,6 +555,9 @@
       "versionPrefix": "X-Road"
     }
   },
+  "global": {
+    "name": "Name"
+  },
   "general": {
     "instance": "Instance",
     "memberClass": "Member class",
@@ -1078,4 +1081,4 @@
       "unregistered_member": "Unregistered member"
     }
   }
-}
+},
