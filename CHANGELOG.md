@@ -1,5 +1,8 @@
 # Change Log
 
+## 7.2.2 - 2023-03-24
+- XRDDEV-2283 Liquibase does not work when upgrading from previous versions on RHEL
+
 ## 7.2.1 - 2023-02-10
 - XRDDEV-2210: As a Security Server Administrator I want that the Security Server uses the ocspFreshnessSeconds value of the X-Road instance where it has been registered so that the configuration of federated instances doesn't affect my Security Server's operations.
 - XRDDEV-2230: Gpg is not marked as a dependency so initial configuration might fail.
