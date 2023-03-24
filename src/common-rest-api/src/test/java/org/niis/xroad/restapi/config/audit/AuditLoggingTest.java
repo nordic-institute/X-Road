@@ -144,7 +144,7 @@ class AuditLoggingTest {
         );
 
         assertEquals(RestApiAuditEvent.INIT_CENTRAL_SERVER, eventCaptor.getValue());
-        assertEquals("bad request", reasonCaptor.getValue());
+        assertEquals(INTERNAL_ERROR.getDescription(), reasonCaptor.getValue());
 
         Map<String, Object> data = dataCaptor.getValue();
         assertEquals(0, data.size());
