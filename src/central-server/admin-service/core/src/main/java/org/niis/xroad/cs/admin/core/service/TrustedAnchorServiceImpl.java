@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationLocation;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;

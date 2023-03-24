@@ -19,7 +19,8 @@ Feature: Trusted Anchors Api
     When trusted anchor file 'trusted-anchor.xml' is uploaded
     And Response is of status code 201
     And trusted anchor response contains instance 'CS0' and hash '40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D'
-#   todo when endpoint implemented: And user can download trusted anchor file
+    Then uploaded trusted anchor is downloaded
+    And Response is of status code 200
 
   @Modifying
   Scenario: Get trusted anchors list
@@ -46,4 +47,9 @@ Feature: Trusted Anchors Api
     When trusted anchor file 'trusted-anchor.xml' is uploaded
     Then Response is of status code 403
     When trusted anchors list is retrieved
+    Then Response is of status code 403
+
+  Scenario: Download is forbidden for non privileged user role REGISTRATION_OFFICER
+    Given Authentication header is set to REGISTRATION_OFFICER
+    When trusted anchor with hash: '95:6C:C8:A5:9B:B5:51:5A:FB:9F:9C:84:38:C0:62:6B:93:48:AE:D7:54:44:16:0C:83:28:59:54' is downloaded
     Then Response is of status code 403

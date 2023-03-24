@@ -76,6 +76,22 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
         }
     }
 
+    @Step("trusted anchor with hash: {string} is downloaded")
+    public void trustedAnchorIsDownloaded(String hash) {
+        try {
+            var result = trustedAnchorsApi.downloadTrustedAnchor(hash);
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+    @Step("uploaded trusted anchor is downloaded")
+    public void trustedAnchorIsDownloaded() {
+        final TrustedAnchorDto uploadedAnchor = getRequiredStepData(StepDataKey.RESPONSE_BODY);
+        trustedAnchorIsDownloaded(uploadedAnchor.getHash());
+    }
+
     @Step("trusted anchor response contains instance {string} and hash {string}")
     public void validateTrustedAnchorResponse(String instanceid, String hash) {
         final TrustedAnchorDto response = getRequiredStepData(StepDataKey.RESPONSE_BODY);
