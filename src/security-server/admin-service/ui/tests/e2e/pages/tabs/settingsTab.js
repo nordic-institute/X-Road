@@ -101,7 +101,7 @@ const backupAndRestoreCommands = {
   clickDownloadForBackup: function (backupFilename) {
     this.click(
       'xpath',
-      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-download"]`,
+      `//div[@data-test='backup-restore-view']//table/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-download"]`,
     );
     return this;
   },

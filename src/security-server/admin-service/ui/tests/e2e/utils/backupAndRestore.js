@@ -38,7 +38,7 @@ const deleteBackup = (browser, backupFilename) => {
     backupAndRestoreTab.section.deleteBackupConfirmationDialog;
 
   browser.waitForElementVisible(
-    `//table[contains(@class, "xrd-table")]//tr//td[text() = "${backupFilename}"]`,
+    `//div[@data-test='backup-restore-view']//table//tr//td[text() = "${backupFilename}"]`,
   );
   backupAndRestoreTab.clickDeleteForBackup(backupFilename);
   browser.waitForElementVisible(deleteBackupConfirmationDialog);
