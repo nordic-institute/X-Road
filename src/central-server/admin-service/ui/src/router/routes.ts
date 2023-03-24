@@ -25,8 +25,7 @@
  * THE SOFTWARE.
  */
 
-import SecurityServerAuthenticationCertificate
-  from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
+import SecurityServerAuthenticationCertificate from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
 import { Route, RouteConfig } from 'vue-router';
 import TabsBase from '@/components/layout/TabsBase.vue';
 
@@ -47,7 +46,6 @@ import Member from '@/views/Members/Member/Member.vue';
 
 import MemberDetails from '@/views/Members/Member/Details/MemberDetails.vue';
 import PageNavigation from '@/components/layout/PageNavigation.vue';
-import MemberManagementRequests from '@/views/Members/Member/ManagementRequests/MemberManagementRequests.vue';
 import MemberSubsystems from '@/views/Members/Member/Subsystems/MemberSubsystems.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 import ApiKeys from '@/views/Settings/ApiKeys/ApiKeys.vue';
@@ -62,7 +60,6 @@ import SecurityServer from '@/views/SecurityServers/SecurityServer/SecurityServe
 import SecurityServerDetails from '@/views/SecurityServers/SecurityServer/SecurityServerDetails.vue';
 import SecurityServerClients from '@/views/SecurityServers/SecurityServer/SecurityServerClients.vue';
 import SecurityServerAuthenticationCertificates from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
-import SecurityServerManagementRequests from '@/views/SecurityServers/SecurityServer/SecurityServerManagementRequests.vue';
 
 import GlobalResources from '@/views/GlobalResources/GlobalResources.vue';
 import GlobalResourcesList from '@/views/GlobalResources/GlobalResourcesList.vue';
@@ -214,13 +211,6 @@ const routes: RouteConfig[] = [
                 props: true,
               },
               {
-                name: RouteName.MemberManagementRequests,
-                path: 'managementrequests',
-                component: MemberManagementRequests,
-                meta: { permissions: [Permissions.VIEW_MEMBER_DETAILS] },
-                props: { default: true },
-              },
-              {
                 name: RouteName.MemberSubsystems,
                 path: 'subsystems',
                 component: MemberSubsystems,
@@ -268,15 +258,6 @@ const routes: RouteConfig[] = [
                 meta: {
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
                 },
-              },
-              {
-                name: RouteName.SecurityServerManagementRequests,
-                path: 'managementrequests',
-                component: SecurityServerManagementRequests,
-                meta: {
-                  permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
-                },
-                props: true,
               },
               {
                 name: RouteName.SecurityServerAuthenticationCertificates,

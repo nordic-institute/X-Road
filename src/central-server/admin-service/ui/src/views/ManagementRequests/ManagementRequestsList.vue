@@ -33,7 +33,8 @@
           {{ $t('tab.main.managementRequests') }}
         </div>
         <xrd-search v-model="filter.query" class="margin-fix" />
-        <xrd-filter class="ml-4 margin-fix" />
+        <!-- Not yet implemented -->
+        <!--<xrd-filter class="ml-4 margin-fix" />-->
       </div>
       <div class="only-pending">
         <v-checkbox
@@ -101,7 +102,6 @@ import { DataOptions, DataTableHeader } from 'vuetify';
 import { mapActions, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
-import XrdFilter from '@/components/ui/XrdFilter.vue';
 import { managementRequestsStore } from '@/store/modules/managementRequestStore';
 import { ManagementRequestsFilter } from '@/openapi-types';
 import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vue';
@@ -129,7 +129,6 @@ export default Vue.extend({
     MrStatusCell,
     MrActionsCell,
     ManagementRequestIdCell,
-    XrdFilter,
   },
   props: {
     scope: {
@@ -168,14 +167,12 @@ export default Vue.extend({
           class: 'xrd-table-header mr-table-header-type',
         },
         {
-          //TODO this should be removed from SS view
           text: this.$t('managementRequests.securityServerOwnerName') as string,
           align: 'start',
           value: 'security_server_owner',
           class: 'xrd-table-header mr-table-header-owner-name',
         },
         {
-          //TODO this should be removed from SS view
           text: this.$t('managementRequests.securityServerId') as string,
           align: 'start',
           value: 'security_server_id',

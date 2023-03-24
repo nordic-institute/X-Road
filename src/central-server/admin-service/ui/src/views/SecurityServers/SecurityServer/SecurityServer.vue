@@ -98,16 +98,6 @@ export default Vue.extend({
           },
           permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },
-
-        {
-          key: 'security-server-management-requests-tab-button',
-          name: 'securityServers.securityServer.tabs.managementRequests',
-          to: {
-            name: RouteName.SecurityServerManagementRequests,
-          },
-          permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
-          showAttention: true,
-        },
       ];
     },
   },
