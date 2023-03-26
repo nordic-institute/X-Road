@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.cs.test.ui.container;
 
-import com.nortal.test.testcontainers.AbstractTestableSpringBootContainerSetup;
+import com.nortal.test.testcontainers.AbstractTestableContainerSetup;
 import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +43,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
+public class ContainerSetup extends AbstractTestableContainerSetup {
     private final TargetHostUrlProvider targetHostUrlProvider;
 
     @Value("${test-automation.custom.package-repo}")
@@ -71,7 +71,7 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
 
     @Override
     public void additionalBuilderConfiguration(@NotNull DockerfileBuilder dockerfileBuilder) {
-        dockerfileBuilder.copy(".", ".");
+        //do nothing
     }
 
     @NotNull
@@ -92,7 +92,7 @@ public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
         Path csDockerRoot = Paths.get("../../../../Docker/centralserver/");
         Path dockerfilePath = csDockerRoot.resolve("Dockerfile");
 
-        return new ImageFromDockerfile("cs-system-test", false)
+        return new ImageFromDockerfile("cs-system-test", true)
                 .withBuildArg("DIST", "jammy")
                 .withBuildArg("REPO", packageRepo)
                 .withBuildArg("REPO_KEY", packageRepoKey)

@@ -30,49 +30,33 @@ package org.niis.xroad.cs.test.ui.glue;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
-import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
-import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
-import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
-import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.test.ui.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.ui.constants.Constants;
 import org.niis.xroad.cs.test.ui.page.ManagementRequestsPageObj;
-import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
-import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
+import static org.niis.xroad.cs.test.ui.constants.Constants.getSecurityServerId;
+import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.MANAGEMENT_REQUEST_ID;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-@Slf4j
 public class ManagementRequestsStepDefs extends BaseUiStepDefs {
- private final static String SECURITY_SERVER_ADDRESS_PREF = "security-server-address-";
     private final ManagementRequestsPageObj managementRequestsPageObj = new ManagementRequestsPageObj();
     @Autowired
     private FeignManagementRequestsApi managementRequestsApi;
-
-    private final Map<String, byte[]> certificates = new HashMap<>();
-    private Integer managementRequestId;
     private ManagementRequestDetailedViewDto managementRequestDetailedView;
 
     @Step("User is able to sort the table by column {int}")
     public void userIsAbleToSortByColumn(int columnIndex) {
-        var column = managementRequestsPageObj.tableCol(columnIndex);
+        final var column = managementRequestsPageObj.tableCol(columnIndex);
         Assertions.assertEquals("none", column.getAttribute("aria-sort"));
         column.click();
         Assertions.assertEquals("ascending", column.getAttribute("aria-sort"));
@@ -86,18 +70,20 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         managementRequestsPageObj.searchInput().setValue(searchTerm);
     }
 
-    @Step("User is able to view the Management request with Security server Identifier {}")
-    public void userIsAbleToViewTheManagementRequest(String securityServerId) {
+    @Step("User is able to view the Management request from Security server {} with owner code {}")
+    public void userIsAbleToViewTheManagementRequest(String securityServerCode, String ownerCode) {
+        final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         managementRequestsPageObj.tableRowOf(securityServerId).should(appear);
     }
 
-    @Step("User is able to click {} Management request {} with Security server {}")
-    public void userIsAbleToClickTheManagementRequest(String status, String type, String securityServerId) {
+    @Step("User is able to click {} Management request {} from Security server {} with owner code {}")
+    public void userIsAbleToClickTheManagementRequest(String status, String type, String securityServerCode, String ownerCode) {
+        final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         managementRequestsPageObj.clickableRequestId(status, type, securityServerId).click();
     }
 
     private void detailsAboutTheRequest(String status, String title) {
-        final SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATETIME_FORMAT);
+        final var sdf = new SimpleDateFormat(Constants.DATETIME_FORMAT);
         managementRequestsPageObj.titleOfSection(title).shouldBe(appear);
         managementRequestsPageObj.requestInformation.requestId().shouldBe(text(this.managementRequestDetailedView.getId().toString()));
         managementRequestsPageObj.requestInformation.received()
@@ -110,13 +96,15 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     @Step("{} Add Client details page contains details about the {}")
     public void addClientDetailsAboutTheRequest(String status, String title) {
-        this.managementRequestDetailedView = managementRequestsApi.getManagementRequest(this.managementRequestId).getBody();
+        final Integer managementRequestId = (Integer) getStepData(MANAGEMENT_REQUEST_ID).orElseThrow();
+        this.managementRequestDetailedView = managementRequestsApi.getManagementRequest(managementRequestId).getBody();
         detailsAboutTheRequest(status, title);
     }
 
     @Step("{} Add Certificate details page contains details about the {}")
     public void addCertificateDetailsAboutTheRequest(String status, String title) {
-        this.managementRequestDetailedView = managementRequestsApi.getManagementRequest(this.managementRequestId).getBody();
+        final Integer managementRequestId = (Integer) getStepData(MANAGEMENT_REQUEST_ID).orElseThrow();
+        this.managementRequestDetailedView = managementRequestsApi.getManagementRequest(managementRequestId).getBody();
         detailsAboutTheRequest(status, title);
     }
 
@@ -138,7 +126,8 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     private void detailsAboutTheAffectedSecurityServer(String title, boolean address) {
         final var securityServerId = this.managementRequestDetailedView.getSecurityServerId();
         managementRequestsPageObj.titleOfSection(title).shouldBe(appear);
-        managementRequestsPageObj.securityServerInformation.ownerName().shouldBe(text(this.managementRequestDetailedView.getSecurityServerOwner()));
+        managementRequestsPageObj.securityServerInformation.ownerName()
+                .shouldBe(text(this.managementRequestDetailedView.getSecurityServerOwner()));
         managementRequestsPageObj.securityServerInformation.ownerClass().shouldBe(text(securityServerId.getMemberClass()));
         managementRequestsPageObj.securityServerInformation.ownerCode().shouldBe(text(securityServerId.getMemberCode()));
         managementRequestsPageObj.securityServerInformation.serverCode().shouldBe(text(securityServerId.getServerCode()));
@@ -151,9 +140,9 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     @Step("The details page show certificate information about the {}")
     public void detailsAboutTheCertificate(String title) {
-        final SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATETIME_FORMAT);
+        final var sdf = new SimpleDateFormat(Constants.DATETIME_FORMAT);
         managementRequestsPageObj.titleOfSection(title).shouldBe(appear);
-        var certificate = this.managementRequestDetailedView.getCertificateDetails();
+        final var certificate = this.managementRequestDetailedView.getCertificateDetails();
         managementRequestsPageObj.certificate.ca().shouldBe(text(certificate.getSubjectCommonName()));
         managementRequestsPageObj.certificate.serialNumber().shouldBe(text(certificate.getSerial()));
         managementRequestsPageObj.certificate.subject().shouldBe(text(certificate.getSubjectCommonName()));
@@ -162,7 +151,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     @Step("The details page show client information about the {}")
     public void detailsAboutTheClient(String title) {
-        var clientId = this.managementRequestDetailedView.getClientId();
+        final var clientId = this.managementRequestDetailedView.getClientId();
         managementRequestsPageObj.titleOfSection(title).shouldBe(appear);
         managementRequestsPageObj.client.ownerName().shouldBe(text(this.managementRequestDetailedView.getClientOwnerName()));
         managementRequestsPageObj.client.ownerClass().shouldBe(text(clientId.getMemberClass()));
@@ -170,8 +159,9 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         managementRequestsPageObj.client.subsystemCode().shouldBe(empty);
     }
 
-    @Step("User is able click Approve button in row with Security server Identifier {}")
-    public void userIsAbleToApproveManagementRequestInRow(String securityServerId) {
+    @Step("User is able click Approve button in row from Security server {} with owner code {}")
+    public void userIsAbleToApproveManagementRequestInRow(String securityServerCode, String ownerCode) {
+        final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         managementRequestsPageObj.btnApproveManagementRequest(securityServerId).click();
 
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
@@ -192,8 +182,9 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("User is able click Decline button in row with Security server Identifier {}")
-    public void userIsAbleToDeclineManagementRequestInRow(String securityServerId) {
+    @Step("User is able click Decline button in row from Security server {} with owner code {}")
+    public void userIsAbleToDeclineManagementRequestInRow(String securityServerCode, String ownerCode) {
+        final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         managementRequestsPageObj.btnDeclineManagementRequest(securityServerId).click();
 
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
@@ -215,9 +206,10 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("Management request with Security server Identifier {} should removed in list")
-    public void timestampingServiceShouldRemovedInList(String url) {
-        managementRequestsPageObj.tableRowOf(url).shouldNotBe(visible);
+    @Step("Management request from Security server {} with owner code {} should removed in list")
+    public void timestampingServiceShouldRemovedInList(String securityServerCode, String ownerCode) {
+        final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
+        managementRequestsPageObj.tableRowOf(securityServerId).shouldNotBe(visible);
     }
 
     @Step("Management Requests table with columns {}, {}, {}, {}, {}, {} is visible")
@@ -247,41 +239,5 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     public void shouldNotShowApproveAndDeclineActions() {
         managementRequestsPageObj.btnApproveManagementRequest().shouldNot(visible);
         managementRequestsPageObj.btnDeclineManagementRequest().shouldNot(visible);
-    }
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    @Step("New security server {} authentication certificate registered")
-    public void newAuthenticationCertificateRegistered(String securityServerId) {
-        final String[] idParts = StringUtils.split(securityServerId, ':');
-        final var authenticationCertificateRegistrationRequest = new AuthenticationCertificateRegistrationRequestDto();
-        authenticationCertificateRegistrationRequest.setServerAddress(SECURITY_SERVER_ADDRESS_PREF + idParts[3]);
-        authenticationCertificateRegistrationRequest.setSecurityServerId(securityServerId);
-        authenticationCertificateRegistrationRequest.setAuthenticationCertificate(getExistingOrCreateNewCertificate(securityServerId));
-        authenticationCertificateRegistrationRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);
-        authenticationCertificateRegistrationRequest.setOrigin(ManagementRequestOriginDto.CENTER);
-
-        final ResponseEntity<ManagementRequestDto> response =
-                managementRequestsApi.addManagementRequest(authenticationCertificateRegistrationRequest);
-        this.managementRequestId = response.getBody().getId();
-    }
-
-    @Step("Client {} is registered as security server {}")
-    public void memberIsRegisteredAsSecurityServerClient(String memberId, String securityServerId) {
-        final ClientRegistrationRequestDto clientRegistrationRequest = new ClientRegistrationRequestDto();
-        clientRegistrationRequest.setType(CLIENT_REGISTRATION_REQUEST);
-        clientRegistrationRequest.setOrigin(ManagementRequestOriginDto.CENTER);
-        clientRegistrationRequest.setSecurityServerId(securityServerId);
-        clientRegistrationRequest.setClientId(memberId);
-
-        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(clientRegistrationRequest);
-        this.managementRequestId = response.getBody().getId();
-    }
-
-    @SneakyThrows
-    private byte[] getExistingOrCreateNewCertificate(String serverId) {
-        if (!certificates.containsKey(serverId)) {
-            certificates.put(serverId, CertificateUtils.generateAuthCert("CN=Subject-" + serverId));
-        }
-        return certificates.get(serverId);
     }
 }

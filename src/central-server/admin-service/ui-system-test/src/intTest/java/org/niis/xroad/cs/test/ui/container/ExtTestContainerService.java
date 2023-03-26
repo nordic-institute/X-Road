@@ -29,7 +29,9 @@ package org.niis.xroad.cs.test.ui.container;
 import com.nortal.test.testcontainers.TestContainerNetworkProvider;
 import com.nortal.test.testcontainers.TestContainerService;
 import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.testcontainers.containers.GenericContainer;
@@ -38,8 +40,8 @@ import org.testcontainers.containers.wait.strategy.Wait;
 @Primary
 @Service
 public class ExtTestContainerService extends TestContainerService {
-
-    private static final int PORT = 4000;
+    @Value("${test-automation.custom.central-server-url-override:#{null}}")
+    private String centralServerUrlOverride;
 
     public ExtTestContainerService(@NotNull final TestContainerNetworkProvider testContainerNetworkProvider,
                                    @NotNull final TestableContainerProperties testableContainerProperties) {
@@ -55,12 +57,17 @@ public class ExtTestContainerService extends TestContainerService {
 
     @Override
     public @NotNull String getHost() {
-        return "localhost";
+        final String[] urlParts = getUrlParts();
+        return urlParts[1].substring(2);
     }
 
     @Override
     public int getPort() {
-        return PORT;
+        final String[] urlParts = getUrlParts();
+        return Integer.parseInt(urlParts[2]);
     }
 
+    private String[] getUrlParts() {
+        return StringUtils.split(centralServerUrlOverride, ':');
+    }
 }

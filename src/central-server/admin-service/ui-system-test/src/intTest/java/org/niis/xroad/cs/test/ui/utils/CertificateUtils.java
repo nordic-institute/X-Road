@@ -61,6 +61,7 @@ import java.util.regex.Pattern;
 import static java.lang.ClassLoader.getSystemResourceAsStream;
 
 public final class CertificateUtils {
+    private static final String APPROVED_CA = "CN=Subject-E2e-test CA";
 
     private CertificateUtils() {
     }
@@ -86,17 +87,18 @@ public final class CertificateUtils {
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    public static X509CertificateHolder generateAuthCertHolder(String subjectDistinguishedName) throws Exception {
+    private static X509CertificateHolder generateAuthCertHolder(String subjectDistinguishedName) throws Exception {
         var keyFactory = KeyFactory.getInstance("RSA");
         var certificateFactory = CertificateFactory.getInstance("X.509");
         PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(readCaCertPrivateKeyBytes()));
         var caCertificate = (X509Certificate) certificateFactory
-                .generateCertificate(getSystemResourceAsStream("container-files/etc/xroad/globalconf/root-ca.pem"));
+                .generateCertificate(getSystemResourceAsStream("files/ca/root-ca.pem"));
         return generateAuthCert(caCertificate, privateKey, subjectDistinguishedName);
     }
 
     private static byte[] readCaCertPrivateKeyBytes() throws IOException {
-        var keyInputStream = getSystemResourceAsStream("container-files/etc/xroad/globalconf/root-ca.key");
+        var keyInputStream = getSystemResourceAsStream("files/ca/root-ca.key");
+        assert keyInputStream != null;
         String key = new String(keyInputStream.readAllBytes(), StandardCharsets.ISO_8859_1);
         Pattern parse = Pattern.compile("(?m)(?s)^---*BEGIN.*---*$(.*)^---*END.*---*$.*");
         String encoded = parse.matcher(key).replaceFirst("$1");
@@ -110,9 +112,8 @@ public final class CertificateUtils {
         var signer = new JcaContentSignerBuilder("SHA256withRSA").build(privateKey);
         var subject = new X500Principal(subjectDistinguishedName);
 
-
         return new JcaX509v3CertificateBuilder(
-                issuerCertificate.getSubjectX500Principal(),
+                new X500Principal(APPROVED_CA),
                 BigInteger.ONE,
                 Date.from(Instant.now()),
                 Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
@@ -124,6 +125,4 @@ public final class CertificateUtils {
                         new KeyUsage(KeyUsage.digitalSignature)))
                 .build(signer);
     }
-
-
 }
