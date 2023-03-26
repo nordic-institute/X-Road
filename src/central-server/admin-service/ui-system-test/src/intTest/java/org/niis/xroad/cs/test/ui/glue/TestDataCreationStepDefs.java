@@ -77,7 +77,7 @@ public class TestDataCreationStepDefs extends BaseUiStepDefs {
     @Step("Client with code {} is registered in security server {} with owner code {}")
     public void memberIsRegisteredAsSecurityServerClient(String clientCode, String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
-        final var clientId = String.join (":", INSTANCE_IDENTIFIER, MEMBER_CLASS_CODE, clientCode);
+        final var clientId = String.join(":", INSTANCE_IDENTIFIER, MEMBER_CLASS_CODE, clientCode);
         final var clientRegistrationRequest = new ClientRegistrationRequestDto();
         clientRegistrationRequest.setType(CLIENT_REGISTRATION_REQUEST);
         clientRegistrationRequest.setOrigin(ManagementRequestOriginDto.CENTER);

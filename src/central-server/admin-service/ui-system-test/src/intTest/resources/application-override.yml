@@ -18,6 +18,8 @@ test-automation:
       tags: "not @Skip"
   containers:
     testable-container:
+      jar-debug-enabled: false
+      reuse-between-runs: false
       internal-http-port: 4000
   selenide:
     browser: CHROME # Options: CHROME, EDGE, FIREFOX, OPERA, SAFARI (works only with Mac)

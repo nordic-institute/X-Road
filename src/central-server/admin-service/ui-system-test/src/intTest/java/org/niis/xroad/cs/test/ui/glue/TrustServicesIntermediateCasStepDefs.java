@@ -41,6 +41,7 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
 
 public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
     private final TrustServicesPageObj trustServicesPageObj = new TrustServicesPageObj();
@@ -64,7 +65,7 @@ public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().should(enabled);
         commonPageObj.dialog.btnSave().shouldNotBe(enabled);
 
-        final byte[] certificate = CertificateUtils.generateAuthCert("CN=Subject-" + name);
+        final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + name);
 
         testCertificate = CertificateUtils.readCertificate(certificate);
 

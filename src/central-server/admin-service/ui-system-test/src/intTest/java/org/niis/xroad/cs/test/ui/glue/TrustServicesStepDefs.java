@@ -41,6 +41,7 @@ import java.util.UUID;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
 
 public class TrustServicesStepDefs extends BaseUiStepDefs {
     private static final String CERTIFICATE_PROFILE = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";
@@ -56,7 +57,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         trustServicesPageObj.btnAddCertificationService().click();
 
         certificationServiceName = "e2e-test-cert-service-" + UUID.randomUUID();
-        final byte[] certificate = CertificateUtils.generateAuthCert("CN=Subject-" + certificationServiceName);
+        final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + certificationServiceName);
 
         testCertificate = CertificateUtils.readCertificate(certificate);
 

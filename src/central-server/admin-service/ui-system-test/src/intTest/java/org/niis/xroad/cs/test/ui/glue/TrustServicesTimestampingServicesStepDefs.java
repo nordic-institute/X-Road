@@ -35,6 +35,7 @@ import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
 
 public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
 
@@ -47,7 +48,7 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().should(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
 
-        final byte[] certificate = CertificateUtils.generateAuthCert("CN=Subject-" + url);
+        final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + url);
 
         timestampingServicesPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
         timestampingServicesPageObj.addEditDialog.inputUrl().setValue(url);
@@ -103,7 +104,7 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
     public void userIsAbleChangeTheCertificate(String url) throws Exception {
         timestampingServicesPageObj.addEditDialog.btnUploadCertificate().click();
 
-        final byte[] certificate = CertificateUtils.generateAuthCert("CN=Subject-" + url);
+        final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + url);
         timestampingServicesPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
 
         commonPageObj.dialog.btnSave().click();
