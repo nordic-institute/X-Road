@@ -54,9 +54,9 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     private FeignManagementRequestsApi managementRequestsApi;
     private ManagementRequestDetailedViewDto managementRequestDetailedView;
 
-    @Step("User is able to sort the table by column {int}")
-    public void userIsAbleToSortByColumn(int columnIndex) {
-        final var column = managementRequestsPageObj.tableCol(columnIndex);
+    @Step("the User should be able to sort the table by: {}")
+    public void userIsAbleToSortByColumn(String name) {
+        final var column = managementRequestsPageObj.tableCol(name);
         Assertions.assertEquals("none", column.getAttribute("aria-sort"));
         column.click();
         Assertions.assertEquals("ascending", column.getAttribute("aria-sort"));
@@ -64,25 +64,32 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         Assertions.assertEquals("descending", column.getAttribute("aria-sort"));
     }
 
-    @Step("{} is written in table search field")
-    public void isWrittenInSearchField(String searchTerm) {
+    @Step("the user clicks on search icon")
+    public void clickOnSearchIcon() {
         managementRequestsPageObj.search().click();
+    }
+
+    @Step("the user enters {} in the search field")
+    public void isWrittenInSearchField(String searchTerm) {
         managementRequestsPageObj.searchInput().setValue(searchTerm);
     }
 
-    @Step("User is able to view the Management request from Security server {} with owner code {}")
+    @Step("the user views the Management request from Security server {} with owner code {}")
     public void userIsAbleToViewTheManagementRequest(String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         managementRequestsPageObj.tableRowOf(securityServerId).should(appear);
     }
 
-    @Step("User is able to click {} Management request {} from Security server {} with owner code {}")
+    @Step("the user clicks {} request {} from Security server {} with owner code {}")
     public void userIsAbleToClickTheManagementRequest(String status, String type, String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         managementRequestsPageObj.clickableRequestId(status, type, securityServerId).click();
     }
 
-    private void detailsAboutTheRequest(String status, String title) {
+    @Step("the details page displays the {} for the {} management request")
+    public void detailsAboutTheRequest(String title, String status) {
+        final Integer managementRequestId = (Integer) getStepData(MANAGEMENT_REQUEST_ID).orElseThrow();
+        this.managementRequestDetailedView = managementRequestsApi.getManagementRequest(managementRequestId).getBody();
         final var sdf = new SimpleDateFormat(Constants.DATETIME_FORMAT);
         managementRequestsPageObj.titleOfSection(title).shouldBe(appear);
         managementRequestsPageObj.requestInformation.requestId().shouldBe(text(this.managementRequestDetailedView.getId().toString()));
@@ -94,31 +101,17 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         managementRequestsPageObj.requestInformation.comments().shouldBe(empty);
     }
 
-    @Step("{} Add Client details page contains details about the {}")
-    public void addClientDetailsAboutTheRequest(String status, String title) {
-        final Integer managementRequestId = (Integer) getStepData(MANAGEMENT_REQUEST_ID).orElseThrow();
-        this.managementRequestDetailedView = managementRequestsApi.getManagementRequest(managementRequestId).getBody();
-        detailsAboutTheRequest(status, title);
-    }
-
-    @Step("{} Add Certificate details page contains details about the {}")
-    public void addCertificateDetailsAboutTheRequest(String status, String title) {
-        final Integer managementRequestId = (Integer) getStepData(MANAGEMENT_REQUEST_ID).orElseThrow();
-        this.managementRequestDetailedView = managementRequestsApi.getManagementRequest(managementRequestId).getBody();
-        detailsAboutTheRequest(status, title);
-    }
-
-    @Step("The details page is shown with title {}")
+    @Step("the details page is shown with title {}")
     public void detailsTitle(String title) {
         managementRequestsPageObj.titleOfDetails(title).shouldBe(appear);
     }
 
-    @Step("Add Client details page contains information about the {}")
+    @Step("the details page displays the {} for the Client request")
     public void addClientDetailsAboutTheAffectedSecurityServer(String title) {
         detailsAboutTheAffectedSecurityServer(title, false);
     }
 
-    @Step("Add Certificate details page contains information about the {}")
+    @Step("the details page displays the {} for the Certificate request")
     public void addCertificateDetailsAboutTheAffectedSecurityServer(String title) {
         detailsAboutTheAffectedSecurityServer(title, true);
     }
@@ -138,7 +131,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         }
     }
 
-    @Step("The details page show certificate information about the {}")
+    @Step("the details page show certificate information about the {}")
     public void detailsAboutTheCertificate(String title) {
         final var sdf = new SimpleDateFormat(Constants.DATETIME_FORMAT);
         managementRequestsPageObj.titleOfSection(title).shouldBe(appear);
@@ -149,7 +142,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         managementRequestsPageObj.certificate.expires().shouldBe(text(sdf.format(Date.from(certificate.getNotAfter().toInstant()))));
     }
 
-    @Step("The details page show client information about the {}")
+    @Step("the details page displays the client information for the {}")
     public void detailsAboutTheClient(String title) {
         final var clientId = this.managementRequestDetailedView.getClientId();
         managementRequestsPageObj.titleOfSection(title).shouldBe(appear);
@@ -159,7 +152,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         managementRequestsPageObj.client.subsystemCode().shouldBe(empty);
     }
 
-    @Step("User is able click Approve button in row from Security server {} with owner code {}")
+    @Step("the user clicks on the Approve button in the row from Security server {} with owner code {}")
     public void userIsAbleToApproveManagementRequestInRow(String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         managementRequestsPageObj.btnApproveManagementRequest(securityServerId).click();
@@ -171,7 +164,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("User is able click Approve button")
+    @Step("the user clicks Approve button")
     public void userIsAbleToApproveManagementRequest() {
         commonPageObj.button.btnApprove().click();
 
@@ -182,7 +175,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("User is able click Decline button in row from Security server {} with owner code {}")
+    @Step("the user clicks on the Decline button in the row from Security server {} with owner code {}")
     public void userIsAbleToDeclineManagementRequestInRow(String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         managementRequestsPageObj.btnDeclineManagementRequest(securityServerId).click();
@@ -195,7 +188,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("User is able click Decline button")
+    @Step("the user clicks Decline button")
     public void userIsAbleToDeclineManagementRequest() {
         commonPageObj.button.btnDecline().click();
 
@@ -206,36 +199,23 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("Management request from Security server {} with owner code {} should removed in list")
-    public void timestampingServiceShouldRemovedInList(String securityServerCode, String ownerCode) {
+    @Step("the pending management request from Security server {} with owner code {} should be removed from the list")
+    public void managementRequestShouldBeRemovedFromList(String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         managementRequestsPageObj.tableRowOf(securityServerId).shouldNotBe(visible);
     }
 
-    @Step("Management Requests table with columns {}, {}, {}, {}, {}, {} is visible")
-    public void managementRequestsTableIsVisible(String id, String created, String type, String serverOwnerName, String serverIdentifier,
-                                                 String status) {
-        managementRequestsPageObj.tableWithHeaders(id, created, type, serverOwnerName, serverIdentifier, status)
-                .shouldBe(Condition.enabled);
+    @Step("the Management Requests table with the column: {} is visible")
+    public void managementRequestsTableIsVisible(String columnName) {
+        managementRequestsPageObj.tableWithHeader(columnName).shouldBe(Condition.enabled);
     }
 
-    @Step("Management Requests table is visible")
-    public void managementRequestsTableIsVisible() {
-        managementRequestsPageObj.table().shouldBe(Condition.enabled);
-    }
-
-    @Step("Show only pending requests is checked")
+    @Step("the option to show only pending requests is selected")
     public void showOnlyPendingRequestsIsChecked() {
         managementRequestsPageObj.showOnlyPendingRequests().click(ClickOptions.usingJavaScript());
     }
 
-    @Step("The user can see the Approve, Decline actions for pending management requests")
-    public void shouldShowApproveAndDeclineActions() {
-        managementRequestsPageObj.btnApproveManagementRequest().shouldBe(visible);
-        managementRequestsPageObj.btnDeclineManagementRequest().shouldBe(visible);
-    }
-
-    @Step("The user can not see the Approve, Decline actions for requests that have already been processed")
+    @Step("the user can not see the Approve, Decline actions for requests that have already been processed")
     public void shouldNotShowApproveAndDeclineActions() {
         managementRequestsPageObj.btnApproveManagementRequest().shouldNot(visible);
         managementRequestsPageObj.btnDeclineManagementRequest().shouldNot(visible);

@@ -112,7 +112,7 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
                 .text();
     }
 
-    @Step("Get API key and set {} to Authentication header")
+    @Step("API key is set to token {} and in Authentication header")
     public void getApiKeyAndSetAuthenticationHeaderIsSet(CommonStepDefs.TokenType type) {
         var createdApiKey = apiKeysPage.wizard.createdApiKey().text();
         type.setToken(createdApiKey);

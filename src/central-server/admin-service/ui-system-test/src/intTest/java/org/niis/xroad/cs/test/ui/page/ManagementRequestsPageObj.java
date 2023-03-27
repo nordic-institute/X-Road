@@ -48,17 +48,10 @@ public class ManagementRequestsPageObj {
     }
 
     @SuppressWarnings("checkstyle:OperatorWrap")
-    public SelenideElement tableWithHeaders(String id, String created, String type, String serverOwnerName, String serverIdentifier,
-                                            String status) {
-        var columnString = "th/span[contains(text(), '%s')]";
-        var and = " and ";
-        var xpath = "./thead//tr[" + columnString +
-                and + columnString +
-                and + columnString +
-                and + columnString +
-                and + columnString +
-                and + columnString + "]";
-        return table().find(xpath(String.format(xpath, id, created, type, serverOwnerName, serverIdentifier, status)));
+    public SelenideElement tableWithHeader(String name) {
+        var columnString = "th/span[text()='%s']";
+        var xpath = "./thead//tr[" + columnString + "]";
+        return table().find(xpath(String.format(xpath, name)));
     }
 
     public SelenideElement tableRowOf(String text) {
@@ -84,9 +77,9 @@ public class ManagementRequestsPageObj {
         return $x("//input[@data-test='search-input']");
     }
 
-    public SelenideElement tableCol(int colIndex) {
-        var xpath = "./thead/tr/th[%d]";
-        return table().find(xpath(String.format(xpath, colIndex)));
+    public SelenideElement tableCol(String name) {
+        var xpath = "./thead/tr/th/span[text()='%s']/..";
+        return table().find(xpath(String.format(xpath, name)));
     }
 
     public SelenideElement btnApproveManagementRequest(String text) {

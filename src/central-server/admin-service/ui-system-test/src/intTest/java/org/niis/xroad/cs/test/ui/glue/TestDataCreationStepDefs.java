@@ -58,7 +58,7 @@ public class TestDataCreationStepDefs extends BaseUiStepDefs {
     private final Map<String, byte[]> certificates = new HashMap<>();
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    @Step("New security server {} authentication certificate registered with owner code {}")
+    @Step("a new security server {} with authentication certificate is registered with owner code {}")
     public void newAuthenticationCertificateRegistered(String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         final var authenticationCertificateRegistrationRequest = new AuthenticationCertificateRegistrationRequestDto();
@@ -74,7 +74,7 @@ public class TestDataCreationStepDefs extends BaseUiStepDefs {
         putStepData(MANAGEMENT_REQUEST_ID, managementRequestId);
     }
 
-    @Step("Client with code {} is registered in security server {} with owner code {}")
+    @Step("a client with code {} is registered in security server {} with owner code {}")
     public void memberIsRegisteredAsSecurityServerClient(String clientCode, String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         final var clientId = String.join(":", INSTANCE_IDENTIFIER, MEMBER_CLASS_CODE, clientCode);

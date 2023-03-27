@@ -13,61 +13,61 @@ Feature: CS: Management Requests
     And Create API key wizard next button is clicked
     And Create API key wizard Create Key button is clicked
     And API key is created and visible
-    Then Get API key and set REGISTRATION_OFFICER to Authentication header
+    Then API key is set to token REGISTRATION_OFFICER and in Authentication header
     And Create API key wizard Finish button is clicked
     # API key creation END
     And Management requests tab is selected
 
-  @Modifying
-  Scenario: When Management requests are created then user can approve a request
-    When New security server E2E-SS1 authentication certificate registered with owner code e2e-tc1-member-subsystem
-    And Show only pending requests is checked
-    Then User is able to view the Management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
-    And User is able click Approve button in row from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
-    Then Management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should removed in list
+  Scenario: User Approves Management Request
+    Given a new security server E2E-SS1 with authentication certificate is registered with owner code e2e-tc1-member-subsystem
+    And the option to show only pending requests is selected
+    When the user views the Management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
+    And the user clicks on the Approve button in the row from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
+    Then the pending management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should be removed from the list
 
-  @Modifying
-  Scenario: When Management requests are created then user can declined a request
-    When New security server E2E-SS2 authentication certificate registered with owner code e2e-tc2-member-subsystem
-    And Show only pending requests is checked
-    Then User is able to view the Management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem
-    And User is able click Decline button in row from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem
-    Then Management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem should removed in list
+  Scenario: User Declines Management Request
+    Given a new security server E2E-SS2 with authentication certificate is registered with owner code e2e-tc2-member-subsystem
+    And the option to show only pending requests is selected
+    When the user views the Management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem
+    And the user clicks on the Decline button in the row from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem
+    Then the pending management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem should be removed from the list
 
-  @Modifying
-  Scenario: The user can view the details of pending management request and can Approve request
-    When Client with code e2e-tc2-member-subsystem is registered in security server E2E-SS1 with owner code e2e-tc1-member-subsystem
-    And Show only pending requests is checked
-    Then User is able to click Pending Management request Add Client from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
-    And The details page is shown with title Add Client
-    And PENDING Add Client details page contains details about the Request Information
-    And Add Client details page contains information about the Affected Security Server Information
-    And The details page show client information about the Client Submitted for Registration
-    And User is able click Approve button
-    Then Management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should removed in list
+  Scenario: User views Details and Approves pending Management request
+    Given a client with code e2e-tc2-member-subsystem is registered in security server E2E-SS1 with owner code e2e-tc1-member-subsystem
+    And the option to show only pending requests is selected
+    When the user clicks Pending request Add Client from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
+    Then the details page is shown with title Add Client
+    And the details page displays the Request Information for the PENDING management request
+    And the details page displays the Affected Security Server Information for the Client request
+    And the details page displays the client information for the Client Submitted for Registration
+    When the user clicks Approve button
+    Then the pending management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should be removed from the list
 
-  @Modifying
-  Scenario: The user can view the details of pending management request and can Decline request
-    When New security server E2E-SS3 authentication certificate registered with owner code e2e-tc3-member-subsystem
-    And Show only pending requests is checked
-    Then User is able to click Pending Management request Add Certificate from Security server E2E-SS3 with owner code e2e-tc3-member-subsystem
-    And The details page is shown with title Add Certificate
-    And PENDING Add Certificate details page contains details about the Request Information
-    And Add Certificate details page contains information about the Affected Security Server Information
-    And The details page show certificate information about the Authentication Certificate Submitted for Registration
-    And User is able click Decline button
-    Then Management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem should removed in list
-    And The user can not see the Approve, Decline actions for requests that have already been processed
+  Scenario: User views Details and Decline Pending Management Requests
+    Given a new security server E2E-SS3 with authentication certificate is registered with owner code e2e-tc3-member-subsystem
+    And the option to show only pending requests is selected
+    When the user clicks Pending request Add Certificate from Security server E2E-SS3 with owner code e2e-tc3-member-subsystem
+    And the details page is shown with title Add Certificate
+    And the details page displays the Request Information for the PENDING management request
+    And the details page displays the Affected Security Server Information for the Certificate request
+    And the details page show certificate information about the Authentication Certificate Submitted for Registration
+    When the user clicks Decline button
+    Then the user can not see the Approve, Decline actions for requests that have already been processed
+    And the pending management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem should be removed from the list
 
-  Scenario: The table correctly shows management requests
-    When Management Requests table with columns Id, Created, Type, Server Owner Name, Server Identifier, Status is visible
-    Then User is able to sort the table by column 1
-    And User is able to sort the table by column 2
-    And User is able to sort the table by column 3
-    And User is able to sort the table by column 4
-    And User is able to sort the table by column 5
-    And User is able to sort the table by column 6
+  Scenario Outline: Verify sorting functionality in Management Requests table
+    Given the Management Requests table with the column: <column-name> is visible
+    Then the User should be able to sort the table by: <column-name>
+    Examples:
+      | column-name       |
+      | Id                |
+      | Created           |
+      | Type              |
+      | Server Owner Name |
+      | Server Identifier |
+      | Status            |
 
-  Scenario: The table can be search by the free text field based on visible columns
-    When e2e-tc2 is written in table search field
-    Then User is able to view the Management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem
+  Scenario: Search for Management Requests based on Free Text in Visible Columns
+    Given the user clicks on search icon
+    When the user enters e2e-tc2 in the search field
+    Then the user views the Management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem
