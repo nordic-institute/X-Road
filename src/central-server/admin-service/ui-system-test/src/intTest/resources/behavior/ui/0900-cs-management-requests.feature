@@ -32,7 +32,7 @@ Feature: CS: Management Requests
     And the user clicks on the Decline button in the row from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem
     Then the pending management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem should be removed from the list
 
-  Scenario: User views Details and Approves pending Management request
+  Scenario: User views Details and Approves pending Management Request
     Given a client with code e2e-tc2-member-subsystem is registered in security server E2E-SS1 with owner code e2e-tc1-member-subsystem
     And the option to show only pending requests is selected
     When the user clicks Pending request Add Client from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
@@ -43,7 +43,7 @@ Feature: CS: Management Requests
     When the user clicks Approve button
     Then the pending management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should be removed from the list
 
-  Scenario: User views Details and Decline Pending Management Requests
+  Scenario: User views Details and Decline pending Management Request
     Given a new security server E2E-SS3 with authentication certificate is registered with owner code e2e-tc3-member-subsystem
     And the option to show only pending requests is selected
     When the user clicks Pending request Add Certificate from Security server E2E-SS3 with owner code e2e-tc3-member-subsystem
