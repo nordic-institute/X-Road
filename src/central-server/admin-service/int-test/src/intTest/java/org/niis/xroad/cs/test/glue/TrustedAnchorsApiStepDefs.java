@@ -30,21 +30,25 @@ package org.niis.xroad.cs.test.glue;
 
 import feign.FeignException;
 import io.cucumber.java.en.Step;
+import org.apache.commons.io.IOUtils;
 import org.niis.xroad.cs.openapi.model.TrustedAnchorDto;
 import org.niis.xroad.cs.test.api.FeignTrustedAnchorsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileUrlResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static java.lang.ClassLoader.getSystemResource;
+import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
-
     @Autowired
     private FeignTrustedAnchorsApi trustedAnchorsApi;
 
@@ -81,15 +85,32 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
         try {
             var result = trustedAnchorsApi.downloadTrustedAnchor(hash);
             putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE, result);
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
     }
+
     @Step("uploaded trusted anchor is downloaded")
     public void trustedAnchorIsDownloaded() {
         final TrustedAnchorDto uploadedAnchor = getRequiredStepData(StepDataKey.RESPONSE_BODY);
         trustedAnchorIsDownloaded(uploadedAnchor.getHash());
+    }
+
+    @Step("download anchor matches trusted anchor file {string}")
+    public void matchesTrustedAnchor(String filename) throws IOException {
+        ResponseEntity<Resource> downloadedAnchor = getRequiredStepData(StepDataKey.RESPONSE);
+
+        String expectedAnchorContent = IOUtils.resourceToString("/files/trusted-anchor/" + filename,
+                StandardCharsets.UTF_8);
+        validate(downloadedAnchor)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(notNullAssertion("body.filename"))
+                .assertion(equalsAssertion(expectedAnchorContent,
+                        "T(org.apache.commons.io.IOUtils).toString(body.inputStream, 'UTF-8')",
+                        "Trusted anchor file content"))
+                .execute();
     }
 
     @Step("trusted anchor response contains instance {string} and hash {string}")
