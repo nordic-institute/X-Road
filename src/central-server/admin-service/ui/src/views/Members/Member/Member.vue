@@ -78,16 +78,6 @@ export default Vue.extend({
         },
 
         {
-          key: 'member-management-requests-tab-button',
-          name: 'members.member.pagenavigation.managementRequests',
-          to: {
-            name: RouteName.MemberManagementRequests,
-          },
-          permissions: [Permissions.VIEW_MEMBER_DETAILS],
-          showAttention: true,
-        },
-
-        {
           key: 'member-subsystems-tab-button',
           name: 'members.member.pagenavigation.subsystems',
           to: {
