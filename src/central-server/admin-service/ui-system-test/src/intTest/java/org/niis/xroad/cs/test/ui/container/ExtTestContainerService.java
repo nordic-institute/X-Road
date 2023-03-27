@@ -50,24 +50,38 @@ public class ExtTestContainerService extends TestContainerService {
 
     @Override
     protected void startContainer(@NotNull final GenericContainer<?> applicationContainer) {
-        //Adding additional wait condition. It's completely optional.
-        applicationContainer.waitingFor(Wait.forLogMessage(".*Started Main in.*", 1));
+        if (isUrlOverridden()) {
+            //Adding additional wait condition. It's completely optional.
+            applicationContainer.waitingFor(Wait.forLogMessage(".*Started Main in.*", 1));
+        }
         super.startContainer(applicationContainer);
     }
 
     @Override
     public @NotNull String getHost() {
-        final String[] urlParts = getUrlParts();
-        return urlParts[1].substring(2);
+        if (isUrlOverridden()) {
+            final String[] urlParts = getUrlParts();
+            return urlParts[1].substring(2);
+        } else {
+            return super.getHost();
+        }
     }
 
     @Override
     public int getPort() {
-        final String[] urlParts = getUrlParts();
-        return Integer.parseInt(urlParts[2]);
+        if (isUrlOverridden()) {
+            final String[] urlParts = getUrlParts();
+            return Integer.parseInt(urlParts[2]);
+        } else {
+            return super.getPort();
+        }
     }
 
     private String[] getUrlParts() {
         return StringUtils.split(centralServerUrlOverride, ':');
+    }
+
+    private boolean isUrlOverridden() {
+        return centralServerUrlOverride != null;
     }
 }
