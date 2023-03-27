@@ -250,6 +250,7 @@
     "url": "URL",
     "tokenPin": "Token PIN",
     "keyLabel": "Key friendly name",
+    "memberCode": "Member Code",
     "securityServerAddress": "Security server address",
     "serverCode": "Server code",
     "securityServerCode": "Security server code"

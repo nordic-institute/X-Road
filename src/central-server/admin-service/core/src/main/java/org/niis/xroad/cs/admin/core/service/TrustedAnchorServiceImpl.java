@@ -114,6 +114,13 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
     }
 
     @Override
+    public TrustedAnchor findByHash(String hash) {
+        return trustedAnchorRepository.findFirstByTrustedAnchorHash(hash)
+                .map(trustedAnchorMapper::toTarget)
+                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND));
+    }
+
+    @Override
     public void delete(String hash) {
         final TrustedAnchorEntity trustedAnchor = trustedAnchorRepository.findFirstByTrustedAnchorHash(hash)
                 .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND));

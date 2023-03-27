@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
 import org.niis.xroad.cs.admin.rest.api.converter.TrustedAnchorConverter;
 import org.niis.xroad.cs.openapi.TrustedAnchorsApi;
@@ -41,6 +42,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,6 +61,10 @@ import static org.springframework.http.ResponseEntity.status;
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class TrustedAnchorsApiController implements TrustedAnchorsApi {
+    private static final String FILENAME_FORMAT = "configuration_anchor_%s_%s_%s.xml";
+    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)
+            .withZone(ZoneId.systemDefault());
 
     private final TrustedAnchorService trustedAnchorService;
     private final TrustedAnchorConverter trustedAnchorConverter;
@@ -70,8 +78,11 @@ public class TrustedAnchorsApiController implements TrustedAnchorsApi {
     }
 
     @Override
-    public ResponseEntity<Resource> downloadTrustedAnchor(String hash) {
-        throw new NotImplementedException("downloadTrustedAnchor not implemented yet.");
+    @PreAuthorize("hasAuthority('DOWNLOAD_TRUSTED_ANCHOR')")
+    public ResponseEntity<Resource> downloadTrustedAnchor(final String hash) {
+        final var trustedAnchor = trustedAnchorService.findByHash(hash);
+        final var filename = getAnchorFilename(trustedAnchor.getInstanceIdentifier(), trustedAnchor.getGeneratedAt());
+        return ControllerUtil.createAttachmentResourceResponse(trustedAnchor.getTrustedAnchorFile(), filename);
     }
 
     @Override
@@ -100,4 +111,11 @@ public class TrustedAnchorsApiController implements TrustedAnchorsApi {
         );
     }
 
+
+    private static String getAnchorFilename(final String instanceIdentifier,
+                                            final Instant generatedAt) {
+        final var formattedDateTime = generatedAt == null ? "" : DATE_TIME_FORMATTER.format(generatedAt);
+
+        return String.format(FILENAME_FORMAT, instanceIdentifier, ConfigurationSourceType.EXTERNAL, formattedDateTime);
+    }
 }

@@ -39,4 +39,5 @@ public interface TrustedAnchorService {
 
     void delete(String hash);
 
+    TrustedAnchor findByHash(String hash);
 }
