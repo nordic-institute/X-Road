@@ -345,6 +345,20 @@
     "downloadUrl": {
       "title": "Download URL",
       "urlAddress": "URL Address"
+    },
+    "trustedAnchor": {
+      "dialog": {
+        "upload": {
+          "confirmation": "Continue with upload?",
+          "field": {
+            "generated": "Generated",
+            "hash": "Hash (SHA-224)"
+          },
+          "info": "Trusted anchor details:",
+          "success": "Successfully uploaded Trusted anchor",
+          "title": "Confirm trusted anchor details"
+        }
+      }
     }
   },
   "globalGroup": {

@@ -31,56 +31,26 @@
       <div class="title-search">
         <div class="xrd-view-title">Trusted anchors</div>
       </div>
+
+      <upload-trusted-anchor-button @uploaded="fetchTrustedAnchors" />
     </div>
 
     <!-- Anchor -->
-    <div id="anchor" class="mt-4">
-      <v-card flat>
-        <div class="card-top">
-          <div class="card-main-title">Configuration parts</div>
-          <div class="card-corner-button pr-4">
-            <xrd-button outlined>
-              <xrd-icon-base class="xrd-large-button-icon"
-                ><XrdIconDownload
-              /></xrd-icon-base>
-              Download
-            </xrd-button>
-          </div>
-        </div>
-        <v-data-table
-          :loading="loading"
-          :headers="headers"
-          :items="trustedAnchors"
-          :search="search"
-          :must-sort="true"
-          :items-per-page="-1"
-          class="elevation-0 data-table"
-          item-key="id"
-          :loader-height="2"
-          hide-default-footer
-        >
-          <template #[`item.hash`]="{ item }">
-            <div class="hash-cell">
-              <xrd-icon-base class="mr-4 xrd-clickable"
-                ><XrdIconCertificate
-              /></xrd-icon-base>
-              <div>{{ item.hash }}</div>
-            </div>
-          </template>
-
-          <template #[`item.button`]>
-            <div class="cs-table-actions-wrap">
-              <xrd-button text :outlined="false">{{
-                $t('action.delete')
-              }}</xrd-button>
-            </div>
-          </template>
-
-          <template #footer>
-            <div class="cs-table-custom-footer"></div>
-          </template>
-        </v-data-table>
-      </v-card>
+    <div id="anchors" class="mt-4">
+      <XrdEmptyPlaceholder
+        :data="trustedAnchors"
+        :loading="loading"
+        :no-items-text="$t('noData.noData')"
+        skeleton-type="table-heading"
+      />
+      <configuration-anchor-item
+        v-for="anchor in trustedAnchors"
+        :key="anchor.hash"
+        :anchor="anchor"
+      >
+        <download-trusted-anchor-button class="mr-4" />
+        <delete-trusted-anchor-button />
+      </configuration-anchor-item>
     </div>
   </div>
 </template>
@@ -91,30 +61,42 @@
  */
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
+import ConfigurationAnchorItem, {
+  Anchor,
+} from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
+import { TrustedAnchor } from '@/openapi-types';
+import { mapActions, mapState, mapStores } from 'pinia';
+import { userStore } from '@/store/modules/user';
+import { trustedAnchorStore } from '@/store/modules/trusted-anchors';
+import { notificationsStore } from '@/store/modules/notifications';
+import UploadTrustedAnchorButton from '@/components/trustedAnchors/UploadTrustedAnchorButton.vue';
+import DownloadTrustedAnchorButton from '@/components/trustedAnchors/DownloadTrustedAnchorButton.vue';
+import DeleteTrustedAnchorButton from '@/components/trustedAnchors/DeleteTrustedAnchorButton.vue';
+
+function convert(source: TrustedAnchor): Anchor {
+  return {
+    hash: source.hash,
+    createdAt: source.generated_at,
+    title: source.instance_identifier,
+  };
+}
 
 export default Vue.extend({
-  components: {},
+  components: {
+    DeleteTrustedAnchorButton,
+    DownloadTrustedAnchorButton,
+    UploadTrustedAnchorButton,
+    ConfigurationAnchorItem,
+  },
   data() {
     return {
       loading: false,
-      search: '',
-      trustedAnchors: [
-        {
-          hash: '42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:',
-          created: '2021-02-01',
-        },
-        {
-          hash: '22:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:C2:6E:67:BC:07:FE:B8:0E:B8:0E:41:16:2A:97:EF:7F:',
-          created: '2021-05-05',
-        },
-        {
-          hash: '32:C2:6E:67:BC:07:FE:B8:0E:B8:0E:41:16:2A:97:EF:7F:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:',
-          created: '2021-03-12',
-        },
-      ],
+      trustedAnchors: [] as Anchor[],
     };
   },
   computed: {
+    ...mapStores(trustedAnchorStore),
+    ...mapState(userStore, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
         {
@@ -139,8 +121,20 @@ export default Vue.extend({
       ];
     },
   },
-
-  methods: {},
+  created() {
+    this.fetchTrustedAnchors();
+  },
+  methods: {
+    ...mapActions(notificationsStore, ['showSuccess', 'showError']),
+    fetchTrustedAnchors() {
+      this.loading = true;
+      this.trustedAnchorStore
+        .fetchTrustedAnchors()
+        .then((resp) => (this.trustedAnchors = resp.data.map(convert)))
+        .catch((error) => this.showError(error))
+        .finally(() => (this.loading = false));
+    },
+  },
 });
 </script>
 
