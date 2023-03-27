@@ -44,8 +44,7 @@
             <div class="dlg-input-width pt-4">
               <ValidationProvider
                 v-slot="{ errors }"
-                ref="initializationParamsVP"
-                name="init.identifier"
+                name="memberCode"
                 :rules="{ required: true, is: member.xroad_id.member_code }"
                 data-test="instance-identifier--validation"
               >
