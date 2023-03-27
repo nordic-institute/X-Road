@@ -1452,7 +1452,7 @@ paths:
           required: true
           schema:
             format: text
-            maxLength: 40
+            maxLength: 255
             minLength: 1
             type: string
       responses:

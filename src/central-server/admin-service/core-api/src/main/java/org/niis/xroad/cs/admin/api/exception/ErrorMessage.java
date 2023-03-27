@@ -115,6 +115,7 @@ public enum ErrorMessage implements DeviationProvider {
 
     MALFORMED_ANCHOR("malformed_anchor", "Malformed anchor file"),
     TRUSTED_ANCHOR_VERIFICATION_FAILED("trusted_anchor_verification_failed", "Trusted anchor file verification failed"),
+    TRUSTED_ANCHOR_NOT_FOUND("trusted_anchor_not_found", "Trusted anchor not found"),
 
     INVALID_PAGINATION_PROPERTIES("invalid_pagination_properties", "Pagination has invalid properties"),
     INVALID_SORTING_PROPERTIES("invalid_sort_properties", "Invalid sort parameter");

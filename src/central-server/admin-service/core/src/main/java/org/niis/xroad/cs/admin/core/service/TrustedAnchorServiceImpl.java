@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationLocation;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
@@ -48,10 +49,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MALFORMED_ANCHOR;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ANCHOR_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ANCHOR_VERIFICATION_FAILED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_URLS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GENERATED_AT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INSTANCE_IDENTIFIER;
@@ -106,6 +111,18 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
 
         final TrustedAnchorEntity saved = trustedAnchorRepository.save(entity);
         return trustedAnchorMapper.toTarget(saved);
+    }
+
+    @Override
+    public void delete(String hash) {
+        final TrustedAnchorEntity trustedAnchor = trustedAnchorRepository.findFirstByTrustedAnchorHash(hash)
+                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND));
+
+        auditDataHelper.put(INSTANCE_IDENTIFIER, trustedAnchor.getInstanceIdentifier());
+        auditDataHelper.put(ANCHOR_FILE_HASH, trustedAnchor.getTrustedAnchorHash());
+        auditDataHelper.put(ANCHOR_FILE_HASH_ALGORITHM, DEFAULT_ANCHOR_HASH_ALGORITHM_ID);
+
+        trustedAnchorRepository.delete(trustedAnchor);
     }
 
     private void validateTrustedAnchor(byte[] trustedAnchor) {

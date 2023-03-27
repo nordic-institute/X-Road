@@ -34,6 +34,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
@@ -45,8 +46,10 @@ import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
 import static java.lang.ClassLoader.getSystemResource;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Optional.empty;
@@ -57,15 +60,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_VERIFICATION_UNREACHABLE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_URLS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GENERATED_AT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INSTANCE_IDENTIFIER;
 
 @ExtendWith(MockitoExtension.class)
 class TrustedAnchorServiceImplTest {
+
+    private static final String ANCHOR_HASH = "40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D";
 
     @Mock
     private TrustedAnchorRepository trustedAnchorRepository;
@@ -92,9 +100,7 @@ class TrustedAnchorServiceImplTest {
 
             assertThat(preview.getInstanceIdentifier()).isEqualTo("CS0");
             assertThat(preview.getGeneratedAt()).isEqualTo(anchorDate.toInstant());
-            assertThat(preview.getTrustedAnchorHash()).isEqualTo(
-                    "40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D"
-            );
+            assertThat(preview.getTrustedAnchorHash()).isEqualTo(ANCHOR_HASH);
         }
 
         @Test
@@ -126,8 +132,7 @@ class TrustedAnchorServiceImplTest {
 
             verify(configurationVerifier).verifyConfiguration(any(), any());
 
-            assertThat(result.getTrustedAnchorHash()).isEqualTo(
-                    "40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D");
+            assertThat(result.getTrustedAnchorHash()).isEqualTo(ANCHOR_HASH);
             assertThat(result.getTrustedAnchorFile()).isEqualTo(bytes);
             assertThat(result.getGeneratedAt()).isEqualTo(anchorDate.toInstant());
             assertThat(result.getAnchorUrls()).hasSize(1);
@@ -154,4 +159,40 @@ class TrustedAnchorServiceImplTest {
         }
     }
 
+    @Nested
+    class Delete {
+
+        @Mock
+        private TrustedAnchorEntity trustedAnchorEntity;
+
+        @Test
+        void delete() {
+            when(trustedAnchorRepository.findFirstByTrustedAnchorHash(ANCHOR_HASH))
+                    .thenReturn(Optional.of(trustedAnchorEntity));
+            when(trustedAnchorEntity.getInstanceIdentifier()).thenReturn("INSTANCE");
+            when(trustedAnchorEntity.getTrustedAnchorHash()).thenReturn(ANCHOR_HASH);
+
+            trustedAnchorService.delete(ANCHOR_HASH);
+
+            verify(auditDataHelper).put(INSTANCE_IDENTIFIER, "INSTANCE");
+            verify(auditDataHelper).put(ANCHOR_FILE_HASH, ANCHOR_HASH);
+            verify(auditDataHelper).put(ANCHOR_FILE_HASH_ALGORITHM, DEFAULT_ANCHOR_HASH_ALGORITHM_ID);
+
+            verify(trustedAnchorRepository).delete(trustedAnchorEntity);
+        }
+
+        @Test
+        void deleteShouldThrowNotFound() {
+            when(trustedAnchorRepository.findFirstByTrustedAnchorHash(ANCHOR_HASH))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> trustedAnchorService.delete(ANCHOR_HASH))
+                    .isInstanceOf(NotFoundException.class)
+                    .hasMessage("Trusted anchor not found");
+
+            verifyNoInteractions(auditDataHelper);
+            verifyNoMoreInteractions(trustedAnchorRepository);
+        }
+
+    }
 }

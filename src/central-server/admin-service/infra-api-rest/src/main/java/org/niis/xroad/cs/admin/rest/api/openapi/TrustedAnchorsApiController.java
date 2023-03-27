@@ -45,8 +45,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_TRUSTED_ANCHOR;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_TRUSTED_ANCHOR;
 import static org.niis.xroad.restapi.util.ResourceUtils.springResourceToBytesOrThrowBadRequest;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
 
@@ -60,8 +62,11 @@ public class TrustedAnchorsApiController implements TrustedAnchorsApi {
     private final TrustedAnchorConverter trustedAnchorConverter;
 
     @Override
+    @AuditEventMethod(event = DELETE_TRUSTED_ANCHOR)
+    @PreAuthorize("hasAuthority('DELETE_TRUSTED_ANCHOR')")
     public ResponseEntity<Void> deleteTrustedAnchor(String hash) {
-        throw new NotImplementedException("deleteTrustedAnchor not implemented yet.");
+        trustedAnchorService.delete(hash);
+        return noContent().build();
     }
 
     @Override

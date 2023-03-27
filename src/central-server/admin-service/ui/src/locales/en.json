@@ -209,6 +209,7 @@
     "unknown_configuration_part": "Unknown configuration part",
     "malformed_anchor": "Malformed anchor file",
     "trusted_anchor_verification_failed": "Trusted anchor verification failed",
+    "trusted_anchor_not_found": "Trusted anchor not found",
     "internal_error": "Internal error. See server logs for more details",
     "invalid_parameters": "Validation failure",
     "security_server_not_found": "Security server not found",
