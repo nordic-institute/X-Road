@@ -86,7 +86,6 @@ public final class CertificateUtils {
         return generateAuthCertHolder(certDistinguishedName).getEncoded();
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     private static X509CertificateHolder generateAuthCertHolder(String subjectDistinguishedName) throws Exception {
         var keyFactory = KeyFactory.getInstance("RSA");
         var certificateFactory = CertificateFactory.getInstance("X.509");

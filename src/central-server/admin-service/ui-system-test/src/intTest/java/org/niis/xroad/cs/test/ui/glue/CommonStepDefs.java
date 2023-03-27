@@ -1,6 +1,5 @@
-/**
+/*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -60,9 +59,8 @@ public class CommonStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnSave().shouldBe(selenideValidation.getSelenideCondition());
     }
 
-    @ParameterType("SYSTEM_ADMINISTRATOR|REGISTRATION_OFFICER|SECURITY_OFFICER|MANAGEMENT_SERVICE")
+    @ParameterType("REGISTRATION_OFFICER")
     public TokenType tokenType(String name) {
         return TokenType.fromString(name);
     }
-
 }
