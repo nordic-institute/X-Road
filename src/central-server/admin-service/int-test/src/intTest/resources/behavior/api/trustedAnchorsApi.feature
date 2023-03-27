@@ -20,7 +20,7 @@ Feature: Trusted Anchors Api
     And Response is of status code 201
     And trusted anchor response contains instance 'CS0' and hash '40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D'
     Then uploaded trusted anchor is downloaded
-    And Response is of status code 200
+    And download anchor matches trusted anchor file 'trusted-anchor.xml'
 
   @Modifying
   Scenario: Get trusted anchors list
