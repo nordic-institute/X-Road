@@ -140,7 +140,7 @@ export default Vue.extend({
     return {
       loading: false, //is data being loaded
       showOnlyPending: false,
-      pagingSortingOptions: {} as DataOptions,
+      pagingSortingOptions: { sortBy: ['id'], sortDesc: [true] } as DataOptions,
       filter: {} as ManagementRequestsFilter,
     };
   },
