@@ -117,13 +117,13 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
     public TrustedAnchor findByHash(String hash) {
         return trustedAnchorRepository.findFirstByTrustedAnchorHash(hash)
                 .map(trustedAnchorMapper::toTarget)
-                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND, hash));
     }
 
     @Override
     public void delete(String hash) {
         final TrustedAnchorEntity trustedAnchor = trustedAnchorRepository.findFirstByTrustedAnchorHash(hash)
-                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND, hash));
 
         auditDataHelper.put(INSTANCE_IDENTIFIER, trustedAnchor.getInstanceIdentifier());
         auditDataHelper.put(ANCHOR_FILE_HASH, trustedAnchor.getTrustedAnchorHash());
