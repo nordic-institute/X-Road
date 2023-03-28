@@ -40,6 +40,7 @@ import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
+import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ManagementRequestViewMapper;
@@ -72,6 +73,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     private final List<RequestHandler<? extends Request>> handlers;
     private final RequestMapper requestMapper;
     private final ManagementRequestViewMapper viewMapper;
+    private final StableSortHelper stableSortHelper;
 
     /**
      * Get a management request
@@ -105,7 +107,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     public Page<ManagementRequestView> findRequests(
             ManagementRequestService.Criteria filter,
             Pageable page) {
-        var result = managementRequestViewRepository.findAll(filter, page);
+        var result = managementRequestViewRepository.findAll(filter, stableSortHelper.addSecondaryIdSort(page));
         return result.map(viewMapper::toTarget);
     }
 
