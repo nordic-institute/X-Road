@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -119,7 +120,7 @@ export default Vue.extend({
     confirm() {
       this.uploading = true;
       this.trustedAnchorStore
-        .uploadTrustedAnchors(this.file)
+        .uploadTrustedAnchor(this.file)
         .then(() =>
           this.showSuccess(
             this.$t('globalConf.trustedAnchor.dialog.upload.success'),

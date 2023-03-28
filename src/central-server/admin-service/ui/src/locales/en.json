@@ -357,6 +357,11 @@
           "info": "Trusted anchor details:",
           "success": "Successfully uploaded Trusted anchor",
           "title": "Confirm trusted anchor details"
+        },
+        "delete": {
+          "confirmation": "Delete {identifier} anchor with Hash (SHA-224) {hash}?",
+          "success": "Successfully deleted Trusted anchor",
+          "title": "Delete Anchor"
         }
       }
     }

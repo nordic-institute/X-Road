@@ -26,7 +26,7 @@
  */
 
 import { defineStore } from 'pinia';
-import { deepClone } from '@/util/helpers';
+import { deepClone, saveResponseAsFile } from '@/util/helpers';
 import axios from 'axios';
 import { Token, TokenPassword, TrustedAnchor } from '@/openapi-types';
 
@@ -49,14 +49,35 @@ export const trustedAnchorStore = defineStore('trustedAnchor', {
           throw error;
         });
     },
-    uploadTrustedAnchors(file: File) {
+    uploadTrustedAnchor(file: File) {
       const config = {
         headers: {
           'Content-Type': 'application/octet-stream',
         },
       };
       return axios
-        .post<TrustedAnchor>('/trusted-anchors/', file, config)
+        .post<TrustedAnchor>('/trusted-anchors', file, config)
+        .catch((error) => {
+          throw error;
+        });
+    },
+    downloadTrustedAnchor(hash: string) {
+      return axios
+        .get(`/trusted-anchors/${hash}/download`, {
+          responseType: 'blob',
+        })
+        .then((resp) => {
+          saveResponseAsFile(resp, 'trusted-anchor.xml');
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    deleteTrustedAnchor(hash: string) {
+      return axios
+        .delete(`/trusted-anchors/${hash}`, {
+          responseType: 'blob',
+        })
         .catch((error) => {
           throw error;
         });
