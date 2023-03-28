@@ -45,11 +45,15 @@
       />
       <configuration-anchor-item
         v-for="anchor in trustedAnchors"
-        :key="anchor.hash"
+        :key="anchor.title"
         :anchor="anchor"
       >
-        <download-trusted-anchor-button class="mr-4" />
-        <delete-trusted-anchor-button />
+        <download-trusted-anchor-button :hash="anchor.hash" class="mr-4" />
+        <delete-trusted-anchor-button
+          :hash="anchor.hash"
+          :identifier="anchor.title"
+          @deleted="fetchTrustedAnchors"
+        />
       </configuration-anchor-item>
     </div>
   </div>

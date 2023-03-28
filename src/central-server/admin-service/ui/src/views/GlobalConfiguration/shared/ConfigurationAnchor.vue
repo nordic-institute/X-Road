@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <configuration-anchor-item  :anchor="anchor" :loading="loading">
+  <configuration-anchor-item :anchor="anchor" :loading="loading">
     <xrd-button
       v-if="showRecreateAnchorButton"
       data-test="re-create-anchor-button"

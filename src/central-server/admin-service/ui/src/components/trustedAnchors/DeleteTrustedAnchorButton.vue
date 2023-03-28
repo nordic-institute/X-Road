@@ -25,18 +25,45 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button data-test="delete-anchor-button" :loading="loading" outlined>
+  <xrd-button
+    v-if="canDelete"
+    data-test="delete-anchor-button"
+    outlined
+    @click="$refs.dialog.open()"
+  >
     {{ $t('action.delete') }}
+    <delete-trusted-anchor-dialog
+      ref="dialog"
+      :hash="hash"
+      :identifier="identifier"
+      @deleted="$emit('deleted')"
+    />
   </xrd-button>
 </template>
 <script lang="ts">
 import Vue from 'vue';
+import { mapState } from 'pinia';
+import { userStore } from '@/store/modules/user';
+import { Permissions } from '@/global';
+import DeleteTrustedAnchorDialog from './DeleteTrustedAnchorDialog.vue';
 
 export default Vue.extend({
-  data(){
-    return {
-      loading: false,
-    };
+  components: { DeleteTrustedAnchorDialog },
+  props: {
+    hash: {
+      type: String,
+      required: true,
+    },
+    identifier: {
+      type: String,
+      required: true,
+    },
+  },
+  computed: {
+    ...mapState(userStore, ['hasPermission']),
+    canDelete(): boolean {
+      return this.hasPermission(Permissions.DELETE_TRUSTED_ANCHOR);
+    },
   },
 });
 </script>

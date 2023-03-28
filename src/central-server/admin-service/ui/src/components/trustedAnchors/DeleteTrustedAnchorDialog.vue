@@ -25,24 +25,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button
-    v-if="canDownload"
-    data-test="download-anchor-button"
-    outlined
-    :loading="loading"
-    @click="download"
-  >
-    <xrd-icon-base class="xrd-large-button-icon">
-      <XrdIconDownload />
-    </xrd-icon-base>
-    {{ $t('action.download') }}
-  </xrd-button>
+  <xrd-confirm-dialog
+    :dialog="opened"
+    title="globalConf.trustedAnchor.dialog.delete.title"
+    text="globalConf.trustedAnchor.dialog.delete.confirmation"
+    :data="{ hash, identifier }"
+    @cancel="opened = false"
+    @accept="deleteAnchor"
+  />
 </template>
 <script lang="ts">
 import Vue from 'vue';
-import { mapActions, mapState, mapStores } from 'pinia';
-import { userStore } from '@/store/modules/user';
-import { Permissions } from '@/global';
+import { mapActions, mapStores } from 'pinia';
 import { trustedAnchorStore } from '@/store/modules/trusted-anchors';
 import { notificationsStore } from '@/store/modules/notifications';
 
@@ -52,27 +46,37 @@ export default Vue.extend({
       type: String,
       required: true,
     },
+    identifier: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
-      loading: false,
+      opened: false,
+      deleting: false,
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
     ...mapStores(trustedAnchorStore),
-    canDownload(): boolean {
-      return this.hasPermission(Permissions.DOWNLOAD_TRUSTED_ANCHOR);
-    },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError']),
-    download() {
-      this.loading = true;
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    open() {
+      this.opened = true;
+    },
+    deleteAnchor() {
+      this.deleting = true;
       this.trustedAnchorStore
-        .downloadTrustedAnchor(this.hash)
+        .deleteTrustedAnchor(this.hash)
+        .then(() =>
+          this.showSuccess(
+            this.$t('globalConf.trustedAnchor.dialog.delete.success'),
+          ),
+        )
+        .then(() => this.$emit('deleted'))
         .catch((error) => this.showError(error))
-        .finally(() => (this.loading = false));
+        .finally(() => (this.deleting = false));
     },
   },
 });
