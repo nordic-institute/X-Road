@@ -30,6 +30,7 @@
     title="globalConf.trustedAnchor.dialog.delete.title"
     text="globalConf.trustedAnchor.dialog.delete.confirmation"
     :data="{ hash, identifier }"
+    :loading="deleting"
     @cancel="opened = false"
     @accept="deleteAnchor"
   />
@@ -69,12 +70,13 @@ export default Vue.extend({
       this.deleting = true;
       this.trustedAnchorStore
         .deleteTrustedAnchor(this.hash)
+        .then(() => this.$emit('deleted'))
+        .then(() => (this.opened = false))
         .then(() =>
           this.showSuccess(
             this.$t('globalConf.trustedAnchor.dialog.delete.success'),
           ),
         )
-        .then(() => this.$emit('deleted'))
         .catch((error) => this.showError(error))
         .finally(() => (this.deleting = false));
     },
