@@ -49,11 +49,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MALFORMED_ANCHOR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ANCHOR_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TRUSTED_ANCHOR_VERIFICATION_FAILED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ANCHOR_URLS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GENERATED_AT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INSTANCE_IDENTIFIER;
@@ -114,7 +117,19 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
     public TrustedAnchor findByHash(String hash) {
         return trustedAnchorRepository.findFirstByTrustedAnchorHash(hash)
                 .map(trustedAnchorMapper::toTarget)
-                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND, hash));
+    }
+
+    @Override
+    public void delete(String hash) {
+        final TrustedAnchorEntity trustedAnchor = trustedAnchorRepository.findFirstByTrustedAnchorHash(hash)
+                .orElseThrow(() -> new NotFoundException(TRUSTED_ANCHOR_NOT_FOUND, hash));
+
+        auditDataHelper.put(INSTANCE_IDENTIFIER, trustedAnchor.getInstanceIdentifier());
+        auditDataHelper.put(ANCHOR_FILE_HASH, trustedAnchor.getTrustedAnchorHash());
+        auditDataHelper.put(ANCHOR_FILE_HASH_ALGORITHM, DEFAULT_ANCHOR_HASH_ALGORITHM_ID);
+
+        trustedAnchorRepository.delete(trustedAnchor);
     }
 
     private void validateTrustedAnchor(byte[] trustedAnchor) {

@@ -152,4 +152,15 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
     }
+
+    @Step("trusted anchor is deleted by hash {string}")
+    public void trustedAnchorIsDeletedByHash(String hash) {
+        try {
+            var result = trustedAnchorsApi.deleteTrustedAnchor(hash);
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
 }

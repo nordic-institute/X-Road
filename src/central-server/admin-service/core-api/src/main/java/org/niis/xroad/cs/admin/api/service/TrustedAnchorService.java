@@ -37,5 +37,7 @@ public interface TrustedAnchorService {
 
     TrustedAnchor upload(byte[] trustedAnchor);
 
+    void delete(String hash);
+
     TrustedAnchor findByHash(String hash);
 }
