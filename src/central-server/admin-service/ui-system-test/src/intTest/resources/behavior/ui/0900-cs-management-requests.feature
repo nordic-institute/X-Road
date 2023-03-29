@@ -55,17 +55,14 @@ Feature: CS: Management Requests
     Then the user can not see the Approve, Decline actions for requests that have already been processed
     And the pending management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem should be removed from the list
 
-  Scenario Outline: Verify sorting functionality in Management Requests table
-    Given the Management Requests table with the column: <field-name> is visible
-    Then the User should be able to sort the table by: <field-name> and field default order is <default-order>
-    Examples:
-      | field-name        | default-order |
-      | Id                | descending    |
-      | Created           | none          |
-      | Type              | none          |
-      | Server Owner Name | none          |
-      | Server Identifier | none          |
-      | Status            | none          |
+  Scenario: Verify sorting functionality in Management Requests table
+    Given the Management Requests table should be visible
+    Then the default sort is by Id descending
+    And user is able to sort the table by field Created
+    And user is able to sort the table by field Type
+    And user is able to sort the table by field Server Owner Name
+    And user is able to sort the table by field Server Identifier
+    And user is able to sort the table by field Status
 
   Scenario: Search for Management Requests based on Free Text in Visible Columns
     Given the user clicks on search icon

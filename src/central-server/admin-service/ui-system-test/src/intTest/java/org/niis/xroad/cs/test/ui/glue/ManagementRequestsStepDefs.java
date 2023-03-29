@@ -55,8 +55,17 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     private FeignManagementRequestsApi managementRequestsApi;
     private ManagementRequestDetailedViewDto managementRequestDetailedView;
 
-    @Step("the User should be able to sort the table by: {} and field default order is {}")
-    public void userIsAbleToSortByColumn(String name, String defaultOrder) {
+    @Step("the default sort is by {} {}")
+    public void defaultSortByFieldAndOrder(String name, String defaultOrder) {
+        userIsAbleToSortByFieldAndOrder(name, defaultOrder);
+    }
+
+    @Step("user is able to sort the table by field {}")
+    public void userIsAbleToSortByField(String name) {
+        userIsAbleToSortByFieldAndOrder(name, "none");
+    }
+
+    private void userIsAbleToSortByFieldAndOrder(String name, String defaultOrder) {
         final var column = managementRequestsPageObj.tableCol(name);
         Assertions.assertEquals(defaultOrder, column.getAttribute(ARIA_SORT));
         column.click();
@@ -206,9 +215,9 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         managementRequestsPageObj.tableRowOf(securityServerId).shouldNotBe(visible);
     }
 
-    @Step("the Management Requests table with the column: {} is visible")
-    public void managementRequestsTableIsVisible(String columnName) {
-        managementRequestsPageObj.tableWithHeader(columnName).shouldBe(Condition.enabled);
+    @Step("the Management Requests table should be visible")
+    public void managementRequestsTableShouldBeVisible() {
+        managementRequestsPageObj.table().shouldBe(Condition.enabled);
     }
 
     @Step("the option to show only pending requests is selected")
