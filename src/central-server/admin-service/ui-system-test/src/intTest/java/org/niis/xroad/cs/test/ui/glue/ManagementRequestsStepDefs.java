@@ -49,7 +49,7 @@ import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.MANAGEME
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ManagementRequestsStepDefs extends BaseUiStepDefs {
-    private final static String ARIA_SORT = "aria-sort";
+    private static final String ARIA_SORT = "aria-sort";
     private final ManagementRequestsPageObj managementRequestsPageObj = new ManagementRequestsPageObj();
     @Autowired
     private FeignManagementRequestsApi managementRequestsApi;
@@ -58,11 +58,11 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     @Step("the User should be able to sort the table by: {} and field default order is {}")
     public void userIsAbleToSortByColumn(String name, String defaultOrder) {
         final var column = managementRequestsPageObj.tableCol(name);
-        Assertions.assertEquals(defaultOrder, column.getAttribute(ARIA_SORT ));
+        Assertions.assertEquals(defaultOrder, column.getAttribute(ARIA_SORT));
         column.click();
-        Assertions.assertEquals("ascending", column.getAttribute(ARIA_SORT ));
+        Assertions.assertEquals("ascending", column.getAttribute(ARIA_SORT));
         column.click();
-        Assertions.assertEquals("descending", column.getAttribute(ARIA_SORT ));
+        Assertions.assertEquals("descending", column.getAttribute(ARIA_SORT));
     }
 
     @Step("the user clicks on search icon")

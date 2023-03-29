@@ -60,12 +60,12 @@ Feature: CS: Management Requests
     Then the User should be able to sort the table by: <field-name> and field default order is <default-order>
     Examples:
       | field-name        | default-order |
-      | Id                | descending   |
-      | Created           | none         |
-      | Type              | none         |
-      | Server Owner Name | none         |
-      | Server Identifier | none         |
-      | Status            | none         |
+      | Id                | descending    |
+      | Created           | none          |
+      | Type              | none          |
+      | Server Owner Name | none          |
+      | Server Identifier | none          |
+      | Status            | none          |
 
   Scenario: Search for Management Requests based on Free Text in Visible Columns
     Given the user clicks on search icon
