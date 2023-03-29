@@ -23,44 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.test.ui.glue;
+package org.niis.xroad.cs.test.ui;
 
-import io.cucumber.java.ParameterType;
-import io.cucumber.java.en.Step;
-import org.niis.xroad.cs.test.ui.glue.mappers.ParameterMappers;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Configuration;
 
-public class CommonStepDefs extends BaseUiStepDefs {
-
-    public enum TokenType {
-        REGISTRATION_OFFICER;
-
-        private String token;
-
-        public String getHeaderToken() {
-            return String.format("X-ROAD-APIKEY TOKEN=%s", this.token);
-        }
-
-        public void setToken(String token) {
-            this.token = token;
-        }
-
-        public static TokenType fromString(String value) {
-            return valueOf(value.trim().toUpperCase());
-        }
-    }
-
-    @Step("Dialog Save button is clicked")
-    public void clickDialogSave() {
-        commonPageObj.dialog.btnSave().click();
-    }
-
-    @Step("Dialog Save button is of {selenideValidation} status")
-    public void statusDialogSave(ParameterMappers.SelenideValidation selenideValidation) {
-        commonPageObj.dialog.btnSave().shouldBe(selenideValidation.getSelenideCondition());
-    }
-
-    @ParameterType("REGISTRATION_OFFICER")
-    public TokenType tokenType(String name) {
-        return TokenType.fromString(name);
-    }
+@Configuration
+@EnableFeignClients(basePackages = {"org.niis.xroad.cs.test.ui.api"})
+public class CsAdminServiceTestConfiguration {
 }

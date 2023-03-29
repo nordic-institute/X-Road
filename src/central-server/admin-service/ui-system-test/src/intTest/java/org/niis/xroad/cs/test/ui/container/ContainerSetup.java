@@ -65,6 +65,11 @@ public class ContainerSetup extends AbstractTestableContainerSetup {
     }
 
     @Override
+    public int[] getTargetContainerExposedPorts() {
+        return super.getTargetContainerExposedPorts();
+    }
+
+    @Override
     public void additionalBuilderConfiguration(@NotNull DockerfileBuilder dockerfileBuilder) {
         //do nothing
     }

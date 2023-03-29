@@ -32,7 +32,7 @@
         <div class="xrd-view-title align-fix">
           {{ $t('tab.main.managementRequests') }}
         </div>
-        <xrd-search v-model="filter.query" class="margin-fix" />
+        <xrd-search v-model="filter.query" class="margin-fix" data-test="management-requests-search"/>
         <!-- Not yet implemented -->
         <!--<xrd-filter class="ml-4 margin-fix" />-->
       </div>
@@ -42,6 +42,7 @@
           :value="'WAITING'"
           :label="$t('managementRequests.showOnlyPending')"
           class="custom-checkbox"
+          data-test="show-only-pending-requests"
         ></v-checkbox>
       </div>
     </div>
@@ -60,6 +61,7 @@
       :loader-height="2"
       :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
       @update:options="changeOptions"
+      data-test="management-requests-table"
     >
       <template #[`item.id`]="{ item }">
         <management-request-id-cell :management-request="item" />

@@ -39,11 +39,16 @@ public class CommonPageObj {
     public final Menu menu = new Menu();
     public final SubMenu subMenu = new SubMenu();
     public final SnackBar snackBar = new SnackBar();
+    public final Button button = new Button();
 
     public class Menu {
 
         public SelenideElement memberTab() {
             return $x(getTabXpath("Members"));
+        }
+
+        public SelenideElement managementRequestsTab() {
+            return $x(getTabXpath("Management Requests"));
         }
 
         public SelenideElement trustServices() {
@@ -104,7 +109,14 @@ public class CommonPageObj {
         public SelenideElement btnClose() {
             return $x("//button[@data-test='close-snackbar']");
         }
-
     }
 
+    public class Button {
+        public SelenideElement btnApprove() {
+            return $x("//button[@data-test='approve-button']");
+        }
+        public SelenideElement btnDecline() {
+            return $x("//button[@data-test='decline-button']");
+        }
+    }
 }

@@ -33,4 +33,11 @@ import lombok.NoArgsConstructor;
 public final class Constants {
 
     public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm";
+    public static final String INSTANCE_IDENTIFIER = "CS-E2E";
+    public static final String MEMBER_CLASS_CODE = "E2E-TC1";
+    public static final String CN_SUBJECT_PREFIX = "CN=Subject-";
+
+    public static String getSecurityServerId(String securityServerCode, String ownerCode) {
+        return String.join(":", INSTANCE_IDENTIFIER, MEMBER_CLASS_CODE, ownerCode, securityServerCode);
+    }
 }

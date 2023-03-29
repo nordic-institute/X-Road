@@ -36,6 +36,7 @@ import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
 
 public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     private final TrustServicesPageObj trustServicesPageObj = new TrustServicesPageObj();
@@ -52,7 +53,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().should(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
 
-        final byte[] certificate = CertificateUtils.generateAuthCert(url);
+        final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + url);
 
         ocspRespondersPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
         ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl().setValue(url);
@@ -120,7 +121,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     public void userIsAbleChangeTheCertificate(String url) throws Exception {
         ocspRespondersPageObj.addEditDialog.btnUploadCertificate().click();
 
-        final byte[] certificate = CertificateUtils.generateAuthCert(url);
+        final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + url);
         ocspRespondersPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
         commonPageObj.dialog.btnSave().click();
 

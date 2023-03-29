@@ -77,6 +77,10 @@ public class SettingsApiKeysPageObj {
             return $x("//div[@data-test='created-apikey-id']");
         }
 
+        public SelenideElement createdApiKey() {
+            return $x("//div[@data-test='created-apikey']");
+        }
+
         public SelenideElement btnCreateKey() {
             return $x("//button[@data-test='create-key-button']");
         }

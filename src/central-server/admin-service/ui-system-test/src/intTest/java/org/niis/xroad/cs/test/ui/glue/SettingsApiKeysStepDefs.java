@@ -112,6 +112,13 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
                 .text();
     }
 
+    @Step("API key is set to token {} and in Authentication header")
+    public void getApiKeyAndSetAuthenticationHeaderIsSet(CommonStepDefs.TokenType type) {
+        var createdApiKey = apiKeysPage.wizard.createdApiKey().text();
+        type.setToken(createdApiKey);
+        putStepData(StepDataKey.TOKEN_TYPE, type);
+    }
+
     @Step("Newly created API key is {selenideValidation} in the list")
     public void apiKeyIsPresentInList(SelenideValidation condition) {
         apiKeysPage.apiKeyRow(createdApiKeyId).shouldBe(condition.getSelenideCondition());

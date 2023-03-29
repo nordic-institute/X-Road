@@ -38,6 +38,8 @@ import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
+import java.util.Optional;
+
 import static org.openqa.selenium.Keys.COMMAND;
 import static org.openqa.selenium.Keys.CONTROL;
 import static org.openqa.selenium.Keys.DELETE;
@@ -81,7 +83,35 @@ public abstract class BaseUiStepDefs {
         scenarioProvider.getCucumberScenario().attach(scr, MediaType.IMAGE_PNG_VALUE, screenshotName);
     }
 
+    /**
+     * Put a value in scenario context. Value can be accessed through getStepData.
+     *
+     * @param key   value key. Non-null.
+     * @param value value
+     */
+    protected void putStepData(StepDataKey key, Object value) {
+        scenarioContext.putStepData(key.name(), value);
+    }
+
+    /**
+     * Get value from scenario context.
+     *
+     * @param key value key
+     * @return value from the context
+     */
+    protected <T> Optional<T> getStepData(StepDataKey key) {
+        return Optional.ofNullable(scenarioContext.getStepData(key.name()));
+    }
+
     private boolean isMacOsBrowser() {
         return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
+    }
+
+    /**
+     * An enumerated key for data transfer between steps.
+     */
+    public enum StepDataKey {
+        TOKEN_TYPE,
+        MANAGEMENT_REQUEST_ID,
     }
 }
