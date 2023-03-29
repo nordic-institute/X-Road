@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 
@@ -39,6 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -70,6 +69,8 @@ class CentralServerConfigurationRestorationServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Mock
+    private SystemParameterService systemParameterService;
+    @Mock
     private HAConfigStatus haConfigStatus;
 
     @InjectMocks
@@ -81,26 +82,22 @@ class CentralServerConfigurationRestorationServiceTest {
         String configurationBackupPath = "src/test/resources/backup/";
         String backupFileName = "backup.tar";
         String currentHaNodeName = "node";
+        String instanceIdentifier = "TEST";
         ExternalProcessRunner.ProcessResult processResult = new ExternalProcessRunner.ProcessResult(configurationRestoreScriptPath
                 + " -b -i VEVTVA== -f " + FormatUtils.encodeStringToBase64(configurationBackupPath + backupFileName)
                 + " -n " + FormatUtils.encodeStringToBase64(currentHaNodeName), 0, List.of()
         );
 
         configurationRestorationService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
-        GlobalConf.reload(new EmptyGlobalConf() {
-            @Override
-            public String getInstanceIdentifier() {
-                return "TEST";
-            }
-        });
         when(backupRepository.getAbsoluteBackupFilePath(backupFileName))
                 .thenReturn(Paths.get(configurationBackupPath + backupFileName));
         when(backupRepository.getConfigurationBackupPath()).thenReturn(configurationBackupPath);
+        when(systemParameterService.getInstanceIdentifier()).thenReturn(instanceIdentifier);
         when(haConfigStatus.isHaConfigured()).thenReturn(true);
         when(haConfigStatus.getCurrentHaNodeName()).thenReturn(currentHaNodeName);
         when(externalProcessRunner.executeAndThrowOnFailure(
                 configurationRestoreScriptPath, "-b",
-                "-i", FormatUtils.encodeStringToBase64(GlobalConf.getInstanceIdentifier()),
+                "-i", FormatUtils.encodeStringToBase64(instanceIdentifier),
                 "-f", FormatUtils.encodeStringToBase64(configurationBackupPath + backupFileName),
                 "-n", FormatUtils.encodeStringToBase64(currentHaNodeName))
         ).thenReturn(processResult);
@@ -119,25 +116,21 @@ class CentralServerConfigurationRestorationServiceTest {
         String configurationRestoreScriptPath = "/path/to/restore/script.sh";
         String configurationBackupPath = "src/test/resources/backup/";
         String backupFileName = "backup.tar";
+        String instanceIdentifier = "TEST";
         ExternalProcessRunner.ProcessResult processResult = new ExternalProcessRunner.ProcessResult(configurationRestoreScriptPath
                 + " -b -i VEVTVA== -f " + FormatUtils.encodeStringToBase64(configurationBackupPath + backupFileName),
                 0, List.of()
         );
 
         configurationRestorationService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
-        GlobalConf.reload(new EmptyGlobalConf() {
-            @Override
-            public String getInstanceIdentifier() {
-                return "TEST";
-            }
-        });
         when(backupRepository.getAbsoluteBackupFilePath(backupFileName))
                 .thenReturn(Paths.get(configurationBackupPath + backupFileName));
         when(backupRepository.getConfigurationBackupPath()).thenReturn(configurationBackupPath);
+        when(systemParameterService.getInstanceIdentifier()).thenReturn(instanceIdentifier);
         when(haConfigStatus.isHaConfigured()).thenReturn(false);
         when(externalProcessRunner.executeAndThrowOnFailure(
                 configurationRestoreScriptPath, "-b",
-                "-i", FormatUtils.encodeStringToBase64(GlobalConf.getInstanceIdentifier()),
+                "-i", FormatUtils.encodeStringToBase64(instanceIdentifier),
                 "-f", FormatUtils.encodeStringToBase64(configurationBackupPath + backupFileName))
         ).thenReturn(processResult);
 
@@ -167,21 +160,17 @@ class CentralServerConfigurationRestorationServiceTest {
         String configurationRestoreScriptPath = "/path/to/restore/script.sh";
         String configurationBackupPath = "src/test/resources/backup/";
         String backupFileName = "backup.tar";
+        String instanceIdentifier = "TEST";
 
         configurationRestorationService.setConfigurationRestoreScriptPath(configurationRestoreScriptPath);
-        GlobalConf.reload(new EmptyGlobalConf() {
-            @Override
-            public String getInstanceIdentifier() {
-                return "TEST";
-            }
-        });
         when(backupRepository.getAbsoluteBackupFilePath(backupFileName))
                 .thenReturn(Paths.get(configurationBackupPath + backupFileName));
         when(backupRepository.getConfigurationBackupPath()).thenReturn(configurationBackupPath);
+        when(systemParameterService.getInstanceIdentifier()).thenReturn(instanceIdentifier);
         when(haConfigStatus.isHaConfigured()).thenReturn(false);
         when(externalProcessRunner.executeAndThrowOnFailure(
                 configurationRestoreScriptPath, "-b",
-                "-i", FormatUtils.encodeStringToBase64(GlobalConf.getInstanceIdentifier()),
+                "-i", FormatUtils.encodeStringToBase64(instanceIdentifier),
                 "-f", FormatUtils.encodeStringToBase64(configurationBackupPath + backupFileName))
         ).thenThrow(new ProcessFailedException("message"));
 
