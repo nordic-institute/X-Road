@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.cs.admin.rest.api.converter.BackupDtoConverter;
 import org.niis.xroad.cs.openapi.BackupsApi;
@@ -134,7 +135,7 @@ public class BackupsApiController implements BackupsApi {
                     file.getOriginalFilename(), file.getBytes());
             return ResponseEntity.status(CREATED).body(backupDtoConverter.toTarget(backupFile));
         } catch (UnhandledWarningsException e) {
-            throw new ServiceException(e);
+            throw new ValidationFailureException(e);
         } catch (IOException e) {
             throw new ServiceException(INTERNAL_ERROR, e);
         }
