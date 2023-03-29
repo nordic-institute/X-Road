@@ -57,9 +57,9 @@ Feature: CS: Management Requests
 
   Scenario Outline: Verify sorting functionality in Management Requests table
     Given the Management Requests table with the column: <field-name> is visible
-    Then the User should be able to sort the table by: <field-name> and field default sort is <default-sort>
+    Then the User should be able to sort the table by: <field-name> and field default order is <default-order>
     Examples:
-      | field-name        | default-sort |
+      | field-name        | default-order |
       | Id                | descending   |
       | Created           | none         |
       | Type              | none         |
