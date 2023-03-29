@@ -56,16 +56,16 @@ Feature: CS: Management Requests
     And the pending management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem should be removed from the list
 
   Scenario Outline: Verify sorting functionality in Management Requests table
-    Given the Management Requests table with the column: <column-name> is visible
-    Then the User should be able to sort the table by: <column-name>
+    Given the Management Requests table with the column: <field-name> is visible
+    Then the User should be able to sort the table by: <field-name> and field default sort is <default-sort>
     Examples:
-      | column-name       |
-      | Id                |
-      | Created           |
-      | Type              |
-      | Server Owner Name |
-      | Server Identifier |
-      | Status            |
+      | field-name        | default-sort |
+      | Id                | descending   |
+      | Created           | none         |
+      | Type              | none         |
+      | Server Owner Name | none         |
+      | Server Identifier | none         |
+      | Status            | none         |
 
   Scenario: Search for Management Requests based on Free Text in Visible Columns
     Given the user clicks on search icon
