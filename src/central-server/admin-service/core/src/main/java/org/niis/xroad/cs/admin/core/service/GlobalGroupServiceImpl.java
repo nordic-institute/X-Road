@@ -27,12 +27,12 @@ package org.niis.xroad.cs.admin.core.service;
 
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
-import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
@@ -131,7 +131,7 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     private void assertGlobalGroupExists(String code) {
         globalGroupRepository.getByGroupCode(code)
                 .ifPresent(globalGroup -> {
-                    throw new DataIntegrityException(GLOBAL_GROUP_EXISTS);
+                    throw new DataIntegrityException(GLOBAL_GROUP_EXISTS, code);
                 });
     }
 

@@ -10,12 +10,16 @@ Feature: Intermediate CAS API
     Given intermediate CA added to certification service
     When intermediate CAs are retrieved
     Then intermediate CA is as follows
-      | #$hash                    | [not_null]  |
-      | $issuerDistinguishedName  | EMAILADDRESS=aaa@bbb.ccc, CN=Cyber, OU=ITO, O=Cybernetica, C=EE   |
-      | $subjectDistinguishedName | CN=Subject  |
-      | $subjectCommonName        | Subject     |
-      | $notBefore                | [generated] |
-      | $notAfter                 | [generated] |
+      | #$hash                    | [not_null]                                                      |
+      | $issuerDistinguishedName  | EMAILADDRESS=aaa@bbb.ccc, CN=Cyber, OU=ITO, O=Cybernetica, C=EE |
+      | $subjectDistinguishedName | CN=Subject                                                      |
+      | $subjectCommonName        | Subject                                                         |
+      | $notBefore                | [generated]                                                     |
+      | $notAfter                 | [generated]                                                     |
+
+  Scenario: Adding intermediate CA fails with wrong cert id
+    When intermediate CA  with name "smth" is added to certification service with id 900
+    Then Response is of status code 404 and error code "certification_service_not_found"
 
   Scenario: Adding intermediate CA is deleted
     Given intermediate CA added to certification service

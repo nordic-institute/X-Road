@@ -32,4 +32,12 @@ import java.util.List;
 
 public interface TrustedAnchorService {
     List<TrustedAnchor> findAll();
+
+    TrustedAnchor preview(byte[] trustedAnchorFile);
+
+    TrustedAnchor upload(byte[] trustedAnchor);
+
+    void delete(String hash);
+
+    TrustedAnchor findByHash(String hash);
 }

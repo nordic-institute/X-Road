@@ -27,7 +27,7 @@
 package org.niis.xroad.cs.admin.jpa.repository;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.niis.xroad.cs.admin.api.exception.EntityExistsException;
+import org.niis.xroad.common.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.core.entity.AuditableEntity;
 import org.niis.xroad.cs.admin.core.entity.AuditableEntity_;
@@ -79,7 +79,7 @@ public interface JpaFindOrCreateAwareRepository<ENTITY, ID> extends JpaRepositor
      */
     default ENTITY create(ENTITY model, ErrorMessage errorMessage) {
         Function<ENTITY, ENTITY> ensureNotPresent = entity -> {
-            throw new EntityExistsException(errorMessage, entity.toString());
+            throw new DataIntegrityException(errorMessage, entity.toString());
         };
 
         return findBy(Example.of(model, exampleMatcher(model)), FluentQuery.FetchableFluentQuery::first)

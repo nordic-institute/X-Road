@@ -57,6 +57,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
             putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
     }
 
@@ -67,6 +68,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
             putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
     }
 

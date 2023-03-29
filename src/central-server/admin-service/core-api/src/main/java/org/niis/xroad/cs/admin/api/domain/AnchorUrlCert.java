@@ -26,11 +26,14 @@
  */
 package org.niis.xroad.cs.admin.api.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class AnchorUrlCert {
-    private int id;
     private byte[] cert;
 }
 

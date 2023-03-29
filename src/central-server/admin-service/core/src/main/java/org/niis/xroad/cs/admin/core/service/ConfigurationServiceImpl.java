@@ -34,14 +34,14 @@ import ee.ria.xroad.commonui.OptionalPartsConf;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.niis.xroad.cs.admin.api.exception.ConfigurationPartException;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
@@ -163,7 +163,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             case CONTENT_ID_SHARED_PARAMETERS:
                 return FILE_NAME_SHARED_PARAMETERS;
             default:
-                throw new ConfigurationPartException(UNKNOWN_CONFIGURATION_PART);
+                throw new ServiceException(UNKNOWN_CONFIGURATION_PART);
         }
     }
 
@@ -218,7 +218,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         auditDataHelper.put(UPLOAD_FILE_NAME, originalFileName);
 
         if (sourceType == EXTERNAL && !contentIdentifier.equals(CONTENT_ID_SHARED_PARAMETERS)) {
-            throw new ConfigurationPartException(UNKNOWN_CONFIGURATION_PART);
+            throw new ServiceException(UNKNOWN_CONFIGURATION_PART);
         }
 
         auditDataHelper.put(UPLOAD_FILE_HASH_ALGORITHM, DEFAULT_UPLOAD_FILE_HASH_ALGORITHM);

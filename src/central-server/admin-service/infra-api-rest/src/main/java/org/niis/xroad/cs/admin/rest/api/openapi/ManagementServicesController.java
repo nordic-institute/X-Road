@@ -26,6 +26,7 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.ManagementServicesService;
 import org.niis.xroad.cs.admin.rest.api.converter.ManagementServicesConfigurationMapper;
 import org.niis.xroad.cs.openapi.ManagementServicesApi;
@@ -34,12 +35,13 @@ import org.niis.xroad.cs.openapi.model.ServiceProviderIdDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_SERVICE_PROVIDER_ID;
 
 @Controller
 @PreAuthorize("denyAll")
@@ -64,7 +66,7 @@ public class ManagementServicesController implements ManagementServicesApi {
             ServiceProviderIdDto serviceProviderIdDto) {
         var serviceProviderId = serviceProviderIdDto.getServiceProviderId();
         if (!clientIdConverter.isEncodedSubsystemId(serviceProviderId)) {
-            throw new BadRequestException("Invalid service provider id");
+            throw new ValidationFailureException(INVALID_SERVICE_PROVIDER_ID, serviceProviderId);
         }
 
         var response = managementServicesService.updateManagementServicesProvider(clientIdConverter.convertId(serviceProviderId));

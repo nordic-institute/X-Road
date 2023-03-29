@@ -66,13 +66,13 @@ module.exports = {
       // Filtering backup list with the name of created backup there should be only one backup in the list
       backupAndRestoreTab.enterFilterInput(createdBackupFileName);
       browser.expect
-        .elements('//table[contains(@class, "xrd-table")]/tbody/tr')
+        .elements('//div[@data-test=\'backup-restore-view\']//table/tbody/tr')
         .count.to.equal(1);
       backupAndRestoreTab.clearFilterInput();
 
       // Delete created backup (click cancel first time)
       browser.waitForElementVisible(
-        `//table[contains(@class, "xrd-table")]//td[text() = "${createdBackupFileName}"]/following-sibling::td//button[@data-test="backup-delete"]`,
+        `//div[@data-test='backup-restore-view']//table//td[text() = "${createdBackupFileName}"]/following-sibling::td//button[@data-test="backup-delete"]`,
       );
       backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
       browser.waitForElementVisible(deleteBackupConfirmationDialog);
@@ -136,7 +136,7 @@ module.exports = {
 
     // Open the delete backup dialog but click cancel
     browser.waitForElementVisible(
-      `//table[contains(@class, "xrd-table")]//tr//td[text() = "${createdBackupFileName}"]`,
+      `//div[@data-test='backup-restore-view']//table//tr//td[text() = "${createdBackupFileName}"]`,
     );
     backupAndRestoreTab
       .clickDeleteForBackup(createdBackupFileName)

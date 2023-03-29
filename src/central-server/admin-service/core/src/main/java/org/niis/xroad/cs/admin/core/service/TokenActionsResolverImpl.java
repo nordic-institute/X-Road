@@ -29,10 +29,10 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.TokenActionsResolver;
 import org.springframework.stereotype.Component;
 

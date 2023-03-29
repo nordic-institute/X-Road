@@ -28,7 +28,7 @@
 package org.niis.xroad.cs.admin.core.validation;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

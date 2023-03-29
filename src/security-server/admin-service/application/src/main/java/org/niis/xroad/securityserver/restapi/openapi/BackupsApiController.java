@@ -27,25 +27,22 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
-import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
-import org.niis.xroad.restapi.common.backup.exception.InvalidFilenameException;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
-import org.niis.xroad.restapi.common.backup.service.BackupValidator;
+import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.converter.BackupConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupExt;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOut;
-import org.niis.xroad.securityserver.restapi.service.RestoreProcessFailedException;
-import org.niis.xroad.securityserver.restapi.service.RestoreService;
 import org.niis.xroad.securityserver.restapi.service.SecurityServerConfigurationBackupGenerator;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
 import org.springframework.core.io.Resource;
@@ -74,8 +71,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BA
 @RequiredArgsConstructor
 public class BackupsApiController implements BackupsApi {
     private final BackupService backupService;
-    private final BackupValidator backupValidator;
-    private final RestoreService restoreService;
+    private final ConfigurationRestorationService configurationRestorationService;
     private final BackupConverter backupConverter;
     private final SecurityServerConfigurationBackupGenerator backupGenerator;
     private final TokenService tokenService;
@@ -94,8 +90,8 @@ public class BackupsApiController implements BackupsApi {
     public ResponseEntity<Void> deleteBackup(String filename) {
         try {
             backupService.deleteBackup(filename);
-        } catch (BackupFileNotFoundException e) {
-            throw new ResourceNotFoundException(e);
+        } catch (NotFoundException e) {
+            throw new ResourceNotFoundException(e.getErrorDeviation());
         }
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -107,8 +103,8 @@ public class BackupsApiController implements BackupsApi {
         byte[] backupFile = null;
         try {
             backupFile = backupService.readBackupFile(filename);
-        } catch (BackupFileNotFoundException e) {
-            throw new ResourceNotFoundException(e);
+        } catch (NotFoundException e) {
+            throw new ResourceNotFoundException(e.getErrorDeviation());
         }
         return ControllerUtil.createAttachmentResourceResponse(backupFile, filename);
     }
@@ -122,7 +118,7 @@ public class BackupsApiController implements BackupsApi {
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
         } catch (InterruptedException e) {
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_GENERATE_BACKUP_INTERRUPTED));
-        } catch (BackupFileNotFoundException e) {
+        } catch (NotFoundException e) {
             throw new InternalServerErrorException(e.getErrorDeviation());
         }
     }
@@ -139,7 +135,7 @@ public class BackupsApiController implements BackupsApi {
             return new ResponseEntity<>(backupExt, HttpStatus.CREATED);
         } catch (InterruptedException e) {
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_GENERATE_BACKUP_INTERRUPTED));
-        } catch (BackupFileNotFoundException e) {
+        } catch (NotFoundException e) {
             throw new InternalServerErrorException(e.getErrorDeviation());
         }
     }
@@ -149,10 +145,10 @@ public class BackupsApiController implements BackupsApi {
     @AuditEventMethod(event = RestApiAuditEvent.UPLOAD_BACKUP)
     public ResponseEntity<Backup> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
         try {
-            BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, getValidOriginalFilename(file),
+            BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, file.getOriginalFilename(),
                     file.getBytes());
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
-        } catch (InvalidFilenameException | UnhandledWarningsException | BackupInvalidFileException e) {
+        } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -167,26 +163,11 @@ public class BackupsApiController implements BackupsApi {
         // If hardware tokens exist prior to the restore -> they will be logged out by the restore script
         TokensLoggedOut tokensLoggedOut = new TokensLoggedOut().hsmTokensLoggedOut(hasHardwareTokens);
         try {
-            restoreService.restoreFromBackup(filename);
-        } catch (BackupFileNotFoundException e) {
-            throw new BadRequestException(e);
+            configurationRestorationService.restoreFromBackup(filename);
         } catch (InterruptedException e) {
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_BACKUP_RESTORE_INTERRUPTED));
-        } catch (RestoreProcessFailedException e) {
-            throw new InternalServerErrorException(e);
         }
         return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
     }
 
-    private String getValidOriginalFilename(MultipartFile file) throws InvalidFilenameException {
-        String filename = file.getOriginalFilename();
-        validateFilename(filename);
-        return filename;
-    }
-
-    private void validateFilename(String filename) throws InvalidFilenameException {
-        if (!backupValidator.isValidBackupFilename(filename)) {
-            throw new InvalidFilenameException("invalid filename (" + filename + ")");
-        }
-    }
 }

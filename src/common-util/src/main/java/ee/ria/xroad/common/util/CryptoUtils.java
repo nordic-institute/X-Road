@@ -689,6 +689,23 @@ public final class CryptoUtils {
     }
 
     /**
+     * Calculates a SHA-224 digest of the given bytes and encodes it in
+     * format 92:62:34:C5:39:1B:95:1F:BF:AF:8D:D6:23:24:AE:56:83:DC...
+     * @return calculated hex hash uppercase and separated by semicolons String
+     * @param bytes the bytes
+     * @throws HexCalculationException if any errors occur
+     */
+    public static String calculateAnchorHashDelimited(byte[] bytes) {
+        try {
+            return hexDigest(DEFAULT_ANCHOR_HASH_ALGORITHM_ID, bytes)
+                    .toUpperCase()
+                    .replaceAll("(?<=..)(..)", ":$1");
+        } catch (Exception e) {
+            throw new HexCalculationException(e);
+        }
+    }
+
+    /**
      * Calculates a digest of the given certificate.
      * @param cert the certificate
      * @return digest byte array of the certificate

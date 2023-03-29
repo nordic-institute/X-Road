@@ -42,9 +42,12 @@ import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.securityserver.restapi.controller.ServiceClientHelper;
 import org.niis.xroad.securityserver.restapi.converter.AccessRightConverter;
 import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConverter;
@@ -92,7 +95,6 @@ import org.niis.xroad.securityserver.restapi.service.ServiceClientService;
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.securityserver.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
-import org.niis.xroad.securityserver.restapi.util.ResourceUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.securityserver.restapi.wsdl.UnsupportedOpenApiVersionException;
@@ -128,7 +130,9 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DISABLED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.REFRESHED_DATE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_NAME;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CERT;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CONNECTION_TYPE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
+import static org.niis.xroad.restapi.exceptions.ErrorDeviation.newError;
 import static org.niis.xroad.restapi.openapi.ControllerUtil.createCreatedResponse;
 
 /**
@@ -459,7 +463,7 @@ public class ClientsApiController implements ClientsApi {
         try {
             isAuthentication = ConnectionTypeMapping.map(clientAdd.getClient().getConnectionType()).get();
         } catch (Exception e) {
-            throw new BadRequestException("bad connection type parameter", e);
+            throw new BadRequestException(e, newError(ERROR_INVALID_CONNECTION_TYPE));
         }
         ClientType added = null;
         try {

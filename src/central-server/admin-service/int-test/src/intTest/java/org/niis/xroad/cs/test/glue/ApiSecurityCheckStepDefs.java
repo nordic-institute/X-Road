@@ -36,6 +36,8 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
 import java.lang.reflect.Field;
@@ -174,6 +176,8 @@ public class ApiSecurityCheckStepDefs extends BaseStepDefs {
             return randomAlphabetic(5);
         } else if (type.equals(BigInteger.class)) {
             return BigInteger.valueOf(random.nextInt());
+        } else if (type.equals(Resource.class)) {
+            return new ByteArrayResource(new byte[0]);
         }
 
         return createAndFill(type);

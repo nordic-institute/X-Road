@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
@@ -113,7 +114,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         try {
             serviceDescriptionsApiController.enableServiceDescription("non-numeric-id");
             fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
         }
 
     }
@@ -155,7 +156,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         try {
             serviceDescriptionsApiController.enableServiceDescription("non-numeric-id");
             fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
         }
 
     }
@@ -283,7 +284,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         try {
             serviceDescriptionsApiController.getServiceDescription("ugh");
             fail("should throw ResourceNotFoundException to 404");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
         }
     }
 
@@ -315,7 +316,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         try {
             serviceDescriptionsApiController.getServiceDescriptionServices("ugh");
             fail("should throw ResourceNotFoundException to 404");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
         }
     }
 

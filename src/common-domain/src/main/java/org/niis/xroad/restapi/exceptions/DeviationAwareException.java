@@ -47,24 +47,6 @@ public class DeviationAwareException extends Exception implements DeviationAware
     }
 
     /**
-     * no args
-     */
-    public DeviationAwareException() {
-        super();
-        this.errorDeviation = null;
-        this.warningDeviations = null;
-    }
-
-    /**
-     * @param msg
-     */
-    public DeviationAwareException(String msg) {
-        super(msg);
-        this.errorDeviation = null;
-        this.warningDeviations = null;
-    }
-
-    /**
      * @param msg
      * @param errorDeviation
      */
@@ -72,14 +54,6 @@ public class DeviationAwareException extends Exception implements DeviationAware
         super(msg);
         this.errorDeviation = errorDeviation;
         this.warningDeviations = null;
-    }
-
-    /**
-     * @param msg
-     * @param t
-     */
-    public DeviationAwareException(String msg, Throwable t) {
-        this(msg, t, null, null);
     }
 
     /**
@@ -118,13 +92,6 @@ public class DeviationAwareException extends Exception implements DeviationAware
     public DeviationAwareException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
         this.errorDeviation = errorDeviation;
         this.warningDeviations = warningDeviations;
-    }
-
-    /**
-     * @param t
-     */
-    public DeviationAwareException(Throwable t) {
-        this(t, null, null);
     }
 
     /**

@@ -29,8 +29,9 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
-import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
@@ -46,8 +47,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_CLIENT_REGISTRATION_NOT_FOUND;
 
 @Service
 @Transactional
@@ -74,10 +74,10 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
         final var requestEntity = new ClientDeletionRequestEntity(request.getOrigin(), serverId, clientId);
 
         SecurityServerEntity securityServer = servers.findBy(serverId, clientId).getOrElseThrow(() ->
-                new DataIntegrityException(SECURITY_SERVER_NOT_FOUND));
+                new SecurityServerNotFoundException(serverId));
 
         SecurityServerClientEntity client = clients.findOneBy(clientId).getOrElseThrow(() ->
-                new DataIntegrityException(MANAGEMENT_REQUEST_CLIENT_REGISTRATION_NOT_FOUND));
+                new NotFoundException(MR_CLIENT_REGISTRATION_NOT_FOUND));
 
         securityServer.getServerClients()
                 .removeIf(serverClient -> serverClient.getSecurityServerClient() == client);

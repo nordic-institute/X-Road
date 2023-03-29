@@ -35,9 +35,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.niis.xroad.cs.admin.api.exception.ConfigurationSourceException;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
@@ -239,7 +239,7 @@ public class ConfigurationAnchorServiceImplTest {
             when(systemParameterService.getInstanceIdentifier()).thenReturn(null);
 
             assertThatThrownBy(() -> configurationAnchorService.recreateAnchor(INTERNAL))
-                    .isInstanceOf(ConfigurationSourceException.class)
+                    .isInstanceOf(ServiceException.class)
                     .hasMessage("System parameter for instance identifier not set");
         }
 
@@ -252,7 +252,7 @@ public class ConfigurationAnchorServiceImplTest {
             when(configurationSource.getConfigurationSigningKeys()).thenReturn(Set.of());
 
             assertThatThrownBy(() -> configurationAnchorService.recreateAnchor(INTERNAL))
-                    .isInstanceOf(ConfigurationSourceException.class)
+                    .isInstanceOf(ServiceException.class)
                     .hasMessage("No configuration signing keys configured");
         }
 

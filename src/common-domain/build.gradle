@@ -9,10 +9,15 @@ dependencies {
     implementation project(':common-util')
     implementation project(':serverconf')
 
-    implementation("org.springframework:spring-web")
     implementation("org.springframework:spring-context")
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
 }
 
 bootJar {
     enabled = false
+}
+
+test {
+    useJUnitPlatform()
 }

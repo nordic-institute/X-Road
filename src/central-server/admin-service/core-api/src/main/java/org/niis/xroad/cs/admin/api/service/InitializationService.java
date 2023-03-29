@@ -26,22 +26,15 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.InitialServerConfDto;
 import org.niis.xroad.cs.admin.api.dto.InitializationStatusDto;
-import org.niis.xroad.cs.admin.api.exception.InvalidCharactersException;
-import org.niis.xroad.cs.admin.api.exception.InvalidInitParamsException;
-import org.niis.xroad.cs.admin.api.exception.ServerAlreadyFullyInitializedException;
-import org.niis.xroad.cs.admin.api.exception.SoftwareTokenInitException;
-import org.niis.xroad.cs.admin.api.exception.WeakPinException;
 
 public interface InitializationService {
 
     InitializationStatusDto getInitializationStatus();
 
-    void initialize(InitialServerConfDto configDto)
-            throws ServerAlreadyFullyInitializedException, SoftwareTokenInitException, InvalidCharactersException,
-            WeakPinException, InvalidInitParamsException;
-
+    void initialize(InitialServerConfDto configDto) throws ValidationFailureException;
 
 }
 

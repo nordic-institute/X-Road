@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import org.junit.After;
 import org.junit.Before;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
+import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
@@ -46,7 +47,6 @@ import org.niis.xroad.securityserver.restapi.service.InternalServerTestService;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
 import org.niis.xroad.securityserver.restapi.service.NotificationService;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
-import org.niis.xroad.securityserver.restapi.service.RestoreService;
 import org.niis.xroad.securityserver.restapi.service.SecurityServerConfigurationBackupGenerator;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
@@ -87,7 +87,7 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     @MockBean
     SecurityServerConfigurationBackupGenerator backupGenerator;
     @MockBean
-    RestoreService restoreService;
+    ConfigurationRestorationService configurationRestorationService;
     @MockBean
     UrlValidator urlValidator;
     @MockBean

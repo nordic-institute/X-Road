@@ -29,11 +29,11 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.Origin;
-import org.niis.xroad.cs.admin.api.exception.DataIntegrityException;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
@@ -59,13 +59,13 @@ import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.cs.admin.api.domain.Origin.SECURITY_SERVER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_CANNOT_REGISTER_OWNER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_CLIENT_ALREADY_REGISTERED;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_EXISTS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_MEMBER_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_REQUEST_SERVER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_CANNOT_REGISTER_OWNER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_CLIENT_ALREADY_REGISTERED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_EXISTS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_STATE_FOR_APPROVAL;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_MEMBER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_NOT_FOUND;
 
 @Service
 @Transactional
@@ -97,25 +97,25 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
 
         MemberIdEntity ownerId = serverId.getOwner();
         if (ownerId.equals(clientId)) {
-            throw new ValidationFailureException(MANAGEMENT_REQUEST_CANNOT_REGISTER_OWNER);
+            throw new ValidationFailureException(MR_CANNOT_REGISTER_OWNER);
         }
 
         if (Origin.CENTER.equals(origin)) {
             XRoadMemberEntity owner = members.findOneBy(ownerId).getOrElseThrow(
-                    () -> new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_NOT_FOUND,
+                    () -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
                             ownerId.toString()));
 
             servers.findByOwnerIdAndServerCode(owner.getId(), serverId.getServerCode()).getOrElseThrow(
-                    () -> new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_NOT_FOUND,
+                    () -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
                             serverId.toString()));
 
             members.findMember(clientId).getOrElseThrow(() ->
-                    new DataIntegrityException(MANAGEMENT_REQUEST_MEMBER_NOT_FOUND,
+                    new DataIntegrityException(MR_MEMBER_NOT_FOUND,
                             request.getClientId().toString()));
         }
 
         servers.findBy(serverId, clientId).map(s -> {
-            throw new DataIntegrityException(MANAGEMENT_REQUEST_CLIENT_ALREADY_REGISTERED);
+            throw new DataIntegrityException(MR_CLIENT_ALREADY_REGISTERED);
         });
 
         List<ClientRegistrationRequestEntity> pending = clientRegRequests.findBy(serverId, clientId,
@@ -129,14 +129,14 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
             case 1:
                 ClientRegistrationRequestEntity anotherReq = pending.get(0);
                 if (anotherReq.getOrigin().equals(request.getOrigin())) {
-                    throw new DataIntegrityException(MANAGEMENT_REQUEST_EXISTS,
+                    throw new DataIntegrityException(MR_EXISTS,
                             valueOf(anotherReq.getId()));
                 }
                 req = new ClientRegistrationRequestEntity(origin, anotherReq);
                 req.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
                 break;
             default:
-                throw new DataIntegrityException(MANAGEMENT_REQUEST_EXISTS);
+                throw new DataIntegrityException(MR_EXISTS);
 
         }
 
@@ -148,18 +148,18 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     public ClientRegistrationRequest approve(ClientRegistrationRequest request) {
         Integer requestId = request.getId();
         final ClientRegistrationRequestEntity clientRegistrationRequest = clientRegRequests.findById(requestId)
-                .orElseThrow(() -> new ValidationFailureException(MANAGEMENT_REQUEST_NOT_FOUND, valueOf(requestId)));
+                .orElseThrow(() -> new ValidationFailureException(MR_NOT_FOUND, valueOf(requestId)));
 
         if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(clientRegistrationRequest.getProcessingStatus())) {
-            throw new ValidationFailureException(MANAGEMENT_REQUEST_INVALID_STATE_FOR_APPROVAL,
+            throw new ValidationFailureException(MR_INVALID_STATE_FOR_APPROVAL,
                     valueOf(clientRegistrationRequest.getId()));
         }
 
         SecurityServerEntity server = servers.findBy(clientRegistrationRequest.getSecurityServerId())
-                .getOrElseThrow(() -> new DataIntegrityException(MANAGEMENT_REQUEST_SERVER_NOT_FOUND));
+                .getOrElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND));
 
         XRoadMemberEntity clientMember = members.findMember(clientRegistrationRequest.getClientId()).getOrElseThrow(() ->
-                new DataIntegrityException(MANAGEMENT_REQUEST_MEMBER_NOT_FOUND,
+                new DataIntegrityException(MR_MEMBER_NOT_FOUND,
                         clientRegistrationRequest.getClientId().toString()));
 
         SecurityServerClientEntity client;

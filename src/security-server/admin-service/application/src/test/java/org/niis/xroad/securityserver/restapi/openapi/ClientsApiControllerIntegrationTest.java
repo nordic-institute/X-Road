@@ -38,8 +38,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
@@ -594,7 +596,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         try {
             descriptions = clientsApiController.getClientServiceDescriptions("foobar");
             fail("should throw BadRequestException");
-        } catch (BadRequestException expected) {
+        } catch (ValidationFailureException expected) {
         }
 
         // client with some services

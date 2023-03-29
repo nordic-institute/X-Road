@@ -26,13 +26,16 @@
 package org.niis.xroad.cs.admin.rest.api.converter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_PAGINATION_PROPERTIES;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_SORTING_PROPERTIES;
 
 @Component
 public class PageRequestConverter {
@@ -45,7 +48,7 @@ public class PageRequestConverter {
                     pagingSorting.getLimit(),
                     convertToSort(pagingSorting, sortParameterConverter));
         } catch (IllegalArgumentException illegalArgumentException) {
-            throw new BadRequestException(illegalArgumentException);
+            throw new ValidationFailureException(INVALID_PAGINATION_PROPERTIES, illegalArgumentException.getMessage());
         }
     }
 
@@ -69,9 +72,9 @@ public class PageRequestConverter {
         /**
          * Convert an API-level sort parameter to service-level property name that JPA Data can sort by
          *
-         * @throws BadRequestException if parameter value cannot be converted
+         * @throws ValidationFailureException if parameter value cannot be converted
          */
-        String convertToSortProperty(String sortParameter) throws BadRequestException;
+        String convertToSortProperty(String sortParameter) throws ValidationFailureException;
     }
 
     /**
@@ -86,10 +89,10 @@ public class PageRequestConverter {
         }
 
         @Override
-        public String convertToSortProperty(final String sortParameter) throws BadRequestException {
+        public String convertToSortProperty(final String sortParameter) throws ValidationFailureException {
             String sortProperty = conversionMapping.get(sortParameter);
             if (sortProperty == null) {
-                throw new BadRequestException("Unknown sort parameter [" + sortParameter + "]");
+                throw new ValidationFailureException(INVALID_SORTING_PROPERTIES, sortParameter);
             }
             return sortProperty;
         }

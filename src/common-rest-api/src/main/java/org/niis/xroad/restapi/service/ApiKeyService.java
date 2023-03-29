@@ -27,13 +27,13 @@ package org.niis.xroad.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_API_KEY_NOT_FOUND;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.API_KEY_NOT_FOUND;
 
 /**
  * ApiKey service.
@@ -163,7 +163,7 @@ public class ApiKeyService {
             throws ApiKeyService.ApiKeyNotFoundException {
         PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
         if (apiKeyType == null) {
-            throw new ApiKeyService.ApiKeyNotFoundException("api key with id " + id + " not found");
+            throw new ApiKeyService.ApiKeyNotFoundException(id);
         }
         return apiKeyType;
     }
@@ -203,7 +203,7 @@ public class ApiKeyService {
                 return apiKeyType;
             }
         }
-        throw new ApiKeyService.ApiKeyNotFoundException("api key not found");
+        throw new ApiKeyService.ApiKeyNotFoundException();
     }
 
     /**
@@ -256,8 +256,8 @@ public class ApiKeyService {
 
     @SuppressWarnings("squid:S110")
     public static class ApiKeyNotFoundException extends NotFoundException {
-        public ApiKeyNotFoundException(String s) {
-            super(s, new ErrorDeviation(ERROR_API_KEY_NOT_FOUND));
+        public ApiKeyNotFoundException(final Object... metadata) {
+            super(API_KEY_NOT_FOUND, metadata);
         }
     }
 }

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.rest.api.converter.SubsystemCreationRequestMapper;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ClientDtoConverter;
@@ -38,13 +39,13 @@ import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_SUBSYSTEM_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SUBSYSTEM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SUBSYSTEM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_SUBSYSTEM;
@@ -99,7 +100,7 @@ public class SubsystemsApiController implements SubsystemsApi {
 
     private void verifySubsystemId(String clientId) {
         if (!clientIdConverter.isEncodedSubsystemId(clientId)) {
-            throw new BadRequestException("Invalid subsystem id");
+            throw new ValidationFailureException(INVALID_SUBSYSTEM_ID, clientId);
         }
     }
 

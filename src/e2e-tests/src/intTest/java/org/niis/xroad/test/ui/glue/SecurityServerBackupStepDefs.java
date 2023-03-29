@@ -83,7 +83,7 @@ public class SecurityServerBackupStepDefs extends BaseUiStepDefs {
         $(INPUT_SEARCH).setValue(backupName);
 
 
-        $$(xpath("//table[contains(@class, \"xrd-table\")]/tbody/tr"))
+        $$(xpath("//div[@data-test='backup-restore-view']//table/tbody/tr"))
                 .shouldHave(CollectionCondition.size(1));
 
         $(INPUT_SEARCH).clear();
@@ -134,13 +134,13 @@ public class SecurityServerBackupStepDefs extends BaseUiStepDefs {
     }
 
     private By getDeleteBackupSelector(String backupName) {
-        String selector = String.format("//table[contains(@class, \"xrd-table\")]"
+        String selector = String.format("//div[@data-test='backup-restore-view']//table"
                 + "/tbody/tr/td[text() = \"%s\"]/..//button[@data-test=\"backup-delete\"]", backupName);
         return xpath(selector);
     }
 
     private By getDownloadBackupSelector(String backupName) {
-        String selector = String.format("//table[contains(@class, \"xrd-table\")]"
+        String selector = String.format("//div[@data-test='backup-restore-view']//table"
                 + "/tbody/tr/td[text() = \"%s\"]/..//button[@data-test=\"backup-download\"]", backupName);
         return xpath(selector);
     }

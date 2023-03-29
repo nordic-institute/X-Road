@@ -26,21 +26,31 @@
 package org.niis.xroad.cs.admin.application;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.cs.admin.application.openapi.AbstractApiControllerTestContext;
+import org.niis.xroad.cs.admin.core.config.BootstrapConfiguration;
+import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * application test
  */
 
-//@ActiveProfiles({"test", "audit-test"})
-public class ApplicationInitializationTest extends AbstractApiControllerTestContext {
+@SpringBootTest(classes = {
+        AbstractSpringMvcTest.CommonRestApiTestConfiguration.class,
+        BootstrapConfiguration.class},
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles({"test", "audit-test"})
+@EnableAutoConfiguration
+class ApplicationInitializationTest {
 
     /**
      * test that spring context loads
      */
     @Test
-    @SuppressWarnings("squid:S2699") // false positive: test asserts that context loads without exceptions
-    public void contextLoads() {
+    @SuppressWarnings("squid:S2699")
+    // false positive: test asserts that context loads without exceptions
+    void contextLoads() {
     }
 
 

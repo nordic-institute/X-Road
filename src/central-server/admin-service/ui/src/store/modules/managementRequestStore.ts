@@ -35,6 +35,7 @@ import {
   ManagementRequestsFilter,
   PagedManagementRequests,
   PagingMetadata,
+  PagingSortingParameters,
 } from '@/openapi-types';
 
 export interface State {
@@ -58,7 +59,7 @@ export const managementRequestsStore = defineStore('managementRequests', {
   actions: {
     async find(dataOptions: DataOptions, filter: ManagementRequestsFilter) {
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
-      const params: unknown = {
+      const params: ManagementRequestsFilter & PagingSortingParameters = {
         limit: dataOptions.itemsPerPage,
         offset: offset,
         sort: dataOptions.sortBy[0],

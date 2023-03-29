@@ -31,29 +31,40 @@ import ee.ria.xroad.common.util.TokenPinPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.exception.InvalidCharactersException;
-import org.niis.xroad.cs.admin.api.exception.WeakPinException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_INVALID_CHARACTERS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_WEAK_PIN;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
 
 @Slf4j
 @Service
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class TokenPinValidatorImpl implements TokenPinValidator {
+    private static final Object[] DEFAULT_WEAK_PIN_METADATA = new String[]{
+            ERROR_METADATA_PIN_MIN_LENGTH,
+            String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
+            ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
+            String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT)
+    };
+
     @Setter
     private boolean isTokenPinEnforced = SystemProperties.shouldEnforceTokenPinPolicy();
 
     @Override
-    public void validateSoftwareTokenPin(char[] softwareTokenPin) throws InvalidCharactersException, WeakPinException {
+    public void validateSoftwareTokenPin(char[] softwareTokenPin) throws ValidationFailureException {
         if (isTokenPinEnforced) {
             TokenPinPolicy.Description description = TokenPinPolicy.describe(softwareTokenPin);
             if (!description.isValid()) {
                 if (description.hasInvalidCharacters()) {
-                    throw new InvalidCharactersException("The provided pin code contains invalid characters");
+                    throw new ValidationFailureException(TOKEN_INVALID_CHARACTERS);
                 }
-                throw new WeakPinException("The provided pin code was too weak");
+                throw new ValidationFailureException(TOKEN_WEAK_PIN, DEFAULT_WEAK_PIN_METADATA);
             }
         }
     }

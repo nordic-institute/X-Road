@@ -29,6 +29,10 @@ package org.niis.xroad.restapi.exceptions;
  * Enumeration class for Management API error and warning codes
  */
 public final class DeviationCodes {
+    @Deprecated
+    public static final String ERROR_GENERIC_INTERNAL_ERROR = "internal_error"; //TODO might be removed later
+    public static final String ERROR_ID_NOT_A_NUMBER = "id_not_a_number";
+
     public static final String ERROR_ACCESSRIGHT_NOT_FOUND = "accessright_not_found";
     public static final String ERROR_ACTION_NOT_POSSIBLE = "action_not_possible";
     /**
@@ -102,6 +106,7 @@ public final class DeviationCodes {
     public static final String ERROR_INVALID_MEMBER_CLASS = "invalid_member_class";
     public static final String ERROR_INVALID_SERVICE_IDENTIFIER = "invalid_wsdl_service_identifier";
     public static final String ERROR_INVALID_SERVICE_URL = "invalid_service_url";
+    public static final String ERROR_INVALID_CONNECTION_TYPE = "invalid_connection_type";
     public static final String ERROR_INVALID_WSDL = "invalid_wsdl";
     public static final String ERROR_KEY_CERT_GENERATION_FAILED = "key_and_cert_generation_failed";
     public static final String ERROR_KEY_NOT_FOUND = "key_not_found";

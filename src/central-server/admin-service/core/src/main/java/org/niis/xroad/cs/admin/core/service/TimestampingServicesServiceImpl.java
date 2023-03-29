@@ -28,9 +28,9 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.api.dto.TimestampServiceRequest;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ApprovedTsaMapper;

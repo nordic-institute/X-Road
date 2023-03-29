@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common">
+  <div data-test="backup-restore-view" class="xrd-view-common">
     <div class="xrd-table-toolbar mt-0 pl-0">
       <div class="xrd-title-search">
         <div class="xrd-view-title">
@@ -32,55 +32,20 @@
         </div>
         <xrd-search v-model="search" />
       </div>
-      <div>
-        <xrd-button
-          v-if="canBackup"
-          color="primary"
-          outlined
-          :loading="creatingBackup"
-          data-test="backup-create-configuration"
-          @click="createBackup"
-        >
-          <v-icon class="xrd-large-button-icon">icon-Database-backup</v-icon
-          >{{ $t('backup.backupConfiguration.button') }}
-        </xrd-button>
-        <xrd-file-upload
-          v-slot="{ upload }"
-          accepts=".gpg"
-          @file-changed="onFileUploaded"
-        >
-          <xrd-button
-            v-if="canBackup"
-            color="primary"
-            :loading="uploadingBackup"
-            class="button-spacing"
-            data-test="backup-upload"
-            @click="upload"
-          >
-            <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
-
-            {{ $t('backup.uploadBackup.button') }}
-          </xrd-button>
-        </xrd-file-upload>
-        <xrd-confirm-dialog
-          v-if="uploadedFile !== null"
-          :dialog="needsConfirmation"
-          title="backup.uploadBackup.confirmationDialog.title"
-          data-test="backup-upload-confirm-overwrite-dialog"
-          text="backup.uploadBackup.confirmationDialog.confirmation"
-          :data="{ name: uploadedFile.name }"
-          :loading="uploadingBackup"
-          @cancel="needsConfirmation = false"
-          @accept="overwriteBackup"
-        />
-      </div>
+      <xrd-backups-toolbar
+        accepts=".gpg"
+        :can-backup="canBackup"
+        :backup-handler="backupBandler()"
+        @refresh-backups="fetchData"
+      />
     </div>
-    <BackupsDataTable
+    <xrd-backups-data-table
       :can-backup="canBackup"
       :backups="backups"
       :filter="search"
       :loading="loadingBackups"
-      @refresh-data="fetchData"
+      :backup-handler="backupBandler()"
+      @refresh-backups="fetchData"
     />
   </div>
 </template>
@@ -90,14 +55,16 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
-import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { Backup, BackupExt } from '@/openapi-types';
-import { FileUploadResult } from '@niis/shared-ui';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
+import VueI18n from 'vue-i18n';
+import Values = VueI18n.Values;
+import { encodePathParameter } from '@/util/api';
+import { saveResponseAsFile } from '@/util/helpers';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
   const formData = new FormData();
@@ -114,9 +81,6 @@ const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
 };
 
 export default Vue.extend({
-  components: {
-    BackupsDataTable,
-  },
   data() {
     return {
       search: '' as string,
@@ -143,7 +107,19 @@ export default Vue.extend({
       'showSuccess',
       'showWarningMessage',
     ]),
-    async fetchData() {
+    backupBandler() {
+      return {
+        showError: this.showError,
+        showSuccess: this.displaySuccess,
+        showWarningMessage: this.displayWarning,
+        create: this.createBackup,
+        upload: uploadBackup,
+        delete: this.deleteBackup,
+        download: this.downloadBackup,
+        restore: this.downloadBackup,
+      };
+    },
+    fetchData() {
       this.loadingBackups = true;
       return api
         .get<Backup[]>('/backups')
@@ -155,73 +131,28 @@ export default Vue.extend({
         .catch((error) => this.showError(error))
         .finally(() => (this.loadingBackups = false));
     },
-    async createBackup() {
+    createBackup() {
       this.creatingBackup = true;
+      return api.post<BackupExt>('/backups/ext', null);
+    },
+    deleteBackup(filename: string) {
+      return api.remove(`/backups/${encodePathParameter(filename)}`);
+    },
+    downloadBackup(fileName: string) {
       return api
-        .post<BackupExt>('/backups/ext', null)
-        .then((resp) => {
-          if (resp.data.local_conf_present) {
-            this.showWarningMessage(
-              this.$t('backup.backupConfiguration.message.localConfWarning'),
-            );
-          }
-          this.showSuccess(
-            this.$t('backup.backupConfiguration.message.success', {
-              file: resp.data.backup.filename,
-            }),
-          );
-          this.fetchData();
+        .get(`/backups/${encodePathParameter(fileName)}/download`, {
+          responseType: 'blob',
         })
-        .catch((error) => this.showError(error))
-        .finally(() => (this.creatingBackup = false));
+        .then((resp) => saveResponseAsFile(resp, fileName));
     },
-    onFileUploaded(result: FileUploadResult): void {
-      this.uploadingBackup = true;
-      this.uploadedFile = result.file;
-      uploadBackup(result.file)
-        .then(() => {
-          this.fetchData();
-          this.showSuccess(
-            this.$t('backup.uploadBackup.success', {
-              file: this.uploadedFile?.name,
-            }),
-          );
-        })
-        .catch((error) => {
-          const warnings = error.response?.data?.warnings as Array<{
-            code: string;
-          }>;
-          if (
-            error.response?.status === 400 &&
-            warnings?.some(
-              (warning) => warning.code === 'warning_file_already_exists',
-            )
-          ) {
-            this.needsConfirmation = true;
-            return;
-          }
-          this.showError(error);
-        })
-        .finally(() => (this.uploadingBackup = false));
+    restoreBackup(fileName: string) {
+      api.put(`/backups/${encodePathParameter(fileName)}/restore`, {});
     },
-    async overwriteBackup() {
-      this.uploadingBackup = true;
-      // this will only be called if the file has already been uploaded once and got warnings
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return uploadBackup(this.uploadedFile!, true)
-        .then(() => {
-          this.fetchData();
-          this.showSuccess(
-            this.$t('backup.uploadBackup.success', {
-              file: this.uploadedFile?.name,
-            }),
-          );
-        })
-        .catch((error) => this.showError(error))
-        .finally(() => {
-          this.uploadingBackup = false;
-          this.needsConfirmation = false;
-        });
+    displaySuccess(textKey: string, data: Values = {}) {
+      this.showSuccess(this.$t(textKey, data));
+    },
+    displayWarning(textKey: string, data: Values = {}) {
+      this.showWarningMessage(this.$t(textKey, data));
     },
   },
 });
@@ -229,8 +160,4 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-
-.button-spacing {
-  margin-left: 20px;
-}
 </style>

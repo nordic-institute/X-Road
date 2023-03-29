@@ -44,11 +44,13 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,8 +70,10 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_UPLOAD_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERIC_INTERNAL_ERROR;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MALFORMED_ANCHOR;
+import static org.niis.xroad.restapi.exceptions.ErrorDeviation.newError;
 
 /**
  * Service that handles system services
@@ -92,6 +96,9 @@ public class SystemService {
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
     @Setter
     private String tempFilesPath = SystemProperties.getTempFilesPath();
+    @Setter
+    @Value("${script.internal-configuration-verifier.path}")
+    private String internalConfVerificationScriptPath;
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
@@ -193,7 +200,7 @@ public class SystemService {
         } catch (IllegalArgumentException e) {
             throw new InvalidDistinguishedNameException(e);
         } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | OperatorCreationException e) {
-            throw new DeviationAwareRuntimeException(e);
+            throw new DeviationAwareRuntimeException(e, newError(ERROR_GENERIC_INTERNAL_ERROR));
         }
         return csrBytes;
     }
@@ -301,7 +308,7 @@ public class SystemService {
         File tempAnchor = null;
         try {
             tempAnchor = createTemporaryAnchorFile(anchorBytes);
-            configurationVerifier.verifyInternalConfiguration(tempAnchor.getAbsolutePath());
+            configurationVerifier.verifyConfiguration(internalConfVerificationScriptPath, tempAnchor.getAbsolutePath());
             anchorRepository.saveAndReplace(tempAnchor);
             globalConfService.executeDownloadConfigurationFromAnchor();
         } catch (InterruptedException | ProcessNotExecutableException | ProcessFailedException e) {

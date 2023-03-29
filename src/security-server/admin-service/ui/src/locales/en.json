@@ -121,23 +121,21 @@
     }
   },
   "backup": {
-    "action": {
-      "delete": {
+      "deleteBackup": {
         "dialog": {
           "confirmation": "Are you sure you want to delete backup {file}?",
           "title": "Are you sure?"
         },
         "success": "Backup {file} deleted"
       },
-      "restore": {
+      "restoreFromBackup": {
         "dialog": {
           "confirmation": "Are you sure you want to restore from {file}?",
           "title": "Are you sure?"
         },
         "success": "Configuration restored from {file}"
-      }
-    },
-    "backupConfiguration": {
+      },
+    "createBackup": {
       "button": "Back up config.",
       "message": {
         "success": "Backup {file} successfully created",
@@ -556,6 +554,9 @@
       "title": "Software",
       "versionPrefix": "X-Road"
     }
+  },
+  "global": {
+    "name": "Name"
   },
   "general": {
     "instance": "Instance",

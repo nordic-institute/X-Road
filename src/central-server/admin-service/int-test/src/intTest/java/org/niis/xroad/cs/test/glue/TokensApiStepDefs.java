@@ -71,6 +71,17 @@ public class TokensApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @Step("Signer.getTokens response is mocked")
+    public void signerGetTokensResponseIsMocked() {
+        var tokenListString = "[" + getTokenString("0", true) + "," + getTokenString("1", true) + "]";
+
+        mockServerService.client()
+                .when(request()
+                        .withPath("/getTokens"))
+                .respond(response()
+                        .withBody(tokenListString).withContentType(APPLICATION_JSON));
+    }
+
     @Step("Signer.getToken response is mocked for token {string}")
     public void signerGetTokenResponseIsMockedForTokenTokenId(String tokenId) {
         mockGetTokenResponse(tokenId, false);

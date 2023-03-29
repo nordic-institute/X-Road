@@ -32,7 +32,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
@@ -175,7 +177,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         assertTrue(endpointType.getPath().equals("/test"));
     }
 
-    @Test(expected = ResourceNotFoundException.class)
+    @Test(expected = NotFoundException.class)
     @WithMockUser(authorities = { "VIEW_ENDPOINT_ACL" })
     public void getInexistingEndpointAccessRights() {
         endpointsApiController.getEndpointServiceClients("NON_EXISTING_ENDPOINT_ID");

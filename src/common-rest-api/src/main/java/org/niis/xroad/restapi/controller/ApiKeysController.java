@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
@@ -34,8 +35,6 @@ import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.PublicApiKeyData;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -52,6 +51,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
 import java.util.List;
+
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.API_KEY_INVALID_ROLE;
 
 /**
  * Controller for rest apis for api key operations
@@ -77,7 +78,7 @@ public class ApiKeysController {
             PlaintextApiKeyDto createdKeyData = apiKeyService.create(roles);
             return new ResponseEntity<>(publicApiKeyDataConverter.convert(createdKeyData), HttpStatus.OK);
         } catch (InvalidRoleNameException e) {
-            throw new BadRequestException(e);
+            throw new ValidationFailureException(API_KEY_INVALID_ROLE);
         }
     }
 
@@ -88,34 +89,22 @@ public class ApiKeysController {
     @AuditEventMethod(event = RestApiAuditEvent.API_KEY_UPDATE)
     @PreAuthorize("hasAuthority('UPDATE_API_KEY')")
     public ResponseEntity<PublicApiKeyData> updateKey(@PathVariable("id") long id,
-            @RequestBody List<String> roles) {
+                                                      @RequestBody List<String> roles) {
         try {
             PersistentApiKeyType key = apiKeyService.update(id, roles);
             return new ResponseEntity<>(publicApiKeyDataConverter.convert(key), HttpStatus.OK);
         } catch (InvalidRoleNameException e) {
-            throw new BadRequestException(e);
-        } catch (ApiKeyService.ApiKeyNotFoundException e) {
-            throw new ResourceNotFoundException(e);
+            throw new ValidationFailureException(API_KEY_INVALID_ROLE);
         }
     }
 
-    /**
-     * get an existing api key
-     */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('VIEW_API_KEYS')")
     public ResponseEntity<PublicApiKeyData> getKey(@PathVariable("id") long id) {
-        try {
-            PersistentApiKeyType key = apiKeyService.getForId(id);
-            return new ResponseEntity<>(publicApiKeyDataConverter.convert(key), HttpStatus.OK);
-        } catch (ApiKeyService.ApiKeyNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        }
+        PersistentApiKeyType key = apiKeyService.getForId(id);
+        return new ResponseEntity<>(publicApiKeyDataConverter.convert(key), HttpStatus.OK);
     }
 
-    /**
-     * list api keys from db
-     */
     @GetMapping
     @PreAuthorize("hasAuthority('VIEW_API_KEYS')")
     public ResponseEntity<Collection<PublicApiKeyData>> list() {
@@ -123,21 +112,12 @@ public class ApiKeysController {
         return new ResponseEntity<>(publicApiKeyDataConverter.convert(keys), HttpStatus.OK);
     }
 
-    /**
-     * revoke key
-     *
-     * @param id
-     * @return
-     */
     @DeleteMapping("/{id}")
     @AuditEventMethod(event = RestApiAuditEvent.API_KEY_REMOVE)
     @PreAuthorize("hasAuthority('REVOKE_API_KEY')")
     public ResponseEntity<Void> revoke(@PathVariable("id") long id) {
-        try {
-            apiKeyService.removeForId(id);
-        } catch (ApiKeyService.ApiKeyNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        }
+        apiKeyService.removeForId(id);
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

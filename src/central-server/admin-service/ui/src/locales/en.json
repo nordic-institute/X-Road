@@ -103,40 +103,135 @@
     }
   },
   "backup": {
-    "action": {
-      "restore": {
-        "dialog": {
-          "confirmation": "Are you sure you want to restore from {file}?",
-          "restoringTitle": "Restoring from backup in progress",
-          "title": "Are you sure?"
-        }
+    "createBackup": {
+      "button": "Back up config.",
+      "messages": {
+        "success": "Backup {file} successfully created"
       }
     },
-    "backupConfiguration": {
-      "button": "Back up config."
-    },
     "uploadBackup": {
-      "button": "Upload backup"
+      "button": "Upload backup",
+      "confirmationDialog": {
+        "confirmation": "File {name} already exists, are you sure you want to overwrite it?",
+        "title": "File already exists"
+      },
+      "success": "Backup {file} uploaded successfully"
+    },
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "Are you sure you want to delete backup {file}?",
+        "title": "Are you sure?"
+      },
+      "success": "Backup {file} deleted"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "Are you sure you want to restore from {file}?",
+        "title": "Are you sure?"
+      },
+      "success": "Configuration restored from {file}"
     }
   },
   "customValidation": {
     "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'"
   },
   "error_code": {
-    "invalid_init_params": "Problem in initialization parameters",
-    "pin_min_char_classes_count": "PIN minimum character classes count",
-    "pin_min_length": "PIN minimum length",
-    "validation_failure": "Validation failure",
-    "weak_pin": "Weak PIN",
-    "member_class_is_in_use": "Cannot delete member class: Found X-Road members belonging to the class. Only classes with no registered members can be deleted.",
-    "member_class_not_found": "No member class with the specifier code found.",
-    "member_class_exists": "Member class with the same code already exists.",
-    "member_exists": "A member with the same id already exists.",
-    "global_group_not_found": "Global group by the given id not found.",
-    "owners_global_group_cannot_be_deleted": "Cannot perform delete action on server owners group.",
+    "certificate_profile_info_class_not_found": "Certificate profile info class was not found",
+    "certification_service_not_found": "Certification service not found.",
+    "configuration_not_found": "Configuration Source not found",
+    "configuration_part_file_not_found": "Configuration part file not found",
+    "configuration_part_validation_failed": "Configuration part validation failed",
+    "configuration_part_validator_not_found": "Configuration part validator not found",
+    "error_activating_signing_key": "Error activating signing key",
+    "error_deleting_signing_key": "Error deleting signing key",
+    "error_recreating_anchor": "Error re-creating anchor file",
     "global_group_exists": "Global group with the same code already exists.",
-    "invalid_url": "Invalid URL",
-    "token_activation_failed": "Token activation failed"
+    "global_group_not_found": "Global group by given id does not exist",
+    "init_already_initialized": "Central server Initialization failed, already fully initialized",
+    "init_invalid_params": "Empty, missing or redundant parameters provided for initialization",
+    "init_signer_pin_policy_failed": "Token pin policy failure at Signer",
+    "init_software_token_failed": "Software token initialization failed",
+    "instance_identifier_not_set": "System parameter for instance identifier not set",
+    "intermediate_ca_not_found": "Intermediate CA not found",
+    "invalid_certificate": "Invalid X.509 certificate",
+    "invalid_member_id": "Invalid member id",
+    "invalid_pagination_properties": "Pagination has invalid properties",
+    "invalid_service_provider_id": "Invalid service provider id",
+    "invalid_sort_properties": "Invalid sort parameter",
+    "invalid_subsystem_id": "Invalid subsystem id",
+    "invalid_url": "Invalid url",
+    "key_generation_failed": "Singing key generation failed",
+    "management_request_cannot_register_owner": "Cannot register owner as a client",
+    "management_request_client_already_owner": "Client is already owner of the security server",
+    "management_request_client_already_registered": "Client already registered to a server",
+    "management_request_client_registration_not_found": "Client registration does not exist",
+    "management_request_exists": "A pending management request already exists.",
+    "management_request_invalid_auth_certificate": "Invalid authentication certificate",
+    "management_request_invalid_state": "Requested operation can not be applied in this state",
+    "management_request_invalid_state_for_approval": "Management request can not be approved",
+    "management_request_member_not_found": "Member does not exist",
+    "management_request_not_found": "No management request with the specified id found.",
+    "management_request_not_supported": "Unknown management request type",
+    "management_request_owner_must_be_client": "Owner is not registered as client on the security server",
+    "management_request_owner_must_be_member": "Owner must be a member",
+    "management_request_security_server_exists": "Certificate is already registered.",
+    "management_request_server_code_exists": "Member already owns a security server with server code",
+    "management_request_server_not_found": "Security server not found",
+    "management_request_server_owner_not_found": "Security server owner not found",
+    "management_request_unknown_type": "Unknown request type",
+    "member_class_exists": "Member class with the same code already exists.",
+    "member_class_is_in_use": "Cannot delete member class: Found X-Road members belonging to the class. Only classes with no registered members can be deleted.",
+    "member_class_not_found": "No member class with the specified code found.",
+    "member_exists": "Member with the same code already exists.",
+    "member_not_found": "No member with the specified code found.",
+    "no_configuration_signing_keys_configured": "No configuration signing keys configured",
+    "ocsp_responder_not_found": "OCSP Responder not found",
+    "owners_global_group_cannot_be_deleted": "Cannot perform delete action on server owners group",
+    "signer_proxy_error": "Signer proxy exception",
+    "signing_key_action_not_possible": "Singing key action not possible",
+    "signing_key_not_found": "Signing key not found",
+    "ss_auth_certificate_not_found": "Authentication certificate not found",
+    "subsystem_exists": "Subsystem with the same code already exists.",
+    "subsystem_not_found": "Subsystem with specified code not found.",
+    "subsystem_not_registered_to_security_server": "Subsystem is not registered to the given security server.",
+    "subsystem_registered_and_cannot_be_deleted": "Cannot delete already registered subsystem.",
+    "timestamping_authority_not_found": "Timestamping authority not found",
+    "token_action_not_possible": "Token action not possible",
+    "token_activation_failed": "Token activation failed",
+    "token_deactivation_failed": "Token deactivation failed",
+    "token_fetch_failed": "Error getting tokens",
+    "token_incorrect_pin_format": "Incorrect PIN format",
+    "token_invalid_characters": "The provided pin code contains invalid characters",
+    "token_not_found": "Token not found",
+    "token_pin_final_try": "Tries left: 1",
+    "token_pin_locked": "Token PIN locked",
+    "token_weak_pin": "The provided pin code was too weak",
+    "unknown_configuration_part": "Unknown configuration part",
+    "malformed_anchor": "Malformed anchor file",
+    "trusted_anchor_verification_failed": "Trusted anchor verification failed",
+    "trusted_anchor_not_found": "Trusted anchor not found",
+    "internal_error": "Internal error. See server logs for more details",
+    "invalid_parameters": "Validation failure",
+    "security_server_not_found": "Security server not found",
+    "invalid_encoded_id": "Invalid encoded id",
+    "id_not_a_number": "Id is not a number",
+    "api_key_not_found": "Api key not found",
+    "invalid_role": "Invalid role",
+    "invalid_filename": "Invalid filename",
+    "invalid_backup_file": "Invalid backup file",
+    "backup_file_not_found": "Backup was not found",
+    "backup_generation_failed": "Failed to generate backup",
+    "generate_backup_interrupted": "Backup generation has been interrupted",
+    "restore_process_failed": "Failed to generate backup",
+    "backup_restore_interrupted": "Backup restoration has been interrupted",
+    "backup_deletion_failed": "Failed to delete backup",
+    "resource_read_failed": "Failed to read resource",
+    "conf_verification.anchor_not_for_external_source": "Configuration verification failed: anchor_not_for_external_source",
+    "conf_verification.missing_private_params": "Configuration verification failed: missing_private_params",
+    "conf_verification.other": "Configuration verification failed: other",
+    "conf_verification.outdated": "Configuration verification failed: outdated",
+    "conf_verification.signature_invalid": "Configuration verification failed: signature_invalid",
+    "conf_verification.unreachable": "Configuration verification failed: unreachable"
   },
   "fields": {
     "init": {
@@ -155,6 +250,7 @@
     "url": "URL",
     "tokenPin": "Token PIN",
     "keyLabel": "Key friendly name",
+    "memberCode": "Member Code",
     "securityServerAddress": "Security server address",
     "serverCode": "Server code",
     "securityServerCode": "Security server code"
@@ -249,6 +345,25 @@
     "downloadUrl": {
       "title": "Download URL",
       "urlAddress": "URL Address"
+    },
+    "trustedAnchor": {
+      "dialog": {
+        "upload": {
+          "confirmation": "Continue with upload?",
+          "field": {
+            "generated": "Generated",
+            "hash": "Hash (SHA-224)"
+          },
+          "info": "Trusted anchor details:",
+          "success": "Successfully uploaded Trusted anchor",
+          "title": "Confirm trusted anchor details"
+        },
+        "delete": {
+          "confirmation": "Delete {identifier} anchor with Hash (SHA-224) {hash}?",
+          "success": "Successfully deleted Trusted anchor",
+          "title": "Delete Anchor"
+        }
+      }
     }
   },
   "globalGroup": {
@@ -350,7 +465,7 @@
       }
     }
   },
-  "cert" : {
+  "cert": {
     "certificate": "Certificate",
     "hashInfo": "Hash (SHA-1)",
     "rsaExp": "RSA Public Key Exponent",
@@ -386,7 +501,7 @@
     "pending": "Pending",
     "rejected": "Rejected",
     "revoked": "Revoked",
-    "unknown" : "Unknown",
+    "unknown": "Unknown",
     "removeCertificate": "Remove Certificate",
     "removeClient": "Remove Client",
     "securityServerId": "Server Identifier",
@@ -613,7 +728,7 @@
       "addedSuccessfully": "Timestamping service added successfully"
     },
     "trustService": {
-      "details" : {
+      "details": {
         "subjectDistinguishedName": "Subject distinguished name",
         "issuerDistinguishedName": "Issuer distinguished name"
       },
@@ -722,5 +837,5 @@
     "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
     "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
   },
-  "validation.is":"The {_field_} field must have a value of \"{other}\""
+  "validation.is": "The {_field_} field must have a value of \"{other}\""
 }

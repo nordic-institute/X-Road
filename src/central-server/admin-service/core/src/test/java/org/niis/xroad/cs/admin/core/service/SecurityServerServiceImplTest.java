@@ -40,6 +40,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
@@ -49,7 +50,6 @@ import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.GroupMemberService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
@@ -168,7 +168,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
             when(securityServerRepository.findBy(serverId)).thenReturn(Option.of(securityServerEntity));
             when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
 
-            final Option<SecurityServer> result = securityServerService.find(serverId);
+            final Optional<SecurityServer> result = securityServerService.find(serverId);
 
             assertThat(result.get()).isEqualTo(securityServer);
         }
@@ -177,7 +177,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
         void findShouldReturnEmpty() {
             when(securityServerRepository.findBy(serverId)).thenReturn(Option.none());
 
-            final Option<SecurityServer> result = securityServerService.find(serverId);
+            final Optional<SecurityServer> result = securityServerService.find(serverId);
 
             assertThat(result.isEmpty()).isTrue();
             verifyNoInteractions(securityServerMapper);
@@ -251,7 +251,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
             var result = securityServerService.updateSecurityServerAddress(serverId, newAddress);
 
-            assertThat(result).isEqualTo(Option.none());
+            assertThat(result.isEmpty()).isTrue();
             verify(auditDataHelper).put(SERVER_CODE, serverId.getServerCode());
             verify(auditDataHelper).put(OWNER_CODE, ownerId.getMemberCode());
             verify(auditDataHelper).put(OWNER_CLASS, ownerId.getMemberClass());

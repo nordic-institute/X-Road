@@ -36,17 +36,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.exception.SignerProxyException;
-import org.niis.xroad.cs.admin.api.exception.TokenException;
-import org.niis.xroad.cs.admin.api.exception.TokenPinFinalTryException;
-import org.niis.xroad.cs.admin.api.exception.TokenPinLockedException;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.core.converter.TokenInfoMapper;
+import org.niis.xroad.cs.admin.core.exception.SignerProxyException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
@@ -68,6 +66,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
+import static org.niis.xroad.cs.admin.core.service.TokensServiceImpl.SOFTWARE_TOKEN_ID;
 
 @ExtendWith(MockitoExtension.class)
 class TokensServiceImplTest {
@@ -110,7 +109,7 @@ class TokensServiceImplTest {
         doThrow(new Exception()).when(signerProxyFacade).getTokens();
 
         assertThatThrownBy(() -> tokensService.getTokens())
-                .isInstanceOf(TokenException.class)
+                .isInstanceOf(ServiceException.class)
                 .hasMessage("Error getting tokens");
     }
 
@@ -130,7 +129,7 @@ class TokensServiceImplTest {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
-                .isInstanceOf(TokenPinLockedException.class)
+                .isInstanceOf(ValidationFailureException.class)
                 .hasMessage("Token PIN locked");
 
         assertAuditMessages();
@@ -142,7 +141,7 @@ class TokensServiceImplTest {
         doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
-                .isInstanceOf(TokenPinFinalTryException.class)
+                .isInstanceOf(ValidationFailureException.class)
                 .hasMessage("Tries left: 1");
         assertAuditMessages();
         verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);
@@ -154,7 +153,7 @@ class TokensServiceImplTest {
         doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
-                .isInstanceOf(TokenPinLockedException.class)
+                .isInstanceOf(ValidationFailureException.class)
                 .hasMessage("Token PIN locked");
         assertAuditMessages();
         verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);
@@ -257,21 +256,46 @@ class TokensServiceImplTest {
         assertAuditMessages();
     }
 
-    private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(TokenStatusInfo status,
+    @Test
+    void hasHardwareTokensReturnsTrue() throws Exception {
+        ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo("1");
+        when(signerProxyFacade.getTokens()).thenReturn(List.of(signerTokenInfo));
+
+        boolean result = tokensService.hasHardwareTokens();
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void hasHardwareTokensReturnsFalse() throws Exception {
+        ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo(SOFTWARE_TOKEN_ID);
+        when(signerProxyFacade.getTokens()).thenReturn(List.of(signerTokenInfo));
+
+        boolean result = tokensService.hasHardwareTokens();
+
+        assertThat(result).isFalse();
+    }
+
+    private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(String tokenId,
+                                                                     TokenStatusInfo status,
                                                                      Map<String, String> tokenParams,
                                                                      List<KeyInfo> keyInfos) {
         return new ee.ria.xroad.signer.protocol.dto.TokenInfo(
-                "type", TOKEN_FRIENDLY_NAME, TOKEN_ID, false, true,
+                "type", TOKEN_FRIENDLY_NAME, tokenId, false, true,
                 false, TOKEN_SERIAL_NUMBER, "label", 13, status, keyInfos, tokenParams
         );
     }
 
     private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(TokenStatusInfo status) {
-        return mockTokenInfo(status, new HashMap<>(), new ArrayList<>());
+        return mockTokenInfo(TOKEN_ID, status, new HashMap<>(), new ArrayList<>());
     }
 
     private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(Map<String, String> tokenParams) {
-        return mockTokenInfo(OK, tokenParams, new ArrayList<>());
+        return mockTokenInfo(TOKEN_ID, OK, tokenParams, new ArrayList<>());
+    }
+
+    private ee.ria.xroad.signer.protocol.dto.TokenInfo mockTokenInfo(String tokenId) {
+        return mockTokenInfo(tokenId, OK, new HashMap<>(), new ArrayList<>());
     }
 
     private void assertAuditMessages() {

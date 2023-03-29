@@ -31,9 +31,9 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
-import org.niis.xroad.cs.admin.api.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
 

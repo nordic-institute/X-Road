@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -62,8 +62,8 @@ public class ApplicationExceptionHandler {
     /**
      * handle exceptions
      *
-     * @param e  Exception to handle
-     * @return  ErrorInfo response entity w/ 500 status
+     * @param e Exception to handle
+     * @return ErrorInfo response entity
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorInfo> exception(Exception e) {
@@ -75,8 +75,8 @@ public class ApplicationExceptionHandler {
     /**
      * handle auth exceptions
      *
-     * @param e  AuthenticationException
-     * @return   401 response
+     * @param e AuthenticationException
+     * @return 401 response
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorInfo> exception(AuthenticationException e) {
@@ -96,8 +96,8 @@ public class ApplicationExceptionHandler {
     /**
      * handle access denied exceptions
      *
-     * @param e  AccessDeniedException
-     * @return   403 response
+     * @param e AccessDeniedException
+     * @return 403 response
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorInfo> exception(AccessDeniedException e) {
@@ -118,7 +118,7 @@ public class ApplicationExceptionHandler {
      * This handler will force the error code of the SignerNotReachable to be propagated to the REST API response.
      *
      * @param beanCreationException may contain SignerNotReachable
-     * @return  500 status
+     * @return 500 status
      */
     @SuppressWarnings("JavadocReference")
     @ExceptionHandler(BeanCreationException.class)

@@ -30,8 +30,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.rest.api.converter.GroupMemberConverter;
@@ -47,7 +48,6 @@ import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SubsystemDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +58,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_MEMBER_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_MEMBER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_MEMBER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_NAME;
@@ -162,7 +163,7 @@ public class MembersApiController implements MembersApi {
 
     private void verifyMemberId(String id) {
         if (!clientIdConverter.isEncodedMemberId(id)) {
-            throw new BadRequestException("Invalid member id");
+            throw new ValidationFailureException(INVALID_MEMBER_ID, id);
         }
     }
 

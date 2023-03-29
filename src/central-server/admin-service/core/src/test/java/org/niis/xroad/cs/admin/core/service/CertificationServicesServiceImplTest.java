@@ -35,12 +35,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
-import org.niis.xroad.cs.admin.api.exception.NotFoundException;
 import org.niis.xroad.cs.admin.core.converter.ApprovedCaConverter;
 import org.niis.xroad.cs.admin.core.converter.CaInfoConverter;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
@@ -85,8 +85,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
 
 @ExtendWith(MockitoExtension.class)
 class CertificationServicesServiceImplTest {
-    private static final String NAME = "test-name";
-
     private static final Integer ID = 123;
     private static final Instant VALID_FROM = Instant.now().minus(1, DAYS);
     private static final Instant VALID_TO = Instant.now().plus(1, DAYS);
@@ -206,7 +204,7 @@ class CertificationServicesServiceImplTest {
     void getIntermediateCas() {
         when(approvedCaRepository.findById(ID)).thenReturn(Optional.of(approvedCa()));
 
-        final Set<CertificateAuthority> intermediateCas = service.getIntermediateCas(ID);
+        final List<CertificateAuthority> intermediateCas = service.getIntermediateCas(ID);
 
         assertEquals(2, intermediateCas.size());
         intermediateCas

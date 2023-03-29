@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.api.service;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
@@ -38,17 +37,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface SecurityServerService {
 
     Page<SecurityServer> findSecurityServers(String q, Pageable pageable);
 
-    Option<SecurityServer> find(SecurityServerId id);
+    Optional<SecurityServer> find(SecurityServerId id);
 
     ManagementRequestStatus findSecurityServerRegistrationStatus(SecurityServerId serverId);
 
-    Option<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
+    Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
 
     List<SecurityServer> findAll();
 
@@ -56,7 +56,7 @@ public interface SecurityServerService {
 
     Set<SecurityServerAuthenticationCertificateDetails> findAuthCertificates(SecurityServerId id);
 
-    Option<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress);
+    Optional<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress);
 
     void delete(SecurityServerId serverId);
 

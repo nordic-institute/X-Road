@@ -26,23 +26,23 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.cs.admin.rest.api.converter.BackupDtoConverter;
 import org.niis.xroad.cs.openapi.BackupsApi;
 import org.niis.xroad.cs.openapi.model.BackupDto;
-import org.niis.xroad.cs.openapi.model.TokensLoggedOutDto;
+import org.niis.xroad.cs.openapi.model.BackupRestorationStatusDto;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.restapi.common.backup.exception.BackupFileNotFoundException;
-import org.niis.xroad.restapi.common.backup.exception.BackupInvalidFileException;
-import org.niis.xroad.restapi.common.backup.exception.InvalidFilenameException;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
+import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
+import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -53,6 +53,9 @@ import java.io.IOException;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_INTERRUPTED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_INTERRUPTED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @Controller
@@ -61,29 +64,40 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 public class BackupsApiController implements BackupsApi {
     private final BackupService backupService;
+    private final ConfigurationRestorationService configurationRestorationService;
+    private final TokensService tokensService;
     private final BackupDtoConverter backupDtoConverter;
+    private final BaseConfigurationBackupGenerator centralServerConfigurationBackupGenerator;
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    @AuditEventMethod(event = RestApiAuditEvent.BACKUP)
     public ResponseEntity<BackupDto> addBackup() {
-        throw new NotImplementedException("not implemented yet");
+        try {
+            BackupFile backupFile = centralServerConfigurationBackupGenerator.generateBackup();
+            return ResponseEntity
+                    .status(CREATED)
+                    .body(backupDtoConverter.toTarget(backupFile));
+        } catch (InterruptedException e) {
+            throw new ServiceException(BACKUP_GENERATION_INTERRUPTED);
+        } catch (NotFoundException e) {
+            throw new ServiceException(e);
+        }
     }
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    @AuditEventMethod(event = RestApiAuditEvent.DELETE_BACKUP)
     public ResponseEntity<Void> deleteBackup(String filename) {
-        throw new NotImplementedException("deleteBackup not implemented yet");
+        backupService.deleteBackup(filename);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Resource> downloadBackup(String filename) {
-        byte[] backupFile;
-        try {
-            backupFile = backupService.readBackupFile(filename);
-        } catch (BackupFileNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        }
+        byte[] backupFile = backupService.readBackupFile(filename);
+
         return ControllerUtil.createAttachmentResourceResponse(backupFile, filename);
     }
 
@@ -96,9 +110,19 @@ public class BackupsApiController implements BackupsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
-    public ResponseEntity<TokensLoggedOutDto> restoreBackup(String filename) {
-        throw new NotImplementedException("restoreBackup not implemented yet");
+    @PreAuthorize("hasAuthority('RESTORE_CONFIGURATION')")
+    @AuditEventMethod(event = RestApiAuditEvent.RESTORE_BACKUP)
+    public ResponseEntity<BackupRestorationStatusDto> restoreBackup(String filename) {
+        boolean hasHardwareTokens = tokensService.hasHardwareTokens();
+        try {
+            configurationRestorationService.restoreFromBackup(filename);
+        } catch (NotFoundException e) {
+            throw new ServiceException(e);
+        } catch (InterruptedException e) {
+            throw new ServiceException(BACKUP_RESTORATION_INTERRUPTED);
+        }
+        BackupRestorationStatusDto restorationStatus = new BackupRestorationStatusDto().hsmTokensLoggedOut(hasHardwareTokens);
+        return new ResponseEntity<>(restorationStatus, HttpStatus.OK);
     }
 
     @Override
@@ -109,11 +133,10 @@ public class BackupsApiController implements BackupsApi {
             final BackupFile backupFile = backupService.uploadBackup(ignoreWarnings,
                     file.getOriginalFilename(), file.getBytes());
             return ResponseEntity.status(CREATED).body(backupDtoConverter.toTarget(backupFile));
-        } catch (InvalidFilenameException | UnhandledWarningsException
-                 | BackupInvalidFileException e) {
-            throw new BadRequestException(e);
+        } catch (UnhandledWarningsException e) {
+            throw new ServiceException(e);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ServiceException(INTERNAL_ERROR, e);
         }
     }
 }

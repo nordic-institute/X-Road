@@ -101,7 +101,7 @@ const backupAndRestoreCommands = {
   clickDownloadForBackup: function (backupFilename) {
     this.click(
       'xpath',
-      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-download"]`,
+      `//div[@data-test='backup-restore-view']//table/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-download"]`,
     );
     return this;
   },
@@ -109,14 +109,14 @@ const backupAndRestoreCommands = {
   clickRestoreForBackup: function (backupFilename) {
     this.click(
       'xpath',
-      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-restore"]`,
+      `//div[@data-test='backup-restore-view']//table/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-restore"]`,
     );
     return this;
   },
   clickDeleteForBackup: function (backupFilename) {
     this.click(
       'xpath',
-      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-delete"]`,
+      `//div[@data-test='backup-restore-view']//table/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-delete"]`,
     );
     return this;
   },
