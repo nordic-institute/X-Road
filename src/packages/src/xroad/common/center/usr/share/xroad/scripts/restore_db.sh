@@ -100,3 +100,21 @@ EOF
 cat "$DUMP_FILE"
 echo "COMMIT;"
 } | psql_adminuser >/dev/null || abort "Restoring database failed."
+
+context="--contexts=user"
+if [[ "$USER" != "$ADMIN_USER" ]]; then
+  context="--contexts=admin"
+fi
+
+(cd /usr/share/xroad/db &&
+  JAVA_OPTS="-Ddb_user=$USER -Ddb_schema=$SCHEMA" /usr/share/xroad/db/liquibase.sh \
+  --classpath=/usr/share/xroad/jlib/postgresql.jar \
+  --url="jdbc:postgresql://$HOST:$PORT/$DATABASE?currentSchema=${SCHEMA},public" \
+  --changeLogFile=centerui-changelog.xml \
+  --password="${ADMIN_PASSWORD}" \
+  --username="${ADMIN_USER}" \
+  --defaultSchemaName="${SCHEMA}" \
+  $context \
+  update \
+  || abort "Database schema migration failed."
+)
