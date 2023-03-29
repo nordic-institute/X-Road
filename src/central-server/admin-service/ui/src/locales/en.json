@@ -221,7 +221,7 @@
     "backup_file_not_found": "Backup was not found",
     "backup_generation_failed": "Failed to generate backup",
     "generate_backup_interrupted": "Backup generation has been interrupted",
-    "restore_process_failed": "Failed to generate backup",
+    "restore_process_failed": "Restore process failed",
     "backup_restore_interrupted": "Backup restoration has been interrupted",
     "backup_deletion_failed": "Failed to delete backup",
     "resource_read_failed": "Failed to read resource",
