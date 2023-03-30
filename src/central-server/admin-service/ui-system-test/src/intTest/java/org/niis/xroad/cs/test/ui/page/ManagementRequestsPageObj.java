@@ -47,13 +47,6 @@ public class ManagementRequestsPageObj {
         return $x("//div[@data-test='management-requests-table']//table");
     }
 
-    @SuppressWarnings("checkstyle:OperatorWrap")
-    public SelenideElement tableWithHeader(String name) {
-        var columnString = "th/span[text()='%s']";
-        var xpath = "./thead//tr[" + columnString + "]";
-        return table().find(xpath(String.format(xpath, name)));
-    }
-
     public SelenideElement tableRowOf(String text) {
         var xpath = "./tbody/tr/td/div[contains(text(), '%s')]";
         return table().find(xpath(String.format(xpath, text)));

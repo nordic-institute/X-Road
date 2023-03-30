@@ -49,19 +49,29 @@ import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.MANAGEME
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ManagementRequestsStepDefs extends BaseUiStepDefs {
+    private static final String ARIA_SORT = "aria-sort";
     private final ManagementRequestsPageObj managementRequestsPageObj = new ManagementRequestsPageObj();
     @Autowired
     private FeignManagementRequestsApi managementRequestsApi;
     private ManagementRequestDetailedViewDto managementRequestDetailedView;
 
-    @Step("the User should be able to sort the table by: {}")
-    public void userIsAbleToSortByColumn(String name) {
+    @Step("the default sort is by {} {}")
+    public void defaultSortByFieldAndOrder(String name, String defaultOrder) {
+        userIsAbleToSortByFieldAndOrder(name, defaultOrder);
+    }
+
+    @Step("user is able to sort the table by field {}")
+    public void userIsAbleToSortByField(String name) {
+        userIsAbleToSortByFieldAndOrder(name, "none");
+    }
+
+    private void userIsAbleToSortByFieldAndOrder(String name, String defaultOrder) {
         final var column = managementRequestsPageObj.tableCol(name);
-        Assertions.assertEquals("none", column.getAttribute("aria-sort"));
+        Assertions.assertEquals(defaultOrder, column.getAttribute(ARIA_SORT));
         column.click();
-        Assertions.assertEquals("ascending", column.getAttribute("aria-sort"));
+        Assertions.assertEquals("ascending", column.getAttribute(ARIA_SORT));
         column.click();
-        Assertions.assertEquals("descending", column.getAttribute("aria-sort"));
+        Assertions.assertEquals("descending", column.getAttribute(ARIA_SORT));
     }
 
     @Step("the user clicks on search icon")
@@ -205,9 +215,9 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         managementRequestsPageObj.tableRowOf(securityServerId).shouldNotBe(visible);
     }
 
-    @Step("the Management Requests table with the column: {} is visible")
-    public void managementRequestsTableIsVisible(String columnName) {
-        managementRequestsPageObj.tableWithHeader(columnName).shouldBe(Condition.enabled);
+    @Step("the Management Requests table should be visible")
+    public void managementRequestsTableShouldBeVisible() {
+        managementRequestsPageObj.table().shouldBe(Condition.enabled);
     }
 
     @Step("the option to show only pending requests is selected")
