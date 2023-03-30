@@ -50,7 +50,7 @@
             </xrd-icon-base>
             <span data-test="anchor-hash">{{ item.hash }}</span>
           </template>
-          <template #[`item.created_at`]="{ item }">
+          <template #[`item.createdAt`]="{ item }">
             <span data-test="anchor-created-at">{{
               item.createdAt | formatDateTimeSeconds
             }}</span>
