@@ -41,6 +41,8 @@ import java.util.stream.Collectors;
 
 import static com.codeborne.selenide.CollectionCondition.containExactTextsCaseSensitive;
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
+import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -64,6 +66,67 @@ public class SecurityServerAuthCertificatesStepDefs extends BaseUiStepDefs {
                 .find("td:nth-child(4)")
                 .shouldBe(visible)
                 .shouldHave(Condition.matchText("\\d{4}-\\d{2}-\\d{2}"));
+    }
+
+    @Step("user clicks on certification authority: {}")
+    public void openCertificateDetails(String certAuthorityName) {
+        securityServerAuthCertificatesPageObj.linkForCaDetails(certAuthorityName)
+                .shouldBe(visible, enabled)
+                .click();
+    }
+
+    @Step("user can see certificate details")
+    public void authenticationCertificateIsListed() {
+        securityServerAuthCertificatesPageObj.certificatedDetailsView()
+                .shouldBe(visible);
+    }
+
+    @Step("user opens delete dialog for first authentication certificate in list")
+    public void openDeleteDialog() {
+        securityServerAuthCertificatesPageObj.deleteAuthenticationCertButton(1)
+                .shouldBe(visible, enabled)
+                .click();
+    }
+
+    @Step("user cannot delete Authentication certificate")
+    public void deleteButtonIsDisable() {
+        securityServerAuthCertificatesPageObj.getDeleteDialog().deleteButton()
+                .shouldBe(visible)
+                .shouldNotBe(enabled);
+    }
+
+    @Step("closes delete Authentication certificate dialog")
+    public void closeDeleteDialog() {
+        securityServerAuthCertificatesPageObj.getDeleteDialog().cancelButton()
+                .shouldBe(visible, enabled)
+                .click();
+
+        securityServerAuthCertificatesPageObj.getDeleteDialog().deleteButton()
+                .shouldNotBe(visible);
+        securityServerAuthCertificatesPageObj.getDeleteDialog().cancelButton()
+                .shouldNotBe(visible);
+    }
+
+    @Step("deletes Authentication certificate")
+    public void deleteAuthenticationCertificate() {
+        securityServerAuthCertificatesPageObj.getDeleteDialog().deleteButton()
+                .shouldBe(visible, enabled)
+                .click();
+
+        commonPageObj.snackBar.success().shouldBe(visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("enters server code: {string} to delete Authentication certificate")
+    public void deleteAuthenticationCertificate(String serverCode) {
+        clearInput(securityServerAuthCertificatesPageObj.getDeleteDialog().inputSeverCode()
+                .shouldBe(visible, enabled))
+                .setValue(serverCode);
+    }
+
+    @Step("authentication certificates list contains {} items")
+    public void authenticationCertificatesListContainsItems(int count) {
+        securityServerAuthCertificatesPageObj.authCertificateRows().shouldHave(size(count));
     }
 
     @Step("user can sort certificates list by {}")
