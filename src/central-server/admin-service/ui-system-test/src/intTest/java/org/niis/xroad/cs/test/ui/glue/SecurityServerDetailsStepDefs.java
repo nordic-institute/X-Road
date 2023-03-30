@@ -118,8 +118,8 @@ public class SecurityServerDetailsStepDefs extends BaseUiStepDefs {
 
     @Step("enters server code: {string}")
     public void enterServerCode(final String serverCode) {
-        securityServerDetailsPageObj.deleteSecurityServerDialog().inputSeverCode()
-                .shouldBe(visible)
+        clearInput(securityServerDetailsPageObj.deleteSecurityServerDialog().inputSeverCode()
+                .shouldBe(visible))
                 .setValue(serverCode);
     }
 

@@ -36,25 +36,77 @@ import static com.codeborne.selenide.Selenide.$x;
 @SuppressWarnings("InnerClassMayBeStatic")
 public class SecurityServerAuthCertificatesPageObj {
 
+    private final DeleteDialog deleteDialog = new DeleteDialog();
+
     public SelenideElement listRowOf(String certAuthorityName, String serialNumber, String subject) {
-        var xpath = "//div[@data-test='security-server-authentication-certificates-view']"
+        var xpath = "//main[@data-test='security-server-authentication-certificates-view']"
                 + "//table/tbody/tr[(normalize-space(td[1]/div/text()) = '%s') "
-                + " and (td[2] = '%s') and (td[3] = '%s')]";
+                + " and (normalize-space(td[2]/text()) = '%s') and (normalize-space(td[3]/text()) = '%s')]";
 
         return $x(String.format(xpath, certAuthorityName, serialNumber, subject));
     }
 
-    public ElementsCollection columnHeaders() {
-        var xpath = "//div[@data-test='security-server-authentication-certificates-view']//thead/tr/th/span";
+    public SelenideElement linkForCaDetails(String certAuthorityName) {
+        var xpath = "//main[@data-test='security-server-authentication-certificates-view']"
+                + "//table/tbody/tr/td/div[(normalize-space(text()) = '%s')]";
+
+        return $x(String.format(xpath, certAuthorityName.trim()));
+    }
+
+    public ElementsCollection authCertificateRows() {
+        var xpath = "//main[@data-test='security-server-authentication-certificates-view']//table/tbody/tr";
+
         return $$x(xpath);
     }
+
+    public SelenideElement certificatedDetailsView() {
+        var xpath = "//main[@id='security-server-authentication-certificate']";
+
+        return $x(xpath).find("div.certificate-details-wrapper");
+    }
+
+    public ElementsCollection columnHeaders() {
+        var xpath = "//main[@data-test='security-server-authentication-certificates-view']//thead/tr/th/span";
+        return $$x(xpath);
+    }
+
     public SelenideElement columnHeader(int idx) {
-        var xpath = "//div[@data-test='security-server-authentication-certificates-view']//thead/tr/th[%d]";
+        var xpath = "//main[@data-test='security-server-authentication-certificates-view']//thead/tr/th[%d]";
         return $x(String.format(xpath, idx));
     }
 
     public ElementsCollection columnValues(int idx) {
-        var xpath = "//div[@data-test='security-server-authentication-certificates-view']//tbody";
+        var xpath = "//main[@data-test='security-server-authentication-certificates-view']//tbody";
         return $x(xpath).findAll(String.format("tr>td:nth-child(%d)", idx));
+    }
+
+    public SelenideElement deleteAuthenticationCertButton(int rowIdx) {
+        var xpath = "//main[@data-test='security-server-authentication-certificates-view']"
+                + "//table/tbody/tr[%d]//button[@data-test='delete-AC-button']";
+
+        return $x(String.format(xpath, rowIdx));
+    }
+
+    public DeleteDialog getDeleteDialog() {
+        return deleteDialog;
+    }
+
+    public class DeleteDialog {
+        public SelenideElement deleteButton() {
+            var xpath = "//button[@data-test='dialog-save-button' and (normalize-space(span/text()) = 'Delete')]";
+
+            return $x(xpath);
+        }
+
+        public SelenideElement cancelButton() {
+            var xpath = "//button[@data-test='dialog-cancel-button']";
+
+            return $x(xpath);
+        }
+
+        public SelenideElement inputSeverCode() {
+            var xpath = "//input[@data-test='verify-server-code']";
+            return $x(xpath);
+        }
     }
 }
