@@ -45,14 +45,15 @@ public class StableSortHelperImpl implements StableSortHelper {
      * {@link SecurityServerServiceImpl} does the same, should use a shared utility
      */
     public Pageable addSecondaryIdSort(Pageable original) {
-        Sort sortingToAdd = Sort.by(Sort.Order.asc("id"));
-        // always add id-sort as last one. We could already have an id sort, that does not matter
-        Sort refinedSorting = original.getSort()
-                .and(sortingToAdd);
+        if (original.isPaged()) {
+            Sort sortingToAdd = Sort.by(Sort.Order.asc("id"));
+            // always add id-sort as last one. We could already have an id sort, that does not matter
+            Sort refinedSorting = original.getSort()
+                    .and(sortingToAdd);
 
-        Pageable refinedPageable = PageRequest.of(original.getPageNumber(), original.getPageSize(), refinedSorting);
-
-        return refinedPageable;
+            return PageRequest.of(original.getPageNumber(), original.getPageSize(), refinedSorting);
+        }
+        return original;
     }
 
 }

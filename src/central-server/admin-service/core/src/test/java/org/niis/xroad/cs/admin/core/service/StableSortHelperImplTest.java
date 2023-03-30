@@ -33,8 +33,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class StableSortHelperImplTest {
 
@@ -56,8 +55,18 @@ public class StableSortHelperImplTest {
 
             Pageable result = stableSortHelper.addSecondaryIdSort(original);
 
-            assertNotEquals(initialSort, result.getSort());
-            assertEquals(expectedSort, result.getSort());
+            assertThat(result.getSort()).isNotEqualTo(initialSort);
+            assertThat(result.getSort()).isEqualTo(expectedSort);
+        }
+
+        @Test
+        @DisplayName("should not append sort identifier for unpaged")
+        void shouldNotAppendSort() {
+            Pageable original = Pageable.unpaged();
+
+            final Pageable result = stableSortHelper.addSecondaryIdSort(original);
+
+            assertThat(result).isEqualTo(original);
         }
     }
 }
