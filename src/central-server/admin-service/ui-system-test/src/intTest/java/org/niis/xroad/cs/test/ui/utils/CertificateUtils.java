@@ -125,7 +125,7 @@ public final class CertificateUtils {
                 new X500Principal(principalName),
                 serial,
                 Date.from(Instant.now()),
-                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                Date.from(Instant.now().plus(365 + serial.abs().intValue(), ChronoUnit.DAYS)),
                 subject,
                 issuerCertificate.getPublicKey())
                 .addExtension(Extension.create(
