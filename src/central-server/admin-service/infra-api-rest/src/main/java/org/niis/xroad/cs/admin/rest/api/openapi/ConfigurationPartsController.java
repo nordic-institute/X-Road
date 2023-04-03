@@ -74,8 +74,9 @@ public class ConfigurationPartsController implements ConfigurationPartsApi {
     @PreAuthorize("(hasAuthority('VIEW_INTERNAL_CONFIGURATION_SOURCE') and #configurationType.value == 'INTERNAL') "
             + "or (hasAuthority('VIEW_EXTERNAL_CONFIGURATION_SOURCE') and #configurationType.value == 'EXTERNAL')")
     public ResponseEntity<List<ConfigurationPartDto>> getConfigurationParts(ConfigurationTypeDto configurationType) {
+        final var sourceType = ConfigurationSourceType.valueOf(configurationType.getValue());
         return ok(
-                configurationService.getConfigurationParts(ConfigurationSourceType.valueOf(configurationType.getValue()))
+                configurationService.getConfigurationParts(sourceType)
                         .stream()
                         .map(configurationPartsDtoConverter::convert)
                         .collect(toList()));
@@ -86,7 +87,8 @@ public class ConfigurationPartsController implements ConfigurationPartsApi {
     @PreAuthorize("hasAuthority('UPLOAD_CONFIGURATION_PART')")
     public ResponseEntity<Void> uploadConfigurationParts(ConfigurationTypeDto configurationType,
                                                          String contentIdentifier, MultipartFile file) {
-        configurationService.uploadConfigurationPart(ConfigurationSourceType.valueOf(configurationType.getValue()),
+        final var sourceType = ConfigurationSourceType.valueOf(configurationType.getValue());
+        configurationService.uploadConfigurationPart(sourceType,
                 contentIdentifier,
                 file.getOriginalFilename(), readBytes(file));
         return noContent().build();

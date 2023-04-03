@@ -30,7 +30,7 @@ import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.apache.commons.io.IOUtils;
-import org.niis.xroad.cs.openapi.model.ConfigurationAnchorDto;
+import org.niis.xroad.cs.openapi.model.ConfigurationAnchorContainerDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationPartDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
 import org.niis.xroad.cs.openapi.model.GlobalConfDownloadUrlDto;
@@ -147,15 +147,15 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
     @Step("{} configuration source anchor info exists")
     public void viewSourceAnchor(String configurationType) {
-        final ResponseEntity<ConfigurationAnchorDto> response = configurationSourceAnchorApi
+        final ResponseEntity<ConfigurationAnchorContainerDto> response = configurationSourceAnchorApi
                 .getAnchor(ConfigurationTypeDto.fromValue(configurationType));
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion("4D:72:A8:60:90:88:A2:5B:9C:6B:91:86:3C:D7:44:CE:9E:E1:1C:27:8E:33:F4:E5:31:68:F2:EC",
-                        "body.hash",
+                        "body.anchor.hash",
                         "Response contains file hash"))
-                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"), "body.createdAt",
+                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"), "body.anchor.createdAt",
                         "Response contains created at date"))
                 .execute();
     }

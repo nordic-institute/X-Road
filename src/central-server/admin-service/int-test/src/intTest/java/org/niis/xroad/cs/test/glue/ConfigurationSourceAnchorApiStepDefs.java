@@ -56,12 +56,13 @@ public class ConfigurationSourceAnchorApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(notNullAssertion("body.createdAt"))
-                .assertion(notNullAssertion("body.hash"))
+                .assertion(notNullAssertion("body.anchor"))
+                .assertion(notNullAssertion("body.anchor.createdAt"))
+                .assertion(notNullAssertion("body.anchor.hash"))
                 .execute();
 
-        createdAt = response.getBody().getCreatedAt();
-        hash = response.getBody().getHash();
+        createdAt = response.getBody().getAnchor().getCreatedAt();
+        hash = response.getBody().getAnchor().getHash();
     }
 
     @Step("user recreates the {string} configuration source anchor")
@@ -88,8 +89,8 @@ public class ConfigurationSourceAnchorApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(createdAt, "body.createdAt", "must be same as from previous step"))
-                .assertion(equalsAssertion(hash, "body.hash", "must be same as from previous step"))
+                .assertion(equalsAssertion(createdAt, "body.anchor.createdAt", "must be same as from previous step"))
+                .assertion(equalsAssertion(hash, "body.anchor.hash", "must be same as from previous step"))
                 .execute();
     }
 }

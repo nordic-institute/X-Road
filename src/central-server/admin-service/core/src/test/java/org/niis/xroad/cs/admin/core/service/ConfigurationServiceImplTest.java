@@ -192,14 +192,13 @@ class ConfigurationServiceImplTest {
         }
 
         @Test
-        void shouldThrowNotFoundExceptionWhenSourceNotFound() {
+        void shouldReturnEmptyListWhenSourceNotFound() {
             when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL.name().toLowerCase(), HA_NODE_NAME))
                     .thenReturn(Optional.empty());
 
-            assertThrows(NotFoundException.class, () -> configurationService.getConfigurationParts(INTERNAL));
+            assertThat(configurationService.getConfigurationParts(INTERNAL)).isEmpty();
             verifyNoInteractions(distributedFileRepository);
         }
-
     }
 
     @Nested
@@ -363,5 +362,4 @@ class ConfigurationServiceImplTest {
             }
         }
     }
-
 }
