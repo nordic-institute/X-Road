@@ -26,6 +26,7 @@
  */
 import {
   ConfigurationAnchor,
+  ConfigurationAnchorContainer,
   ConfigurationPart,
   ConfigurationType,
   GlobalConfDownloadUrl,
@@ -134,11 +135,13 @@ export const useConfigurationSourceStore = defineStore('configurationSource', {
     },
     fetchConfigurationAnchor(configurationType: ConfigurationType) {
       return axios
-        .get<ConfigurationAnchor>(
+        .get<ConfigurationAnchorContainer>(
           `/configuration-sources/${configurationType}/anchor`,
         )
         .then((resp) => {
-          this.getSource(configurationType).anchor = resp.data;
+          if (resp.data.anchor) {
+            this.getSource(configurationType).anchor = resp.data.anchor;
+          }
         })
         .catch((error) => {
           throw error;
