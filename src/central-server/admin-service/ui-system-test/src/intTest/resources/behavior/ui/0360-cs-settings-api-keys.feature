@@ -53,7 +53,3 @@ Feature: CS: System Settings -> Api Keys
       | System Administrator | present    |
       | Security Officer     | present    |
       | Registration Officer | missing    |
-
-
-
-

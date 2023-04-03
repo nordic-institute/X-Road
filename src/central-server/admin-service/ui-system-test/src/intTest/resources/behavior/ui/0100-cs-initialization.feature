@@ -19,7 +19,6 @@ Feature: CS: Initialization
     Then PIN should be marked as mismatching
     And Submit button is disabled
 
-
   Scenario: Submit enabled only when all fields are filled
     Given Initial Configuration form is visible
     And Submit button is disabled

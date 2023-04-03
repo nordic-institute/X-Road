@@ -31,6 +31,3 @@ Feature: CS Member details view Subsystem tab
     And Subsystem with code: e2e-tc3-subsystem and status: Unregistered is listed
     When Subsystem with code: e2e-tc3-subsystem and status: Unregistered is deleted
     Then Subsystem with code: e2e-tc3-subsystem and status: Unregistered not listed any more
-
-
-

@@ -19,7 +19,6 @@ Feature: CS: Global configuration: External configuration: Configuration parts
       | content-identifier |
       | SHARED-PARAMETERS  |
 
-  @Modifying
   Scenario Outline: User can't upload internal configuration parts: <content-identifier>
     When There is entry for configuration part: <content-identifier>
     Then User can't upload configuration file for it
