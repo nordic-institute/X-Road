@@ -26,21 +26,27 @@
  */
 package org.niis.xroad.cs.admin.api.domain;
 
+import lombok.Getter;
+
 public enum ManagementRequestStatus {
-    WAITING,
-    APPROVED,
-    DECLINED,
-    SUBMITTED_FOR_APPROVAL("SUBMITTED FOR APPROVAL"),
-    REVOKED;
+    WAITING("Pending"),
+    APPROVED("Approved"),
+    DECLINED("Rejected"),
+    SUBMITTED_FOR_APPROVAL("SUBMITTED FOR APPROVAL", "Submitted for approval"),
+    REVOKED("Revoked");
 
     private final String status;
+    @Getter
+    private final String description;
 
-    ManagementRequestStatus() {
+    ManagementRequestStatus(String description) {
         this.status = this.name();
+        this.description = description;
     }
 
-    ManagementRequestStatus(String status) {
+    ManagementRequestStatus(String status, String description) {
         this.status = status;
+        this.description = description;
     }
 
     @Override

@@ -43,6 +43,11 @@ public class ManagementRequestsPageObj {
         return $x("//input[@data-test='show-only-pending-requests']");
     }
 
+    public SelenideElement showOnlyPendingRequestsIsChecked(boolean checked) {
+        var xpath = "//input[@data-test='show-only-pending-requests' and @aria-checked='%s']";
+        return $x(String.format(xpath, checked));
+    }
+
     public SelenideElement table() {
         return $x("//div[@data-test='management-requests-table']//table");
     }
