@@ -74,6 +74,10 @@ public class CommonPageObj {
             return $x("//*[@data-test='globalresources-tab-button']");
         }
 
+        public SelenideElement backupAndRestoresTab() {
+            return $x("//*[@data-test='backupandrestore-tab-button']");
+        }
+
         public SelenideElement settingsTab() {
             return $x("//*[@data-test='systemsettings-tab-button']");
         }
