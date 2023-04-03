@@ -176,8 +176,6 @@ public class SystemParameterServiceImpl implements SystemParameterService {
 
         if (systemParameter.isEmpty()) {
             SystemParameterEntity newSystemParameter = new SystemParameterEntity(lookupKey);
-            // now initial value for non-postgresql testing,
-            // the real haNodeName will be inserted using Postgresql database trigger.
             newSystemParameter.setHaNodeName(currentHaConfigStatus.getCurrentHaNodeName());
             systemParameter = Optional.of(newSystemParameter);
         }
