@@ -34,5 +34,3 @@ Feature: CS Member details view Subsystem tab
     When A new subsystem with code: e2e-tc3-subsystem is added
     And Subsystem with code: e2e-tc3-subsystem and status: Unregistered is listed
 
-
-

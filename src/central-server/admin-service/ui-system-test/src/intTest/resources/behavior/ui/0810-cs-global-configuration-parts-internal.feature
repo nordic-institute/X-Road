@@ -27,7 +27,6 @@ Feature: CS: Global configuration: Internal configuration: Configuration parts
       | SHARED-PARAMETERS  |
       | PRIVATE-PARAMETERS |
 
-  @Modifying
   Scenario Outline: User can upload optional configuration part for <content-identifier>
     Given There is entry for configuration part: <content-identifier>
     And User can't download it

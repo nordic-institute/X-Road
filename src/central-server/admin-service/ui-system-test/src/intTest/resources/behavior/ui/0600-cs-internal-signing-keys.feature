@@ -15,7 +15,6 @@ Feature: CS: Global configuration: Internal configuration: Signing keys
     And Token: softToken-0 is logged-out
     Then Add key button is disabled for token: softToken-0
 
-  @Modifying
   Scenario: User can add only 2 signings keys after token log-in
     Given User logs in token: softToken-0 with PIN: Valid_Pin_11
     And Add key button is enabled for token: softToken-0
@@ -23,7 +22,6 @@ Feature: CS: Global configuration: Internal configuration: Signing keys
     And User adds signing key for token: softToken-0 with name: internal_key_name_2
     Then Add key button is disabled for token: softToken-0
 
-  @Modifying
   Scenario: User can activate signing key
     Given Signing key: internal_key_name_1 can't be activated for token: softToken-0
     And Signing key: internal_key_name_2 can be activated for token: softToken-0
@@ -39,7 +37,6 @@ Feature: CS: Global configuration: Internal configuration: Signing keys
     Then Signing key: internal_key_name_1 can't be activated for token: softToken-0
     And Signing key: internal_key_name_1 can't be deleted for token: softToken-0
 
-  @Modifying
   Scenario: User can delete signing key
     Given User logs in token: softToken-0 with PIN: Valid_Pin_11
     And Signing key: internal_key_name_1 can be deleted for token: softToken-0
