@@ -88,7 +88,13 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     @Step("the user views the Management request from Security server {} with owner code {}")
     public void userIsAbleToViewTheManagementRequest(String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
-        managementRequestsPageObj.tableRowOf(securityServerId).should(appear);
+        managementRequestsPageObj.tableRowOf(securityServerId).shouldBe(appear);
+    }
+
+    @Step("the user should not see the Management request from Security server {} with owner code {}")
+    public void userShouldNotSeeTheManagementRequest(String securityServerCode, String ownerCode) {
+        final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
+        managementRequestsPageObj.tableRowOf(securityServerId).shouldNotBe(appear);
     }
 
     @Step("the user clicks {} request {} from Security server {} with owner code {}")
@@ -226,13 +232,23 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     }
 
     @Step("the option to show only pending requests is selected")
-    public void showOnlyPendingRequestsIsChecked() {
+    public void showOnlyPendingRequestsIsSelected() {
+        managementRequestsPageObj.showOnlyPendingRequestsIsChecked(true).shouldBe(Condition.enabled);
+    }
+
+    @Step("the option to show only pending requests is not selected")
+    public void showOnlyPendingRequestsIsNotSelected() {
+        managementRequestsPageObj.showOnlyPendingRequestsIsChecked(false).shouldBe(Condition.enabled);
+    }
+
+    @Step("the user unchecks the checkbox to show only pending requests")
+    public void showOnlyPendingRequestsIsClicked() {
         managementRequestsPageObj.showOnlyPendingRequests().click(ClickOptions.usingJavaScript());
     }
 
     @Step("the user can not see the Approve, Decline actions for requests that have already been processed")
     public void shouldNotShowApproveAndDeclineActions() {
-        managementRequestsPageObj.btnApproveManagementRequest().shouldNot(visible);
-        managementRequestsPageObj.btnDeclineManagementRequest().shouldNot(visible);
+        managementRequestsPageObj.btnApproveManagementRequest().shouldNotBe(visible);
+        managementRequestsPageObj.btnDeclineManagementRequest().shouldNotBe(visible);
     }
 }
