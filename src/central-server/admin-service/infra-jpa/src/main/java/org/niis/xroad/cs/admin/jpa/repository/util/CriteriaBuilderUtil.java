@@ -54,7 +54,7 @@ public final class CriteriaBuilderUtil { // todo: refactor to a helper service
         return predicate;
     }
 
-    public static String escapeSpecialChars(String s) {
+    private static String escapeSpecialChars(String s) {
         return s.replace(LIKE_EXPRESSION_ESCAPE_STRING, LIKE_EXPRESSION_ESCAPE_STRING + LIKE_EXPRESSION_ESCAPE_STRING)
                 .replace("%", LIKE_EXPRESSION_ESCAPE_STRING + "%")
                 .replace("_", LIKE_EXPRESSION_ESCAPE_STRING + "_");

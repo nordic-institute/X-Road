@@ -32,20 +32,18 @@ import lombok.Getter;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 
-@Getter
 public enum ManagementRequestType {
-    AUTH_CERT_REGISTRATION_REQUEST("authCertReg", "Add Certificate"),
-    CLIENT_REGISTRATION_REQUEST("clientReg", "Add Client"),
-    OWNER_CHANGE_REQUEST("ownerChange", "Change Owner"),
-    CLIENT_DELETION_REQUEST("clientDeletion", "Remove Client"),
-    AUTH_CERT_DELETION_REQUEST("authCertDeletion", "Remove Certificate");
+    AUTH_CERT_REGISTRATION_REQUEST("authCertReg"),
+    CLIENT_REGISTRATION_REQUEST("clientReg"),
+    OWNER_CHANGE_REQUEST("ownerChange"),
+    CLIENT_DELETION_REQUEST("clientDeletion"),
+    AUTH_CERT_DELETION_REQUEST("authCertDeletion");
 
+    @Getter
     private final String serviceCode;
-    private final String description;
 
-    ManagementRequestType(String serviceCode, String description) {
+    ManagementRequestType(String serviceCode) {
         this.serviceCode = serviceCode;
-        this.description = description;
     }
 
     public static ManagementRequestType getByServiceCode(String serviceCode) {

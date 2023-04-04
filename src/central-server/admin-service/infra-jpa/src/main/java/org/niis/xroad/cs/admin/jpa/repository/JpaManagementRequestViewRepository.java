@@ -27,8 +27,6 @@
 package org.niis.xroad.cs.admin.jpa.repository;
 
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.core.entity.ManagementRequestViewEntity;
 import org.niis.xroad.cs.admin.core.entity.ManagementRequestViewEntity_;
@@ -45,16 +43,12 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil.caseInsensitiveLike;
-import static org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil.escapeSpecialChars;
 
 @Repository
 public interface JpaManagementRequestViewRepository extends JpaRepository<ManagementRequestViewEntity, Integer>,
@@ -110,34 +104,13 @@ public interface JpaManagementRequestViewRepository extends JpaRepository<Manage
 
         predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.id).as(String.class)));
         predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.createdAt).as(String.class)));
-        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.origin).as(String.class)));
 
-        final var matchingStatuses = getMatchingStatuses(escapeSpecialChars(q.toLowerCase()));
-        if (!matchingStatuses.isEmpty()) {
-            predicates.add(root.get(ManagementRequestViewEntity_.requestProcessingStatus).in(matchingStatuses));
-        }
-        final var matchingTypes = getMatchingTypes(escapeSpecialChars(q.toLowerCase()));
-        if (!matchingTypes.isEmpty()) {
-            predicates.add(root.get(ManagementRequestViewEntity_.type).in(matchingTypes));
-        }
         predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.securityServerOwnerName)));
         predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.xroadInstance)));
         predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.memberClass)));
         predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.memberCode)));
         predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.serverCode)));
+
         return builder.and(pred, builder.or(predicates.toArray(new Predicate[0])));
-    }
-
-    private static Set<ManagementRequestStatus> getMatchingStatuses(String query) {
-        return Arrays.stream(ManagementRequestStatus.values())
-                .filter(status -> status.getDescription().toLowerCase().contains(query))
-                .collect(Collectors.toSet());
-    }
-
-    private static Set<String> getMatchingTypes(String query) {
-        return Arrays.stream(ManagementRequestType.values())
-                .filter(type -> type.getDescription().toLowerCase().contains(query))
-                .map(ManagementRequestViewEntity.ManagementRequestTypeDiscriminatorMapping::getDiscriminator)
-                .collect(Collectors.toSet());
     }
 }
