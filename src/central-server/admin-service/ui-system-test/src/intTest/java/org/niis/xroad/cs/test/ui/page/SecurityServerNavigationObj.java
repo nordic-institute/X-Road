@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -25,17 +25,21 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.test.ui.page;
 
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
-import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
+import com.codeborne.selenide.SelenideElement;
 
-import java.util.Optional;
+import static com.codeborne.selenide.Selenide.$x;
 
-public interface ConfigurationAnchorService {
-    Optional<ConfigurationAnchor> getConfigurationAnchor(ConfigurationSourceType sourceType);
+@SuppressWarnings("InnerClassMayBeStatic")
+public class SecurityServerNavigationObj {
+    public SelenideElement clientsTab() {
+        var xpath = "//a[@data-test='security-server-clients-tab-button']";
+        return $x(xpath);
+    }
 
-    Optional<ConfigurationAnchor> getConfigurationAnchorWithFile(ConfigurationSourceType sourceType);
-
-    ConfigurationAnchor recreateAnchor(ConfigurationSourceType configurationType);
+    public SelenideElement authenticationCertificatesTab() {
+        var xpath = "//a[@data-test='security-server-auth-certs-tab-button']";
+        return $x(xpath);
+    }
 }

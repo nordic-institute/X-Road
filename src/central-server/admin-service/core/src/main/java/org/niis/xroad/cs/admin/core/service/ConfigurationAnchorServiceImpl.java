@@ -33,7 +33,6 @@ import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
@@ -67,7 +66,6 @@ import java.util.Optional;
 
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_RECREATING_ANCHOR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INSTANCE_IDENTIFIER_NOT_SET;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.NO_CONFIGURATION_SIGNING_KEYS_CONFIGURED;
@@ -95,20 +93,19 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
     }
 
     @Override
-    public ConfigurationAnchor getConfigurationAnchor(ConfigurationSourceType sourceType) {
-        final ConfigurationSourceEntity configurationSource = findConfigurationSourceBySourceType(sourceType);
-
-        return new ConfigurationAnchor(configurationSource.getAnchorFileHash(),
-                configurationSource.getAnchorGeneratedAt());
+    public Optional<ConfigurationAnchor> getConfigurationAnchor(ConfigurationSourceType sourceType) {
+        return findConfigurationSourceBySourceType(sourceType)
+                .map(cfgSrc -> new ConfigurationAnchor(cfgSrc.getAnchorFileHash(), cfgSrc.getAnchorGeneratedAt()));
     }
 
     @Override
-    public ConfigurationAnchor getConfigurationAnchorWithFile(ConfigurationSourceType sourceType) {
-        final ConfigurationSourceEntity configurationSource = findConfigurationSourceBySourceType(sourceType);
-
-        return new ConfigurationAnchor(configurationSource.getAnchorFile(),
-                configurationSource.getAnchorFileHash(),
-                configurationSource.getAnchorGeneratedAt());
+    public Optional<ConfigurationAnchor> getConfigurationAnchorWithFile(ConfigurationSourceType sourceType) {
+        return findConfigurationSourceBySourceType(sourceType)
+                .map(cfgSrc -> new ConfigurationAnchor(
+                        cfgSrc.getAnchorFile(),
+                        cfgSrc.getAnchorFileHash(),
+                        cfgSrc.getAnchorGeneratedAt())
+                );
     }
 
     @Override
@@ -197,10 +194,8 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         return xmlSource;
     }
 
-    private ConfigurationSourceEntity findConfigurationSourceBySourceType(ConfigurationSourceType sourceType) {
+    private Optional<ConfigurationSourceEntity> findConfigurationSourceBySourceType(ConfigurationSourceType sourceType) {
         return configurationSourceRepository.findBySourceTypeAndHaNodeName(sourceType.name().toLowerCase(),
-                        haConfigStatus.getCurrentHaNodeName())
-                .orElseThrow(() -> new NotFoundException(CONFIGURATION_NOT_FOUND));
+                haConfigStatus.getCurrentHaNodeName());
     }
-
 }

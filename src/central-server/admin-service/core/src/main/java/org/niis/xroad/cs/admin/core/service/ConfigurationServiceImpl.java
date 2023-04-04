@@ -58,6 +58,7 @@ import javax.transaction.Transactional;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
@@ -68,7 +69,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_UPLOAD_FILE_HASH_ALGO
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_PART_FILE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.UNKNOWN_CONFIGURATION_PART;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CONTENT_IDENTIFIER;
@@ -97,8 +97,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public Set<ConfigurationParts> getConfigurationParts(ConfigurationSourceType sourceType) {
-        final ConfigurationSourceEntity configurationSource = findConfigurationSourceBySourceType(sourceType);
-        final String haNodeName = configurationSource.getHaNodeName();
+        final var configurationSource = findConfigurationSourceBySourceType(sourceType);
+        if (configurationSource.isEmpty()) {
+            return Set.of();
+        }
+        final String haNodeName = configurationSource.get().getHaNodeName();
 
         Set<ConfigurationParts> configurationParts = new HashSet<>();
         if (sourceType.equals(EXTERNAL)) {
@@ -258,10 +261,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return NODE_LOCAL_CONTENT_IDS.contains(contentId);
     }
 
-    private ConfigurationSourceEntity findConfigurationSourceBySourceType(ConfigurationSourceType sourceType) {
+    private Optional<ConfigurationSourceEntity> findConfigurationSourceBySourceType(ConfigurationSourceType sourceType) {
         return configurationSourceRepository.findBySourceTypeAndHaNodeName(sourceType.name().toLowerCase(),
-                        haConfigStatus.getCurrentHaNodeName())
-                .orElseThrow(() -> new NotFoundException(CONFIGURATION_NOT_FOUND));
+                haConfigStatus.getCurrentHaNodeName());
     }
-
 }

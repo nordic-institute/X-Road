@@ -63,6 +63,10 @@ public class CommonPageObj {
             return $x(getTabXpath("Settings"));
         }
 
+        public SelenideElement securityServersTab() {
+            return $x(getTabXpath("Security Servers"));
+        }
+
         private String getTabXpath(String tabName) {
             var xpath = "//div[contains(@class, 'v-tabs-bar__content')]//*[contains(@class,'v-tab') and contains(text(), '%s')]";
             return String.format(xpath, tabName);
@@ -72,6 +76,10 @@ public class CommonPageObj {
     public class SubMenu {
         public SelenideElement globalResourcesTab() {
             return $x("//*[@data-test='globalresources-tab-button']");
+        }
+
+        public SelenideElement backupAndRestoresTab() {
+            return $x("//*[@data-test='backupandrestore-tab-button']");
         }
 
         public SelenideElement settingsTab() {

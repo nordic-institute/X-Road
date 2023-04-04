@@ -52,6 +52,7 @@
         >
           <v-text-field
             v-model="securityServerCode"
+            data-test="verify-server-code"
             outlined
             autofocus
             :placeholder="

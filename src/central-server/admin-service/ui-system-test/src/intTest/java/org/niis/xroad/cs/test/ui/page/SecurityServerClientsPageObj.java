@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -25,17 +25,32 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.test.ui.page;
 
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
-import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 
-import java.util.Optional;
+import static com.codeborne.selenide.Selenide.$x;
 
-public interface ConfigurationAnchorService {
-    Optional<ConfigurationAnchor> getConfigurationAnchor(ConfigurationSourceType sourceType);
+@SuppressWarnings("InnerClassMayBeStatic")
+public class SecurityServerClientsPageObj {
 
-    Optional<ConfigurationAnchor> getConfigurationAnchorWithFile(ConfigurationSourceType sourceType);
+    private static final int SUBSYSTEM_CLMN_IDX = 4;
 
-    ConfigurationAnchor recreateAnchor(ConfigurationSourceType configurationType);
+    public SelenideElement listRowOf(String memberName, String memberCode, String memberClass, String subsystem) {
+        var xpath = "//div[@data-test='security-server-clients-view']//table/tbody/tr[(normalize-space(td[1]/div/text()) = '%s') "
+                + " and (td[2] = '%s') and (td[3] = '%s') and (td[4] = '%s')]";
+
+        return $x(String.format(xpath, memberName, memberClass, memberCode, subsystem));
+    }
+
+    public SelenideElement subsystemColumnHeader() {
+        var xpath = "//div[@data-test='security-server-clients-view']//thead/tr/th[%d]";
+        return $x(String.format(xpath, SUBSYSTEM_CLMN_IDX));
+    }
+
+    public ElementsCollection subsystemValues() {
+        var xpath = "//div[@data-test='security-server-clients-view']//tbody";
+        return $x(xpath).findAll(String.format("tr>td:nth-child(%d)", SUBSYSTEM_CLMN_IDX));
+    }
 }

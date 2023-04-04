@@ -27,7 +27,7 @@
 
 <template>
   <xrd-sub-view-container>
-    <router-view data-test="security-servers-view"></router-view>
+    <router-view></router-view>
   </xrd-sub-view-container>
 </template>
 

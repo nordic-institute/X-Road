@@ -58,8 +58,13 @@ public class NavigationStepDefs extends BaseUiStepDefs {
         commonPageObj.menu.settingsTab().click();
     }
 
+    @Step("Security Servers tab is selected")
+    public void navigateSecurityServersTab() {
+        commonPageObj.menu.securityServersTab().click();
+    }
+
     @Step("System settings sub-tab is selected")
-    public void navigateSystemSettingsSubTa() {
+    public void navigateSystemSettingsSubTab() {
         commonPageObj.subMenu.settingsTab().click();
     }
 
@@ -73,5 +78,10 @@ public class NavigationStepDefs extends BaseUiStepDefs {
         commonPageObj.subMenu.apiKeysTab().click();
 
         settingsApiKeysPageObj.apiKeysView().shouldBe(Condition.visible);
+    }
+
+    @Step("Backup and Restore sub-tab is selected")
+    public void navigateBackupAndRestoreSubTab() {
+        commonPageObj.subMenu.backupAndRestoresTab().click();
     }
 }
