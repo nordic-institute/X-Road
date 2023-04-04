@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,17 +25,30 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.test.ui.glue;
 
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
-import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.test.ui.page.SecurityServersPageObj;
 
-import java.util.Optional;
+import static com.codeborne.selenide.Condition.visible;
 
-public interface ConfigurationAnchorService {
-    Optional<ConfigurationAnchor> getConfigurationAnchor(ConfigurationSourceType sourceType);
+public class SecurityServersStepDefs extends BaseUiStepDefs {
 
-    Optional<ConfigurationAnchor> getConfigurationAnchorWithFile(ConfigurationSourceType sourceType);
+    private final SecurityServersPageObj securityServersPageObj = new SecurityServersPageObj();
 
-    ConfigurationAnchor recreateAnchor(ConfigurationSourceType configurationType);
+    @Step("user opens security server details for {string}")
+    public void openSecurityServerDetails(final String serverCode) {
+        securityServersPageObj.listRowOf(serverCode).click();
+    }
+
+
+    @Step("security servers list is displayed")
+    public void serversListIsDisplayed() {
+        securityServersPageObj.listView().shouldBe(visible);
+    }
+    @Step("list doesn't contain security server with code {string}")
+    public void securityServerIsInList(final String serverCode) {
+        securityServersPageObj.listRowOf(serverCode).shouldNotBe(visible);
+    }
 }
+

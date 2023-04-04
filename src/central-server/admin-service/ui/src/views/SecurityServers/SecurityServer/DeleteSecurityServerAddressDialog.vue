@@ -65,7 +65,7 @@
               outlined
               :label="$t('securityServers.dialogs.deleteAddress.enterCode')"
               autofocus
-              data-test="add-local-group-code-input"
+              data-test="verify-server-code"
               :error-messages="errors"
             ></v-text-field>
           </validation-provider>
@@ -93,7 +93,7 @@ export default Vue.extend({
   props: {
     securityServerId: {
       type: String,
-      required: true,
+      default: '',
     },
     serverCode: {
       type: String,
@@ -111,7 +111,7 @@ export default Vue.extend({
     ...mapStores(useSecurityServerStore),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(notificationsStore, ['showError']),
     open(): void {
       this.showDialog = true;
     },
@@ -123,11 +123,8 @@ export default Vue.extend({
       try {
         this.loading = true;
         await this.securityServerStore.delete(this.securityServerId);
-        this.showSuccess(
-          this.$t('securityServers.dialogs.deleteAddress.success'),
-        );
         this.close();
-        this.$emit('delete');
+        this.$emit('deleted');
       } catch (error: unknown) {
         this.showError(error);
       } finally {

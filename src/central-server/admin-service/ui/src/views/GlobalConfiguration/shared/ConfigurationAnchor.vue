@@ -29,7 +29,7 @@
     <xrd-button
       v-if="showRecreateAnchorButton"
       data-test="re-create-anchor-button"
-      :loading="loading"
+      :loading="recreating"
       outlined
       class="mr-4"
       @click="recreateConfigurationAnchor()"
@@ -43,7 +43,7 @@
     <xrd-button
       v-if="showDownloadAnchorButton"
       data-test="download-anchor-button"
-      :loading="loading"
+      :loading="downloading"
       outlined
       @click="downloadConfigurationAnchor()"
     >
@@ -80,6 +80,8 @@ export default Vue.extend({
   data() {
     return {
       loading: false,
+      downloading: false,
+      recreating: false,
     };
   },
   computed: {
@@ -111,44 +113,53 @@ export default Vue.extend({
       ];
     },
     showDownloadAnchorButton(): boolean {
-      return this.hasPermission(Permissions.DOWNLOAD_SOURCE_ANCHOR);
+      return (
+        this.hasPermission(Permissions.DOWNLOAD_SOURCE_ANCHOR) &&
+        !this.configurationSourceStore.getAnchor(this.configurationType)
+      );
     },
     showRecreateAnchorButton(): boolean {
       return this.hasPermission(Permissions.GENERATE_SOURCE_ANCHOR);
+    },
+    formattedConfigurationType(): string {
+      return (
+        this.configurationType.charAt(0).toUpperCase() +
+        this.configurationType.slice(1).toLowerCase()
+      );
     },
   },
   created() {
     this.fetchConfigurationAnchor();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showSuccess']),
+    ...mapActions(notificationsStore, ['showSuccess', 'showError']),
     fetchConfigurationAnchor() {
       this.loading = true;
       this.configurationSourceStore
         .fetchConfigurationAnchor(this.configurationType)
+        .catch(this.showError)
         .finally(() => (this.loading = false));
     },
     downloadConfigurationAnchor() {
-      this.loading = true;
+      this.downloading = true;
       this.configurationSourceStore
         .downloadConfigurationAnchor(this.configurationType)
-        .finally(() => (this.loading = false));
+        .catch(this.showError)
+        .finally(() => (this.downloading = false));
     },
     recreateConfigurationAnchor() {
-      this.loading = true;
+      this.recreating = true;
       this.configurationSourceStore
         .recreateConfigurationAnchor(this.configurationType)
-        .finally(() => {
-          this.loading = false;
-          const formattedConfigurationType =
-            this.configurationType.charAt(0).toUpperCase() +
-            this.configurationType.slice(1).toLowerCase();
+        .then(() =>
           this.showSuccess(
             this.$t(`globalConf.anchor.recreateSuccess`, {
-              configurationType: formattedConfigurationType,
+              configurationType: this.formattedConfigurationType,
             }),
-          );
-        });
+          ),
+        )
+        .catch(this.showError)
+        .finally(() => (this.recreating = false));
     },
   },
 });
