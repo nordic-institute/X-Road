@@ -115,7 +115,7 @@ export default Vue.extend({
     showDownloadAnchorButton(): boolean {
       return (
         this.hasPermission(Permissions.DOWNLOAD_SOURCE_ANCHOR) &&
-        !this.configurationSourceStore.getAnchor(this.configurationType)
+        this.configurationSourceStore.hasAnchor(this.configurationType)
       );
     },
     showRecreateAnchorButton(): boolean {
