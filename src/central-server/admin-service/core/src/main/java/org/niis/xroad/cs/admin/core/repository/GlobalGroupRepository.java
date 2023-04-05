@@ -33,5 +33,5 @@ import java.util.Optional;
 public interface GlobalGroupRepository extends GenericRepository<GlobalGroupEntity, Integer> {
     Optional<GlobalGroupEntity> getByGroupCode(String code);
 
-
+    void updateGroupMemberCount(Integer groupId);
 }

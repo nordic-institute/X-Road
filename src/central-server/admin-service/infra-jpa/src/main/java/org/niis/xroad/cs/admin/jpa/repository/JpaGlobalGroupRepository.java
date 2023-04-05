@@ -29,6 +29,8 @@ package org.niis.xroad.cs.admin.jpa.repository;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -36,4 +38,9 @@ import java.util.Optional;
 @Repository
 public interface JpaGlobalGroupRepository extends JpaRepository<GlobalGroupEntity, Integer>, GlobalGroupRepository {
     Optional<GlobalGroupEntity> getByGroupCode(String code);
+    @Modifying
+    @Query("update GlobalGroupEntity gg set gg.memberCount = "
+            + "(select count(ggm.id) from GlobalGroupMemberEntity ggm where ggm.globalGroup.id = :groupId)"
+            + " where gg.id = :groupId")
+    void updateGroupMemberCount(Integer groupId);
 }

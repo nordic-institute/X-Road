@@ -87,11 +87,9 @@ public class AuditDataHelper {
      * @param value
      */
     public void addListPropertyItem(RestApiAuditProperty listProperty, Object value) {
-        List<Object> data = Collections.synchronizedList(new ArrayList<>());
-        requestScopedAuditDataHolder.getEventData().putIfAbsent(listProperty, data);
-        List<Object> sharedListData = (List<Object>) requestScopedAuditDataHolder.getEventData()
-                .get(listProperty);
-        sharedListData.add(value);
+        ((List<Object>) requestScopedAuditDataHolder.getEventData()
+                .computeIfAbsent(listProperty, key -> Collections.synchronizedList(new ArrayList<>())))
+                .add(value);
     }
 
     /**
