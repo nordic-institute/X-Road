@@ -114,6 +114,34 @@ class MultipartMessageTest {
     }
 
     @Test
+    void writeToStringSkipContentType() {
+        var multipartMessage = MultipartMessage.builder()
+                .boundary("message_part_boundary")
+                .part(partBuilder()
+                        .header(header("Version", "2"))
+                        .header(header("Expire-date", "2022-12-08T08:05:01Z"))
+                        .build())
+                .part(partBuilder()
+                        .header(header("Content-id", "some-id"))
+                        .content("content body")
+                        .build())
+                .build();
+
+        var messageAsString = multipartMessage.toStringWithoutContentType();
+
+        assertThat(messageAsString)
+                .isEqualTo("--message_part_boundary\r\n"
+                        + "Version: 2\r\n"
+                        + "Expire-date: 2022-12-08T08:05:01Z\r\n"
+                        + "\r\n"
+                        + "--message_part_boundary\r\n"
+                        + "Content-id: some-id\r\n"
+                        + "\r\n"
+                        + "content body\r\n"
+                        + "--message_part_boundary--\r\n");
+    }
+
+    @Test
     void emptyCannotBuild() {
         var builder = MultipartMessage.builder();
         assertThatThrownBy(() -> builder.build())

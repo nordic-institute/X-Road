@@ -60,16 +60,28 @@ class MultipartMessage {
     }
 
     public String toString() {
-        var header = header("Content-Type",
-                String.format("%s; charset=UTF-8; boundary=%s", contentType, boundary));
+        return toString(false);
+    }
 
-        var sb = new StringBuilder(header.toString());
-        sb.append(CRLF);
+    public String toStringWithoutContentType() {
+        return toString(true);
+    }
+
+    private String toString(boolean skipContentType) {
+        var sb = new StringBuilder();
+
+        if (!skipContentType) {
+            var header = header("Content-Type",
+                    String.format("%s; charset=UTF-8; boundary=%s", contentType, boundary));
+            sb.append(header).append(CRLF);
+            sb.append(CRLF);
+        }
+
         parts.forEach(p -> {
-            sb.append(CRLF).append("--").append(boundary).append(CRLF);
-            sb.append(p.toString());
+            sb.append("--").append(boundary).append(CRLF);
+            sb.append(p.toString()).append(CRLF);
         });
-        sb.append(CRLF).append("--").append(boundary).append("--").append(CRLF);
+        sb.append("--").append(boundary).append("--").append(CRLF);
         return sb.toString();
     }
 
