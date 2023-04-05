@@ -4,7 +4,7 @@ no_cache=""
 n=1
 for i in "$@" ; do
     if [[ $i == "--no-cache" ]] ; then
-        no_cache="--no-cache"
+        no_cache="--pull --no-cache"
         set -- "${@:1:n-1}" "${@:n+1}"
         break
     fi
