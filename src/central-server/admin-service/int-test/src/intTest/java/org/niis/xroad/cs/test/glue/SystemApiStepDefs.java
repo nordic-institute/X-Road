@@ -36,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Map;
+
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static org.junit.Assert.fail;
@@ -64,8 +66,8 @@ public class SystemApiStepDefs extends BaseStepDefs {
                 .assertion(notNullAssertion("body"))
                 .assertion(notNullAssertion("body.initializationStatus"))
                 .assertion(notNullAssertion("body.highAvailabilityStatus"))
-                .assertion(equalsAssertion("node_0", "body.highAvailabilityStatus.nodeName"))
-                .assertion(isFalse("body.highAvailabilityStatus.isHaConfigured"))
+                .assertion(equalsAssertion("test_node", "body.highAvailabilityStatus.nodeName"))
+                .assertion(isTrue("body.highAvailabilityStatus.isHaConfigured"))
                 .execute();
     }
 
@@ -111,5 +113,18 @@ public class SystemApiStepDefs extends BaseStepDefs {
         final ResponseEntity<SystemStatusDto> response = feignSystemApi.updateCentralServerAddress(dto);
 
         validateSystemStatusResponse(response);
+    }
+
+    @Step("history entry has node name {string} for system parameter value {string}")
+    public void historyTableContainsCorrectNodeName(String nodeName, String paramValue) {
+        String sql = "SELECT ha_node_name FROM history WHERE table_name = 'system_parameters' AND field_name = 'value' "
+                + " AND new_value = :newValue ORDER BY id DESC LIMIT 1";
+
+        final String result = testDatabaseService.getTemplate()
+                .queryForObject(sql, Map.of("newValue", paramValue), String.class);
+
+        validate(result)
+                .assertion(equalsAssertion(nodeName, "#this"))
+                .execute();
     }
 }
