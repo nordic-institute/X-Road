@@ -87,7 +87,7 @@ public class DirectoryContentBuilder {
         var multipartMessage = builder.build();
 
         return new DirectoryContentHolder(multipartMessage.toString(),
-                multipartMessage.toStringWithoutContentType());
+                multipartMessage.bodyToString());
     }
 
     private MultipartMessage.Part buildPart(ConfigurationPart confPart) {

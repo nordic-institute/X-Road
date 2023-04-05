@@ -63,14 +63,14 @@ class MultipartMessage {
         return toString(false);
     }
 
-    public String toStringWithoutContentType() {
+    public String bodyToString() {
         return toString(true);
     }
 
-    private String toString(boolean skipContentType) {
+    private String toString(boolean skipHeaders) {
         var sb = new StringBuilder();
 
-        if (!skipContentType) {
+        if (!skipHeaders) {
             var header = header("Content-Type",
                     String.format("%s; charset=UTF-8; boundary=%s", contentType, boundary));
             sb.append(header).append(CRLF);

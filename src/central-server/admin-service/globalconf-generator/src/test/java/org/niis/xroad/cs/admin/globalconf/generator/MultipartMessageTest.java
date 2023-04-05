@@ -127,7 +127,7 @@ class MultipartMessageTest {
                         .build())
                 .build();
 
-        var messageAsString = multipartMessage.toStringWithoutContentType();
+        var messageAsString = multipartMessage.bodyToString();
 
         assertThat(messageAsString)
                 .isEqualTo("--message_part_boundary\r\n"
