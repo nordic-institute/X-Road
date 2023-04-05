@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HashCalculator;
 import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
 import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
@@ -39,8 +38,13 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 
-import java.nio.charset.StandardCharsets;
-
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.util.CryptoUtils.getSignatureAlgorithmId;
+import static ee.ria.xroad.common.util.CryptoUtils.getSignatureAlgorithmURI;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.niis.xroad.cs.admin.globalconf.generator.MultipartMessage.header;
 import static org.niis.xroad.cs.admin.globalconf.generator.MultipartMessage.partBuilder;
 import static org.niis.xroad.cs.admin.globalconf.generator.MultipartMessage.rawPart;
@@ -48,24 +52,27 @@ import static org.niis.xroad.cs.admin.globalconf.generator.MultipartMessage.rawP
 @RequiredArgsConstructor
 @Slf4j
 public class DirectoryContentSigner {
-    @NonNull private final SignerProxyFacade signerProxy;
-    @NonNull private final String signDigestAlgorithmId;
-    @NonNull private final String certDigestAlgorithmId;
+    @NonNull
+    private final SignerProxyFacade signerProxy;
+    @NonNull
+    private final String signDigestAlgorithmId;
+    @NonNull
+    private final String certDigestAlgorithmId;
 
     @SneakyThrows
-    public String createSignedDirectory(String directoryContent, String keyId, byte[] signingCert) {
+    public String createSignedDirectory(DirectoryContentBuilder.DirectoryContentHolder directoryContent, String keyId, byte[] signingCert) {
         var signAlgorithmId = getSignAlgorithmId(keyId, signDigestAlgorithmId);
-        var certHashCalculator = new HashCalculator(CryptoUtils.getDigestAlgorithmURI(certDigestAlgorithmId));
+        var certHashCalculator = new HashCalculator(getDigestAlgorithmURI(certDigestAlgorithmId));
         return MultipartMessage.builder()
                 .contentType("multipart/related")
-                .part(rawPart(directoryContent))
+                .part(rawPart(directoryContent.getContent()))
                 .part(partBuilder()
                         .header(header("Content-Type", "application/octet-stream"))
                         .header(header("Content-Transfer-Encoding", "base64"))
-                        .header(header("Signature-Algorithm-Id", CryptoUtils.getSignatureAlgorithmURI(signAlgorithmId)))
+                        .header(header("Signature-Algorithm-Id", getSignatureAlgorithmURI(signAlgorithmId)))
                         .header(header("Verification-certificate-hash", String.format("%s; hash-algorithm-id=\"%s\"",
                                 certHashCalculator.calculateFromBytes(signingCert), certHashCalculator.getAlgoURI())))
-                        .content(CryptoUtils.encodeBase64(sign(keyId, directoryContent.getBytes(StandardCharsets.UTF_8))))
+                        .content(encodeBase64(sign(keyId, directoryContent.getSignableContent().getBytes(UTF_8))))
                         .build())
                 .build().toString();
     }
@@ -76,8 +83,8 @@ public class DirectoryContentSigner {
 
         var signatureAlgorithmId = getSignAlgorithmId(keyId, signDigestAlgorithmId);
 
-        String digestAlgorithmId = CryptoUtils.getDigestAlgorithmId(signatureAlgorithmId);
-        byte[] digest = CryptoUtils.calculateDigest(digestAlgorithmId, data);
+        String digestAlgorithmId = getDigestAlgorithmId(signatureAlgorithmId);
+        byte[] digest = calculateDigest(digestAlgorithmId, data);
 
         SignResponse response = signerProxy.execute(new Sign(keyId, signatureAlgorithmId, digest));
         return response.getSignature();
@@ -89,7 +96,7 @@ public class DirectoryContentSigner {
 
         GetSignMechanismResponse response = signerProxy.execute(new GetSignMechanism(keyId));
 
-        return CryptoUtils.getSignatureAlgorithmId(digestAlgorithmId, response.getSignMechanismName());
+        return getSignatureAlgorithmId(digestAlgorithmId, response.getSignMechanismName());
     }
 
 }
