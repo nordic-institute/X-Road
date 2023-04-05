@@ -1,7 +1,7 @@
 # X-Road Security Server Sidecar
 
 [![Go to X-Road Community Slack](https://img.shields.io/badge/Go%20to%20Community%20Slack-grey.svg)](https://jointxroad.slack.com/)
-[![Get invited](https://img.shields.io/badge/No%20Slack-Get%20invited-green.svg)](https://x-road.global/join-the-xroad-community)
+[![Get invited](https://img.shields.io/badge/No%20Slack-Get%20invited-green.svg)](https://x-road.global/community)
 
 ![X-Road logo](doc/img/xroad_logo_small.png) 
 
@@ -30,6 +30,8 @@ The image is built from pre-built X-Road software packages downloaded from the o
 
 See the [User guide](doc/security_server_sidecar_user_guide.md) for information about how to install and configure Sidecar.
 
+The Security Server Sidecar Docker image (`niis/xroad-security-server-sidecar`) has been published on [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server-sidecar).
+
 ## Key Points and Limitations for X-Road Security Server Sidecar Deployment
 
 - The Security Server Sidecar `slim` version does not support message logging, operational monitoring nor environmental monitoring functionality, which is recommended for a service provider's Security Server role.
@@ -39,7 +41,7 @@ See the [User guide](doc/security_server_sidecar_user_guide.md) for information 
 ## How to Contribute?
 
 Submit a pull request to the [Sidecar source code Github repository](https://github.com/nordic-institute/X-Road-Security-Server-sidecar)
-or an enhancement request to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1).
-[Sign up](https://jira.niis.org/secure/Signup!default.jspa) for an account and
-get access to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1) and
-[X-Road Backlog](https://jira.niis.org/projects/XRDDEV/).
+or an enhancement request to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4).
+[Sign up](https://id.atlassian.com/signup) for an account and
+get access to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4) and
+[X-Road Backlog](https://nordic-institute.atlassian.net/browse/XRDDEV).

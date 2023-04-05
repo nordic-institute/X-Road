@@ -3,29 +3,11 @@ kind: PersistentVolumeClaim
 metadata:
   name: sidecar-config-claim
 spec:
-  storageClassName: manualprovider
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 5Gi
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: sidecar-config-provider
-  labels:
-    type: local
-spec:
-  storageClassName: manualprovider
-  capacity:
-    storage: 5Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Recycle
-  awsElasticBlockStore:
-    fsType: "ext4"
-    volumeID: "{{EBS_VOLUME_ID}}"
 ---
 apiVersion: v1
 kind: Service
@@ -67,16 +49,9 @@ spec:
       - name: sidecar-config-volume
         persistentVolumeClaim:
           claimName: "sidecar-config-claim"
-      initContainers:
-      - name: volume-hack
-        image: busybox:latest
-        command: ["sh","-c","chown  999:999 /etc/xroad"]
-        volumeMounts:
-        - name: sidecar-config-volume
-          mountPath: /etc/xroad
       containers:
       - name: security-server-sidecar
-        image: niis/xroad-security-server-sidecar:6.26.0
+        image: niis/xroad-security-server-sidecar:7.2.0
         imagePullPolicy: "Always"
         volumeMounts:
         - name: sidecar-config-volume
