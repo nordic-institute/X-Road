@@ -17,7 +17,6 @@ Feature: CS: System Settings -> System parameters  -> Management services
     And central server address field should have value https://valid-edited.example.org:4002/managementservice/manage/
     And security server owner group code field should have value security-server-owners
 
-  @Modifying
   Scenario: Management service provider can be changed
     When System settings sub-tab is selected
     And edit management member button is clicked

@@ -967,7 +967,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConfigurationAnchor'
+                $ref: '#/components/schemas/ConfigurationAnchorContainer'
           description: the configuration anchor
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -3769,6 +3769,12 @@ components:
       type: object
     CodeWithDetails:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
+    ConfigurationAnchorContainer:
+      type: object
+      description: Container object for configuration anchor, in case central server isn't fully initialized it may not contain anchor.
+      properties:
+        anchor:
+          $ref: '#/components/schemas/ConfigurationAnchor'
     ConfigurationAnchor:
       allOf:
         - $ref: '#/components/schemas/ModificationTimestamps'

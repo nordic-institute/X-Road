@@ -57,6 +57,7 @@
         <div class="cs-table-actions-wrap">
           <xrd-button
             v-if="hasDeletePermission"
+            data-test="delete-AC-button"
             text
             :outlined="false"
             @click="openDeleteConfirmationDialog(item.id)"

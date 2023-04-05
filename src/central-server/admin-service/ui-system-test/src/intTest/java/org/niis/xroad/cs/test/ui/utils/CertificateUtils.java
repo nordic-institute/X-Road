@@ -62,6 +62,7 @@ import static java.lang.ClassLoader.getSystemResourceAsStream;
 
 public final class CertificateUtils {
     private static final String APPROVED_CA = "CN=Subject-E2e-test CA";
+    private static final String APPROVED_CA2 = "CN=Subject-E2e-test2 CA";
 
     private CertificateUtils() {
     }
@@ -83,16 +84,22 @@ public final class CertificateUtils {
     }
 
     public static byte[] generateAuthCert(String certDistinguishedName) throws Exception {
-        return generateAuthCertHolder(certDistinguishedName).getEncoded();
+        return generateAuthCertHolder(certDistinguishedName, APPROVED_CA, BigInteger.ONE).getEncoded();
     }
 
-    private static X509CertificateHolder generateAuthCertHolder(String subjectDistinguishedName) throws Exception {
+    public static byte[] generateAuthCertForCA2(String certDistinguishedName) throws Exception {
+        return generateAuthCertHolder(certDistinguishedName, APPROVED_CA2, BigInteger.TWO).getEncoded();
+    }
+
+    private static X509CertificateHolder generateAuthCertHolder(String subjectDistinguishedName,
+                                                                String principalName,
+                                                                BigInteger serial) throws Exception {
         var keyFactory = KeyFactory.getInstance("RSA");
         var certificateFactory = CertificateFactory.getInstance("X.509");
         PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(readCaCertPrivateKeyBytes()));
         var caCertificate = (X509Certificate) certificateFactory
                 .generateCertificate(getSystemResourceAsStream("files/ca/root-ca.pem"));
-        return generateAuthCert(caCertificate, privateKey, subjectDistinguishedName);
+        return generateAuthCert(caCertificate, privateKey, subjectDistinguishedName, principalName, serial);
     }
 
     private static byte[] readCaCertPrivateKeyBytes() throws IOException {
@@ -105,17 +112,20 @@ public final class CertificateUtils {
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    private static X509CertificateHolder generateAuthCert(X509Certificate issuerCertificate, PrivateKey privateKey,
-                                                          String subjectDistinguishedName)
+    private static X509CertificateHolder generateAuthCert(X509Certificate issuerCertificate,
+                                                          PrivateKey privateKey,
+                                                          String subjectDistinguishedName,
+                                                          String principalName,
+                                                          BigInteger serial)
             throws OperatorCreationException, IOException {
         var signer = new JcaContentSignerBuilder("SHA256withRSA").build(privateKey);
         var subject = new X500Principal(subjectDistinguishedName);
 
         return new JcaX509v3CertificateBuilder(
-                new X500Principal(APPROVED_CA),
-                BigInteger.ONE,
+                new X500Principal(principalName),
+                serial,
                 Date.from(Instant.now()),
-                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                Date.from(Instant.now().plus(365 + serial.abs().intValue(), ChronoUnit.DAYS)),
                 subject,
                 issuerCertificate.getPublicKey())
                 .addExtension(Extension.create(

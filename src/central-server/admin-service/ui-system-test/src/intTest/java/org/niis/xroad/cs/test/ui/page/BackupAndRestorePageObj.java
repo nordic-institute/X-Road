@@ -1,21 +1,20 @@
-/**
+/*
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,36 +23,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.service;
+package org.niis.xroad.cs.test.ui.page;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.service.StableSortHelper;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 
-/**
- * Helper that can add secondary id sort to Pageables
- */
-@Slf4j
-@Service
-public class StableSortHelperImpl implements StableSortHelper {
+import static com.codeborne.selenide.Selenide.$$x;
+import static com.codeborne.selenide.Selenide.$x;
 
-    /**
-     * Add secondary id-sort to Pageable, to guarantee stable results especially for paging
-     * {@link SecurityServerServiceImpl} does the same, should use a shared utility
-     */
-    public Pageable addSecondaryIdSort(Pageable original) {
-        if (original.isPaged()) {
-            Sort sortingToAdd = Sort.by(Sort.Order.asc("id"));
-            // always add id-sort as last one. We could already have an id sort, that does not matter
-            Sort refinedSorting = original.getSort()
-                    .and(sortingToAdd);
+public class BackupAndRestorePageObj {
 
-            return PageRequest.of(original.getPageNumber(), original.getPageSize(), refinedSorting);
-        }
-        return original;
+    public SelenideElement btnCreateConfigurationBackup() {
+        return $x("//button[@data-test='backup-create-configuration']");
     }
 
+    public SelenideElement btnRestoreConfigurationFromBackup() {
+        return $x("//button[@data-test='backup-restore']");
+    }
+
+    public SelenideElement btnUploadConfigurationBackup() {
+        return $x("//button[@data-test='backup-upload']");
+    }
+
+    public SelenideElement btnDownloadConfigurationBackup() {
+        return $x("//button[@data-test='backup-download']");
+    }
+
+    public SelenideElement btnDeleteConfigurationBackup() {
+        return $x("//button[@data-test='backup-delete']");
+    }
+
+    public SelenideElement btnLoading() {
+        return $x("//span[@class='v-btn__loader']");
+    }
+
+    public ElementsCollection backupList() {
+        return $$x("//div[@data-test='backup-and-restore-view']//table/tbody/tr[.//td[not(contains(text(), 'No data available'))]]");
+    }
+
+    public SelenideElement inputConfigurationBackupBackupFile() {
+        return $x("//input[@type='file']");
+    }
 }

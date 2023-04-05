@@ -1,6 +1,6 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,36 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.service.StableSortHelper;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
+package org.niis.xroad.cs.test.ui.glue;
 
-/**
- * Helper that can add secondary id sort to Pageables
- */
-@Slf4j
-@Service
-public class StableSortHelperImpl implements StableSortHelper {
+import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.test.ui.page.SecurityServersPageObj;
 
-    /**
-     * Add secondary id-sort to Pageable, to guarantee stable results especially for paging
-     * {@link SecurityServerServiceImpl} does the same, should use a shared utility
-     */
-    public Pageable addSecondaryIdSort(Pageable original) {
-        if (original.isPaged()) {
-            Sort sortingToAdd = Sort.by(Sort.Order.asc("id"));
-            // always add id-sort as last one. We could already have an id sort, that does not matter
-            Sort refinedSorting = original.getSort()
-                    .and(sortingToAdd);
+import static com.codeborne.selenide.Condition.visible;
 
-            return PageRequest.of(original.getPageNumber(), original.getPageSize(), refinedSorting);
-        }
-        return original;
+public class SecurityServersStepDefs extends BaseUiStepDefs {
+
+    private final SecurityServersPageObj securityServersPageObj = new SecurityServersPageObj();
+
+    @Step("user opens security server details for {string}")
+    public void openSecurityServerDetails(final String serverCode) {
+        securityServersPageObj.listRowOf(serverCode).click();
     }
 
+
+    @Step("security servers list is displayed")
+    public void serversListIsDisplayed() {
+        securityServersPageObj.listView().shouldBe(visible);
+    }
+    @Step("list doesn't contain security server with code {string}")
+    public void securityServerIsInList(final String serverCode) {
+        securityServersPageObj.listRowOf(serverCode).shouldNotBe(visible);
+    }
 }
+

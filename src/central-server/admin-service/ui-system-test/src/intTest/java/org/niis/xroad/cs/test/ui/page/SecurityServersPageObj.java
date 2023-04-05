@@ -24,36 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.service.StableSortHelper;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
+package org.niis.xroad.cs.test.ui.page;
 
-/**
- * Helper that can add secondary id sort to Pageables
- */
-@Slf4j
-@Service
-public class StableSortHelperImpl implements StableSortHelper {
+import com.codeborne.selenide.SelenideElement;
 
-    /**
-     * Add secondary id-sort to Pageable, to guarantee stable results especially for paging
-     * {@link SecurityServerServiceImpl} does the same, should use a shared utility
-     */
-    public Pageable addSecondaryIdSort(Pageable original) {
-        if (original.isPaged()) {
-            Sort sortingToAdd = Sort.by(Sort.Order.asc("id"));
-            // always add id-sort as last one. We could already have an id sort, that does not matter
-            Sort refinedSorting = original.getSort()
-                    .and(sortingToAdd);
+import static com.codeborne.selenide.Selenide.$x;
 
-            return PageRequest.of(original.getPageNumber(), original.getPageSize(), refinedSorting);
-        }
-        return original;
+@SuppressWarnings("InnerClassMayBeStatic")
+public class SecurityServersPageObj {
+    public SelenideElement listRowOf(String serverCode) {
+        var xpath = "//div[@data-test='security-servers-view']//table//tbody//tr//td//div[contains(text(), '%s')]";
+        return $x(String.format(xpath, serverCode));
     }
 
+    public SelenideElement listView() {
+        var xpath = "//div[@data-test='security-servers-view']";
+        return $x(xpath);
+    }
 }

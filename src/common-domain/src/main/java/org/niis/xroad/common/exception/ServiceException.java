@@ -29,7 +29,7 @@ package org.niis.xroad.common.exception;
 import lombok.NonNull;
 import org.apache.http.HttpStatus;
 import org.bouncycastle.util.Arrays;
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationProvider;
 
@@ -71,17 +71,8 @@ public class ServiceException extends DeviationAwareRuntimeException {
      *
      * @param exception Deviation exception=
      */
-    public ServiceException(@NonNull final DeviationAwareRuntimeException exception) {
-        super(exception, exception.getErrorDeviation());
-    }
-
-    /**
-     * Creates new exception with a message.
-     *
-     * @param exception Deviation exception=
-     */
-    public ServiceException(@NonNull final DeviationAwareException exception) {
-        super(exception, exception.getErrorDeviation());
+    public <DE extends Exception & DeviationAware> ServiceException(@NonNull final DE exception) {
+        super(exception, exception.getErrorDeviation(), exception.getWarningDeviations());
     }
 
     public int getHttpStatus() {

@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div data-test="backup-and-restore-view">
     <div class="table-toolbar mt-0 pl-0">
       <div class="xrd-title-search">
         <div class="xrd-view-title">

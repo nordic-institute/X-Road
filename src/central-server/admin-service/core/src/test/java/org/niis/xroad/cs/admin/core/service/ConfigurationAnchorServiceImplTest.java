@@ -108,8 +108,12 @@ public class ConfigurationAnchorServiceImplTest {
             when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
                     .thenReturn(Optional.of(configurationSourceEntity()));
 
-            final ConfigurationAnchor result = configurationAnchorService.getConfigurationAnchor(INTERNAL);
+            final Optional<ConfigurationAnchor> optResult = configurationAnchorService.getConfigurationAnchor(INTERNAL);
 
+            assertThat(optResult.isPresent()).isTrue();
+
+            final var result = optResult.get();
+            assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
             assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
             assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
         }
@@ -119,8 +123,11 @@ public class ConfigurationAnchorServiceImplTest {
             when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
                     .thenReturn(Optional.of(configurationSourceEntityWithFile()));
 
-            final ConfigurationAnchor result = configurationAnchorService.getConfigurationAnchorWithFile(INTERNAL);
+            final Optional<ConfigurationAnchor> optResult = configurationAnchorService.getConfigurationAnchorWithFile(INTERNAL);
 
+            assertThat(optResult.isPresent()).isTrue();
+
+            final var result = optResult.get();
             assertThat(result.getAnchorFile()).isEqualTo(FILE_DATA);
             assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
             assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
@@ -131,8 +138,10 @@ public class ConfigurationAnchorServiceImplTest {
             when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
                     .thenReturn(Optional.of(configurationSourceEntity()));
 
-            final ConfigurationAnchor result = configurationAnchorService.getConfigurationAnchor(EXTERNAL);
+            final Optional<ConfigurationAnchor> optResult = configurationAnchorService.getConfigurationAnchor(EXTERNAL);
+            assertThat(optResult.isPresent()).isTrue();
 
+            final var result = optResult.get();
             assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
             assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);
         }
@@ -142,8 +151,10 @@ public class ConfigurationAnchorServiceImplTest {
             when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
                     .thenReturn(Optional.of(configurationSourceEntityWithFile()));
 
-            final ConfigurationAnchor result = configurationAnchorService.getConfigurationAnchorWithFile(EXTERNAL);
+            final Optional<ConfigurationAnchor> optResult = configurationAnchorService.getConfigurationAnchorWithFile(EXTERNAL);
+            assertThat(optResult.isPresent()).isTrue();
 
+            final var result = optResult.get();
             assertThat(result.getAnchorFile()).isEqualTo(FILE_DATA);
             assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
             assertThat(result.getAnchorGeneratedAt()).isEqualTo(FILE_UPDATED_AT);

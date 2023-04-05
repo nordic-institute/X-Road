@@ -13,6 +13,7 @@ Feature: CS: Trust Services -> CA Details -> Intermediate CAs -> Intermediate CA
     And user opens certification service details
     And Intermediate CAs tab is selected
     And Intermediate CA with name E2e-test CA is added
+    And Intermediate CA with name E2e-test2 CA is added
     And User opens intermediate CA with name E2e-test CA details
     And Intermediate CA OCSP responders tab is selected
 

@@ -20,4 +20,3 @@ Feature: CS: Authentication
     When User INVALID logs in to CentralServer with password secret
     Then Error message for incorrect credentials is shown
     And Login form is visible
-
