@@ -146,6 +146,7 @@ public enum RestApiAuditEvent {
     ADD_INTERMEDIATE_CA_OCSP_RESPONDER("Add OCSP responder of intermediate CA"),
     EDIT_OCSP_RESPONDER("Edit OCSP responder"),
     ADD_GLOBAL_GROUP("Add global group"),
+    ADD_GLOBAL_GROUP_MEMBERS("Add members to global group"),
     DELETE_GLOBAL_GROUP("Delete global group"),
 
     EDIT_GLOBAL_GROUP_DESCRIPTION("Edit global group description"),

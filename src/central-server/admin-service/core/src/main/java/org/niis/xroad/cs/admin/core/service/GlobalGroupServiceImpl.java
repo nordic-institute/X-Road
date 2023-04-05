@@ -33,17 +33,24 @@ import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.StableSortHelper;
+import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
+import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
+import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
+import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -55,6 +62,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.GLOBAL_GROUP_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.GLOBAL_GROUP_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.OWNERS_GLOBAL_GROUP_CANNOT_ADD_MEMBER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.SECURITY_SERVER_OWNERS_GROUP;
 
@@ -68,8 +76,12 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     private final GlobalGroupRepository globalGroupRepository;
     private final SystemParameterRepository systemParameterRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
+    private final IdentifierRepository<SubsystemIdEntity> subsystemIds;
+    private final IdentifierRepository<MemberIdEntity> memberIds;
     private final GlobalGroupMapper globalGroupMapper;
     private final GlobalGroupMemberMapper globalGroupMemberMapper;
+
+    private final ClientIdConverter clientIdConverter;
 
     @Override
     public List<GlobalGroup> findGlobalGroups() {
@@ -123,6 +135,31 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
                 .map(globalGroupMemberMapper::toTarget);
     }
 
+    @Override
+    public void addGlobalGroupMembers(Integer groupId, List<String> membersToAdd) {
+        final var group = findGlobalGroupOrThrowException(groupId);
+
+        addAuditData(group);
+        verifyCompositionEditability(group, OWNERS_GLOBAL_GROUP_CANNOT_ADD_MEMBER);
+        membersToAdd.forEach(clientId -> addGlobalGroupMember(clientId, group));
+    }
+
+    private void addGlobalGroupMember(String encodedClientId, GlobalGroupEntity group) {
+        final ClientIdEntity clientIdEntity;
+        final var clientId = clientIdConverter.convertId(encodedClientId);
+        if (clientId.getSubsystemCode() == null) {
+            clientIdEntity = memberIds.findOne(MemberIdEntity.ensure(clientId));
+        } else {
+            clientIdEntity = subsystemIds.findOne(SubsystemIdEntity.ensure(clientId));
+        }
+        auditDataHelper.addListPropertyItem(RestApiAuditProperty.MEMBER_IDENTIFIERS, clientId);
+        if (isNotMemberOfGroup(group, clientIdEntity)) {
+            var groupMember = new GlobalGroupMemberEntity(group, clientId);
+            globalGroupMemberRepository.save(groupMember);
+            globalGroupRepository.updateGroupMemberCount(group.getId());
+        }
+    }
+
     private GlobalGroupEntity findGlobalGroupOrThrowException(Integer groupId) {
         return globalGroupRepository.findById(groupId)
                 .orElseThrow(() -> new NotFoundException(GLOBAL_GROUP_NOT_FOUND));
@@ -136,10 +173,7 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     }
 
     private void handleInternalDelete(GlobalGroupEntity entity) {
-        List<SystemParameterEntity> ownersGroupCode = systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP);
-        if (isOwnersGroup(ownersGroupCode, entity.getGroupCode())) {
-            throw new ValidationFailureException(OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED);
-        }
+        verifyCompositionEditability(entity, OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED);
         addAuditData(entity);
         globalGroupRepository.deleteById(entity.getId());
     }
@@ -161,5 +195,17 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     private void addAuditData(GlobalGroupEntity entity) {
         auditDataHelper.put(RestApiAuditProperty.CODE, entity.getGroupCode());
         auditDataHelper.put(RestApiAuditProperty.DESCRIPTION, entity.getDescription());
+    }
+
+    private void verifyCompositionEditability(GlobalGroupEntity group, ErrorMessage errorMessage) {
+        List<SystemParameterEntity> ownersGroupCode = systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP);
+        if (isOwnersGroup(ownersGroupCode, group.getGroupCode())) {
+            throw new ValidationFailureException(errorMessage);
+        }
+    }
+
+    private boolean isNotMemberOfGroup(GlobalGroupEntity globalGroupEntity, ClientIdEntity clientIdEntity) {
+        return globalGroupEntity.getGlobalGroupMembers().stream()
+                .noneMatch(groupMember -> groupMember.getIdentifier().equals(clientIdEntity));
     }
 }

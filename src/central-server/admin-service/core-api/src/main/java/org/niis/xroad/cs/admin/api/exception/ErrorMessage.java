@@ -69,6 +69,8 @@ public enum ErrorMessage implements DeviationProvider {
     INVALID_SUBSYSTEM_ID("invalid_subsystem_id", "Invalid subsystem id"),
     GLOBAL_GROUP_NOT_FOUND("global_group_not_found", "Global group by given id does not exist"),
     OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED("owners_global_group_cannot_be_deleted", "Cannot perform delete action on server owners group"),
+    OWNERS_GLOBAL_GROUP_CANNOT_ADD_MEMBER("owners_global_group_cannot_add_member",
+            "Cannot perform add member action on server owners group"),
     GLOBAL_GROUP_EXISTS("global_group_exists", "Global group with the same code already exists."),
     SECURITY_SERVER_NOT_FOUND("security_server_not_found", "Security server not found"),
     CERTIFICATION_SERVICE_NOT_FOUND("certification_service_not_found", "Certification service not found."),

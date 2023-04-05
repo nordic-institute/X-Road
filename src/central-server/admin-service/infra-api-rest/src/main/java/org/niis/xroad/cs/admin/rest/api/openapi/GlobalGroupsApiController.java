@@ -52,10 +52,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -86,8 +89,11 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('ADD_AND_REMOVE_GROUP_MEMBERS')")
+    @AuditEventMethod(event = RestApiAuditEvent.ADD_GLOBAL_GROUP_MEMBERS)
     public ResponseEntity<MembersDto> addGlobalGroupMembers(Integer groupId, MembersDto members) {
-        throw new NotImplementedException("addGlobalGroupMembers not implemented yet");
+        globalGroupService.addGlobalGroupMembers(groupId, toMembersList(members));
+        return ok(members);
     }
 
     @Override
@@ -106,7 +112,7 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_GLOBAL_GROUPS')")
     public ResponseEntity<List<GlobalGroupResourceDto>> findGlobalGroups() {
-        return ResponseEntity.ok(globalGroupService.findGlobalGroups().stream()
+        return ok(globalGroupService.findGlobalGroups().stream()
                 .map(globalGroupConverter::convert)
                 .collect(toList()));
     }
@@ -119,14 +125,14 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
                 globalGroupService.findGroupMembers(groupMemberConverter.convert(groupId, filter), pageRequest);
 
         PagedGroupMemberDto pagedResults = pagedGroupMemberConverter.convert(resultPage, filter.getPagingSorting());
-        return ResponseEntity.ok(pagedResults);
+        return ok(pagedResults);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_GROUP_DETAILS')")
     public ResponseEntity<GlobalGroupResourceDto> getGlobalGroup(Integer groupId) {
         var globalGroup = globalGroupConverter.convert(globalGroupService.getGlobalGroup(groupId));
-        return ResponseEntity.ok(globalGroup);
+        return ok(globalGroup);
     }
 
     @Override
@@ -136,7 +142,7 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
         var groupMemberFilterModelDto = groupMemberFilterModelConverter
                 .convert(groupMemberFilterModel);
 
-        return ResponseEntity.ok(groupMemberFilterModelDto);
+        return ok(groupMemberFilterModelDto);
     }
 
     @Override
@@ -148,6 +154,14 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
 
         var updatedGlobalGroup = globalGroupService.updateGlobalGroupDescription(updateDto);
         var updatedGlobalGroupDto = globalGroupConverter.convert(updatedGlobalGroup);
-        return ResponseEntity.ok(updatedGlobalGroupDto);
+        return ok(updatedGlobalGroupDto);
     }
+
+    private List<String> toMembersList(MembersDto membersDto) {
+        return Optional.ofNullable(membersDto)
+                .map(MembersDto::getItems)
+                .stream().flatMap(Collection::stream)
+                .collect(toList());
+    }
+
 }
