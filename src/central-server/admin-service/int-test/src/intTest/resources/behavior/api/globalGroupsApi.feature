@@ -88,3 +88,67 @@ Feature: Global groups API
       |      |         |       |                  |           |        |             | other       |           |       | 0            | 0      |               |
       | m    |         |       | MEMBER,SUBSYSTEM | CS        |        | m-2,m-1,m-3 |             | 2         | 1     | 2            | 3      |               |
     #todo: add more tests after sorting is fixed
+
+  Scenario: Add member to global group
+    Given new global group 'test-group' with description 'group description' is added
+    And Response is of status code 201
+    When members are added to group 'test-group'
+      | $identifier    | $isNew |
+      | CS:TEST:member | true   |
+    Then Response is of status code 201
+    And global group 'test-group' has 1 member
+    And global group 'test-group' members list is queried and validated using params
+      | $q | $sortBy | $desc | $types | $instance | $class | $codes | $subsystems | $pageSize | $page | $itemsInPage | $total | $sortFieldExp |
+      |    |         |       |        |           |        |        |             | 5         | 1     | 1            | 1      |               |
+
+  Scenario: Add members to global group
+    Given new global group 'test-group' with description 'group description' is added
+    And Response is of status code 201
+    When members are added to group 'test-group'
+      | $identifier                | $isNew |
+      | CS:TEST:member1            | true   |
+      | CS:TEST:member1:subsystem  | true   |
+      | CS:TEST:member2            | true   |
+      | CS:TEST:member2:subsystem2 | true   |
+      | CS:TEST:member2:subsystem3 | true   |
+    Then Response is of status code 201
+    And global group 'test-group' has 5 members
+    And global group 'test-group' members list is queried and validated using params
+      | $q      | $sortBy | $desc | $types    | $instance | $class | $codes | $subsystems | $pageSize | $page | $itemsInPage | $total | $sortFieldExp |
+      |         |         |       |           |           |        |        |             | 5         | 1     | 5            | 5      |               |
+      |         |         |       | MEMBER    |           |        |        |             |           |       | 2            | 2      |               |
+      |         |         |       | SUBSYSTEM |           |        |        |             |           |       | 3            | 3      |               |
+      | member1 |         |       |           |           |        |        |             |           |       | 2            | 2      |               |
+      | member2 |         |       |           |           |        |        |             |           |       | 3            | 3      |               |
+
+  Scenario: Add same members twice to global group
+    Given new global group 'test-group' with description 'group description' is added
+    And Response is of status code 201
+    When members are added to group 'test-group'
+      | $identifier                | $isNew |
+      | CS:TEST:member1            | true   |
+      | CS:TEST:member1:subsystem1 | true   |
+    Then Response is of status code 201
+    And global group 'test-group' has 2 members
+    And global group 'test-group' members list is queried and validated using params
+      | $q | $sortBy | $desc | $types    | $instance | $class | $codes | $subsystems | $pageSize | $page | $itemsInPage | $total | $sortFieldExp |
+      |    |         |       |           |           |        |        |             | 5         | 1     | 2            | 2      |               |
+      |    |         |       | MEMBER    |           |        |        |             |           |       | 1            | 1      |               |
+      |    |         |       | SUBSYSTEM |           |        |        |             |           |       | 1            | 1      |               |
+    When members are added to group 'test-group'
+      | $identifier                | $isNew |
+      | CS:TEST:member1:subsystem1 | false  |
+      | CS:TEST:member1:subsystem2 | true   |
+    Then Response is of status code 201
+    And global group 'test-group' has 3 members
+    And global group 'test-group' members list is queried and validated using params
+      | $q | $sortBy | $desc | $types    | $instance | $class | $codes | $subsystems | $pageSize | $page | $itemsInPage | $total | $sortFieldExp |
+      |    |         |       |           |           |        |        |             | 5         | 1     | 3            | 3      |               |
+      |    |         |       | MEMBER    |           |        |        |             |           |       | 1            | 1      |               |
+      |    |         |       | SUBSYSTEM |           |        |        |             |           |       | 2            | 2      |               |
+
+  Scenario: Adding member to owner group is prohibited
+    When members are added to group 'security-server-owners'
+      | $identifier    | $isNew |
+      | CS:TEST:member | true   |
+    Then Response is of status code 400 and error code 'cannot_add_member_to_owners_group'

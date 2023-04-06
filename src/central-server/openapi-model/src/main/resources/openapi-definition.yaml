@@ -861,7 +861,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Members'
-          description: new members added
+          description: Response list contains only new members added to group, if request contains member already in group then it will be excluded from response.
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':

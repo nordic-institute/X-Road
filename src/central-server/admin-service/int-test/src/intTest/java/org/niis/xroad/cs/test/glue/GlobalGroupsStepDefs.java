@@ -38,6 +38,7 @@ import org.niis.xroad.cs.openapi.model.GlobalGroupDescriptionDto;
 import org.niis.xroad.cs.openapi.model.GlobalGroupResourceDto;
 import org.niis.xroad.cs.openapi.model.GroupMembersFilterDto;
 import org.niis.xroad.cs.openapi.model.GroupMembersFilterModelDto;
+import org.niis.xroad.cs.openapi.model.MembersDto;
 import org.niis.xroad.cs.openapi.model.PagedGroupMemberDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.test.api.FeignGlobalGroupsApi;
@@ -46,6 +47,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,10 +56,13 @@ import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static java.lang.Boolean.TRUE;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.partitioningBy;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.math.NumberUtils.createInteger;
 import static org.junit.Assert.fail;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.ERROR_RESPONSE_BODY;
+import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE_STATUS;
 import static org.niis.xroad.cs.test.utils.AssertionUtils.isTheListSorted;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -96,6 +101,35 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
         }
     }
 
+    @Step("members are added to group {string}")
+    public void addMemberToGlobalGroup(String groupCode, DataTable table) {
+        final var members = new MembersDto();
+        var identifiers = table.asMaps().stream()
+                .collect(partitioningBy(map -> Boolean.parseBoolean(map.get("$isNew")),
+                        mapping(map -> map.get("$identifier"), Collectors.toList())));
+
+        members.setItems(new LinkedList<>());
+        table.asMaps().stream()
+                .map(map -> map.get("$identifier"))
+                .forEach(members.getItems()::add);
+
+        try {
+            final ResponseEntity<MembersDto> response = globalGroupsApi.addGlobalGroupMembers(resolveGlobalGroupId(groupCode), members);
+
+            validate(response)
+                    .assertion(equalsStatusCodeAssertion(CREATED))
+                    .assertion(notNullAssertion("body.items"))
+                    .assertion(equalsAssertion(identifiers.get(TRUE), "body.items"))
+                    .execute();
+
+            putStepData(RESPONSE, response);
+            putStepData(RESPONSE_STATUS, response.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(RESPONSE_STATUS, feignException.status());
+            putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
     @Step("global group {string} description is updated to {string}")
     public void globalGroupDescriptionIsUpdated(String groupCode, String description) {
         final GlobalGroupDescriptionDto dto = new GlobalGroupDescriptionDto()
@@ -124,6 +158,21 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                 .assertion(notNullAssertion("body.updatedAt"))
                 .assertion(equalsAssertion(groupCode, "body.code"))
                 .assertion(equalsAssertion(description, "body.description"))
+                .execute();
+    }
+
+    @Step("global group {string} has {int} member")
+    @Step("global group {string} has {int} members")
+    public void globalGroupTestGroupMemberCount(String groupCode, int members) {
+        final ResponseEntity<GlobalGroupResourceDto> response = globalGroupsApi.getGlobalGroup(resolveGlobalGroupId(groupCode));
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(notNullAssertion("body.id"))
+                .assertion(notNullAssertion("body.createdAt"))
+                .assertion(notNullAssertion("body.updatedAt"))
+                .assertion(equalsAssertion(groupCode, "body.code"))
+                .assertion(equalsAssertion(members, "body.memberCount"))
                 .execute();
     }
 
