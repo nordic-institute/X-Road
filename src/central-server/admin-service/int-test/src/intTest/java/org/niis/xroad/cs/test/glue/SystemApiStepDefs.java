@@ -64,8 +64,8 @@ public class SystemApiStepDefs extends BaseStepDefs {
                 .assertion(notNullAssertion("body"))
                 .assertion(notNullAssertion("body.initializationStatus"))
                 .assertion(notNullAssertion("body.highAvailabilityStatus"))
-                .assertion(equalsAssertion("node_0", "body.highAvailabilityStatus.nodeName"))
-                .assertion(isFalse("body.highAvailabilityStatus.isHaConfigured"))
+                .assertion(equalsAssertion("test_node", "body.highAvailabilityStatus.nodeName"))
+                .assertion(isTrue("body.highAvailabilityStatus.isHaConfigured"))
                 .execute();
     }
 
@@ -112,4 +112,5 @@ public class SystemApiStepDefs extends BaseStepDefs {
 
         validateSystemStatusResponse(response);
     }
+
 }

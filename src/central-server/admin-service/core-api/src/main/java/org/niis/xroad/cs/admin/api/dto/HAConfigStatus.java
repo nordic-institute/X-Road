@@ -28,8 +28,10 @@ package org.niis.xroad.cs.admin.api.dto;
 
 import lombok.Value;
 
+import java.io.Serializable;
+
 @Value
-public class HAConfigStatus {
+public class HAConfigStatus implements Serializable {
     String currentHaNodeName;
     boolean isHaConfigured;
 }

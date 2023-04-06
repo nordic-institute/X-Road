@@ -196,6 +196,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         distributedFileEntity.setFileName(fileName);
         distributedFileEntity.setFileData(data);
         distributedFileEntity.setFileUpdatedAt(Instant.now());
+        distributedFileEntity.setHaNodeName(haConfigStatus.getCurrentHaNodeName());
         distributedFileRepository.save(distributedFileEntity);
     }
 
