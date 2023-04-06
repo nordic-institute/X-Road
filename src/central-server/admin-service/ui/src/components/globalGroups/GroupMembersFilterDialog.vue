@@ -256,7 +256,7 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '~@/assets/colors';
 
 .xrd-card {
   .xrd-card-actions {
