@@ -9,7 +9,6 @@ Feature: CS: Global configuration: External configuration: Anchor
     And Global configuration tab is selected
     And External configuration sub-tab is selected
 
-  @Modifying
   Scenario: User can recreate anchor
     When Configuration anchor is recreated
     Then Updated anchor information is displayed

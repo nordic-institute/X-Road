@@ -28,6 +28,7 @@ package org.niis.xroad.common.exception;
 
 import lombok.NonNull;
 import org.apache.http.HttpStatus;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.DeviationProvider;
 
 /**
@@ -60,6 +61,15 @@ public class ValidationFailureException extends ServiceException {
                                       final Throwable cause,
                                       final Object... metadata) {
         super(deviationProvider, cause, metadata);
+    }
+
+    /**
+     * Creates new exception with a message.
+     *
+     * @param exception Deviation exception=
+     */
+    public <DE extends Exception & DeviationAware> ValidationFailureException(@NonNull final DE exception) {
+        super(exception);
     }
 
     @Override

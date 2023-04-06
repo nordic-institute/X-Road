@@ -57,7 +57,6 @@ public class MemberStepDefs extends BaseUiStepDefs {
     @Step("A member with name: {}, code: {} & member class: {} is listed")
     public void newMemberIsListed(String memberName, String memberCode, String memberClass) {
         memberPageObj.listRowOf(memberName, memberCode, memberClass).shouldBe(Condition.visible);
-
     }
 
 }

@@ -30,6 +30,7 @@ package org.niis.xroad.cs.test.ui.glue;
 import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.test.ui.api.FeignManagementRequestsApi;
@@ -87,7 +88,13 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     @Step("the user views the Management request from Security server {} with owner code {}")
     public void userIsAbleToViewTheManagementRequest(String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
-        managementRequestsPageObj.tableRowOf(securityServerId).should(appear);
+        managementRequestsPageObj.tableRowOf(securityServerId).shouldBe(appear);
+    }
+
+    @Step("the user should not see the Management request from Security server {} with owner code {}")
+    public void userShouldNotSeeTheManagementRequest(String securityServerCode, String ownerCode) {
+        final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
+        managementRequestsPageObj.tableRowOf(securityServerId).shouldNotBe(appear);
     }
 
     @Step("the user clicks {} request {} from Security server {} with owner code {}")
@@ -156,10 +163,14 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     public void detailsAboutTheClient(String title) {
         final var clientId = this.managementRequestDetailedView.getClientId();
         managementRequestsPageObj.titleOfSection(title).shouldBe(appear);
-        managementRequestsPageObj.client.ownerName().shouldBe(text(this.managementRequestDetailedView.getClientOwnerName()));
+        if (StringUtils.isEmpty(this.managementRequestDetailedView.getClientOwnerName())) {
+            managementRequestsPageObj.client.ownerName().shouldBe(empty);
+        } else {
+            managementRequestsPageObj.client.ownerName().shouldBe(text(this.managementRequestDetailedView.getClientOwnerName()));
+        }
         managementRequestsPageObj.client.ownerClass().shouldBe(text(clientId.getMemberClass()));
         managementRequestsPageObj.client.ownerCode().shouldBe(text(clientId.getMemberCode()));
-        managementRequestsPageObj.client.subsystemCode().shouldBe(empty);
+        managementRequestsPageObj.client.subsystemCode().shouldNotBe(empty);
     }
 
     @Step("the user clicks on the Approve button in the row from Security server {} with owner code {}")
@@ -221,13 +232,23 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     }
 
     @Step("the option to show only pending requests is selected")
-    public void showOnlyPendingRequestsIsChecked() {
+    public void showOnlyPendingRequestsIsSelected() {
+        managementRequestsPageObj.showOnlyPendingRequestsIsChecked(true).shouldBe(Condition.enabled);
+    }
+
+    @Step("the option to show only pending requests is not selected")
+    public void showOnlyPendingRequestsIsNotSelected() {
+        managementRequestsPageObj.showOnlyPendingRequestsIsChecked(false).shouldBe(Condition.enabled);
+    }
+
+    @Step("the user unchecks the checkbox to show only pending requests")
+    public void showOnlyPendingRequestsIsClicked() {
         managementRequestsPageObj.showOnlyPendingRequests().click(ClickOptions.usingJavaScript());
     }
 
     @Step("the user can not see the Approve, Decline actions for requests that have already been processed")
     public void shouldNotShowApproveAndDeclineActions() {
-        managementRequestsPageObj.btnApproveManagementRequest().shouldNot(visible);
-        managementRequestsPageObj.btnDeclineManagementRequest().shouldNot(visible);
+        managementRequestsPageObj.btnApproveManagementRequest().shouldNotBe(visible);
+        managementRequestsPageObj.btnDeclineManagementRequest().shouldNotBe(visible);
     }
 }

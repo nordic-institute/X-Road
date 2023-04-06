@@ -38,6 +38,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,27 +89,28 @@ public interface JpaManagementRequestViewRepository extends JpaRepository<Manage
             }
 
             if (StringUtils.isNotBlank(criteria.getQuery())) {
-                var q = criteria.getQuery();
-
-                pred = builder.and(builder.or(
-                        caseInsensitiveLike(root, builder, q,
-                                root.get(ManagementRequestViewEntity_.id).as(String.class)),
-                        caseInsensitiveLike(root, builder, q,
-                                root.get(ManagementRequestViewEntity_.createdAt).as(String.class)),
-                        caseInsensitiveLike(root, builder, q,
-                                root.get(ManagementRequestViewEntity_.origin).as(String.class)),
-                        caseInsensitiveLike(root, builder, q,
-                                root.get(ManagementRequestViewEntity_.requestProcessingStatus).as(String.class)),
-                        caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.securityServerOwnerName)),
-
-                        caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.xroadInstance)),
-                        caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.memberClass)),
-                        caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.memberCode)),
-                        caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.serverCode))
-                ));
+                pred = setQueryPredicates(criteria, builder, root, pred);
             }
 
             return pred;
         };
+    }
+
+    private static Predicate setQueryPredicates(ManagementRequestService.Criteria criteria, CriteriaBuilder builder,
+                                                Root<ManagementRequestViewEntity> root,
+                                                Predicate pred) {
+        final var q = criteria.getQuery();
+        final List<Predicate> predicates = new ArrayList<>();
+
+        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.id).as(String.class)));
+        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.createdAt).as(String.class)));
+
+        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.securityServerOwnerName)));
+        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.xroadInstance)));
+        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.memberClass)));
+        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.memberCode)));
+        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.serverCode)));
+
+        return builder.and(pred, builder.or(predicates.toArray(new Predicate[0])));
     }
 }

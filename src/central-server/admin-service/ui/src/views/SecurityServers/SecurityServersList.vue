@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div data-test="security-servers-view">
     <!-- Toolbar buttons -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-title-search align-fix mt-0 pt-0">

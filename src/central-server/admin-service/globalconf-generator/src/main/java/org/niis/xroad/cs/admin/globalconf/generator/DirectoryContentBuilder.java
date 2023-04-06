@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.HashCalculator;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.Value;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -76,15 +77,17 @@ public class DirectoryContentBuilder {
     }
 
 
-    String build() {
+    DirectoryContentHolder build() {
         var builder = MultipartMessage.builder();
         builder.part(partBuilder()
                 .header(header("Expire-date", EXPIRE_DATE_FORMATTER.format(expireDate)))
                 .header(header("Version", "2"))
                 .build());
         configurationParts.forEach(confPart -> builder.part(buildPart(confPart)));
-        return builder.build().toString();
+        var multipartMessage = builder.build();
 
+        return new DirectoryContentHolder(multipartMessage.toString(),
+                multipartMessage.bodyToString());
     }
 
     private MultipartMessage.Part buildPart(ConfigurationPart confPart) {
@@ -102,6 +105,12 @@ public class DirectoryContentBuilder {
     @SneakyThrows
     private String calculateHash(byte[] data) {
         return hashCalculator.calculateFromBytes(data);
+    }
+
+    @Value
+    public static class DirectoryContentHolder {
+        String content;
+        String signableContent;
     }
 
 }

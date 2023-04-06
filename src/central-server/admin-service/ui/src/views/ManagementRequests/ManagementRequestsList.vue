@@ -32,17 +32,21 @@
         <div class="xrd-view-title align-fix">
           {{ $t('tab.main.managementRequests') }}
         </div>
-        <xrd-search v-model="filter.query" class="margin-fix" data-test="management-requests-search"/>
+        <xrd-search
+          v-model="filter.query"
+          class="margin-fix"
+          data-test="management-requests-search"
+        />
         <!-- Not yet implemented -->
         <!--<xrd-filter class="ml-4 margin-fix" />-->
       </div>
       <div class="only-pending">
         <v-checkbox
-          v-model="filter.status"
-          :value="'WAITING'"
+          v-model="showOnlyPending"
           :label="$t('managementRequests.showOnlyPending')"
           class="custom-checkbox"
           data-test="show-only-pending-requests"
+          @change="changeOptions"
         ></v-checkbox>
       </div>
     </div>
@@ -60,8 +64,8 @@
       item-key="id"
       :loader-height="2"
       :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
-      @update:options="changeOptions"
       data-test="management-requests-table"
+      @update:options="changeOptions"
     >
       <template #[`item.id`]="{ item }">
         <management-request-id-cell :management-request="item" />
@@ -105,7 +109,10 @@ import { mapActions, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
 import { managementRequestsStore } from '@/store/modules/managementRequestStore';
-import { ManagementRequestsFilter } from '@/openapi-types';
+import {
+  ManagementRequestsFilter,
+  ManagementRequestStatus,
+} from '@/openapi-types';
 import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vue';
 import MrActionsCell from '@/components/managementRequests/MrActionsCell.vue';
 import MrStatusCell from '@/components/managementRequests/MrStatusCell.vue';
@@ -141,7 +148,7 @@ export default Vue.extend({
   data() {
     return {
       loading: false, //is data being loaded
-      showOnlyPending: false,
+      showOnlyPending: true,
       pagingSortingOptions: { sortBy: ['id'], sortDesc: [true] } as DataOptions,
       filter: {} as ManagementRequestsFilter,
     };
@@ -220,6 +227,10 @@ export default Vue.extend({
       filter: ManagementRequestsFilter,
     ) {
       this.loading = true;
+      filter = this.filter;
+      filter.status = this.showOnlyPending
+        ? ManagementRequestStatus.WAITING
+        : undefined;
       try {
         await this.managementRequestsStore.find(options, this.filter);
       } catch (error: unknown) {

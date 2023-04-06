@@ -74,10 +74,29 @@ public class TestDataCreationStepDefs extends BaseUiStepDefs {
         putStepData(MANAGEMENT_REQUEST_ID, managementRequestId);
     }
 
-    @Step("a client with code {} is registered in security server {} with owner code {}")
-    public void memberIsRegisteredAsSecurityServerClient(String clientCode, String securityServerCode, String ownerCode) {
+    @Step("new authentication certificate for a security server {} is registered with owner code {}")
+    public void addAuthenticationCertificateRegistered(String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
-        final var clientId = String.join(":", INSTANCE_IDENTIFIER, MEMBER_CLASS_CODE, clientCode);
+        final var authenticationCertificateRegistrationRequest = new AuthenticationCertificateRegistrationRequestDto();
+        authenticationCertificateRegistrationRequest.setServerAddress(SECURITY_SERVER_ADDRESS_PREF + securityServerCode);
+        authenticationCertificateRegistrationRequest.setSecurityServerId(securityServerId);
+        authenticationCertificateRegistrationRequest.setAuthenticationCertificate(createNewCertificateForCA2(securityServerCode));
+        authenticationCertificateRegistrationRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);
+        authenticationCertificateRegistrationRequest.setOrigin(ManagementRequestOriginDto.CENTER);
+
+        final ResponseEntity<ManagementRequestDto> response =
+                managementRequestsApi.addManagementRequest(authenticationCertificateRegistrationRequest);
+        final var managementRequestId = Objects.requireNonNull(response.getBody()).getId();
+        putStepData(MANAGEMENT_REQUEST_ID, managementRequestId);
+    }
+
+    @Step("a client with code {} and subsystem code {} is registered in security server {} with owner code {}")
+    public void memberIsRegisteredAsSecurityServerClient(String clientCode,
+                                                         String subsystemCode,
+                                                         String securityServerCode,
+                                                         String ownerCode) {
+        final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
+        final var clientId = String.join(":", INSTANCE_IDENTIFIER, MEMBER_CLASS_CODE, clientCode, subsystemCode);
         final var clientRegistrationRequest = new ClientRegistrationRequestDto();
         clientRegistrationRequest.setType(CLIENT_REGISTRATION_REQUEST);
         clientRegistrationRequest.setOrigin(ManagementRequestOriginDto.CENTER);
@@ -95,5 +114,10 @@ public class TestDataCreationStepDefs extends BaseUiStepDefs {
             certificates.put(serverId, CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + serverId));
         }
         return certificates.get(serverId);
+    }
+
+    @SneakyThrows
+    private byte[] createNewCertificateForCA2(String serverId) {
+        return CertificateUtils.generateAuthCertForCA2(CN_SUBJECT_PREFIX + "2-" + serverId);
     }
 }
