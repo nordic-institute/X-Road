@@ -54,7 +54,7 @@ public interface GlobalGroupService {
 
     Page<GlobalGroupMember> findGroupMembers(GlobalGroupService.Criteria criteria, Pageable pageable);
 
-    void addGlobalGroupMembers(Integer groupId, List<String> membersToAdd);
+    List<String> addGlobalGroupMembers(Integer groupId, List<String> membersToAdd);
 
     @Builder
     @Getter

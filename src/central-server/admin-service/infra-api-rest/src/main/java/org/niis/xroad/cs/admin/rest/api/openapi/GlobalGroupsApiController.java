@@ -46,7 +46,6 @@ import org.niis.xroad.cs.openapi.model.PagedGroupMemberDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,7 +57,9 @@ import java.util.Optional;
 
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.ResponseEntity.ok;
+import static org.springframework.http.ResponseEntity.status;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -85,15 +86,17 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
         var globalGroupEntity = globalGroupConverter.toEntity(codeAndDescription);
 
         var persistedGlobalGroupEntity = globalGroupService.addGlobalGroup(globalGroupEntity);
-        return new ResponseEntity<>(globalGroupConverter.convert(persistedGlobalGroupEntity), HttpStatus.CREATED);
+        return new ResponseEntity<>(globalGroupConverter.convert(persistedGlobalGroupEntity), CREATED);
     }
 
     @Override
     @PreAuthorize("hasAuthority('ADD_AND_REMOVE_GROUP_MEMBERS')")
     @AuditEventMethod(event = RestApiAuditEvent.ADD_GLOBAL_GROUP_MEMBERS)
     public ResponseEntity<MembersDto> addGlobalGroupMembers(Integer groupId, MembersDto members) {
-        globalGroupService.addGlobalGroupMembers(groupId, toMembersList(members));
-        return ok(members);
+        final var response = new MembersDto();
+        response.setItems(globalGroupService.addGlobalGroupMembers(groupId, toMembersList(members)));
+        return status(CREATED)
+                .body(response);
     }
 
     @Override
