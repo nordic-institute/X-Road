@@ -30,6 +30,8 @@ package org.niis.xroad.cs.admin.jpa.config;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.springframework.jdbc.datasource.JdbcTransactionObjectSupport;
 import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.TransactionDefinition;
@@ -39,16 +41,18 @@ import javax.persistence.EntityManagerFactory;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import static java.lang.String.valueOf;
+
 /**
- * Sets xroad.current_ha_node_name setting for each transaction.
+ * Sets xroad.current_ha_node_name and xroad.user_name settings for each transaction.
  * Required for history table stored procedures.
  */
-@Component("currentHANodeNameSettingTransactionManager")
-public class CurrentHANodeNameSettingTransactionManager extends JpaTransactionManager {
+@Component("xRoadSettingsTransactionManager")
+public class XRoadSettingsProvidingTransactionManager extends JpaTransactionManager {
 
     private final HAConfigStatus haConfigStatus;
 
-    public CurrentHANodeNameSettingTransactionManager(EntityManagerFactory emf, HAConfigStatus haConfigStatus) {
+    public XRoadSettingsProvidingTransactionManager(EntityManagerFactory emf, HAConfigStatus haConfigStatus) {
         super(emf);
         this.haConfigStatus = haConfigStatus;
     }
@@ -56,13 +60,33 @@ public class CurrentHANodeNameSettingTransactionManager extends JpaTransactionMa
     @Override
     protected void doBegin(Object transaction, TransactionDefinition definition) {
         super.doBegin(transaction, definition);
-        try (PreparedStatement stmt = ((JdbcTransactionObjectSupport) transaction).getConnectionHolder().getConnection()
-                .prepareStatement("SELECT set_config('xroad.current_ha_node_name', ?, true)")) {
+
+        final String sql = "SELECT "
+                + " set_config('xroad.current_ha_node_name', ?, true), "
+                + " set_config('xroad.user_name', ?, true)";
+
+        try (PreparedStatement stmt = ((JdbcTransactionObjectSupport) transaction).getConnectionHolder()
+                .getConnection().prepareStatement(sql)) {
             stmt.setString(1, haConfigStatus.getCurrentHaNodeName());
+            stmt.setString(2, getCurrentUsername());
             stmt.execute();
         } catch (SQLException e) {
             throw new CannotCreateTransactionException("Unable to create transaction", e);
         }
+    }
+
+    private String getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Authentication is null if transaction was not due to authenticated user doing something -
+        // e.g. authentication itself created transaction to load api keys from db
+        String username = "unknown_user";
+        if (authentication != null) {
+            // for PreAuthenticatedAuthenticationToken (session cookie auth) and
+            // UsernamePasswordAuthenticationToken (api key auth), principal
+            // is simply a String that contains what we want
+            username = valueOf(authentication.getPrincipal());
+        }
+        return username;
     }
 
 }

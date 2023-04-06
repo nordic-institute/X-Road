@@ -32,7 +32,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @EntityScan(basePackages = "org.niis.xroad.cs.admin.core.entity")
 @EnableJpaRepositories(basePackages = "org.niis.xroad.cs.admin.jpa.repository",
-        transactionManagerRef = "currentHANodeNameSettingTransactionManager")
+        transactionManagerRef = "xRoadSettingsTransactionManager")
 @Configuration
 public class JpaConfiguration {
 }

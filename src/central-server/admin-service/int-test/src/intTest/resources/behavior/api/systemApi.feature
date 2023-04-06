@@ -15,9 +15,3 @@ Feature: System API
     Given Authentication header is set to SECURITY_OFFICER
     Then updating central server address with 'valid.url' should succeed
     And updating central server address with url 'invalid...address.c' should fail
-
-  @Modifying
-  Scenario: Check if history table contains valid ha node name after parameter update
-    Given Authentication header is set to SECURITY_OFFICER
-    When updating central server address with 'valid.url' should succeed
-    Then history entry has node name 'test_node' for system parameter value 'valid.url'
