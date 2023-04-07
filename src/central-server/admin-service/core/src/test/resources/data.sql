@@ -111,9 +111,9 @@ INSERT INTO approved_cas
 VALUES (100, 100,       'X-Road Test CA CN', now(),     now());
 
 INSERT INTO global_groups
-       (id,      group_code, description,           member_count, created_at, updated_at)
-VALUES (1000001, 'CODE_1',   'First global group',  1,            now(),      now()),
-       (1000002, 'CODE_2',   'Second global group', 2,            now(),      now());
+       (id,      group_code, description,            created_at, updated_at)
+VALUES (1000001, 'CODE_1',   'First global group',   now(),      now()),
+       (1000002, 'CODE_2',   'Second global group',  now(),      now());
 
 INSERT INTO global_group_members
        (id,      global_group_id, group_member_id, created_at, updated_at)

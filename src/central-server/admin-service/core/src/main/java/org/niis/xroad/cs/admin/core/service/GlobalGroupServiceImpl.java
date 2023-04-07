@@ -40,6 +40,7 @@ import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
+import org.niis.xroad.cs.admin.core.entity.GroupMemberCount;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
@@ -59,6 +60,8 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CANNOT_ADD_MEMBER_TO_OWNERS_GROUP;
@@ -150,6 +153,17 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
                 .collect(toList());
     }
 
+    @Override
+    public int countGroupMembers(Integer groupId) {
+        return globalGroupRepository.countGroupMembers(groupId);
+    }
+
+    @Override
+    public Map<Integer, Long> countGroupMembers() {
+        return globalGroupRepository.countGroupMembers().stream()
+                .collect(Collectors.toMap(GroupMemberCount::getGroupId, GroupMemberCount::getCount));
+    }
+
     private boolean addGlobalGroupMember(String encodedClientId, GlobalGroupEntity group) {
         final ClientIdEntity clientIdEntity;
         final var clientId = clientIdConverter.convertId(encodedClientId);
@@ -162,7 +176,6 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
         if (isNotMemberOfGroup(group, clientIdEntity)) {
             var groupMember = new GlobalGroupMemberEntity(group, clientId);
             globalGroupMemberRepository.save(groupMember);
-            globalGroupRepository.updateGroupMemberCount(group.getId());
             return true;
         }
         return false;

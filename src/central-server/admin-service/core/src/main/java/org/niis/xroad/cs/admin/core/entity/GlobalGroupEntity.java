@@ -71,10 +71,6 @@ public class GlobalGroupEntity extends AuditableEntity {
     @Setter
     private String description;
 
-    @Column(name = "member_count")
-    @Access(AccessType.FIELD)
-    private Integer memberCount;
-
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "globalGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     @Access(AccessType.FIELD)
     @Getter
@@ -82,9 +78,5 @@ public class GlobalGroupEntity extends AuditableEntity {
 
     public GlobalGroupEntity(String groupCode) {
         this.groupCode = groupCode;
-    }
-
-    public int getMemberCount() {
-        return this.memberCount == null ? 0 : this.memberCount;
     }
 }

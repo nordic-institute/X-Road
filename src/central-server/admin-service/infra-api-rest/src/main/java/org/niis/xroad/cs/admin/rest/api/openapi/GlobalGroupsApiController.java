@@ -83,10 +83,12 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     @AuditEventMethod(event = RestApiAuditEvent.ADD_GLOBAL_GROUP)
     @PreAuthorize("hasAuthority('ADD_GLOBAL_GROUP')")
     public ResponseEntity<GlobalGroupResourceDto> addGlobalGroup(GlobalGroupCodeAndDescriptionDto codeAndDescription) {
-        var globalGroupEntity = globalGroupConverter.toEntity(codeAndDescription);
+        var globalGroup = globalGroupConverter.toEntity(codeAndDescription);
 
-        var persistedGlobalGroupEntity = globalGroupService.addGlobalGroup(globalGroupEntity);
-        return new ResponseEntity<>(globalGroupConverter.convert(persistedGlobalGroupEntity), CREATED);
+        var persistedGlobalGroup = globalGroupService.addGlobalGroup(globalGroup);
+        return new ResponseEntity<>(
+                globalGroupConverter.convert(persistedGlobalGroup, globalGroupService.countGroupMembers(persistedGlobalGroup.getId())),
+                CREATED);
     }
 
     @Override
@@ -115,8 +117,10 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_GLOBAL_GROUPS')")
     public ResponseEntity<List<GlobalGroupResourceDto>> findGlobalGroups() {
-        return ok(globalGroupService.findGlobalGroups().stream()
-                .map(globalGroupConverter::convert)
+        final var globalGroups = globalGroupService.findGlobalGroups();
+        final var memberCounts = globalGroupService.countGroupMembers();
+        return ok(globalGroups.stream()
+                .map(group -> globalGroupConverter.convert(group, memberCounts.getOrDefault(group.getId(), 0L).intValue()))
                 .collect(toList()));
     }
 
@@ -134,7 +138,9 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_GROUP_DETAILS')")
     public ResponseEntity<GlobalGroupResourceDto> getGlobalGroup(Integer groupId) {
-        var globalGroup = globalGroupConverter.convert(globalGroupService.getGlobalGroup(groupId));
+        var globalGroup = globalGroupConverter.convert(
+                globalGroupService.getGlobalGroup(groupId),
+                globalGroupService.countGroupMembers(groupId));
         return ok(globalGroup);
     }
 
@@ -156,7 +162,9 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
         GlobalGroupUpdateDto updateDto = new GlobalGroupUpdateDto(groupId, globalGroupDescription.getDescription());
 
         var updatedGlobalGroup = globalGroupService.updateGlobalGroupDescription(updateDto);
-        var updatedGlobalGroupDto = globalGroupConverter.convert(updatedGlobalGroup);
+        var updatedGlobalGroupDto = globalGroupConverter.convert(
+                updatedGlobalGroup,
+                globalGroupService.countGroupMembers(groupId));
         return ok(updatedGlobalGroupDto);
     }
 

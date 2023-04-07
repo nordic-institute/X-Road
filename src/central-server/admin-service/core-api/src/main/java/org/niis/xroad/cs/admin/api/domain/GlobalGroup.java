@@ -37,5 +37,4 @@ public class GlobalGroup extends Auditable {
     private int id;
     private String groupCode;
     private String description;
-    private int memberCount;
 }
