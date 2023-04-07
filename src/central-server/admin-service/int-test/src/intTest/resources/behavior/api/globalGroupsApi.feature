@@ -90,8 +90,10 @@ Feature: Global groups API
     #todo: add more tests after sorting is fixed
 
   Scenario: Add member to global group
-    Given new global group 'test-group' with description 'group description' is added
-    And Response is of status code 201
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And new global group 'test-group' with description 'group description' is added
+    And member class 'TEST' is created
+    And new member 'CS:TEST:member' is added
     When members are added to group 'test-group'
       | $identifier    | $isNew |
       | CS:TEST:member | true   |
@@ -102,8 +104,14 @@ Feature: Global groups API
       |    |         |       |        |           |        |        |             | 5         | 1     | 1            | 1      |               |
 
   Scenario: Add members to global group
-    Given new global group 'test-group' with description 'group description' is added
-    And Response is of status code 201
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And new global group 'test-group' with description 'group description' is added
+    And member class 'TEST' is created
+    And new member 'CS:TEST:member1' is added
+    And new subsystem 'CS:TEST:member1:subsystem' is added
+    And new member 'CS:TEST:member2' is added
+    And new subsystem 'CS:TEST:member2:subsystem2' is added
+    And new subsystem 'CS:TEST:member2:subsystem3' is added
     When members are added to group 'test-group'
       | $identifier                | $isNew |
       | CS:TEST:member1            | true   |
@@ -122,8 +130,12 @@ Feature: Global groups API
       | member2 |         |       |           |           |        |        |             |           |       | 3            | 3      |               |
 
   Scenario: Add same members twice to global group
-    Given new global group 'test-group' with description 'group description' is added
-    And Response is of status code 201
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And new global group 'test-group' with description 'group description' is added
+    And member class 'TEST' is created
+    And new member 'CS:TEST:member1' is added
+    And new subsystem 'CS:TEST:member1:subsystem1' is added
+    And new subsystem 'CS:TEST:member1:subsystem2' is added
     When members are added to group 'test-group'
       | $identifier                | $isNew |
       | CS:TEST:member1            | true   |
@@ -152,3 +164,24 @@ Feature: Global groups API
       | $identifier    | $isNew |
       | CS:TEST:member | true   |
     Then Response is of status code 400 and error code 'cannot_add_member_to_owners_group'
+
+  Scenario: Adding non existing member to global group should fail
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And new global group 'test-group' with description 'group description' is added
+    And member class 'TEST' is created
+    And new member 'CS:TEST:member' is added
+    And new subsystem 'CS:TEST:member:subsystem' is added
+    When members are added to group 'test-group'
+      | $identifier              | $isNew |
+      | CS:TEST:member           | true   |
+      | CS:TEST:member:subsystem | true   |
+    Then Response is of status code 201
+    And global group 'test-group' has 2 members
+    When members are added to group 'test-group'
+      | $identifier       | $isNew |
+      | CS:TEST:not-found | true   |
+    Then Response is of status code 404 and error code "member_not_found"
+    When members are added to group 'test-group'
+      | $identifier              | $isNew |
+      | CS:TEST:member:not-found | true   |
+    Then Response is of status code 404 and error code "subsystem_not_found"

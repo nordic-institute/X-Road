@@ -28,6 +28,8 @@ package org.niis.xroad.cs.admin.core.repository;
 
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 
+import java.util.Optional;
+
 public interface FindOrCreateAwareRepository<ENTITY, ID> extends GenericRepository<ENTITY, ID> {
 
     /**
@@ -37,6 +39,11 @@ public interface FindOrCreateAwareRepository<ENTITY, ID> extends GenericReposito
      */
     ENTITY findOrCreate(ENTITY model);
 
+    /**
+     * Return an equivalent model from the repository.
+     * <p>
+     */
+    Optional<ENTITY> findOpt(ENTITY model);
     /**
      * Return an equivalent model from the repository.
      * <p>
@@ -51,5 +58,4 @@ public interface FindOrCreateAwareRepository<ENTITY, ID> extends GenericReposito
      * @return a persisted model
      */
     ENTITY create(ENTITY model, ErrorMessage errorMessage);
-
 }
