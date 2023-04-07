@@ -43,7 +43,7 @@
         <xrd-button
           v-if="allowAddAndRemoveGroupMembers"
           data-test="add-member-button"
-          @click="showAddDialog = true"
+          @click="$refs.addDialog.open()"
         >
           <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon>
           {{ $t('globalGroup.addMembers') }}
@@ -96,6 +96,7 @@
       @cancel="cancelFilter"
       @apply="applyFilter"
     />
+    <add-group-members-dialog ref="addDialog" />
   </section>
 </template>
 
@@ -111,6 +112,7 @@ import { notificationsStore } from '@/store/modules/notifications';
 import { userStore } from '@/store/modules/user';
 import GroupMembersFilterDialog from './GroupMembersFilterDialog.vue';
 import { debounce } from '@/util/helpers';
+import AddGroupMembersDialog from './AddGroupMembersDialog.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -121,6 +123,7 @@ let that: any;
  */
 export default Vue.extend({
   components: {
+    AddGroupMembersDialog,
     GroupMembersFilterDialog,
   },
   props: {
@@ -134,7 +137,6 @@ export default Vue.extend({
       pagingSortingOptions: {} as DataOptions,
       filter: {} as GroupMembersFilter,
       loading: false,
-      showAddDialog: false,
       showFilterDialog: false,
     };
   },
