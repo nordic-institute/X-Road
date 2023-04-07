@@ -40,6 +40,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.KeyLabel;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
@@ -63,6 +64,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static java.lang.Boolean.FALSE;
@@ -112,7 +114,7 @@ class ConfigurationSigningKeysServiceImplTest {
     private final ConfigurationSigningKeyWithDetailsMapper withDetailsMapper = new ConfigurationSigningKeyWithDetailsMapperImpl();
 
     private ConfigurationSigningKeysServiceImpl configurationSigningKeysServiceImpl;
-    private HAConfigStatus haConfigStatus = new HAConfigStatus("haNodeName", false);
+    private final HAConfigStatus haConfigStatus = new HAConfigStatus("haNodeName", false);
 
     @BeforeEach
     void beforeEach() {
@@ -219,7 +221,7 @@ class ConfigurationSigningKeysServiceImplTest {
         when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION, haConfigStatus))
                 .thenReturn(configurationSourceEntity);
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of()));
-        when(signerProxyFacade.generateKey(TOKEN_ID, KEY_LABEL)).thenReturn(createKeyInfo());
+        when(signerProxyFacade.generateKey(TOKEN_ID, KEY_LABEL)).thenReturn(createKeyInfo("keyId"));
         when(signerProxyFacade.generateSelfSignedCert(eq(KEY_ID), isA(ClientId.Conf.class),
                 eq(KeyUsageInfo.SIGNING),
                 eq("N/A"),
@@ -246,8 +248,8 @@ class ConfigurationSigningKeysServiceImplTest {
         ConfigurationSigningKeyEntity key2 = createConfigurationSigningEntity(INTERNAL_CONFIGURATION, false);
         when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION, haConfigStatus))
                 .thenReturn(configurationSourceEntity);
-        when(configurationSigningKeyRepository.findByTokenIdentifier(TOKEN_ID)).thenReturn(List.of(key1, key2));
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of(createKeyInfo())));
+        when(configurationSigningKeyRepository.findByKeyIdentifierIn(Set.of("keyId"))).thenReturn(List.of(key1, key2));
+        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(createToken(List.of(createKeyInfo("keyId"))));
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.addKey(INTERNAL_CONFIGURATION, TOKEN_ID, KEY_LABEL))
                 .isInstanceOf(ValidationFailureException.class)
@@ -312,9 +314,25 @@ class ConfigurationSigningKeysServiceImplTest {
                 .hasMessage("Error activating signing key");
     }
 
-    private KeyInfo createKeyInfo() {
+    @Test
+    void findDetailedByToken() {
+        TokenInfo token = createToken(List.of(createKeyInfo("keyId-1"), createKeyInfo("keyId-3")));
+
+        when(configurationSigningKeyRepository.findByKeyIdentifierIn(Set.of("keyId-1", "keyId-3")))
+                .thenReturn(List.of(
+                        new ConfigurationSigningKeyEntity("keyId-1", new byte[0], Instant.now(), TOKEN_ID),
+                        new ConfigurationSigningKeyEntity("keyId-3", new byte[0], Instant.now(), TOKEN_ID)
+                ));
+
+        final List<ConfigurationSigningKeyWithDetails> keysWithDetails = configurationSigningKeysServiceImpl.findDetailedByToken(token);
+
+        assertThat(keysWithDetails).hasSize(2);
+        assertThat(keysWithDetails).extracting("keyIdentifier").containsExactly("keyId-1", "keyId-3");
+    }
+
+    private KeyInfo createKeyInfo(String keyIdentifier) {
         return new ee.ria.xroad.signer.protocol.dto.KeyInfo(true, KeyUsageInfo.SIGNING, "keyFriendlyName",
-                "keyId", "keyLabel", "keyPublicKey", List.of(), List.of(), "keySignMechanismName");
+                keyIdentifier, "keyLabel", "keyPublicKey", List.of(), List.of(), "keySignMechanismName");
     }
 
     private TokenInfo createTokenInfo(boolean active, boolean available, List<KeyInfo> keyInfos) {

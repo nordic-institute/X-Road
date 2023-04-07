@@ -108,7 +108,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
             throw new ValidationFailureException(TOKEN_PIN_LOCKED);
         }
 
-        tokenActionsResolver.requireAction(LOGIN, token, configurationSigningKeysService.findByTokenIdentifier(token.getId()));
+        tokenActionsResolver.requireAction(LOGIN, token, configurationSigningKeysService.findByTokenIdentifier(token));
         validatePinMeetsTheTokenRequirements(token, tokenLoginRequest.getPassword());
 
         try {
@@ -132,7 +132,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
     public TokenInfo logout(String tokenId) {
         final ee.ria.xroad.signer.protocol.dto.TokenInfo token = getToken(tokenId);
         addAuditData(token);
-        tokenActionsResolver.requireAction(LOGOUT, token, configurationSigningKeysService.findByTokenIdentifier(token.getId()));
+        tokenActionsResolver.requireAction(LOGOUT, token, configurationSigningKeysService.findByTokenIdentifier(token));
         try {
             signerProxyFacade.deactivateToken(tokenId);
         } catch (CodedException codedException) {
