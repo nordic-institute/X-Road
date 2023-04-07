@@ -65,8 +65,16 @@ public interface JpaFindOrCreateAwareRepository<ENTITY, ID> extends JpaRepositor
      * Return an equivalent model from the repository.
      * <p>
      */
+    default Optional<ENTITY> findOpt(ENTITY model) {
+        return findBy(Example.of(model, exampleMatcher(model)), FluentQuery.FetchableFluentQuery::first);
+    }
+
+    /**
+     * Return an equivalent model from the repository.
+     * <p>
+     */
     default ENTITY findOne(ENTITY model) {
-        return findBy(Example.of(model, exampleMatcher(model)), FluentQuery.FetchableFluentQuery::first)
+        return findOpt(model)
                 .orElseThrow(() -> new EntityNotFoundException(model.toString()));
     }
 
