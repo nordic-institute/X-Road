@@ -2865,28 +2865,6 @@ paths:
       summary: get a security server's clients
       tags:
         - security-servers
-  /system/instance-identifier:
-    get:
-      description: <h3>Administrator views the instance identifier of the Central Server.</h3>
-      operationId: getInstanceIdentifier
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InstanceIdentifier'
-          description: the instance identifier
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: get the instance identifier
-      tags:
-        - system
   /management-services-configuration:
     get:
       description: <h3>Administrator views the management services configuration of the Central Server.</h3>
@@ -2940,26 +2918,6 @@ paths:
       tags:
         - management-services
   /system/server-address:
-    get:
-      operationId: getCentralServerAddress
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CentralServerAddress'
-          description: central server address response
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: get the server address
-      tags:
-        - system
     put:
       operationId: updateCentralServerAddress
       requestBody:
