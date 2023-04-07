@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 
@@ -36,7 +38,7 @@ public interface ConfigurationSigningKeysService {
     String SOURCE_TYPE_INTERNAL = "internal";
     String SOURCE_TYPE_EXTERNAL = "external";
 
-    List<ConfigurationSigningKey> findByTokenIdentifier(String tokenId);
+    List<ConfigurationSigningKey> findByTokenIdentifier(TokenInfo tokenInfo);
 
     ConfigurationSigningKeyWithDetails addKey(String sourceType, String tokenId, String keyLabel);
 

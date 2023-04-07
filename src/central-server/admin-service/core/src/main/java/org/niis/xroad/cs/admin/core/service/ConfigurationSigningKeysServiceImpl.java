@@ -62,10 +62,12 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.ACTIVATE;
@@ -100,8 +102,9 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     private final HAConfigStatus haConfigStatus;
 
     @Override
-    public List<ConfigurationSigningKey> findByTokenIdentifier(final String tokenId) {
-        return configurationSigningKeyRepository.findByTokenIdentifier(tokenId).stream()
+    public List<ConfigurationSigningKey> findByTokenIdentifier(final TokenInfo tokenInfo) {
+        final Set<String> keyIds = tokenInfo.getKeyInfo().stream().map(KeyInfo::getId).collect(toSet());
+        return configurationSigningKeyRepository.findByKeyIdentifierIn(keyIds).stream()
                 .map(configurationSigningKeyMapper::toTarget)
                 .collect(toList());
     }
@@ -112,9 +115,10 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                 .orElseGet(List::of).stream()
                 .collect(Collectors.toMap(KeyInfo::getId, key -> key));
 
-        return configurationSigningKeyRepository.findByTokenIdentifier(token.getId()).stream()
+        return configurationSigningKeyRepository.findByKeyIdentifierIn(keyInfoMap.keySet())
+                .stream()
                 .map(signingKey -> {
-                    var keyInfo = keyInfoMap.get(configurationSigningKeyMapper.toTarget(signingKey).getKeyIdentifier());
+                    var keyInfo = keyInfoMap.get(signingKey.getKeyIdentifier());
                     var key = configurationSigningKeyMapper.toTarget(signingKey);
                     return mapWithDetails(token, key, keyInfo);
                 })
@@ -204,7 +208,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         final PossibleTokenAction action = StringUtils.endsWithIgnoreCase(SOURCE_TYPE_INTERNAL, sourceType)
                 ? GENERATE_INTERNAL_KEY
                 : GENERATE_EXTERNAL_KEY;
-        tokenActionsResolver.requireAction(action, tokenInfo, findByTokenIdentifier(tokenInfo.getId()));
+        tokenActionsResolver.requireAction(action, tokenInfo, findByTokenIdentifier(tokenInfo));
 
         KeyInfo keyInfo;
         try {
