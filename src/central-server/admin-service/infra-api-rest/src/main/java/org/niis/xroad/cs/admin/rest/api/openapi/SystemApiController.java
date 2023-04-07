@@ -34,7 +34,6 @@ import org.niis.xroad.cs.admin.rest.api.converter.model.InitializationStatusDtoC
 import org.niis.xroad.cs.openapi.SystemApi;
 import org.niis.xroad.cs.openapi.model.CentralServerAddressDto;
 import org.niis.xroad.cs.openapi.model.HighAvailabilityStatusDto;
-import org.niis.xroad.cs.openapi.model.InstanceIdentifierDto;
 import org.niis.xroad.cs.openapi.model.SystemStatusDto;
 import org.niis.xroad.cs.openapi.model.VersionDto;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -62,16 +61,6 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
     public ResponseEntity<SystemStatusDto> getSystemStatus() {
         return getSystemStatusResponseEntity();
-    }
-
-    @Override
-    public ResponseEntity<InstanceIdentifierDto> getInstanceIdentifier() {
-        throw new RuntimeException("not implemented yet");
-    }
-
-    @Override
-    public ResponseEntity<CentralServerAddressDto> getCentralServerAddress() {
-        throw new RuntimeException("not implemented yet");
     }
 
     /**
