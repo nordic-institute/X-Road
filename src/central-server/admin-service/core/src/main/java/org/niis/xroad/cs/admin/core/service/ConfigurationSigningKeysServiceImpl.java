@@ -187,8 +187,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     }
 
     public Optional<ConfigurationSigningKey> findActiveForSource(String sourceType) {
-        // TODO pass haNodeName if HA enabled
-        return configurationSigningKeyRepository.findActiveForSource(sourceType, null)
+        return configurationSigningKeyRepository.findActiveForSource(sourceType, haConfigStatus.getCurrentHaNodeName())
                 .map(configurationSigningKeyMapper::toTarget);
     }
 
