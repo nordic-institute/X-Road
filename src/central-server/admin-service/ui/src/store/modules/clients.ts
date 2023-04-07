@@ -63,10 +63,12 @@ export const clientStore = defineStore('client', {
         this.pagingOptions = resp.data.paging_metadata;
       });
     },
-    getByClientType(clientType: string) {
-      const params: unknown = {
-        client_type: clientType,
-      };
+    getByClientType(clientType: string | null = null) {
+      const params: unknown = clientType
+        ? {
+            client_type: clientType,
+          }
+        : {};
       const axiosParams: AxiosRequestConfig = { params };
 
       return axios
