@@ -36,18 +36,19 @@ import java.time.ZoneOffset;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class GlobalGroupConverterTest {
+    private static final int COUNT = 3;
     private final GlobalGroupConverter converter = new GlobalGroupConverter();
 
     @Test
     void convert() {
         GlobalGroup mockEntity = mockEntity();
 
-        GlobalGroupResourceDto result = converter.convert(mockEntity);
+        GlobalGroupResourceDto result = converter.convert(mockEntity, COUNT);
 
         assertThat(result.getId()).isEqualTo(mockEntity.getId());
         assertThat(result.getCode()).isEqualTo(mockEntity.getGroupCode());
         assertThat(result.getDescription()).isEqualTo(mockEntity.getDescription());
-        assertThat(result.getMemberCount()).isEqualTo(mockEntity.getMemberCount());
+        assertThat(result.getMemberCount()).isEqualTo(COUNT);
         assertThat(result.getCreatedAt()).isEqualTo(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
         assertThat(result.getUpdatedAt()).isEqualTo(mockEntity.getUpdatedAt().atOffset(ZoneOffset.UTC));
     }

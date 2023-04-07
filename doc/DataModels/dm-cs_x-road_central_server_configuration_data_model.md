@@ -461,7 +461,6 @@ The record is created when a new global group needs to be added to the X-Road in
 | id [PK] | integer | NOT NULL | Primary key |
 | group_code  | character varying(255) |  | Global group code that is unique inside the X-Road instance. Cannot be modified after the record is created. Cannot be NULL. |
 | description  | character varying(255) |  | Longer, human-readable description of the group. Can be modified after the record is created. |
-| member_count  | integer |  | Number of members in the global group, used in user interfaces. The member count is automatically updated any time when members are added to or removed from the group. |
 | created_at | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework. |
 

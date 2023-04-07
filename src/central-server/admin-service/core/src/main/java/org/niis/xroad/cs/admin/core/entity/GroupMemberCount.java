@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,35 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.converter;
+package org.niis.xroad.cs.admin.core.entity;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
-import org.niis.xroad.cs.openapi.model.GlobalGroupCodeAndDescriptionDto;
-import org.niis.xroad.cs.openapi.model.GlobalGroupResourceDto;
-import org.springframework.stereotype.Component;
+import lombok.Value;
 
-import java.time.ZoneOffset;
-
-@Component
-@RequiredArgsConstructor
-public class GlobalGroupConverter {
-
-    public GlobalGroupResourceDto convert(GlobalGroup entity, int count) {
-        return new GlobalGroupResourceDto()
-                .id(entity.getId())
-                .code(entity.getGroupCode())
-                .memberCount(count)
-                .description(entity.getDescription())
-                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC))
-                .updatedAt(entity.getUpdatedAt().atOffset(ZoneOffset.UTC));
-    }
-
-    public GlobalGroup toEntity(
-            GlobalGroupCodeAndDescriptionDto globalGroupCodeAndDescription) {
-        var entity = new GlobalGroup();
-        entity.setGroupCode(globalGroupCodeAndDescription.getCode());
-        entity.setDescription(globalGroupCodeAndDescription.getDescription());
-        return entity;
-    }
+@Value
+public class GroupMemberCount {
+    int groupId;
+    long count;
 }

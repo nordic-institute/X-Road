@@ -27,11 +27,15 @@
 package org.niis.xroad.cs.admin.core.repository;
 
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
+import org.niis.xroad.cs.admin.core.entity.GroupMemberCount;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface GlobalGroupRepository extends GenericRepository<GlobalGroupEntity, Integer> {
     Optional<GlobalGroupEntity> getByGroupCode(String code);
 
-    void updateGroupMemberCount(Integer groupId);
+    int countGroupMembers(Integer groupId);
+
+    List<GroupMemberCount> countGroupMembers();
 }
