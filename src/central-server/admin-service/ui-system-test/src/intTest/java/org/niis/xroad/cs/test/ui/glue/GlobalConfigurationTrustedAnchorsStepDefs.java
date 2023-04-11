@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.DOWNLOADED_FILE;
 
 public class GlobalConfigurationTrustedAnchorsStepDefs extends BaseUiStepDefs {
-    private final static String HASH = "E8:60:5B:CD:43:3E:B9:C7:F8:EA:0A:E3:4B:6E:02:EB:04:6B:AE:C2:C7:7A:87:18:FD:8E:2F:F3";
+    private static final String HASH = "E8:60:5B:CD:43:3E:B9:C7:F8:EA:0A:E3:4B:6E:02:EB:04:6B:AE:C2:C7:7A:87:18:FD:8E:2F:F3";
     private final GlobalConfigurationTrustedAnchorsPageObj trustedAnchorsPageObj = new GlobalConfigurationTrustedAnchorsPageObj();
 
     @Step("trusted anchors list not contains instance {}")
