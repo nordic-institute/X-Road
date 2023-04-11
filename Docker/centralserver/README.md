@@ -15,8 +15,9 @@ Admin UI credentials: `xrd`/`secret`
 Run `init_context.sh` script that will collect the necessary files for building the image to `build` folder. After that you can create the image inside the newly created `build` folder.
 
 ```shell
-
-# In build-folder
+cd Docker/centralserver/
+./init_context.sh
+cd build/
 docker build --build-arg DIST=jammy-current -t centralserver -f ../Dockerfile .
 ```
 
