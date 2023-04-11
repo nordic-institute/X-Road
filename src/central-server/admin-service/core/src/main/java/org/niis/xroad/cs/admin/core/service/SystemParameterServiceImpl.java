@@ -181,7 +181,7 @@ public class SystemParameterServiceImpl implements SystemParameterService {
         }
         SystemParameterEntity systemParameterToStore = systemParameter.get();
         systemParameterToStore.setValue(updateValue);
-        log.debug("updateOrCreateParameter(): storing Systemparameter of key:{} with value:{} for node:{}",
+        log.debug("updateOrCreateParameter(): storing SystemParameter of key:{} with value:{} for node:{}",
                 lookupKey, updateValue, systemParameterToStore.getHaNodeName()
         );
 

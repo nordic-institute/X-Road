@@ -142,7 +142,6 @@
               >
                 <xrd-icon-base
                   v-if="passed"
-                  slot="append"
                   :color="colors.Success100"
                   data-test="confirm-pin-append-input-icon"
                 >
@@ -273,15 +272,9 @@ export default (
     async submit() {
       // validate inputs
       const formData: InitialServerConf = {} as InitialServerConf;
-      if (!this.disabledFields.instanceIdentifier) {
-        formData.instance_identifier = this.instanceIdentifier;
-      }
-      if (!this.disabledFields.address) {
-        formData.central_server_address = this.address;
-      }
-      if (!this.disabledFields.pin) {
-        formData.software_token_pin = this.pin;
-      }
+      formData.instance_identifier = this.instanceIdentifier;
+      formData.central_server_address = this.address;
+      formData.software_token_pin = this.pin;
       this.resetNotifications();
       await this.initalizationRequest(formData)
         .then(() => {
