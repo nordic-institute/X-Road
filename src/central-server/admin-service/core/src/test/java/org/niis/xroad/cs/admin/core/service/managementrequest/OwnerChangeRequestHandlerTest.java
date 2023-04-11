@@ -39,7 +39,7 @@ import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
-import org.niis.xroad.cs.admin.api.service.GroupMemberService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
@@ -96,7 +96,7 @@ class OwnerChangeRequestHandlerTest {
     private final IdentifierRepository<MemberIdEntity> memberIds = mock(IdentifierRepository.class);
     private final SecurityServerRepository servers = mock(SecurityServerRepository.class);
     private final RequestMapper requestMapper = mock(RequestMapper.class);
-    private final GroupMemberService groupMemberService = mock(GroupMemberService.class);
+    private final GlobalGroupMemberService groupMemberService = mock(GlobalGroupMemberService.class);
     @Mock
     private OwnerChangeRequestEntity ownerChangeRequestEntity;
     @Mock

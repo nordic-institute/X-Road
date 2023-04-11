@@ -137,6 +137,6 @@ class GlobalGroupServiceImplTest {
         systemParameter.setValue(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
         when(systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP)).thenReturn(List.of(systemParameter));
 
-        assertThrows(ValidationFailureException.class, () -> service.deleteGlobalGroup(1));
+        assertThrows(ValidationFailureException.class, () -> service.deleteGlobalGroupMember(1));
     }
 }

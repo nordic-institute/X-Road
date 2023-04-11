@@ -31,7 +31,7 @@ import com.nortal.test.core.services.hooks.AfterScenarioHook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.test.container.database.LiquibaseExecutor;
-import org.niis.xroad.cs.test.utils.SecurityServerInitializer;
+import org.niis.xroad.cs.test.utils.CentralServerInitializer;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 public class DefaultServerStateInitializationHook implements AfterScenarioHook {
     private static final String TAG_RESET_DB = "@Modifying";
 
-    private final SecurityServerInitializer securityServerInitializer;
+    private final CentralServerInitializer centralServerInitializer;
     private final LiquibaseExecutor liquibaseExecutor;
 
     @Override
@@ -61,7 +61,7 @@ public class DefaultServerStateInitializationHook implements AfterScenarioHook {
             liquibaseExecutor.executeChangesets();
 
 
-            securityServerInitializer.initializeWithDefaults();
+            centralServerInitializer.initializeWithDefaults();
         }
     }
 

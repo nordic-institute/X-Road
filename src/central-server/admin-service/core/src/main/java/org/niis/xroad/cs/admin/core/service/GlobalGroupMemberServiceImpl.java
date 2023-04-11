@@ -29,32 +29,43 @@ package org.niis.xroad.cs.admin.core.service;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
-import org.niis.xroad.cs.admin.api.service.GroupMemberService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.Objects;
 import java.util.Optional;
 
+import static java.util.Collections.singletonList;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.GLOBAL_GROUP_MEMBER_MISMATCH;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.GLOBAL_GROUP_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.OWNERS_GLOBAL_GROUP_MEMBER_CANNOT_BE_DELETED;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class GlobalGroupMemberServiceImpl implements GroupMemberService {
+public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
 
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
     private final GlobalGroupRepository globalGroupRepository;
     private final XRoadMemberRepository xRoadMemberRepository;
+    private final GlobalGroupService globalGroupService;
+    private final AuditDataHelper auditDataHelper;
 
+    @Override
     public void addMemberToGlobalGroup(MemberId memberId, String groupCode) {
         final XRoadMemberEntity memberEntity = getMemberIdEntity(memberId);
         final GlobalGroupEntity globalGroupEntity = getGlobalGroupEntity(groupCode);
@@ -65,6 +76,26 @@ public class GlobalGroupMemberServiceImpl implements GroupMemberService {
         }
     }
 
+    @Override
+    public void removeMemberFromGlobalGroup(Integer groupId, Integer memberId) {
+        var globalGroupMemberEntity = globalGroupMemberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND, memberId));
+        var globalGroup = globalGroupMemberEntity.getGlobalGroup();
+
+        auditDataHelper.put(RestApiAuditProperty.CODE, globalGroup.getGroupCode());
+        auditDataHelper.put(RestApiAuditProperty.DESCRIPTION, globalGroup.getDescription());
+        auditDataHelper.put(RestApiAuditProperty.MEMBER_IDENTIFIERS, singletonList(globalGroupMemberEntity.getIdentifier().asEncodedId()));
+
+        globalGroupService.verifyCompositionEditability(globalGroup.getGroupCode(), OWNERS_GLOBAL_GROUP_MEMBER_CANNOT_BE_DELETED);
+
+        if (Objects.equals(globalGroupMemberEntity.getGlobalGroup().getId(), groupId)) {
+            globalGroupMemberRepository.delete(globalGroupMemberEntity);
+        } else {
+            throw new ValidationFailureException(GLOBAL_GROUP_MEMBER_MISMATCH, groupId);
+        }
+    }
+
+    @Override
     public void removeMemberFromGlobalGroup(MemberId memberId, String groupCode) {
         final XRoadMemberEntity memberEntity = getMemberIdEntity(memberId);
         final GlobalGroupEntity globalGroupEntity = getGlobalGroupEntity(groupCode);
