@@ -104,6 +104,10 @@ public class CommonPageObj {
             return $x("//button[@data-test='dialog-save-button']");
         }
 
+        public SelenideElement btnConfirm() {
+            return $x("//button[@data-test='dialog-confirm-button']");
+        }
+
         public SelenideElement btnDelete() {
             return $x("//button[@data-test='dialog-delete-button']");
         }
@@ -126,5 +130,9 @@ public class CommonPageObj {
         public SelenideElement btnDecline() {
             return $x("//button[@data-test='decline-button']");
         }
+    }
+
+    public SelenideElement inputFile() {
+        return $x("//input[@type='file']");
     }
 }
