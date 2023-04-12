@@ -103,6 +103,10 @@
         </div>
       </template>
 
+      <template #[`item.created_at`]="{ item }">
+        <div>{{ item.created_at | formatDateTime }}</div>
+      </template>
+
       <template #[`item.button`]>
         <div class="cs-table-actions-wrap">
           <xrd-button
