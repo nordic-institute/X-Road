@@ -82,9 +82,9 @@ public class ContainerSetup extends AbstractTestableContainerSetup {
 
     @Override
     public void additionalImageFromDockerfileConfiguration(@NotNull ImageFromDockerfile imageFromDockerfile) {
-        //do nothing
+        var filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
+        imageFromDockerfile.withFileFromFile(".", filesToAdd);
     }
-
 
     @NotNull
     @Override
