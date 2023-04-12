@@ -28,7 +28,7 @@ package org.niis.xroad.cs.test.hook;
 
 import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.test.utils.SecurityServerInitializer;
+import org.niis.xroad.cs.test.utils.CentralServerInitializer;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,10 +37,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CentralServerInitializationHook implements BeforeSuiteHook {
-    private final SecurityServerInitializer securityServerInitializer;
+    private final CentralServerInitializer centralServerInitializer;
 
     @Override
     public void beforeSuite() {
-        securityServerInitializer.initializeWithDefaults();
+        centralServerInitializer.initializeWithDefaults();
     }
 }

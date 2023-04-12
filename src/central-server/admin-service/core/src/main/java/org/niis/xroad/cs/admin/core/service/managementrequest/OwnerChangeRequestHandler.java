@@ -38,7 +38,7 @@ import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
-import org.niis.xroad.cs.admin.api.service.GroupMemberService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -82,7 +82,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
     private final IdentifierRepository<MemberIdEntity> memberIds;
     private final SecurityServerRepository servers;
 
-    private final GroupMemberService groupMemberService;
+    private final GlobalGroupMemberService groupMemberService;
 
     private final RequestMapper requestMapper;
 

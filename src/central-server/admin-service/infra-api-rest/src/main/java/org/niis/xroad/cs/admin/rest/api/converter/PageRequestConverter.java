@@ -47,8 +47,8 @@ public class PageRequestConverter {
                     pagingSorting.getOffset(),
                     pagingSorting.getLimit(),
                     convertToSort(pagingSorting, sortParameterConverter));
-        } catch (IllegalArgumentException illegalArgumentException) {
-            throw new ValidationFailureException(INVALID_PAGINATION_PROPERTIES, illegalArgumentException.getMessage());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new ValidationFailureException(INVALID_PAGINATION_PROPERTIES, e.getMessage());
         }
     }
 

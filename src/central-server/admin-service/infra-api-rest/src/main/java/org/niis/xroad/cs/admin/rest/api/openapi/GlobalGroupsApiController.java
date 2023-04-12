@@ -27,8 +27,8 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.rest.api.converter.GlobalGroupConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.GroupMemberConverter;
@@ -67,6 +67,7 @@ import static org.springframework.http.ResponseEntity.status;
 @RequiredArgsConstructor
 public class GlobalGroupsApiController implements GlobalGroupsApi {
     private final GlobalGroupService globalGroupService;
+    private final GlobalGroupMemberService globalGroupMemberService;
     private final GroupMemberConverter groupMemberConverter;
     private final PageRequestConverter pageRequestConverter;
     private final PagedGroupMemberConverter pagedGroupMemberConverter;
@@ -105,14 +106,18 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     @AuditEventMethod(event = RestApiAuditEvent.DELETE_GLOBAL_GROUP)
     @PreAuthorize("hasAuthority('DELETE_GROUP')")
     public ResponseEntity<Void> deleteGlobalGroup(Integer groupId) {
-        globalGroupService.deleteGlobalGroup(groupId);
+        globalGroupService.deleteGlobalGroupMember(groupId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity<Void> deleteGlobalGroupMembers(Integer groupId, MembersDto members) {
-        throw new NotImplementedException("deleteGlobalGroupMembers not implemented yet");
+    @AuditEventMethod(event = RestApiAuditEvent.DELETE_GLOBAL_GROUP_MEMBER)
+    @PreAuthorize("hasAuthority('ADD_AND_REMOVE_GROUP_MEMBERS')")
+    public ResponseEntity<Void> deleteGlobalGroupMember(Integer groupId, Integer memberId) {
+        globalGroupMemberService.removeMemberFromGlobalGroup(groupId, memberId);
+        return ResponseEntity.noContent().build();
     }
+
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_GLOBAL_GROUPS')")

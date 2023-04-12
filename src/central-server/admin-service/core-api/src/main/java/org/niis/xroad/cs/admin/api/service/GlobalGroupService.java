@@ -32,6 +32,7 @@ import lombok.Getter;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -47,7 +48,7 @@ public interface GlobalGroupService {
 
     GlobalGroup getGlobalGroup(Integer groupId);
 
-    void deleteGlobalGroup(Integer groupId);
+    void deleteGlobalGroupMember(Integer groupId);
 
     GlobalGroup updateGlobalGroupDescription(GlobalGroupUpdateDto updateDto);
 
@@ -60,6 +61,8 @@ public interface GlobalGroupService {
     int countGroupMembers(Integer groupId);
 
     Map<Integer, Long> countGroupMembers();
+
+    void verifyCompositionEditability(String groupCode, ErrorMessage errorMessage);
 
     @Builder
     @Getter

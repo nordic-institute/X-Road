@@ -36,6 +36,7 @@ import org.niis.xroad.cs.openapi.model.ClientTypeDto;
 import org.niis.xroad.cs.openapi.model.GlobalGroupCodeAndDescriptionDto;
 import org.niis.xroad.cs.openapi.model.GlobalGroupDescriptionDto;
 import org.niis.xroad.cs.openapi.model.GlobalGroupResourceDto;
+import org.niis.xroad.cs.openapi.model.GroupMemberDto;
 import org.niis.xroad.cs.openapi.model.GroupMembersFilterDto;
 import org.niis.xroad.cs.openapi.model.GroupMembersFilterModelDto;
 import org.niis.xroad.cs.openapi.model.MembersDto;
@@ -50,6 +51,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
@@ -69,7 +71,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
-@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+@SuppressWarnings({"SpringJavaInjectionPointsAutowiringInspection", "checkstyle:MagicNumber", "java:S1192"})
 public class GlobalGroupsStepDefs extends BaseStepDefs {
 
     @Autowired
@@ -195,6 +197,64 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @Step("global group {string} member {string} is deleted")
+    public void globalGroupMemberIsDeleted(String code, String memberIdentifier) {
+        try {
+            var memberId = resolveGlobalGroupMemberId(code, memberIdentifier).orElse(999);
+            globalGroupMemberIsDeleted(code, memberId);
+        } catch (FeignException feignException) {
+            putStepData(RESPONSE_STATUS, feignException.status());
+            putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("global group {string} member {int} is deleted")
+    public void globalGroupMemberIsDeleted(String code, Integer memberId) {
+        try {
+            final ResponseEntity<Void> response = globalGroupsApi.deleteGlobalGroupMember(resolveGlobalGroupId(code), memberId);
+
+            putStepData(RESPONSE, response);
+            putStepData(RESPONSE_STATUS, response.getStatusCodeValue());
+
+            validate(response)
+                    .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                    .execute();
+        } catch (FeignException feignException) {
+            putStepData(RESPONSE_STATUS, feignException.status());
+            putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("global group {string} members list with page size {int} is queried")
+    public void globalGroupMembersListIsQueriedAndContains(String groupCode, Integer pageSize) {
+        final GroupMembersFilterDto filterDto = new GroupMembersFilterDto()
+                .pagingSorting(new PagingSortingParametersDto().limit(pageSize));
+        try {
+            final ResponseEntity<PagedGroupMemberDto> response = globalGroupsApi
+                    .findGlobalGroupMembers(resolveGlobalGroupId(groupCode), filterDto);
+
+            putStepData(RESPONSE, response);
+            putStepData(RESPONSE_STATUS, response.getStatusCodeValue());
+
+            validate(response)
+                    .assertion(equalsStatusCodeAssertion(OK))
+                    .execute();
+        } catch (FeignException feignException) {
+            putStepData(RESPONSE_STATUS, feignException.status());
+            putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("global group {string} members list does not contain {string} member")
+    public void globalGroupMembersListIsQueriedAndContains(String groupCode, String memberCode) {
+        ResponseEntity<PagedGroupMemberDto> response = getRequiredStepData(RESPONSE);
+        validate(response)
+                .assertion(equalsAssertion(0, "body.items.?[name=='" + memberCode + "'].size()",
+                        "Timestamping services list contains the added service"))
+                .execute();
+
+    }
+
     @Step("global group {string} members list is queried and validated using params")
     public void globalGroupMembersListIsQueriedAndValidatedUsingParams(String code, DataTable table) {
         for (Map<String, String> params : table.asMaps()) {
@@ -248,6 +308,26 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                 .map(GlobalGroupResourceDto::getId)
                 .findFirst()
                 .orElseThrow();
+    }
+
+    private Optional<Integer> resolveGlobalGroupMemberId(String groupCode, String memberIdentifier) {
+        final GroupMembersFilterDto filterDto = new GroupMembersFilterDto();
+
+        final PagingSortingParametersDto pagingSortingDto = new PagingSortingParametersDto()
+                .limit(10)
+                .offset(0)
+                .desc(false);
+
+        filterDto.setPagingSorting(pagingSortingDto);
+
+        final ResponseEntity<PagedGroupMemberDto> response = globalGroupsApi
+                .findGlobalGroupMembers(resolveGlobalGroupId(groupCode), filterDto);
+
+        return response.getBody().getItems().stream()
+                .filter(member -> memberIdentifier.equals(member.getName()))
+                .map(GroupMemberDto::getId)
+                .map(Integer::valueOf)
+                .findFirst();
     }
 
     @Step("global group {string} has filter model as follows")
