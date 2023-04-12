@@ -41,7 +41,7 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class SecurityServerInitializer {
+public class CentralServerInitializer {
     private final MockServerService mockServerService;
     private final FeignInitializationApi initializationApi;
 

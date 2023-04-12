@@ -148,6 +148,7 @@ public enum RestApiAuditEvent {
     ADD_GLOBAL_GROUP("Add global group"),
     ADD_GLOBAL_GROUP_MEMBERS("Add members to global group"),
     DELETE_GLOBAL_GROUP("Delete global group"),
+    DELETE_GLOBAL_GROUP_MEMBER("Remove members from global group"),
 
     EDIT_GLOBAL_GROUP_DESCRIPTION("Edit global group description"),
 

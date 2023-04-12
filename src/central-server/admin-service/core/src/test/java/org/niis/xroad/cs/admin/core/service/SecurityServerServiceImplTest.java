@@ -51,7 +51,7 @@ import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.service.ClientService;
-import org.niis.xroad.cs.admin.api.service.GroupMemberService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
@@ -103,7 +103,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
     @Mock
     private ManagementRequestServiceImpl managementRequestService;
     @Mock
-    private GroupMemberService groupMemberService;
+    private GlobalGroupMemberService groupMemberService;
     @Mock
     private ManagementRequestView managementRequestView;
     @Mock

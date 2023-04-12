@@ -185,3 +185,64 @@ Feature: Global groups API
       | $identifier              | $isNew |
       | CS:TEST:member:not-found | true   |
     Then Response is of status code 404 and error code "subsystem_not_found"
+
+  Scenario: Delete global group member fails on protected group
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And member class 'E2E' is created
+    And new member 'CS:E2E:m-2' is added
+    And new security server 'CS:E2E:m-2:SS-1' authentication certificate registered with origin 'SECURITY_SERVER' and approved
+    When global group "security-server-owners" member 'CS:E2E:m-2' is deleted
+    Then Response is of status code 400 and error code 'owners_global_group_member_cannot_be_deleted'
+
+  Scenario: Add and delete members to global group
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And new global group 'test-group' with description 'group description' is added
+    And member class 'E2E' is created
+    And new member 'CS:E2E:m-1' is added
+    And new member 'CS:E2E:m-2' is added
+    And new member 'CS:E2E:m-3' is added
+    And members are added to group 'test-group'
+      | $identifier | $isNew |
+      | CS:E2E:m-1  | true   |
+      | CS:E2E:m-2  | true   |
+      | CS:E2E:m-3  | true   |
+    And new global group 'test-group' with description 'group description' is added
+    And global group 'test-group' has 3 members
+    When global group "test-group" member "CS:E2E:m-2" is deleted
+    Then global group "test-group" members list with page size 10 is queried
+    And global group "test-group" members list does not contain "CS:E2E:m-2" member
+
+  Scenario: Add and delete members to global group fails due to wrong member
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And new global group 'test-group' with description 'group description' is added
+    And member class 'E2E' is created
+    And new member 'CS:E2E:m-1' is added
+    And new member 'CS:E2E:m-2' is added
+    And new member 'CS:E2E:m-3' is added
+    And members are added to group 'test-group'
+      | $identifier | $isNew |
+      | CS:E2E:m-1  | true   |
+    And new global group 'test-group' with description 'group description' is added
+    When global group "test-group" member "CS:E2E:m-missing" is deleted
+    Then Response is of status code 404 and error code "member_not_found"
+
+  Scenario: Add and delete members to global group fails to due to mismatched group
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And new global group 'test-group' with description 'group description' is added
+    And member class 'E2E' is created
+    And new member 'CS:E2E:m-1' is added
+    And new member 'CS:E2E:m-2' is added
+    And new member 'CS:E2E:m-3' is added
+    And members are added to group 'test-group'
+      | $identifier | $isNew |
+      | CS:E2E:m-1  | true   |
+      | CS:E2E:m-2  | true   |
+    And new global group 'test-group' with description 'group description' is added
+    And new global group 'test-group-2' with description 'group description' is added
+    When global group "test-group-2" member 1 is deleted
+    Then Response is of status code 400 and error code "global_group_member_mismatch"
+
+  Scenario: Delete global group member is forbidden for non privileged user
+    Given Authentication header is set to SECURITY_OFFICER
+    When global group "security-server-owners" member 'CS:E2E:m-2' is deleted
+    Then Response is of status code 403

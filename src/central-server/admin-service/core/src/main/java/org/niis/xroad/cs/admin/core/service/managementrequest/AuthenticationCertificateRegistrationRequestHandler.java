@@ -37,7 +37,7 @@ import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Origin;
-import org.niis.xroad.cs.admin.api.service.GroupMemberService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -88,7 +88,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     private final AuthenticationCertificateRegistrationRequestRepository authCertReqRequests;
     private final AuthCertRepository authCerts;
     private final SecurityServerRepository servers;
-    private final GroupMemberService groupMemberService;
+    private final GlobalGroupMemberService groupMemberService;
     private final RequestMapper requestMapper;
 
     /**

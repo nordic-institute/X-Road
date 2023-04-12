@@ -915,10 +915,10 @@ paths:
       summary: find global group members
       tags:
         - global-groups
-  /global-groups/{group_id}/members/delete:
-    post:
-      description: <h3>Administrator deletes members from global group.</h3>
-      operationId: deleteGlobalGroupMembers
+  /global-groups/{group_id}/members/{member_id}:
+    delete:
+      description: <h3>Administrator deletes member from global group.</h3>
+      operationId: deleteGlobalGroupMember
       parameters:
         - description: id of the global group
           in: path
@@ -928,14 +928,17 @@ paths:
             format: int32
             minLength: 1
             type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Members'
+        - description: id of the global group member
+          in: path
+          name: member_id
+          required: true
+          schema:
+            format: int32
+            minLength: 1
+            type: integer
       responses:
         '204':
-          description: members deleted
+          description: member deleted
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -948,7 +951,7 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: delete members from global group
+      summary: delete member from global group
       tags:
         - global-groups
   /configuration-sources/{configuration_type}/anchor:

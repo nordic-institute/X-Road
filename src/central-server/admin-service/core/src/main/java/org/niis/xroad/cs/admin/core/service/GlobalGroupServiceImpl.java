@@ -120,7 +120,7 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     }
 
     @Override
-    public void deleteGlobalGroup(Integer groupId) {
+    public void deleteGlobalGroupMember(Integer groupId) {
         handleInternalDelete(findGlobalGroupOrThrowException(groupId));
     }
 
@@ -148,8 +148,7 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
         final var group = findGlobalGroupOrThrowException(groupId);
 
         addAuditData(group);
-        verifyCompositionEditability(group, CANNOT_ADD_MEMBER_TO_OWNERS_GROUP);
-
+        verifyCompositionEditability(group.getGroupCode(), CANNOT_ADD_MEMBER_TO_OWNERS_GROUP);
         return membersToAdd.stream()
                 .distinct()
                 .map(clientId -> Pair.of(clientId, addGlobalGroupMember(clientId, group)))
@@ -205,10 +204,11 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     }
 
     private void handleInternalDelete(GlobalGroupEntity entity) {
-        verifyCompositionEditability(entity, OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED);
+        verifyCompositionEditability(entity.getGroupCode(), OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED);
         addAuditData(entity);
         globalGroupRepository.deleteById(entity.getId());
     }
+
 
     private GlobalGroup handleInternalUpdate(GlobalGroupEntity globalGroup, GlobalGroupUpdateDto updateDto) {
         globalGroup.setDescription(updateDto.getDescription());
@@ -216,6 +216,14 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
         addAuditData(globalGroup);
         var savedEntity = globalGroupRepository.save(globalGroup);
         return globalGroupMapper.toTarget(savedEntity);
+    }
+
+    @Override
+    public void verifyCompositionEditability(String groupCode, ErrorMessage errorMessage) {
+        List<SystemParameterEntity> ownersGroupCode = systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP);
+        if (isOwnersGroup(ownersGroupCode, groupCode)) {
+            throw new ValidationFailureException(errorMessage);
+        }
     }
 
     private boolean isOwnersGroup(List<SystemParameterEntity> ownersGroupCode, String groupCode) {
@@ -227,13 +235,6 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     private void addAuditData(GlobalGroupEntity entity) {
         auditDataHelper.put(RestApiAuditProperty.CODE, entity.getGroupCode());
         auditDataHelper.put(RestApiAuditProperty.DESCRIPTION, entity.getDescription());
-    }
-
-    private void verifyCompositionEditability(GlobalGroupEntity group, ErrorMessage errorMessage) {
-        List<SystemParameterEntity> ownersGroupCode = systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP);
-        if (isOwnersGroup(ownersGroupCode, group.getGroupCode())) {
-            throw new ValidationFailureException(errorMessage);
-        }
     }
 
     private boolean isNotMemberOfGroup(GlobalGroupEntity globalGroupEntity, ClientIdEntity clientIdEntity) {
