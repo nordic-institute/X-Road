@@ -85,7 +85,8 @@ public class ClientsApiController implements ClientsApi {
                                                        String memberCode,
                                                        String subsystemCode,
                                                        ClientTypeDto clientTypeDto,
-                                                       String encodedSecurityServerId) {
+                                                       String encodedSecurityServerId,
+                                                       Integer excludingGroup) {
         PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
         ClientService.SearchParameters params =
                 new ClientService.SearchParameters()
@@ -95,6 +96,7 @@ public class ClientsApiController implements ClientsApi {
                         .setMemberClassSearch(memberClass)
                         .setMemberCodeSearch(memberCode)
                         .setSubsystemCodeSearch(subsystemCode)
+                        .setExcludingGroupParam(excludingGroup)
                         .setClientType(clientTypeDtoConverter.fromDto(clientTypeDto));
         if (StringUtils.isNotEmpty(encodedSecurityServerId)) {
             SecurityServerId id = securityServerIdConverter.convert(encodedSecurityServerId);
@@ -107,5 +109,4 @@ public class ClientsApiController implements ClientsApi {
         PagedClientsDto pagedResults = pagedClientsConverter.convert(page, pagingSorting);
         return ResponseEntity.ok(pagedResults);
     }
-
 }

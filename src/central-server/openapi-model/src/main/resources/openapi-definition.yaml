@@ -2440,6 +2440,14 @@ paths:
             example: FI:GOV:123:sserver1
             format: text
             type: string
+        - description: an optional global group id parameter - only return clients that do not belong to this group. Empty value means the parameter is ignored.
+          in: query
+          name: excluding_group
+          required: false
+          schema:
+            format: int32
+            minLength: 1
+            type: integer
       responses:
         '200':
           content:

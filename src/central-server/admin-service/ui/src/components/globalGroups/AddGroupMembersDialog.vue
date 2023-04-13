@@ -30,8 +30,8 @@
       <v-card-title>
         <slot name="title">
           <span class="dialog-title-text">{{
-              $t('globalGroup.addMembers')
-            }}</span>
+            $t('globalGroup.addMembers')
+          }}</span>
         </slot>
         <v-spacer />
         <xrd-close-button id="dlg-close-x" @click="cancel()" />
@@ -52,21 +52,23 @@
 
         <!-- Table -->
         <v-data-table
-          v-model="selectableClients"
+          v-model="selectedClients"
+          class="elevation-0 data-table"
           show-select
-          single-select
+          item-key="id"
           :loading="loading"
           :headers="headers"
           :items="selectableClients"
-          :search="search"
-          hide-default-footer
-          item-key="id"
-          class="elevation-0 data-table"
+          :server-items-length="totalItems"
+          :options.sync="pagingSortingOptions"
+          :page="currentPage"
+          :loader-height="2"
+          :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
           @update:options="changeOptions"
         >
           <template #[`item.data-table-select`]="{ isSelected, select }">
             <v-simple-checkbox
-              data-test="management-subsystem-checkbox"
+              data-test="members-checkbox"
               :ripple="false"
               :value="isSelected"
               @input="select($event)"
@@ -100,15 +102,16 @@
           outlined
           data-test="cancel-button"
           @click="cancel()"
-          >{{ $t('action.cancel') }}</xrd-button
-        >
+          >{{ $t('action.cancel') }}
+        </xrd-button>
 
         <xrd-button
-          :disabled="!selectedClients || selectedClients.length === 0"
           data-test="management-subsystem-select-button"
-          @click="selectSubSystem()"
-          >{{ $t('action.select') }}</xrd-button
-        >
+          :loading="adding"
+          :disabled="anyClientsSelected"
+          @click="addMembers"
+          >{{ $t('action.select') }}
+        </xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -116,25 +119,50 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Client } from '@/openapi-types';
+import { Client, PagedClients } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { clientStore } from '@/store/modules/clients';
 import { notificationsStore } from '@/store/modules/notifications';
-import { toIdentifier } from '@/util/helpers';
-import { DataTableHeader } from 'vuetify';
+import { DataOptions, DataTableHeader } from 'vuetify';
+import { Prop } from 'vue/types/options';
+import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { debounce, toIdentifier } from '@/util/helpers';
+
+// To provide the Vue instance to debounce
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let that: any;
 
 export default Vue.extend({
+  props: {
+    groupId: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       opened: false,
       loading: false,
-      selectableClients: [] as Client[] | undefined,
+      adding: false,
+      currentPage: 1,
+      pagingSortingOptions: {} as DataOptions,
+      clients: {} as PagedClients,
       search: '',
       selectedClients: [] as Client[],
     };
   },
   computed: {
     ...mapStores(clientStore),
+    ...mapStores(useGlobalGroupsStore),
+    anyClientsSelected(): boolean {
+      return !this.selectedClients || this.selectedClients.length === 0;
+    },
+    totalItems(): number {
+      return this.clients.paging_metadata?.total_items || 0;
+    },
+    selectableClients(): Client[] {
+      return this.clients.clients || [];
+    },
     headers(): DataTableHeader[] {
       return [
         {
@@ -180,39 +208,62 @@ export default Vue.extend({
       ];
     },
   },
+  watch: {
+    search: {
+      handler() {
+        this.pagingSortingOptions.page = 1;
+        this.debouncedFetchItems();
+      },
+      deep: true,
+    },
+  },
   created() {
-    this.loading = true;
-    this.clientStore
-      .getByClientType()
-      .then((resp) => {
-        this.selectableClients = resp;
-        this.setSelectedClients();
-      })
-      .catch((error) => {
-        this.showError(error);
-      })
-      .finally(() => {
-        this.loading = false;
-      });
+    that = this;
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    debouncedFetchItems: debounce(() => {
+      // Debounce is used to reduce unnecessary api calls
+      that.fetchClients();
+    }, 600),
+    async fetchClients() {
+      this.loading = true;
+      return this.clientStore
+        .getByExcludingGroup(
+          this.groupId,
+          this.search,
+          this.pagingSortingOptions,
+        )
+        .then((resp) => {
+          this.clients = resp;
+        })
+        .catch((error) => this.showError(error))
+        .finally(() => (this.loading = false));
+    },
     open() {
       this.opened = true;
     },
-    changeOptions: async function () {
-      await this.setSelectedClients();
-    },
-    setSelectedClients() {
-console.log('here')
+    changeOptions() {
+      this.fetchClients();
     },
     cancel(): void {
       this.$emit('cancel');
       this.clearForm();
+      this.opened = false;
     },
-    selectClient(): void {
-      this.$emit('select', this.selectedClients);
-      this.clearForm();
+    addMembers(): void {
+      this.adding = true;
+      const clientIds = this.selectedClients.map((client) =>
+        toIdentifier(client.xroad_id),
+      );
+      this.globalGroupStore
+        .addMembers(this.groupId, clientIds)
+        .then((resp) => this.$emit('added', resp.data.items))
+        .then(() => this.showSuccess('Yay'))
+        .then(() => this.clearForm())
+        .then(() => (this.opened = false))
+        .catch((error) => this.showError(error))
+        .finally(() => (this.adding = false));
     },
     clearForm(): void {
       this.selectedClients = [];
@@ -228,6 +279,7 @@ console.log('here')
 .checkbox-column {
   width: 50px;
 }
+
 .search-input {
   width: 300px;
 }

@@ -76,6 +76,11 @@ public class GlobalGroupMemberEntity extends AuditableEntity {
         this.identifier = ClientIdEntity.ensure(identifier);
     }
 
+    public GlobalGroupMemberEntity(GlobalGroupEntity globalGroup, ClientIdEntity identifier) {
+        this.globalGroup = globalGroup;
+        this.identifier = identifier;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

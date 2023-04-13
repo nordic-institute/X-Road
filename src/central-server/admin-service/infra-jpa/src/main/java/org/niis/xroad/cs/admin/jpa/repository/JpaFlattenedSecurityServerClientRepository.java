@@ -28,9 +28,12 @@ package org.niis.xroad.cs.admin.jpa.repository;
 
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.core.entity.ClientIdEntity_;
 import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity;
 import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity_;
 import org.niis.xroad.cs.admin.core.entity.FlattenedServerClientEntity_;
+import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
+import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity_;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity_;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
@@ -110,6 +113,10 @@ public interface JpaFlattenedSecurityServerClientRepository extends
             if (!StringUtils.isBlank(params.getMemberNameSearch())) {
                 predicates.add(memberNamePredicate(root, builder,
                         params.getMemberNameSearch()));
+            }
+            if (params.getExcludingGroup() != null) {
+                predicates.add(clientNotPartOfGroupPredicate(root, builder,
+                        params.getExcludingGroup()));
             }
             if (params.getClientType() != null) {
                 switch (params.getClientType()) {
@@ -222,6 +229,19 @@ public interface JpaFlattenedSecurityServerClientRepository extends
         return builder.equal(securityServer.get(FlattenedSecurityServerClientViewEntity_.ID), id);
     }
 
+    static Predicate clientNotPartOfGroupPredicate(Root root, CriteriaBuilder builder, Integer groupId) {
+        var criteriaQuery = builder.createQuery();
+
+        var subquery = criteriaQuery.subquery(Integer.class);
+        var globalGroupMember = subquery.from(GlobalGroupMemberEntity.class);
+        var identifier = globalGroupMember.join(GlobalGroupMemberEntity_.IDENTIFIER);
+        subquery
+                .select(identifier.get(ClientIdEntity_.ID))
+                .where(builder.equal(globalGroupMember.get(GlobalGroupMemberEntity_.GLOBAL_GROUP), groupId));
+
+        return builder.not(builder.in(root.get(FlattenedSecurityServerClientViewEntity_.IDENTIFIER)).value(subquery));
+    }
+
     static Predicate multifieldTextSearchPredicate(Root root, CriteriaBuilder builder, String q) {
         return builder.or(
                 memberNamePredicate(root, builder, q),
@@ -237,6 +257,4 @@ public interface JpaFlattenedSecurityServerClientRepository extends
     private static Predicate idIsNotNull(Root root, CriteriaBuilder builder) {
         return builder.isNotNull(root.get("id"));
     }
-
-
 }
