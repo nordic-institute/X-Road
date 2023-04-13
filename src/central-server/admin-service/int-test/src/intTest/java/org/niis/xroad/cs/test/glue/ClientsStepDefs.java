@@ -28,9 +28,12 @@ package org.niis.xroad.cs.test.glue;
 import feign.FeignException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.openapi.model.ClientTypeDto;
+import org.niis.xroad.cs.openapi.model.GlobalGroupResourceDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.test.api.FeignClientsApi;
+import org.niis.xroad.cs.test.api.FeignGlobalGroupsApi;
 import org.niis.xroad.cs.test.utils.ScenarioValueEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -43,6 +46,9 @@ import static org.springframework.http.HttpStatus.OK;
 public class ClientsStepDefs extends BaseStepDefs {
     @Autowired
     private FeignClientsApi clientsApi;
+
+    @Autowired
+    private FeignGlobalGroupsApi globalGroupsApi;
 
     @Step("Clients are queried and validated with following parameters")
     public void listClients(DataTable table) {
@@ -61,7 +67,8 @@ public class ClientsStepDefs extends BaseStepDefs {
                     getStr(params, "$memberCode"),
                     getStr(params, "$subsystemCode"),
                     clientType(params.get("$clientType")),
-                    getStr(params, "$securityServer"));
+                    getStr(params, "$securityServer"),
+                    resolveGlobalGroupId(params.get("$excludingGroup")));
             putStepData(StepDataKey.RESPONSE, response);
             putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
         } catch (FeignException feignException) {
@@ -81,6 +88,17 @@ public class ClientsStepDefs extends BaseStepDefs {
         pagingParams.setLimit(safeToInt(limit));
         pagingParams.setOffset(safeToInt(offset));
         return pagingParams;
+    }
+
+    private Integer resolveGlobalGroupId(String groupCode) {
+        if (StringUtils.isBlank(groupCode)) {
+            return null;
+        }
+        return globalGroupsApi.findGlobalGroups().getBody().stream()
+                .filter(group -> groupCode.equals(group.getCode()))
+                .map(GlobalGroupResourceDto::getId)
+                .findFirst()
+                .orElseThrow();
     }
 
     private ClientTypeDto clientType(String value) {
@@ -106,7 +124,5 @@ public class ClientsStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(safeToInt(params.get("$limit")), "body.pagingMetadata.limit"))
                 .assertion(equalsAssertion(safeToInt(params.get("$offset")), "body.pagingMetadata.offset"))
                 .execute();
-
     }
-
 }
