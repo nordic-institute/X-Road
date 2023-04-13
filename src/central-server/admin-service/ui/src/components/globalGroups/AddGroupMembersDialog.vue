@@ -30,7 +30,7 @@
       <v-card-title>
         <slot name="title">
           <span class="dialog-title-text">{{
-            $t('globalGroup.addMembers')
+            $t('globalGroup.dialog.addMembers.title')
           }}</span>
         </slot>
         <v-spacer />
@@ -101,6 +101,7 @@
           class="button-margin"
           outlined
           data-test="cancel-button"
+          :disabled="adding"
           @click="cancel()"
           >{{ $t('action.cancel') }}
         </xrd-button>
@@ -110,7 +111,7 @@
           :loading="adding"
           :disabled="anyClientsSelected"
           @click="addMembers"
-          >{{ $t('action.select') }}
+          >{{ $t('action.add') }}
         </xrd-button>
       </v-card-actions>
     </v-card>
@@ -259,11 +260,22 @@ export default Vue.extend({
       this.globalGroupStore
         .addMembers(this.groupId, clientIds)
         .then((resp) => this.$emit('added', resp.data.items))
-        .then(() => this.showSuccess('Yay'))
-        .then(() => this.clearForm())
         .then(() => (this.opened = false))
+        .then(() => this.showSuccessMessage())
+        .then(() => this.clearForm())
         .catch((error) => this.showError(error))
         .finally(() => (this.adding = false));
+    },
+    showSuccessMessage: function () {
+      this.showSuccess(
+        this.$t('globalGroup.dialog.addMembers.success', {
+          names: [
+            ...new Set(
+              new Set(this.selectedClients.map((client) => client.member_name)),
+            ),
+          ].join(', '),
+        }),
+      );
     },
     clearForm(): void {
       this.selectedClients = [];
