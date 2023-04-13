@@ -58,7 +58,6 @@
       :items="globalGroupStore.members"
       :search="filter.query"
       :must-sort="true"
-      :items-per-page="10"
       :options.sync="pagingSortingOptions"
       :server-items-length="globalGroupStore.pagingOptions.total_items"
       class="elevation-0 data-table"
@@ -96,7 +95,11 @@
       @cancel="cancelFilter"
       @apply="applyFilter"
     />
-    <add-group-members-dialog ref="addDialog" />
+    <add-group-members-dialog
+      ref="addDialog"
+      :group-id="groupId"
+      @added="refreshList"
+    />
   </section>
 </template>
 
@@ -118,9 +121,6 @@ import AddGroupMembersDialog from './AddGroupMembersDialog.vue';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
-/**
- * Global group view
- */
 export default Vue.extend({
   components: {
     AddGroupMembersDialog,
@@ -138,6 +138,7 @@ export default Vue.extend({
       filter: {} as GroupMembersFilter,
       loading: false,
       showFilterDialog: false,
+      selectedClients: [] as string[],
     };
   },
   computed: {
@@ -207,6 +208,7 @@ export default Vue.extend({
   watch: {
     filter: {
       handler() {
+        this.pagingSortingOptions.page = 1;
         this.debouncedFetchItems();
       },
       deep: true,
@@ -244,6 +246,10 @@ export default Vue.extend({
       this.filter.query = '';
       this.fetchItems(this.pagingSortingOptions, filter);
       this.showFilterDialog = false;
+    },
+    refreshList(newMembers: string[]) {
+      this.fetchItems(this.pagingSortingOptions, this.filter);
+      this.selectedClients.concat(newMembers);
     },
   },
 });
