@@ -70,6 +70,11 @@ export const useCertificationServiceStore = defineStore(
             throw error;
           });
       },
+      deleteById(certificationServiceId: number) {
+        return axios.delete(
+          `/certification-services/${certificationServiceId}`,
+        );
+      },
       add(newCas: CertificationServiceFileAndSettings) {
         const formData = new FormData();
         formData.append(
