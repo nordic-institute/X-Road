@@ -29,6 +29,11 @@
     createhome: "yes"
     system: "yes"
 
+- name: Ensure nginx has access to ca user's home directory
+  file:
+    mode: 0755
+    path: /home/ca
+
 - name: ocsp user
   user:
     name: "ocsp"
