@@ -234,7 +234,8 @@
     "conf_verification.other": "Configuration verification failed: other",
     "conf_verification.outdated": "Configuration verification failed: outdated",
     "conf_verification.signature_invalid": "Configuration verification failed: signature_invalid",
-    "conf_verification.unreachable": "Configuration verification failed: unreachable"
+    "conf_verification.unreachable": "Configuration verification failed: unreachable",
+    "cannot_add_member_to_owners_group": "Cannot add members to server owner group"
   },
   "fields": {
     "init": {
@@ -388,7 +389,13 @@
     "dialog": {
       "addMembers": {
         "title": "Add Members",
-        "success": "Members: {names} are added to the system configuration"
+        "success": "Members with identifiers: {identifiers} are added to this global group"
+      },
+      "deleteMember": {
+        "title": "Delete Member",
+        "confirmation": "Are you sure you want to delete the group member with identifier \"<b class=\"no-break\">{identifier}</b>\" from this global group? Enter the member code to confirm.",
+        "placeholder": "Enter Member Code",
+        "success": "Member with identifier \"{identifier}\" is deleted from this global group"
       }
     }
   },

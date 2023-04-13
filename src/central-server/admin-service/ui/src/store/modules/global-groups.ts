@@ -114,7 +114,7 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
         .post('/global-groups', codeAndDescription)
         .finally(() => this.findAll());
     },
-    addMembers(groupId: string, clientIds: string[]) {
+    addGroupMembers(groupId: string, clientIds: string[]) {
       const request: Members = {
         items: clientIds,
       };
@@ -122,6 +122,9 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
         `/global-groups/${groupId}/members/add`,
         request,
       );
+    },
+    deleteGroupMember(groupId: string, memberId: string) {
+      return axios.delete(`/global-groups/${groupId}/members/${memberId}`);
     },
     deleteById(groupId: string) {
       return axios

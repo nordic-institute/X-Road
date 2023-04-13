@@ -67,7 +67,7 @@
       @update:options="changeOptions"
     >
       <template #[`item.name`]="{ item }">
-        <div class="member-name xrd-clickable" @click="toDetails(item)">
+        <div class="member-name xrd-clickable">
           <xrd-icon-base class="mr-4">
             <XrdIconFolderOutline />
           </xrd-icon-base>
@@ -75,12 +75,13 @@
         </div>
       </template>
 
-      <template #[`item.button`]>
+      <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
           <xrd-button
             v-if="allowAddAndRemoveGroupMembers"
             text
             :outlined="false"
+            @click="$refs.deleteDialog.open(item)"
             >{{ $t('action.remove') }}
           </xrd-button>
         </div>
@@ -100,6 +101,11 @@
       :group-id="groupId"
       @added="refreshList"
     />
+    <delete-group-member-dialog
+      ref="deleteDialog"
+      :group-id="groupId"
+      @deleted="refreshList"
+    />
   </section>
 </template>
 
@@ -116,6 +122,7 @@ import { userStore } from '@/store/modules/user';
 import GroupMembersFilterDialog from './GroupMembersFilterDialog.vue';
 import { debounce } from '@/util/helpers';
 import AddGroupMembersDialog from './AddGroupMembersDialog.vue';
+import DeleteGroupMemberDialog from './DeleteGroupMemberDialog.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,6 +130,7 @@ let that: any;
 
 export default Vue.extend({
   components: {
+    DeleteGroupMemberDialog,
     AddGroupMembersDialog,
     GroupMembersFilterDialog,
   },
@@ -138,7 +146,6 @@ export default Vue.extend({
       filter: {} as GroupMembersFilter,
       loading: false,
       showFilterDialog: false,
-      selectedClients: [] as string[],
     };
   },
   computed: {
@@ -148,9 +155,9 @@ export default Vue.extend({
       return this.hasPermission(Permissions.ADD_AND_REMOVE_GROUP_MEMBERS);
     },
     memberCount(): number {
-      return this.globalGroupStore.members === undefined
+      return this.globalGroupStore.pagingOptions === undefined
         ? 0
-        : this.globalGroupStore.members.length;
+        : this.globalGroupStore.pagingOptions.total_items;
     },
     membersHeaders(): DataTableHeader[] {
       return [
@@ -247,9 +254,8 @@ export default Vue.extend({
       this.fetchItems(this.pagingSortingOptions, filter);
       this.showFilterDialog = false;
     },
-    refreshList(newMembers: string[]) {
+    refreshList() {
       this.fetchItems(this.pagingSortingOptions, this.filter);
-      this.selectedClients.concat(newMembers);
     },
   },
 });

@@ -125,7 +125,6 @@ import { mapActions, mapStores } from 'pinia';
 import { clientStore } from '@/store/modules/clients';
 import { notificationsStore } from '@/store/modules/notifications';
 import { DataOptions, DataTableHeader } from 'vuetify';
-import { Prop } from 'vue/types/options';
 import { useGlobalGroupsStore } from '@/store/modules/global-groups';
 import { debounce, toIdentifier } from '@/util/helpers';
 
@@ -258,22 +257,18 @@ export default Vue.extend({
         toIdentifier(client.xroad_id),
       );
       this.globalGroupStore
-        .addMembers(this.groupId, clientIds)
+        .addGroupMembers(this.groupId, clientIds)
         .then((resp) => this.$emit('added', resp.data.items))
         .then(() => (this.opened = false))
-        .then(() => this.showSuccessMessage())
+        .then(() => this.showSuccessMessage(clientIds))
         .then(() => this.clearForm())
         .catch((error) => this.showError(error))
         .finally(() => (this.adding = false));
     },
-    showSuccessMessage: function () {
+    showSuccessMessage(identifiers: string[]) {
       this.showSuccess(
         this.$t('globalGroup.dialog.addMembers.success', {
-          names: [
-            ...new Set(
-              new Set(this.selectedClients.map((client) => client.member_name)),
-            ),
-          ].join(', '),
+          identifiers: identifiers.join(', '),
         }),
       );
     },
