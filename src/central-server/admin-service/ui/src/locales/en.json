@@ -384,7 +384,13 @@
     "instance": "Instance",
     "memberName": "Member Name",
     "subsystem": "Subsystem",
-    "type": "Type"
+    "type": "Type",
+    "dialog": {
+      "addMembers": {
+        "title": "Add Members",
+        "success": "Members: {names} are added to the system configuration"
+      }
+    }
   },
   "globalResources": {
     "addCentralService": "Add Central Service",
