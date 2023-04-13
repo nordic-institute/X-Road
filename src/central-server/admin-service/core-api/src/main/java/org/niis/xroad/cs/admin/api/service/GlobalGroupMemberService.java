@@ -29,9 +29,11 @@ package org.niis.xroad.cs.admin.api.service;
 
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 
-public interface GroupMemberService {
+public interface GlobalGroupMemberService {
 
     void addMemberToGlobalGroup(MemberId memberId, String groupCode);
+
+    void removeMemberFromGlobalGroup(Integer groupId, Integer memberId);
 
     void removeMemberFromGlobalGroup(MemberId memberId, String groupCode);
 

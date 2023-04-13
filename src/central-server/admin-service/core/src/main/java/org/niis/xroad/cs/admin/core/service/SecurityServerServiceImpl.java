@@ -42,7 +42,7 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.service.ClientService;
-import org.niis.xroad.cs.admin.api.service.GroupMemberService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.StableSortHelper;
@@ -85,7 +85,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     private final SecurityServerRepository securityServerRepository;
     private final ManagementRequestService managementRequestService;
     private final ClientService clientService;
-    private final GroupMemberService groupMemberService;
+    private final GlobalGroupMemberService groupMemberService;
     private final SecurityServerMapper securityServerMapper;
     private final CertificateConverter certificateConverter;
     private final AuditDataHelper auditDataHelper;

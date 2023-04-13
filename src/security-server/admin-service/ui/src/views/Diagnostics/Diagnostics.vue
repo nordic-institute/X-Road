@@ -367,7 +367,6 @@
                 </span>
                 {{ $t(`${messageLogEncryptionDiagnostics.message_log_grouping_rule}`) }}
               </div>
-2
               <table class="xrd-table" v-if="messageLogEncryptionDiagnostics.message_log_archive_encryption_status" data-test="member-encryption-status">
                 <thead>
                   <tr>

@@ -99,6 +99,14 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     }
 
     @Override
+    public void delete(Integer id) {
+        auditDataHelper.put(CA_ID, id);
+
+        final ApprovedCaEntity entity = getById(id);
+        approvedCaRepository.delete(entity);
+    }
+
+    @Override
     public CertificationService update(CertificationService approvedCa) {
         ApprovedCaEntity persistedApprovedCa = getById(approvedCa.getId());
         Optional.ofNullable(approvedCa.getCertificateProfileInfo())

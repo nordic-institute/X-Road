@@ -140,6 +140,7 @@ public enum RestApiAuditEvent {
     EDIT_SECURITY_SERVER_ADDRESS("Edit security server address"),
 
     ADD_CERTIFICATION_SERVICE("Add certification service"),
+    DELETE_CERTIFICATION_SERVICE("Delete certification service"),
     EDIT_CERTIFICATION_SERVICE_SETTINGS("Edit certification service settings"),
     ADD_CERTIFICATION_SERVICE_OCSP_RESPONDER("Add OCSP responder of certification service"),
     ADD_CERTIFICATION_SERVICE_INTERMEDIATE_CA("Add intermediate CA"),
@@ -148,6 +149,7 @@ public enum RestApiAuditEvent {
     ADD_GLOBAL_GROUP("Add global group"),
     ADD_GLOBAL_GROUP_MEMBERS("Add members to global group"),
     DELETE_GLOBAL_GROUP("Delete global group"),
+    DELETE_GLOBAL_GROUP_MEMBER("Remove members from global group"),
 
     EDIT_GLOBAL_GROUP_DESCRIPTION("Edit global group description"),
 

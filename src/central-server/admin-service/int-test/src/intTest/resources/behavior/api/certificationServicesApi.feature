@@ -45,15 +45,6 @@ Feature: Certification services API
     When Certification service with id 10 is retrieved
     Then Response is of status code 404 and error code "certification_service_not_found"
 
-  @Skip #not implemented
-  @Modifying
-  Scenario: Certification Service delete fails due to wrong id
-    Given Authentication header is set to SYSTEM_ADMINISTRATOR
-    And Certification service with name "cert1" and certificateProfileInfo "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider" is created
-    When Certification service with id 10 is deleted
-    Then Response is of status code 404 and error code "certification_service_not_found"
-
-
   @Modifying
   Scenario: Certification Service is created and updated
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
@@ -78,7 +69,8 @@ Feature: Certification services API
     When Certification services are listed
     Then Response is of status code 403
 
-  Scenario: Certification Service is created with OCSP responders
+  @Modifying
+  Scenario: Certification Service is created with OCSP responders and deleted
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
     And Certification service with name "cert1" and certificateProfileInfo "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider" is created
     And OCSP responder with url "https://test.com" is added to certification service with id 1
@@ -88,6 +80,29 @@ Feature: Certification services API
       | $id | $url               | $hasCertificate |
       | 1   | https://test.com   | true            |
       | 2   | https://test-2.com | true            |
+    When certification service is deleted
+    And certification service is retrieved
+    Then Response is of status code 404 and error code "certification_service_not_found"
+
+  @Modifying
+  Scenario: Certification service deletion
+    Given Authentication header is set to SYSTEM_ADMINISTRATOR
+    And Certification service with name "cert1" and certificateProfileInfo "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider" is created
+    And OCSP responder with url "https://test.com" is added to certification service with id 1
+    And OCSP responder with url "https://test-2.com" is added to certification service with id 1
+    And intermediate CA added to certification service
+    And OCSP responder is added to intermediate CA
+    And intermediate CA added to certification service
+    When certification service is deleted
+    And certification service is retrieved
+    Then Response is of status code 404 and error code "certification_service_not_found"
+
+  @Modifying
+  Scenario: Certification Service delete fails due to wrong id
+    Given Authentication header is set to SYSTEM_ADMINISTRATOR
+    And Certification service with name "cert1" and certificateProfileInfo "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider" is created
+    When Certification service with id -10 is deleted
+    Then Response is of status code 404 and error code "certification_service_not_found"
 
   @Modifying
   Scenario: Certification Service get ocsp responders fails due to wrong id
