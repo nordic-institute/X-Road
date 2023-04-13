@@ -26,7 +26,6 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
@@ -44,7 +43,6 @@ import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.util.MultipartFileUtils;
 import org.springframework.http.ResponseEntity;
@@ -57,7 +55,13 @@ import java.util.List;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CERTIFICATION_SERVICE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CERTIFICATION_SERVICE_INTERMEDIATE_CA;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CERTIFICATION_SERVICE_OCSP_RESPONDER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CERTIFICATION_SERVICE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_CERTIFICATION_SERVICE_SETTINGS;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
 
@@ -75,7 +79,7 @@ public class CertificationServicesController implements CertificationServicesApi
 
     @Override
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE)
+    @AuditEventMethod(event = ADD_CERTIFICATION_SERVICE)
     public ResponseEntity<ApprovedCertificationServiceDto> addCertificationService(MultipartFile certificate,
                                                                                    String certificateProfileInfo,
                                                                                    String tlsAuth) {
@@ -87,7 +91,7 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE_INTERMEDIATE_CA)
+    @AuditEventMethod(event = ADD_CERTIFICATION_SERVICE_INTERMEDIATE_CA)
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     public ResponseEntity<CertificateAuthorityDto> addCertificationServiceIntermediateCa(Integer id, MultipartFile certificate) {
         final CertificateAuthority certificateAuthority = certificationServicesService
@@ -96,7 +100,7 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_CERTIFICATION_SERVICE_OCSP_RESPONDER)
+    @AuditEventMethod(event = ADD_CERTIFICATION_SERVICE_OCSP_RESPONDER)
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(Integer caId, String url, MultipartFile certificate) {
         final var addRequest = new OcspResponderAddRequest();
@@ -107,8 +111,11 @@ public class CertificationServicesController implements CertificationServicesApi
     }
 
     @Override
+    @AuditEventMethod(event = DELETE_CERTIFICATION_SERVICE)
+    @PreAuthorize("hasAuthority('DELETE_APPROVED_CA')")
     public ResponseEntity<Void> deleteCertificationService(Integer id) {
-        throw new NotImplementedException("deleteCertificationService not implemented yet");
+        certificationServicesService.delete(id);
+        return noContent().build();
     }
 
     @Override
@@ -146,7 +153,7 @@ public class CertificationServicesController implements CertificationServicesApi
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_APPROVED_CA')")
-    @AuditEventMethod(event = RestApiAuditEvent.EDIT_CERTIFICATION_SERVICE_SETTINGS)
+    @AuditEventMethod(event = EDIT_CERTIFICATION_SERVICE_SETTINGS)
     public ResponseEntity<ApprovedCertificationServiceDto> updateCertificationService(String id, CertificationServiceSettingsDto settings) {
         CertificationService approvedCa = new CertificationService()
                 .setId(Integer.valueOf(id))
