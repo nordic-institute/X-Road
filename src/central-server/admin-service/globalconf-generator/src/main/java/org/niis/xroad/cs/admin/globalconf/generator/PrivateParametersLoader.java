@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.domain.AnchorUrl;
 import org.niis.xroad.cs.admin.api.domain.AnchorUrlCert;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
@@ -62,7 +63,13 @@ class PrivateParametersLoader {
     @SneakyThrows
     private PrivateParameters.ManagementService getManagementService() {
         var managementService = new PrivateParameters.ManagementService();
-        managementService.setAuthCertRegServiceAddress(systemParameterService.getAuthCertRegUrl());
+
+        String authCertRegUrl = systemParameterService.getAuthCertRegUrl();
+        if (StringUtils.isBlank(authCertRegUrl)) {
+            throw new ConfGeneratorException("Auth Cert Registration Service URL not configured");
+        }
+        managementService.setAuthCertRegServiceAddress(authCertRegUrl);
+
         managementService.setAuthCertRegServiceCert(internalTlsCertificateService.getInternalTlsCertificate().getEncoded());
         managementService.setManagementRequestServiceProviderId(systemParameterService.getManagementServiceProviderId());
         return managementService;

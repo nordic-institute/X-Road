@@ -48,6 +48,7 @@ import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -98,6 +99,14 @@ class PrivateParametersLoaderTest {
             assertThat(managementService.getAuthCertRegServiceCert()).isEqualTo(AUTH_CERT_REG_SERVICE_CERT.getEncoded());
         });
         assertThat(parameters.getTimeStampingIntervalSeconds()).isEqualTo(TIMESTAMPING_INTERVAL_SECONDS);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAuthCertRegUrlIsBlank() {
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("XRD");
+        when(systemParameterService.getAuthCertRegUrl()).thenReturn("");
+
+        assertThrows(ConfGeneratorException.class, () -> privateParametersLoader.load());
     }
 
     private static TrustedAnchor createTrustedAnchor() {
