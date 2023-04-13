@@ -61,7 +61,6 @@
           :items="selectableClients"
           :server-items-length="totalItems"
           :options.sync="pagingSortingOptions"
-          :page="currentPage"
           :loader-height="2"
           :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
           @update:options="changeOptions"
@@ -144,7 +143,6 @@ export default Vue.extend({
       opened: false,
       loading: false,
       adding: false,
-      currentPage: 1,
       pagingSortingOptions: {} as DataOptions,
       clients: {} as PagedClients,
       search: '',
@@ -274,6 +272,7 @@ export default Vue.extend({
     },
     clearForm(): void {
       this.selectedClients = [];
+      this.pagingSortingOptions.page = 1;
       this.search = '';
     },
   },
