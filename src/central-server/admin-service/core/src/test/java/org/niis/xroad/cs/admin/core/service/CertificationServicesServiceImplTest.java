@@ -65,6 +65,7 @@ import static ee.ria.xroad.common.TestCertUtil.generateAuthCert;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -145,6 +146,28 @@ class CertificationServicesServiceImplTest {
         assertEquals(VALID_FROM, certificationService.getNotBefore());
         assertEquals(VALID_TO, certificationService.getNotAfter());
         assertTrue(certificationService.getTlsAuth());
+    }
+
+    @Test
+    void delete() {
+        ApprovedCaEntity entity = approvedCa();
+        when(approvedCaRepository.findById(ID)).thenReturn(Optional.of(entity));
+
+        service.delete(ID);
+
+        verify(approvedCaRepository).delete(entity);
+        verify(auditDataHelper).put(CA_ID, ID);
+    }
+
+    @Test
+    void deleteShouldThrowNotFound() {
+        when(approvedCaRepository.findById(any())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.delete(ID))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Certification service not found.");
+
+        verify(auditDataHelper).put(CA_ID, ID);
     }
 
     @Test

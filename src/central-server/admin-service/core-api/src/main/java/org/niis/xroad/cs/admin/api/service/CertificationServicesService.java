@@ -40,6 +40,8 @@ public interface CertificationServicesService {
 
     CertificationService get(Integer id);
 
+    void delete(Integer id);
+
     CertificationService update(CertificationService approvedCa);
 
     List<CertificationService> findAll();
