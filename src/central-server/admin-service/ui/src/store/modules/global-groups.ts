@@ -33,6 +33,7 @@ import {
   GroupMember,
   GroupMembersFilter,
   GroupMembersFilterModel,
+  Members,
   PagedGroupMember,
   PagingMetadata,
 } from '@/openapi-types';
@@ -112,6 +113,15 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
       return axios
         .post('/global-groups', codeAndDescription)
         .finally(() => this.findAll());
+    },
+    addMembers(groupId: string, clientIds: string[]) {
+      const request: Members = {
+        items: clientIds,
+      };
+      return axios.post<Members>(
+        `/global-groups/${groupId}/members/add`,
+        request,
+      );
     },
     deleteById(groupId: string) {
       return axios

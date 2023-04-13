@@ -35,9 +35,10 @@
         data-test="remove-group-button"
         outlined
         @click="showDeleteGroupDialog = true"
-        ><v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
-        {{ $t('globalGroup.deleteGroup') }}</xrd-button
       >
+        <v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
+        {{ $t('globalGroup.deleteGroup') }}
+      </xrd-button>
     </header>
 
     <xrd-empty-placeholder
