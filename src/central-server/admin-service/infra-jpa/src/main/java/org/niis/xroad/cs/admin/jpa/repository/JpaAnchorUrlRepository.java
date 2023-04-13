@@ -1,6 +1,5 @@
 /**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,57 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.entity;
+package org.niis.xroad.cs.admin.jpa.repository;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.niis.xroad.cs.admin.core.entity.AnchorUrlEntity;
+import org.niis.xroad.cs.admin.core.repository.AnchorUrlRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+@Repository
+public interface JpaAnchorUrlRepository extends JpaRepository<AnchorUrlEntity, Integer>, AnchorUrlRepository {
 
-import java.util.HashSet;
-import java.util.Set;
-
-@Entity
-@Table(name = AnchorUrlEntity.TABLE_NAME)
-@NoArgsConstructor
-public class AnchorUrlEntity {
-
-    public static final String TABLE_NAME = "anchor_urls";
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
-    @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
-    @Column(name = "id", unique = true, nullable = false)
-    @Getter
-    private int id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trusted_anchor_id")
-    @Getter
-    @Setter
-    private TrustedAnchorEntity trustedAnchor;
-
-    @Column(name = "url")
-    @Getter
-    @Setter
-    private String url;
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "anchorUrl")
-    @Getter
-    @Setter
-    private Set<AnchorUrlCertEntity> anchorUrlCerts = new HashSet<>(0);
-
+    void deleteByTrustedAnchorId(int trustedAnchorId);
 }
-
-

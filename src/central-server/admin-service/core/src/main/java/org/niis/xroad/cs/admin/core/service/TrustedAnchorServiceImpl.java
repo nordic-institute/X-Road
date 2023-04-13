@@ -35,8 +35,12 @@ import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
+import org.niis.xroad.cs.admin.core.entity.AnchorUrlCertEntity;
+import org.niis.xroad.cs.admin.core.entity.AnchorUrlEntity;
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.TrustedAnchorMapper;
+import org.niis.xroad.cs.admin.core.repository.AnchorUrlCertRepository;
+import org.niis.xroad.cs.admin.core.repository.AnchorUrlRepository;
 import org.niis.xroad.cs.admin.core.repository.TrustedAnchorRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
@@ -50,6 +54,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateAnchorHashDelimited;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MALFORMED_ANCHOR;
@@ -67,6 +72,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INSTANCE_
 class TrustedAnchorServiceImpl implements TrustedAnchorService {
 
     private final TrustedAnchorRepository trustedAnchorRepository;
+    private final AnchorUrlRepository anchorUrlRepository;
+    private final AnchorUrlCertRepository anchorUrlCertRepository;
     private final TrustedAnchorMapper trustedAnchorMapper;
     private final AuditDataHelper auditDataHelper;
     private final ConfigurationVerifier configurationVerifier;
@@ -105,13 +112,42 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
 
         validateTrustedAnchor(trustedAnchor);
 
-        final TrustedAnchorEntity entity = trustedAnchorRepository.findFirstByInstanceIdentifier(anchorV2.getInstanceIdentifier())
-                .map(existing -> trustedAnchorMapper.toEntity(anchorV2, trustedAnchor, existing))
-                .orElse(trustedAnchorMapper.toEntity(anchorV2, trustedAnchor, new TrustedAnchorEntity()));
-
-        final TrustedAnchorEntity saved = trustedAnchorRepository.save(entity);
-        return trustedAnchorMapper.toTarget(saved);
+        final TrustedAnchorEntity entity = saveTrustedAnchor(anchorV2, trustedAnchor);
+        return trustedAnchorMapper.toTarget(entity);
     }
+
+    private TrustedAnchorEntity saveTrustedAnchor(ConfigurationAnchorV2 anchorV2, byte[] anchorFile) {
+        final TrustedAnchorEntity entity = trustedAnchorRepository.findFirstByInstanceIdentifier(anchorV2.getInstanceIdentifier())
+                .map(existing -> {
+                    anchorUrlRepository.deleteByTrustedAnchorId(existing.getId());
+                    return existing;
+                })
+                .orElseGet(TrustedAnchorEntity::new);
+
+        entity.setInstanceIdentifier(anchorV2.getInstanceIdentifier());
+        entity.setTrustedAnchorFile(anchorFile);
+        entity.setTrustedAnchorHash(calculateAnchorHashDelimited(anchorFile));
+        entity.setGeneratedAt(anchorV2.getGeneratedAt().toInstant());
+
+        var persistedEntity = trustedAnchorRepository.save(entity);
+
+        anchorV2.getLocations().forEach(location -> {
+            final AnchorUrlEntity urlEntity = new AnchorUrlEntity();
+            urlEntity.setUrl(location.getDownloadURL());
+            urlEntity.setTrustedAnchor(persistedEntity);
+            anchorUrlRepository.save(urlEntity);
+
+            location.getVerificationCerts().forEach(cert -> {
+                AnchorUrlCertEntity urlCertEntity = new AnchorUrlCertEntity();
+                urlCertEntity.setCert(cert);
+                urlCertEntity.setAnchorUrl(urlEntity);
+                anchorUrlCertRepository.save(urlCertEntity);
+            });
+        });
+
+        return persistedEntity;
+    }
+
 
     @Override
     public TrustedAnchor findByHash(String hash) {
@@ -146,4 +182,5 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
             }
         }
     }
+
 }
