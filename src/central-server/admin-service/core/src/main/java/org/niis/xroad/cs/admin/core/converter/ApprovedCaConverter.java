@@ -30,12 +30,9 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.niis.xroad.common.exception.ValidationFailureException;
-import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
-import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
@@ -43,36 +40,12 @@ import java.util.Collection;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_CERTIFICATE;
 
 @Component
 @RequiredArgsConstructor
 public class ApprovedCaConverter {
     private final OcspResponderConverter ocspResponderConverter;
     private final CaInfoConverter caInfoConverter;
-
-    public ApprovedCaEntity toEntity(ApprovedCertificationService certificationService) {
-        var caEntity = new ApprovedCaEntity();
-        caEntity.setCertProfileInfo(certificationService.getCertificateProfileInfo());
-        caEntity.setAuthenticationOnly(certificationService.getTlsAuth());
-        X509Certificate certificate = handledCertificationChainRead(certificationService.getCertificate());
-        caEntity.setName(CertUtils.getSubjectCommonName(certificate));
-
-        var caInfo = new CaInfoEntity();
-        caInfo.setCert(certificationService.getCertificate());
-        caInfo.setValidFrom(certificate.getNotBefore().toInstant());
-        caInfo.setValidTo(certificate.getNotAfter().toInstant());
-        caEntity.setCaInfo(caInfo);
-        return caEntity;
-    }
-
-    private X509Certificate handledCertificationChainRead(byte[] certificate) {
-        try {
-            return CertUtils.readCertificateChain(certificate)[0];
-        } catch (Exception e) {
-            throw new ValidationFailureException(INVALID_CERTIFICATE);
-        }
-    }
 
     @SneakyThrows
     public CertificationService convert(ApprovedCaEntity entity) {

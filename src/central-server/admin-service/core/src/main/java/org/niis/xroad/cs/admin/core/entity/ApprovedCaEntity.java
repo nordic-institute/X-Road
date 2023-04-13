@@ -30,7 +30,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -60,7 +59,7 @@ public class ApprovedCaEntity extends AuditableEntity {
     @Getter
     private int id;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "top_ca_id")
     @Getter
     @Setter
@@ -92,15 +91,11 @@ public class ApprovedCaEntity extends AuditableEntity {
     private String certProfileInfo;
 
     //this is the set of intermediate CAs
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "approvedCa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "approvedCa")
     @Getter
     @Setter
     private Set<CaInfoEntity> intermediateCaInfos = new HashSet<>(0);
 
-    public void addIntermediateCa(CaInfoEntity intermediateCa) {
-        intermediateCa.setApprovedCa(this);
-        getIntermediateCaInfos().add(intermediateCa);
-    }
 }
 
 
