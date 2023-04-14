@@ -393,7 +393,7 @@
       },
       "deleteMember": {
         "title": "Delete Member",
-        "confirmation": "Are you sure you want to delete the group member with identifier \"<b class=\"no-break\">{identifier}</b>\" from this global group? Enter the member code to confirm.",
+        "confirmation": "Are you sure you want to delete the group member with identifier \"{identifier}\" from this global group? Enter the member code to confirm.",
         "placeholder": "Enter Member Code",
         "success": "Member with identifier \"{identifier}\" is deleted from this global group"
       }

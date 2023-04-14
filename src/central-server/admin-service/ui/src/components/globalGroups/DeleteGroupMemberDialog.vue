@@ -38,11 +38,13 @@
       @save="deleteGroupMember"
     >
       <template #content>
-        <p
-          v-html="
-            $t('globalGroup.dialog.deleteMember.confirmation', { identifier })
-          "
-        />
+        <p>
+          <i18n path="globalGroup.dialog.deleteMember.confirmation">
+            <template #identifier>
+              <b class="no-break">{{ identifier }}</b>
+            </template>
+          </i18n>
+        </p>
         <ValidationProvider
           v-slot="{ errors }"
           :rules="`required|is:${member.code}`"
