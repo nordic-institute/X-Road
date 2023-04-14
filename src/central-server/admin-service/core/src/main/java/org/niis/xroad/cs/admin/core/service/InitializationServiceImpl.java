@@ -206,6 +206,10 @@ public class InitializationServiceImpl implements InitializationService {
 
     private void initializeCsSystemParameters() {
         systemParameterService.updateOrCreateParameter(
+                SystemParameterServiceImpl.AUTH_CERT_REG_URL,
+                SystemParameterServiceImpl.DEFAULT_AUTH_CERT_REG_URL
+        );
+        systemParameterService.updateOrCreateParameter(
                 SystemParameterServiceImpl.CONF_SIGN_DIGEST_ALGO_ID,
                 SystemParameterServiceImpl.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID
         );
