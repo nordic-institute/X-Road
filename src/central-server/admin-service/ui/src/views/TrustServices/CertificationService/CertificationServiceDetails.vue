@@ -73,14 +73,48 @@
         data-test="valid-to-card"
       />
     </div>
+
+    <div
+      v-if="showDelete"
+      class="delete-action"
+      data-test="delete-trust-service"
+      @click="showDeleteDialog = true"
+    >
+      <div>
+        <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
+          >mdi-close-circle
+        </v-icon>
+      </div>
+      <div class="action-text">
+        {{ $t('trustServices.trustService.delete.action') }} "{{
+          certificationServiceStore.currentCertificationService.name
+        }}"
+      </div>
+    </div>
+    <xrd-confirm-dialog
+      v-if="certificationServiceStore.currentCertificationService"
+      data-test="delete-trust-service-confirm-dialog"
+      :dialog="showDeleteDialog"
+      :loading="deleting"
+      :data="{
+        name: certificationServiceStore.currentCertificationService.name,
+      }"
+      title="trustServices.trustService.delete.confirmationDialog.title"
+      text="trustServices.trustService.delete.confirmationDialog.message"
+      @cancel="showDeleteDialog = false"
+      @accept="confirmDelete"
+    />
   </main>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
-import { mapStores } from 'pinia';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { Colors, Permissions, RouteName } from '@/global';
+import { notificationsStore } from '@/store/modules/notifications';
+import { userStore } from '@/store/modules/user';
 
 /**
  * Component for a Certification Service details view
@@ -90,8 +124,43 @@ export default Vue.extend({
   components: {
     InfoCard,
   },
+  data() {
+    return {
+      colors: Colors,
+      showDeleteDialog: false,
+      deleting: false,
+    };
+  },
   computed: {
     ...mapStores(useCertificationServiceStore),
+    ...mapState(userStore, ['hasPermission']),
+    showDelete(): boolean {
+      return this.hasPermission(Permissions.DELETE_APPROVED_CA);
+    },
+  },
+  methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    confirmDelete(): void {
+      if (!this.certificationServiceStore.currentCertificationService) return;
+      this.deleting = true;
+      this.certificationServiceStore
+        .deleteById(
+          this.certificationServiceStore.currentCertificationService.id,
+        )
+        .then(() => {
+          this.showDeleteDialog = false;
+          this.deleting = false;
+          this.$router.replace({ name: RouteName.TrustServices });
+          this.showSuccess(
+            this.$t('trustServices.trustService.delete.success'),
+          );
+        })
+        .catch((error) => {
+          this.showDeleteDialog = false;
+          this.deleting = false;
+          this.showError(error);
+        });
+    },
   },
 });
 </script>
@@ -107,6 +176,18 @@ export default Vue.extend({
   font-weight: bold;
   padding-top: 5px;
   padding-bottom: 5px;
+}
+
+.delete-action {
+  margin-top: 34px;
+  color: $XRoad-Link;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+
+  .action-text {
+    margin-top: 2px;
+  }
 }
 
 .certification-service-info-card-group {

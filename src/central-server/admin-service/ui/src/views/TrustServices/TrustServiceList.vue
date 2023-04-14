@@ -38,11 +38,11 @@
           data-test="add-certification-service"
           @click="showAddCSDialog = true"
         >
-          <xrd-icon-base class="xrd-large-button-icon"
-            ><XrdIconAdd
-          /></xrd-icon-base>
-          {{ $t('trustServices.addCertificationService') }}</xrd-button
-        >
+          <xrd-icon-base class="xrd-large-button-icon">
+            <XrdIconAdd />
+          </xrd-icon-base>
+          {{ $t('trustServices.addCertificationService') }}
+        </xrd-button>
       </div>
 
       <!-- Table -->
@@ -83,7 +83,7 @@
       </v-data-table>
     </div>
 
-    <TimestampingServicesList v-if="showTsaList"> </TimestampingServicesList>
+    <TimestampingServicesList v-if="showTsaList"></TimestampingServicesList>
 
     <!-- Dialogs -->
     <AddCertificationServiceDialog
@@ -165,10 +165,16 @@ export default Vue.extend({
     },
   },
   created() {
-    this.certificationServiceStore.fetchAll();
+    this.fetchCertificationServices();
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    fetchCertificationServices(): void {
+      this.loading = true;
+      this.certificationServiceStore
+        .fetchAll()
+        .finally(() => (this.loading = false));
+    },
     hideAddCSDialog(): void {
       this.showAddCSDialog = false;
     },
