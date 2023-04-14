@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.jpa.repository;
 
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.service.ClientService;
-import org.niis.xroad.cs.admin.core.entity.ClientIdEntity_;
 import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity;
 import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity_;
 import org.niis.xroad.cs.admin.core.entity.FlattenedServerClientEntity_;
@@ -37,6 +36,7 @@ import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity_;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity_;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
+import org.niis.xroad.cs.admin.core.entity.XRoadIdEntity_;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil;
@@ -236,7 +236,7 @@ public interface JpaFlattenedSecurityServerClientRepository extends
         var globalGroupMember = subquery.from(GlobalGroupMemberEntity.class);
         var identifier = globalGroupMember.join(GlobalGroupMemberEntity_.IDENTIFIER);
         subquery
-                .select(identifier.get(ClientIdEntity_.ID))
+                .select(identifier.get(XRoadIdEntity_.ID))
                 .where(builder.equal(globalGroupMember.get(GlobalGroupMemberEntity_.GLOBAL_GROUP), groupId));
 
         return builder.not(builder.in(root.get(FlattenedSecurityServerClientViewEntity_.IDENTIFIER)).value(subquery));
