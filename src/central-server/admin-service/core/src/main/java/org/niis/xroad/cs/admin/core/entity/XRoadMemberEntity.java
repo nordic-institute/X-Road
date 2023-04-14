@@ -85,12 +85,12 @@ public class XRoadMemberEntity extends SecurityServerClientEntity {
     @Setter
     private String administrativeContact;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner")
     @Access(AccessType.FIELD)
     @Getter
     private Set<SecurityServerEntity> ownedServers = new HashSet<>(0);
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "xroadMember", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "xroadMember")
     @Access(AccessType.FIELD)
     @Getter
     private Set<SubsystemEntity> subsystems = new HashSet<>(0);

@@ -169,10 +169,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
 
         final XRoadMemberEntity currentOwner = securityServer.getOwner();
 
-        currentOwner.getOwnedServers().remove(securityServer);
-
         securityServer.setOwner(newOwner);
-        newOwner.getOwnedServers().add(securityServer);
 
         members.save(newOwner);
         servers.save(securityServer);
