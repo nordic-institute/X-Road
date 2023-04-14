@@ -129,19 +129,19 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
         entity.setTrustedAnchorHash(calculateAnchorHashDelimited(anchorFile));
         entity.setGeneratedAt(anchorV2.getGeneratedAt().toInstant());
 
-        var persistedEntity = trustedAnchorRepository.save(entity);
+        var persistedEntity = trustedAnchorRepository.saveAndFlush(entity);
 
         anchorV2.getLocations().forEach(location -> {
             final AnchorUrlEntity urlEntity = new AnchorUrlEntity();
             urlEntity.setUrl(location.getDownloadURL());
             urlEntity.setTrustedAnchor(persistedEntity);
-            anchorUrlRepository.save(urlEntity);
+            anchorUrlRepository.saveAndFlush(urlEntity);
 
             location.getVerificationCerts().forEach(cert -> {
                 AnchorUrlCertEntity urlCertEntity = new AnchorUrlCertEntity();
                 urlCertEntity.setCert(cert);
                 urlCertEntity.setAnchorUrl(urlEntity);
-                anchorUrlCertRepository.save(urlCertEntity);
+                anchorUrlCertRepository.saveAndFlush(urlCertEntity);
             });
         });
 

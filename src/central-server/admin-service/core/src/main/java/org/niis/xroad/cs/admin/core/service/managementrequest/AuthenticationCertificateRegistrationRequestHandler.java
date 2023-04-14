@@ -206,11 +206,11 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
         SecurityServerEntity server = servers.findByOwnerIdAndServerCode(owner.getId(), serverCode)
                 .getOrElse(() -> new SecurityServerEntity(owner, serverCode));
         server.setAddress(requestEntity.getAddress());
-        servers.save(server);
+        servers.saveAndFlush(server);
 
         //register certificate
         var authCertEntity = new AuthCertEntity(server, requestEntity.getAuthCert());
-        authCerts.save(authCertEntity);
+        authCerts.saveAndFlush(authCertEntity);
 
         requestEntity.setProcessingStatus(APPROVED);
 

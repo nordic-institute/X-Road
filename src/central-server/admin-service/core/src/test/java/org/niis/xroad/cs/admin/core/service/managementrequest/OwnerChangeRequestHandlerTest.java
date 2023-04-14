@@ -341,7 +341,7 @@ class OwnerChangeRequestHandlerTest {
 
         assertThat(result).isEqualTo(ownerChangeRequestDto);
         verify(securityServerEntity).setOwner(xRoadMemberEntity);
-        verify(servers).save(securityServerEntity);
+        verify(servers).saveAndFlush(securityServerEntity);
         verify(ownerChangeRequestEntity).setProcessingStatus(APPROVED);
 
         verify(groupMemberService).removeMemberFromGlobalGroup(MemberId.create("x", "y", "z"), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);

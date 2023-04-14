@@ -128,7 +128,7 @@ class TrustedAnchorServiceImplTest {
             final byte[] bytes = readAllBytes(Paths.get(getSystemResource("trusted-anchor/trusted-anchor.xml").toURI()));
 
             when(trustedAnchorRepository.findFirstByInstanceIdentifier("CS0")).thenReturn(empty());
-            when(trustedAnchorRepository.save(isA(TrustedAnchorEntity.class))).thenAnswer(returnsFirstArg());
+            when(trustedAnchorRepository.saveAndFlush(isA(TrustedAnchorEntity.class))).thenAnswer(returnsFirstArg());
 
             final TrustedAnchor result = trustedAnchorService.upload(bytes);
 
@@ -145,8 +145,8 @@ class TrustedAnchorServiceImplTest {
             assertThat(result.getTrustedAnchorFile()).isEqualTo(bytes);
             assertThat(result.getGeneratedAt()).isEqualTo(anchorDate.toInstant());
 
-            verify(anchorUrlRepository, times(1)).save(isA(AnchorUrlEntity.class));
-            verify(anchorUrlCertRepository, times(1)).save(isA(AnchorUrlCertEntity.class));
+            verify(anchorUrlRepository, times(1)).saveAndFlush(isA(AnchorUrlEntity.class));
+            verify(anchorUrlCertRepository, times(1)).saveAndFlush(isA(AnchorUrlCertEntity.class));
         }
 
         @Test

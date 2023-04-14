@@ -103,9 +103,9 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         caInfo.setValidFrom(certificate.getNotBefore().toInstant());
         caInfo.setValidTo(certificate.getNotAfter().toInstant());
 
-        approvedCaEntity.setCaInfo(caInfoRepository.save(caInfo));
+        approvedCaEntity.setCaInfo(caInfoRepository.saveAndFlush(caInfo));
 
-        final ApprovedCaEntity persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
+        final ApprovedCaEntity persistedApprovedCa = approvedCaRepository.saveAndFlush(approvedCaEntity);
         addAuditData(persistedApprovedCa);
 
         return approvedCaConverter.convert(persistedApprovedCa);
@@ -164,9 +164,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     @Override
     public CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert) {
         final CaInfoEntity caInfo = caInfoConverter.toCaInfo(cert);
-
-        final ApprovedCaEntity approvedCa = getById(certificationServiceId);
-        caInfo.setApprovedCa(approvedCa);
+        caInfo.setApprovedCa(getById(certificationServiceId));
 
         caInfoRepository.save(caInfo);
 

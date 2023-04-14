@@ -238,8 +238,8 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             }
             signingKey.setConfigurationSource(configurationSourceEntity);
 
-            configurationSigningKeyRepository.save(signingKey);
-            configurationSourceRepository.save(configurationSourceEntity);
+            configurationSigningKeyRepository.saveAndFlush(signingKey);
+            configurationSourceRepository.saveAndFlush(configurationSourceEntity);
 
             response.setKeyIdentifier(keyInfo.getId())
                     .setKeyGeneratedAt(generatedAt)

@@ -180,9 +180,9 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
                 throw new IllegalArgumentException("Invalid client type");
         }
 
-        serverClientRepository.save(new ServerClientEntity(server, client));
+        serverClientRepository.saveAndFlush(new ServerClientEntity(server, client));
 
-        servers.save(server);
+        servers.saveAndFlush(server);
         clientRegistrationRequest.setProcessingStatus(ManagementRequestStatus.APPROVED);
         var persistedRequest = clientRegRequests.save(clientRegistrationRequest);
 
