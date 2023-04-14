@@ -25,7 +25,6 @@
  * THE SOFTWARE.
  */
 package org.niis.xroad.cs.admin.core.entity;
-// Generated Feb 16, 2021 11:14:33 AM by Hibernate Tools 5.4.20.Final
 
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -37,7 +36,6 @@ import org.niis.xroad.cs.admin.core.entity.validation.EntityIdentifier;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;

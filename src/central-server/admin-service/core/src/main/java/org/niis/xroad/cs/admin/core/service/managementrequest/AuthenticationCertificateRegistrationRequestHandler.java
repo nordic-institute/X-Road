@@ -205,12 +205,13 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
         final String serverCode = serverId.getServerCode();
         SecurityServerEntity server = servers.findByOwnerIdAndServerCode(owner.getId(), serverCode)
                 .getOrElse(() -> new SecurityServerEntity(owner, serverCode));
+        server.setAddress(requestEntity.getAddress());
+        servers.save(server);
 
         //register certificate
-        server.getAuthCerts().add(new AuthCertEntity(server, requestEntity.getAuthCert()));
-        server.setAddress(requestEntity.getAddress());
+        var authCertEntity = new AuthCertEntity(server, requestEntity.getAuthCert());
+        authCerts.save(authCertEntity);
 
-        servers.save(server);
         requestEntity.setProcessingStatus(APPROVED);
 
         groupMemberService.addMemberToGlobalGroup(MemberId.create(owner.getIdentifier()),

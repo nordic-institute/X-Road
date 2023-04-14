@@ -39,6 +39,7 @@ import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
+import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -167,14 +168,12 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
                 .getOrElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND,
                         ownerChangeRequestEntity.getClientId().toString()));
 
-        final XRoadMemberEntity currentOwner = securityServer.getOwner();
+        final var currentOwnerIdentifier = securityServer.getOwner().getIdentifier();
 
         securityServer.setOwner(newOwner);
+        servers.saveAndFlush(securityServer);
 
-        members.save(newOwner);
-        servers.save(securityServer);
-
-        updateGlobalGroups(currentOwner, newOwner);
+        updateGlobalGroups(currentOwnerIdentifier, newOwner);
 
         ownerChangeRequestEntity.setProcessingStatus(APPROVED);
         final OwnerChangeRequestEntity saved = ownerChangeRequestRepository.save(ownerChangeRequestEntity);
@@ -188,7 +187,9 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         }
     }
 
-    private void updateGlobalGroups(XRoadMemberEntity currentOwner, XRoadMemberEntity newOwner) {
+    private void updateGlobalGroups(ClientIdEntity currentOwnerIdentifier, XRoadMemberEntity newOwner) {
+        var currentOwner = members.findOneBy(currentOwnerIdentifier)
+                .getOrElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND, currentOwnerIdentifier));
         if (currentOwner.getOwnedServers().isEmpty()) {
             groupMemberService.removeMemberFromGlobalGroup(MemberId.create(currentOwner.getIdentifier()),
                     DEFAULT_SECURITY_SERVER_OWNERS_GROUP);

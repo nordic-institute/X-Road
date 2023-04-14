@@ -61,6 +61,7 @@ import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapperImpl;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
+import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -98,6 +99,8 @@ public class SubsystemServiceImplTest implements WithInOrder {
     private SecurityServerClientNameRepository securityServerClientNameRepository;
     @Mock
     private XRoadMemberRepository xRoadMemberRepository;
+    @Mock
+    private ServerClientRepository serverClientRepository;
     @Mock
     private AuditDataHelper auditDataHelper;
 
@@ -189,18 +192,16 @@ public class SubsystemServiceImplTest implements WithInOrder {
             doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
             doReturn(serverClients).when(subsystem).getServerClients();
             doReturn(securityServer).when(serverClient).getSecurityServer();
-            doReturn(serverClients).when(securityServer).getServerClients();
             doReturn(securityServerId).when(securityServer).getServerId();
 
             subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
-            assertThat(serverClients).isEmpty();
 
             inOrder().verify(inOrder -> {
                 inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
                 inOrder.verify(subsystem).getServerClients();
                 inOrder.verify(serverClient).getSecurityServer();
                 inOrder.verify(securityServer).getServerId();
-                inOrder.verify(securityServer).getServerClients();
+                inOrder.verify(serverClientRepository).delete(serverClient);
             });
             verify(auditDataHelper).put(SERVER_CODE, securityServerId.getServerCode());
             verify(auditDataHelper).put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());

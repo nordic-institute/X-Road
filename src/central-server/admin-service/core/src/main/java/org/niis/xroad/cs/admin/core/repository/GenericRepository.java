@@ -52,6 +52,14 @@ public interface GenericRepository<T, ID> {
     <S extends T> S save(S entity);
 
     /**
+     * Saves an entity and flushes changes instantly.
+     *
+     * @param entity entity to be saved. Must not be {@literal null}.
+     * @return the saved entity
+     */
+    <S extends T> S saveAndFlush(S entity);
+
+    /**
      * Saves all given entities.
      *
      * @param entities must not be {@literal null} nor must it contain {@literal null}.
