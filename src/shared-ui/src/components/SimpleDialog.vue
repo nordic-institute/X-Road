@@ -31,6 +31,7 @@
     :width="width"
     persistent
     :scrollable="scrollable"
+    @keydown.esc="cancelOnEscape"
   >
     <v-card class="xrd-card" data-test="dialog-simple">
       <v-progress-linear
@@ -42,7 +43,7 @@
         <slot name="title">
           <span data-test="dialog-title">{{ $t(title) }}</span>
         </slot>
-        <v-spacer />
+        <v-spacer/>
         <close-button
           v-if="showClose"
           id="dlg-close-x"
@@ -169,6 +170,11 @@ export default Vue.extend({
     cancel(): void {
       this.$emit('cancel');
     },
+    cancelOnEscape(): void {
+      if (!this.disableCancelButton) {
+        this.cancel();
+      }
+    },
     save(): void {
       this.$emit('save');
     },
@@ -199,6 +205,7 @@ export default Vue.extend({
   margin-left: auto;
   margin-right: 0;
 }
+
 .alert-slot {
   margin-left: 20px;
   margin-right: 20px;
