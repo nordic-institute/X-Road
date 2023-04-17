@@ -6,7 +6,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.15  
+Version: 1.16  
 Doc. ID: IG-CSHA
 
 ---
@@ -14,26 +14,27 @@ Doc. ID: IG-CSHA
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 31.08.2015 | 0.1     | Initial version created.
- 15.09.2015 | 1.0     | Minor fixes done.
- 20.09.2015 | 1.1     | Editorial changes made
- 16.12.2015 | 1.2     | Added recovery information
- 17.12.2015 | 1.3     | Editorial changes made
- 20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 05.03.2018 | 1.5     | Added terms and abbreviations references and document links  | Tatu Repo
- 03.10.2018 | 1.6     | Added the chapter "Changing Nodes' IP Addresses in HA Cluster"
- 19.12.2018 | 1.7     | Minor changes related to Ubuntu 18 support
- 03.01.2019 | 1.8     | Removed forced NTP installation. | Jarkko Hyöty
- 27.09.2019 | 1.9     | Minor fix | Petteri Kivimäki
- 03.12.2019 | 1.10    | Removed dependency on BDR | Jarkko Hyöty
- 30.12.2019 | 1.11    | Add instructions for setting up a replicated PostgreSQL database | Jarkko Hyöty 
- 18.03.2020 | 1.12    | Add instructions for Central Server HA Migration | Ilkka Seppälä 
- 16.04.2020 | 1.13    | Update cluster status output | Jarkko Hyöty
- 10.08.2021 | 1.14    | Update HA installation instructions. Remove obsolete BDR references. | Ilkka Seppälä
- 25.08.2021 | 1.15    | Update X-Road references from version 6 to 7 | Caro Hautamäki
- 
+| Date       | Version | Description                                                                                          | Author             |
+|------------|---------|------------------------------------------------------------------------------------------------------|--------------------|
+| 31.08.2015 | 0.1     | Initial version created.                                                                             |                    |
+| 15.09.2015 | 1.0     | Minor fixes done.                                                                                    |                    |
+| 20.09.2015 | 1.1     | Editorial changes made                                                                               |                    |
+| 16.12.2015 | 1.2     | Added recovery information                                                                           |                    |
+| 17.12.2015 | 1.3     | Editorial changes made                                                                               |                    |
+| 20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder      |
+| 05.03.2018 | 1.5     | Added terms and abbreviations references and document links                                          | Tatu Repo          |
+| 03.10.2018 | 1.6     | Added the chapter "Changing Nodes' IP Addresses in HA Cluster"                                       |                    |
+| 19.12.2018 | 1.7     | Minor changes related to Ubuntu 18 support                                                           |                    |
+| 03.01.2019 | 1.8     | Removed forced NTP installation.                                                                     | Jarkko Hyöty       |
+| 27.09.2019 | 1.9     | Minor fix                                                                                            | Petteri Kivimäki   |
+| 03.12.2019 | 1.10    | Removed dependency on BDR                                                                            | Jarkko Hyöty       |
+| 30.12.2019 | 1.11    | Add instructions for setting up a replicated PostgreSQL database                                     | Jarkko Hyöty       |
+| 18.03.2020 | 1.12    | Add instructions for Central Server HA Migration                                                     | Ilkka Seppälä      |
+| 16.04.2020 | 1.13    | Update cluster status output                                                                         | Jarkko Hyöty       |
+| 10.08.2021 | 1.14    | Update HA installation instructions. Remove obsolete BDR references.                                 | Ilkka Seppälä      |
+| 25.08.2021 | 1.15    | Update X-Road references from version 6 to 7                                                         | Caro Hautamäki     |
+| 17.04.2023 | 1.16    | Updated HA installation instructions. Added conf updated for newer postgres versions (>=12).         | Mikk-Erik Bachmann |
+
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -339,10 +340,18 @@ sudo -iu postgres psql -c "SELECT pg_create_physical_replication_slot('standby_n
   sudo -u postgres pg_basebackup -h <master> -U standby --slot=standby_node1 -R -D /path/to/data/directory/
   ```
 
-* Edit `recovery.conf` (in the data directory) and verify the settings:
+
+* Additional settings:
+  * Postgresql version < 12: Edit `recovery.conf` (in the data directory) and verify the settings:
   
   ```properties
   standby_mode = 'on'
+  primary_conninfo = 'host=<master> user=<standby> password=<password>'
+  primary_slot_name = 'standby_node1'
+  recovery_target_timeline = 'latest'
+  ```
+   * Postgresql version >=12: Previous settings were moved to `postgresql.conf` instead and standby_mode is not used anymore. A standby.signal file in the data directory is used instead. (https://www.postgresql.org/docs/current/recovery-config.html):
+  ```properties
   primary_conninfo = 'host=<master> user=<standby> password=<password>'
   primary_slot_name = 'standby_node1'
   recovery_target_timeline = 'latest'
