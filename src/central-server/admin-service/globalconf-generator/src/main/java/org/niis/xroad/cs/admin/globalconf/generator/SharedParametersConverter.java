@@ -68,7 +68,7 @@ abstract class SharedParametersConverter {
     @Mapping(source = "members", target = "member")
     @Mapping(source = "securityServers", target = "securityServer")
     @Mapping(source = "globalGroups", target = "globalGroup")
-    @Mapping(source = "centralServices", target = "centralService")
+    @Mapping(target = "centralService", ignore = true)
     abstract SharedParametersTypeV2 convert(SharedParameters sharedParameters, @Context Map<ClientId, Object> clientMap);
 
     @Mapping(source = "memberClasses", target = "memberClass")

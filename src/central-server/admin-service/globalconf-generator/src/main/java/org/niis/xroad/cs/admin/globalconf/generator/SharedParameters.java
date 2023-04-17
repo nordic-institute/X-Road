@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -42,7 +41,6 @@ class SharedParameters {
     private List<Member> members;
     private List<SecurityServer> securityServers;
     private List<GlobalGroup> globalGroups;
-    private List<CentralService> centralServices;
     private GlobalSettings globalSettings;
 
     @Data
@@ -107,13 +105,6 @@ class SharedParameters {
         private String groupCode;
         private String description;
         private List<ClientId> groupMembers;
-    }
-
-    @Data
-    @AllArgsConstructor
-    public static class CentralService {
-        private String serviceCode;
-        private ServiceId implementingService;
     }
 
     @Data
