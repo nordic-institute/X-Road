@@ -15,6 +15,13 @@ Feature: CS: Trust Services
     And user is able to sort by column 2
     And user is able to sort by column 3
 
+  Scenario: Delete certification service
+    Given new certification service is added
+    And new certification service is visible in the Certification Services list
+    And user opens certification service details
+    When user clicks on delete trust service
+    Then certification service is not visible in the Certification Services list
+
   Scenario: View certification service details
     Given new certification service is added
     When user opens certification service details

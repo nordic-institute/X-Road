@@ -735,6 +735,14 @@
         "subjectDistinguishedName": "Subject distinguished name",
         "issuerDistinguishedName": "Issuer distinguished name"
       },
+      "delete": {
+        "action": "Delete trust service",
+        "confirmationDialog": {
+          "title": "Are you sure?",
+          "message": "Are you sure you want to delete the trust service \"{name}\"?"
+        },
+        "success": "Trust service deleted successfully"
+      },
       "settings": {
         "tlsAuth": "This CA can only be used for TLS authentication",
         "certProfile": "Certificate profile info (fully qualified class name that implements the ee.ria.xroad.common.CertificateProfileInfoProvider interface)",
