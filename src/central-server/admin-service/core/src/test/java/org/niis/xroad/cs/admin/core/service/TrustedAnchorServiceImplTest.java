@@ -37,8 +37,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
+import org.niis.xroad.cs.admin.core.entity.AnchorUrlCertEntity;
+import org.niis.xroad.cs.admin.core.entity.AnchorUrlEntity;
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.TrustedAnchorMapperImpl;
+import org.niis.xroad.cs.admin.core.repository.AnchorUrlCertRepository;
+import org.niis.xroad.cs.admin.core.repository.AnchorUrlRepository;
 import org.niis.xroad.cs.admin.core.repository.TrustedAnchorRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
@@ -59,6 +63,7 @@ import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -77,6 +82,10 @@ class TrustedAnchorServiceImplTest {
 
     @Mock
     private TrustedAnchorRepository trustedAnchorRepository;
+    @Mock
+    private AnchorUrlRepository anchorUrlRepository;
+    @Mock
+    private AnchorUrlCertRepository anchorUrlCertRepository;
     @Mock
     private ConfigurationVerifier configurationVerifier;
     @Spy
@@ -119,7 +128,7 @@ class TrustedAnchorServiceImplTest {
             final byte[] bytes = readAllBytes(Paths.get(getSystemResource("trusted-anchor/trusted-anchor.xml").toURI()));
 
             when(trustedAnchorRepository.findFirstByInstanceIdentifier("CS0")).thenReturn(empty());
-            when(trustedAnchorRepository.save(isA(TrustedAnchorEntity.class))).thenAnswer(returnsFirstArg());
+            when(trustedAnchorRepository.saveAndFlush(isA(TrustedAnchorEntity.class))).thenAnswer(returnsFirstArg());
 
             final TrustedAnchor result = trustedAnchorService.upload(bytes);
 
@@ -135,7 +144,9 @@ class TrustedAnchorServiceImplTest {
             assertThat(result.getTrustedAnchorHash()).isEqualTo(ANCHOR_HASH);
             assertThat(result.getTrustedAnchorFile()).isEqualTo(bytes);
             assertThat(result.getGeneratedAt()).isEqualTo(anchorDate.toInstant());
-            assertThat(result.getAnchorUrls()).hasSize(1);
+
+            verify(anchorUrlRepository, times(1)).saveAndFlush(isA(AnchorUrlEntity.class));
+            verify(anchorUrlCertRepository, times(1)).saveAndFlush(isA(AnchorUrlCertEntity.class));
         }
 
         @Test

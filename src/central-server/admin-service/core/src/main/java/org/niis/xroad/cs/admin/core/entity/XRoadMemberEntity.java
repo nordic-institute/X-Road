@@ -25,7 +25,6 @@
  * THE SOFTWARE.
  */
 package org.niis.xroad.cs.admin.core.entity;
-// Generated Feb 16, 2021 11:14:33 AM by Hibernate Tools 5.4.20.Final
 
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -37,7 +36,6 @@ import org.niis.xroad.cs.admin.core.entity.validation.EntityIdentifier;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -85,12 +83,12 @@ public class XRoadMemberEntity extends SecurityServerClientEntity {
     @Setter
     private String administrativeContact;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner")
     @Access(AccessType.FIELD)
     @Getter
     private Set<SecurityServerEntity> ownedServers = new HashSet<>(0);
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "xroadMember", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "xroadMember")
     @Access(AccessType.FIELD)
     @Getter
     private Set<SubsystemEntity> subsystems = new HashSet<>(0);

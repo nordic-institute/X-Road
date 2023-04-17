@@ -43,6 +43,7 @@ import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -59,6 +60,7 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final IdentifierRepository<ClientIdEntity> clientIds;
     private final RequestRepository<ClientDeletionRequestEntity> requests;
+    private final ServerClientRepository serverClientRepository;
     private final RequestMapper requestMapper;
 
     @Override
@@ -73,14 +75,16 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
 
         final var requestEntity = new ClientDeletionRequestEntity(request.getOrigin(), serverId, clientId);
 
-        SecurityServerEntity securityServer = servers.findBy(serverId, clientId).getOrElseThrow(() ->
+        final SecurityServerEntity securityServer = servers.findBy(serverId, clientId).getOrElseThrow(() ->
                 new SecurityServerNotFoundException(serverId));
 
-        SecurityServerClientEntity client = clients.findOneBy(clientId).getOrElseThrow(() ->
+        final SecurityServerClientEntity client = clients.findOneBy(clientId).getOrElseThrow(() ->
                 new NotFoundException(MR_CLIENT_REGISTRATION_NOT_FOUND));
 
         securityServer.getServerClients()
-                .removeIf(serverClient -> serverClient.getSecurityServerClient() == client);
+                .stream()
+                .filter(serverClient -> client.equals(serverClient.getSecurityServerClient()))
+                .forEach(serverClientRepository::delete);
 
         /*
          * Note. The legacy implementation revokes existing pending registration requests. However, that does

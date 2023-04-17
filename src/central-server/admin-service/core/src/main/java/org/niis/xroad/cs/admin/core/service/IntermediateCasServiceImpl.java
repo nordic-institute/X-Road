@@ -101,7 +101,7 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
         final OcspInfoEntity ocspInfoEntity = new OcspInfoEntity(intermediateCa, ocspResponderRequest.getUrl(),
                 ocspResponderRequest.getCertificate());
 
-        intermediateCa.addOcspInfos(ocspInfoEntity);
+        ocspInfoEntity.setCaInfo(intermediateCa);
 
         final OcspInfoEntity savedOcspInfo = ocspInfoRepository.save(ocspInfoEntity);
         addAuditData(intermediateCaId, savedOcspInfo);
@@ -117,7 +117,7 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND));
 
-        intermediateCa.getOcspInfos().remove(ocspResponder);
+        ocspInfoRepository.delete(ocspResponder);
 
         auditDataHelper.put(OCSP_ID, ocspResponder.getId());
     }

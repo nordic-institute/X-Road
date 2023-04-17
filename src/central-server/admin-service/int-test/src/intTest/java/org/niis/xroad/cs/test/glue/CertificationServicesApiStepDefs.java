@@ -52,6 +52,7 @@ import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE_STATUS;
 import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -70,6 +71,11 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
+    }
+
+    @Step("certification service is retrieved")
+    public void certificationServiceIsRetrieved() {
+        getCertificationServiceById(getRequiredStepData(CERTIFICATION_SERVICE_ID));
     }
 
     @Step("Certification service certificate with id {int} is retrieved")
@@ -268,4 +274,15 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
 
         validation.execute();
     }
+
+    @Step("certification service is deleted")
+    public void certificationServiceIsDeleted() {
+        final Integer certServiceId = getRequiredStepData(CERTIFICATION_SERVICE_ID);
+
+        final ResponseEntity<Void> response = certificationServicesApi.deleteCertificationService(certServiceId);
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(NO_CONTENT))
+                .execute();
+    }
+
 }

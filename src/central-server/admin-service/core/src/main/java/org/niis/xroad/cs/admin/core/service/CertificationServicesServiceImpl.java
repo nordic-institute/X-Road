@@ -25,8 +25,11 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.util.CertUtils;
+
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
@@ -51,6 +54,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.security.cert.X509Certificate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -59,6 +63,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_I
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_CERTIFICATE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTICATION_ONLY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERTIFICATE_PROFILE_INFO;
@@ -86,16 +91,45 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     @Override
     public CertificationService add(ApprovedCertificationService certificationService) {
         CertificateProfileInfoValidator.validate(certificationService.getCertificateProfileInfo());
-        final ApprovedCaEntity approvedCaEntity = approvedCaConverter.toEntity(certificationService);
-        final ApprovedCaEntity persistedApprovedCa = approvedCaRepository.save(approvedCaEntity);
+
+        final var approvedCaEntity = new ApprovedCaEntity();
+        approvedCaEntity.setCertProfileInfo(certificationService.getCertificateProfileInfo());
+        approvedCaEntity.setAuthenticationOnly(certificationService.getTlsAuth());
+        X509Certificate certificate = handledCertificationChainRead(certificationService.getCertificate());
+        approvedCaEntity.setName(CertUtils.getSubjectCommonName(certificate));
+
+        final var caInfo = new CaInfoEntity();
+        caInfo.setCert(certificationService.getCertificate());
+        caInfo.setValidFrom(certificate.getNotBefore().toInstant());
+        caInfo.setValidTo(certificate.getNotAfter().toInstant());
+
+        approvedCaEntity.setCaInfo(caInfoRepository.saveAndFlush(caInfo));
+
+        final ApprovedCaEntity persistedApprovedCa = approvedCaRepository.saveAndFlush(approvedCaEntity);
         addAuditData(persistedApprovedCa);
 
         return approvedCaConverter.convert(persistedApprovedCa);
     }
 
+    private X509Certificate handledCertificationChainRead(byte[] certificate) {
+        try {
+            return CertUtils.readCertificateChain(certificate)[0];
+        } catch (Exception e) {
+            throw new ValidationFailureException(INVALID_CERTIFICATE);
+        }
+    }
+
     @Override
     public CertificationService get(Integer id) {
         return approvedCaConverter.convert(getById(id));
+    }
+
+    @Override
+    public void delete(Integer id) {
+        auditDataHelper.put(CA_ID, id);
+
+        final ApprovedCaEntity entity = getById(id);
+        approvedCaRepository.delete(entity);
     }
 
     @Override
@@ -130,9 +164,8 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     @Override
     public CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert) {
         final CaInfoEntity caInfo = caInfoConverter.toCaInfo(cert);
+        caInfo.setApprovedCa(getById(certificationServiceId));
 
-        final ApprovedCaEntity approvedCa = getById(certificationServiceId);
-        approvedCa.addIntermediateCa(caInfo);
         caInfoRepository.save(caInfo);
 
         auditDataHelper.put(CA_ID, certificationServiceId);

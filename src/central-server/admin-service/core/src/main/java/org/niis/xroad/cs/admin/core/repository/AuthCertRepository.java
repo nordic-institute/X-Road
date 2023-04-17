@@ -28,8 +28,12 @@ package org.niis.xroad.cs.admin.core.repository;
 
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 
+import java.util.Optional;
+
 
 public interface AuthCertRepository extends GenericRepository<AuthCertEntity, Integer> {
 
     boolean existsByCert(byte[] certificate);
+
+    Optional<AuthCertEntity> findByCert(byte[] certificate);
 }

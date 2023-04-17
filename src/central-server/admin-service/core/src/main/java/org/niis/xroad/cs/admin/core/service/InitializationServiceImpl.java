@@ -48,20 +48,16 @@ import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_ALREADY_INITIALIZED;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_INVALID_PARAMS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SIGNER_PIN_POLICY_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SOFTWARE_TOKEN_FAILED;
 
@@ -114,27 +110,17 @@ public class InitializationServiceImpl implements InitializationService {
         auditDataHelper.put(RestApiAuditProperty.INSTANCE_IDENTIFIER, configDto.getInstanceIdentifier());
         auditDataHelper.put(RestApiAuditProperty.HA_NODE, currentHaConfigStatus.getCurrentHaNodeName());
 
-        if (null == configDto.getSoftwareTokenPin()) {
-            configDto.setSoftwareTokenPin("");
-        }
-        if (null == configDto.getCentralServerAddress()) {
-            configDto.setCentralServerAddress("");
-        }
-        if (null == configDto.getInstanceIdentifier()) {
-            configDto.setInstanceIdentifier("");
-        }
-
-        if (null != configDto.getSoftwareTokenPin()) {
-            tokenPinValidator.validateSoftwareTokenPin(configDto.getSoftwareTokenPin().toCharArray());
-        }
-
         final boolean isSWTokenInitialized = TokenInitStatus.INITIALIZED == getTokenInitStatusInfo();
         final boolean isServerAddressInitialized = !systemParameterService.getCentralServerAddress().isEmpty();
         final boolean isInstanceIdentifierInitialized = !systemParameterService.getInstanceIdentifier().isEmpty();
-        validateConfigParameters(configDto,
-                isSWTokenInitialized,
-                isServerAddressInitialized,
-                isInstanceIdentifierInitialized);
+        if (isSWTokenInitialized && isServerAddressInitialized && isInstanceIdentifierInitialized) {
+            throw new DataIntegrityException(INIT_ALREADY_INITIALIZED);
+        }
+
+        if (!isSWTokenInitialized) {
+            tokenPinValidator.validateSoftwareTokenPin(configDto.getSoftwareTokenPin().toCharArray());
+        }
+
 
         if (!isServerAddressInitialized) {
             systemParameterService.updateOrCreateParameter(
@@ -170,41 +156,11 @@ public class InitializationServiceImpl implements InitializationService {
         }
     }
 
-    private void validateConfigParameters(InitialServerConfDto configDto,
-                                          boolean isSWTokenInitialized,
-                                          boolean isServerAddressInitialized,
-                                          boolean isInstanceIdentifierInitialized) {
-
-
-        if (isSWTokenInitialized && isServerAddressInitialized && isInstanceIdentifierInitialized) {
-            throw new DataIntegrityException(INIT_ALREADY_INITIALIZED);
-        }
-        List<String> errorMetadata = new ArrayList<>();
-        if (isSWTokenInitialized && !configDto.getSoftwareTokenPin().isEmpty()) {
-            errorMetadata.add(DeviationCodes.ERROR_METADATA_PIN_EXISTS);
-        }
-        if (!isSWTokenInitialized && configDto.getSoftwareTokenPin().isEmpty()) {
-            errorMetadata.add(DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED);
-        }
-        if (isServerAddressInitialized && !configDto.getCentralServerAddress().isEmpty()) {
-            errorMetadata.add(DeviationCodes.ERROR_METADATA_SERVER_ADDRESS_EXISTS);
-        }
-        if (!isServerAddressInitialized && configDto.getCentralServerAddress().isEmpty()) {
-            errorMetadata.add(DeviationCodes.ERROR_METADATA_SERVER_ADDRESS_NOT_PROVIDED);
-        }
-        if (isInstanceIdentifierInitialized && !configDto.getInstanceIdentifier().isEmpty()) {
-            errorMetadata.add(DeviationCodes.ERROR_METADATA_INSTANCE_IDENTIFIER_EXISTS);
-        }
-        if (!isInstanceIdentifierInitialized && configDto.getInstanceIdentifier().isEmpty()) {
-            errorMetadata.add(DeviationCodes.ERROR_METADATA_INSTANCE_IDENTIFIER_NOT_PROVIDED);
-        }
-        if (!errorMetadata.isEmpty()) {
-            log.debug("collected errors {}", String.join(", ", errorMetadata));
-            throw new ValidationFailureException(INIT_INVALID_PARAMS, errorMetadata);
-        }
-    }
-
     private void initializeCsSystemParameters() {
+        systemParameterService.updateOrCreateParameter(
+                SystemParameterServiceImpl.AUTH_CERT_REG_URL,
+                SystemParameterServiceImpl.DEFAULT_AUTH_CERT_REG_URL
+        );
         systemParameterService.updateOrCreateParameter(
                 SystemParameterServiceImpl.CONF_SIGN_DIGEST_ALGO_ID,
                 SystemParameterServiceImpl.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID

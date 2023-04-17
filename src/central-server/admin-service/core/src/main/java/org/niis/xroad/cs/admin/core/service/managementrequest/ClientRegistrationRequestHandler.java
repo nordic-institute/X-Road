@@ -40,6 +40,7 @@ import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
@@ -47,6 +48,7 @@ import org.niis.xroad.cs.admin.core.repository.ClientRegistrationRequestReposito
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.springframework.stereotype.Service;
 
@@ -78,6 +80,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     private final SecurityServerClientRepository<SecurityServerClientEntity> clients;
     private final ClientRegistrationRequestRepository clientRegRequests;
     private final SecurityServerRepository servers;
+    private final ServerClientRepository serverClientRepository;
     private final RequestMapper requestMapper;
 
     @Override
@@ -176,8 +179,10 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
             default:
                 throw new IllegalArgumentException("Invalid client type");
         }
-        server.addClient(client);
-        servers.save(server);
+
+        serverClientRepository.saveAndFlush(new ServerClientEntity(server, client));
+
+        servers.saveAndFlush(server);
         clientRegistrationRequest.setProcessingStatus(ManagementRequestStatus.APPROVED);
         var persistedRequest = clientRegRequests.save(clientRegistrationRequest);
 

@@ -76,6 +76,11 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         trustServicesPageObj.tableServicesRowOf(certificationServiceName).should(appear);
     }
 
+    @Step("certification service is not visible in the Certification Services list")
+    public void certificationServiceIsNotVisibleInTheCertificationServicesList() {
+        trustServicesPageObj.tableServicesRowOf(certificationServiceName).shouldNot(appear);
+    }
+
     @Step("user is able to sort by column {int}")
     public void userIsAbleToSortByColumn(int columnIndex) {
         var column = trustServicesPageObj.tableServicesCol(columnIndex);
@@ -145,4 +150,16 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
         trustServicesPageObj.certServiceDetails.caSettings.cardTlsAuth().shouldHave(text("True"));
     }
+
+    @Step("user clicks on delete trust service")
+    public void userClicksOnDeleteTrustService() {
+        trustServicesPageObj.certServiceDetails.btnDeleteTrustService().click();
+
+        commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled);
+
+        commonPageObj.dialog.btnSave().click();
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+    }
+
 }

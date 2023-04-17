@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,38 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.admin.core.repository;
 
-import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
-import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
-import org.niis.xroad.cs.admin.api.dto.CertificationService;
-import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
-import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 
-import java.util.List;
+public interface ServerClientRepository extends GenericRepository<ServerClientEntity, Integer> {
 
-public interface CertificationServicesService {
-    CertificationService add(ApprovedCertificationService approvedCa);
-
-    CertificationService get(Integer id);
-
-    void delete(Integer id);
-
-    CertificationService update(CertificationService approvedCa);
-
-    List<CertificationService> findAll();
-
-    CertificateDetails getCertificateDetails(Integer id);
-
-    CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert);
-
-    List<CertificateAuthority> getIntermediateCas(Integer certificationServiceId);
-
-    List<CertificationServiceListItem> getCertificationServices();
-
-    OcspResponder addOcspResponder(OcspResponderAddRequest ocspResponder);
-
-    List<OcspResponder> getOcspResponders(Integer certificationServiceId);
 }

@@ -23,38 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.admin.core.repository;
 
-import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
-import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
-import org.niis.xroad.cs.admin.api.dto.CertificationService;
-import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
-import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.dto.OcspResponderAddRequest;
+import org.niis.xroad.cs.admin.core.entity.AnchorUrlEntity;
 
-import java.util.List;
+public interface AnchorUrlRepository extends GenericRepository<AnchorUrlEntity, Integer> {
 
-public interface CertificationServicesService {
-    CertificationService add(ApprovedCertificationService approvedCa);
-
-    CertificationService get(Integer id);
-
-    void delete(Integer id);
-
-    CertificationService update(CertificationService approvedCa);
-
-    List<CertificationService> findAll();
-
-    CertificateDetails getCertificateDetails(Integer id);
-
-    CertificateAuthority addIntermediateCa(Integer certificationServiceId, byte[] cert);
-
-    List<CertificateAuthority> getIntermediateCas(Integer certificationServiceId);
-
-    List<CertificationServiceListItem> getCertificationServices();
-
-    OcspResponder addOcspResponder(OcspResponderAddRequest ocspResponder);
-
-    List<OcspResponder> getOcspResponders(Integer certificationServiceId);
+    void deleteByTrustedAnchorId(int trustedAnchorId);
 }

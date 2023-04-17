@@ -34,8 +34,6 @@ import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.AnchorUrl;
 import org.niis.xroad.cs.admin.api.domain.AnchorUrlCert;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
-import org.niis.xroad.cs.admin.core.entity.AnchorUrlCertEntity;
-import org.niis.xroad.cs.admin.core.entity.AnchorUrlEntity;
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 
 import java.util.Set;
@@ -69,27 +67,6 @@ public interface TrustedAnchorMapper extends GenericUniDirectionalMapper<Trusted
         trustedAnchor.setAnchorUrls(anchorUrls);
         trustedAnchor.setTrustedAnchorHash(calculateAnchorHashDelimited(anchorBytes));
         return trustedAnchor;
-    }
-
-    default TrustedAnchorEntity toEntity(ConfigurationAnchorV2 anchorV2, byte[] anchorFile, TrustedAnchorEntity entity) {
-        entity.setInstanceIdentifier(anchorV2.getInstanceIdentifier());
-        entity.setTrustedAnchorFile(anchorFile);
-        entity.setTrustedAnchorHash(calculateAnchorHashDelimited(anchorFile));
-        entity.setGeneratedAt(anchorV2.getGeneratedAt().toInstant());
-        entity.getAnchorUrls().clear();
-        anchorV2.getLocations()
-                .forEach(location -> {
-                    final AnchorUrlEntity urlEntity = new AnchorUrlEntity();
-                    urlEntity.setUrl(location.getDownloadURL());
-                    location.getVerificationCerts().forEach(cert -> {
-                        AnchorUrlCertEntity urlCertEntity = new AnchorUrlCertEntity();
-                        urlCertEntity.setCert(cert);
-                        urlEntity.addAnchorUrlCert(urlCertEntity);
-                    });
-                    entity.addAnchorUrl(urlEntity);
-                });
-
-        return entity;
     }
 
 }

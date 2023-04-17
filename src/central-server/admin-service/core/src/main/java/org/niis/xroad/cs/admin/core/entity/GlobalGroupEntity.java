@@ -32,7 +32,6 @@ import lombok.Setter;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -71,7 +70,7 @@ public class GlobalGroupEntity extends AuditableEntity {
     @Setter
     private String description;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "globalGroup", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "globalGroup")
     @Access(AccessType.FIELD)
     @Getter
     private Set<GlobalGroupMemberEntity> globalGroupMembers = new HashSet<>(0);

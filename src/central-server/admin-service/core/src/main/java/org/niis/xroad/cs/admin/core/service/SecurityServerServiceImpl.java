@@ -175,7 +175,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         registerClientDeletionRequests(securityServerEntity);
         registerAuthCertsDeleteRequests(securityServerEntity);
         updateServerOwnersGroup(securityServerEntity);
-        securityServerEntity.getOwner().getOwnedServers().remove(securityServerEntity);
+
         securityServerRepository.delete(securityServerEntity);
     }
 

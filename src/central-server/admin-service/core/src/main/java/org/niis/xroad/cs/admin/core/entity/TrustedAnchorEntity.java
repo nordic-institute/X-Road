@@ -30,7 +30,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -79,16 +78,10 @@ public class TrustedAnchorEntity extends AuditableEntity {
     @Setter
     private Instant generatedAt;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "trustedAnchor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "trustedAnchor")
     @Getter
     @Setter
     private Set<AnchorUrlEntity> anchorUrls = new HashSet<>(0);
-
-    public void addAnchorUrl(AnchorUrlEntity anchorUrlEntity) {
-        anchorUrlEntity.setTrustedAnchor(this);
-        anchorUrls.add(anchorUrlEntity);
-        super.preUpdate();
-    }
 
 }
 

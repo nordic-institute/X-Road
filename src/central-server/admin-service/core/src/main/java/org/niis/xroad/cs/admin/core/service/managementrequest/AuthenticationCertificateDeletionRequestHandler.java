@@ -31,18 +31,14 @@ import org.niis.xroad.common.exception.DataIntegrityException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
-import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-
-import java.util.Arrays;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_AUTH_CERTIFICATE;
 
@@ -56,8 +52,7 @@ public class AuthenticationCertificateDeletionRequestHandler implements
         RequestHandler<AuthenticationCertificateDeletionRequest> {
     private final RequestRepository<AuthenticationCertificateDeletionRequestEntity> requests;
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
-    private final AuthCertRepository authCerts;
-    private final SecurityServerRepository servers;
+    private final AuthCertRepository authCertRepository;
     private final RequestMapper requestMapper;
 
     public AuthenticationCertificateDeletionRequest add(AuthenticationCertificateDeletionRequest request) {
@@ -66,15 +61,13 @@ public class AuthenticationCertificateDeletionRequestHandler implements
         final var requestEntity = new AuthenticationCertificateDeletionRequestEntity(request.getOrigin(), serverId);
         requestEntity.setAuthCert(request.getAuthCert());
 
-        if (!authCerts.existsByCert(request.getAuthCert())) {
-            throw new DataIntegrityException(MR_INVALID_AUTH_CERTIFICATE);
+        var authCert = authCertRepository.findByCert(request.getAuthCert())
+                .orElseThrow(() -> new DataIntegrityException(MR_INVALID_AUTH_CERTIFICATE));
+
+        if (!authCert.getSecurityServer().getServerId().equals(serverId)) {
+            throw new SecurityServerNotFoundException(serverId);
         }
-
-        SecurityServerEntity server = servers.findBy(serverId)
-                .getOrElseThrow(() -> new SecurityServerNotFoundException(serverId));
-
-        server.getAuthCerts()
-                .removeIf(item -> Arrays.equals(item.getCert(), request.getAuthCert()));
+        authCertRepository.delete(authCert);
 
         var persistedRequest = requests.save(requestEntity);
 
