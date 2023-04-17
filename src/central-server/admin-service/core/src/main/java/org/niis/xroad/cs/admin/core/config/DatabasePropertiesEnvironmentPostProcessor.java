@@ -36,6 +36,7 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.Profiles;
 
 import java.io.FileInputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -115,6 +116,17 @@ public class DatabasePropertiesEnvironmentPostProcessor implements EnvironmentPo
         b.append(host);
         b.append(":");
         b.append(port);
+        String secondaryHosts = dbProperties.getProperty("secondary_hosts");
+        if (secondaryHosts != null) {
+            Arrays.stream(secondaryHosts.split(",")).forEach((secondaryHost) -> {
+                b.append(",");
+                b.append(secondaryHost);
+                if (!secondaryHost.contains(":")) {
+                    b.append(":");
+                    b.append(port);
+                }
+            });
+        }
         b.append("/");
         b.append(database);
         return b.toString();
