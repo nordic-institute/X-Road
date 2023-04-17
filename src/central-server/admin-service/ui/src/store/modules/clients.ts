@@ -34,6 +34,12 @@ export interface State {
   pagingOptions: PagingMetadata;
 }
 
+export interface PagingParams {
+  query: string | null;
+  page: number;
+  itemPerPage: number;
+}
+
 export const clientStore = defineStore('client', {
   state: (): State => ({
     clients: [],
@@ -63,15 +69,44 @@ export const clientStore = defineStore('client', {
         this.pagingOptions = resp.data.paging_metadata;
       });
     },
-    getByClientType(clientType: string) {
+    getByExcludingGroup(
+      groupId: string,
+      query: string | null,
+      dataOptions: DataOptions,
+    ) {
+      const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
+      const params: unknown = {
+        excluding_group: groupId,
+        offset,
+        limit: dataOptions.itemsPerPage,
+        q: query,
+      };
+      const axiosParams: AxiosRequestConfig = { params };
+
+      return axios
+        .get<PagedClients>('/clients', axiosParams)
+        .then((resp) => resp.data)
+        .catch((error) => {
+          throw error;
+        });
+    },
+    getByClientType(
+      clientType: string,
+      query: string | null,
+      dataOptions: DataOptions,
+    ) {
+      const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
       const params: unknown = {
         client_type: clientType,
+        offset,
+        limit: dataOptions.itemsPerPage,
+        q: query,
       };
       const axiosParams: AxiosRequestConfig = { params };
 
       return axios
         .get<PagedClients>('/clients/', axiosParams)
-        .then((resp) => resp.data.clients)
+        .then((resp) => resp.data)
         .catch((error) => {
           throw error;
         });

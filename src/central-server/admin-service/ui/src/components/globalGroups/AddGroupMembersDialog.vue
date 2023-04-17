@@ -25,12 +25,12 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :value="dialog" width="824" scrollable persistent>
+  <v-dialog v-if="opened" :value="opened" width="824" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
         <slot name="title">
           <span class="dialog-title-text">{{
-            $t('systemSettings.selectSubsystem.title')
+            $t('globalGroup.dialog.addMembers.title')
           }}</span>
         </slot>
         <v-spacer />
@@ -52,14 +52,13 @@
 
         <!-- Table -->
         <v-data-table
-          v-model="selectedSubsystems"
+          v-model="selectedClients"
           class="elevation-0 data-table"
-          item-key="id"
           show-select
-          single-select
+          item-key="id"
           :loading="loading"
           :headers="headers"
-          :items="selectableSubsystems"
+          :items="selectableClients"
           :server-items-length="totalItems"
           :options.sync="pagingSortingOptions"
           :loader-height="2"
@@ -68,7 +67,7 @@
         >
           <template #[`item.data-table-select`]="{ isSelected, select }">
             <v-simple-checkbox
-              data-test="management-subsystem-checkbox"
+              data-test="members-checkbox"
               :ripple="false"
               :value="isSelected"
               @input="select($event)"
@@ -101,16 +100,18 @@
           class="button-margin"
           outlined
           data-test="cancel-button"
+          :disabled="adding"
           @click="cancel()"
-          >{{ $t('action.cancel') }}</xrd-button
-        >
+          >{{ $t('action.cancel') }}
+        </xrd-button>
 
         <xrd-button
-          :disabled="!selectedSubsystems || selectedSubsystems.length === 0"
           data-test="management-subsystem-select-button"
-          @click="selectSubSystem()"
-          >{{ $t('action.select') }}</xrd-button
-        >
+          :loading="adding"
+          :disabled="anyClientsSelected"
+          @click="addMembers"
+          >{{ $t('action.add') }}
+        </xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -122,41 +123,42 @@ import { Client, PagedClients } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { clientStore } from '@/store/modules/clients';
 import { notificationsStore } from '@/store/modules/notifications';
-import { debounce, toIdentifier } from '@/util/helpers';
 import { DataOptions, DataTableHeader } from 'vuetify';
+import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { debounce, toIdentifier } from '@/util/helpers';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
 export default Vue.extend({
-  name: 'SelectSubsystemDialog',
   props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
-    defaultSubsystemId: {
+    groupId: {
       type: String,
       required: true,
     },
   },
-
   data() {
     return {
+      opened: false,
       loading: false,
+      adding: false,
       pagingSortingOptions: {} as DataOptions,
       clients: {} as PagedClients,
       search: '',
-      selectedSubsystems: [] as Client[],
+      selectedClients: [] as Client[],
     };
   },
   computed: {
     ...mapStores(clientStore),
+    ...mapStores(useGlobalGroupsStore),
+    anyClientsSelected(): boolean {
+      return !this.selectedClients || this.selectedClients.length === 0;
+    },
     totalItems(): number {
       return this.clients.paging_metadata?.total_items || 0;
     },
-    selectableSubsystems(): Client[] {
+    selectableClients(): Client[] {
       return this.clients.clients || [];
     },
     headers(): DataTableHeader[] {
@@ -222,46 +224,55 @@ export default Vue.extend({
       // Debounce is used to reduce unnecessary api calls
       that.fetchClients();
     }, 600),
-    fetchClients() {
+    async fetchClients() {
       this.loading = true;
-      this.clientStore
-        .getByClientType('SUBSYSTEM', this.search, this.pagingSortingOptions)
+      return this.clientStore
+        .getByExcludingGroup(
+          this.groupId,
+          this.search,
+          this.pagingSortingOptions,
+        )
         .then((resp) => {
           this.clients = resp;
-          this.setSelectedSubsystems();
         })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+        .catch((error) => this.showError(error))
+        .finally(() => (this.loading = false));
     },
-    changeOptions: async function () {
+    open() {
+      this.opened = true;
+    },
+    changeOptions() {
       this.fetchClients();
-    },
-    setSelectedSubsystems() {
-      const filteredList = this.selectableSubsystems?.filter(
-        (subsystem) =>
-          `SUBSYSTEM:${toIdentifier(subsystem.xroad_id)}` ===
-          this.defaultSubsystemId,
-      );
-
-      if (filteredList) {
-        this.selectedSubsystems = filteredList;
-      }
     },
     cancel(): void {
       this.$emit('cancel');
       this.clearForm();
+      this.opened = false;
     },
-    selectSubSystem(): void {
-      this.$emit('select', this.selectedSubsystems);
-      this.clearForm();
+    addMembers(): void {
+      this.adding = true;
+      const clientIds = this.selectedClients.map((client) =>
+        toIdentifier(client.xroad_id),
+      );
+      this.globalGroupStore
+        .addGroupMembers(this.groupId, clientIds)
+        .then((resp) => this.$emit('added', resp.data.items))
+        .then(() => (this.opened = false))
+        .then(() => this.showSuccessMessage(clientIds))
+        .then(() => this.clearForm())
+        .catch((error) => this.showError(error))
+        .finally(() => (this.adding = false));
+    },
+    showSuccessMessage(identifiers: string[]) {
+      this.showSuccess(
+        this.$t('globalGroup.dialog.addMembers.success', {
+          identifiers: identifiers.join(', '),
+        }),
+      );
     },
     clearForm(): void {
+      this.selectedClients = [];
       this.pagingSortingOptions.page = 1;
-      this.selectedSubsystems = [];
       this.search = '';
     },
   },
@@ -274,6 +285,7 @@ export default Vue.extend({
 .checkbox-column {
   width: 50px;
 }
+
 .search-input {
   width: 300px;
 }

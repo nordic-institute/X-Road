@@ -107,7 +107,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
     public void addMemberToGlobalGroup(String groupCode, DataTable table) {
         final var members = new MembersDto();
         var identifiers = table.asMaps().stream()
-                .collect(partitioningBy(map -> Boolean.parseBoolean(map.get("$isNew")),
+                .collect(partitioningBy(map -> Boolean.parseBoolean(map.getOrDefault("$isNew", TRUE.toString())),
                         mapping(map -> map.get("$identifier"), Collectors.toList())));
 
         members.setItems(new LinkedList<>());

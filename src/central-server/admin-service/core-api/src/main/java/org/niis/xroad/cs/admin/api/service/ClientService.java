@@ -65,6 +65,7 @@ public interface ClientService {
         private String subsystemCodeSearch;
         private XRoadObjectType clientType;
         private Integer securityServerId;
+        private Integer excludingGroup;
 
         /**
          * Return clients that contain given parameter in member name. Case insensitive.
@@ -130,6 +131,16 @@ public interface ClientService {
          */
         public SearchParameters setSecurityServerId(Integer securityServerIdParam) {
             this.securityServerId = securityServerIdParam;
+            return this;
+        }
+
+        /**
+         * Return clients that are not clients of given global group
+         *
+         * @param excludingGroupParam global group id
+         */
+        public SearchParameters setExcludingGroupParam(Integer excludingGroupParam) {
+            this.excludingGroup = excludingGroupParam;
             return this;
         }
     }

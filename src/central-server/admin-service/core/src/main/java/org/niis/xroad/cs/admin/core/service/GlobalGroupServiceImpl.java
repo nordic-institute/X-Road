@@ -174,7 +174,7 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
 
         auditDataHelper.addListPropertyItem(RestApiAuditProperty.MEMBER_IDENTIFIERS, clientId);
         if (isNotMemberOfGroup(group, clientIdEntity)) {
-            var groupMember = new GlobalGroupMemberEntity(group, clientId);
+            var groupMember = new GlobalGroupMemberEntity(group, clientIdEntity);
             globalGroupMemberRepository.save(groupMember);
             return true;
         }
