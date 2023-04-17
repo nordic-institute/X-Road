@@ -24,20 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.jpa.repository;
+package org.niis.xroad.cs.admin.core.repository;
 
-import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
-import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 
-import java.util.Optional;
+public interface ServerClientRepository extends GenericRepository<ServerClientEntity, Integer> {
 
-@Repository
-public interface JpaAuthCertRepository extends JpaRepository<AuthCertEntity, Integer>, AuthCertRepository {
-    @Override
-    boolean existsByCert(byte[] certificate);
-
-    @Override
-    Optional<AuthCertEntity> findByCert(byte[] certificate);
 }

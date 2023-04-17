@@ -26,18 +26,11 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository;
 
-import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
-import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
+import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 @Repository
-public interface JpaAuthCertRepository extends JpaRepository<AuthCertEntity, Integer>, AuthCertRepository {
-    @Override
-    boolean existsByCert(byte[] certificate);
-
-    @Override
-    Optional<AuthCertEntity> findByCert(byte[] certificate);
+public interface JpaServerClientRepository extends JpaRepository<ServerClientEntity, Integer>, ServerClientRepository {
 }

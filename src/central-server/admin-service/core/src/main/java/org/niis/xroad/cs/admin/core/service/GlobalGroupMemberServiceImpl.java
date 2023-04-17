@@ -71,7 +71,7 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
         final GlobalGroupEntity globalGroupEntity = getGlobalGroupEntity(groupCode);
         if (!isMemberAlreadyInGroup(globalGroupEntity, memberEntity)) {
             final var globalGroupMemberEntity = new GlobalGroupMemberEntity(globalGroupEntity, memberEntity.getIdentifier());
-            globalGroupEntity.getGlobalGroupMembers().add(globalGroupMemberEntity);
+
             globalGroupMemberRepository.save(globalGroupMemberEntity);
         }
     }
@@ -104,11 +104,7 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
                 .filter(groupMember -> groupMember.getIdentifier().equals(memberEntity.getIdentifier()))
                 .findFirst();
 
-        if (globalGroupMember.isPresent()) {
-            final GlobalGroupMemberEntity entity = globalGroupMember.get();
-            globalGroupEntity.getGlobalGroupMembers().remove(entity);
-            globalGroupMemberRepository.delete(entity);
-        }
+        globalGroupMember.ifPresent(globalGroupMemberRepository::delete);
     }
 
     private XRoadMemberEntity getMemberIdEntity(MemberId memberId) {

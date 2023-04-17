@@ -86,7 +86,7 @@ public abstract class SecurityServerClientEntity extends AuditableEntity {
     @Setter
     private Set<ServerClientEntity> serverClients = new HashSet<>();
 
-    public SecurityServerClientEntity(ClientIdEntity identifier) {
+    protected SecurityServerClientEntity(ClientIdEntity identifier) {
         this.identifier = identifier;
     }
 

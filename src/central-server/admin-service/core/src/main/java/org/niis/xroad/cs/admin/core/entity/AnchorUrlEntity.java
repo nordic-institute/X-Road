@@ -30,7 +30,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -71,15 +70,10 @@ public class AnchorUrlEntity {
     @Setter
     private String url;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "anchorUrl", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "anchorUrl")
     @Getter
     @Setter
     private Set<AnchorUrlCertEntity> anchorUrlCerts = new HashSet<>(0);
-
-    public void addAnchorUrlCert(AnchorUrlCertEntity anchorUrlCertEntity) {
-        anchorUrlCertEntity.setAnchorUrl(this);
-        anchorUrlCerts.add(anchorUrlCertEntity);
-    }
 
 }
 

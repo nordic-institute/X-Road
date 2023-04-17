@@ -33,5 +33,6 @@ import java.util.Optional;
 public interface TrustedAnchorRepository extends GenericRepository<TrustedAnchorEntity, Integer> {
 
     Optional<TrustedAnchorEntity> findFirstByInstanceIdentifier(String instanceIdentifier);
+
     Optional<TrustedAnchorEntity> findFirstByTrustedAnchorHash(String trustedAnchorHash);
 }

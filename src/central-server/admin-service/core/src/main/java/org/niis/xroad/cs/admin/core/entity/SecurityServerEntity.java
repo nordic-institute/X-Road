@@ -32,7 +32,6 @@ import lombok.Setter;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -85,17 +84,12 @@ public class SecurityServerEntity extends AuditableEntity {
     @Setter
     private String address;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServer")
     @Access(AccessType.FIELD)
     @Getter
     private Set<AuthCertEntity> authCerts = new HashSet<>(0);
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServer", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Access(AccessType.FIELD)
-    @Getter
-    private Set<SecurityServerSecurityCategoryEntity> securityServerSecurityCategories = new HashSet<>(0);
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServer")
     @Access(AccessType.FIELD)
     @Getter
     private Set<ServerClientEntity> serverClients = new HashSet<>(0);
@@ -103,11 +97,6 @@ public class SecurityServerEntity extends AuditableEntity {
     public SecurityServerEntity(XRoadMemberEntity owner, String serverCode) {
         this.owner = owner;
         this.serverCode = serverCode;
-    }
-
-    public void addClient(SecurityServerClientEntity client) {
-        var serverClient = new ServerClientEntity(this, client);
-        serverClients.add(serverClient);
     }
 
     @Transient

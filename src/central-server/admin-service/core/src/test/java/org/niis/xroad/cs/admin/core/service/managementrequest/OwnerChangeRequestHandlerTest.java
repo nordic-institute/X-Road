@@ -334,18 +334,16 @@ class OwnerChangeRequestHandlerTest {
         final ClientIdEntity currentOwnerIdentifier = MemberIdEntity.create("x", "y", "z");
         when(currentOwnerMock.getOwnedServers()).thenReturn(ownedServersMock);
         when(currentOwnerMock.getIdentifier()).thenReturn(currentOwnerIdentifier);
+        when(members.findOneBy(currentOwnerMock.getIdentifier())).thenReturn(Option.of(currentOwnerMock));
         when(ownedServersMock.isEmpty()).thenReturn(true);
 
         final OwnerChangeRequest result = ownerChangeRequestHandler.approve(request);
 
         assertThat(result).isEqualTo(ownerChangeRequestDto);
-        assertThat(xRoadMemberEntity.getOwnedServers()).contains(securityServerEntity);
         verify(securityServerEntity).setOwner(xRoadMemberEntity);
-        verify(members).save(xRoadMemberEntity);
-        verify(servers).save(securityServerEntity);
+        verify(servers).saveAndFlush(securityServerEntity);
         verify(ownerChangeRequestEntity).setProcessingStatus(APPROVED);
 
-        verify(ownedServersMock).remove(securityServerEntity);
         verify(groupMemberService).removeMemberFromGlobalGroup(MemberId.create("x", "y", "z"), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
         verify(groupMemberService).addMemberToGlobalGroup(
                 MemberId.create(xRoadMemberEntity.getIdentifier()), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);

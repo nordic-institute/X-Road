@@ -51,6 +51,28 @@ public interface GenericRepository<T, ID> {
      */
     <S extends T> S save(S entity);
 
+    /**
+     * Saves an entity and flushes changes instantly.
+     *
+     * @param entity entity to be saved. Must not be {@literal null}.
+     * @return the saved entity
+     */
+    <S extends T> S saveAndFlush(S entity);
+
+    /**
+     * Saves all given entities.
+     *
+     * @param entities must not be {@literal null} nor must it contain {@literal null}.
+     * @return the saved entities; will never be {@literal null}. The returned {@literal Iterable} will have the same size
+     *         as the {@literal Iterable} passed as an argument.
+     * @throws IllegalArgumentException in case the given {@link Iterable entities} or one of its entities is
+     *           {@literal null}.
+     * @throws OptimisticLockingFailureException when at least one entity uses optimistic locking and has a version
+     *           attribute with a different value from that found in the persistence store. Also thrown if at least one
+     *           entity is assumed to be present but does not exist in the database.
+     */
+    <S extends T> Iterable<S> saveAll(Iterable<S> entities);
+
     List<T> findAll();
 
     Optional<T> findById(ID entityId);

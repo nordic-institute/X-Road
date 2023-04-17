@@ -41,6 +41,7 @@ import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
+import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -73,7 +74,7 @@ public class SubsystemServiceImpl implements SubsystemService {
 
     private final SubsystemRepository subsystemRepository;
     private final XRoadMemberRepository xRoadMemberRepository;
-
+    private final ServerClientRepository serverClientRepository;
     private final SecurityServerClientNameRepository securityServerClientNameRepository;
     private final SecurityServerClientMapper subsystemConverter;
     private final AuditDataHelper auditDataHelper;
@@ -137,7 +138,7 @@ public class SubsystemServiceImpl implements SubsystemService {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER));
 
-        serverClient.getSecurityServer().getServerClients().remove(serverClient);
+        serverClientRepository.delete(serverClient);
     }
 
     @Override

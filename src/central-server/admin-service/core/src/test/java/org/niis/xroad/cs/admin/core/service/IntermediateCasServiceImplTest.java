@@ -165,8 +165,6 @@ class IntermediateCasServiceImplTest {
         assertEquals(ocspResponder, ocspResponderSaved);
 
         ArgumentCaptor<OcspInfoEntity> captor = ArgumentCaptor.forClass(OcspInfoEntity.class);
-        verify(caInfo).addOcspInfos(captor.capture());
-        verifyEntity(captor.getValue());
 
         verify(ocspInfoRepository).save(captor.capture());
         verifyEntity(captor.getValue());
@@ -188,7 +186,7 @@ class IntermediateCasServiceImplTest {
 
         intermediateCasService.deleteOcspResponder(ID, OCSP_INFO_ID);
 
-        assertThat(ocspResponders).hasSize(0);
+        verify(ocspInfoRepository).delete(ocspResponderToDelete);
         verify(auditDataHelper).put(OCSP_ID, OCSP_INFO_ID);
     }
 

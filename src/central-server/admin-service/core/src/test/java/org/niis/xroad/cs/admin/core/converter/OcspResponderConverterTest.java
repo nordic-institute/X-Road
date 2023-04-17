@@ -112,7 +112,7 @@ class OcspResponderConverterTest {
         when(caInfoEntity.getId()).thenReturn(CA_ID);
 
         var ocspInfo = new OcspInfoEntity(caInfoEntity, URL, new byte[0]);
-        ocspInfo.getCaInfo().addOcspInfos(ocspInfo);
+        ocspInfo.getCaInfo().getOcspInfos().add(ocspInfo);
 
         return ocspInfo;
     }

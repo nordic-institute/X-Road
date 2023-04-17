@@ -1,6 +1,5 @@
 /**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,20 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.jpa.repository;
+package org.niis.xroad.cs.admin.core.repository;
 
-import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
-import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.niis.xroad.cs.admin.core.entity.AnchorUrlEntity;
 
-import java.util.Optional;
+public interface AnchorUrlRepository extends GenericRepository<AnchorUrlEntity, Integer> {
 
-@Repository
-public interface JpaAuthCertRepository extends JpaRepository<AuthCertEntity, Integer>, AuthCertRepository {
-    @Override
-    boolean existsByCert(byte[] certificate);
-
-    @Override
-    Optional<AuthCertEntity> findByCert(byte[] certificate);
+    void deleteByTrustedAnchorId(int trustedAnchorId);
 }

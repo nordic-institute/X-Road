@@ -51,8 +51,6 @@ public class SecurityServer extends Auditable {
 
     private Set<AuthCert> authCerts = new HashSet<>(0);
 
-    private Set<SecurityServerSecurityCategory> securityServerSecurityCategories = new HashSet<>(0);
-
     public SecurityServer(XRoadMember owner, String serverCode) {
         this.owner = owner;
         this.serverCode = serverCode;
