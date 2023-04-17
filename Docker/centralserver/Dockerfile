@@ -47,6 +47,8 @@ RUN useradd -m ca -U \
   && useradd -G ca ocsp
 COPY home /home
 COPY etc /etc
+COPY usr* /usr
+
 COPY files/init.sh /home/ca/CA/
 COPY files/ca.py /home/ca/CA/
 RUN chown -R ca:ca /home/ca/CA \
@@ -58,7 +60,8 @@ RUN chown -R ca:ca /home/ca/CA \
   && chown ca:ca /var/log/ocsp.log \
   && chmod 0664 /var/log/ocsp.log \
   && chmod 0754 /home/ca/CA/ca.py \
-  && chmod 0754 /home/ca/CA/sign_req.sh
+  && chmod 0754 /home/ca/CA/sign_req.sh \
+  && chmod 0755 /usr/share/xroad/scripts/verify_external_configuration.sh
 
 COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf

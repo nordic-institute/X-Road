@@ -44,6 +44,8 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class ContainerSetup extends AbstractTestableContainerSetup {
+    private static final String VERIFY_EXTERNAL_CONFIGURATION_PATH = "usr/share/xroad/scripts/verify_external_configuration.sh";
+    private static final String VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH = "src/intTest/resources/container-files/" + VERIFY_EXTERNAL_CONFIGURATION_PATH;
     private final TargetHostUrlProvider targetHostUrlProvider;
 
     @Value("${test-automation.custom.package-repo}")
@@ -82,8 +84,7 @@ public class ContainerSetup extends AbstractTestableContainerSetup {
 
     @Override
     public void additionalImageFromDockerfileConfiguration(@NotNull ImageFromDockerfile imageFromDockerfile) {
-        var filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
-        imageFromDockerfile.withFileFromFile(".", filesToAdd);
+        //do nothing
     }
 
     @NotNull
@@ -98,7 +99,8 @@ public class ContainerSetup extends AbstractTestableContainerSetup {
                 .withBuildArg("REPO_KEY", packageRepoKey)
 
                 .withFileFromPath("Dockerfile", dockerfilePath)
-                .withFileFromFile(".", csDockerRoot.resolve("build/").toFile());
+                .withFileFromFile(".", csDockerRoot.resolve("build/").toFile())
+                .withFileFromPath(VERIFY_EXTERNAL_CONFIGURATION_PATH,Paths.get(VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH));
     }
 
     @Override
