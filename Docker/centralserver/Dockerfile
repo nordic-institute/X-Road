@@ -47,7 +47,7 @@ RUN useradd -m ca -U \
   && useradd -G ca ocsp
 COPY home /home
 COPY etc /etc
-COPY usr* /usr
+COPY usr /usr
 
 COPY files/init.sh /home/ca/CA/
 COPY files/ca.py /home/ca/CA/
