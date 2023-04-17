@@ -45,7 +45,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ContainerSetup extends AbstractTestableContainerSetup {
     private static final String VERIFY_EXTERNAL_CONFIGURATION_PATH = "usr/share/xroad/scripts/verify_external_configuration.sh";
-    private static final String VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH = "src/intTest/resources/container-files/" + VERIFY_EXTERNAL_CONFIGURATION_PATH;
+    private static final String VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH =
+            "src/intTest/resources/container-files/" + VERIFY_EXTERNAL_CONFIGURATION_PATH;
     private final TargetHostUrlProvider targetHostUrlProvider;
 
     @Value("${test-automation.custom.package-repo}")
@@ -100,7 +101,7 @@ public class ContainerSetup extends AbstractTestableContainerSetup {
 
                 .withFileFromPath("Dockerfile", dockerfilePath)
                 .withFileFromFile(".", csDockerRoot.resolve("build/").toFile())
-                .withFileFromPath(VERIFY_EXTERNAL_CONFIGURATION_PATH,Paths.get(VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH));
+                .withFileFromPath(VERIFY_EXTERNAL_CONFIGURATION_PATH, Paths.get(VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH));
     }
 
     @Override
