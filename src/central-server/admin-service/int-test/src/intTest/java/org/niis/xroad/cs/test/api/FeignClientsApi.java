@@ -53,6 +53,6 @@ public interface FeignClientsApi extends ClientsApi {
             @Size(min = 0, max = 255) @Valid @RequestParam(value = "subsystem_code", required = false) String subsystemCode,
             @Valid @RequestParam(value = "client_type", required = false) ClientTypeDto clientType,
             @Valid @RequestParam(value = "security_server", required = false) String securityServer,
-            @Size(min = 0, max = 255)  @Valid @RequestParam(value = "excluding_group", required = false) Integer excludingGroup
+            @RequestParam(value = "excluding_group", required = false) Integer excludingGroup
     );
 }
