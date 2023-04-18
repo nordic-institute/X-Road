@@ -97,9 +97,9 @@ check_user
 check_security_server_id
 check_backup_file_name
 
-ENCRYPT_BACKUP=$(get_proxy_prop proxy.ini proxy "backup-encryption-enabled" false)
+ENCRYPT_BACKUP=$(get_server_prop proxy.ini proxy "backup-encryption-enabled" false)
 echo "ENCRYPT_BACKUP=$ENCRYPT_BACKUP"
-GPG_KEYIDS=$(get_proxy_prop proxy.ini proxy "backup-encryption-keyids")
+GPG_KEYIDS=$(get_server_prop proxy.ini proxy "backup-encryption-keyids")
 echo "GPG_KEYIDS=$GPG_KEYIDS"
 
 execute_backup

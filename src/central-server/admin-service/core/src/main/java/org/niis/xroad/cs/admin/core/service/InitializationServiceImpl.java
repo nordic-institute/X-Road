@@ -28,6 +28,9 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import ee.ria.xroad.common.util.process.ProcessFailedException;
+import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -35,6 +38,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.InitialServerConfDto;
@@ -48,18 +52,24 @@ import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INITIALIZATION_INTERRUPTED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_ALREADY_INITIALIZED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SIGNER_PIN_POLICY_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SOFTWARE_TOKEN_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_FAILED;
 
 @SuppressWarnings("checkstyle:TodoComment")
 @Slf4j
@@ -74,6 +84,11 @@ public class InitializationServiceImpl implements InitializationService {
     private final TokenPinValidator tokenPinValidator;
     private final AuditDataHelper auditDataHelper;
     private final HAConfigStatus currentHaConfigStatus;
+    private final ExternalProcessRunner externalProcessRunner;
+    @Value("${script.generate-gpg-keypair.path}")
+    private final String generateKeypairScriptPath;
+    @Value("${gpgkeys.gpghome}")
+    private final String gpgHome;
 
     @Override
     public InitializationStatusDto getInitializationStatus() {
@@ -154,6 +169,8 @@ public class InitializationServiceImpl implements InitializationService {
                 throw new DataIntegrityException(INIT_SOFTWARE_TOKEN_FAILED, e);
             }
         }
+
+        generateGPGKeyPair(systemParameterService.getInstanceIdentifier());
     }
 
     private void initializeCsSystemParameters() {
@@ -192,6 +209,26 @@ public class InitializationServiceImpl implements InitializationService {
         globalGroupRepository.save(securityServerOwnersGlobalGroup.get());
     }
 
+    private void generateGPGKeyPair(String identifier) {
+        String[] args = {gpgHome, identifier};
+
+        try {
+            log.info("Generating GPG keypair with command '"
+                    + generateKeypairScriptPath + " " + Arrays.toString(args) + "'");
+
+            ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
+                    .executeAndThrowOnFailure(generateKeypairScriptPath, args);
+
+            log.info(" --- Generate GPG keypair script console output - START --- ");
+            log.info(String.join("\n", processResult.getProcessOutput()));
+            log.info(" --- Generate GPG keypair script console output - END --- ");
+        } catch (ProcessNotExecutableException | ProcessFailedException e) {
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_GPG_KEY_GENERATION_FAILED));
+        } catch (InterruptedException e) {
+            throw new ServiceException(INITIALIZATION_INTERRUPTED);
+        }
+    }
+
     private boolean isSWTokenInitialized() {
         boolean isSWTokenInitialized = false;
         TokenInfo tokenInfo;
@@ -207,6 +244,5 @@ public class InitializationServiceImpl implements InitializationService {
         }
         return isSWTokenInitialized;
     }
-
 }
 

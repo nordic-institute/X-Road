@@ -46,10 +46,15 @@ logging:
   config: file:/etc/xroad/conf.d/centralserver-admin-service-logback.xml
 
 script:
+  generate-gpg-keypair:
+    path: /usr/share/xroad/scripts/generate_gpg_keypair.sh
   generate-backup:
     path: /usr/share/xroad/scripts/backup_xroad_center_configuration.sh
-    valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.tar$"
+    valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.gpg$"
   restore-configuration:
     path: /usr/share/xroad/scripts/restore_xroad_center_configuration.sh
   external-configuration-verifier:
     path: /usr/share/xroad/scripts/verify_external_configuration.sh
+
+gpgkeys:
+  gpghome: /etc/xroad/gpghome

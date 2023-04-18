@@ -120,7 +120,7 @@ has_command () {
     command -v "$1" &>/dev/null
 }
 
-get_proxy_prop () {
+get_server_prop () {
   local value
   if ! value=$(crudini --get /etc/xroad/conf.d/local.ini "$2" "$3" 2>/dev/null); then
     value=$(crudini --get /etc/xroad/conf.d/"$1" "$2" "$3" 2>/dev/null || echo "$4")
