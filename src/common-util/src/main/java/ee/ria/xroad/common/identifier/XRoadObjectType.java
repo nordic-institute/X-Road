@@ -38,8 +38,6 @@ public enum XRoadObjectType { // todo: the usage of this enumeration is a mess. 
     GLOBALGROUP,
     SECURITYCATEGORY,
     /** @deprecated this type will be removed in the future */
-    @Deprecated CENTRALSERVICE,
-    /** @deprecated this type will be removed in the future */
     @Deprecated LOCALGROUP;
 
     public String getIdentifier() {

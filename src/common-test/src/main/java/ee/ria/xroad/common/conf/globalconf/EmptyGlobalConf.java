@@ -29,12 +29,10 @@ import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -157,11 +155,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public ServiceId.Conf getServiceId(CentralServiceId serviceId) {
-        return null;
-    }
-
-    @Override
     public X509Certificate getCentralServerSslCertificate() {
         return null;
     }
@@ -181,12 +174,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     public CertChain getCertChain(String instanceIdentifier,
             X509Certificate subject) throws Exception {
         return null;
-    }
-
-    @Override
-    public List<CentralServiceId.Conf> getCentralServices(
-            String instanceIdentifier) {
-        return Collections.emptyList();
     }
 
     @Override

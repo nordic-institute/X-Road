@@ -29,7 +29,6 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedCATypeV2;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.CaInfoType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.CentralServiceType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalGroupType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalSettingsType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.MemberType;
@@ -208,10 +207,6 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
 
     List<GlobalGroupType> getGlobalGroups() {
         return confType.getGlobalGroup();
-    }
-
-    List<CentralServiceType> getCentralServices() {
-        return confType.getCentralService();
     }
 
     GlobalSettingsType getGlobalSettings() {

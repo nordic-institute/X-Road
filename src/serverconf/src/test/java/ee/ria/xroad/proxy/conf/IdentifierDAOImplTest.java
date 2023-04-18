@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
@@ -97,16 +96,6 @@ public class IdentifierDAOImplTest {
 
         assertCreateRead(() ->
                 ServiceId.Conf.create("EE", "cls", "code", null, "service2"));
-    }
-
-    /**
-     * CentralServiceId.
-     * @throws Exception if an error occurs
-     */
-    @Test
-    public void centralServiceId() throws Exception {
-        assertCreateRead(() -> CentralServiceId.Conf.create("EE", "central1"));
-        assertCreateRead(() -> CentralServiceId.Conf.create("EE", "central2"));
     }
 
     /**

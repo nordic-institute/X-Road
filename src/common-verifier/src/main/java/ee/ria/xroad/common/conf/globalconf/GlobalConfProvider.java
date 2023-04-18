@@ -30,12 +30,10 @@ import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -72,16 +70,6 @@ public interface GlobalConfProvider {
     List<String> getInstanceIdentifiers();
 
     /**
-     * Returns concrete service id for the given service id type. If the input
-     * is ServiceId, returns it. If the input is CentralServiceId, looks for
-     * a mapping to ServiceId in GlobalConf.
-     *
-     * @param serviceId the service id
-     * @return mapped service identifier
-     */
-    ServiceId.Conf getServiceId(CentralServiceId serviceId);
-
-    /**
      * @param instanceIdentifiers the instance identifiers
      * @return members and subsystems of a given instance, or all members and subsystems if
      * no instance identifiers are specified
@@ -93,12 +81,6 @@ public interface GlobalConfProvider {
      * @return member name for the given client identifier
      */
     String getMemberName(ClientId clientId);
-
-    /**
-     * @param instanceIdentifier the instance identifier
-     * @return all central services for the given instance identifier
-     */
-    List<CentralServiceId.Conf> getCentralServices(String instanceIdentifier);
 
     /**
      * @param instanceIdentifiers the optional instance identifiers

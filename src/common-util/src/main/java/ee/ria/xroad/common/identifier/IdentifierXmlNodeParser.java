@@ -94,18 +94,10 @@ public final class IdentifierXmlNodeParser {
      * @throws Exception if errors occur during parsing
      */
     public static ServiceId parseServiceId(Node node) throws Exception {
-        XRoadObjectType objectType = getObjectType(node);
-        if (objectType.equals(XRoadObjectType.CENTRALSERVICE)) {
-            XRoadCentralServiceIdentifierType type =
-                    parseType(XRoadObjectType.CENTRALSERVICE, node,
-                            XRoadCentralServiceIdentifierType.class);
-            return IdentifierTypeConverter.parseCentralServiceId(type);
-        } else {
-            XRoadServiceIdentifierType type =
-                    parseType(XRoadObjectType.SERVICE, node,
-                            XRoadServiceIdentifierType.class);
-            return IdentifierTypeConverter.parseServiceId(type);
-        }
+        XRoadServiceIdentifierType type =
+                parseType(XRoadObjectType.SERVICE, node,
+                        XRoadServiceIdentifierType.class);
+        return IdentifierTypeConverter.parseServiceId(type);
     }
 
     // -- Helper methods ------------------------------------------------------

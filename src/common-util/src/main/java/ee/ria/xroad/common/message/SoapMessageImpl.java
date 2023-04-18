@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -80,15 +79,6 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
      */
     public ServiceId.Conf getService() {
         return getHeader().getService();
-    }
-
-    /**
-     * Gets the central service ID in the SOAP message header.
-     *
-     * @return CentralServiceId
-     */
-    public CentralServiceId.Conf getCentralService() {
-        return getHeader().getCentralService();
     }
 
     /**

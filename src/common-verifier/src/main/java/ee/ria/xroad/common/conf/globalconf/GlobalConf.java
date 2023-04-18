@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,12 +31,10 @@ import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +45,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 
 /**
@@ -181,27 +178,6 @@ public final class GlobalConf {
     }
 
     /**
-     * Returns concrete service id for the given service id type. If the input
-     * is ServiceId, returns it. If the input is CentralServiceId, looks for
-     * a mapping to ServiceId in GlobalConf.
-     *
-     * @param serviceId the service id
-     * @return mapped service identifier
-     */
-    public static ServiceId getServiceId(ServiceId serviceId) {
-        log.trace("getServiceId({})", serviceId);
-
-        if (serviceId instanceof CentralServiceId) {
-            return getInstance().getServiceId((CentralServiceId) serviceId);
-        } else if (serviceId instanceof ServiceId) {
-            return serviceId;
-        } else {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Unknown type of service id: %s", serviceId.getClass());
-        }
-    }
-
-    /**
      * @param instanceIdentifiers the instance identifiers
      * @return members and subsystems of a given instance, or all members and subsystems if
      * no instance identifiers are specified
@@ -221,17 +197,6 @@ public final class GlobalConf {
         log.trace("getMemberName({})", clientId);
 
         return getInstance().getMemberName(clientId);
-    }
-
-    /**
-     * @param instanceIdentifier the instance identifier
-     * @return all central services for the given instance identifier
-     */
-    public static List<CentralServiceId.Conf> getCentralServices(
-            String instanceIdentifier) {
-        log.trace("getCentralServices({})", instanceIdentifier);
-
-        return getInstance().getCentralServices(instanceIdentifier);
     }
 
     /**
@@ -290,6 +255,7 @@ public final class GlobalConf {
 
         return getInstance().getSecurityServerAddress(serverId);
     }
+
     /**
      * Returns a list of OCSP responder addresses for the given member
      * certificate.

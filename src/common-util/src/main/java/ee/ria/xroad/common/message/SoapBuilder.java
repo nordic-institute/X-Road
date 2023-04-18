@@ -121,8 +121,7 @@ public class SoapBuilder {
     }
 
     private ServiceId getService() {
-        return header.getService() != null ? header.getService()
-                : header.getCentralService();
+        return header.getService();
     }
 
     private void assembleMessageBody(SOAPMessage soap) throws Exception {

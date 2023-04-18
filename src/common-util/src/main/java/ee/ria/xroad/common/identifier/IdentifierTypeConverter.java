@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -71,16 +71,6 @@ final class IdentifierTypeConverter {
         type.setObjectType(v.getObjectType());
         type.setXRoadInstance(v.getXRoadInstance());
         type.setSecurityCategoryCode(v.getCategoryCode());
-        return type;
-    }
-
-    static XRoadCentralServiceIdentifierType printCentralServiceId(
-            CentralServiceId v) {
-        XRoadCentralServiceIdentifierType type =
-                new XRoadCentralServiceIdentifierType();
-        type.setObjectType(v.getObjectType());
-        type.setXRoadInstance(v.getXRoadInstance());
-        type.setServiceCode(v.getServiceCode());
         return type;
     }
 
@@ -144,11 +134,6 @@ final class IdentifierTypeConverter {
                 v.getSecurityCategoryCode());
     }
 
-    static CentralServiceId parseCentralServiceId(XRoadIdentifierType v) {
-        return CentralServiceId.Conf.create(v.getXRoadInstance(),
-                v.getServiceCode());
-    }
-
     static SecurityServerId parseSecurityServerId(XRoadIdentifierType v) {
         return SecurityServerId.Conf.create(v.getXRoadInstance(),
                 v.getMemberClass(), v.getMemberCode(), v.getServerCode());
@@ -196,8 +181,6 @@ final class IdentifierTypeConverter {
                 switch (v.getObjectType()) {
                     case SERVICE:
                         return parseServiceId(v);
-                    case CENTRALSERVICE:
-                        return parseCentralServiceId(v);
                     default:
                         return null;
                 }
@@ -221,23 +204,6 @@ final class IdentifierTypeConverter {
         public SecurityCategoryId unmarshal(
                 XRoadSecurityCategoryIdentifierType v) throws Exception {
             return v == null ? null : parseSecurityCategoryId(v);
-        }
-    }
-
-    static class CentralServiceIdAdapter
-            extends XmlAdapter<
-            XRoadCentralServiceIdentifierType, CentralServiceId> {
-
-        @Override
-        public XRoadCentralServiceIdentifierType marshal(CentralServiceId v)
-                throws Exception {
-            return v == null ? null : printCentralServiceId(v);
-        }
-
-        @Override
-        public CentralServiceId unmarshal(XRoadCentralServiceIdentifierType v)
-                throws Exception {
-            return v == null ? null : parseCentralServiceId(v);
         }
     }
 
@@ -307,8 +273,6 @@ final class IdentifierTypeConverter {
                     return printServiceId((ServiceId) v);
                 case SERVER:
                     return printSecurityServerId((SecurityServerId) v);
-                case CENTRALSERVICE:
-                    return printCentralServiceId((CentralServiceId) v);
                 case GLOBALGROUP:
                     return printGlobalGroupId((GlobalGroupId) v);
                 case LOCALGROUP:
@@ -335,8 +299,6 @@ final class IdentifierTypeConverter {
                     return parseServiceId(v);
                 case SERVER:
                     return parseSecurityServerId(v);
-                case CENTRALSERVICE:
-                    return parseCentralServiceId(v);
                 case GLOBALGROUP:
                     return parseGlobalGroupId(v);
                 case LOCALGROUP:
