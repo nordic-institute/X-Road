@@ -112,7 +112,7 @@ export default Vue.extend({
           );
           if (data.local_conf_present) {
             this.backupHandler.showWarning(
-              'backup.createBackup.message.localConfWarning',
+              'backup.createBackup.messages.localConfWarning',
             );
           }
         })

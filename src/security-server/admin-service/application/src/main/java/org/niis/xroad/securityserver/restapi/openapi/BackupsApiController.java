@@ -130,7 +130,8 @@ public class BackupsApiController implements BackupsApi {
         try {
             BackupFile backupFile = backupGenerator.generateBackup();
             BackupExt backupExt = new BackupExt();
-            backupExt.setBackup(backupConverter.convert(backupFile));
+            backupExt.setFilename(backupFile.getFilename());
+            backupExt.setCreatedAt(backupFile.getCreatedAt());
             backupExt.setLocalConfPresent((new File("/etc/xroad/services/local.conf")).exists());
             return new ResponseEntity<>(backupExt, HttpStatus.CREATED);
         } catch (InterruptedException e) {
