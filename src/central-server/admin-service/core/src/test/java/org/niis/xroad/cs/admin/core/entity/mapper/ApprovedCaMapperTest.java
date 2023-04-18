@@ -56,7 +56,7 @@ class ApprovedCaMapperTest {
         source.setIdentifierDecoderMemberClass("DecoderMemberClass");
         source.setIdentifierDecoderMethodName("DecoderMethodName");
         source.setCertProfileInfo("certProfileInfo");
-        source.addIntermediateCa(getCaInfoEntity());
+        source.getIntermediateCaInfos().add(getCaInfoEntity());
 
         var result = approvedCaMapper.toTarget(source);
 

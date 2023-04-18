@@ -80,6 +80,10 @@ public class GlobalConfigurationPageObj {
         return $x("//a[@data-test='external-conf-tab-button']");
     }
 
+    public SelenideElement trustedAnchors() {
+        return $x("//a[@data-test='trusted-anchors-tab-button']");
+    }
+
     public class TokenLoginDialog {
         public SelenideElement inputPin() {
             return $x("//input[@data-test='token-pin-input']");

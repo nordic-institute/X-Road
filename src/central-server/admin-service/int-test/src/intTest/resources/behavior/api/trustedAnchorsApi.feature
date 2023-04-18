@@ -27,6 +27,7 @@ Feature: Trusted Anchors Api
     Given Authentication header is set to SECURITY_OFFICER
     And trusted anchor file 'trusted-anchor.xml' is uploaded
     And trusted anchor file 'trusted-anchor-2.xml' is uploaded
+    And trusted anchor file 'trusted-anchor-2.xml' is uploaded
     When trusted anchors list is retrieved
     Then Response is of status code 200
     And trusted anchors list contains 2 items

@@ -11,6 +11,11 @@ Feature: Clients API
     And new member 'CS:TEST2:member' is added with name 'name third'
     And new subsystem "CS:TEST:member:sub1" is added
     And new subsystem "CS:TEST:member:sub2" is added
+    And new subsystem "CS:TEST:member:sub3" is added
+    And new global group "test-group" with description "test:group:desc" is added
+    When members are added to group 'test-group'
+      | $identifier         |
+      | CS:TEST:member:sub3 |
     And new security server 'CS:TEST:member:SS-1' authentication certificate registered with origin 'SECURITY_SERVER' and approved
     And new security server 'CS:TEST:member:SS-2' authentication certificate registered with origin 'SECURITY_SERVER' and approved
     And new security server 'CS:TEST2:member:SS-3' authentication certificate registered with origin 'SECURITY_SERVER' and approved
@@ -20,30 +25,32 @@ Feature: Clients API
   Scenario Outline: Clients are listed (positive scenario)
     Given Authentication header is set to SECURITY_OFFICER
     When Clients are queried and validated with following parameters
-      | $query   | $name   | $instance   | $memberClass   | $memberCode   | $subsystemCode   | $clientType   | $securityServer   | $sortBy   | $desc   | $limit   | $offset   |
-      | <$query> | <$name> | <$instance> | <$memberClass> | <$memberCode> | <$subsystemCode> | <$clientType> | <$securityServer> | <$sortBy> | <$desc> | <$limit> | <$offset> |
+      | $query   | $name   | $instance   | $memberClass   | $memberCode   | $subsystemCode   | $clientType   | $securityServer   | $globalGroup   | $sortBy   | $desc   | $limit   | $offset   |
+      | <$query> | <$name> | <$instance> | <$memberClass> | <$memberCode> | <$subsystemCode> | <$clientType> | <$securityServer> | <$globalGroup> | <$sortBy> | <$desc> | <$limit> | <$offset> |
     Then Clients response is as follows
       | $totalItems   | $items   | $limit   | $offset   | $jsonPath1   |
       | <$totalItems> | <$items> | <$limit> | <$offset> | <$jsonPath1> |
     Examples:
-      | $query      | $name | $instance | $memberClass | $memberCode | $subsystemCode | $clientType | $securityServer     | $sortBy              | $desc | $limit | $offset | $totalItems | $items | $jsonPath1                                 |
-      |             |       |           |              |             |                |             |                     |                      |       | 25     | 0       | 5           | 5      |                                            |
-      | TEST2       |       |           |              |             |                |             |                     |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.memberClass == 'TEST2'  |
-      | another     |       |           |              |             |                |             |                     |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.memberCode == 'another' |
-      | name second |       |           |              |             |                |             |                     |                      |       | 25     | 0       | 1           | 1      | clients[0].memberName == 'name second'     |
-      | sub2        |       |           |              |             |                |             |                     |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.subsystemCode == 'sub2' |
-      | sub         |       |           |              |             |                |             |                     |                      |       | 25     | 0       | 2           | 2      | clients[0].xroadId.subsystemCode == 'sub1' |
-      |             | third |           |              |             |                |             |                     |                      |       | 25     | 0       | 1           | 1      | clients[0].memberName == 'name third'      |
-      |             |       | CS        |              |             |                |             |                     |                      |       | 3      | 1       | 5           | 2      |                                            |
-      |             |       | POTATO    |              |             |                |             |                     |                      |       | 25     | 0       | 0           | 0      |                                            |
-      |             |       |           | TEST2        |             |                |             |                     |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.memberClass == 'TEST2'  |
-      |             |       |           | TEST2        | member      |                |             |                     |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.memberClass == 'TEST2'  |
-      |             |       |           | TEST2        | member      | sub2           |             |                     |                      |       | 25     | 0       | 0           | 0      |                                            |
-      |             |       |           | TEST         | member      | sub2           |             |                     |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.subsystemCode == 'sub2' |
-      |             |       |           |              |             |                | MEMBER      |                     | xroad_id.member_code | false | 2      | 0       | 3           | 2      | clients[0].xroadId.memberCode == 'another' |
-      |             |       |           |              |             |                | MEMBER      |                     | xroad_id.member_code | true  | 2      | 0       | 3           | 2      | clients[0].xroadId.memberCode == 'member'  |
-      |             |       |           |              |             |                | SUBSYSTEM   |                     |                      |       | 25     | 0       | 2           | 2      | clients[0].xroadId.subsystemCode == 'sub1' |
-      |             |       |           |              |             |                |             | CS:TEST:member:SS-1 |                      |       | 25     | 0       | 1           | 1      |                                            |
+      | $query      | $name | $instance | $memberClass | $memberCode | $subsystemCode | $clientType | $securityServer     | $globalGroup | $sortBy              | $desc | $limit | $offset | $totalItems | $items | $jsonPath1                                 |
+      |             |       |           |              |             |                |             |                     |              |                      |       | 25     | 0       | 6           | 6      |                                            |
+      | TEST2       |       |           |              |             |                |             |                     |              |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.memberClass == 'TEST2'  |
+      | another     |       |           |              |             |                |             |                     |              |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.memberCode == 'another' |
+      | name second |       |           |              |             |                |             |                     |              |                      |       | 25     | 0       | 1           | 1      | clients[0].memberName == 'name second'     |
+      | sub2        |       |           |              |             |                |             |                     |              |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.subsystemCode == 'sub2' |
+      | sub         |       |           |              |             |                |             |                     |              |                      |       | 25     | 0       | 3           | 3      | clients[0].xroadId.subsystemCode == 'sub1' |
+      |             | third |           |              |             |                |             |                     |              |                      |       | 25     | 0       | 1           | 1      | clients[0].memberName == 'name third'      |
+      |             |       | CS        |              |             |                |             |                     |              |                      |       | 3      | 1       | 6           | 3      |                                            |
+      |             |       | POTATO    |              |             |                |             |                     |              |                      |       | 25     | 0       | 0           | 0      |                                            |
+      |             |       |           | TEST2        |             |                |             |                     |              |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.memberClass == 'TEST2'  |
+      |             |       |           | TEST2        | member      |                |             |                     |              |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.memberClass == 'TEST2'  |
+      |             |       |           | TEST2        | member      | sub2           |             |                     |              |                      |       | 25     | 0       | 0           | 0      |                                            |
+      |             |       |           | TEST         | member      | sub2           |             |                     |              |                      |       | 25     | 0       | 1           | 1      | clients[0].xroadId.subsystemCode == 'sub2' |
+      |             |       |           |              |             |                | MEMBER      |                     |              | xroad_id.member_code | false | 2      | 0       | 3           | 2      | clients[0].xroadId.memberCode == 'another' |
+      |             |       |           |              |             |                | MEMBER      |                     |              | xroad_id.member_code | true  | 2      | 0       | 3           | 2      | clients[0].xroadId.memberCode == 'member'  |
+      |             |       |           |              |             |                | SUBSYSTEM   |                     |              |                      |       | 25     | 0       | 3           | 3      | clients[0].xroadId.subsystemCode == 'sub1' |
+      |             |       |           |              |             |                |             | CS:TEST:member:SS-1 |              |                      |       | 25     | 0       | 1           | 1      |                                            |
+      |             |       |           |              |             |                |             |                     | test-group   |                      |       | 25     | 0       | 6           | 6      |                                            |
+      |             |       |           |              |             | sub3           |             | CS:TEST:member:SS-1 | test-group   |                      |       | 25     | 0       | 0           | 0      |                                            |
 
 
   Scenario Outline: Clients are not listed (negative scenario)

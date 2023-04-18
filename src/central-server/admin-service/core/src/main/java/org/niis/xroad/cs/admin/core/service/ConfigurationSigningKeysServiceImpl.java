@@ -238,9 +238,8 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             }
             signingKey.setConfigurationSource(configurationSourceEntity);
 
-            configurationSourceEntity.getConfigurationSigningKeys().add(signingKey);
-
-            configurationSourceRepository.save(configurationSourceEntity);
+            configurationSigningKeyRepository.saveAndFlush(signingKey);
+            configurationSourceRepository.saveAndFlush(configurationSourceEntity);
 
             response.setKeyIdentifier(keyInfo.getId())
                     .setKeyGeneratedAt(generatedAt)
@@ -248,7 +247,6 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
 
             return mapWithDetails(tokenInfo, response, keyInfo);
         } catch (Exception e) {
-            //TODO is this tested? verify
             deleteKey(keyInfo.getId());
             throw new SignerProxyException(KEY_GENERATION_FAILED);
         }

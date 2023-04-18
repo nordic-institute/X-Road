@@ -21,13 +21,14 @@ Feature: Initialization API
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
     And Signer.initSoftwareToken is mocked to accept password
     When Server is initialized with address "e2e-cs", instance-identifier "E2E_CS", token pin "1234-VALID"
+    And Signer.getToken response is mocked for active token "0"
     Then Server initialization status is requested
     And Server initialization status is as follows
-      | $softwareTokenInitStatus | UNKNOWN |
+      | $softwareTokenInitStatus | INITIALIZED |
       | $instanceIdentifier      | E2E_CS  |
       | $centralServerAddress    | e2e-cs  |
     When Server is initialized with address "e2e-cs", instance-identifier "E2E_CS", token pin "1234-VALID"
-    Then Response is of status code 400 and error code "init_invalid_params"
+    Then Response is of status code 409 and error code "init_already_initialized"
 
   @ResetDB
   @Modifying

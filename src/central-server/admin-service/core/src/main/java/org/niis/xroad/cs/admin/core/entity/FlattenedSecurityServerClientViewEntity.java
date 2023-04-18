@@ -34,6 +34,8 @@ import lombok.Setter;
 import org.niis.xroad.cs.admin.core.entity.converter.ClientIdConverter;
 import org.springframework.data.annotation.Immutable;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -87,6 +89,12 @@ public class FlattenedSecurityServerClientViewEntity extends AuditableEntity {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "flattenedSecurityServerClientView")
     private Set<FlattenedServerClientEntity> flattenedServerClients = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "server_client_id", nullable = false, updatable = false)
+    @Access(AccessType.FIELD)
+    @Getter
+    private ClientIdEntity identifier;
 }
 
 

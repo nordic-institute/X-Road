@@ -1,6 +1,5 @@
 /**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,43 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.entity;
+package org.niis.xroad.cs.admin.core.repository;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.niis.xroad.cs.admin.core.entity.AnchorUrlEntity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+public interface AnchorUrlRepository extends GenericRepository<AnchorUrlEntity, Integer> {
 
-@Entity
-@NoArgsConstructor
-@Table(name = SecurityCategoryEntity.TABLE_NAME)
-public class SecurityCategoryEntity extends AuditableEntity {
-
-    public static final String TABLE_NAME = "security_categories";
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
-    @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
-    @Column(name = "id", unique = true, nullable = false)
-    @Getter
-    private int id;
-
-    @Column(name = "code")
-    @Getter
-    @Setter
-    private String code;
-
-    @Column(name = "description")
-    @Getter
-    @Setter
-    private String description;
+    void deleteByTrustedAnchorId(int trustedAnchorId);
 }
-
-

@@ -233,7 +233,7 @@ class ConfigurationSigningKeysServiceImplTest {
         var result = configurationSigningKeysServiceImpl.addKey(INTERNAL_CONFIGURATION,
                 TOKEN_ID, KEY_LABEL);
 
-        verify(configurationSourceRepository, times(1)).save(configurationSourceEntity);
+        verify(configurationSourceRepository, times(1)).saveAndFlush(configurationSourceEntity);
 
         assertThat(result.isActiveSourceSigningKey()).isEqualTo(Boolean.TRUE);
         assertThat(result.getAvailable()).isEqualTo(Boolean.TRUE);

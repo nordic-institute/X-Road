@@ -94,6 +94,9 @@ public class TrustServicesPageObj {
             return $x("//button[@data-test='view-certificate-button']");
         }
 
+        public SelenideElement btnDeleteTrustService() {
+            return $x("//div[@data-test='delete-trust-service']");
+        }
 
         public class CaSettings {
             public SelenideElement cardTlsAuth() {

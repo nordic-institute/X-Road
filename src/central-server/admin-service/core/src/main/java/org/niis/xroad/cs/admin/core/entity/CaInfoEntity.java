@@ -30,7 +30,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -82,13 +81,10 @@ public class CaInfoEntity extends AuditableEntity {
     @Setter
     private Instant validTo;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "caInfo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "caInfo")
     @Getter
     @Setter
     private Set<OcspInfoEntity> ocspInfos = new HashSet<>(0);
 
-    public void addOcspInfos(OcspInfoEntity ocspInfo) {
-        ocspInfo.setCaInfo(this);
-        getOcspInfos().add(ocspInfo);
-    }
+
 }

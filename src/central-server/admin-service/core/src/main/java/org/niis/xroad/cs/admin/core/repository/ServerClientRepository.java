@@ -24,49 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.entity;
+package org.niis.xroad.cs.admin.core.repository;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+public interface ServerClientRepository extends GenericRepository<ServerClientEntity, Integer> {
 
-@Entity
-@NoArgsConstructor
-@Table(name = SecurityServerSecurityCategoryEntity.TABLE_NAME)
-public class SecurityServerSecurityCategoryEntity {
-
-    public static final String TABLE_NAME = "security_servers_security_categories";
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
-    @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
-    @Column(name = "id", unique = true, nullable = false)
-    @Getter
-    private int id;
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "security_category_id", nullable = false)
-    @Getter
-    @Setter
-    private SecurityCategoryEntity securityCategory;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "security_server_id", nullable = false)
-    @Getter
-    @Setter
-    private SecurityServerEntity securityServer;
 }
-
-

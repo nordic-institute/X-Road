@@ -53,15 +53,17 @@
         <!-- Table -->
         <v-data-table
           v-model="selectedSubsystems"
+          class="elevation-0 data-table"
+          item-key="id"
           show-select
           single-select
           :loading="loading"
           :headers="headers"
           :items="selectableSubsystems"
-          :search="search"
-          hide-default-footer
-          item-key="id"
-          class="elevation-0 data-table"
+          :server-items-length="totalItems"
+          :options.sync="pagingSortingOptions"
+          :loader-height="2"
+          :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
           @update:options="changeOptions"
         >
           <template #[`item.data-table-select`]="{ isSelected, select }">
@@ -116,12 +118,16 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Client } from '@/openapi-types';
+import { Client, PagedClients } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { clientStore } from '@/store/modules/clients';
 import { notificationsStore } from '@/store/modules/notifications';
-import { toIdentifier } from '@/util/helpers';
-import { DataTableHeader } from 'vuetify';
+import { debounce, toIdentifier } from '@/util/helpers';
+import { DataOptions, DataTableHeader } from 'vuetify';
+
+// To provide the Vue instance to debounce
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let that: any;
 
 export default Vue.extend({
   name: 'SelectSubsystemDialog',
@@ -139,13 +145,20 @@ export default Vue.extend({
   data() {
     return {
       loading: false,
-      selectableSubsystems: [] as Client[] | undefined,
+      pagingSortingOptions: {} as DataOptions,
+      clients: {} as PagedClients,
       search: '',
       selectedSubsystems: [] as Client[],
     };
   },
   computed: {
     ...mapStores(clientStore),
+    totalItems(): number {
+      return this.clients.paging_metadata?.total_items || 0;
+    },
+    selectableSubsystems(): Client[] {
+      return this.clients.clients || [];
+    },
     headers(): DataTableHeader[] {
       return [
         {
@@ -191,25 +204,41 @@ export default Vue.extend({
       ];
     },
   },
+  watch: {
+    search: {
+      handler() {
+        this.pagingSortingOptions.page = 1;
+        this.debouncedFetchItems();
+      },
+      deep: true,
+    },
+  },
   created() {
-    this.loading = true;
-    this.clientStore
-      .getByClientType('SUBSYSTEM')
-      .then((resp) => {
-        this.selectableSubsystems = resp;
-        this.setSelectedSubsystems();
-      })
-      .catch((error) => {
-        this.showError(error);
-      })
-      .finally(() => {
-        this.loading = false;
-      });
+    that = this;
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    debouncedFetchItems: debounce(() => {
+      // Debounce is used to reduce unnecessary api calls
+      that.fetchClients();
+    }, 600),
+    fetchClients() {
+      this.loading = true;
+      this.clientStore
+        .getByClientType('SUBSYSTEM', this.search, this.pagingSortingOptions)
+        .then((resp) => {
+          this.clients = resp;
+          this.setSelectedSubsystems();
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
     changeOptions: async function () {
-      await this.setSelectedSubsystems();
+      this.fetchClients();
     },
     setSelectedSubsystems() {
       const filteredList = this.selectableSubsystems?.filter(
@@ -231,6 +260,7 @@ export default Vue.extend({
       this.clearForm();
     },
     clearForm(): void {
+      this.pagingSortingOptions.page = 1;
       this.selectedSubsystems = [];
       this.search = '';
     },

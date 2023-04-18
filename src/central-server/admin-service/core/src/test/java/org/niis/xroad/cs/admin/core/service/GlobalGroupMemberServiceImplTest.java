@@ -134,9 +134,6 @@ class GlobalGroupMemberServiceImplTest {
 
         globalGroupMemberService.removeMemberFromGlobalGroup(MemberId.create(INSTANCE, MEMBER_CLASS, codeToDelete), GROUP_CODE);
 
-        assertThat(globalGroupEntity.getGlobalGroupMembers()).hasSize(2);
-        assertThat(globalGroupEntity.getGlobalGroupMembers()).doesNotContain(toBeRemoved);
-
         verify(globalGroupMemberRepository).delete(toBeRemoved);
     }
 

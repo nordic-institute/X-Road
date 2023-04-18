@@ -68,7 +68,7 @@ public class ServerClientEntity {
     @Setter
     private SecurityServerEntity securityServer;
 
-    ServerClientEntity(SecurityServerEntity server, SecurityServerClientEntity client) {
+    public ServerClientEntity(SecurityServerEntity server, SecurityServerClientEntity client) {
         securityServer = server;
         securityServerClient = client;
     }

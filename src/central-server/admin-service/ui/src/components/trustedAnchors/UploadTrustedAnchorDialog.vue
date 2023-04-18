@@ -63,14 +63,14 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
         <xrd-button
-          data-test="system-parameters-upload-configuration-anchor-dialog-cancel-button"
+          data-test="dialog-cancel-button"
           outlined
           :disabled="uploading"
           @click="close"
           >{{ $t('action.cancel') }}
         </xrd-button>
         <xrd-button
-          data-test="system-parameters-upload-configuration-anchor-dialog-confirm-button"
+          data-test="dialog-confirm-button"
           :loading="uploading"
           @click="confirm"
           >{{ $t('action.confirm') }}

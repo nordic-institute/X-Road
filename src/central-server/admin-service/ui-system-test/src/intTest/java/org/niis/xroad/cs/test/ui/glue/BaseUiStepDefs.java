@@ -113,5 +113,6 @@ public abstract class BaseUiStepDefs {
     public enum StepDataKey {
         TOKEN_TYPE,
         MANAGEMENT_REQUEST_ID,
+        DOWNLOADED_FILE,
     }
 }

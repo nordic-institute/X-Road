@@ -53,7 +53,8 @@ public class OcspResponderConverter {
             throw new ValidationFailureException(INVALID_URL);
         }
         var ocspInfo = new OcspInfoEntity(ca.getCaInfo(), ocspResponder.getUrl(), ocspResponder.getCertificate());
-        ocspInfo.getCaInfo().addOcspInfos(ocspInfo);
+        ocspInfo.setCaInfo(ocspInfo.getCaInfo());
+
         return ocspInfo;
     }
 

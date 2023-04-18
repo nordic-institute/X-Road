@@ -3,26 +3,27 @@
 Version: 1.10 
 Doc. ID: DM-CS
 
-| Date        | Version | Description                                                                      | Author             |
-|-------------|---------|----------------------------------------------------------------------------------|--------------------|
-| 15.06.2015  | 0.1     | Initial version                                                                  | Martin Lind        |
-| 30.06.2015  | 0.2     | Comments and revisions                                                           | Margus Freudenthal |
-| 09.07.2015  | 0.3     | Rearrangements for consistency                                                   | Martin Lind        |
-| 28.08.2015  | 0.4     | Corrections according to feedback to first 7 tables                              | Martin Lind        |
-| 01.09.2015  | 0.5     | Better explanations for modifications to all tables                              | Martin Lind        |
-| 09.09.2015  | 0.6     | Made minor editorial changes                                                     | Margus Freudenthal |
-| 16.09.2015  | 0.7     | Added the descriptions of the fields and procedures related to high availability | Marju Ignatjeva    |
-| 21.09.2015  | 1.0     | Editorial changes made                                                           | Imbi Nõgisto       |
-| 16.10.2015  | 1.1     | Field cert_profile_info for approved CA-s table and one missing index            | Martin Lind        |
-| 17.10.2015  | 1.2     | Clarified description of the cert_profile_info field                             | Margus Freudenthal |
-| 11.12.2015  | 1.3     | Subsystems can only be clients of security servers                               | Siim Annuk         |
-| 02.02.2017  | 1.4     | Update distributed_files and convert to markdown format                          | Ilkka Seppälä      |
-| 05.06.2017  | 1.5     | System parameter *confSignAlgoId* replaced with *confSignDigestAlgoId*           | Kristo Heero       |
-| 02.03.2018  | 1.6     | Added uniform terms and conditions reference                                     | Tatu Repo          |
-| 11.09.2019  | 1.7     | Remove Ubuntu 14.04 support                                                      | Jarkko Hyöty       |
-| 11.08.2021  | 1.8     | Update chapter 1.7 about high availability support                               | Ilkka Seppälä      |
-| 26.09.2022  | 1.9     | Remove Ubuntu 18.04 support                                                      | Andres Rosenthal   |
-| 17.04.2023  | 1.10    | Remove central services support                                                  | Justas Samuolis    | 
+| Date       | Version | Description                                                                      | Author             |
+|------------|---------|----------------------------------------------------------------------------------|--------------------|
+| 15.06.2015 | 0.1     | Initial version                                                                  | Martin Lind        |
+| 30.06.2015 | 0.2     | Comments and revisions                                                           | Margus Freudenthal |
+| 09.07.2015 | 0.3     | Rearrangements for consistency                                                   | Martin Lind        |
+| 28.08.2015 | 0.4     | Corrections according to feedback to first 7 tables                              | Martin Lind        |
+| 01.09.2015 | 0.5     | Better explanations for modifications to all tables                              | Martin Lind        |
+| 09.09.2015 | 0.6     | Made minor editorial changes                                                     | Margus Freudenthal |
+| 16.09.2015 | 0.7     | Added the descriptions of the fields and procedures related to high availability | Marju Ignatjeva    |
+| 21.09.2015 | 1.0     | Editorial changes made                                                           | Imbi Nõgisto       |
+| 16.10.2015 | 1.1     | Field cert_profile_info for approved CA-s table and one missing index            | Martin Lind        |
+| 17.10.2015 | 1.2     | Clarified description of the cert_profile_info field                             | Margus Freudenthal |
+| 11.12.2015 | 1.3     | Subsystems can only be clients of security servers                               | Siim Annuk         |
+| 02.02.2017 | 1.4     | Update distributed_files and convert to markdown format                          | Ilkka Seppälä      |
+| 05.06.2017 | 1.5     | System parameter *confSignAlgoId* replaced with *confSignDigestAlgoId*           | Kristo Heero       |
+| 02.03.2018 | 1.6     | Added uniform terms and conditions reference                                     | Tatu Repo          |
+| 11.09.2019 | 1.7     | Remove Ubuntu 14.04 support                                                      | Jarkko Hyöty       |
+| 11.08.2021 | 1.8     | Update chapter 1.7 about high availability support                               | Ilkka Seppälä      |
+| 26.09.2022 | 1.9     | Remove Ubuntu 18.04 support                                                      | Andres Rosenthal   |
+| 17.04.2023 | 1.9     | Remove security server category support                                          | Ričardas Bučiūnas  |
+| 17.04.2023  | 1.10   | Remove central services support                                                  | Justas Samuolis    | 
 
 ## Table of Contents
 
@@ -88,29 +89,24 @@ Doc. ID: DM-CS
 	- [2.18 SCHEMA_MIGRATIONS](#219-schema_migrations)
 		- [2.18.1 Indexes](#2191-indexes)
 		- [2.18.2 Attributes](#2192-attributes)
-	- [2.19 SECURITY_CATEGORIES](#220-security_categories)
-		- [2.19.1 Attributes](#2201-attributes)
-	- [2.20 SECURITY_SERVER_CLIENT_NAMES](#221-security_server_client_names)
-		- [2.20.1 Indexes](#2211-indexes)
-		- [2.20.2 Attributes](#2212-attributes)
-	- [2.21 SECURITY_SERVER_CLIENTS](#222-security_server_clients)
-		- [2.21.1 Indexes](#2221-indexes)
-		- [2.21.2 Attributes](#2222-attributes)
-	- [2.22 SECURITY_SERVERS](#223-security_servers)
-		- [2.22.1 Indexes](#2231-indexes)
-		- [2.22.2 Attributes](#2232-attributes)
-	- [2.23 SECURITY_SERVERS_SECURITY_CATEGORIES](#224-security_servers_security_categories)
-		- [2.23.1 Indexes](#2241-indexes)
-		- [2.23.2 Attributes](#2242-attributes)
-	- [2.24 SERVER_CLIENTS](#225-server_clients)
-		- [2.24.1 Indexes](#2251-indexes)
-		- [2.24.2 Attributes](#2252-attributes)
-	- [2.25 SYSTEM_PARAMETERS](#226-system_parameters)
-		- [2.25.1 Attributes](#2261-attributes)
-	- [2.26 TRUSTED_ANCHORS](#227-trusted_anchors)
-		- [2.26.1 Attributes](#2271-attributes)
-	- [2.27 UI_USERS](#228-ui_users)
-		- [2.27.1 Attributes](#2281-attributes)
+	- [2.19 SECURITY_SERVER_CLIENT_NAMES](#221-security_server_client_names)
+		- [2.19.1 Indexes](#2211-indexes)
+		- [2.19.2 Attributes](#2212-attributes)
+	- [2.20 SECURITY_SERVER_CLIENTS](#222-security_server_clients)
+		- [2.20.1 Indexes](#2221-indexes)
+		- [2.20.2 Attributes](#2222-attributes)
+	- [2.21 SECURITY_SERVERS](#223-security_servers)
+		- [2.21.1 Indexes](#2231-indexes)
+		- [2.21.2 Attributes](#2232-attributes)
+	- [2.22 SERVER_CLIENTS](#225-server_clients)
+		- [2.22.1 Indexes](#2251-indexes)
+		- [2.22.2 Attributes](#2252-attributes)
+	- [2.23 SYSTEM_PARAMETERS](#226-system_parameters)
+		- [2.23.1 Attributes](#2261-attributes)
+	- [2.24 TRUSTED_ANCHORS](#227-trusted_anchors)
+		- [2.24.1 Attributes](#2271-attributes)
+	- [2.25 UI_USERS](#228-ui_users)
+		- [2.25.1 Attributes](#2281-attributes)
 
 ## License
 
@@ -604,33 +600,19 @@ Keeps track of database migrations that have already been executed. Managed auto
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | version  | character varying(255) | NOT NULL | UTC timestamp in 'yyyyMMddhhmmss' format describing the time when migration was executed.  |
 
-## 2.19 SECURITY_CATEGORIES
-
-Security category, intended to be applied to security servers. NB! Not used at the moment.
-
-### 2.19.1 Attributes
-
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| code  | character varying(255) |  | Security category code, must be unique. Cannot be NULL. |
-| description  | character varying(255) |  | Security category description.  |
-| created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
-| updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
-
-## 2.20 SECURITY_SERVER_CLIENT_NAMES
+## 2.19 SECURITY_SERVER_CLIENT_NAMES
 
 Helper table that facilitates displaying security server clients in user interfaces. The table simplifies adding name to client's data.
 
 The record is created automatically whenever new identifier of type MEMBER or SUBSYSTEM is created. See also documentation of the table identifiers. The record is removed automatically whenever new identifier of type MEMBER or SUBSYSTEM is removed. The record is never modified.
 
-### 2.20.1 Indexes
+### 2.19.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_security_server_client_names_on_client_identifier_id | client_identifier_id |
 
-### 2.20.2 Attributes
+### 2.19.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -640,7 +622,7 @@ The record is created automatically whenever new identifier of type MEMBER or SU
 | created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 
-## 2.21 SECURITY_SERVER_CLIENTS
+## 2.20 SECURITY_SERVER_CLIENTS
 
 Contains X-Road members or subsystems. The subject that can be associated with a security server. There are two types of associations:
 
@@ -656,7 +638,7 @@ The record is modified when the X-Road registration officer edits the member's n
 
 The record can be deleted in the user interface by an X-Road registration officer.
 
-### 2.21.1 Indexes
+### 2.20.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
@@ -664,7 +646,7 @@ The record can be deleted in the user interface by an X-Road registration office
 | index_security_server_clients_on_server_client_id | server_client_id |
 | index_security_server_clients_on_xroad_member_id | xroad_member_id |
 
-### 2.21.2 Attributes
+### 2.20.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -680,19 +662,19 @@ The record can be deleted in the user interface by an X-Road registration office
 | created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 
-## 2.22 SECURITY_SERVERS
+## 2.21 SECURITY_SERVERS
 
 Information about a security server registered in this X-Road instance. Security server always belongs to a particular X-Road member. For security server to function properly, it needs at least one authentication certificate. Security server may have clients (subsystems).
 
 A prerequisite for creating the record is that a pair of authentication certificate registration requests for not yet existing security server are submitted for approval (see also documentation of tables requests and request_processings). The record is created when one of requests submitted for approval is approved by an X-Road registration officer in the user interface. The record is modified when an X-Road registration officer edits security server address in the user interface. The record can be deleted in the user interface by an X-Road registration officer.
 
-### 2.23.1 Indexes
+### 2.21.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_security_servers_on_xroad_member_id | xroad_member_id |
 
-### 2.22.2 Attributes
+### 2.21.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -703,39 +685,21 @@ A prerequisite for creating the record is that a pair of authentication certific
 | created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 
-## 2.23 SECURITY_SERVERS_SECURITY_CATEGORIES
 
-Join table enabling many-to-many relationship between security servers and security categories. In other words, associates security servers with security categories. NB! Not used at the moment!
-
-### 2.23.1 Indexes
-
-| Name        | Columns           |
-|:----------- |:-----------------:|
-| index_server_category_to_server_id | security_server_id |
-| index_server_to_category | security_category_id |
-
-### 2.23.2 Attributes
-
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key. |
-| security_server_id [FK] | integer | NOT NULL | ID of the security server with the security category referenced by security_category_id. References id attribute of security_servers entity. |
-| security_category_id [FK] | integer | NOT NULL | ID of the security category. References id attribute of security_categories entity. |
-
-## 2.24 SERVER_CLIENTS
+## 2.22 SERVER_CLIENTS
 
 Join table enabling many-to-many relationship between security servers and security server clients. In other words, associates security servers with its clients.
 
 The record is created when a new client is added to the security server. It requires approval of a client registration request (see documentation of tables requests and request_processings for details). An X-Road registration officer can do it in the user interface. The record is deleted when a client of a security server is deleted in the user interface by an X-Road registration officer. The record is never modified.
 
-### 2.24.1 Indexes
+### 2.22.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_server_clients_on_security_server_client_id | security_server_client_id |
 | index_server_clients_on_security_server_id | security_server_id |
 
-### 2.24.2 Attributes
+### 2.22.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -743,7 +707,7 @@ The record is created when a new client is added to the security server. It requ
 | security_server_id [FK] | integer | NOT NULL | ID of the security server. References id attribute of security_servers entity. |
 | security_server_client_id [FK] | integer | NOT NULL | ID of the client the security server has. References id attribute of security_server_clients entity. |
 
-## 2.25 SYSTEM_PARAMETERS
+## 2.23 SYSTEM_PARAMETERS
 
 System configuration parameter necessary for proper functioning of central server and entire X-Road for that matter. System parameters are stored as key-value pairs. Following is the list of supported system parameters. In an HA setup, the name of the node that initiated a particular insertion, is not significant, except for where stated explicitly.
 
@@ -762,7 +726,7 @@ System configuration parameter necessary for proper functioning of central serve
 
 Some system parameters can be modified by an X-Road security officer in the user interface. All the system parameters that cannot be changed in the user interface, are assigned default values during the initialization of the central server. Later these can only be changed from the database. As these parameters are critical for functioning of entire X-Road instance, these must be modified with extreme care.
 
-### 2.25.1 Attributes
+### 2.23.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -773,13 +737,13 @@ Some system parameters can be modified by an X-Road security officer in the user
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 | ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
 
-## 2.26 TRUSTED_ANCHORS
+## 2.24 TRUSTED_ANCHORS
 
 Trusted anchor of a federation partner. A trusted anchor is the configuration anchor of the configuration source distributing the external configuration of a federation partner.
 
 The record is created or modified exactly the same way as described in the documentation of table anchor_url_certs. The record is never modified.
 
-### 2.26.1 Attributes
+### 2.24.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -791,13 +755,13 @@ The record is created or modified exactly the same way as described in the docum
 | updated_at  | timestamp without time zone |  | Record last modified time, managed automatically by the Rails framework.  |
 | generated_at  | timestamp without time zone |  | Anchor generation time (read from the anchor file).  |
 
-## 2.27 UI_USERS
+## 2.25 UI_USERS
 
 UI user name with its last used locale. Maps possible user interface (UI) user names with locales so that when UI user is logged in next time, the locale it has been used is remembered. If a user with no assigned locale logs in, the first available locale is selected to this user. Later user can change its locale in the user interface.
 
 The record is created when the user is logged in the user interface for the first time. The record is modified when the user logged in changes its locale in the user interface. The record is never deleted.
 
-### 2.27.1 Attributes
+### 2.25.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
