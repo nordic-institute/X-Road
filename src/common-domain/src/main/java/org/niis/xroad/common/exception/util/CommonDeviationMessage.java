@@ -61,7 +61,9 @@ public enum CommonDeviationMessage implements DeviationProvider {
     CONF_VERIFICATION_SIGNATURE("conf_verification.signature_invalid",
             "Configuration verification failed: signature_invalid"),
     CONF_VERIFICATION_UNREACHABLE("conf_verification.unreachable",
-            "Configuration verification failed: unreachable");
+            "Configuration verification failed: unreachable"),
+
+    INITIALIZATION_INTERRUPTED("initialization_interrupted", "Initialization has been interrupted"),;
 
     @Getter
     private final String code;

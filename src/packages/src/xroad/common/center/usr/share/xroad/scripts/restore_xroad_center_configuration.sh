@@ -44,6 +44,12 @@ execute_restore () {
     if [ -n "${SKIP_DB_RESTORE}" ] && [[ ${SKIP_DB_RESTORE} = true ]] ; then
       args="${args} -S"
     fi
+    if [[ $PLAIN_BACKUP != true ]] ; then
+      args="${args} -E"
+    fi
+    if [[ $SKIP_SIGNATURE_CHECK = true ]] ; then
+      args="${args} -N"
+    fi
     sudo -u root ${COMMON_RESTORE_SCRIPT} ${args} 2>&1
     if [ $? -ne 0 ] ; then
       echo "Failed to restore the configuration of the X-Road central server"
@@ -78,6 +84,12 @@ while getopts ":FSi:n:f:bh" opt ; do
       ;;
     b)
       USE_BASE_64=true
+      ;;
+    P)
+      PLAIN_BACKUP=true
+      ;;
+    N)
+      SKIP_SIGNATURE_CHECK=true
       ;;
     \?)
       echo "Invalid option $OPTARG"
