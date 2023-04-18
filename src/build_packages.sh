@@ -49,6 +49,7 @@ case "$1" in
 esac
 
 if [ -n "$HAS_DOCKER" ]; then
+  echo "IN docker"
     docker build -q -t xroad-deb-focal "$XROAD/packages/docker/deb-focal" || errorExit "Error building deb-focal image."
     docker build -q -t xroad-deb-jammy "$XROAD/packages/docker/deb-jammy" || errorExit "Error building deb-jammy image."
     docker build -q -t xroad-rpm "$XROAD/packages/docker/rpm" || errorExit "Error building rpm image."
