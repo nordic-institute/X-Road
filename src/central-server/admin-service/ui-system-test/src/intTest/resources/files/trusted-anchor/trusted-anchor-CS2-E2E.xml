@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:configurationAnchor xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <generatedAt>2023-02-15T09:26:34.235Z</generatedAt>
+    <instanceIdentifier>CS2-E2E</instanceIdentifier>
+    <source>
+        <downloadURL>http://cs2-e2e/externalconf</downloadURL>
+        <verificationCert>MIICqTCCAZGgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAOMQwwCgYDVQQDDANOL0EwHhcNNzAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAOMQwwCgYDVQQDDANOL0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDe10ai/VApuFjG+cgVLaV18qOEor6il83v0ErKBVznkSEzhzfplPJbfbXVHCezUsZOtVypvS4VCKg3S9wDBJVHmLrTl8z43xHowSE2KhvBxP+boH+9wt4dWdkiM4vohzuDuqz2k7ly50LlaokY/hQfLZKqRAB4PyiA9H1dk9hri9kIckGZpKHxVmXD19pd1hbvRmEcxF0kEAP4oyQ8EaQpgoy4KiN60x6hV8+xZPUqf03eQgh5LXvpmXDtGT58zN43Om8L+dPCtKyK6dTTjNakv6tJxoZJ2yUnVWPZKH9B3nM79bToxA9SiCjg3i6rU8HJ8ih163Dh9upPwqpmdEqDAgMBAAGjEjAQMA4GA1UdDwEB/wQEAwIGQDANBgkqhkiG9w0BAQ0FAAOCAQEAdgVRzoNWG7shsBV+r9I4dB/ghfnxZAcgag9qevG4YrzLEDHupGB7a0Rx4dKp7gxzSV+E82oFOTZMhQdcVinRrqZT1U8DeT1tgvRH6V24g8HCplDp3AuRWKlPFAWIpsyZ6n6oMIrS9uVCaTF4A8uFZ7GxgcByMP+9BwCNQAigFGJOZzwln60idlR8YmtVCn4oVfBVrH+JRNSfgosVqqZe3q/XHNJP4iVqPt7taYzwwdz2XW02p8lgYZ1MwhMbcZ7xqNjYA0U9yQbUc6/oZ54R5FIgNldINCAJaNRRjXVS+1nt6bRM9GtZoeC4vhFqxIpduQRYpMD2MaJqbwDgal2pmA==</verificationCert>
+    </source>
+</ns3:configurationAnchor>

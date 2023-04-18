@@ -697,7 +697,7 @@
     "globalConf": {
       "externalConf": "External Configuration",
       "internalConf": "Internal Configuration",
-      "trustedAnchors": "Trusted Anchor"
+      "trustedAnchors": "Trusted Anchors"
     },
     "main": {
       "globalConfiguration": "Global configuration",

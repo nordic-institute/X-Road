@@ -64,6 +64,11 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
         globalConfigurationPageObj.externalConfiguration().click();
     }
 
+    @Step("Trusted Anchors sub-tab is selected")
+    public void selectTrustedAnchorsTab() {
+        globalConfigurationPageObj.trustedAnchors().click();
+    }
+
     @Step("Details for Token: {} is expanded")
     public void expandToken(final String tokenKey) {
         globalConfigurationPageObj.tokenLabel(tokenKey).click();
