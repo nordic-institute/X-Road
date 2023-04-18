@@ -137,7 +137,7 @@
       },
     "createBackup": {
       "button": "Back up config.",
-      "message": {
+      "messages": {
         "success": "Backup {file} successfully created",
         "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead."
       }

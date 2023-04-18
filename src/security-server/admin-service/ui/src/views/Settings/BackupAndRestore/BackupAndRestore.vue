@@ -111,7 +111,7 @@ export default Vue.extend({
       return {
         showError: this.showError,
         showSuccess: this.displaySuccess,
-        showWarningMessage: this.displayWarning,
+        showWarning: this.displayWarning,
         create: this.createBackup,
         upload: uploadBackup,
         delete: this.deleteBackup,
@@ -133,7 +133,8 @@ export default Vue.extend({
     },
     createBackup() {
       this.creatingBackup = true;
-      return api.post<BackupExt>('/backups/ext', null);
+      return api.post<BackupExt>('/backups/ext', null)
+        .then((resp) => resp.data);
     },
     deleteBackup(filename: string) {
       return api.remove(`/backups/${encodePathParameter(filename)}`);

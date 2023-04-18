@@ -5365,14 +5365,13 @@ components:
           minLength: 24
           maxLength: 24
     BackupExt:
+      allOf:
+        - $ref: '#/components/schemas/Backup'
       type: object
       description: security server backup with extra information
       required:
-        - backup
         - local_conf_present
       properties:
-        backup:
-          $ref: '#/components/schemas/Backup'
         local_conf_present:
           type: boolean
     BackupArchive:
