@@ -53,7 +53,7 @@ import static org.springframework.http.HttpStatus.OK;
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class BackupStepDefs extends BaseStepDefs {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
-    private static final String FILE_NAME_FORMAT = "conf_backup_%s.tar";
+    private static final String FILE_NAME_FORMAT = "conf_backup_%s.gpg";
     @Autowired
     private FeignBackupsApi backupsApi;
 
