@@ -258,14 +258,16 @@ configure | reconfigure)
     chown xroad:xroad /var/lib/xroad/import
 
     # generate gpg keypair when needed - directory does not exist and server is initialised
-    if [ ! -d /etc/xroad/gpghome ] ; then
-      ID=$(/usr/share/xroad/scripts/get_central_server_instance_id.sh)
-      if [[ -n "${ID}" ]] ; then
-        /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
+    if [[ -n "$2" ]]; then
+      if [ ! -d /etc/xroad/gpghome ] ; then
+        ID=$(/usr/share/xroad/scripts/get_central_server_instance_id.sh)
+        if [[ -n "${ID}" ]] ; then
+          /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
+        fi
       fi
+      # always fix gpghome ownership
+      [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
     fi
-    # always fix gpghome ownership
-    [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
 
     RET=
     db_get xroad-common/skip-cs-db-migrations || true

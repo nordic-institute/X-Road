@@ -23,6 +23,8 @@ OPTIONS:
        Mandatory in HA setup if -F is not used.
     -f Absolute path of the tar archive to be used for restoration. Mandatory.
     -F Force restoration, taking only the type of server into account.
+    -P Backup archive is in unencrypted TAR format NOT in GPG format (not encrypted nor signed).
+    -N Skip GPG signature verification
     -S Skip database restoration.
 EOF
 }
@@ -61,7 +63,7 @@ execute_restore () {
   fi
 }
 
-while getopts ":FSi:n:f:bh" opt ; do
+while getopts ":FSi:n:f:bhPN" opt ; do
   case $opt in
     h)
       usage
