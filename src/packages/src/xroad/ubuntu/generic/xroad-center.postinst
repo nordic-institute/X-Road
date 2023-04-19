@@ -229,6 +229,10 @@ configure | reconfigure)
     create_certificates
     setup_database
 
+    # ensure valid api key configured for management & registration services
+    /usr/share/xroad/scripts/configure_management_api_key.sh management-service
+    /usr/share/xroad/scripts/configure_management_api_key.sh registration-service
+
     RET=""
     db_get xroad-common/username
     AUSER="$RET"
