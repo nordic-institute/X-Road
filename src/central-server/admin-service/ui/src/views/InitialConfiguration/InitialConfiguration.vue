@@ -142,6 +142,7 @@
               >
                 <xrd-icon-base
                   v-if="passed"
+                  slot="append"
                   :color="colors.Success100"
                   data-test="confirm-pin-append-input-icon"
                 >
