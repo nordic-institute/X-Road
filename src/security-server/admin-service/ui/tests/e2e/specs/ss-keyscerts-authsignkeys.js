@@ -41,10 +41,11 @@ module.exports = {
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
     let regex = /^sign_csr_/;
 
-    fs.readdirSync(csrdir)
-      .filter((f) => regex.test(f))
-      .map((f) => fs.unlinkSync(csrdir + f));
-
+    if (fs.existsSync(csrdir)) {
+      fs.readdirSync(csrdir)
+        .filter((f) => regex.test(f))
+        .map((f) => fs.unlinkSync(csrdir + f));
+    }
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -117,10 +118,11 @@ module.exports = {
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
     let regex = /^auth_csr_/;
 
-    fs.readdirSync(csrdir)
-      .filter((f) => regex.test(f))
-      .map((f) => fs.unlinkSync(csrdir + f));
-
+    if (fs.existsSync(csrdir)) {
+      fs.readdirSync(csrdir)
+        .filter((f) => regex.test(f))
+        .map((f) => fs.unlinkSync(csrdir + f));
+    }
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -194,10 +196,11 @@ module.exports = {
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
     let regex = /^sign_csr_/;
 
-    fs.readdirSync(csrdir)
-      .filter((f) => regex.test(f))
-      .map((f) => fs.unlinkSync(csrdir + f));
-
+    if (fs.existsSync(csrdir)) {
+      fs.readdirSync(csrdir)
+        .filter((f) => regex.test(f))
+        .map((f) => fs.unlinkSync(csrdir + f));
+    }
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -293,10 +296,11 @@ module.exports = {
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
     let regex = /^auth_csr_/;
 
-    fs.readdirSync(csrdir)
-      .filter((f) => regex.test(f))
-      .map((f) => fs.unlinkSync(csrdir + f));
-
+    if (fs.existsSync(csrdir)) {
+      fs.readdirSync(csrdir)
+        .filter((f) => regex.test(f))
+        .map((f) => fs.unlinkSync(csrdir + f));
+    }
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -386,10 +390,11 @@ module.exports = {
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
     let regex = /^sign_csr_/;
 
-    fs.readdirSync(csrdir)
-      .filter((f) => regex.test(f))
-      .map((f) => fs.unlinkSync(csrdir + f));
-
+    if (fs.existsSync(csrdir)) {
+      fs.readdirSync(csrdir)
+        .filter((f) => regex.test(f))
+        .map((f) => fs.unlinkSync(csrdir + f));
+    }
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -565,10 +570,11 @@ module.exports = {
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
     let regex = /^auth_csr_*/;
 
-    fs.readdirSync(csrdir)
-      .filter((f) => regex.test(f))
-      .map((f) => fs.unlinkSync(csrdir + f));
-
+    if (fs.existsSync(csrdir)) {
+      fs.readdirSync(csrdir)
+        .filter((f) => regex.test(f))
+        .map((f) => fs.unlinkSync(csrdir + f));
+    }
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');

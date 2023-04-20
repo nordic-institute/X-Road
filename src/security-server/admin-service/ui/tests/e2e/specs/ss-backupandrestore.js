@@ -86,9 +86,11 @@ module.exports = {
     const testDataDir = __dirname + browser.globals.e2etest_testdata + '/';
     const regex = /^conf_backup/;
 
-    fs.readdirSync(testDataDir)
-      .filter((file) => regex.test(file))
-      .map((file) => fs.unlinkSync(testDataDir + file));
+    if (fs.existsSync(testDataDir)) {
+      fs.readdirSync(testDataDir)
+        .filter((file) => regex.test(file))
+        .map((file) => fs.unlinkSync(testDataDir + file));
+    }
 
     const createdBackupFileName = await backupAndRestore.createBackup(browser);
 
