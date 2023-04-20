@@ -13,8 +13,8 @@ Feature: CS: Settings -> Global Resources
     Given Global group security-server-owners is present in list
     When Add Global Group button is clicked
     And Dialog Save button is of disabled status
-    And Add Global Group dialog is submitted with code "e2e-ss-owners" and description "generic desc"
+    And Add Global Group dialog is submitted with code "e2e-test-group" and description "generic desc"
     Then Global group list elements are validated
       | $code                  | $condition |
       | security-server-owners | present    |
-      | e2e-ss-owners          | present    |
+      | e2e-test-group         | present    |

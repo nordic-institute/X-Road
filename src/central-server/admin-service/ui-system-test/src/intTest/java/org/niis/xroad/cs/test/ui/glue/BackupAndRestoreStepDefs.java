@@ -68,7 +68,7 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
                 .exists()
                 .isFile()
                 .isNotEmpty()
-                .hasExtension("tar");
+                .hasExtension("gpg");
         scenarioContext.putStepData(DOWNLOADED_BACKUP_FILE, backupFile);
     }
 
