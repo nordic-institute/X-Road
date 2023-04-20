@@ -381,7 +381,7 @@
     "descriptionSaved": "Description saved successfully.",
     "editDescription": "Edit Description",
     "groupDeletedSuccessfully": "Global group deleted successfully.",
-    "groupMembers": "Group members",
+    "groupMembers": "Group members ({memberCount})",
     "instance": "Instance",
     "memberName": "Member Name",
     "subsystem": "Subsystem",

@@ -44,8 +44,13 @@ public class SettingsGlobalResourcesPageObj {
     public class GlobalGroupList {
 
         public SelenideElement globalGroupRow(String code) {
-            var xpath = "//div[@data-test='global-groups-table']//table/tbody/tr[.//td/div/div[starts-with(.,'%s')]]";
-            return $x(String.format(xpath, code));
+            var xpath = "//div[@data-test='global-groups-table']//div[@data-test='group-code' and contains(text(), '%s')]";
+            return $x(String.format(xpath, code)).ancestor("tr");
+        }
+
+        public SelenideElement globalGroupCodeBtn(String code) {
+            var xpath = "//div[@data-test='global-groups-table']//div[@data-test='group-code' and contains(text(), '%s')]";
+            return $x(String.format(xpath, code)).ancestor(".xrd-clickable");
         }
 
         public SelenideElement btnAddGlobalGroup() {

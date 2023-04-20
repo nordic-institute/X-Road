@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.cs.test.ui.glue;
 
+import com.codeborne.selenide.Condition;
 import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.glue.mappers.ParameterMappers;
@@ -57,6 +58,12 @@ public class CommonStepDefs extends BaseUiStepDefs {
     @Step("Dialog Save button is of {selenideValidation} status")
     public void statusDialogSave(ParameterMappers.SelenideValidation selenideValidation) {
         commonPageObj.dialog.btnSave().shouldBe(selenideValidation.getSelenideCondition());
+    }
+
+    @Step("error: {string} was displayed")
+    public void errorIsShown(final String error) {
+        commonPageObj.alerts.alert(error)
+                .shouldBe(Condition.visible);
     }
 
     @ParameterType("REGISTRATION_OFFICER")

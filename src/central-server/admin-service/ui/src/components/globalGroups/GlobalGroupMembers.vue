@@ -29,7 +29,11 @@
     <header class="table-toolbar align-fix mt-8 pl-0">
       <div class="xrd-title-search align-fix mt-0 pt-0">
         <div class="xrd-view-title align-fix">
-          {{ $t('globalGroup.groupMembers') }} ({{ memberCount }})
+          <i18n path="globalGroup.groupMembers">
+            <template #memberCount>
+              <span data-test="member-count">{{ memberCount }}</span>
+            </template>
+          </i18n>
         </div>
         <xrd-search v-model="filter.query" class="margin-fix" />
         <v-icon
@@ -53,6 +57,9 @@
 
     <!-- Table - Members -->
     <v-data-table
+      data-test="global-group-members"
+      class="elevation-0 data-table"
+      item-key="id"
       :loading="loading"
       :headers="membersHeaders"
       :items="globalGroupStore.members"
@@ -60,8 +67,6 @@
       :must-sort="true"
       :options.sync="pagingSortingOptions"
       :server-items-length="globalGroupStore.pagingOptions.total_items"
-      class="elevation-0 data-table"
-      item-key="id"
       :loader-height="2"
       :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
       @update:options="changeOptions"
@@ -71,7 +76,7 @@
           <xrd-icon-base class="mr-4">
             <XrdIconFolderOutline />
           </xrd-icon-base>
-          <div>{{ item.name }}</div>
+          <div data-test="member-name">{{ item.name }}</div>
         </div>
       </template>
 
@@ -79,12 +84,25 @@
         <div class="cs-table-actions-wrap">
           <xrd-button
             v-if="allowAddAndRemoveGroupMembers"
+            data-test="delete-member-button"
             text
             :outlined="false"
             @click="$refs.deleteDialog.open(item)"
             >{{ $t('action.remove') }}
           </xrd-button>
         </div>
+      </template>
+      <template #[`item.instance`]="{ item }">
+        <span data-test="instance">{{item.instance}}</span>
+      </template>
+      <template #[`item.class`]="{ item }">
+        <span data-test="class">{{item.class}}</span>
+      </template>
+      <template #[`item.code`]="{ item }">
+        <span data-test="code">{{item.code}}</span>
+      </template>
+      <template #[`item.subsystem`]="{ item }">
+        <span data-test="subsystem">{{item.subsystem}}</span>
       </template>
     </v-data-table>
 

@@ -52,7 +52,7 @@
         >
           <v-text-field
             v-model="memberCode"
-            data-test="verify-server-code"
+            data-test="verify-member-code"
             outlined
             autofocus
             :placeholder="$t('globalGroup.dialog.deleteMember.placeholder')"

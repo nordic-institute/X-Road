@@ -39,6 +39,7 @@ public class CommonPageObj {
     public final Menu menu = new Menu();
     public final SubMenu subMenu = new SubMenu();
     public final SnackBar snackBar = new SnackBar();
+    public final Alerts alerts = new Alerts();
     public final Button button = new Button();
 
     public class Menu {
@@ -123,10 +124,21 @@ public class CommonPageObj {
         }
     }
 
+    public class Alerts {
+        public SelenideElement alert(final String text) {
+            return $x(String.format("//div[@data-test='contextual-alert']//div[contains(text(), '%s')]", text));
+        }
+
+        public SelenideElement btnClose() {
+            return $x("//div[@data-test='contextual-alert']//button[@data-test='close-alert']");
+        }
+    }
+
     public class Button {
         public SelenideElement btnApprove() {
             return $x("//button[@data-test='approve-button']");
         }
+
         public SelenideElement btnDecline() {
             return $x("//button[@data-test='decline-button']");
         }
