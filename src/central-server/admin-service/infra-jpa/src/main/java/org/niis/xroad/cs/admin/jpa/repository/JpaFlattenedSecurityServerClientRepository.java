@@ -232,14 +232,32 @@ public interface JpaFlattenedSecurityServerClientRepository extends
     static Predicate clientNotPartOfGroupPredicate(Root root, CriteriaBuilder builder, Integer groupId) {
         var criteriaQuery = builder.createQuery();
 
+        var memberClass = root.join(FlattenedSecurityServerClientViewEntity_.MEMBER_CLASS);
+
         var subquery = criteriaQuery.subquery(Integer.class);
         var globalGroupMember = subquery.from(GlobalGroupMemberEntity.class);
         var identifier = globalGroupMember.join(GlobalGroupMemberEntity_.IDENTIFIER);
         subquery
                 .select(identifier.get(XRoadIdEntity_.ID))
-                .where(builder.equal(globalGroupMember.get(GlobalGroupMemberEntity_.GLOBAL_GROUP), groupId));
+                .where(
+                        builder.equal(globalGroupMember.get(GlobalGroupMemberEntity_.GLOBAL_GROUP), groupId),
+                        builder.equal(identifier.get(XRoadIdEntity_.X_ROAD_INSTANCE),
+                                root.get(FlattenedSecurityServerClientViewEntity_.XROAD_INSTANCE)),
+                        builder.equal(identifier.get(XRoadIdEntity_.MEMBER_CLASS),
+                                memberClass.get(MemberClassEntity_.CODE)),
+                        builder.equal(identifier.get(XRoadIdEntity_.MEMBER_CODE),
+                                root.get(FlattenedSecurityServerClientViewEntity_.MEMBER_CODE)),
+                        builder.or(
+                                builder.and(
+                                        builder.isNull(identifier.get(XRoadIdEntity_.SUBSYSTEM_CODE)),
+                                        builder.isNull(root.get(FlattenedSecurityServerClientViewEntity_.SUBSYSTEM_CODE))
+                                ),
+                                builder.equal(identifier.get(XRoadIdEntity_.SUBSYSTEM_CODE),
+                                        root.get(FlattenedSecurityServerClientViewEntity_.SUBSYSTEM_CODE))
+                        )
+                );
 
-        return builder.not(builder.in(root.get(FlattenedSecurityServerClientViewEntity_.IDENTIFIER)).value(subquery));
+        return builder.not(builder.exists(subquery));
     }
 
     static Predicate multifieldTextSearchPredicate(Root root, CriteriaBuilder builder, String q) {
