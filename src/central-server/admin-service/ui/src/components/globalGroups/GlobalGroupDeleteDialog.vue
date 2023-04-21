@@ -28,6 +28,7 @@
   <xrd-sub-view-container>
     <xrd-simple-dialog
       :dialog="showDialog"
+      :loading="loading"
       cancel-button-text="action.cancel"
       save-button-text="action.yes"
       title="globalGroup.deleteGroup"
@@ -61,11 +62,17 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      loading: false,
+    };
+  },
   methods: {
     cancelDelete(): void {
       this.$emit('cancel');
     },
     proceedWithDelete(): void {
+      this.loading = true;
       this.$emit('delete');
     },
   },

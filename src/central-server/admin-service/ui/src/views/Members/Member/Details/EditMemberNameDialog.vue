@@ -29,6 +29,7 @@
   <xrd-sub-view-container>
     <xrd-simple-dialog
       :dialog="true"
+      :loading="loading"
       title="members.member.details.editMemberName"
       save-button-text="action.save"
       cancel-button-text="action.cancel"
@@ -67,6 +68,7 @@ export default Vue.extend({
   },
   data() {
     return {
+      loading: false,
       newMemberName: this.member.member_name,
       oldMemberName: this.member.member_name,
     };
@@ -80,6 +82,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     saveNewMemberName(): void {
+      this.loading = true;
       this.memberStore
         .editMemberName(toIdentifier(this.member.xroad_id), {
           member_name: this.newMemberName,
@@ -90,6 +93,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
   },
