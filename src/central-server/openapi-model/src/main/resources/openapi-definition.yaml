@@ -901,7 +901,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PagedGroupMember'
+                $ref: '#/components/schemas/PagedGroupMemberListView'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3910,11 +3910,21 @@ components:
           type: string
         id:
           description: group member id
-          example: FI:GOV:123:SS1
-          format: text
-          maxLength: 1023
-          minLength: 1
-          type: string
+          example: 123
+          format: int32
+          type: integer
+        clientId:
+          $ref: '#/components/schemas/ClientId'
+      required:
+        - id
+        - clientId
+        - created_at
+      type: object
+    GroupMemberListView:
+      description: group member list view
+      allOf:
+        - $ref: '#/components/schemas/GroupMember'
+      properties:
         name:
           description: group member name
           example: Member123
@@ -3922,45 +3932,8 @@ components:
           maxLength: 255
           minLength: 1
           type: string
-        type:
-          description: group member type
-          example: MEMBER
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-        instance:
-          description: group member instance
-          example: FI
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-        class:
-          description: group member class
-          example: GOV
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-        code:
-          description: group member code
-          example: 123
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-        subsystem:
-          description: group member subsystem
-          example: SS1
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
       required:
-        - id
         - name
-        - created_at
       type: object
     HighAvailabilityStatus:
       description: Central server's high availability status
@@ -4425,13 +4398,13 @@ components:
         - items
         - paging_metadata
       type: object
-    PagedGroupMember:
-      description: an array of GroupMember with paging metadata
+    PagedGroupMemberListView:
+      description: an array of GroupMemberListView with paging metadata
       properties:
         items:
-          description: Global group members
+          description: Global group members paged list view
           items:
-            $ref: '#/components/schemas/GroupMember'
+            $ref: '#/components/schemas/GroupMemberListView'
           type: array
         paging_metadata:
           $ref: '#/components/schemas/PagingMetadata'

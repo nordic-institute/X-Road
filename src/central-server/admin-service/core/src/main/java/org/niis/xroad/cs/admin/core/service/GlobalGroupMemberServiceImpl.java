@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMemberView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
@@ -79,7 +80,7 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
     private final StableSortHelper stableSortHelper;
 
     @Override
-    public Page<GlobalGroupMember> find(GlobalGroupMemberService.Criteria criteria, Pageable pageable) {
+    public Page<GlobalGroupMemberView> find(GlobalGroupMemberService.Criteria criteria, Pageable pageable) {
         return globalGroupMembersViewRepository.findAll(criteria, stableSortHelper.addSecondaryIdSort(pageable))
                 .map(globalGroupMemberViewMapper::toTarget);
     }

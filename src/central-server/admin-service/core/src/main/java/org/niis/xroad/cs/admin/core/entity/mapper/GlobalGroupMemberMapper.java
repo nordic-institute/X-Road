@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
@@ -35,8 +34,4 @@ import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {ClientIdMapper.class})
 public interface GlobalGroupMemberMapper extends GenericUniDirectionalMapper<GlobalGroupMemberEntity, GlobalGroupMember> {
-
-    @Override
-    @Mapping(target = "memberName", ignore = true)
-    GlobalGroupMember toTarget(GlobalGroupMemberEntity globalGroupMemberEntity);
 }

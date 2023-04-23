@@ -36,11 +36,11 @@ import org.niis.xroad.cs.openapi.model.ClientTypeDto;
 import org.niis.xroad.cs.openapi.model.GlobalGroupCodeAndDescriptionDto;
 import org.niis.xroad.cs.openapi.model.GlobalGroupDescriptionDto;
 import org.niis.xroad.cs.openapi.model.GlobalGroupResourceDto;
-import org.niis.xroad.cs.openapi.model.GroupMemberDto;
+import org.niis.xroad.cs.openapi.model.GroupMemberListViewDto;
 import org.niis.xroad.cs.openapi.model.GroupMembersFilterDto;
 import org.niis.xroad.cs.openapi.model.GroupMembersFilterModelDto;
 import org.niis.xroad.cs.openapi.model.MembersDto;
-import org.niis.xroad.cs.openapi.model.PagedGroupMemberDto;
+import org.niis.xroad.cs.openapi.model.PagedGroupMemberListViewDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.test.api.FeignGlobalGroupsApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -230,7 +230,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
         final GroupMembersFilterDto filterDto = new GroupMembersFilterDto()
                 .pagingSorting(new PagingSortingParametersDto().limit(pageSize));
         try {
-            final ResponseEntity<PagedGroupMemberDto> response = globalGroupsApi
+            final ResponseEntity<PagedGroupMemberListViewDto> response = globalGroupsApi
                     .findGlobalGroupMembers(resolveGlobalGroupId(groupCode), filterDto);
 
             putStepData(RESPONSE, response);
@@ -247,7 +247,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
 
     @Step("global group {string} members list does not contain {string} member")
     public void globalGroupMembersListIsQueriedAndContains(String groupCode, String memberCode) {
-        ResponseEntity<PagedGroupMemberDto> response = getRequiredStepData(RESPONSE);
+        ResponseEntity<PagedGroupMemberListViewDto> response = getRequiredStepData(RESPONSE);
         validate(response)
                 .assertion(equalsAssertion(0, "body.items.?[name=='" + memberCode + "'].size()",
                         "Timestamping services list contains the added service"))
@@ -274,7 +274,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
             ofNullable(params.get("$page")).ifPresent(p -> pagingSortingDto.offset(createInteger(p) - 1));
             filterDto.setPagingSorting(pagingSortingDto);
 
-            final ResponseEntity<PagedGroupMemberDto> response = globalGroupsApi
+            final ResponseEntity<PagedGroupMemberListViewDto> response = globalGroupsApi
                     .findGlobalGroupMembers(resolveGlobalGroupId(code), filterDto);
 
             final ValidationHelper validations = validate(response)
@@ -320,12 +320,12 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
 
         filterDto.setPagingSorting(pagingSortingDto);
 
-        final ResponseEntity<PagedGroupMemberDto> response = globalGroupsApi
+        final ResponseEntity<PagedGroupMemberListViewDto> response = globalGroupsApi
                 .findGlobalGroupMembers(resolveGlobalGroupId(groupCode), filterDto);
 
         return response.getBody().getItems().stream()
                 .filter(member -> memberName.equals(member.getName()))
-                .map(GroupMemberDto::getId)
+                .map(GroupMemberListViewDto::getId)
                 .map(Integer::valueOf)
                 .findFirst();
     }

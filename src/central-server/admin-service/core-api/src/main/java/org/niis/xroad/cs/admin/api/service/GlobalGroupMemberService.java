@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMemberView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,7 +41,7 @@ import java.util.List;
 
 public interface GlobalGroupMemberService {
 
-    Page<GlobalGroupMember> find(Criteria criteria, Pageable pageable);
+    Page<GlobalGroupMemberView> find(Criteria criteria, Pageable pageable);
 
     List<GlobalGroupMember> findByGroupId(Integer groupId);
 

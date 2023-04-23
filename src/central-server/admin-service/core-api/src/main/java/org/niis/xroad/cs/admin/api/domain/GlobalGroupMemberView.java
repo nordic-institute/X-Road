@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,42 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.converter;
+package org.niis.xroad.cs.admin.api.domain;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
-import org.niis.xroad.cs.openapi.model.GroupMemberDto;
-import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
-import org.springframework.stereotype.Component;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.List;
+@Data
+@NoArgsConstructor
+public class GlobalGroupMemberView extends Auditable {
+    private int id;
+    private String memberName;
+    private ClientId identifier;
 
-import static java.util.stream.Collectors.toList;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof GlobalGroupMemberView)) return false;
 
-@Component
-@RequiredArgsConstructor
-public class GroupMemberConverter {
-    private final ClientIdDtoConverter clientIdDtoConverter;
+        final GlobalGroupMemberView member = (GlobalGroupMemberView) o;
 
-    public GroupMemberDto convert(GlobalGroupMember entity) {
-        return new GroupMemberDto()
-                .id(entity.getId())
-                .clientId(clientIdDtoConverter.convert(entity.getIdentifier()))
-                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
+        return identifier.equals(member.identifier);
     }
 
-    public List<MemberGlobalGroupDto> convertMemberGlobalGroups(Collection<GlobalGroupMember> entities) {
-        return entities.stream()
-                .map(this::convertMemberGlobalGroup)
-                .collect(toList());
-    }
-
-    public MemberGlobalGroupDto convertMemberGlobalGroup(GlobalGroupMember entity) {
-        return new MemberGlobalGroupDto()
-                .groupCode(entity.getGlobalGroup().getGroupCode())
-                .subsystem(entity.getIdentifier().getSubsystemCode())
-                .addedToGroup(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
+    @Override
+    public int hashCode() {
+        return identifier.hashCode();
     }
 }
+
+

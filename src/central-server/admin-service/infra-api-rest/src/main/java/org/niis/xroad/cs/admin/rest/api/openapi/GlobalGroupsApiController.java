@@ -31,8 +31,8 @@ import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.rest.api.converter.GlobalGroupConverter;
-import org.niis.xroad.cs.admin.rest.api.converter.GroupMemberConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.GroupMemberFilterModelConverter;
+import org.niis.xroad.cs.admin.rest.api.converter.GroupMemberViewConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PagedGroupMemberConverter;
 import org.niis.xroad.cs.openapi.GlobalGroupsApi;
@@ -42,7 +42,7 @@ import org.niis.xroad.cs.openapi.model.GlobalGroupResourceDto;
 import org.niis.xroad.cs.openapi.model.GroupMembersFilterDto;
 import org.niis.xroad.cs.openapi.model.GroupMembersFilterModelDto;
 import org.niis.xroad.cs.openapi.model.MembersDto;
-import org.niis.xroad.cs.openapi.model.PagedGroupMemberDto;
+import org.niis.xroad.cs.openapi.model.PagedGroupMemberListViewDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -68,7 +68,7 @@ import static org.springframework.http.ResponseEntity.status;
 public class GlobalGroupsApiController implements GlobalGroupsApi {
     private final GlobalGroupService globalGroupService;
     private final GlobalGroupMemberService globalGroupMemberService;
-    private final GroupMemberConverter groupMemberConverter;
+    private final GroupMemberViewConverter groupMemberViewConverter;
     private final PageRequestConverter pageRequestConverter;
     private final PagedGroupMemberConverter pagedGroupMemberConverter;
     private final GlobalGroupConverter globalGroupConverter;
@@ -134,11 +134,11 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_GROUP_DETAILS')")
-    public ResponseEntity<PagedGroupMemberDto> findGlobalGroupMembers(Integer groupId, GroupMembersFilterDto filter) {
+    public ResponseEntity<PagedGroupMemberListViewDto> findGlobalGroupMembers(Integer groupId, GroupMembersFilterDto filter) {
         var pageRequest = pageRequestConverter.convert(filter.getPagingSorting(), findSortParameterConverter);
-        var resultPage = globalGroupMemberService.find(groupMemberConverter.convert(groupId, filter), pageRequest);
+        var resultPage = globalGroupMemberService.find(groupMemberViewConverter.convert(groupId, filter), pageRequest);
 
-        PagedGroupMemberDto pagedResults = pagedGroupMemberConverter.convert(resultPage, filter.getPagingSorting());
+        PagedGroupMemberListViewDto pagedResults = pagedGroupMemberConverter.convert(resultPage, filter.getPagingSorting());
         return ok(pagedResults);
     }
 
