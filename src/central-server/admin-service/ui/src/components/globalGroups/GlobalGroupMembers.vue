@@ -75,6 +75,26 @@
         </div>
       </template>
 
+      <template #[`item.type`]="{ item }">
+        <div>{{ item.client_id.type }}</div>
+      </template>
+
+      <template #[`item.instance`]="{ item }">
+        <div>{{ item.client_id.instance_id }}</div>
+      </template>
+
+      <template #[`item.class`]="{ item }">
+        <div>{{ item.client_id.member_class }}</div>
+      </template>
+
+      <template #[`item.code`]="{ item }">
+        <div>{{ item.client_id.member_code }}</div>
+      </template>
+
+      <template #[`item.subsystem`]="{ item }">
+        <div>{{ item.client_id.subsystem_code }}</div>
+      </template>
+
       <template #[`item.created_at`]="{ item }">
         <div>{{ item.created_at | formatDateTime }}</div>
       </template>

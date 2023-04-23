@@ -27,29 +27,17 @@
 package org.niis.xroad.cs.admin.api.domain;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
-public class GlobalGroupMemberView extends Auditable {
+@EqualsAndHashCode
+public class GlobalGroupMemberView {
     private int id;
     private String memberName;
     private ClientId identifier;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof GlobalGroupMemberView)) return false;
-
-        final GlobalGroupMemberView member = (GlobalGroupMemberView) o;
-
-        return identifier.equals(member.identifier);
-    }
-
-    @Override
-    public int hashCode() {
-        return identifier.hashCode();
-    }
+    private Instant createdAt;
 }
-
-

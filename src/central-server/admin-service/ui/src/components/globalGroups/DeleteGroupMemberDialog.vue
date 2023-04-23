@@ -47,7 +47,7 @@
         </p>
         <ValidationProvider
           v-slot="{ errors }"
-          :rules="`required|is:${member.code}`"
+          :rules="`required|is:${member.client_id.member_code}`"
           name="memberCode"
         >
           <v-text-field
@@ -98,10 +98,10 @@ export default Vue.extend({
       return this.member != null;
     },
     identifier(): string {
-      if (this.member == null || this.member.clientId === undefined) {
+      if (this.member == null || this.member.client_id === undefined) {
         return '';
       }
-      return toIdentifier(this.member.clientId);
+      return toIdentifier(this.member.client_id);
     },
   },
   methods: {

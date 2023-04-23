@@ -3913,11 +3913,11 @@ components:
           example: 123
           format: int32
           type: integer
-        clientId:
+        client_id:
           $ref: '#/components/schemas/ClientId'
       required:
         - id
-        - clientId
+        - client_id
         - created_at
       type: object
     GroupMemberListView:

@@ -30,7 +30,7 @@ import {
   GlobalGroupCodeAndDescription,
   GlobalGroupDescription,
   GlobalGroupResource,
-  GroupMember,
+  GroupMemberListView,
   GroupMembersFilter,
   GroupMembersFilterModel,
   Members,
@@ -42,7 +42,7 @@ import { DataOptions } from 'vuetify';
 export interface State {
   globalGroups: GlobalGroupResource[];
   groupsLoading: boolean;
-  members: GroupMember[];
+  members: GroupMemberListView[];
   pagingOptions: PagingMetadata;
 }
 
