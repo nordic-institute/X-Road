@@ -33,6 +33,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GlobalGroupMember extends Auditable {
     private int id;
+    private String memberName;
     private GlobalGroup globalGroup;
     private ClientId identifier;
 

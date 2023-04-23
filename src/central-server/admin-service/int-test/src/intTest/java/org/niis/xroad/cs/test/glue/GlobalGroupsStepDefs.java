@@ -200,7 +200,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
     @Step("global group {string} member {string} is deleted")
     public void globalGroupMemberIsDeleted(String code, String memberIdentifier) {
         try {
-            var memberId = resolveGlobalGroupMemberId(code, memberIdentifier).orElse(999);
+            var memberId = resolveGlobalGroupMemberId(code, "Member name for " + memberIdentifier).orElse(999);
             globalGroupMemberIsDeleted(code, memberId);
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
@@ -310,7 +310,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                 .orElseThrow();
     }
 
-    private Optional<Integer> resolveGlobalGroupMemberId(String groupCode, String memberIdentifier) {
+    private Optional<Integer> resolveGlobalGroupMemberId(String groupCode, String memberName) {
         final GroupMembersFilterDto filterDto = new GroupMembersFilterDto();
 
         final PagingSortingParametersDto pagingSortingDto = new PagingSortingParametersDto()
@@ -324,7 +324,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                 .findGlobalGroupMembers(resolveGlobalGroupId(groupCode), filterDto);
 
         return response.getBody().getItems().stream()
-                .filter(member -> memberIdentifier.equals(member.getName()))
+                .filter(member -> memberName.equals(member.getName()))
                 .map(GroupMemberDto::getId)
                 .map(Integer::valueOf)
                 .findFirst();

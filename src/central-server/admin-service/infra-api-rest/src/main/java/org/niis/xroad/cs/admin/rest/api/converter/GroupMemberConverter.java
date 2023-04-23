@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
-import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.openapi.model.GroupMemberDto;
 import org.niis.xroad.cs.openapi.model.GroupMembersFilterDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
@@ -46,7 +46,7 @@ public class GroupMemberConverter {
     public GroupMemberDto convert(GlobalGroupMember entity) {
         return new GroupMemberDto()
                 .id(String.valueOf(entity.getId()))
-                .name(entity.getIdentifier().toShortString(':'))
+                .name(entity.getMemberName())
                 .type(entity.getIdentifier().getObjectType().name())
                 .propertyClass(entity.getIdentifier().getMemberClass())
                 .instance(entity.getIdentifier().getXRoadInstance())
@@ -68,8 +68,8 @@ public class GroupMemberConverter {
                 .addedToGroup(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
     }
 
-    public GlobalGroupService.Criteria convert(Integer groupId, GroupMembersFilterDto filter) {
-        return GlobalGroupService.Criteria.builder()
+    public GlobalGroupMemberService.Criteria convert(Integer groupId, GroupMembersFilterDto filter) {
+        return GlobalGroupMemberService.Criteria.builder()
                 .groupId(groupId)
                 .query(filter.getQuery())
                 .memberClass(filter.getMemberClass())

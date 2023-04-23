@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,42 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.admin.core.repository;
 
-import lombok.Builder;
-import lombok.Getter;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
-import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
+import org.niis.xroad.cs.admin.core.entity.GlobalGroupMembersViewEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-import java.util.Map;
+public interface GlobalGroupMembersViewRepository extends GenericRepository<GlobalGroupMembersViewEntity, Integer> {
 
-public interface GlobalGroupService {
-
-    List<GlobalGroup> findGlobalGroups();
-
-    GlobalGroup addGlobalGroup(GlobalGroup globalGroup);
-
-    GlobalGroup getGlobalGroup(Integer groupId);
-
-    void deleteGlobalGroupMember(Integer groupId);
-
-    GlobalGroup updateGlobalGroupDescription(GlobalGroupUpdateDto updateDto);
-
-    List<String> addGlobalGroupMembers(Integer groupId, List<String> membersToAdd);
-
-    int countGroupMembers(Integer groupId);
-
-    Map<Integer, Long> countGroupMembers();
-
-    void verifyCompositionEditability(String groupCode, ErrorMessage errorMessage);
-
-    @Builder
-    @Getter
-    class Criteria {
-        private final String memberClass;
-        private final String instance;
-        private final String code;
-    }
+    Page<GlobalGroupMembersViewEntity> findAll(GlobalGroupMemberService.Criteria criteria, Pageable pageable);
 }

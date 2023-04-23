@@ -46,12 +46,12 @@ class GroupMemberConverterTest {
 
     @Test
     void convert() {
-        GlobalGroupMember mockEntity = mockEntity(1, "CS", "ORG", "123", "2");
+        GlobalGroupMember mockEntity = mockEntity(1, "Test 1", "CS", "ORG", "123", "2");
 
         GroupMemberDto result = converter.convert(mockEntity);
 
         assertEquals(String.valueOf(mockEntity.getId()), result.getId());
-        assertEquals(mockEntity.getIdentifier().toShortString(':'), result.getName());
+        assertEquals(mockEntity.getMemberName(), result.getName());
         assertEquals("ORG", result.getPropertyClass());
         assertEquals("CS", result.getInstance());
         assertEquals("2", result.getSubsystem());
@@ -60,13 +60,18 @@ class GroupMemberConverterTest {
         assertEquals(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC), result.getCreatedAt());
     }
 
-    private GlobalGroupMember mockEntity(int id, String instance, String memberClass, String memberCode, String subsystem) {
+    private GlobalGroupMember mockEntity(int id, String name, String instance, String memberClass, String memberCode, String subsystem) {
         GlobalGroup globalGroup = new GlobalGroup();
         globalGroup.setGroupCode("code-" + id);
         ClientId clientId = ClientId.Conf.create(instance, memberClass, memberCode, subsystem);
         GlobalGroupMember member = new GlobalGroupMember(globalGroup, clientId);
         member.setId(id);
+        member.setMemberName(name);
         return member;
+    }
+
+    private GlobalGroupMember mockEntity(int id, String instance, String memberClass, String memberCode, String subsystem) {
+        return mockEntity(id, null, instance, memberClass, memberCode, subsystem);
     }
 
     @Test
@@ -78,8 +83,8 @@ class GroupMemberConverterTest {
 
         assertEquals(2, result.size());
 
-        final MemberGlobalGroupDto group1 = result.stream().filter(x -> x.getGroupCode().equals("code-1")).findFirst().get();
-        final MemberGlobalGroupDto group2 = result.stream().filter(x -> x.getGroupCode().equals("code-2")).findFirst().get();
+        final MemberGlobalGroupDto group1 = result.stream().filter(x -> x.getGroupCode().equals("code-1")).findFirst().orElseThrow();
+        final MemberGlobalGroupDto group2 = result.stream().filter(x -> x.getGroupCode().equals("code-2")).findFirst().orElseThrow();
         assertMemberGlobalGroup(group1, "code-1", "subsystem1");
         assertMemberGlobalGroup(group2, "code-2", null);
     }

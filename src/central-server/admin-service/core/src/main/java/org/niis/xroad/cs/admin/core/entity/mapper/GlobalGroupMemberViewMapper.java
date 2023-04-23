@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,42 +24,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.admin.core.entity.mapper;
 
-import lombok.Builder;
-import lombok.Getter;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
-import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
+import org.niis.xroad.cs.admin.core.entity.GlobalGroupMembersViewEntity;
 
-import java.util.List;
-import java.util.Map;
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {ClientIdMapper.class})
+public interface GlobalGroupMemberViewMapper extends GenericUniDirectionalMapper<GlobalGroupMembersViewEntity, GlobalGroupMember> {
 
-public interface GlobalGroupService {
-
-    List<GlobalGroup> findGlobalGroups();
-
-    GlobalGroup addGlobalGroup(GlobalGroup globalGroup);
-
-    GlobalGroup getGlobalGroup(Integer groupId);
-
-    void deleteGlobalGroupMember(Integer groupId);
-
-    GlobalGroup updateGlobalGroupDescription(GlobalGroupUpdateDto updateDto);
-
-    List<String> addGlobalGroupMembers(Integer groupId, List<String> membersToAdd);
-
-    int countGroupMembers(Integer groupId);
-
-    Map<Integer, Long> countGroupMembers();
-
-    void verifyCompositionEditability(String groupCode, ErrorMessage errorMessage);
-
-    @Builder
-    @Getter
-    class Criteria {
-        private final String memberClass;
-        private final String instance;
-        private final String code;
-    }
+    @Override
+    @Mapping(target = "globalGroup", ignore = true)
+    GlobalGroupMember toTarget(GlobalGroupMembersViewEntity globalGroupMembersViewEntity);
 }

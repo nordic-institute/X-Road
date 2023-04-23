@@ -75,10 +75,13 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     private final GroupMemberFilterModelConverter groupMemberFilterModelConverter;
     private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
             new PageRequestConverter.MappableSortParameterConverter(
-                    entry("owner_name", "owner.name"),
-                    entry("xroad_id.member_class", "owner.memberClass.code"),
-                    entry("xroad_id.member_code", "owner.memberCode"),
-                    entry("xroad_id.server_code", "serverCode")
+                    entry("name", "memberName"),
+                    entry("type", "identifier.objectType"),
+                    entry("instance", "identifier.xRoadInstance"),
+                    entry("class", "identifier.memberClass"),
+                    entry("code", "identifier.memberCode"),
+                    entry("subsystem", "identifier.subsystemCode"),
+                    entry("created_at", "createdAt")
             );
 
     @AuditEventMethod(event = RestApiAuditEvent.ADD_GLOBAL_GROUP)
@@ -133,8 +136,7 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     @PreAuthorize("hasAuthority('VIEW_GROUP_DETAILS')")
     public ResponseEntity<PagedGroupMemberDto> findGlobalGroupMembers(Integer groupId, GroupMembersFilterDto filter) {
         var pageRequest = pageRequestConverter.convert(filter.getPagingSorting(), findSortParameterConverter);
-        var resultPage =
-                globalGroupService.findGroupMembers(groupMemberConverter.convert(groupId, filter), pageRequest);
+        var resultPage = globalGroupMemberService.find(groupMemberConverter.convert(groupId, filter), pageRequest);
 
         PagedGroupMemberDto pagedResults = pagedGroupMemberConverter.convert(resultPage, filter.getPagingSorting());
         return ok(pagedResults);
@@ -152,9 +154,8 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_GROUP_DETAILS')")
     public ResponseEntity<GroupMembersFilterModelDto> getGroupMembersFilterModel(Integer groupId) {
-        var groupMemberFilterModel = globalGroupService.getGroupMembersFilterModel(groupId);
-        var groupMemberFilterModelDto = groupMemberFilterModelConverter
-                .convert(groupMemberFilterModel);
+        var globalGroupMembers = globalGroupMemberService.findByGroupId(groupId);
+        var groupMemberFilterModelDto = groupMemberFilterModelConverter.convert(globalGroupMembers);
 
         return ok(groupMemberFilterModelDto);
     }

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,42 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.admin.core.entity;
 
-import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.Getter;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
-import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Immutable;
 
-import java.util.List;
-import java.util.Map;
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
-public interface GlobalGroupService {
+@Entity
+@Immutable
+@Access(AccessType.FIELD)
+@Table(name = GlobalGroupMembersViewEntity.TABLE_NAME)
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class GlobalGroupMembersViewEntity extends AuditableEntity {
+    static final String TABLE_NAME = "global_group_members_view";
 
-    List<GlobalGroup> findGlobalGroups();
+    @Id
+    @Column(name = "id", unique = true, nullable = false)
+    private int id;
 
-    GlobalGroup addGlobalGroup(GlobalGroup globalGroup);
+    @Column(name = "global_group_id")
+    private Integer globalGroupId;
 
-    GlobalGroup getGlobalGroup(Integer groupId);
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "group_member_id", nullable = false, updatable = false)
+    private ClientIdEntity identifier;
 
-    void deleteGlobalGroupMember(Integer groupId);
-
-    GlobalGroup updateGlobalGroupDescription(GlobalGroupUpdateDto updateDto);
-
-    List<String> addGlobalGroupMembers(Integer groupId, List<String> membersToAdd);
-
-    int countGroupMembers(Integer groupId);
-
-    Map<Integer, Long> countGroupMembers();
-
-    void verifyCompositionEditability(String groupCode, ErrorMessage errorMessage);
-
-    @Builder
-    @Getter
-    class Criteria {
-        private final String memberClass;
-        private final String instance;
-        private final String code;
-    }
+    @Column(name = "member_name")
+    private String memberName;
 }
