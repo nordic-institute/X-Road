@@ -33,6 +33,9 @@ import org.niis.xroad.cs.test.ui.page.SettingsGlobalResourcesPageObj;
 import java.util.List;
 import java.util.Map;
 
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.visible;
+
 public class SettingsGlobalResourcesStepDefs extends BaseUiStepDefs {
     private final SettingsGlobalResourcesPageObj globalResourcesPage = new SettingsGlobalResourcesPageObj();
 
@@ -64,4 +67,10 @@ public class SettingsGlobalResourcesStepDefs extends BaseUiStepDefs {
         globalResourcesPage.globalGroupForm.btnConfirm().click();
     }
 
+    @Step("user opens global group: {string} details")
+    public void openGlobalGroupDetails(String code) {
+        globalResourcesPage.globalGroupList.globalGroupCodeBtn(code)
+                .shouldBe(enabled, visible)
+                .click();
+    }
 }

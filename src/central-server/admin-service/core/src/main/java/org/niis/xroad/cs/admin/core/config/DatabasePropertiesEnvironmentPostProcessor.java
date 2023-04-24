@@ -42,19 +42,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * Load datasource properties from db.properties file.
- * Just a temporary solution, does not support full CS db.properties featureset.
- * Do a proper implementation (with unit tests) in a separate ticket.
- *
- * PropertyFileReadingEnvironmentPostProcessor does not suit CS db.properties without changes,
- * there is no simple 1:1 mapping from db.properties property to spring config property
- * (connection url is formed by combining several db.property properties)
- * - maybe we should consider changing CS db.properties syntax to follow SS db.properties style?
- *
- * If db.properties format is kept, this should be improved to fully replicate db_conf_parser.rb features
- * (secondary_hosts, etc).
- */
 @Slf4j
 @Profile("nontest")
 public class DatabasePropertiesEnvironmentPostProcessor implements EnvironmentPostProcessor {

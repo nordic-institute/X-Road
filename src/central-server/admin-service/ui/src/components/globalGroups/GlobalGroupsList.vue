@@ -60,7 +60,7 @@
           <xrd-icon-base class="mr-4">
             <XrdIconFolder />
           </xrd-icon-base>
-          <div>{{ item.code }}</div>
+          <div data-test="group-code">{{ item.code }}</div>
         </div>
       </template>
       <template #[`item.updated_at`]="{ item }">

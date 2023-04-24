@@ -4,7 +4,7 @@
 
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.22  
+Version: 2.23  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -52,6 +52,7 @@ Doc. ID: UG-CS
 | 23.09.2022 | 2.20    | Added new Registration Web Service                                                                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets     |
 | 26.09.2022 | 2.21    | Remove Ubuntu 18.04 support                                                                                                                                                                                                                                                                                                                                                                                                             | Andres Rosenthal  |
 | 17.04.2023 | 2.22    | Remove central services support                                                                                                                                                                                                                                                                                                                                                                                                         | Justas Samuolis   |
+| 19.04.2023 | 2.23    | Removed unused properties from db.properties                                                                                                                                                                                                                                                                                                                                                                                            | Mikk-Erik Bachmannn |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -1311,12 +1312,9 @@ pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n center
 8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
 
 ```properties
-    adapter=postgresql
-    encoding=utf8
     username=centerui
     password=<centerui password>
     database=centerui_production
-    reconnect=true
     host=<database host>
     port=<database port>
     schema=centerui

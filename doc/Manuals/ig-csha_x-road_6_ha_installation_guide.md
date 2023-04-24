@@ -6,7 +6,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.16  
+Version: 1.17  
 Doc. ID: IG-CSHA
 
 ---
@@ -34,6 +34,7 @@ Doc. ID: IG-CSHA
 | 10.08.2021 | 1.14    | Update HA installation instructions. Remove obsolete BDR references.                                 | Ilkka Seppälä      |
 | 25.08.2021 | 1.15    | Update X-Road references from version 6 to 7                                                         | Caro Hautamäki     |
 | 17.04.2023 | 1.16    | Updated HA installation instructions. Added conf updated for newer postgres versions (>=12).         | Mikk-Erik Bachmann |
+| 19.04.2023 | 1.17    | Removed unused properties from db.properties                                                         | Mikk-Erik Bachmann |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -397,12 +398,9 @@ See [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#18-m
 
 Edit `/etc/xroad/db.properties` and change the connection properties:
 ```properties
-adapter=postgresql
-encoding=utf8
 username=centerui
 password=<password>
 database=centerui_production
-reconnect=true
 host=<master host>
 secondary_hosts=<standby host>
 ```
