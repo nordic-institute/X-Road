@@ -43,6 +43,7 @@ import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.service.CentralServicesService;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
@@ -67,6 +68,7 @@ class SharedParametersLoader {
     private final ClientService clientService;
     private final SecurityServerService securityServerService;
     private final GlobalGroupService globalGroupService;
+    private final GlobalGroupMemberService globalGroupMemberService;
     private final CentralServicesService centralServicesService;
     private final MemberClassService memberClassService;
 
@@ -179,7 +181,7 @@ class SharedParametersLoader {
     }
 
     private List<ClientId> getGroupMembers(int id) {
-        return globalGroupService.getGroupMembersFilterModel(id).stream()
+        return globalGroupMemberService.findByGroupId(id).stream()
                 .map(GlobalGroupMember::getIdentifier)
                 .collect(toList());
     }

@@ -27,9 +27,23 @@
 
 package org.niis.xroad.cs.admin.api.service;
 
+import ee.ria.xroad.common.identifier.XRoadObjectType;
+
+import lombok.Builder;
+import lombok.Getter;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMemberView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public interface GlobalGroupMemberService {
+
+    Page<GlobalGroupMemberView> find(Criteria criteria, Pageable pageable);
+
+    List<GlobalGroupMember> findByGroupId(Integer groupId);
 
     void addMemberToGlobalGroup(MemberId memberId, String groupCode);
 
@@ -37,4 +51,15 @@ public interface GlobalGroupMemberService {
 
     void removeMemberFromGlobalGroup(MemberId memberId, String groupCode);
 
+    @Builder
+    @Getter
+    class Criteria {
+        private final Integer groupId;
+        private final String query;
+        private final String memberClass;
+        private final String instance;
+        private final List<String> codes;
+        private final List<String> subsystems;
+        private final List<XRoadObjectType> types;
+    }
 }

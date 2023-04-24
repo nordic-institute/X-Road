@@ -47,7 +47,7 @@
         </p>
         <ValidationProvider
           v-slot="{ errors }"
-          :rules="`required|is:${member.code}`"
+          :rules="`required|is:${member.client_id.member_code}`"
           name="memberCode"
         >
           <v-text-field
@@ -70,8 +70,9 @@ import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import { useGlobalGroupsStore } from '@/store/modules/global-groups';
-import { GroupMember } from '@/openapi-types';
+import { GroupMemberListView } from '@/openapi-types';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
+import { toIdentifier } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
@@ -88,31 +89,24 @@ export default Vue.extend({
     return {
       memberCode: '',
       deleting: false,
-      member: null as GroupMember | null,
+      member: null as GroupMemberListView | null,
     };
   },
   computed: {
     ...mapStores(useGlobalGroupsStore),
-    memberName(): string | undefined {
-      return this.member?.name;
-    },
     dialog(): boolean {
       return this.member != null;
     },
     identifier(): string {
-      if (this.member == null) {
+      if (this.member == null || this.member.client_id === undefined) {
         return '';
       }
-      let parts = [this.member.instance, this.member.class, this.member.code];
-      if (this.member.subsystem) {
-        parts.push(this.member.subsystem);
-      }
-      return parts.join(':');
+      return toIdentifier(this.member.client_id);
     },
   },
   methods: {
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    open(member: GroupMember) {
+    open(member: GroupMemberListView) {
       this.member = member;
     },
     close() {
