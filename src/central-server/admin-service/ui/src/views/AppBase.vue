@@ -88,6 +88,7 @@ export default Vue.extend({
       () => this.pollSessionStatus(),
       Timeouts.POLL_SESSION_TIMEOUT,
     );
+    this.pollSessionStatus();
     this.fetchSystemStatus();
     this.checkAlerts();
     // Set interval to poll backend for session
