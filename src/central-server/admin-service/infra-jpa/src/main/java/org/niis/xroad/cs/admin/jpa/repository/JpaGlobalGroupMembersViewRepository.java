@@ -68,9 +68,8 @@ public interface JpaGlobalGroupMembersViewRepository extends JpaRepository<Globa
         final Join<GlobalGroupMembersViewEntity, ClientIdEntity> member = root.join(GlobalGroupMembersViewEntity_.IDENTIFIER);
         final List<Predicate> predicates = new ArrayList<>();
 
-        if (criteria.getGroupId() != null) {
-            predicates.add(builder.equal(root.get(GlobalGroupMembersViewEntity_.GLOBAL_GROUP_ID), criteria.getGroupId()));
-        }
+        predicates.add(builder.equal(root.get(GlobalGroupMembersViewEntity_.GLOBAL_GROUP_ID), criteria.getGroupId()));
+
         if (StringUtils.isNotBlank(criteria.getQuery())) {
             predicates.add(searchPredicate(root, member, builder, criteria));
         }

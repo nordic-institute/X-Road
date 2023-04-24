@@ -27,33 +27,14 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
-import org.niis.xroad.cs.openapi.model.GroupMemberDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 @Component
 @RequiredArgsConstructor
 public class GroupMemberConverter {
-    private final ClientIdDtoConverter clientIdDtoConverter;
-
-    public GroupMemberDto convert(GlobalGroupMember entity) {
-        return new GroupMemberDto()
-                .id(entity.getId())
-                .clientId(clientIdDtoConverter.convert(entity.getIdentifier()))
-                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
-    }
-
-    public List<MemberGlobalGroupDto> convertMemberGlobalGroups(Collection<GlobalGroupMember> entities) {
-        return entities.stream()
-                .map(this::convertMemberGlobalGroup)
-                .collect(toList());
-    }
 
     public MemberGlobalGroupDto convertMemberGlobalGroup(GlobalGroupMember entity) {
         return new MemberGlobalGroupDto()

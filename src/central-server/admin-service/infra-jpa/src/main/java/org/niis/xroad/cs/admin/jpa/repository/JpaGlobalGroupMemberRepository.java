@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository;
 
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
@@ -70,15 +69,10 @@ public interface JpaGlobalGroupMemberRepository
         final Join<GlobalGroupMemberEntity, ClientIdEntity> member = root.join(GlobalGroupMemberEntity_.IDENTIFIER);
         final List<Predicate> predicates = new ArrayList<>();
 
-        if (StringUtils.isNotBlank(criteria.getMemberClass())) {
-            predicates.add(builder.equal(member.get(XRoadIdEntity_.MEMBER_CLASS), criteria.getMemberClass()));
-        }
-        if (StringUtils.isNotBlank(criteria.getInstance())) {
-            predicates.add(builder.equal(member.get(XRoadIdEntity_.X_ROAD_INSTANCE), criteria.getInstance()));
-        }
-        if (StringUtils.isNotBlank(criteria.getCode())) {
-            predicates.add(builder.equal(member.get(XRoadIdEntity_.MEMBER_CODE), criteria.getCode()));
-        }
+        predicates.add(builder.equal(member.get(XRoadIdEntity_.MEMBER_CLASS), criteria.getMemberClass()));
+        predicates.add(builder.equal(member.get(XRoadIdEntity_.X_ROAD_INSTANCE), criteria.getInstance()));
+        predicates.add(builder.equal(member.get(XRoadIdEntity_.MEMBER_CODE), criteria.getCode()));
+
         return builder.and(predicates.toArray(new Predicate[0]));
     }
 }
