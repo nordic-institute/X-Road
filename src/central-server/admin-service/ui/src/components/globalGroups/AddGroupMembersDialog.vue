@@ -25,7 +25,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="opened" :value="opened" width="824" scrollable persistent @keydown.esc="cancel">
+  <v-dialog
+    v-if="opened"
+    :value="opened"
+    width="824"
+    scrollable
+    persistent
+    @keydown.esc="cancel"
+  >
     <v-card class="xrd-card">
       <v-card-title>
         <slot name="title">
@@ -39,23 +46,23 @@
 
       <v-card-text style="height: 500px" class="elevation-0">
         <v-text-field
+          v-model="search"
           data-test="member-subsystem-search-field"
           class="search-input"
           append-icon="icon-Search"
           single-line
           hide-details
           autofocus
-          v-model="search"
           :label="$t('systemSettings.selectSubsystem.search')"
         />
 
         <!-- Table -->
         <v-data-table
+          v-model="selectedClients"
           class="elevation-0 data-table"
           data-test="select-members-list"
           item-key="id"
           show-select
-          v-model="selectedClients"
           :loading="loading"
           :headers="headers"
           :items="selectableClients"
@@ -251,7 +258,7 @@ export default Vue.extend({
       this.fetchClients();
     },
     cancel(): void {
-      if(this.adding){
+      if (this.adding) {
         return;
       }
       this.$emit('cancel');
