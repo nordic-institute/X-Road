@@ -46,7 +46,7 @@ import PageNavigation, {
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { memberStore } from '@/store/modules/members';
-import DetailsView from "@/components/ui/DetailsView.vue";
+import DetailsView from '@/components/ui/DetailsView.vue';
 
 /**
  * Wrapper component for a member view

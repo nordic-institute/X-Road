@@ -104,7 +104,7 @@ import MrClientInformation from '@/components/managementRequests/details/MrClien
 import MrSecurityServerInformation from '@/components/managementRequests/details/MrSecurityServerInformation.vue';
 import MrInformation from '@/components/managementRequests/details/MrInformation.vue';
 import { notificationsStore } from '@/store/modules/notifications';
-import DetailsView from "@/components/ui/DetailsView.vue";
+import DetailsView from '@/components/ui/DetailsView.vue';
 
 /**
  * Wrapper component for a certification service view

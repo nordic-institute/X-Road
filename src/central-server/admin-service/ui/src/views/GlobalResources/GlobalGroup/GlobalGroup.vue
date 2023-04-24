@@ -36,8 +36,7 @@
 import Vue from 'vue';
 import GlobalGroupDetails from '@/components/globalGroups/GlobalGroupDetails.vue';
 import GlobalGroupMembers from '@/components/globalGroups/GlobalGroupMembers.vue';
-import { Colors } from '@/global';
-import DetailsView from "@/components/ui/DetailsView.vue";
+import DetailsView from '@/components/ui/DetailsView.vue';
 
 /**
  * Global group view
@@ -57,5 +56,4 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

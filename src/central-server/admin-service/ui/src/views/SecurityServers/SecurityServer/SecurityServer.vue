@@ -45,7 +45,7 @@ import { Colors, Permissions, RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { useSecurityServerStore } from '@/store/modules/security-servers';
 import { notificationsStore } from '@/store/modules/notifications';
-import DetailsView from "@/components/ui/DetailsView.vue";
+import DetailsView from '@/components/ui/DetailsView.vue';
 
 /**
  * Wrapper component for a security server view

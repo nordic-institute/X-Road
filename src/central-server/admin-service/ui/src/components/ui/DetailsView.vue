@@ -33,7 +33,7 @@
       </router-link>
     </div>
 
-    <slot/>
+    <slot />
   </article>
 </template>
 

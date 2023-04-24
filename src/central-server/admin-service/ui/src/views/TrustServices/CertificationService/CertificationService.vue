@@ -51,7 +51,7 @@ import PageNavigation, {
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useCertificationServiceStore } from '@/store/modules/trust-services';
-import DetailsView from "@/components/ui/DetailsView.vue";
+import DetailsView from '@/components/ui/DetailsView.vue';
 
 /**
  * Wrapper component for a certification service view
