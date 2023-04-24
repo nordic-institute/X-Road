@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="security-server-view">
+  <details-view back-to="/security-servers" data-test="security-server-view">
     <div class="header-row">
       <div class="title-search">
         <div class="xrd-view-title">{{ securityServerCode }}</div>
@@ -33,7 +33,7 @@
     </div>
     <PageNavigation :tabs="securityServerNavigationTabs"></PageNavigation>
     <router-view />
-  </div>
+  </details-view>
 </template>
 
 <script lang="ts">
@@ -45,12 +45,13 @@ import { Colors, Permissions, RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { useSecurityServerStore } from '@/store/modules/security-servers';
 import { notificationsStore } from '@/store/modules/notifications';
+import DetailsView from "@/components/ui/DetailsView.vue";
 
 /**
  * Wrapper component for a security server view
  */
 export default Vue.extend({
-  components: { PageNavigation },
+  components: { DetailsView, PageNavigation },
   props: {
     serverId: {
       type: String,

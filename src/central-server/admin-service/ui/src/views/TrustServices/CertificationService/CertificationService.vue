@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div id="certification-service-view">
+  <details-view id="certification-service-view" back-to="/trust-services">
     <div class="table-toolbar mt-0 pl-0">
       <div class="xrd-view-title">
         {{ certificationServiceStore.currentCertificationService.name }}
@@ -40,7 +40,7 @@
     </div>
     <PageNavigation :tabs="certificationServiceNavigationTabs"></PageNavigation>
     <router-view />
-  </div>
+  </details-view>
 </template>
 
 <script lang="ts">
@@ -51,13 +51,14 @@ import PageNavigation, {
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import DetailsView from "@/components/ui/DetailsView.vue";
 
 /**
  * Wrapper component for a certification service view
  */
 export default Vue.extend({
   name: 'CertificationService',
-  components: { PageNavigation },
+  components: { DetailsView, PageNavigation },
   props: {
     certificationServiceId: {
       type: Number,

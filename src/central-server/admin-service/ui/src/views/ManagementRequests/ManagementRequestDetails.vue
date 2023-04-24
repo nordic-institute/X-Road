@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <details-view back-to="/management-requests">
     <XrdEmptyPlaceholder
       :loading="loading"
       :data="managementRequest"
@@ -85,7 +85,7 @@
         @decline="fetchData"
       />
     </main>
-  </div>
+  </details-view>
 </template>
 
 <script lang="ts">
@@ -104,6 +104,7 @@ import MrClientInformation from '@/components/managementRequests/details/MrClien
 import MrSecurityServerInformation from '@/components/managementRequests/details/MrSecurityServerInformation.vue';
 import MrInformation from '@/components/managementRequests/details/MrInformation.vue';
 import { notificationsStore } from '@/store/modules/notifications';
+import DetailsView from "@/components/ui/DetailsView.vue";
 
 /**
  * Wrapper component for a certification service view
@@ -111,6 +112,7 @@ import { notificationsStore } from '@/store/modules/notifications';
 export default Vue.extend({
   name: 'ManagementRequestDetails',
   components: {
+    DetailsView,
     MrInformation,
     MrSecurityServerInformation,
     MrClientInformation,
