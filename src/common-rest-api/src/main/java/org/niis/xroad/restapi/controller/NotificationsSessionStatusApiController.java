@@ -42,14 +42,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 @RestController
-@RequestMapping(NotificationsSessionStatusApiController.NOTIFICATIONS_API_V1_PATH + "/session-status")
+@RequestMapping(ControllerUtil.NOTIFICATIONS_API_V1_PATH + "/session-status")
 @Slf4j
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class NotificationsSessionStatusApiController {
-
-
-    public static final String NOTIFICATIONS_API_V1_PATH = ControllerUtil.API_V1_PREFIX + "/notifications";
 
     /**
      * check if a HttpSession is currently alive

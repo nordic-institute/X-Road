@@ -42,6 +42,7 @@ import java.net.URI;
 public class ControllerUtil {
 
     public static final String API_V1_PREFIX = "/api/v1";
+    public static final String NOTIFICATIONS_API_V1_PATH = API_V1_PREFIX + "/notifications";
 
     /**
      * Creates a ResponseEntity with status code 201 CREATED
