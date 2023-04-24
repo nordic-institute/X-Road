@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div id="memberview">
+  <details-view id="memberview" back-to="/members">
     <div class="header-row">
       <div class="title-search">
         <div class="xrd-view-title">
@@ -35,7 +35,7 @@
     </div>
     <PageNavigation :tabs="memberNavigationTabs"></PageNavigation>
     <router-view />
-  </div>
+  </details-view>
 </template>
 
 <script lang="ts">
@@ -46,13 +46,14 @@ import PageNavigation, {
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { memberStore } from '@/store/modules/members';
+import DetailsView from "@/components/ui/DetailsView.vue";
 
 /**
  * Wrapper component for a member view
  */
 export default Vue.extend({
   name: 'Member',
-  components: { PageNavigation },
+  components: { DetailsView, PageNavigation },
   props: {
     memberid: {
       type: String,

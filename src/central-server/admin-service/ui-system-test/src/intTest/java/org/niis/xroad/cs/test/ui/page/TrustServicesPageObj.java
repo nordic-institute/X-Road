@@ -79,15 +79,15 @@ public class TrustServicesPageObj {
         public final IntermediateCasPageObj intermediaCas = new IntermediateCasPageObj();
 
         public SelenideElement tabSettings() {
-            return $x("//div[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'CA Settings')]");
+            return $x("//article[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'CA Settings')]");
         }
 
         public SelenideElement tabIntermediateCas() {
-            return $x("//div[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'Intermediate CAs')]");
+            return $x("//article[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'Intermediate CAs')]");
         }
 
         public SelenideElement tabOcspResponders() {
-            return $x("//div[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'OCSP Responders')]");
+            return $x("//article[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'OCSP Responders')]");
         }
 
         public SelenideElement btnViewCertificate() {

@@ -25,37 +25,48 @@
    THE SOFTWARE.
  -->
 <template>
-  <details-view back-to="/settings/global-resources">
-    <global-group-details :group-id="groupId" />
+  <article>
+    <div class="navigation-back" data-test="navigation-back">
+      <router-link :to="backTo">
+        <v-icon :color="colors.Purple100">mdi-chevron-left</v-icon>
+        {{ $t('global.navigation.back') }}
+      </router-link>
+    </div>
 
-    <global-group-members :group-id="groupId" />
-  </details-view>
+    <slot/>
+  </article>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import GlobalGroupDetails from '@/components/globalGroups/GlobalGroupDetails.vue';
-import GlobalGroupMembers from '@/components/globalGroups/GlobalGroupMembers.vue';
-import { Colors } from '@/global';
-import DetailsView from "@/components/ui/DetailsView.vue";
 
-/**
- * Global group view
- */
+import { Colors } from '@/global';
+
 export default Vue.extend({
-  components: {
-    DetailsView,
-    GlobalGroupMembers,
-    GlobalGroupDetails,
-  },
   props: {
-    groupId: {
+    backTo: {
       type: String,
       required: true,
     },
+  },
+  data() {
+    return {
+      colors: Colors,
+    };
   },
 });
 </script>
 
 <style lang="scss" scoped>
+@import '~styles/colors';
+
+.navigation-back {
+  color: $XRoad-Link;
+  cursor: pointer;
+  margin-bottom: 20px;
+
+  a {
+    text-decoration: none;
+  }
+}
 </style>
