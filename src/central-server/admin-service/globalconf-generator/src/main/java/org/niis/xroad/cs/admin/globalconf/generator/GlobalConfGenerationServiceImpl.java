@@ -42,6 +42,7 @@ import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +64,8 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_EXTERNAL;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_INTERNAL;
+import static org.niis.xroad.cs.admin.globalconf.generator.GlobalConfGenerationEvent.FAILURE;
+import static org.niis.xroad.cs.admin.globalconf.generator.GlobalConfGenerationEvent.SUCCESS;
 
 @Component
 @Slf4j
@@ -83,40 +86,47 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final PrivateParametersGenerator privateParametersGenerator;
     private final SharedParametersGenerator sharedParametersGenerator;
+    private final ApplicationEventPublisher eventPublisher;
 
     @SneakyThrows
     @Override
     @Scheduled(fixedRate = 60, timeUnit = SECONDS) // TODO make configurable
     @Transactional
     public void generate() {
-        log.debug("Starting global conf generation");
+        boolean success = false;
+        try {
+            log.debug("Starting global conf generation");
 
-        generateAndSaveConfiguration();
-        var configGenerationTime = Instant.now();
+            generateAndSaveConfiguration();
+            var configGenerationTime = Instant.now();
 
-        var allConfigurationParts = toConfigurationParts(configurationService.getAllConfigurationFiles(CONFIGURATION_VERSION));
-        var internalConfigurationParts = internalConfigurationParts(allConfigurationParts);
-        var externalConfigurationParts = externalConfigurationParts(allConfigurationParts);
+            var allConfigurationParts = toConfigurationParts(configurationService.getAllConfigurationFiles(CONFIGURATION_VERSION));
+            var internalConfigurationParts = internalConfigurationParts(allConfigurationParts);
+            var externalConfigurationParts = externalConfigurationParts(allConfigurationParts);
 
-        var generatedConfDir = Path.of(SystemProperties.getCenterGeneratedConfDir());
-        var configDistributor = new ConfigurationDistributor(generatedConfDir, CONFIGURATION_VERSION, configGenerationTime);
-        configDistributor.initConfLocation();
-        configDistributor.writeConfigurationFiles(allConfigurationParts);
+            var generatedConfDir = Path.of(SystemProperties.getCenterGeneratedConfDir());
+            var configDistributor = new ConfigurationDistributor(generatedConfDir, CONFIGURATION_VERSION, configGenerationTime);
+            configDistributor.initConfLocation();
+            configDistributor.writeConfigurationFiles(allConfigurationParts);
 
-        var internalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL).orElseThrow();
-        var externalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL).orElseThrow();
+            var internalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL).orElseThrow();
+            var externalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL).orElseThrow();
 
-        writeDirectoryContentFile(configDistributor, internalConfigurationParts, internalSigningKey, getTmpInternalDirectory());
-        writeDirectoryContentFile(configDistributor, externalConfigurationParts, externalSigningKey, getTmpExternalDirectory());
+            writeDirectoryContentFile(configDistributor, internalConfigurationParts, internalSigningKey, getTmpInternalDirectory());
+            writeDirectoryContentFile(configDistributor, externalConfigurationParts, externalSigningKey, getTmpExternalDirectory());
 
-        configDistributor.moveDirectoryContentFile(getTmpInternalDirectory(), getCenterInternalDirectory());
-        configDistributor.moveDirectoryContentFile(getTmpExternalDirectory(), getCenterExternalDirectory());
+            configDistributor.moveDirectoryContentFile(getTmpInternalDirectory(), getCenterInternalDirectory());
+            configDistributor.moveDirectoryContentFile(getTmpExternalDirectory(), getCenterExternalDirectory());
 
-        cleanUpOldConfigurations(generatedConfDir.resolve(configDistributor.getVersionSubPath()));
+            cleanUpOldConfigurations(generatedConfDir.resolve(configDistributor.getVersionSubPath()));
 
-        writeLocalCopy(allConfigurationParts);
+            writeLocalCopy(allConfigurationParts);
 
-        log.debug("Global conf generated");
+            log.debug("Global conf generated");
+            success = true;
+        } finally {
+            eventPublisher.publishEvent(success ? SUCCESS : FAILURE);
+        }
     }
 
     @SneakyThrows

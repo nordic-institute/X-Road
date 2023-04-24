@@ -861,5 +861,27 @@
     "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
     "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
   },
-  "validation.is": "The {_field_} field must have a value of \"{other}\""
+  "validation.is": "The {_field_} field must have a value of \"{other}\"",
+  "status": {
+    "signer_error": "Invocation of signer client failed",
+    "global_conf_generation": {
+      "status_not_found": "Global configuration generations status is unknown",
+      "failing": "Global configuration generation failing since {time}",
+      "global_conf_expired": "Global configuration expired"
+    },
+    "signing_key": {
+      "internal": {
+        "missing": "Signing of internal configuration failed - active key missing",
+        "token_not_found": "Signing of internal configuration failed - active key not found",
+        "token_not_active": "Signing of internal configuration failed - PIN of active key not entered",
+        "key_not_available": "Signing of internal configuration failed - active key not available"
+      },
+      "external": {
+        "missing": "Signing of external configuration failed - active key missing",
+        "token_not_found": "Signing of external configuration failed - active key not found",
+        "token_not_active": "Signing of external configuration failed - PIN of active key not entered",
+        "key_not_available": "Signing of external configuration failed - active key not available"
+      }
+    }
+  }
 }
