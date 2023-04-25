@@ -34,10 +34,6 @@
             <property name="serviceCode" access="field"/>
         </subclass>
 
-        <subclass name="CentralServiceId$Conf" discriminator-value="CS">
-            <property name="serviceCode" access="field"/>
-        </subclass>
-
         <subclass name="GlobalGroupId$Conf" discriminator-value="GG">
             <property name="groupCode" access="field"/>
         </subclass>

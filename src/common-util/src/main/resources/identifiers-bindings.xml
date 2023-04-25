@@ -13,9 +13,6 @@
         <jxb:bindings node="//xs:complexType[@name='XRoadSecurityCategoryIdentifierType']">
             <jxb:class ref="ee.ria.xroad.common.identifier.SecurityCategoryId.Conf"/>
         </jxb:bindings>
-        <jxb:bindings node="//xs:complexType[@name='XRoadCentralServiceIdentifierType']">
-            <jxb:class ref="ee.ria.xroad.common.identifier.CentralServiceId.Conf"/>
-        </jxb:bindings>
         <jxb:bindings node="//xs:complexType[@name='XRoadSecurityServerIdentifierType']">
             <jxb:class ref="ee.ria.xroad.common.identifier.SecurityServerId.Conf"/>
         </jxb:bindings>

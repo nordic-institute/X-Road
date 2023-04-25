@@ -4745,7 +4745,6 @@ components:
             - GLOBALGROUP
             - SECURITYCATEGORY
             - SERVICE
-            - CENTRALSERVICE
             - LOCALGROUP
       required:
         - instance_id

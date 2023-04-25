@@ -12,13 +12,6 @@
                 name="member" type="ClientType"/>
         </xs:sequence>
     </xs:complexType>
-    <xs:complexType name="CentralServiceListType">
-        <xs:sequence>
-            <xs:element maxOccurs="unbounded" minOccurs="0"
-                name="centralService"
-                type="id:XRoadCentralServiceIdentifierType"/>
-        </xs:sequence>
-    </xs:complexType>
     <xs:complexType name="MethodListType">
         <xs:sequence>
             <xs:element maxOccurs="unbounded" minOccurs="0"
@@ -78,8 +71,6 @@
     </xs:complexType>
     <xs:element name="clientList" type="ClientListType"/>
     <xs:attribute name="serviceType" type="RestServiceType"/>
-    <xs:element name="centralServiceList"
-        type="CentralServiceListType"/>
     <xs:element name="listMethodsResponse" type="MethodListType"/>
     <xs:element name="allowedMethodsResponse" type="MethodListType"/>
 </xs:schema>

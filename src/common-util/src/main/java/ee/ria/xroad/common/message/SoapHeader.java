@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -62,9 +61,6 @@ public class SoapHeader {
     @XmlElement(name = "service", required = false, namespace = NS_XROAD)
     private ServiceId.Conf service;
 
-    @XmlElement(name = "centralService", required = false, namespace = NS_XROAD)
-    private CentralServiceId.Conf centralService;
-
     @XmlElement(name = "securityServer", required = false, namespace = NS_XROAD)
     private SecurityServerId.Conf securityServer;
 
@@ -89,12 +85,6 @@ public class SoapHeader {
 
     @XmlElement(name = "protocolVersion", required = true, namespace = NS_XROAD)
     private ProtocolVersion protocolVersion;
-
-    public void setCentralService(CentralServiceId centralServiceId) {
-        this.centralService = Option.of(centralServiceId)
-                .map(CentralServiceId.Conf::ensure)
-                .getOrNull();
-    }
 
     public void setClient(ClientId clientId) {
         this.client = Option.of(clientId)

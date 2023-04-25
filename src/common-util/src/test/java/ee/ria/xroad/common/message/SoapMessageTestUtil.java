@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -96,11 +95,7 @@ public final class SoapMessageTestUtil {
                     throws Exception {
         SoapHeader header = new SoapHeader();
         header.setClient(sender);
-        if (receiver instanceof CentralServiceId) {
-            header.setCentralService((CentralServiceId) receiver);
-        } else {
-            header.setService(receiver);
-        }
+        header.setService(receiver);
         header.setUserId(userId);
         header.setQueryId(queryId);
         header.setProtocolVersion(new ProtocolVersion());

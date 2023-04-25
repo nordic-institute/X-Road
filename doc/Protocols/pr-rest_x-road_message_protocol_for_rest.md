@@ -736,7 +736,6 @@ X-Road identifiers include, but are not restricted to:
 - Subsystem code
 - Service code
 - Service version
-- Central service code
 - Security server code
 
 X-Road Message Protocol for REST imposes some restrictions on the characters that can be used in X-Road identifiers. The

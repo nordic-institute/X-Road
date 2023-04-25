@@ -33,19 +33,16 @@ import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedCATypeV2;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.CentralServiceType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalGroupType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.MemberClassType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.MemberType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.OcspInfoType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SecurityServerType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SubsystemType;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -138,26 +135,6 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public ServiceId.Conf getServiceId(CentralServiceId serviceId) {
-        SharedParametersV2 p = getSharedParameters(serviceId.getXRoadInstance());
-
-        for (CentralServiceType centralServiceType : p.getCentralServices()) {
-            if (centralServiceType.getImplementingService() == null) {
-                continue;
-            }
-
-            if (serviceId.getServiceCode().equals(
-                    centralServiceType.getServiceCode())) {
-                return centralServiceType.getImplementingService();
-            }
-        }
-
-        throw new CodedException(X_INTERNAL_ERROR,
-                "Cannot find implementing service for central service '%s'",
-                serviceId);
-    }
-
-    @Override
     public List<SecurityServerId.Conf> getSecurityServers(
             String... instanceIdentifiers) {
         List<SecurityServerId.Conf> serverIds = new ArrayList<>();
@@ -208,17 +185,6 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 .map(MemberType::getName)
                 .findFirst()
                 .orElse(null);
-    }
-
-    @Override
-    public List<CentralServiceId.Conf> getCentralServices(
-            String instanceIdentifier) {
-        return getSharedParameters(instanceIdentifier)
-                .getCentralServices()
-                .stream()
-                .map(c -> CentralServiceId.Conf.create(instanceIdentifier,
-                        c.getServiceCode()))
-                .collect(Collectors.toList());
     }
 
     @Override

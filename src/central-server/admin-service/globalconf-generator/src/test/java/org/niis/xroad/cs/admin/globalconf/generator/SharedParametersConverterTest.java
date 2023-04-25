@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.recursive.comparison.ComparingNormalizedFields;
@@ -60,7 +59,6 @@ class SharedParametersConverterTest {
             entry("approvedTSA", "approvedTSAs"),
             entry("member", "members"),
             entry("globalGroup", "globalGroups"),
-            entry("centralService", "centralServices"),
             entry("intermediateCA", "intermediateCAs"),
             entry("subsystem", "subsystems"),
             entry("client", "clients"),
@@ -79,7 +77,8 @@ class SharedParametersConverterTest {
                 .withIgnoredFields("securityServers.owner",
                         "securityServers.clients",
                         "members.id",
-                        "members.subsystems.id"
+                        "members.subsystems.id",
+                        "centralService"
                 )
                 .withEqualsForFields((a, b) ->
                                 new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
@@ -87,13 +86,13 @@ class SharedParametersConverterTest {
                 .build();
 
         assertThat(xmlType)
-                .hasNoNullFieldsOrProperties()
+                .hasNoNullFieldsOrPropertiesExcept("centralService")
                 .usingRecursiveComparison(conf)
                 .isEqualTo(sharedParameters);
 
         assertThat(xmlType)
                 .usingRecursiveAssertion()
-                .ignoringFields("centralService.implementingService.id", "globalGroup.groupMember.id")
+                .ignoringFields("globalGroup.groupMember.id")
                 .allFieldsSatisfy(Objects::nonNull);
 
         assertIdReferences(xmlType);
@@ -148,8 +147,6 @@ class SharedParametersConverterTest {
         parameters.setSecurityServers(List.of(getSecurityServer()));
         parameters.setGlobalGroups(List.of(new SharedParameters.GlobalGroup("group-code", "group-description",
                 List.of(subsystemId(memberId(), "SUB1")))));
-        parameters.setCentralServices(List.of(new SharedParameters.CentralService("service-code",
-                ServiceId.Conf.create(subsystemId(memberId(), "SUB1"), "service", "v1"))));
         parameters.setGlobalSettings(new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
         return parameters;
     }

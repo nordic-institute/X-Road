@@ -40,7 +40,6 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.service.CentralServicesService;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
@@ -69,7 +68,6 @@ class SharedParametersLoader {
     private final SecurityServerService securityServerService;
     private final GlobalGroupService globalGroupService;
     private final GlobalGroupMemberService globalGroupMemberService;
-    private final CentralServicesService centralServicesService;
     private final MemberClassService memberClassService;
 
 
@@ -81,7 +79,6 @@ class SharedParametersLoader {
         parameters.setMembers(getMembers());
         parameters.setSecurityServers(getSecurityServers());
         parameters.setGlobalGroups(getGlobalGroups());
-        parameters.setCentralServices(getCentralServices());
         parameters.setGlobalSettings(getGlobalSettings());
         return parameters;
     }
@@ -186,13 +183,6 @@ class SharedParametersLoader {
                 .collect(toList());
     }
 
-    private List<SharedParameters.CentralService> getCentralServices() {
-        return centralServicesService.findAll().stream()
-                .map(centralService ->
-                        new SharedParameters.CentralService(centralService.getServiceCode(), centralService.getIdentifier()))
-                .collect(toList());
-    }
-
     private SharedParameters.GlobalSettings getGlobalSettings() {
         var memberClasses = memberClassService.findAll().stream()
                 .map(memberClass -> new SharedParameters.MemberClass(memberClass.getCode(), memberClass.getDescription()))
@@ -207,7 +197,7 @@ class SharedParametersLoader {
         List<SharedParameters.Member> map(List<FlattenedSecurityServerClientView> flattenedClients) {
             subsystems = new HashMap<>();
             var members = new ArrayList<SharedParameters.Member>();
-            for (FlattenedSecurityServerClientView client: flattenedClients) {
+            for (FlattenedSecurityServerClientView client : flattenedClients) {
                 if (client.getSubsystemCode() == null) {
                     members.add(toMember(client));
                 } else {

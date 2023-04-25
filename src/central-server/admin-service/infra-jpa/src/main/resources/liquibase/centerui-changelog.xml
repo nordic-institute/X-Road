@@ -18,6 +18,7 @@
     <include file="centerui/202304030951-drop_insert_node_name_trigger.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202304061726-global-groups-remove-redundant-member-count-field.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202304170000-remove-security-categories.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202304141017-drop-central-services.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202304201701-global-group-members-view.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
