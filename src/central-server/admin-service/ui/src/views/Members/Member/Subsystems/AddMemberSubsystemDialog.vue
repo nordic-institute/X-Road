@@ -28,6 +28,7 @@
   <xrd-simple-dialog
     :disable-save="!formReady"
     :dialog="showDialog"
+    :loading="loading"
     cancel-button-text="action.cancel"
     title="members.member.subsystems.addClient"
     @cancel="cancel"
@@ -68,6 +69,7 @@ export default Vue.extend({
 
   data() {
     return {
+      loading: false,
       subsystemCode: '',
     };
   },
@@ -91,6 +93,7 @@ export default Vue.extend({
       this.subsystemCode = '';
     },
     add(): void {
+      this.loading = true;
       const instanceId: string = this.getSystemStatus?.initialization_status
         ?.instance_identifier as string;
       this.subsystemStore
@@ -115,6 +118,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
   },

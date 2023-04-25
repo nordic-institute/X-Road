@@ -28,6 +28,7 @@
   <xrd-simple-dialog
     :disable-save="!formReady"
     :dialog="true"
+    :loading="loading"
     title="trustServices.trustService.intermediateCas.add.dialog.title"
     save-button-text="action.save"
     cancel-button-text="action.cancel"
@@ -73,6 +74,7 @@ export default Vue.extend({
   },
   data() {
     return {
+      loading: false,
       certFile: null as File | null,
       certFileTitle: '',
     };
@@ -93,6 +95,7 @@ export default Vue.extend({
       this.certFileTitle = result.file.name;
     },
     add(): void {
+      this.loading = true;
       if (!this.certFile) {
         throw new Error('Certificate is null');
       }
@@ -106,6 +109,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
     cancel(): void {
