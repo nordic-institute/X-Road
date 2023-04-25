@@ -85,6 +85,7 @@
       v-if="activeItem !== undefined"
       data-test="system-settings-member-class-delete-confirm-dialog"
       :dialog="confirmDeleteDialog"
+      :loading="deletingMemberClass"
       title="action.confirm"
       text="systemSettings.deleteMemberClass"
       @cancel="cancelDelete"
@@ -100,6 +101,7 @@
       :dialog="memberClassDialog"
       :scrollable="false"
       :show-close="true"
+      :loading="savingMemberClass"
       save-button-text="action.save"
       :disable-save="!valid"
       @save="onSaveMemberClass"
@@ -151,6 +153,8 @@ import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
   data: () => ({
+    deletingMemberClass: false,
+    savingMemberClass: false,
     confirmDeleteDialog: false,
     memberClassDialog: false,
     activeItem: undefined as undefined | MemberClass,
@@ -203,6 +207,7 @@ export default Vue.extend({
       this.activeItem = item;
     },
     async acceptDelete() {
+      this.deletingMemberClass = true;
       if (this.activeItem !== undefined) {
         try {
           await this.memberClassStore.delete(this.activeItem);
@@ -215,12 +220,14 @@ export default Vue.extend({
         this.activeItem = undefined;
       }
       this.confirmDeleteDialog = false;
+      this.deletingMemberClass = false;
     },
     cancelDelete() {
       this.confirmDeleteDialog = false;
       this.activeItem = undefined;
     },
     async onSaveMemberClass() {
+      this.savingMemberClass = true;
       if (this.activeItem !== undefined) {
         try {
           await (this.adding
@@ -238,6 +245,7 @@ export default Vue.extend({
       }
       this.activeItem = undefined;
       this.memberClassDialog = false;
+      this.savingMemberClass = false;
     },
     openMemberClassDialog(item: MemberClass | undefined) {
       if (item === undefined) {

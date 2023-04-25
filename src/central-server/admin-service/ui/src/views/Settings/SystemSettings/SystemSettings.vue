@@ -95,6 +95,7 @@
         :dialog="isEditingServerAddress"
         :scrollable="false"
         :show-close="true"
+        :loading="saveInProgress"
         save-button-text="action.save"
         @save="onServerAddressSave(renewedServerAddress)"
         @cancel="onCancelAddressEdit"
@@ -171,6 +172,7 @@ export default (
     return {
       search: '' as string,
       showOnlyPending: false,
+      saveInProgress: false,
       isEditingServerAddress: false,
       renewedServerAddress: '',
     };
@@ -198,6 +200,7 @@ export default (
       'fetchManagementServicesConfiguration',
     ]),
     async onServerAddressSave(serverAddress: string): Promise<void> {
+      this.saveInProgress = true;
       try {
         await this.updateCentralServerAddress({
           central_server_address: serverAddress,
@@ -209,7 +212,7 @@ export default (
         this.showSuccess(
           this.$t('systemSettings.editCentralServerAddressSuccess'),
         );
-
+        this.saveInProgress = false;
         this.isEditingServerAddress = false;
       } catch (updateError: unknown) {
         const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);

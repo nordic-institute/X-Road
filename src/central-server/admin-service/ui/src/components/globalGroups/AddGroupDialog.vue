@@ -28,6 +28,7 @@
   <xrd-simple-dialog
     :disable-save="!formReady"
     :dialog="dialog"
+    :loading="loading"
     cancel-button-text="action.cancel"
     title="globalResources.addGlobalGroup"
     @cancel="cancel"
@@ -73,6 +74,7 @@ export default Vue.extend({
 
   data() {
     return {
+      loading: false,
       code: '',
       description: '',
     };
@@ -95,6 +97,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
+      this.loading = true;
       this.globalGroupStore
         .add({ code: this.code, description: this.description })
         .then(() => {
@@ -106,6 +109,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.notificationsStoreStore.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
     clearForm(): void {

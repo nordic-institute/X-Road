@@ -28,6 +28,7 @@
   <xrd-sub-view-container>
     <xrd-simple-dialog
       :dialog="showDialog"
+      :loading="loading"
       cancel-button-text="action.cancel"
       save-button-text="action.save"
       title="globalGroup.editDescription"
@@ -71,6 +72,7 @@ export default Vue.extend({
   },
   data() {
     return {
+      loading: false,
       newDescription: this.groupDescription,
     };
   },
@@ -79,6 +81,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     saveDescription(): void {
+      this.loading = true;
       this.$emit('edit', this.newDescription);
     },
   },

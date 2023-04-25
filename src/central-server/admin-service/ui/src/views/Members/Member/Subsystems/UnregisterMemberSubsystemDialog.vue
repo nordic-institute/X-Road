@@ -47,6 +47,7 @@
           <v-spacer></v-spacer>
           <xrd-button
             outlined
+            :disabled="loading"
             data-test="dialog-cancel-button"
             @click="cancel()"
           >
@@ -54,6 +55,7 @@
           </xrd-button>
           <xrd-button
             data-test="dialog-unregister-button"
+            :disabled="loading"
             @click="unregisterSubsystem()"
           >
             {{ $t('action.delete') }}
@@ -73,6 +75,7 @@ import { notificationsStore } from '@/store/modules/notifications';
 import { subsystemStore } from '@/store/modules/subsystems';
 import { memberStore } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
+import { Client } from '@/openapi-types';
 
 export default Vue.extend({
   name: 'UnregisterMemberSubsystemDialog',
@@ -90,7 +93,11 @@ export default Vue.extend({
       required: true,
     },
   },
-
+  data() {
+    return {
+      loading: false,
+    };
+  },
   computed: {
     ...mapStores(clientStore, memberStore, subsystemStore),
     ...mapState(systemStore, ['getSystemStatus']),
@@ -101,6 +108,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     unregisterSubsystem(): void {
+      this.loading = true;
       const currentMember = this.memberStore.$state.currentMember;
       this.subsystemStore
         .unregisterById(
@@ -121,6 +129,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
   },

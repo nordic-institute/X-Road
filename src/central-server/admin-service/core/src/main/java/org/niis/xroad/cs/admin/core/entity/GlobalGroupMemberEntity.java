@@ -61,7 +61,7 @@ public class GlobalGroupMemberEntity extends AuditableEntity {
     @Setter
     private GlobalGroupEntity globalGroup;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @JoinColumn(name = "group_member_id")
     @Getter
     @Setter
@@ -74,11 +74,6 @@ public class GlobalGroupMemberEntity extends AuditableEntity {
     public GlobalGroupMemberEntity(GlobalGroupEntity globalGroup, ee.ria.xroad.common.identifier.ClientId identifier) {
         this.globalGroup = globalGroup;
         this.identifier = ClientIdEntity.ensure(identifier);
-    }
-
-    public GlobalGroupMemberEntity(GlobalGroupEntity globalGroup, ClientIdEntity identifier) {
-        this.globalGroup = globalGroup;
-        this.identifier = identifier;
     }
 
     @Override

@@ -103,6 +103,7 @@
       :dialog="showEditDialog"
       save-button-text="action.save"
       :disable-save="selectedRoles.length === 0"
+      :loading="savingChanges"
       @save="save"
       @cancel="showEditDialog = false"
     >
