@@ -48,6 +48,7 @@ import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
@@ -101,6 +102,8 @@ class SharedParametersLoaderTest {
     @Mock
     GlobalGroupService globalGroupService;
     @Mock
+    GlobalGroupMemberService globalGroupMemberService;
+    @Mock
     MemberClassService memberClassService;
 
     @InjectMocks
@@ -119,7 +122,7 @@ class SharedParametersLoaderTest {
                 .thenReturn(List.of(getFlattenedSecurityServerClientView("M2", "S1")));
 
         when(globalGroupService.findGlobalGroups()).thenReturn(List.of(getGlobalGroup()));
-        when(globalGroupService.getGroupMembersFilterModel(GLOBAL_GROUP_ID)).thenReturn(List.of(
+        when(globalGroupMemberService.findByGroupId(GLOBAL_GROUP_ID)).thenReturn(List.of(
                 new GlobalGroupMember(null, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S2"))));
 
         when(memberClassService.findAll()).thenReturn(List.of(new MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION)));

@@ -103,7 +103,6 @@
           :must-sort="true"
           :items-per-page="-1"
           class="elevation-0 data-table"
-          item-key="group_code"
           :loader-height="2"
           hide-default-footer
           data-test="global-groups-table"

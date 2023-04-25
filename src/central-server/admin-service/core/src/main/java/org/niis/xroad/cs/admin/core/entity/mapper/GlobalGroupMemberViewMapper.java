@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,23 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.converter;
+package org.niis.xroad.cs.admin.core.entity.mapper;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
-import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMemberView;
+import org.niis.xroad.cs.admin.core.entity.GlobalGroupMembersViewEntity;
 
-import java.time.ZoneOffset;
-
-@Component
-@RequiredArgsConstructor
-public class GroupMemberConverter {
-
-    public MemberGlobalGroupDto convertMemberGlobalGroup(GlobalGroupMember entity) {
-        return new MemberGlobalGroupDto()
-                .groupCode(entity.getGlobalGroup().getGroupCode())
-                .subsystem(entity.getIdentifier().getSubsystemCode())
-                .addedToGroup(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
-    }
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {ClientIdMapper.class})
+public interface GlobalGroupMemberViewMapper extends GenericUniDirectionalMapper<GlobalGroupMembersViewEntity, GlobalGroupMemberView> {
 }

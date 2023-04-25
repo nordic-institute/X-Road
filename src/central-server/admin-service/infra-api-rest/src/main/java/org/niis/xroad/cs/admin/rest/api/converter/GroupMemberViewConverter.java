@@ -25,21 +25,47 @@
  */
 package org.niis.xroad.cs.admin.rest.api.converter;
 
+import ee.ria.xroad.common.identifier.XRoadObjectType;
+
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
-import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMemberView;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
+import org.niis.xroad.cs.openapi.model.GroupMemberListViewDto;
+import org.niis.xroad.cs.openapi.model.GroupMembersFilterDto;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 @Component
 @RequiredArgsConstructor
-public class GroupMemberConverter {
+public class GroupMemberViewConverter {
+    private final ClientIdDtoConverter clientIdDtoConverter;
+    public GroupMemberListViewDto convert(GlobalGroupMemberView entity) {
+        return new GroupMemberListViewDto()
+                .id(entity.getId())
+                .name(entity.getMemberName())
+                .clientId(clientIdDtoConverter.convert(entity.getIdentifier()))
+                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
+    }
 
-    public MemberGlobalGroupDto convertMemberGlobalGroup(GlobalGroupMember entity) {
-        return new MemberGlobalGroupDto()
-                .groupCode(entity.getGlobalGroup().getGroupCode())
-                .subsystem(entity.getIdentifier().getSubsystemCode())
-                .addedToGroup(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
+    public GlobalGroupMemberService.Criteria convert(Integer groupId, GroupMembersFilterDto filter) {
+        return GlobalGroupMemberService.Criteria.builder()
+                .groupId(groupId)
+                .query(filter.getQuery())
+                .memberClass(filter.getMemberClass())
+                .instance(filter.getInstance())
+                .codes(filter.getCodes())
+                .subsystems(filter.getSubsystems())
+                .types(toTypes(filter))
+                .build();
+    }
+
+    private List<XRoadObjectType> toTypes(GroupMembersFilterDto filter) {
+        return filter.getTypes() != null ? filter.getTypes().stream()
+                .map(type -> XRoadObjectType.forIdentifierOf(type.toString()))
+                .collect(toList()) : null;
     }
 }

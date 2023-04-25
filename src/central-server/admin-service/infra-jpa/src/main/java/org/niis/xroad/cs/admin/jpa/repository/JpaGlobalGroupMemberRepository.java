@@ -26,22 +26,16 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository;
 
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
-import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
-import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity_;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity_;
 import org.niis.xroad.cs.admin.core.entity.XRoadIdEntity_;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.CollectionUtils;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Join;
@@ -51,8 +45,6 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil.caseInsensitiveLike;
-
 @Repository
 public interface JpaGlobalGroupMemberRepository
         extends JpaRepository<GlobalGroupMemberEntity, Integer>, JpaSpecificationExecutor<GlobalGroupMemberEntity>,
@@ -60,15 +52,11 @@ public interface JpaGlobalGroupMemberRepository
 
     List<GlobalGroupMemberEntity> findByGlobalGroupId(Integer groupId);
 
-    default Page<GlobalGroupMemberEntity> findAll(GlobalGroupService.Criteria criteria, Pageable pageable) {
-        return findAll(findSpecification(criteria), pageable);
-    }
-
     default List<GlobalGroupMemberEntity> findMemberGroups(ee.ria.xroad.common.identifier.ClientId memberId) {
         return findAll(findSpecification(GlobalGroupService.Criteria.builder()
                 .instance(memberId.getXRoadInstance())
                 .memberClass(memberId.getMemberClass())
-                .codes(List.of(memberId.getMemberCode()))
+                .code(memberId.getMemberCode())
                 .build()));
     }
 
@@ -78,46 +66,13 @@ public interface JpaGlobalGroupMemberRepository
 
     private static Predicate findPredicate(Root<GlobalGroupMemberEntity> root, CriteriaBuilder builder,
                                            GlobalGroupService.Criteria criteria) {
-        final Join<GlobalGroupMemberEntity, ClientIdEntity> member = root.join(GlobalGroupMemberEntity_.identifier);
-        final Join<GlobalGroupMemberEntity, GlobalGroupEntity> globalGroup = root.join(GlobalGroupMemberEntity_.globalGroup);
-
+        final Join<GlobalGroupMemberEntity, ClientIdEntity> member = root.join(GlobalGroupMemberEntity_.IDENTIFIER);
         final List<Predicate> predicates = new ArrayList<>();
 
-        if (criteria.getGroupId() != null) {
-            predicates.add(builder.equal(globalGroup.get(GlobalGroupEntity_.id), criteria.getGroupId()));
-        }
-        if (StringUtils.isNotBlank(criteria.getQuery())) {
-            predicates.add(searchPredicate(root, member, builder, criteria));
-        }
-        if (StringUtils.isNotBlank(criteria.getMemberClass())) {
-            predicates.add(builder.equal(member.get(XRoadIdEntity_.memberClass), criteria.getMemberClass()));
-        }
-        if (StringUtils.isNotBlank(criteria.getInstance())) {
-            predicates.add(builder.equal(member.get(XRoadIdEntity_.xRoadInstance), criteria.getInstance()));
-        }
-        if (!CollectionUtils.isEmpty(criteria.getCodes())) {
-            predicates.add(member.get(XRoadIdEntity_.memberCode).in(criteria.getCodes()));
-        }
-        if (!CollectionUtils.isEmpty(criteria.getSubsystems())) {
-            predicates.add(member.get(XRoadIdEntity_.subsystemCode).in(criteria.getSubsystems()));
-        }
-        if (!CollectionUtils.isEmpty(criteria.getTypes())) {
-            predicates.add(member.get(XRoadIdEntity_.objectType).in(criteria.getTypes()));
-        }
+        predicates.add(builder.equal(member.get(XRoadIdEntity_.MEMBER_CLASS), criteria.getMemberClass()));
+        predicates.add(builder.equal(member.get(XRoadIdEntity_.X_ROAD_INSTANCE), criteria.getInstance()));
+        predicates.add(builder.equal(member.get(XRoadIdEntity_.MEMBER_CODE), criteria.getCode()));
+
         return builder.and(predicates.toArray(new Predicate[0]));
     }
-
-    private static Predicate searchPredicate(Root<GlobalGroupMemberEntity> root,
-                                             Join<GlobalGroupMemberEntity, ClientIdEntity> member,
-                                             CriteriaBuilder builder,
-                                             GlobalGroupService.Criteria criteria) {
-        return builder.or(
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadIdEntity_.MEMBER_CODE)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadIdEntity_.MEMBER_CLASS)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadIdEntity_.SUBSYSTEM_CODE)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadIdEntity_.X_ROAD_INSTANCE)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadIdEntity_.OBJECT_TYPE))
-        );
-    }
-
 }

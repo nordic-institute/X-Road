@@ -30,25 +30,35 @@ package org.niis.xroad.cs.admin.core.service;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMemberView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
+import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
+import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
+import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberViewMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
+import org.niis.xroad.cs.admin.core.repository.GlobalGroupMembersViewRepository;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.GLOBAL_GROUP_MEMBER_MISMATCH;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.GLOBAL_GROUP_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
@@ -62,8 +72,25 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
     private final GlobalGroupRepository globalGroupRepository;
     private final XRoadMemberRepository xRoadMemberRepository;
+    private final GlobalGroupMembersViewRepository globalGroupMembersViewRepository;
     private final GlobalGroupService globalGroupService;
+    private final GlobalGroupMemberMapper globalGroupMemberMapper;
+    private final GlobalGroupMemberViewMapper globalGroupMemberViewMapper;
     private final AuditDataHelper auditDataHelper;
+    private final StableSortHelper stableSortHelper;
+
+    @Override
+    public Page<GlobalGroupMemberView> find(GlobalGroupMemberService.Criteria criteria, Pageable pageable) {
+        return globalGroupMembersViewRepository.findAll(criteria, stableSortHelper.addSecondaryIdSort(pageable))
+                .map(globalGroupMemberViewMapper::toTarget);
+    }
+
+    @Override
+    public List<GlobalGroupMember> findByGroupId(Integer groupId) {
+        return globalGroupMemberRepository.findByGlobalGroupId(groupId).stream()
+                .map(globalGroupMemberMapper::toTarget)
+                .collect(toList());
+    }
 
     @Override
     public void addMemberToGlobalGroup(MemberId memberId, String groupCode) {

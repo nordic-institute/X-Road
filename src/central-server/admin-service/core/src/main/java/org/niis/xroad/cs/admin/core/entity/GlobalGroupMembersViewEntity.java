@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,23 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.converter;
+package org.niis.xroad.cs.admin.core.entity;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
-import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
-import org.springframework.stereotype.Component;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Immutable;
 
-import java.time.ZoneOffset;
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
-@Component
-@RequiredArgsConstructor
-public class GroupMemberConverter {
+@Entity
+@Immutable
+@Access(AccessType.FIELD)
+@Table(name = GlobalGroupMembersViewEntity.TABLE_NAME)
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class GlobalGroupMembersViewEntity extends AuditableEntity {
+    static final String TABLE_NAME = "global_group_members_view";
 
-    public MemberGlobalGroupDto convertMemberGlobalGroup(GlobalGroupMember entity) {
-        return new MemberGlobalGroupDto()
-                .groupCode(entity.getGlobalGroup().getGroupCode())
-                .subsystem(entity.getIdentifier().getSubsystemCode())
-                .addedToGroup(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
-    }
+    @Id
+    @Column(name = "id", unique = true, nullable = false)
+    private int id;
+
+    @Column(name = "global_group_id")
+    private Integer globalGroupId;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "group_member_id", nullable = false, updatable = false)
+    private ClientIdEntity identifier;
+
+    @Column(name = "member_name")
+    private String memberName;
 }
