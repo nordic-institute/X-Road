@@ -39,12 +39,12 @@ public class GlobalGroupDetailsPageObj {
     private final DeleteMemberDialogObj deleteMemberDialogObj = new DeleteMemberDialogObj();
 
     public SelenideElement btnAddMembersButton() {
-        final var xpath = "//div[@data-test='global-resources-view']//button[@data-test='add-member-button']";
+        final var xpath = "//article[@data-test='global-resources-view']//button[@data-test='add-member-button']";
         return $x(xpath);
     }
 
     public SelenideElement membersCount() {
-        final var xpath = "//div[@data-test='global-resources-view']//span[@data-test='member-count']";
+        final var xpath = "//article[@data-test='global-resources-view']//span[@data-test='member-count']";
         return $x(xpath);
     }
 
