@@ -68,6 +68,7 @@ import { get } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { userStore } from '@/store/modules/user';
 import { systemStore } from '@/store/modules/system';
+import { useAlerts } from '@/store/modules/alerts';
 
 export default Vue.extend({
   data() {
@@ -88,11 +89,13 @@ export default Vue.extend({
       Timeouts.POLL_SESSION_TIMEOUT,
     );
     this.fetchSystemStatus();
+    this.checkAlerts();
     // Set interval to poll backend for session
   },
   methods: {
     ...mapActions(userStore, ['setSessionAlive']),
     ...mapActions(userStore, { storeLogout: 'logout' }),
+    ...mapActions(useAlerts, ['checkAlerts']),
     ...mapActions(systemStore, [
       'fetchSystemStatus',
       'updateCentralServerAddress',
@@ -102,6 +105,7 @@ export default Vue.extend({
         .then(() => {
           // Fetch any statuses from backend that are
           // needed with POLL_SESSION_TIMEOUT periods
+          this.checkAlerts();
         })
         .catch((error) => {
           if (error?.response?.status === 401) {

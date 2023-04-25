@@ -866,7 +866,7 @@
     "signer_error": "Invocation of signer client failed",
     "global_conf_generation": {
       "status_not_found": "Global configuration generations status is unknown",
-      "failing": "Global configuration generation failing since {time}",
+      "failing": "Global configuration generation failing since {0}",
       "global_conf_expired": "Global configuration expired"
     },
     "signing_key": {
