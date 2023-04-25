@@ -40,9 +40,9 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.service.CentralServicesService;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
@@ -67,7 +67,7 @@ class SharedParametersLoader {
     private final ClientService clientService;
     private final SecurityServerService securityServerService;
     private final GlobalGroupService globalGroupService;
-    private final CentralServicesService centralServicesService;
+    private final GlobalGroupMemberService globalGroupMemberService;
     private final MemberClassService memberClassService;
 
 
@@ -79,7 +79,6 @@ class SharedParametersLoader {
         parameters.setMembers(getMembers());
         parameters.setSecurityServers(getSecurityServers());
         parameters.setGlobalGroups(getGlobalGroups());
-        parameters.setCentralServices(getCentralServices());
         parameters.setGlobalSettings(getGlobalSettings());
         return parameters;
     }
@@ -179,15 +178,8 @@ class SharedParametersLoader {
     }
 
     private List<ClientId> getGroupMembers(int id) {
-        return globalGroupService.getGroupMembersFilterModel(id).stream()
+        return globalGroupMemberService.findByGroupId(id).stream()
                 .map(GlobalGroupMember::getIdentifier)
-                .collect(toList());
-    }
-
-    private List<SharedParameters.CentralService> getCentralServices() {
-        return centralServicesService.findAll().stream()
-                .map(centralService ->
-                        new SharedParameters.CentralService(centralService.getServiceCode(), centralService.getIdentifier()))
                 .collect(toList());
     }
 
@@ -205,7 +197,7 @@ class SharedParametersLoader {
         List<SharedParameters.Member> map(List<FlattenedSecurityServerClientView> flattenedClients) {
             subsystems = new HashMap<>();
             var members = new ArrayList<SharedParameters.Member>();
-            for (FlattenedSecurityServerClientView client: flattenedClients) {
+            for (FlattenedSecurityServerClientView client : flattenedClients) {
                 if (client.getSubsystemCode() == null) {
                     members.add(toMember(client));
                 } else {

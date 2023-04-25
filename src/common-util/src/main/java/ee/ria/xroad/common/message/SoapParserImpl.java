@@ -148,13 +148,10 @@ public class SoapParserImpl implements SoapParser {
         }
 
         String serviceName = getServiceName(soap.getSOAPBody());
-        ServiceId service = header.getService() != null
-                ? header.getService()
-                : header.getCentralService();
+        ServiceId service = header.getService();
         if (service == null) {
             throw new CodedException(X_MISSING_HEADER_FIELD,
-                    "Message header must contain either service id"
-                            + " or central service id");
+                    "Message header must contain service id");
         }
 
         validateServiceName(service.getServiceCode(), serviceName);

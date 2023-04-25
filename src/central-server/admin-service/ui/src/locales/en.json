@@ -381,7 +381,7 @@
     "descriptionSaved": "Description saved successfully.",
     "editDescription": "Edit Description",
     "groupDeletedSuccessfully": "Global group deleted successfully.",
-    "groupMembers": "Group members",
+    "groupMembers": "Group members ({memberCount})",
     "instance": "Instance",
     "memberName": "Member Name",
     "subsystem": "Subsystem",
@@ -400,21 +400,13 @@
     }
   },
   "globalResources": {
-    "addCentralService": "Add Central Service",
     "addGlobalGroup": "Add Global Group",
     "globalGroupSuccessfullyAdded": "Global group added successfully.",
-    "centralServices": "Central Services",
     "code": "Code",
-    "codeCS": "Code (Central Service)",
-    "codeIS": "Code (Implementing Service)",
     "description": "Description",
     "globalGroups": "Global Groups",
     "memberCount": "Member Count",
-    "providerClass": "Provider Class",
-    "providerCode": "Provider Code",
-    "providerSubsystem": "Provider Subsystem",
-    "updated": "Updated",
-    "version": "Version"
+    "updated": "Updated"
   },
   "init": {
     "address": {

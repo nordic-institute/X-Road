@@ -463,16 +463,6 @@
         </groupMember>
     </globalGroup>
 
-    <centralService>
-        <serviceCode>central1</serviceCode>
-        <implementingService id:objectType="SERVICE">
-            <id:xRoadInstance>EE</id:xRoadInstance>
-            <id:memberClass>BUSINESS</id:memberClass>
-            <id:memberCode>foobar</id:memberCode>
-            <id:serviceCode>bazservice</id:serviceCode>
-        </implementingService>
-    </centralService>
-
     <globalSettings>
         <memberClass>
             <code>BUSINESS</code>

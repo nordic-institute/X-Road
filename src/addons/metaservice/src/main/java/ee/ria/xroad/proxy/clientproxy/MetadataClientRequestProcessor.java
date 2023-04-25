@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.metadata.CentralServiceListType;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ClientType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
@@ -56,7 +55,6 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CENTRAL_SERVICES;
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
 
 /**
@@ -91,7 +89,6 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     public boolean canProcess() {
         switch (target) {
             case LIST_CLIENTS: // $FALL-THROUGH$
-            case LIST_CENTRAL_SERVICES:
                 return true;
             default:
                 return false;
@@ -103,9 +100,6 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
         switch (target) {
             case LIST_CLIENTS:
                 handleListClients();
-                return;
-            case LIST_CENTRAL_SERVICES:
-                handleListCentralServices();
                 return;
             default: // to nothing
                 break;
@@ -136,17 +130,6 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
         } else {
             writeResponseXml(OBJECT_FACTORY.createClientList(list));
         }
-    }
-
-    private void handleListCentralServices() throws Exception {
-        log.trace("handleListCentralServices()");
-
-        String instanceIdentifier = getInstanceIdentifierFromRequest();
-
-        CentralServiceListType list = OBJECT_FACTORY.createCentralServiceListType();
-        list.getCentralService().addAll(GlobalConf.getCentralServices(instanceIdentifier));
-
-        writeResponseXml(OBJECT_FACTORY.createCentralServiceList(list));
     }
 
     private boolean acceptsJson() {

@@ -51,12 +51,14 @@
           <v-spacer></v-spacer>
           <xrd-button
             outlined
+            :disabled="loading"
             data-test="dialog-cancel-button"
             @click="cancel()"
           >
             {{ $t('action.cancel') }}
           </xrd-button>
           <xrd-button
+            :disabled="loading"
             data-test="dialog-delete-button"
             @click="deleteSubsystem()"
           >
@@ -93,6 +95,7 @@ export default Vue.extend({
   },
   data() {
     return {
+      loading: false,
       currentMember: {} as Client,
     };
   },
@@ -109,6 +112,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     deleteSubsystem(): void {
+      this.loading = true;
       this.subsystemStore
         .deleteById(
           toIdentifier(this.currentMember.xroad_id) + ':' + this.subsystemCode,
@@ -123,6 +127,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
   },

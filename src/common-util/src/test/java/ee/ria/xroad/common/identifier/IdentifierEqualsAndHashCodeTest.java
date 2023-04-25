@@ -118,26 +118,6 @@ public class IdentifierEqualsAndHashCodeTest {
                     }
                 },
             },
-            {// Set #3 -- CentralServiceId
-                new DataProvider() {
-                    @Override
-                    XRoadId provideVariant1() {
-                        return CentralServiceId.Conf.create("EE", "a");
-                    }
-                    @Override
-                    XRoadId provideVariant2() {
-                        return CentralServiceId.Conf.create("EE", "lorem_ipsum");
-                    }
-                    @Override
-                    XRoadId provideVariant3() {
-                        return CentralServiceId.Conf.create("UK", "blah");
-                    }
-                    @Override
-                    XRoadId provideVariant4() {
-                        return CentralServiceId.Conf.create("EE", "foo");
-                    }
-                },
-            },
             {// Set #4 -- SecurityCategoryId
                 new DataProvider() {
                     @Override

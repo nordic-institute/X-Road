@@ -68,26 +68,25 @@ Feature: Global groups API
     And new security server 'CS:TEST:m-1:SS-5' authentication certificate registered with origin 'SECURITY_SERVER' and approved
     And Authentication header is set to REGISTRATION_OFFICER
     Then global group 'security-server-owners' members list is queried and validated using params
-      | $q   | $sortBy | $desc | $types           | $instance | $class | $codes      | $subsystems | $pageSize | $page | $itemsInPage | $total | $sortFieldExp |
-      |      |         |       |                  |           |        |             |             | 2         | 1     | 2            | 3      |               |
-      |      |         |       |                  |           |        |             |             | 2         | 2     | 1            | 3      |               |
-      |      |         |       |                  |           |        |             |             |           |       | 3            | 3      |               |
-      | E2E  |         |       |                  |           |        |             |             |           |       | 1            | 1      |               |
-      | TEST |         |       |                  |           |        |             |             |           |       | 2            | 2      |               |
-      |      |         |       | MEMBER           |           |        |             |             |           |       | 3            | 3      |               |
-      |      |         |       | SUBSYSTEM        |           |        |             |             |           |       | 0            | 0      |               |
-      |      |         |       | MEMBER,SUBSYSTEM |           |        |             |             |           |       | 3            | 3      |               |
-      |      |         |       |                  | CS        |        |             |             |           |       | 3            | 3      |               |
-      |      |         |       |                  | other     |        |             |             |           |       | 0            | 0      |               |
-      |      |         |       |                  |           | TEST   |             |             |           |       | 2            | 2      |               |
-      |      |         |       |                  |           | E2E    |             |             |           |       | 1            | 1      |               |
-      |      |         |       |                  |           | other  |             |             |           |       | 0            | 0      |               |
-      |      |         |       |                  |           |        | m-1         |             |           |       | 1            | 1      |               |
-      |      |         |       |                  |           |        | m-2,m-1     |             |           |       | 2            | 2      |               |
-      |      |         |       |                  |           |        | other       |             |           |       | 0            | 0      |               |
-      |      |         |       |                  |           |        |             | other       |           |       | 0            | 0      |               |
-      | m    |         |       | MEMBER,SUBSYSTEM | CS        |        | m-2,m-1,m-3 |             | 2         | 1     | 2            | 3      |               |
-    #todo: add more tests after sorting is fixed
+      | $q   | $sortBy    | $desc | $types           | $instance | $class | $codes      | $subsystems | $pageSize | $page | $itemsInPage | $total | $sortFieldExp |
+      |      |            |       |                  |           |        |             |             | 2         | 1     | 2            | 3      |               |
+      |      |            |       |                  |           |        |             |             | 2         | 2     | 1            | 3      |               |
+      |      |            |       |                  |           |        |             |             |           |       | 3            | 3      |               |
+      | E2E  | name       | true  |                  |           |        |             |             |           |       | 1            | 1      |               |
+      | TEST |            |       |                  |           |        |             |             |           |       | 2            | 2      |               |
+      |      | created_at | false | MEMBER           |           |        |             |             |           |       | 3            | 3      |               |
+      |      | type       | true  | SUBSYSTEM        |           |        |             |             |           |       | 0            | 0      |               |
+      |      | code       | false | MEMBER,SUBSYSTEM |           |        |             |             |           |       | 3            | 3      |               |
+      |      |            |       |                  | CS        |        |             |             |           |       | 3            | 3      |               |
+      |      |            |       |                  | other     |        |             |             |           |       | 0            | 0      |               |
+      |      | class      | true  |                  |           | TEST   |             |             |           |       | 2            | 2      |               |
+      |      |            |       |                  |           | E2E    |             |             |           |       | 1            | 1      |               |
+      |      |            |       |                  |           | other  |             |             |           |       | 0            | 0      |               |
+      |      |            |       |                  |           |        | m-1         |             |           |       | 1            | 1      |               |
+      |      | instance   | false |                  |           |        | m-2,m-1     |             |           |       | 2            | 2      |               |
+      |      |            |       |                  |           |        | other       |             |           |       | 0            | 0      |               |
+      |      | subsystem  |       |                  |           |        |             | other       |           |       | 0            | 0      |               |
+      | memb |            |       | MEMBER,SUBSYSTEM | CS        |        | m-2,m-1,m-3 |             | 2         | 1     | 2            | 3      |               |
 
   Scenario: Add member to global group
     Given Authentication header is set to MANAGEMENT_SERVICE

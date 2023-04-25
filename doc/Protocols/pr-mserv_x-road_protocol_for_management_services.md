@@ -911,7 +911,6 @@ Response message
                     <xs:enumeration value="LOCALGROUP"/>
                     <xs:enumeration value="SECURITYCATEGORY"/>
                     <xs:enumeration value="SERVICE"/>
-                    <xs:enumeration value="CENTRALSERVICE"/>
                 </xs:restriction>
             </xs:simpleType>
             <xs:element name="xRoadInstance" type="xs:string">
@@ -1022,18 +1021,6 @@ Response message
                         </xs:sequence>
                         <xs:attribute ref="objectType" use="required"
                                 fixed="SECURITYCATEGORY"/>
-                    </xs:restriction>
-                </xs:complexContent>
-            </xs:complexType>
-            <xs:complexType name="XRoadCentralServiceIdentifierType">
-                <xs:complexContent>
-                    <xs:restriction base="XRoadIdentifierType">
-                        <xs:sequence>
-                            <xs:element ref="xRoadInstance"/>
-                            <xs:element ref="serviceCode"/>
-                        </xs:sequence>
-                        <xs:attribute ref="objectType" use="required"
-                                fixed="CENTRALSERVICE"/>
                     </xs:restriction>
                 </xs:complexContent>
             </xs:complexType>

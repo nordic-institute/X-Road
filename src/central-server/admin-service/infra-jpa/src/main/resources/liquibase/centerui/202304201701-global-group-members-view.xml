@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/202304201701-global-group-members-view.xml">
+
+    <changeSet author="niis" id="202304201701-global-group-members-view-create">
+        <createView fullDefinition="false" viewName="global_group_members_view">
+            SELECT gm.id,
+                   gm.global_group_id,
+                   gm.group_member_id,
+                   ssc.name as member_name,
+                   gm.created_at,
+                   gm.updated_at
+            FROM global_group_members gm
+                     JOIN identifiers i ON i.id = gm.group_member_id
+                     JOIN security_server_clients ssc ON ssc.member_code = i.member_code AND ssc.type = 'XRoadMember'
+                     JOIN identifiers ci
+                          ON ssc.server_client_id = ci.id AND ci.xroad_instance = i.xroad_instance AND ci.member_class = i.member_class
+            GROUP BY gm.id, gm.global_group_id, ssc.name, gm.created_at, gm.updated_at
+        </createView>
+    </changeSet>
+</databaseChangeLog>

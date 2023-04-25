@@ -30,11 +30,11 @@ import {
   GlobalGroupCodeAndDescription,
   GlobalGroupDescription,
   GlobalGroupResource,
-  GroupMember,
+  GroupMemberListView,
   GroupMembersFilter,
   GroupMembersFilterModel,
   Members,
-  PagedGroupMember,
+  PagedGroupMemberListView,
   PagingMetadata,
 } from '@/openapi-types';
 import { DataOptions } from 'vuetify';
@@ -42,7 +42,7 @@ import { DataOptions } from 'vuetify';
 export interface State {
   globalGroups: GlobalGroupResource[];
   groupsLoading: boolean;
-  members: GroupMember[];
+  members: GroupMemberListView[];
   pagingOptions: PagingMetadata;
 }
 
@@ -103,7 +103,10 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
       };
 
       return axios
-        .post<PagedGroupMember>(`/global-groups/${groupId}/members/`, filter)
+        .post<PagedGroupMemberListView>(
+          `/global-groups/${groupId}/members/`,
+          filter,
+        )
         .then((resp) => {
           this.members = resp.data.items || [];
           this.pagingOptions = resp.data.paging_metadata;
@@ -123,7 +126,7 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
         request,
       );
     },
-    deleteGroupMember(groupId: string, memberId: string) {
+    deleteGroupMember(groupId: string, memberId: number) {
       return axios.delete(`/global-groups/${groupId}/members/${memberId}`);
     },
     deleteById(groupId: string) {

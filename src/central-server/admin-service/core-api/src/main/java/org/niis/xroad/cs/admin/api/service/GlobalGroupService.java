@@ -25,20 +25,14 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
-import ee.ria.xroad.common.identifier.XRoadObjectType;
-
 import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
-
 
 public interface GlobalGroupService {
 
@@ -52,10 +46,6 @@ public interface GlobalGroupService {
 
     GlobalGroup updateGlobalGroupDescription(GlobalGroupUpdateDto updateDto);
 
-    List<GlobalGroupMember> getGroupMembersFilterModel(Integer groupId);
-
-    Page<GlobalGroupMember> findGroupMembers(GlobalGroupService.Criteria criteria, Pageable pageable);
-
     List<String> addGlobalGroupMembers(Integer groupId, List<String> membersToAdd);
 
     int countGroupMembers(Integer groupId);
@@ -67,12 +57,8 @@ public interface GlobalGroupService {
     @Builder
     @Getter
     class Criteria {
-        private final Integer groupId;
-        private final String query;
         private final String memberClass;
         private final String instance;
-        private final List<String> codes;
-        private final List<String> subsystems;
-        private final List<XRoadObjectType> types;
+        private final String code;
     }
 }

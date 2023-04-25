@@ -338,7 +338,6 @@ The WSDL is located in the file *src/op-monitor-daemon/src/main/resources/op-mon
                     <xs:enumeration value="LOCALGROUP"/>
                     <xs:enumeration value="SECURITYCATEGORY"/>
                     <xs:enumeration value="SERVICE"/>
-                    <xs:enumeration value="CENTRALSERVICE"/>
                 </xs:restriction>
             </xs:simpleType>
             <xs:element name="xRoadInstance" type="xs:string">
@@ -442,18 +441,6 @@ The WSDL is located in the file *src/op-monitor-daemon/src/main/resources/op-mon
                         </xs:sequence>
                         <xs:attribute ref="objectType" use="required"
                                 fixed="SECURITYCATEGORY"/>
-                    </xs:restriction>
-                </xs:complexContent>
-            </xs:complexType>
-            <xs:complexType name="XRoadCentralServiceIdentifierType">
-                <xs:complexContent>
-                    <xs:restriction base="XRoadIdentifierType">
-                        <xs:sequence>
-                            <xs:element ref="xRoadInstance"/>
-                            <xs:element ref="serviceCode"/>
-                        </xs:sequence>
-                        <xs:attribute ref="objectType" use="required"
-                                fixed="CENTRALSERVICE"/>
                     </xs:restriction>
                 </xs:complexContent>
             </xs:complexType>

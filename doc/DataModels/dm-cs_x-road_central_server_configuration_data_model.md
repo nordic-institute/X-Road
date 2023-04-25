@@ -1,6 +1,6 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.9 
+Version: 1.10 
 Doc. ID: DM-CS
 
 | Date       | Version | Description                                                                      | Author             |
@@ -23,6 +23,7 @@ Doc. ID: DM-CS
 | 11.08.2021 | 1.8     | Update chapter 1.7 about high availability support                               | Ilkka Seppälä      |
 | 26.09.2022 | 1.9     | Remove Ubuntu 18.04 support                                                      | Andres Rosenthal   |
 | 17.04.2023 | 1.9     | Remove security server category support                                          | Ričardas Bučiūnas  |
+| 17.04.2023  | 1.10   | Remove central services support                                                  | Justas Samuolis    | 
 
 ## Table of Contents
 
@@ -58,57 +59,54 @@ Doc. ID: DM-CS
 	- [2.6 CA_INFOS](#26-ca_infos)
 		- [2.6.1 Indexes](#261-indexes)
 		- [2.6.2 Attributes](#262-attributes)
-	- [2.7 CENTRAL_SERVICES](#27-central_services)
-		- [2.7.1 Indexes](#271-indexes)
-		- [2.7.2 Attributes](#272-attributes)
-	- [2.8 CONFIGURATION_SIGNING_KEYS](#28-configuration_signing_keys)
-		- [2.8.1 Indexes](#281-indexes)
-		- [2.8.2 Attributes](#282-attributes)
-	- [2.9 CONFIGURATION_SOURCES](#29-configuration_sources)
-		- [2.9.1 Indexes](#291-indexes)
-		- [2.9.2 Attributes](#292-attributes)
-	- [2.10 DISTRIBUTED_FILES](#210-distributed_files)
-		- [2.10.1 Attributes](#2101-attributes)
-	- [2.11 GLOBAL_GROUP_MEMBERS](#211-global_group_members)
-		- [2.11.1 Indexes](#2111-indexes)
-		- [2.11.2 Attributes](#2112-attributes)
-	- [2.12 GLOBAL_GROUPS](#212-global_groups)
-		- [2.12.1 Attributes](#2121-attributes)
-	- [2.13 HISTORY](#213-history)
-		- [2.13.1 Attributes](#2131-attributes)
-	- [2.14 IDENTIFIERS](#214-identifiers)
-		- [2.14.1 Attributes](#2141-attributes)
-	- [2.15 MEMBER_CLASSES](#215-member_classes)
-		- [2.15.1 Attributes](#2151-attributes)
-	- [2.16 OCSP_INFOS](#216-ocsp_infos)
-		- [2.16.1 Indexes](#2161-indexes)
-		- [2.16.2 Attributes](#2162-attributes)
-	- [2.17 REQUEST_PROCESSINGS](#217-request_processings)
-		- [2.17.1 Attributes](#2171-attributes)
-	- [2.18 REQUESTS](#218-requests)
-		- [2.18.1 Indexes](#2181-indexes)
-		- [2.18.2 Attributes](#2182-attributes)
-	- [2.19 SCHEMA_MIGRATIONS](#219-schema_migrations)
-		- [2.19.1 Indexes](#2191-indexes)
-		- [2.19.2 Attributes](#2192-attributes)
-	- [2.20 SECURITY_SERVER_CLIENT_NAMES](#220-security_server_client_names)
-		- [2.20.1 Indexes](#2201-indexes)
-		- [2.20.2 Attributes](#2202-attributes)
-	- [2.21 SECURITY_SERVER_CLIENTS](#221-security_server_clients)
-		- [2.21.1 Indexes](#2211-indexes)
-		- [2.21.2 Attributes](#2212-attributes)
-	- [2.22 SECURITY_SERVERS](#222-security_servers)
-		- [2.22.1 Indexes](#2221-indexes)
-		- [2.22.2 Attributes](#2222-attributes)
-	- [2.23 SERVER_CLIENTS](#223-server_clients)
-		- [2.23.1 Indexes](#2231-indexes)
-		- [2.23.2 Attributes](#2232-attributes)
-	- [2.24 SYSTEM_PARAMETERS](#224-system_parameters)
-		- [2.24.1 Attributes](#2241-attributes)
-	- [2.25 TRUSTED_ANCHORS](#225-trusted_anchors)
-		- [2.25.1 Attributes](#2251-attributes)
-	- [2.26 UI_USERS](#226-ui_users)
-		- [2.26.1 Attributes](#2261-attributes)
+	- [2.7 CONFIGURATION_SIGNING_KEYS](#28-configuration_signing_keys)
+		- [2.7.1 Indexes](#281-indexes)
+		- [2.7.2 Attributes](#282-attributes)
+	- [2.8 CONFIGURATION_SOURCES](#29-configuration_sources)
+		- [2.8.1 Indexes](#291-indexes)
+		- [2.8.2 Attributes](#292-attributes)
+	- [2.9 DISTRIBUTED_FILES](#210-distributed_files)
+		- [2.9.1 Attributes](#2101-attributes)
+	- [2.10 GLOBAL_GROUP_MEMBERS](#211-global_group_members)
+		- [2.10.1 Indexes](#2111-indexes)
+		- [2.10.2 Attributes](#2112-attributes)
+	- [2.11 GLOBAL_GROUPS](#212-global_groups)
+		- [2.11.1 Attributes](#2121-attributes)
+	- [2.12 HISTORY](#213-history)
+		- [2.12.1 Attributes](#2131-attributes)
+	- [2.13 IDENTIFIERS](#214-identifiers)
+		- [2.13.1 Attributes](#2141-attributes)
+	- [2.14 MEMBER_CLASSES](#215-member_classes)
+		- [2.14.1 Attributes](#2151-attributes)
+	- [2.15 OCSP_INFOS](#216-ocsp_infos)
+		- [2.15.1 Indexes](#2161-indexes)
+		- [2.15.2 Attributes](#2162-attributes)
+	- [2.16 REQUEST_PROCESSINGS](#217-request_processings)
+		- [2.16.1 Attributes](#2171-attributes)
+	- [2.17 REQUESTS](#218-requests)
+		- [2.17.1 Indexes](#2181-indexes)
+		- [2.17.2 Attributes](#2182-attributes)
+	- [2.18 SCHEMA_MIGRATIONS](#219-schema_migrations)
+		- [2.18.1 Indexes](#2191-indexes)
+		- [2.18.2 Attributes](#2192-attributes)
+	- [2.19 SECURITY_SERVER_CLIENT_NAMES](#221-security_server_client_names)
+		- [2.19.1 Indexes](#2211-indexes)
+		- [2.19.2 Attributes](#2212-attributes)
+	- [2.20 SECURITY_SERVER_CLIENTS](#222-security_server_clients)
+		- [2.20.1 Indexes](#2221-indexes)
+		- [2.20.2 Attributes](#2222-attributes)
+	- [2.21 SECURITY_SERVERS](#223-security_servers)
+		- [2.21.1 Indexes](#2231-indexes)
+		- [2.21.2 Attributes](#2232-attributes)
+	- [2.22 SERVER_CLIENTS](#225-server_clients)
+		- [2.22.1 Indexes](#2251-indexes)
+		- [2.22.2 Attributes](#2252-attributes)
+	- [2.23 SYSTEM_PARAMETERS](#226-system_parameters)
+		- [2.23.1 Attributes](#2261-attributes)
+	- [2.24 TRUSTED_ANCHORS](#227-trusted_anchors)
+		- [2.24.1 Attributes](#2271-attributes)
+	- [2.25 UI_USERS](#228-ui_users)
+		- [2.25.1 Attributes](#2281-attributes)
 
 ## License
 
@@ -320,43 +318,19 @@ Accordingly, the record is deleted when either the approved CA is deleted (see a
 | created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 
-## 2.7 CENTRAL_SERVICES
-
-Central service is a centrally defined and managed alias (service code) to a concrete service implemented by an X-Road member or a subsystem.
-
-Central service record is created when there is a need for a new centrally defined service. Then an X-Road system administrator adds new central service in the user interface.
-
-The record is modified when implementing service for the central service changes. Then an X-Road system administrator updates the target service in the user interface. The record is deleted when there is no need for the central service with this particular service code any more. Then an X-Road system administrator deletes the central service in the user interface.
-
-### 2.7.1 Indexes
-
-| Name        | Columns           |
-|:----------- |:-----------------:|
-| index_central_services_on_target_service_id | target_service_id |
-
-### 2.7.2 Attributes
-
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| service_code  | character varying(255) |  | Code that uniquely identifies the central service in this X-Road instance. Cannot be NULL. |
-| target_service_id [FK] | integer |  | ID of the implementing service identifier. Implementing service can be any X-Road service. References id attribute of identifiers entity. Can be NULL if there is no implementing service defined. |
-| created_at  | timestamp without time zone | NOT NULLNOT NULL | Record creation time, managed automatically by the Rails framework.  |
-| updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
-
-## 2.8 CONFIGURATION_SIGNING_KEYS
+## 2.7 CONFIGURATION_SIGNING_KEYS
 
 Signing context (key identifier used by the signer and signing certificate) for signing the global configuration. A signing key belongs to a configuration source. A configuration signing key is used when it is marked as active in the user interface. Technically it is done by designating the key as active key in the configuration_sources table, see also documentation of table configuration_sources.
 
 The record is created when a new key for signing global configuration is needed (either no keys are present or any of present ones cannot be used). Then an X-Road security officer generates a new signing key in the user interface. Non-active configuration signing keys that are no longer necessary can be deleted by an X-Road security officer in the user interface. The record is never modified.
 
-### 2.8.1 Indexes
+### 2.7.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_configuration_signing_keys_on_configuration_source_id | configuration_source_id |
 
-### 2.8.2 Attributes
+### 2.7.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -367,7 +341,7 @@ The record is created when a new key for signing global configuration is needed 
 | key_generated_at  | timestamp without time zone |  | The signing key generation time.  |
 | token_identifier  | character varying(255) |  | Unique identifier of hardware or software token used for signing the configuration.  |
 
-## 2.9 CONFIGURATION_SOURCES
+## 2.8 CONFIGURATION_SOURCES
 
 Configuration source that the central server uses to distribute the global configuration. Stores (with associated configuration_signing_keys table) all the data necessary to generate configuration anchors for the central server. The configuration distributed by the source can be either internal configuration or external configuration. The internal configuration is distributed to security servers of this X-Road instance. The external configuration is distributed to the other X-Road instances (federation partners).
 
@@ -376,13 +350,13 @@ The configuration source is associated with several configuration signing keys. 
 In an HA setup, each node of the cluster uses separate keys for signing configuration, and configuration anchors contain entries for each node of the cluster.
 The record is created when the configuration source tab (either for internal or external configuration) is opened in the UI for the first time. The configuration source tab can be opened for viewing or editing configuration anchor or signing keys information for the configuration source. The record is modified when signing keys information of the configuration source is changed and a new configuration anchor is generated by the system. Also, the record is modified when an X-Road security officer generates a new configuration anchor in the user interface. The record is never deleted.
 
-### 2.9.1 Indexes
+### 2.8.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_configuration_sources_on_active_key_id | active_key_id |
 
-### 2.9.2 Attributes
+### 2.8.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -394,7 +368,7 @@ The record is created when the configuration source tab (either for internal or 
 | anchor_generated_at  | timestamp without time zone |  | Configuration anchor generation time. Updated when the configuration anchor is re-generated. |
 | ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
 
-## 2.10 DISTRIBUTED_FILES
+## 2.9 DISTRIBUTED_FILES
 
 Stores global configuration files that are distributed to the X-Road members. There are three kinds of distributed files:
 
@@ -409,7 +383,7 @@ The record can be created in two different ways:
 
 The record is always deleted before new record with particular file name is created. The record is never modified.
 
-### 2.10.1 Attributes
+### 2.9.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -421,20 +395,20 @@ The record is always deleted before new record with particular file name is crea
 | ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
 | version | integer | NOT NULL | Version of the distributed file. Cannot be NULL. Default is 0 which means it is not versioned and belongs to all versions of global configuration. |
 
-## 2.11 GLOBAL_GROUP_MEMBERS
+## 2.10 GLOBAL_GROUP_MEMBERS
 
 Join table that associates global group member identifier with the global group the member belongs to. See also documentation of the table global_groups.
 
 The record is created when a new member needs to be added to a global group. Then an X-Road registration officer adds global group member in the user interface. The record is deleted when a global group member or the group where the member belongs to is deleted in the user interface. The record is never modified.
 
-### 2.11.1 Indexes
+### 2.10.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_global_group_members_on_global_group_id | global_group_id |
 | index_global_group_members_on_group_member_id | group_member_id |
 
-### 2.11.2 Attributes
+### 2.10.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -444,13 +418,13 @@ The record is created when a new member needs to be added to a global group. The
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 | global_group_id [FK] | integer |  | ID of the global group the member referenced by group_member_id belongs to. References id attribute of global_groups entity. Cannot be NULL. |
 
-## 2.12 GLOBAL_GROUPS
+## 2.11 GLOBAL_GROUPS
 
 Global group of access rights subjects that can be added to access control lists at security servers.
 
 The record is created when a new global group needs to be added to the X-Road instance. Then an X-Road registration officer adds new global group in the user interface. The record is modified when the group description is edited or members are added to or removed from the group by an X‑Road registration officer in the user interface. The record is deleted when the global group is deleted in the user interface by an X-Road registration officer.
 
-### 2.12.1 Attributes
+### 2.11.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -460,13 +434,13 @@ The record is created when a new global group needs to be added to the X-Road in
 | created_at | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework. |
 
-## 2.13 HISTORY
+## 2.12 HISTORY
 
 Operation (insertion, update or deletions of a record) on the tables of this database, for the purpose of auditing. Each row corresponds to the change of a single field.
 
 The record is created in the manner described above in this document. The record can be neither modified nor deleted.
 
-### 2.13.1 Attributes
+### 2.12.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -481,11 +455,11 @@ The record is created in the manner described above in this document. The record
 | timestamp  | timestamp without time zone | NOT NULL | Date and time of the operation.  |
 | ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
 
-## 2.14 IDENTIFIERS
+## 2.13 IDENTIFIERS
 
 Identifier that can be used to identify various objects on X-Road. An identifier record is only created together with records of other entities. There is no check of duplicates when new identifier record is added. The record is deleted when any record associated with the identifier is deleted. For example, when an entity of global_group_members is deleted, respective identifier is deleted as well. The record is never modified.
 
-### 2.14.1 Attributes
+### 2.13.1 Attributes
 
 | Name            | Type                        | Modifiers | Description           |
 |:----------------|:---------------------------:|:--------- |:-----------------:|
@@ -501,13 +475,13 @@ Identifier that can be used to identify various objects on X-Road. An identifier
 | updated_at      | timestamp without time zone | NOT NULL  | Record last modified time, managed automatically by the Rails framework.  |
 | service_version | character varying(255)      |           | X-Road service version. May be present in identifiers of 'SERVICE' type. |
 
-## 2.15 MEMBER_CLASSES
+## 2.14 MEMBER_CLASSES
 
 Member class supported by this X-Road instance. Member class has the purpose of grouping members with similar properties. A member class must have unique code inside the X-Road instance.
 
 The record is added when the X-Road instance needs new member class. Then an X-Road system administrator adds a new member class in the user interface. The record is deleted when the member class is no longer necessary for this X-Road instance. Then an X-Road system administrator deletes the member class in the user interface. The description of the member class can be edited in the user interface.
 
-### 2.15.1 Attributes
+### 2.14.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -517,19 +491,19 @@ The record is added when the X-Road instance needs new member class. Then an X-R
 | created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework. |
 
-## 2.16 OCSP_INFOS
+## 2.15 OCSP_INFOS
 
 Information about OCSP service that is offered by a particular CA. See also documentation of table approved_cas.
 
 The record is created when a new OCSP responder needs to be registered for either top CA or intermediate CA of approved CA (see also documentation of tables approved_cas and ca_infos). Then an X-Road system administrator adds new OCSP info in the user interface. The record can be modified or deleted in the user interface.
 
-### 2.16.1 Indexes
+### 2.15.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_ocsp_infos_on_ca_info_id | ca_info_id |
 
-### 2.16.2 Attributes
+### 2.15.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -540,7 +514,7 @@ The record is created when a new OCSP responder needs to be registered for eithe
 | created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 
-## 2.17 REQUEST_PROCESSINGS
+## 2.16 REQUEST_PROCESSINGS
 
 Processing status of the management request. Management requests are means of managing clients and authentication certificates of security servers. See also documentation of the table management_requests. Request processing binds together two management requests that refer to the same data but have different origin (security server or user interface of the central server). If one request associated with the processing is from center, the other one must be from security server and vice versa. Request processing can have one of following statuses:
 
@@ -552,7 +526,7 @@ Processing status of the management request. Management requests are means of ma
 
 Request processing record is created when one request that can have processing (registration requests for X-Road client and security server authentication certificate) is either sent from security server or inserted in the user interface by an X-Road registration officer. Modifications to the record are related to changes of the request processing status and are described above in this section. The record is never deleted.
 
-### 2.17.1 Attributes
+### 2.16.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -562,7 +536,7 @@ Request processing record is created when one request that can have processing (
 | created_at | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 
-## 2.18 REQUESTS
+## 2.17 REQUESTS
 
 Management request for creating or deleting association between X-Road member and security server. Management requests are divided into registration and deletion requests.
 
@@ -580,7 +554,7 @@ The record is created in the manner described above in this section. The record 
 - If a name of a member associated with the request is edited – either column server_owner_name or server_user_name changes.
 The record is never deleted.
 
-### 2.18.1 Indexes
+### 2.17.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
@@ -588,7 +562,7 @@ The record is never deleted.
 | index_requests_on_sec_serv_user_id | sec_serv_user_id |
 | index_requests_on_security_server_id | security_server_id |
 
-### 2.18.2 Attributes
+### 2.17.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -610,35 +584,35 @@ The record is never deleted.
 | server_code  | character varying(255) |  | Security server code (for displaying in the user interface).  |
 | processing_status  | character varying(255) |  | Request processing status (for displaying in the user interface). Has always the same value as column status in the request_processings table of the processing associated with this request. When there is no processing for request, the value is NULL. See also documentation of the table request_processings. |
 
-## 2.19 SCHEMA_MIGRATIONS
+## 2.18 SCHEMA_MIGRATIONS
 
 Keeps track of database migrations that have already been executed. Managed automatically by the Rails framework (see also http://guides.rubyonrails.org/v3.2.21/migrations.html).
 
-### 2.19.1 Indexes
+### 2.18.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | unique_schema_migrations | version |
 
-### 2.19.2 Attributes
+### 2.18.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | version  | character varying(255) | NOT NULL | UTC timestamp in 'yyyyMMddhhmmss' format describing the time when migration was executed.  |
 
-## 2.20 SECURITY_SERVER_CLIENT_NAMES
+## 2.19 SECURITY_SERVER_CLIENT_NAMES
 
 Helper table that facilitates displaying security server clients in user interfaces. The table simplifies adding name to client's data.
 
 The record is created automatically whenever new identifier of type MEMBER or SUBSYSTEM is created. See also documentation of the table identifiers. The record is removed automatically whenever new identifier of type MEMBER or SUBSYSTEM is removed. The record is never modified.
 
-### 2.20.1 Indexes
+### 2.19.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_security_server_client_names_on_client_identifier_id | client_identifier_id |
 
-### 2.20.2 Attributes
+### 2.19.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -648,7 +622,7 @@ The record is created automatically whenever new identifier of type MEMBER or SU
 | created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 
-## 2.21 SECURITY_SERVER_CLIENTS
+## 2.20 SECURITY_SERVER_CLIENTS
 
 Contains X-Road members or subsystems. The subject that can be associated with a security server. There are two types of associations:
 
@@ -664,7 +638,7 @@ The record is modified when the X-Road registration officer edits the member's n
 
 The record can be deleted in the user interface by an X-Road registration officer.
 
-### 2.21.1 Indexes
+### 2.20.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
@@ -672,7 +646,7 @@ The record can be deleted in the user interface by an X-Road registration office
 | index_security_server_clients_on_server_client_id | server_client_id |
 | index_security_server_clients_on_xroad_member_id | xroad_member_id |
 
-### 2.21.2 Attributes
+### 2.20.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -688,19 +662,19 @@ The record can be deleted in the user interface by an X-Road registration office
 | created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically by the Rails framework.  |
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 
-## 2.22 SECURITY_SERVERS
+## 2.21 SECURITY_SERVERS
 
 Information about a security server registered in this X-Road instance. Security server always belongs to a particular X-Road member. For security server to function properly, it needs at least one authentication certificate. Security server may have clients (subsystems).
 
 A prerequisite for creating the record is that a pair of authentication certificate registration requests for not yet existing security server are submitted for approval (see also documentation of tables requests and request_processings). The record is created when one of requests submitted for approval is approved by an X-Road registration officer in the user interface. The record is modified when an X-Road registration officer edits security server address in the user interface. The record can be deleted in the user interface by an X-Road registration officer.
 
-### 2.22.1 Indexes
+### 2.21.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_security_servers_on_xroad_member_id | xroad_member_id |
 
-### 2.22.2 Attributes
+### 2.21.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -712,20 +686,20 @@ A prerequisite for creating the record is that a pair of authentication certific
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 
 
-## 2.23 SERVER_CLIENTS
+## 2.22 SERVER_CLIENTS
 
 Join table enabling many-to-many relationship between security servers and security server clients. In other words, associates security servers with its clients.
 
 The record is created when a new client is added to the security server. It requires approval of a client registration request (see documentation of tables requests and request_processings for details). An X-Road registration officer can do it in the user interface. The record is deleted when a client of a security server is deleted in the user interface by an X-Road registration officer. The record is never modified.
 
-### 2.23.1 Indexes
+### 2.22.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_server_clients_on_security_server_client_id | security_server_client_id |
 | index_server_clients_on_security_server_id | security_server_id |
 
-### 2.23.2 Attributes
+### 2.22.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -733,7 +707,7 @@ The record is created when a new client is added to the security server. It requ
 | security_server_id [FK] | integer | NOT NULL | ID of the security server. References id attribute of security_servers entity. |
 | security_server_client_id [FK] | integer | NOT NULL | ID of the client the security server has. References id attribute of security_server_clients entity. |
 
-## 2.24 SYSTEM_PARAMETERS
+## 2.23 SYSTEM_PARAMETERS
 
 System configuration parameter necessary for proper functioning of central server and entire X-Road for that matter. System parameters are stored as key-value pairs. Following is the list of supported system parameters. In an HA setup, the name of the node that initiated a particular insertion, is not significant, except for where stated explicitly.
 
@@ -752,7 +726,7 @@ System configuration parameter necessary for proper functioning of central serve
 
 Some system parameters can be modified by an X-Road security officer in the user interface. All the system parameters that cannot be changed in the user interface, are assigned default values during the initialization of the central server. Later these can only be changed from the database. As these parameters are critical for functioning of entire X-Road instance, these must be modified with extreme care.
 
-### 2.24.1 Attributes
+### 2.23.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -763,13 +737,13 @@ Some system parameters can be modified by an X-Road security officer in the user
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically by the Rails framework.  |
 | ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
 
-## 2.25 TRUSTED_ANCHORS
+## 2.24 TRUSTED_ANCHORS
 
 Trusted anchor of a federation partner. A trusted anchor is the configuration anchor of the configuration source distributing the external configuration of a federation partner.
 
 The record is created or modified exactly the same way as described in the documentation of table anchor_url_certs. The record is never modified.
 
-### 2.25.1 Attributes
+### 2.24.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -781,13 +755,13 @@ The record is created or modified exactly the same way as described in the docum
 | updated_at  | timestamp without time zone |  | Record last modified time, managed automatically by the Rails framework.  |
 | generated_at  | timestamp without time zone |  | Anchor generation time (read from the anchor file).  |
 
-## 2.26 UI_USERS
+## 2.25 UI_USERS
 
 UI user name with its last used locale. Maps possible user interface (UI) user names with locales so that when UI user is logged in next time, the locale it has been used is remembered. If a user with no assigned locale logs in, the first available locale is selected to this user. Later user can change its locale in the user interface.
 
 The record is created when the user is logged in the user interface for the first time. The record is modified when the user logged in changes its locale in the user interface. The record is never deleted.
 
-### 2.26.1 Attributes
+### 2.25.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|

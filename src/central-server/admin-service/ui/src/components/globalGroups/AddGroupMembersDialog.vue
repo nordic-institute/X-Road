@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="opened" :value="opened" width="824" scrollable persistent>
+  <v-dialog v-if="opened" :value="opened" width="824" scrollable persistent @keydown.esc="cancel">
     <v-card class="xrd-card">
       <v-card-title>
         <slot name="title">
@@ -39,23 +39,23 @@
 
       <v-card-text style="height: 500px" class="elevation-0">
         <v-text-field
-          v-model="search"
-          :label="$t('systemSettings.selectSubsystem.search')"
+          data-test="member-subsystem-search-field"
+          class="search-input"
+          append-icon="icon-Search"
           single-line
           hide-details
-          class="search-input"
           autofocus
-          append-icon="icon-Search"
-          data-test="management-subsystem-search-field"
-        >
-        </v-text-field>
+          v-model="search"
+          :label="$t('systemSettings.selectSubsystem.search')"
+        />
 
         <!-- Table -->
         <v-data-table
-          v-model="selectedClients"
           class="elevation-0 data-table"
-          show-select
+          data-test="select-members-list"
           item-key="id"
+          show-select
+          v-model="selectedClients"
           :loading="loading"
           :headers="headers"
           :items="selectableClients"
@@ -77,16 +77,16 @@
             <div>{{ item.member_name }}</div>
           </template>
           <template #[`item.xroad_id.member_code`]="{ item }">
-            <div>{{ item.xroad_id.member_code }}</div>
+            <div data-test="code">{{ item.xroad_id.member_code }}</div>
           </template>
           <template #[`item.xroad_id.member_class`]="{ item }">
-            <div>{{ item.xroad_id.member_class }}</div>
+            <div data-test="class">{{ item.xroad_id.member_class }}</div>
           </template>
           <template #[`item.xroad_id.subsystem_code`]="{ item }">
-            <div>{{ item.xroad_id.subsystem_code }}</div>
+            <div data-test="subsystem">{{ item.xroad_id.subsystem_code }}</div>
           </template>
           <template #[`item.xroad_id.instance_id`]="{ item }">
-            <div>{{ item.xroad_id.instance_id }}</div>
+            <div data-test="instance">{{ item.xroad_id.instance_id }}</div>
           </template>
           <template #[`item.xroad_id.type`]="{ item }">
             <div>{{ item.xroad_id.type }}</div>
@@ -97,16 +97,16 @@
         <v-spacer></v-spacer>
 
         <xrd-button
+          data-test="cancel-button"
           class="button-margin"
           outlined
-          data-test="cancel-button"
           :disabled="adding"
           @click="cancel()"
           >{{ $t('action.cancel') }}
         </xrd-button>
 
         <xrd-button
-          data-test="management-subsystem-select-button"
+          data-test="member-subsystem-add-button"
           :loading="adding"
           :disabled="anyClientsSelected"
           @click="addMembers"
@@ -168,18 +168,21 @@ export default Vue.extend({
           align: 'start',
           value: 'member_name',
           class: 'xrd-table-header text-uppercase',
+          sortable: false,
         },
         {
           text: this.$t('systemSettings.selectSubsystem.memberCode') as string,
           align: 'start',
           value: 'xroad_id.member_code',
           class: 'xrd-table-header text-uppercase',
+          sortable: false,
         },
         {
           text: this.$t('systemSettings.selectSubsystem.memberClass') as string,
           align: 'start',
           value: 'xroad_id.member_class',
           class: 'xrd-table-header text-uppercase',
+          sortable: false,
         },
         {
           text: this.$t(
@@ -188,6 +191,7 @@ export default Vue.extend({
           align: 'start',
           value: 'xroad_id.subsystem_code',
           class: 'xrd-table-header text-uppercase',
+          sortable: false,
         },
         {
           text: this.$t(
@@ -196,12 +200,14 @@ export default Vue.extend({
           align: 'start',
           value: 'xroad_id.instance_id',
           class: 'xrd-table-header text-uppercase',
+          sortable: false,
         },
         {
           text: this.$t('systemSettings.selectSubsystem.type') as string,
           align: 'start',
           value: 'xroad_id.type',
           class: 'xrd-table-header text-uppercase',
+          sortable: false,
         },
       ];
     },
@@ -245,6 +251,9 @@ export default Vue.extend({
       this.fetchClients();
     },
     cancel(): void {
+      if(this.adding){
+        return;
+      }
       this.$emit('cancel');
       this.clearForm();
       this.opened = false;

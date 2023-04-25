@@ -39,14 +39,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.FileInputStream;
 
-import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseCentralServiceId;
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseClientId;
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseGlobalGroupId;
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseLocalGroupId;
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseSecurityCategoryId;
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseSecurityServerId;
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseServiceId;
-import static ee.ria.xroad.common.identifier.XRoadObjectType.CENTRALSERVICE;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.GLOBALGROUP;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.LOCALGROUP;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
@@ -176,22 +174,6 @@ public class IdentifierTypeConverterTest {
         assertEquals("EE", id.getXRoadInstance());
         assertEquals("ISKE_H", id.getCategoryCode());
         assertEquals("SECURITYCATEGORY:EE/ISKE_H", id.toString());
-    }
-
-    /**
-     * Test to ensure central service ID can be read from XML.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void readCentralServiceIdentifier() throws Exception {
-        CentralServiceId id = parseCentralServiceId(
-                fileToType("centralserviceid.xml", CENTRALSERVICE,
-                        XRoadCentralServiceIdentifierType.class));
-
-        assertEquals("EE", id.getXRoadInstance());
-        assertEquals("rahvastikuregister_isikuandmed", id.getServiceCode());
-        assertEquals("CENTRALSERVICE:EE/rahvastikuregister_isikuandmed",
-                id.toString());
     }
 
     /**

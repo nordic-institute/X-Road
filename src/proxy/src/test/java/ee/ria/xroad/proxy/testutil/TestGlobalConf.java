@@ -31,11 +31,9 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -97,12 +95,6 @@ public class TestGlobalConf extends EmptyGlobalConf {
     @Override
     public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId) throws Exception {
         return true;
-    }
-
-    @Override
-    public ServiceId.Conf getServiceId(CentralServiceId serviceId) {
-        return ServiceId.Conf.create(serviceId.getXRoadInstance(), "BUSINESS", "producer", null,
-                serviceId.getServiceCode(), null);
     }
 
     @Override

@@ -24,19 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.cs.admin.core.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Immutable;
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class CentralService extends Auditable {
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Immutable
+@Access(AccessType.FIELD)
+@Table(name = GlobalGroupMembersViewEntity.TABLE_NAME)
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class GlobalGroupMembersViewEntity extends AuditableEntity {
+    static final String TABLE_NAME = "global_group_members_view";
+
+    @Id
+    @Column(name = "id", unique = true, nullable = false)
     private int id;
-    private ServiceId identifier;
-    private String serviceCode;
+
+    @Column(name = "global_group_id")
+    private Integer globalGroupId;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "group_member_id", nullable = false, updatable = false)
+    private ClientIdEntity identifier;
+
+    @Column(name = "member_name")
+    private String memberName;
 }
-
-

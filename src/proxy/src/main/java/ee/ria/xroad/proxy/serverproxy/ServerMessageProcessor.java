@@ -314,7 +314,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void checkRequest() throws Exception {
+    private void checkRequest() {
         if (requestMessage.getSoap() == null) {
             throw new CodedException(X_MISSING_SOAP, "Request does not have SOAP message");
         }
@@ -325,7 +325,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
         checkIdentifier(requestMessage.getSoap().getClient());
         checkIdentifier(requestMessage.getSoap().getService());
         checkIdentifier(requestMessage.getSoap().getSecurityServer());
-        checkIdentifier(requestMessage.getSoap().getCentralService());
     }
 
     private void verifyClientStatus() {

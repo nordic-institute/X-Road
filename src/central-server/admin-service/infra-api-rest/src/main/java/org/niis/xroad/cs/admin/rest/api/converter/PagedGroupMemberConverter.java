@@ -26,9 +26,9 @@
 package org.niis.xroad.cs.admin.rest.api.converter;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
-import org.niis.xroad.cs.openapi.model.GroupMemberDto;
-import org.niis.xroad.cs.openapi.model.PagedGroupMemberDto;
+import org.niis.xroad.cs.admin.api.domain.GlobalGroupMemberView;
+import org.niis.xroad.cs.openapi.model.GroupMemberListViewDto;
+import org.niis.xroad.cs.openapi.model.PagedGroupMemberListViewDto;
 import org.niis.xroad.cs.openapi.model.PagingMetadataDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.springframework.data.domain.Page;
@@ -42,17 +42,17 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class PagedGroupMemberConverter {
     private final PagingMetadataConverter pagingMetadataConverter;
-    private final GroupMemberConverter groupMemberConverter;
+    private final GroupMemberViewConverter groupMemberViewConverter;
 
-    public PagedGroupMemberDto convert(Page<GlobalGroupMember> page, PagingSortingParametersDto pagingSorting) {
+    public PagedGroupMemberListViewDto convert(Page<GlobalGroupMemberView> page, PagingSortingParametersDto pagingSorting) {
 
         PagingMetadataDto meta = pagingMetadataConverter.convert(page, pagingSorting);
 
-        List<GroupMemberDto> items = page.get()
-                .map(groupMemberConverter::convert)
+        List<GroupMemberListViewDto> items = page.get()
+                .map(groupMemberViewConverter::convert)
                 .collect(toList());
 
-        var result = new PagedGroupMemberDto();
+        var result = new PagedGroupMemberListViewDto();
         result.setItems(items);
         result.setPagingMetadata(meta);
         return result;

@@ -25,18 +25,15 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
@@ -145,29 +142,6 @@ public class GlobalConfTest {
     }
 
     /**
-     * Tests getting the actual service identifier for a given identifier.
-     *
-     * @throws Exception if an error occurs
-     */
-    @Test
-    public void getServiceId() {
-        CentralServiceId central1 = CentralServiceId.Conf.create("EE", "central1");
-        ServiceId expectedServiceId = ServiceId.Conf.create("EE", "BUSINESS", "foobar", null, "bazservice");
-        ServiceId actualServiceId = GlobalConf.getServiceId(central1);
-
-        assertNotNull(actualServiceId);
-        assertEquals(expectedServiceId, actualServiceId);
-
-        actualServiceId = GlobalConf.getServiceId(expectedServiceId);
-
-        assertEquals(expectedServiceId, actualServiceId);
-
-        thrown.expectError(ErrorCodes.X_INTERNAL_ERROR);
-
-        GlobalConf.getServiceId(CentralServiceId.Conf.create("XX", "yy"));
-    }
-
-    /**
      * Tests getting the members.
      */
     @Test
@@ -178,14 +152,6 @@ public class GlobalConfTest {
         assertEquals(expected, GlobalConf.getMembers("EE").stream()
                 .map(i -> i.getId())
                 .collect(Collectors.toList()));
-    }
-
-    /**
-     * Tests getting the central services.
-     */
-    @Test
-    public void getCentralServices() {
-        assertEquals(Arrays.asList(CentralServiceId.Conf.create("EE", "central1")), GlobalConf.getCentralServices("EE"));
     }
 
     /**

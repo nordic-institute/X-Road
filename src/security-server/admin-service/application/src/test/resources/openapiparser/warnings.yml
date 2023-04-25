@@ -73,7 +73,6 @@ components:
                 - GLOBALGROUP
                 - SECURITYCATEGORY
                 - SERVICE
-                - CENTRALSERVICE
                 - LOCALGROUP
         xRoadInstance:
           type: string

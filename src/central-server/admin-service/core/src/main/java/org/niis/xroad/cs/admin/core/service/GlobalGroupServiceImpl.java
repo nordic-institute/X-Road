@@ -34,11 +34,9 @@ import org.niis.xroad.common.exception.DataIntegrityException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
-import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
@@ -47,7 +45,6 @@ import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SystemParameterEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMapper;
-import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
@@ -55,8 +52,6 @@ import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -80,15 +75,12 @@ import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.SE
 @RequiredArgsConstructor
 public class GlobalGroupServiceImpl implements GlobalGroupService {
     private final AuditDataHelper auditDataHelper;
-    private final StableSortHelper stableSortHelper;
     private final GlobalGroupRepository globalGroupRepository;
     private final SystemParameterRepository systemParameterRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
     private final IdentifierRepository<SubsystemIdEntity> subsystemIds;
     private final IdentifierRepository<MemberIdEntity> memberIds;
     private final GlobalGroupMapper globalGroupMapper;
-    private final GlobalGroupMemberMapper globalGroupMemberMapper;
-
     private final ClientIdConverter clientIdConverter;
 
     @Override
@@ -131,19 +123,6 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     }
 
     @Override
-    public List<GlobalGroupMember> getGroupMembersFilterModel(Integer groupId) {
-        return globalGroupMemberRepository.findByGlobalGroupId(groupId).stream()
-                .map(globalGroupMemberMapper::toTarget)
-                .collect(toList());
-    }
-
-    @Override
-    public Page<GlobalGroupMember> findGroupMembers(GlobalGroupService.Criteria criteria, Pageable pageable) {
-        return globalGroupMemberRepository.findAll(criteria, stableSortHelper.addSecondaryIdSort(pageable))
-                .map(globalGroupMemberMapper::toTarget);
-    }
-
-    @Override
     public List<String> addGlobalGroupMembers(Integer groupId, List<String> membersToAdd) {
         final var group = findGlobalGroupOrThrowException(groupId);
 
@@ -174,7 +153,7 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
 
         auditDataHelper.addListPropertyItem(RestApiAuditProperty.MEMBER_IDENTIFIERS, clientId);
         if (isNotMemberOfGroup(group, clientIdEntity)) {
-            var groupMember = new GlobalGroupMemberEntity(group, clientIdEntity);
+            var groupMember = new GlobalGroupMemberEntity(group, clientId);
             globalGroupMemberRepository.save(groupMember);
             return true;
         }

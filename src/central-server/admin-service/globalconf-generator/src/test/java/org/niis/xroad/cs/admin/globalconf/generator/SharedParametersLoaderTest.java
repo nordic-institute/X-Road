@@ -36,21 +36,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.api.domain.AuthCert;
-import org.niis.xroad.cs.admin.api.domain.CentralService;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
-import org.niis.xroad.cs.admin.api.domain.ServiceId;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
-import org.niis.xroad.cs.admin.api.service.CentralServicesService;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
@@ -104,7 +102,7 @@ class SharedParametersLoaderTest {
     @Mock
     GlobalGroupService globalGroupService;
     @Mock
-    CentralServicesService centralServicesService;
+    GlobalGroupMemberService globalGroupMemberService;
     @Mock
     MemberClassService memberClassService;
 
@@ -124,10 +122,8 @@ class SharedParametersLoaderTest {
                 .thenReturn(List.of(getFlattenedSecurityServerClientView("M2", "S1")));
 
         when(globalGroupService.findGlobalGroups()).thenReturn(List.of(getGlobalGroup()));
-        when(globalGroupService.getGroupMembersFilterModel(GLOBAL_GROUP_ID)).thenReturn(List.of(
+        when(globalGroupMemberService.findByGroupId(GLOBAL_GROUP_ID)).thenReturn(List.of(
                 new GlobalGroupMember(null, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S2"))));
-
-        when(centralServicesService.findAll()).thenReturn(List.of(getCentralService()));
 
         when(memberClassService.findAll()).thenReturn(List.of(new MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION)));
         when(systemParameterService.getOcspFreshnessSeconds()).thenReturn(OCSP_FRESHNESS_SECONDS);
@@ -140,7 +136,6 @@ class SharedParametersLoaderTest {
         assertApproveTsa(parameters);
         assertSecurityServers(parameters);
         assertGlobalGroups(parameters);
-        assertCentralServices(parameters);
         assertGlobalSettings(parameters);
     }
 
@@ -150,14 +145,6 @@ class SharedParametersLoaderTest {
                 new SharedParameters.MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION));
 
         assertThat(parameters.getGlobalSettings().getOcspFreshnessSeconds()).isEqualTo(OCSP_FRESHNESS_SECONDS);
-    }
-
-    private void assertCentralServices(SharedParameters parameters) {
-        assertThat(parameters.getCentralServices()).singleElement().satisfies(centralService -> {
-            assertThat(centralService.getServiceCode()).isEqualTo(CENTRAL_SERVICE_CODE);
-            assertThat(centralService.getImplementingService())
-                    .isEqualTo(ServiceId.create(XROAD_INSTANCE, "CLASS", "M1", "S1", CENTRAL_SERVICE_CODE));
-        });
     }
 
     private void assertGlobalGroups(SharedParameters parameters) {
@@ -320,10 +307,4 @@ class SharedParametersLoaderTest {
         return globalGroup;
     }
 
-    private CentralService getCentralService() {
-        var centralService = new CentralService();
-        centralService.setServiceCode(CENTRAL_SERVICE_CODE);
-        centralService.setIdentifier(ServiceId.create(XROAD_INSTANCE, "CLASS", "M1", "S1", CENTRAL_SERVICE_CODE));
-        return centralService;
-    }
 }

@@ -63,13 +63,14 @@
             <v-spacer></v-spacer>
             <xrd-button
               outlined
+              :disabled="loading"
               data-test="dialog-cancel-button"
               @click="cancelDelete()"
             >
               {{ $t('action.cancel') }}
             </xrd-button>
             <xrd-button
-              :disabled="invalid"
+              :disabled="invalid || loading"
               data-test="dialog-delete-button"
               @click="proceedDelete()"
             >
@@ -104,9 +105,7 @@ export default Vue.extend({
     },
   },
   data() {
-    return {
-      enteredCode: '',
-    };
+    return { loading: false, enteredCode: '' };
   },
   computed: {
     ...mapStores(memberStore),
@@ -118,6 +117,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     proceedDelete(): void {
+      this.loading = true;
       this.memberStore
         .deleteById(toIdentifier(this.member.xroad_id))
         .then(() => {
@@ -125,6 +125,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
   },

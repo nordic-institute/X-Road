@@ -26,39 +26,7 @@
  -->
 <template>
   <div>
-    <!-- Title and action -->
     <global-groups-list />
-
-    <!-- Title and action -->
-    <div class="table-toolbar align-fix mt-6 pl-0">
-      <div class="xrd-view-title align-fix">
-        {{ $t('globalResources.centralServices') }}
-      </div>
-
-      <xrd-button data-test="add-certification-service" @click="() => {}">
-        <xrd-icon-base class="xrd-large-button-icon"
-          ><XrdIconAdd
-        /></xrd-icon-base>
-        {{ $t('globalResources.addCentralService') }}</xrd-button
-      >
-    </div>
-
-    <!-- Table 2 - Central Services -->
-    <v-data-table
-      :loading="loading"
-      :headers="centralServicesHeaders"
-      :items="centralServices"
-      :must-sort="true"
-      :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
-      :loader-height="2"
-      hide-default-footer
-    >
-      <template #footer>
-        <div class="cs-table-custom-footer"></div>
-      </template>
-    </v-data-table>
   </div>
 </template>
 
@@ -67,89 +35,12 @@
  * View for 'global resources'
  */
 import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
 import GlobalGroupsList from '@/components/globalGroups/GlobalGroupsList.vue';
 
 export default Vue.extend({
   name: 'GlobalResourcesList',
   components: {
     GlobalGroupsList,
-  },
-  data() {
-    return {
-      search: '',
-      loading: false,
-      showOnlyPending: false,
-      centralServices: [
-        {
-          codeCentralService: '26766F',
-          codeImplementingService: 'gfgjhg',
-          version: '4.0',
-          providerCode: '111',
-          providerClass: 'COM',
-          providerSubsystem: 'RESTSERVICE',
-        },
-
-        {
-          codeCentralService: '645634-9',
-          codeImplementingService: 'poujkh',
-          version: '7',
-          providerCode: '118',
-          providerClass: 'ORG',
-          providerSubsystem: 'Something',
-        },
-        {
-          codeCentralService: '986435',
-          codeImplementingService: 'data',
-          version: '1',
-          providerCode: '7777',
-          providerClass: 'FI',
-          providerSubsystem: 'RESTSERVICE',
-        },
-      ],
-    };
-  },
-  computed: {
-    centralServicesHeaders(): DataTableHeader[] {
-      return [
-        {
-          text: this.$t('globalResources.codeCS') as string,
-          align: 'start',
-          value: 'codeCentralService',
-          class: 'xrd-table-header ss-table-header-sercer-code',
-        },
-        {
-          text: this.$t('globalResources.codeIS') as string,
-          align: 'start',
-          value: 'codeImplementingService',
-          class: 'xrd-table-header ss-table-header-owner-name',
-        },
-        {
-          text: this.$t('globalResources.version') as string,
-          align: 'start',
-          value: 'version',
-          class: 'xrd-table-header ss-table-header-owner-code',
-        },
-        {
-          text: this.$t('globalResources.providerCode') as string,
-          align: 'start',
-          value: 'providerCode',
-          class: 'xrd-table-header ss-table-header-owner-class',
-        },
-        {
-          text: this.$t('globalResources.providerClass') as string,
-          align: 'start',
-          value: 'providerClass',
-          class: 'xrd-table-header ss-table-header-owner-class',
-        },
-        {
-          text: this.$t('globalResources.providerSubsystem') as string,
-          align: 'start',
-          value: 'providerSubsystem',
-          class: 'xrd-table-header ss-table-header-owner-class',
-        },
-      ];
-    },
   },
 });
 </script>

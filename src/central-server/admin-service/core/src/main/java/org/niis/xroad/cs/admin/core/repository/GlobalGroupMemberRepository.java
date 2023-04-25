@@ -26,18 +26,13 @@
  */
 package org.niis.xroad.cs.admin.core.repository;
 
-import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface GlobalGroupMemberRepository extends GenericRepository<GlobalGroupMemberEntity, Integer> {
 
     List<GlobalGroupMemberEntity> findByGlobalGroupId(Integer groupId);
-
-    Page<GlobalGroupMemberEntity> findAll(GlobalGroupService.Criteria criteria, Pageable pageable);
 
     List<GlobalGroupMemberEntity> findMemberGroups(ee.ria.xroad.common.identifier.ClientId memberId);
 

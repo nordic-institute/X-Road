@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.util;
 
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -58,8 +57,6 @@ public class IdentifierValidatorTest {
                 ServiceId.Conf.create("TEST", "CLASS", "MEM\\BER", "SYSTEM", "SERVICE"),
                 ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYS%TEM", "SERVICE"),
                 ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYSTEM", "SERVICE\u200b"),
-                CentralServiceId.Conf.create("TEST", "SERVICE;"),
-                CentralServiceId.Conf.create("TE\ufeffST", "SERVICE")
         };
         for (XRoadId id : cases) {
             assertFalse(MessageProcessorBase.checkIdentifier(id));
