@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
@@ -58,6 +59,7 @@ import static org.niis.xroad.cs.admin.core.service.TokensServiceImpl.SOFTWARE_TO
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationServiceImpl implements NotificationService {
 
     private final ConfigurationSigningKeysService configurationSigningKeysService;
@@ -72,6 +74,7 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             tokens = signerProxyFacade.getTokens();
         } catch (Exception e) {
+            log.error("Failed to get tokens", e);
             return Set.of(new AlertInfo("status.signer_error"));
         }
 
