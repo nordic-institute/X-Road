@@ -33,15 +33,24 @@ Feature: Management requests API
     And member 'CS:E2E:member-1' is not in global group 'security-server-owners'
 
   @Modifying
-  Scenario: Register & delete member as security server client
+  Scenario: Register member as security server client
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new member 'CS:E2E:member-2' is added
     When client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
     And management request is approved
+    Then security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
+
+  @Modifying
+  Scenario: Delete member as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new member 'CS:E2E:member-2' is added
+    And client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And management request is approved
     And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
-    Then 'CS:E2E:member-2' is deleted as security server 'CS:E2E:member-1:SS-X' client
-    And security server 'CS:E2E:member-1:SS-X' has no clients
+    When 'CS:E2E:member-2' is deleted as security server 'CS:E2E:member-1:SS-X' client
+    Then security server 'CS:E2E:member-1:SS-X' has no clients
 
   @Modifying
   Scenario: Auto approve registration of member as security server client
@@ -67,17 +76,14 @@ Feature: Management requests API
     And management request is with status 'DECLINED'
 
   @Modifying
-  Scenario: Register & delete a new subsystem as security server client
+  Scenario: Register a new subsystem as security server client
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new member 'CS:E2E:member-2' is added
     And member 'CS:E2E:member-2' subsystems does not contain 'subsystem-1'
     When client 'CS:E2E:member-2:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
     And management request is approved
-    And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2:subsystem-1'
-    And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
-    Then 'CS:E2E:member-2:subsystem-1' is deleted as security server 'CS:E2E:member-1:SS-X' client
-    And security server 'CS:E2E:member-1:SS-X' has no clients
+    Then security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2:subsystem-1'
     And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
 
   @Modifying
@@ -89,7 +95,19 @@ Feature: Management requests API
     And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
     When client 'CS:E2E:member-2:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
     And management request is approved
-    And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2:subsystem-1'
+    Then security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2:subsystem-1'
+    And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
+
+  @Modifying
+  Scenario: Delete subsystem as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new member 'CS:E2E:member-2' is added
+    And member 'CS:E2E:member-2' subsystems does not contain 'subsystem-1'
+    And client 'CS:E2E:member-2:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And management request is approved
+    When 'CS:E2E:member-2:subsystem-1' is deleted as security server 'CS:E2E:member-1:SS-X' client
+    Then security server 'CS:E2E:member-1:SS-X' has no clients
     And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
 
   @Modifying
