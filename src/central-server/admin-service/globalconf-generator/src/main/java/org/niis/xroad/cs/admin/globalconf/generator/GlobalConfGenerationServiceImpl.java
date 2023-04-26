@@ -93,7 +93,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     @Scheduled(fixedRate = 60, timeUnit = SECONDS) // TODO make configurable
     @Transactional
     public void generate() {
-        boolean success = false;
+        var success = false;
         try {
             log.debug("Starting global conf generation");
 

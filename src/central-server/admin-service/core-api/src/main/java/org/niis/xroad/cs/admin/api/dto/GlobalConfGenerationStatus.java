@@ -27,16 +27,20 @@
 
 package org.niis.xroad.cs.admin.api.dto;
 
-import lombok.Builder;
 import lombok.Value;
-import lombok.extern.jackson.Jacksonized;
 
 import java.time.Instant;
 
 @Value
-@Jacksonized
-@Builder
 public class GlobalConfGenerationStatus {
+    GlobalConfGenerationStatusEnum status;
     Instant time;
-    boolean success;
+
+    public enum GlobalConfGenerationStatusEnum {
+        FAILURE,
+        SUCCESS,
+        UNKNOWN,
+    }
 }
+
+

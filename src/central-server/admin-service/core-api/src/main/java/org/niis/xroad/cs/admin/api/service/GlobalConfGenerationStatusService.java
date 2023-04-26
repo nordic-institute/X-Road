@@ -29,9 +29,7 @@ package org.niis.xroad.cs.admin.api.service;
 
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 
-import java.util.Optional;
-
 public interface GlobalConfGenerationStatusService {
 
-    Optional<GlobalConfGenerationStatus> get();
+    GlobalConfGenerationStatus get();
 }

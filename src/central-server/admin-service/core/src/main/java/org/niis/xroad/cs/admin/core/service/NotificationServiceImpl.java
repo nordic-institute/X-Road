@@ -42,7 +42,6 @@ import org.niis.xroad.cs.admin.api.service.NotificationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -51,8 +50,11 @@ import java.util.Set;
 import static ee.ria.xroad.common.SystemProperties.getCenterTrustedAnchorsAllowed;
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.NOT_INITIALIZED;
 import static java.lang.String.format;
+import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.FAILURE;
+import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.UNKNOWN;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_EXTERNAL;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_INTERNAL;
 import static org.niis.xroad.cs.admin.core.service.TokensServiceImpl.SOFTWARE_TOKEN_ID;
@@ -101,21 +103,21 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private Set<AlertInfo> checkGlobalConfGenerationStatus() {
-        final Optional<GlobalConfGenerationStatus> confStatus = globalConfGenerationStatus.get();
+        final GlobalConfGenerationStatus status = globalConfGenerationStatus.get();
 
-        if (confStatus.isEmpty()) {
+        if (status.getStatus() == UNKNOWN) {
             return Set.of(new AlertInfo("status.global_conf_generation.status_not_found"));
-        }
-
-        final GlobalConfGenerationStatus status = confStatus.get();
-        if (!status.isSuccess()) {
+        } else if (status.getStatus() == FAILURE) {
             return Set.of(new AlertInfo("status.global_conf_generation.failing", status.getTime()));
-        }
-        if (SECONDS.between(status.getTime(), Instant.now()) > systemParameterService.getConfExpireIntervalSeconds()) {
+        } else if (isGlobalConfExpired(status)) {
             return Set.of(new AlertInfo("status.global_conf_generation.global_conf_expired"));
         }
 
         return Set.of();
+    }
+
+    private boolean isGlobalConfExpired(GlobalConfGenerationStatus status) {
+        return SECONDS.between(status.getTime(), now()) > systemParameterService.getConfExpireIntervalSeconds();
     }
 
     private Set<AlertInfo> checkConfigurationSigningKey(String sourceType, List<TokenInfo> tokens) {

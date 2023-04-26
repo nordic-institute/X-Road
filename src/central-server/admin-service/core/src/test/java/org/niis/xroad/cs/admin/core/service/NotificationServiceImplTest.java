@@ -58,6 +58,9 @@ import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.FAILURE;
+import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.SUCCESS;
+import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.UNKNOWN;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_EXTERNAL;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_INTERNAL;
 
@@ -91,8 +94,7 @@ class NotificationServiceImplTest {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, true);
-        when(globalConfGenerationStatus.get())
-                .thenReturn(Optional.of(GlobalConfGenerationStatus.builder().time(now()).success(true).build()));
+        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, now()));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
@@ -114,8 +116,7 @@ class NotificationServiceImplTest {
         mockInitialized(true, true);
 
         Instant time = Instant.now();
-        when(globalConfGenerationStatus.get())
-                .thenReturn(Optional.of(GlobalConfGenerationStatus.builder().time(time).success(false).build()));
+        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(FAILURE, time));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
@@ -139,8 +140,7 @@ class NotificationServiceImplTest {
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(false, true);
         when(systemParameterService.getConfExpireIntervalSeconds()).thenReturn(600);
-        when(globalConfGenerationStatus.get())
-                .thenReturn(Optional.of(GlobalConfGenerationStatus.builder().time(now()).success(true).build()));
+        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, now()));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
@@ -158,14 +158,12 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void getAlertsKeyNotActive() throws Exception {
+    void getAlertsKeyNotActiveConfStatusUnkown() throws Exception {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, false);
 
-        when(systemParameterService.getConfExpireIntervalSeconds()).thenReturn(600);
-        when(globalConfGenerationStatus.get())
-                .thenReturn(Optional.of(GlobalConfGenerationStatus.builder().time(now()).success(true).build()));
+        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(UNKNOWN, null));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
@@ -176,7 +174,8 @@ class NotificationServiceImplTest {
 
             final Set<AlertInfo> alerts = notificationService.getAlerts();
 
-            assertThat(alerts).hasSize(2)
+            assertThat(alerts).hasSize(3)
+                    .contains(new AlertInfo("status.global_conf_generation.status_not_found"))
                     .contains(new AlertInfo("status.signing_key.internal.key_not_available"))
                     .contains(new AlertInfo("status.signing_key.external.key_not_available"));
         }
@@ -188,7 +187,7 @@ class NotificationServiceImplTest {
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, true);
         when(globalConfGenerationStatus.get())
-                .thenReturn(Optional.of(GlobalConfGenerationStatus.builder().time(now().minus(1, HOURS)).success(true).build()));
+                .thenReturn(new GlobalConfGenerationStatus(SUCCESS, now().minus(1, HOURS)));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))

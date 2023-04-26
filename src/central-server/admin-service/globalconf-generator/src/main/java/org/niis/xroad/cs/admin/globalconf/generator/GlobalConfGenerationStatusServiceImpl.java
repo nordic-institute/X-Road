@@ -30,7 +30,10 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.SystemProperties;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
@@ -39,9 +42,12 @@ import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Optional;
+import java.time.Instant;
 
 import static java.time.Instant.now;
+import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.FAILURE;
+import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.SUCCESS;
+import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.UNKNOWN;
 
 @Component
 @RequiredArgsConstructor
@@ -62,16 +68,18 @@ public class GlobalConfGenerationStatusServiceImpl implements GlobalConfGenerati
     }
 
     private void saveSuccess() {
-        writeFile(GlobalConfGenerationStatus.builder().success(true).time(now()).build());
+        writeFile(GlobalConfGenerationStatusInternal.builder().success(true).time(now()).build());
     }
 
     private void saveFailure() {
-        final Optional<GlobalConfGenerationStatus> lastStatus = get();
-        if (lastStatus.isEmpty() || lastStatus.get().isSuccess())
-            writeFile(GlobalConfGenerationStatus.builder().time(now()).success(false).build());
+        final GlobalConfGenerationStatus lastStatus = get();
+
+        if (lastStatus.getStatus() != FAILURE) {
+            writeFile(GlobalConfGenerationStatusInternal.builder().time(now()).success(false).build());
+        }
     }
 
-    private void writeFile(GlobalConfGenerationStatus status) {
+    private void writeFile(GlobalConfGenerationStatusInternal status) {
         try {
             Files.writeString(Paths.get(SystemProperties.getLogPath(), STATUS_FILE_NAME),
                     objectMapper.writeValueAsString(status));
@@ -81,14 +89,24 @@ public class GlobalConfGenerationStatusServiceImpl implements GlobalConfGenerati
     }
 
     @Override
-    public Optional<GlobalConfGenerationStatus> get() {
+    public GlobalConfGenerationStatus get() {
         try {
-            String content = Files.readString(Paths.get(SystemProperties.getLogPath(), STATUS_FILE_NAME));
-            return Optional.of(objectMapper.readValue(content, GlobalConfGenerationStatus.class));
+            final String content = Files.readString(Paths.get(SystemProperties.getLogPath(), STATUS_FILE_NAME));
+            final GlobalConfGenerationStatusInternal statusInternal =
+                    objectMapper.readValue(content, GlobalConfGenerationStatusInternal.class);
+            return new GlobalConfGenerationStatus(statusInternal.isSuccess() ? SUCCESS : FAILURE, statusInternal.getTime());
         } catch (Exception e) {
             log.warn("Failed to read global conf generation status file", e);
-            return Optional.empty();
+            return new GlobalConfGenerationStatus(UNKNOWN, null);
         }
+    }
+
+    @Value
+    @Jacksonized
+    @Builder
+    private static class GlobalConfGenerationStatusInternal {
+        Instant time;
+        boolean success;
     }
 
 }

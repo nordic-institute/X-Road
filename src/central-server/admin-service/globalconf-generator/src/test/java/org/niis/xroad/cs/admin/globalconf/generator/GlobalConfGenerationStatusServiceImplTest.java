@@ -37,6 +37,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 
 import java.nio.file.Paths;
 
@@ -83,38 +84,51 @@ class GlobalConfGenerationStatusServiceImplTest {
     @Test
     void success() {
         globalConfGenerationStatusService.handleGlobalConfGenerationEvent(SUCCESS);
+        var status = globalConfGenerationStatusService.get();
+        assertThat(status.getStatus()).isEqualTo(GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.SUCCESS);
+        assertThat(status.getTime()).isNotNull();
     }
 
     @Test
     @SneakyThrows
+    @SuppressWarnings("java:S2925") // ignore Thread.sleep() rule on Sonar
     void timestampUpdatedOnConsecutiveSuccesses() {
         globalConfGenerationStatusService.handleGlobalConfGenerationEvent(SUCCESS);
-        var firstStatus = globalConfGenerationStatusService.get().orElseThrow();
+        var firstStatus = globalConfGenerationStatusService.get();
 
         globalConfGenerationStatusService.handleGlobalConfGenerationEvent(SUCCESS);
         Thread.sleep(100); //make sure timestamp is different
         globalConfGenerationStatusService.handleGlobalConfGenerationEvent(SUCCESS);
 
-        var latestStatus = globalConfGenerationStatusService.get().orElseThrow();
+        var latestStatus = globalConfGenerationStatusService.get();
 
         assertThat(latestStatus.getTime()).isAfter(firstStatus.getTime());
-        assertThat(latestStatus.isSuccess()).isTrue();
+        assertThat(latestStatus.getStatus()).isEqualTo(GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.SUCCESS);
     }
 
     @Test
     @SneakyThrows
+    @SuppressWarnings("java:S2925") // ignore Thread.sleep() rule on Sonar
     void timestampNotUpdatedOnConsecutiveFailures() {
         globalConfGenerationStatusService.handleGlobalConfGenerationEvent(FAILURE);
-        var firstStatus = globalConfGenerationStatusService.get().orElseThrow();
+        var firstStatus = globalConfGenerationStatusService.get();
 
         globalConfGenerationStatusService.handleGlobalConfGenerationEvent(FAILURE);
         Thread.sleep(100); //make sure timestamp is different
         globalConfGenerationStatusService.handleGlobalConfGenerationEvent(FAILURE);
 
-        var latestStatus = globalConfGenerationStatusService.get().orElseThrow();
+        var latestStatus = globalConfGenerationStatusService.get();
 
         assertThat(latestStatus.getTime()).isEqualTo(firstStatus.getTime());
-        assertThat(latestStatus.isSuccess()).isFalse();
+        assertThat(latestStatus.getStatus()).isEqualTo(GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.FAILURE);
+    }
+
+    @Test
+    void unknownGlobalConfGenerationStatus() {
+        var status = globalConfGenerationStatusService.get();
+
+        assertThat(status.getStatus()).isEqualTo(GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.UNKNOWN);
+        assertThat(status.getTime()).isNull();
     }
 
 }
