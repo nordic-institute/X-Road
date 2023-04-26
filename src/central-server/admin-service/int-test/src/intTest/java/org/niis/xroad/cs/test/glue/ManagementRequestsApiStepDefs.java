@@ -135,13 +135,13 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         this.managementRequestId = response.getBody().getId();
     }
 
-    @Step("member {string} is deleted as security server {string} client")
-    public void memberIsDeletedAsSecurityServerClient(String memberId, String securityServerId) {
+    @Step("{string} is deleted as security server {string} client")
+    public void clientIsDeletedAsSecurityServerClient(String clientId, String securityServerId) {
         final ClientDeletionRequestDto managementRequest = new ClientDeletionRequestDto();
         managementRequest.setType(CLIENT_DELETION_REQUEST);
         managementRequest.setOrigin(SECURITY_SERVER);
         managementRequest.setSecurityServerId(securityServerId);
-        managementRequest.setClientId(memberId);
+        managementRequest.setClientId(clientId);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();

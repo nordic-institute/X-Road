@@ -174,7 +174,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
                 // create new subsystem if necessary
                 client = clients
                         .findOneBy(clientRegistrationRequest.getClientId())
-                        .getOrElse(() -> clients.save(new SubsystemEntity(clientMember, clientMember.getIdentifier())));
+                        .getOrElse(() -> clients.save(new SubsystemEntity(clientMember, clientRegistrationRequest.getClientId())));
                 break;
             default:
                 throw new IllegalArgumentException("Invalid client type");
