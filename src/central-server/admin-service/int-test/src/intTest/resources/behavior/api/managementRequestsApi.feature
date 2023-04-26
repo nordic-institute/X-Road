@@ -33,18 +33,18 @@ Feature: Management requests API
     And member 'CS:E2E:member-1' is not in global group 'security-server-owners'
 
   @Modifying
-  Scenario: Add/delete security server client
+  Scenario: Register & delete member as security server client
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new member 'CS:E2E:member-2' is added
     When client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
     And management request is approved
     And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
-    Then member 'CS:E2E:member-2' is deleted as security server 'CS:E2E:member-1:SS-X' client
+    Then 'CS:E2E:member-2' is deleted as security server 'CS:E2E:member-1:SS-X' client
     And security server 'CS:E2E:member-1:SS-X' has no clients
 
   @Modifying
-  Scenario: Auto approve security server client
+  Scenario: Auto approve registration of member as security server client
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new member 'CS:E2E:member-2' is added
@@ -57,7 +57,7 @@ Feature: Management requests API
     And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
 
   @Modifying
-  Scenario: Decline client registration
+  Scenario: Decline registration of member as security server client
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new member 'CS:E2E:member-2' is added
@@ -65,6 +65,60 @@ Feature: Management requests API
     And management request is with status 'WAITING'
     Then management request is declined
     And management request is with status 'DECLINED'
+
+  @Modifying
+  Scenario: Register & delete a new subsystem as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new member 'CS:E2E:member-2' is added
+    And member 'CS:E2E:member-2' subsystems does not contain 'subsystem-1'
+    When client 'CS:E2E:member-2:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And management request is approved
+    And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2:subsystem-1'
+    And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
+    Then 'CS:E2E:member-2:subsystem-1' is deleted as security server 'CS:E2E:member-1:SS-X' client
+    And security server 'CS:E2E:member-1:SS-X' has no clients
+    And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
+
+  @Modifying
+  Scenario: Register an existing subsystem as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new member 'CS:E2E:member-2' is added
+    And new subsystem 'CS:E2E:member-2:subsystem-1' is added
+    And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
+    When client 'CS:E2E:member-2:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And management request is approved
+    And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2:subsystem-1'
+    And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
+
+  @Modifying
+  Scenario: Auto approve registration of subsystem as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new member 'CS:E2E:member-2' is added
+    And member 'CS:E2E:member-2' subsystems does not contain 'subsystem-1'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And client 'CS:E2E:member-2:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'CENTER'
+    And management request is with status 'WAITING'
+    And member 'CS:E2E:member-2' subsystems does not contain 'subsystem-1'
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And client 'CS:E2E:member-2:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    Then management request is with status 'APPROVED'
+    And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
+    And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
+
+  @Modifying
+  Scenario: Decline registration of subsystem as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And new member 'CS:E2E:member-2' is added
+    And member 'CS:E2E:member-2' subsystems does not contain 'subsystem-1'
+    When client 'CS:E2E:member-2:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And management request is with status 'WAITING'
+    Then management request is declined
+    And management request is with status 'DECLINED'
+    And member 'CS:E2E:member-2' subsystems does not contain 'subsystem-1'
 
   @Modifying
   Scenario: Changing security server owner
@@ -109,7 +163,7 @@ Feature: Management requests API
     And authentication certificate of 'CS:E2E:member-1:SS-2' is deleted
     And client 'CS:E2E:member-3' is registered as security server 'CS:E2E:member-1:SS-1' client from 'SECURITY_SERVER'
     And management request is approved
-    And member 'CS:E2E:member-3' is deleted as security server 'CS:E2E:member-1:SS-1' client
+    And 'CS:E2E:member-3' is deleted as security server 'CS:E2E:member-1:SS-1' client
     Then management request list endpoint queried and verified using params
       | $q   | $status  | $origin         | $serverId            | $types                                                 | $sortBy               | $desc | $pageSize | $page | $itemsInPage | $total | $sortFieldExp                 |
       |      |          |                 |                      |                                                        |                       |       |           |       | 11           | 11     |                               |
