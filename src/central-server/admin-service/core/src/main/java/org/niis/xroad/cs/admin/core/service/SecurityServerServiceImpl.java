@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,6 @@ import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
-import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
@@ -104,11 +104,11 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     }
 
     @Override
-    public ManagementRequestStatus findSecurityServerRegistrationStatus(SecurityServerId serverId) {
+    public ManagementRequestStatus findSecurityServerClientRegistrationStatus(SecurityServerId serverId, ClientId clientId) {
         return managementRequestService.findRequests(
                         ManagementRequestService.Criteria.builder()
-                                .origin(Origin.SECURITY_SERVER)
                                 .serverId(serverId)
+                                .clientId(clientId)
                                 .types(List.of(ManagementRequestType.CLIENT_REGISTRATION_REQUEST))
                                 .build(), Pageable.unpaged())
                 .stream()

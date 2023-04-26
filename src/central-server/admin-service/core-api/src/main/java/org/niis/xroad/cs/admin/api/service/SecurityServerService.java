@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
@@ -46,7 +47,7 @@ public interface SecurityServerService {
 
     Optional<SecurityServer> find(SecurityServerId id);
 
-    ManagementRequestStatus findSecurityServerRegistrationStatus(SecurityServerId serverId);
+    ManagementRequestStatus findSecurityServerClientRegistrationStatus(SecurityServerId serverId, ClientId clientId);
 
     Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
 
