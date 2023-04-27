@@ -110,7 +110,8 @@
       </template>
 
       <template #[`item.subsystem`]="{ item }">
-        <span data-test="subsystem">{{ item.client_id.subsystem_code }}</span></template>
+        <span data-test="subsystem">{{ item.client_id.subsystem_code }}</span>
+      </template>
 
       <template #[`item.created_at`]="{ item }">
         <div>{{ item.created_at | formatDateTime }}</div>
