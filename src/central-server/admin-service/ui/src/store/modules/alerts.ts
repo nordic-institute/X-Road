@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,44 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.controller;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import { defineStore } from 'pinia';
+import { notificationsStore } from './notifications';
+import * as api from '@/util/api';
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+type AlertData = {
+  errorCode: string;
+  metadata?: string[];
+};
+export const useAlerts = defineStore('alerts', {
+  state: () => {
+    return {
+      alerts: [] as AlertData[],
+    };
+  },
 
-@RestController
-@RequestMapping(ControllerUtil.NOTIFICATIONS_API_V1_PATH + "/session-status")
-@Slf4j
-@PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
-public class NotificationsSessionStatusApiController {
-
-    /**
-     * check if a HttpSession is currently alive
-     */
-    @GetMapping(produces = {"application/json"})
-    public ResponseEntity<StatusData> isSessionAlive(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        boolean isStillAlive = session != null;
-        return new ResponseEntity<>(new StatusData(isStillAlive),
-                HttpStatus.OK);
-    }
-    @Data
-    @AllArgsConstructor
-    private static class StatusData {
-        private boolean valid;
-    }
-
-}
+  actions: {
+    async checkAlerts() {
+      api
+        .get<AlertData[]>('/notifications/alerts')
+        .then((resp) => {
+          this.alerts = resp.data;
+        })
+        .catch((error) => {
+          const notifications = notificationsStore();
+          notifications.showError(error);
+        });
+    },
+  },
+});

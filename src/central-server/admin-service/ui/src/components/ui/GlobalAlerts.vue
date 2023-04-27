@@ -26,10 +26,24 @@
  -->
 <template>
   <v-container
-    v-if="isAuthenticated && !needsInitialization && hasAlerts"
+    v-if="isAuthenticated && isServerInitialized && hasAlerts"
     fluid
     class="alerts-container"
   >
+    <v-alert
+      v-if="alerts"
+      :value="true"
+      color="red"
+      border="left"
+      colored-border
+      class="alert"
+      icon="icon-Error-notification"
+    >
+      <span v-for="item in alerts" :key="item.errorCode" class="alert-text">
+        {{ $t(item.errorCode, reformatDates(item.metadata)) }}
+      </span>
+    </v-alert>
+
     <v-alert
       data-test="global-alert-restore"
       :value="showRestoreInProgress"
@@ -50,25 +64,24 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { formatDateTime } from '@/filters';
+import { formatDateTime, formatDateTimeSeconds } from '@/filters';
+import { mapState } from 'pinia';
+import { useAlerts } from '@/store/modules/alerts';
+import { userStore } from '@/store/modules/user';
+import { systemStore } from '@/store/modules/system';
 
 export default Vue.extend({
   name: 'AlertsContainer',
   computed: {
+    ...mapState(useAlerts, ['alerts']),
+    ...mapState(userStore, ['isAuthenticated']),
+    ...mapState(systemStore, ['isServerInitialized']),
     hasAlerts(): boolean {
-      return this.showRestoreInProgress;
-    },
-    isAuthenticated(): boolean {
-      // Mock. Add vuex getter later.
-      return true;
+      return this.showRestoreInProgress || this.alerts?.length > 0;
     },
     showRestoreInProgress(): boolean {
       // Mock. Add vuex getter later.
-      return true;
-    },
-    needsInitialization(): boolean {
-      // Mock. Add vuex getter later.
-      return true;
+      return false;
     },
     restoreStartTime(): boolean {
       // Mock. Add vuex getter later.
@@ -77,6 +90,14 @@ export default Vue.extend({
   },
   methods: {
     formatDateTime,
+    reformatDates(metadata: string[]): string[] {
+      return metadata.map((item) => {
+        if (isNaN(Date.parse(item))) {
+          return item;
+        }
+        return formatDateTimeSeconds(item);
+      });
+    },
   },
 });
 </script>
