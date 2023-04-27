@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Builder;
@@ -51,6 +52,7 @@ public interface ManagementRequestService {
         private final List<ManagementRequestType> types;
         private final ManagementRequestStatus status;
         private final SecurityServerId serverId;
+        private final ClientId clientId;
     }
 
     /**

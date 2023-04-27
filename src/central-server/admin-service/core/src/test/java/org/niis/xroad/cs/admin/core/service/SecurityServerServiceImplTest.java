@@ -128,6 +128,8 @@ class SecurityServerServiceImplTest implements WithInOrder {
     private SecurityServer securityServer;
     @Mock
     private SecurityServerId serverId;
+    @Mock
+    private ClientId clientId;
 
     @Nested
     @DisplayName("findSecurityServerRegistrationStatus(SecurityServerId serverId)")
@@ -141,7 +143,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
                     .findRequests(any(), any());
             doReturn(ManagementRequestStatus.APPROVED).when(managementRequestView).getStatus();
 
-            ManagementRequestStatus result = securityServerService.findSecurityServerRegistrationStatus(serverId);
+            ManagementRequestStatus result = securityServerService.findSecurityServerClientRegistrationStatus(serverId, clientId);
 
             assertNotNull(result);
             assertEquals(ManagementRequestStatus.APPROVED, result);
@@ -154,7 +156,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
             doReturn(emptyManagementRequestViews).when(managementRequestService)
                     .findRequests(any(), any());
 
-            ManagementRequestStatus result = securityServerService.findSecurityServerRegistrationStatus(serverId);
+            ManagementRequestStatus result = securityServerService.findSecurityServerClientRegistrationStatus(serverId, clientId);
 
             assertNull(result);
         }

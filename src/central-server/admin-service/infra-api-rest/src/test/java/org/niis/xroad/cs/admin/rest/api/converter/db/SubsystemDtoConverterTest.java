@@ -97,7 +97,7 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
             when(serverClient.getServerCode()).thenReturn(SERVER_CODE);
 
             doReturn(ManagementRequestStatus.APPROVED).when(securityServerService)
-                    .findSecurityServerRegistrationStatus(any());
+                    .findSecurityServerClientRegistrationStatus(any(), any());
 
             SubsystemDto converted = converter.toDto(subsystem);
 

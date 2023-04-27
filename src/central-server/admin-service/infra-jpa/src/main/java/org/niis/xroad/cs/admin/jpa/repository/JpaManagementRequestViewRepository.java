@@ -88,6 +88,15 @@ public interface JpaManagementRequestViewRepository extends JpaRepository<Manage
                         builder.equal(root.get(ManagementRequestViewEntity_.serverCode), serverId.getServerCode()));
             }
 
+            if (criteria.getClientId() != null) {
+                var clientId = criteria.getClientId();
+                pred = builder.and(pred,
+                        builder.equal(root.get(ManagementRequestViewEntity_.clientXroadInstance), clientId.getXRoadInstance()),
+                        builder.equal(root.get(ManagementRequestViewEntity_.clientMemberClass), clientId.getMemberClass()),
+                        builder.equal(root.get(ManagementRequestViewEntity_.clientMemberCode), clientId.getMemberCode()),
+                        builder.equal(root.get(ManagementRequestViewEntity_.clientSubsystemCode), clientId.getSubsystemCode()));
+            }
+
             if (StringUtils.isNotBlank(criteria.getQuery())) {
                 pred = setQueryPredicates(criteria, builder, root, pred);
             }
