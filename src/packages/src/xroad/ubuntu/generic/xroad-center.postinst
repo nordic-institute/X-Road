@@ -164,7 +164,7 @@ create_certificates() {
         echo "found existing nginx.crt and nginx.key, migrating those to center-admin-service.crt, key and p12"
         mv -f /etc/xroad/ssl/nginx.crt /etc/xroad/ssl/center-admin-service.crt
         mv -f /etc/xroad/ssl/nginx.key /etc/xroad/ssl/center-admin-service.key
-        rm /etc/xroad/ssl/center-admin-service.p12
+        rm -f /etc/xroad/ssl/center-admin-service.p12
         openssl pkcs12 -export -in /etc/xroad/ssl/center-admin-service.crt -inkey /etc/xroad/ssl/center-admin-service.key -name center-admin-service -out /etc/xroad/ssl/center-admin-service.p12 -passout pass:center-admin-service
         chmod -f 660 /etc/xroad/ssl/center-admin-service.key /etc/xroad/ssl/center-admin-service.crt /etc/xroad/ssl/center-admin-service.p12
         chown -f xroad:xroad /etc/xroad/ssl/center-admin-service.key /etc/xroad/ssl/center-admin-service.crt /etc/xroad/ssl/center-admin-service.p12
