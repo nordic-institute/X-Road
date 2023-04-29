@@ -23,15 +23,14 @@ test-automation:
       tags: "not @Skip"
   containers:
     testable-container:
-      jar-debug-enabled: false
-      debug-port: 9000
-      jacoco:
-        enabled: true
       reuse-between-runs: ${reuse-between-runs}
-      jar-build-dir: ../application/build/libs/
-      spring-profiles-to-activate: int-test,audit-test
-      internal-http-port: 4000
-
+      spring-boot:
+        jar-debug-enabled: false
+        debug-port: 9000
+        jacoco:
+          enabled: true
+        jar-build-dir: ../application/build/libs/
+        spring-profiles-to-activate: int-test,audit-test
     context-containers:
       xrd-db :
         enabled: true

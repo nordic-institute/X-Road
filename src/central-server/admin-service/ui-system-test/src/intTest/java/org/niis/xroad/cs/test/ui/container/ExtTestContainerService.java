@@ -29,32 +29,38 @@ package org.niis.xroad.cs.test.ui.container;
 import com.nortal.test.testcontainers.TestContainerNetworkProvider;
 import com.nortal.test.testcontainers.TestContainerService;
 import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
+import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
+
+import java.util.List;
 
 @Primary
 @Service
+@Slf4j
 public class ExtTestContainerService extends TestContainerService {
     @Value("${test-automation.custom.central-server-url-override:#{null}}")
     private String centralServerUrlOverride;
 
     public ExtTestContainerService(@NotNull final TestContainerNetworkProvider testContainerNetworkProvider,
-                                   @NotNull final TestableContainerProperties testableContainerProperties) {
-        super(testContainerNetworkProvider, testableContainerProperties);
+                                   @NotNull final TestableContainerProperties testableContainerProperties,
+                                   @NotNull final TestContainerConfigurator testContainerConfigurator,
+                                   @NotNull final List<TestContainerConfigurator.TestContainerInitListener> listeners) {
+        super(testContainerNetworkProvider, testableContainerProperties, testContainerConfigurator, listeners);
     }
 
     @Override
-    protected void startContainer(@NotNull final GenericContainer<?> applicationContainer) {
+    public void initialize() {
         if (isUrlOverridden()) {
-            //Adding additional wait condition. It's completely optional.
-            applicationContainer.waitingFor(Wait.forLogMessage(".*Started Main in.*", 1));
+            log.warn("Target host url override is set. Container initialization is disabled.");
+        } else {
+            super.initialize();
+
         }
-        super.startContainer(applicationContainer);
     }
 
     @Override

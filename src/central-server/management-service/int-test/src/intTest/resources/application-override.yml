@@ -19,15 +19,14 @@ test-automation:
       tags: "not @Skip"
   containers:
     testable-container:
-      jar-debug-enabled: true
-      debug-port: 9000
-      jacoco:
-        enabled: true
       reuse-between-runs: true
-      jar-build-dir: ../application/build/libs/
-      spring-profiles-to-activate: int-test
-      internal-http-port: 8085
-
+      spring-boot:
+        jar-debug-enabled: true
+        debug-port: 9000
+        jacoco:
+          enabled: true
+        jar-build-dir: ../application/build/libs/
+        spring-profiles-to-activate: int-test
     context-containers:
       mock-server:
         enabled: true
