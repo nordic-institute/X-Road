@@ -2,6 +2,6 @@ test-automation:
   environment: jenkins
   containers:
     testable-container:
-      jar-debug-enabled: false
-      jacoco:
-        host: host.docker.internal
+      spring-boot:
+        jacoco:
+          host: host.docker.internal
