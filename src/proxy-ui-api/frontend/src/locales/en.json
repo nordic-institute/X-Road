@@ -581,7 +581,7 @@
     },
     "member": {
       "info": "Define the member that will act as the Security Server owner:",
-      "serverCodeHelp": "Info SS",
+      "serverCodeHelp": "Security Server code that uniquely identifies this Security Server within all the Security Servers of the same owner.",
       "title": "Owner Member"
     },
     "noInitializationStatus": "No initialization status available",
