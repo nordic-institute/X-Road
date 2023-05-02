@@ -79,13 +79,13 @@ public class RegistrationServiceProperties implements AdminServiceClientProperty
     /**
      * Path to a trust store containing certificates for the central server admin API
      */
-    @Value("${xroad.conf.path:/etc/xroad}/ssl/internal.p12")
+    @Value("${xroad.conf.path:/etc/xroad}/ssl/center-admin-service.p12")
     private Path apiTrustStore;
 
     /**
      * Password for the trust store
      */
-    private String apiTrustStorePassword = "internal";
+    private String apiTrustStorePassword = "center-admin-service";
 
     /**
      * Central server admin api base URL
