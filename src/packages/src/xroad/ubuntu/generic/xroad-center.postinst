@@ -201,7 +201,7 @@ create_certificates() {
             db_go
             rm -f /etc/xroad/ssl/center-admin-service.crt /etc/xroad/ssl/center-admin-service.key /etc/xroad/ssl/center-admin-service.p12
             log "generating new webUI TLS key/certificate with $subj and $altn"
-            /usr/share/xroad/scripts/generate_certificate.sh -n center-admin-service -s "${subj}" -a "${altn}" 2>/tmp/cert.err || handle_error
+            /usr/share/xroad/scripts/generate_certificate.sh -n center-admin-service -s "${subj}" -a "${altn}" -p 2>/tmp/cert.err || handle_error
         else
             break
         fi
