@@ -85,7 +85,7 @@ public class ManagementServiceProperties implements AdminServiceClientPropertyPr
     /**
      * Password for the trust store
      */
-    private String apiTrustStorePassword = "internal";
+    private String apiTrustStorePassword = "center-admin-service";
 
     /**
      * Central server admin api base URL

@@ -72,10 +72,10 @@ public class RegistrationRequestApiTest {
 
     @ClassRule
     public static WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
-            .keystorePath("./build/resources/test/testconf/ssl/internal.p12")
+            .keystorePath("./build/resources/test/testconf/ssl/center-admin-service.p12")
             .keystoreType("PKCS12")
-            .keystorePassword("internal")
-            .keyManagerPassword("internal")
+            .keystorePassword("center-admin-service")
+            .keyManagerPassword("center-admin-service")
             .httpDisabled(true)
             .dynamicHttpsPort());
 
