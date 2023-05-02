@@ -33,7 +33,7 @@ server:
   port: 4000
   ssl:
     key-store: /etc/xroad/ssl/center-admin-service.p12
-    key-store-password: internal
+    key-store-password: center-admin-service
     enabled: true
     ciphers: TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
     protocol: TLS
