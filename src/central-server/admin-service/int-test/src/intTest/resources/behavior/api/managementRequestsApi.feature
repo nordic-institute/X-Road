@@ -140,19 +140,20 @@ Feature: Management requests API
 
   @Modifying
   Scenario: Changing security server owner
-    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And member 'CS:E2E:member-1' is in global group 'security-server-owners'
     And new member 'CS:E2E:member-2' is added
     And member 'CS:E2E:member-2' is not in global group 'security-server-owners'
-    When client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
     And management request is approved
-    Then owner of security server 'CS:E2E:member-1:SS-X' can be changed to 'CS:E2E:member-2'
+    When owner of security server 'CS:E2E:member-1:SS-X' can be changed to 'CS:E2E:member-2'
     And management request is approved
-    And management request is with status 'APPROVED'
+    Then management request is with status 'APPROVED'
     And member 'CS:E2E:member-1' is not in global group 'security-server-owners'
     And member 'CS:E2E:member-2' is in global group 'security-server-owners'
     And member 'CS:E2E:member-2' owned servers contains 'CS:E2E:member-2:SS-X'
+    And security server 'CS:E2E:member-2:SS-X' clients contains 'CS:E2E:member-1'
 
   @Modifying
   Scenario: View management request details

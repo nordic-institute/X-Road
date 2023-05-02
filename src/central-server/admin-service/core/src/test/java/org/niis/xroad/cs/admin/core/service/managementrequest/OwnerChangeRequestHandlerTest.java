@@ -53,6 +53,7 @@ import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.OwnerChangeRequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 
 import java.util.EnumSet;
@@ -95,6 +96,7 @@ class OwnerChangeRequestHandlerTest {
     private final IdentifierRepository<SecurityServerIdEntity> serverIds = mock(IdentifierRepository.class);
     private final IdentifierRepository<MemberIdEntity> memberIds = mock(IdentifierRepository.class);
     private final SecurityServerRepository servers = mock(SecurityServerRepository.class);
+    private final ServerClientRepository serverClients = mock(ServerClientRepository.class);
     private final RequestMapper requestMapper = mock(RequestMapper.class);
     private final GlobalGroupMemberService groupMemberService = mock(GlobalGroupMemberService.class);
     @Mock
@@ -112,7 +114,7 @@ class OwnerChangeRequestHandlerTest {
     private XRoadMemberEntity currentOwnerMock;
 
     private final OwnerChangeRequestHandler ownerChangeRequestHandler = new OwnerChangeRequestHandler(members, ownerChangeRequestRepository,
-            serverIds, memberIds, servers, groupMemberService, requestMapper);
+            serverIds, memberIds, servers, serverClients, groupMemberService, requestMapper);
 
     private final ClientId clientId = MemberId.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE);
     private final XRoadMemberEntity xRoadMemberEntity =
@@ -342,6 +344,12 @@ class OwnerChangeRequestHandlerTest {
         assertThat(result).isEqualTo(ownerChangeRequestDto);
         verify(securityServerEntity).setOwner(xRoadMemberEntity);
         verify(servers).saveAndFlush(securityServerEntity);
+
+        ArgumentCaptor<ServerClientEntity> argHandler = ArgumentCaptor.forClass(ServerClientEntity.class);
+        verify(serverClients).saveAndFlush(argHandler.capture());
+        assertThat(argHandler.getValue().getSecurityServer()).isEqualTo(securityServerEntity);
+        assertThat(argHandler.getValue().getSecurityServerClient()).isEqualTo(currentOwnerMock);
+
         verify(ownerChangeRequestEntity).setProcessingStatus(APPROVED);
 
         verify(groupMemberService).removeMemberFromGlobalGroup(MemberId.create("x", "y", "z"), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);

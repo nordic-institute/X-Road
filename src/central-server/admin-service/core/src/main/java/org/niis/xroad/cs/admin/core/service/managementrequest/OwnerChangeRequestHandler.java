@@ -44,11 +44,13 @@ import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.OwnerChangeRequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.springframework.stereotype.Service;
 
@@ -82,6 +84,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final IdentifierRepository<MemberIdEntity> memberIds;
     private final SecurityServerRepository servers;
+    private final ServerClientRepository serverClients;
 
     private final GlobalGroupMemberService groupMemberService;
 
@@ -168,12 +171,13 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
                 .getOrElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND,
                         ownerChangeRequestEntity.getClientId().toString()));
 
-        final var currentOwnerIdentifier = securityServer.getOwner().getIdentifier();
+        final var currentOwner = securityServer.getOwner();
 
         securityServer.setOwner(newOwner);
+        ensureSecurityServerClient(securityServer, currentOwner);
         servers.saveAndFlush(securityServer);
 
-        updateGlobalGroups(currentOwnerIdentifier, newOwner);
+        updateGlobalGroups(currentOwner.getIdentifier(), newOwner);
 
         ownerChangeRequestEntity.setProcessingStatus(APPROVED);
         final OwnerChangeRequestEntity saved = ownerChangeRequestRepository.save(ownerChangeRequestEntity);
@@ -184,6 +188,14 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         if (!allowedStatuses.contains(requestEntity.getProcessingStatus())) {
             throw new ValidationFailureException(MR_INVALID_STATE_FOR_APPROVAL,
                     valueOf(requestEntity.getId()));
+        }
+    }
+
+    private void ensureSecurityServerClient(SecurityServerEntity securityServer, XRoadMemberEntity member) {
+        var isMemberAlreadyClient = securityServer.getServerClients().stream()
+                        .anyMatch(serverClient -> serverClient.getSecurityServerClient().getIdentifier().equals(member.getIdentifier()));
+        if (!isMemberAlreadyClient) {
+            serverClients.saveAndFlush(new ServerClientEntity(securityServer, member));
         }
     }
 
