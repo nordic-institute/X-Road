@@ -79,7 +79,7 @@ public class ManagementServiceProperties implements AdminServiceClientPropertyPr
     /**
      * Path to a trust store containing certificates for the central server admin API
      */
-    @Value("${xroad.conf.path:/etc/xroad}/ssl/internal.p12")
+    @Value("${xroad.conf.path:/etc/xroad}/ssl/center-admin-service.p12")
     private Path apiTrustStore;
 
     /**
