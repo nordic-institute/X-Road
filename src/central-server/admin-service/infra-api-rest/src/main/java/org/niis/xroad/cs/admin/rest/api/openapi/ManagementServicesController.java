@@ -25,16 +25,19 @@
  */
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.ManagementServicesService;
 import org.niis.xroad.cs.admin.rest.api.converter.ManagementServicesConfigurationMapper;
 import org.niis.xroad.cs.openapi.ManagementServicesApi;
 import org.niis.xroad.cs.openapi.model.ManagementServicesConfigurationDto;
+import org.niis.xroad.cs.openapi.model.RegisterServiceProviderRequestDto;
 import org.niis.xroad.cs.openapi.model.ServiceProviderIdDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,6 +45,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_SERVICE_PROVIDER_ID;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MANAGEMENT_SERVICES_PROVIDER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REGISTER_MANAGEMENT_SERVICES_PROVIDER;
 
 @Controller
 @PreAuthorize("denyAll")
@@ -51,6 +56,7 @@ public class ManagementServicesController implements ManagementServicesApi {
     private final ManagementServicesService managementServicesService;
     private final ManagementServicesConfigurationMapper managementServicesConfigurationMapper;
     private final ClientIdConverter clientIdConverter;
+    private final SecurityServerIdConverter securityServerIdConverter;
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SYSTEM_SETTINGS')")
@@ -61,7 +67,7 @@ public class ManagementServicesController implements ManagementServicesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SYSTEM_SETTINGS')")
-    @AuditEventMethod(event = RestApiAuditEvent.EDIT_MANAGEMENT_SERVICES_PROVIDER)
+    @AuditEventMethod(event = EDIT_MANAGEMENT_SERVICES_PROVIDER)
     public ResponseEntity<ManagementServicesConfigurationDto> updateManagementServicesConfiguration(
             ServiceProviderIdDto serviceProviderIdDto) {
         var serviceProviderId = serviceProviderIdDto.getServiceProviderId();
@@ -70,6 +76,15 @@ public class ManagementServicesController implements ManagementServicesApi {
         }
 
         var response = managementServicesService.updateManagementServicesProvider(clientIdConverter.convertId(serviceProviderId));
+        return ResponseEntity.ok(managementServicesConfigurationMapper.toTarget(response));
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('REGISTER_SERVICE_PROVIDER')")
+    @AuditEventMethod(event = REGISTER_MANAGEMENT_SERVICES_PROVIDER)
+    public ResponseEntity<ManagementServicesConfigurationDto> registerServiceProvider(RegisterServiceProviderRequestDto request) {
+        final SecurityServerId securityServerId = securityServerIdConverter.convertId(request.getSecurityServerId());
+        var response = managementServicesService.registerManagementServicesSecurityServer(securityServerId);
         return ResponseEntity.ok(managementServicesConfigurationMapper.toTarget(response));
     }
 }

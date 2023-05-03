@@ -2927,6 +2927,35 @@ paths:
       summary: update the management services configuration
       tags:
         - management-services
+  /management-services-configuration/register-provider:
+    post:
+      description: <h3>CS Administrator registers management service provider as security server client.</h3>
+      operationId: registerServiceProvider
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterServiceProviderRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementServicesConfiguration'
+          description: Management services configuration
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - management-services
   /system/server-address:
     put:
       operationId: updateCentralServerAddress
@@ -4498,6 +4527,19 @@ components:
           minLength: 1
           type: string
       type: object
+    RegisterServiceProviderRequest:
+      properties:
+        security_server_id:
+          description: encoded id of the security server
+          example: CS:ORG:111:SS1
+          format: text
+          maxLength: 1279
+          minLength: 1
+          readOnly: true
+          type: string
+      type: object
+      required:
+        - security_server_id
     SystemStatus:
       description: Central server's status
       properties:

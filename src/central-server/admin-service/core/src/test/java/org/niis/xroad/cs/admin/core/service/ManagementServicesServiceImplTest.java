@@ -33,19 +33,28 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
+import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
+import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
+import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
@@ -54,17 +63,26 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_CLASS;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_CODE;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @ExtendWith(MockitoExtension.class)
 class ManagementServicesServiceImplTest {
@@ -87,6 +105,10 @@ class ManagementServicesServiceImplTest {
 
     @Mock
     private Subsystem subsystem;
+    @Mock
+    private SecurityServerClientRepository<SecurityServerClientEntity> clients;
+    @Mock
+    private ManagementRequestService managementRequestService;
 
     @InjectMocks
     private ManagementServicesServiceImpl managementServicesService;
@@ -105,7 +127,7 @@ class ManagementServicesServiceImplTest {
 
     @Nested
     @DisplayName("getManagementServicesConfiguration()")
-    public class GetManagementServicesConfiguration {
+    class GetManagementServicesConfiguration {
 
         @Test
         void shouldReturnWithSubsystem() {
@@ -158,7 +180,7 @@ class ManagementServicesServiceImplTest {
 
     @Nested
     @DisplayName("updateManagementServicesProvider(clientId)")
-    public class UpdateManagementServicesProvider {
+    class UpdateManagementServicesProvider {
 
         @Test
         void shouldUpdate() {
@@ -188,6 +210,78 @@ class ManagementServicesServiceImplTest {
 
             verify(systemParameterService, never()).updateOrCreateParameter(any(), any());
             verify(auditData, never()).put(any(), any());
+        }
+    }
+
+    @Nested
+    @DisplayName("registerManagementServicesSecurityServer(securityServerId)")
+    class RegisterManagementServicesSecurityServer {
+
+        private final ee.ria.xroad.common.identifier.SecurityServerId securityServerId = SecurityServerId.create(clientId, "SS0");
+        private final ClientId managementServiceProviderId = ClientId.Conf.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE, SUBSYSTEM_CODE);
+
+        @Mock
+        private SecurityServerClientEntity securityServerClientEntity;
+        @Mock
+        private ClientRegistrationRequest clientRegistrationRequest;
+        @Captor
+        private ArgumentCaptor<ClientRegistrationRequest> argumentCaptor;
+
+        @Test
+        void shouldRegister() {
+            final int requestId = 123;
+            when(systemParameterService.getManagementServiceProviderId()).thenReturn(managementServiceProviderId);
+            when(clients.findOneBy(managementServiceProviderId)).thenReturn(Option.of(securityServerClientEntity));
+            when(securityServerClientEntity.getServerClients()).thenReturn(Set.of());
+            when(managementRequestService.add(isA(ClientRegistrationRequest.class))).thenReturn(clientRegistrationRequest);
+            when(clientRegistrationRequest.getProcessingStatus()).thenReturn(SUBMITTED_FOR_APPROVAL);
+            when(clientRegistrationRequest.getId()).thenReturn(requestId);
+
+            when(memberService.findMember(managementServiceProviderId)).thenReturn(Option.of(xRoadMember));
+            when(subsystemService.findByIdentifier(managementServiceProviderId)).thenReturn(Optional.of(subsystem));
+
+            managementServicesService.registerManagementServicesSecurityServer(securityServerId);
+
+            verify(auditData).put(SERVER_CODE, securityServerId.getServerCode());
+            verify(auditData).put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+            verify(auditData).put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+            verify(auditData).put(CLIENT_IDENTIFIER, managementServiceProviderId.asEncodedId());
+
+            verify(managementRequestService).add(argumentCaptor.capture());
+            assertThat(argumentCaptor.getValue().getClientId())
+                    .isEqualTo(org.niis.xroad.cs.admin.api.domain.ClientId.ensure(managementServiceProviderId));
+            assertThat(argumentCaptor.getValue().getSecurityServerId())
+                    .isEqualTo(org.niis.xroad.cs.admin.api.domain.SecurityServerId.ensure(securityServerId));
+            assertThat(argumentCaptor.getValue().getOrigin()).isEqualTo(Origin.CENTER);
+
+            verify(managementRequestService).approve(requestId);
+        }
+
+        @Test
+        void shouldFailManagementSubsystemNotSet() {
+            when(systemParameterService.getManagementServiceProviderId()).thenReturn(null);
+
+            assertThatThrownBy(() -> managementServicesService.registerManagementServicesSecurityServer(securityServerId))
+                    .isInstanceOf(ValidationFailureException.class)
+                    .hasMessage("Management service provider not set");
+        }
+
+        @Test
+        void shouldFailSubsystemRegistered() {
+            when(systemParameterService.getManagementServiceProviderId()).thenReturn(managementServiceProviderId);
+            when(clients.findOneBy(managementServiceProviderId)).thenReturn(Option.of(securityServerClientEntity));
+            when(securityServerClientEntity.getServerClients()).thenReturn(Set.of(mock(ServerClientEntity.class)));
+
+            assertThatThrownBy(() -> managementServicesService.registerManagementServicesSecurityServer(securityServerId))
+                    .isInstanceOf(ValidationFailureException.class)
+                    .hasMessage("Subsystem is already registered to the security server.");
+
+            verify(auditData).put(SERVER_CODE, securityServerId.getServerCode());
+            verify(auditData).put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+            verify(auditData).put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+            verify(auditData).put(CLIENT_IDENTIFIER, managementServiceProviderId.asEncodedId());
+
+            verifyNoInteractions(managementRequestService);
         }
     }
 }

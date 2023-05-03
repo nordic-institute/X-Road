@@ -42,9 +42,11 @@ public enum ErrorMessage implements DeviationProvider {
     SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED("subsystem_registered_and_cannot_be_deleted", "Cannot delete already registered subsystem."),
     SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER("subsystem_not_registered_to_security_server",
             "Subsystem is not registered to the given security server."),
+    SUBSYSTEM_ALREADY_REGISTERED_TO_SECURITY_SERVER("subsystem_already_registered_to_security_server",
+            "Subsystem is already registered to the security server."),
 
     SS_AUTH_CERTIFICATE_NOT_FOUND("ss_auth_certificate_not_found", "Authentication certificate not found"),
-
+    MANAGEMENT_SERVICE_PROVIDER_NOT_SET("management_service_provider_not_set", "Management service provider not set"),
     MR_NOT_FOUND("management_request_not_found", "No management request with the specified id found."),
     MR_EXISTS("management_request_exists", "A pending management request already exists."),
     MR_SECURITY_SERVER_EXISTS("management_request_security_server_exists", "Certificate is already registered."),

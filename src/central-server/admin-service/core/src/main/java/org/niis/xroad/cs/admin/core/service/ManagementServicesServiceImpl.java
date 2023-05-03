@@ -30,6 +30,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ManagementServicesConfiguration;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
@@ -37,10 +39,13 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.ManagementServicesService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
+import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
@@ -50,9 +55,18 @@ import java.util.Set;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.APPROVED;
+import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_SERVICE_PROVIDER_NOT_SET;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_ALREADY_REGISTERED_TO_SECURITY_SERVER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_FOUND;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_CLASS;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_CODE;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_PROVIDER_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_PROVIDER_NAME;
 
@@ -63,11 +77,13 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
     private final MemberService memberService;
     private final SubsystemService subsystemService;
     private final AuditDataHelper auditData;
+    private final SecurityServerClientRepository<SecurityServerClientEntity> clients;
+    private final ManagementRequestService managementRequestService;
 
     @Override
     public ManagementServicesConfiguration updateManagementServicesProvider(ClientId serviceProviderClientId) {
         var subsystem = subsystemService.findByIdentifier(serviceProviderClientId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
         var xRoadMember = subsystem.getXroadMember();
 
         systemParameterService.updateOrCreateParameter(MANAGEMENT_SERVICE_PROVIDER_CLASS, xRoadMember.getMemberClass().getCode());
@@ -78,6 +94,35 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
         auditData.put(SERVICE_PROVIDER_NAME, subsystem.getXroadMember().getName());
 
         return getFullConfiguration(xRoadMember, serviceProviderClientId);
+    }
+
+    @Override
+    public ManagementServicesConfiguration registerManagementServicesSecurityServer(
+            ee.ria.xroad.common.identifier.SecurityServerId securityServerId) {
+        final ClientId serviceProviderClientId = systemParameterService.getManagementServiceProviderId();
+        if (serviceProviderClientId == null) {
+            throw new ValidationFailureException(MANAGEMENT_SERVICE_PROVIDER_NOT_SET);
+        }
+        org.niis.xroad.cs.admin.api.domain.ClientId clientId = org.niis.xroad.cs.admin.api.domain.ClientId.ensure(serviceProviderClientId);
+
+        auditData.put(SERVER_CODE, securityServerId.getServerCode());
+        auditData.put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+        auditData.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+        auditData.put(CLIENT_IDENTIFIER, clientId.asEncodedId());
+
+        final SecurityServerClientEntity subsystem = clients.findOneBy(serviceProviderClientId)
+                .getOrElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
+        if (!subsystem.getServerClients().isEmpty()) {
+            throw new ValidationFailureException(SUBSYSTEM_ALREADY_REGISTERED_TO_SECURITY_SERVER);
+        }
+
+        ClientRegistrationRequest clientRegistrationRequest = new ClientRegistrationRequest(CENTER, securityServerId, clientId);
+        final ClientRegistrationRequest request = managementRequestService.add(clientRegistrationRequest);
+        if (request.getProcessingStatus() != APPROVED) {
+            managementRequestService.approve(request.getId());
+        }
+
+        return getManagementServicesConfiguration();
     }
 
     @Override
@@ -112,7 +157,7 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
         Set<SecurityServerId> securityServers = new HashSet<>();
         if (serviceProviderClientId.getSubsystemCode() != null) {
             securityServerClient = subsystemService.findByIdentifier(serviceProviderClientId)
-                    .orElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_FOUND));
+                    .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
         } else {
             securityServerClient = xRoadMember;
 

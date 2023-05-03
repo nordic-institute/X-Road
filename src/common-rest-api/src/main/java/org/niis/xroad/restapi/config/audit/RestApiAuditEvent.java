@@ -163,6 +163,7 @@ public enum RestApiAuditEvent {
     DELETE_INTERMEDIATE_CA("Delete intermediate CA"),
     DELETE_OCSP_RESPONDER("Delete OCSP responder"),
 
+    REGISTER_MANAGEMENT_SERVICES_PROVIDER("Register management service provider as security server client"),
     EDIT_MANAGEMENT_SERVICES_PROVIDER("Edit provider of management services");
     private final String eventName;
 
