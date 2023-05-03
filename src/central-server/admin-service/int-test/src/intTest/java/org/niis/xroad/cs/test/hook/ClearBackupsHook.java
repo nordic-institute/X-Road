@@ -28,10 +28,12 @@ package org.niis.xroad.cs.test.hook;
 
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.hooks.AfterScenarioHook;
+import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.test.container.service.ExtTestContainerService;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
 
 @Slf4j
 @Component
@@ -39,7 +41,7 @@ import org.springframework.stereotype.Component;
 public class ClearBackupsHook implements AfterScenarioHook {
     private static final String TAG_CLEAR_BACKUPS = "@ClearBackups";
 
-    private final ExtTestContainerService extTestContainerService;
+    private final TestableApplicationContainerProvider containerProvider;
 
     @Override
     public void after(CucumberScenarioProvider cucumberScenarioProvider) {
@@ -53,7 +55,15 @@ public class ClearBackupsHook implements AfterScenarioHook {
             log.info("Scenario [{}] was marked as {}. Clearing backups.",
                     cucumberScenarioProvider.getCucumberScenario().getName(),
                     TAG_CLEAR_BACKUPS);
-            extTestContainerService.clearBackupsDir();
+            clearBackupsDir();
+        }
+    }
+
+    private void clearBackupsDir() {
+        try {
+            containerProvider.getContainer().execInContainer("rm", "-rf", "/var/lib/xroad/backup/");
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Failed to clear up backups dir", e);
         }
     }
 }

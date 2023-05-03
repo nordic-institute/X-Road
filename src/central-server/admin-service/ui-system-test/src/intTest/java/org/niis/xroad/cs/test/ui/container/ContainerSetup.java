@@ -25,97 +25,79 @@
  */
 package org.niis.xroad.cs.test.ui.container;
 
-import com.nortal.test.testcontainers.AbstractTestableContainerSetup;
+import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
 import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.niis.xroad.cs.test.ui.TargetHostUrlProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import org.testcontainers.images.builder.dockerfile.DockerfileBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.utility.LazyFuture;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
-@Component
-@RequiredArgsConstructor
-public class ContainerSetup extends AbstractTestableContainerSetup {
+@Configuration
+@SuppressWarnings("checkstyle:MagicNumber")
+public class ContainerSetup {
     private static final String VERIFY_EXTERNAL_CONFIGURATION_PATH = "usr/share/xroad/scripts/verify_external_configuration.sh";
     private static final String VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH =
             "src/intTest/resources/container-files/" + VERIFY_EXTERNAL_CONFIGURATION_PATH;
-    private final TargetHostUrlProvider targetHostUrlProvider;
 
-    @Value("${test-automation.custom.package-repo}")
-    private String packageRepo;
-    @Value("${test-automation.custom.package-repo-key}")
-    private String packageRepoKey;
+    @Bean
+    public TestContainerConfigurator testContainerConfigurator(
+            @Value("${test-automation.custom.package-repo}") String packageRepo,
+            @Value("${test-automation.custom.package-repo-key}") String packageRepoKey) {
+        return new TestContainerConfigurator() {
+            @NotNull
+            @Override
+            public LazyFuture<String> imageDefinition() {
+                Path csDockerRoot = Paths.get("../../../../Docker/centralserver/");
+                Path dockerfilePath = csDockerRoot.resolve("Dockerfile");
 
+                return new ImageFromDockerfile("cs-system-test", true)
+                        .withBuildArg("DIST", "jammy")
+                        .withBuildArg("REPO", packageRepo)
+                        .withBuildArg("REPO_KEY", packageRepoKey)
+                        .withFileFromPath("Dockerfile", dockerfilePath)
+                        .withFileFromFile(".", csDockerRoot.resolve("build/").toFile())
+                        .withFileFromPath(VERIFY_EXTERNAL_CONFIGURATION_PATH, Paths.get(VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH));
+            }
 
-    @NotNull
-    @Override
-    public String applicationName() {
-        return "cs-e2e";
+            @NotNull
+            @Override
+            public Map<String, String> environmentalVariables() {
+                return new HashMap<>();
+            }
+
+            @NotNull
+            @Override
+            public List<Integer> exposedPorts() {
+                return List.of(4000);
+            }
+        };
     }
 
-    @NotNull
-    @Override
-    public String maxMemory() {
-        return "768m";
+    @Bean
+    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener() {
+        return new TestContainerConfigurator.TestContainerInitListener() {
+
+            @Override
+            public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
+                //do nothing
+            }
+
+            @Override
+            public void afterStart(@NotNull GenericContainer<?> genericContainer) {
+                //do nothing
+            }
+        };
     }
 
-    @Override
-    public int[] getTargetContainerExposedPorts() {
-        return super.getTargetContainerExposedPorts();
-    }
 
-    @Override
-    public void additionalBuilderConfiguration(@NotNull DockerfileBuilder dockerfileBuilder) {
-        //do nothing
-    }
-
-    @NotNull
-    @Override
-    public List<String> additionalCommandParts() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public void additionalImageFromDockerfileConfiguration(@NotNull ImageFromDockerfile imageFromDockerfile) {
-        //do nothing
-    }
-
-    @NotNull
-    @Override
-    protected ImageFromDockerfile build() {
-        Path csDockerRoot = Paths.get("../../../../Docker/centralserver/");
-        Path dockerfilePath = csDockerRoot.resolve("Dockerfile");
-
-        return new ImageFromDockerfile("cs-system-test", true)
-                .withBuildArg("DIST", "jammy")
-                .withBuildArg("REPO", packageRepo)
-                .withBuildArg("REPO_KEY", packageRepoKey)
-
-                .withFileFromPath("Dockerfile", dockerfilePath)
-                .withFileFromFile(".", csDockerRoot.resolve("build/").toFile())
-                .withFileFromPath(VERIFY_EXTERNAL_CONFIGURATION_PATH, Paths.get(VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH));
-    }
-
-    @Override
-    public void initialize() {
-        if (targetHostUrlProvider.isUrlOverridden()) {
-            log.warn("Target host url override is set. Container initialization is disabled.");
-        } else {
-            super.initialize();
-
-        }
-    }
-
-    @Override
-    public void onContainerStartupInitiated() {
-        //do nothing
-    }
 }

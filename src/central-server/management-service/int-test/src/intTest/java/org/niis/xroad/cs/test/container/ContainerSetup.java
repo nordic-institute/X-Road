@@ -25,70 +25,82 @@
  */
 package org.niis.xroad.cs.test.container;
 
-import com.nortal.test.testcontainers.AbstractTestableSpringBootContainerSetup;
+import com.nortal.test.testcontainers.configurator.SpringBootTestContainerConfigurator;
+import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
 import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.cs.test.constants.CommonTestData;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.dockerfile.DockerfileBuilder;
 
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
-@RequiredArgsConstructor
-public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
-    private final MockServerAuxContainer mockServerAuxContainer;
+@Configuration
+@SuppressWarnings("checkstyle:MagicNumber")
+public class ContainerSetup {
 
-    @NotNull
-    @Override
-    public String applicationName() {
-        return "cs-management-service";
+    @Bean
+    public TestContainerConfigurator testContainerConfigurator() {
+        return new SpringBootTestContainerConfigurator();
     }
 
-    @NotNull
-    @Override
-    public String maxMemory() {
-        return "512m";
+    @Bean
+    public SpringBootTestContainerConfigurator.TestContainerCustomizer testContainerCustomizer(
+            MockServerAuxContainer mockServerAuxContainer) {
+        return new SpringBootTestContainerConfigurator.TestContainerCustomizer() {
+            @Override
+            public void customizeImageDefinition(@NotNull ImageFromDockerfile imageFromDockerfile) {
+                var filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
+                imageFromDockerfile.withFileFromFile(".", filesToAdd);
+            }
+
+            @Override
+            public void customizeDockerFileBuilder(@NotNull DockerfileBuilder dockerfileBuilder) {
+                dockerfileBuilder.copy(".", ".");
+            }
+
+            @NotNull
+            @Override
+            public List<String> customizeCommandParts() {
+                return List.of();
+            }
+
+            @NotNull
+            @Override
+            public Map<String, String> additionalEnvironmentalVariables() {
+                Map<String, String> envConfig = new HashMap<>();
+                envConfig.put("xroad.management-service.api-base-url", mockServerAuxContainer.getEndpoint());
+                envConfig.put("xroad.management-service.api-token", CommonTestData.API_KEY_TOKEN_WITH_ALL_ROLES);
+                return envConfig;
+            }
+
+            @NotNull
+            @Override
+            public List<Integer> additionalExposedPorts() {
+                return List.of(8085);
+            }
+        };
     }
 
-    @Override
-    public int[] getTargetContainerExposedPorts() {
-        return super.getTargetContainerExposedPorts();
-    }
+    @Bean
+    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener() {
+        return new TestContainerConfigurator.TestContainerInitListener() {
 
-    @Override
-    public void additionalBuilderConfiguration(@NotNull DockerfileBuilder dockerfileBuilder) {
-        dockerfileBuilder.copy(".", ".");
-    }
+            @Override
+            public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
+                genericContainer.waitingFor(Wait.forLogMessage(".*Started ManagementServiceMain.*", 1));
+            }
 
-    @NotNull
-    @Override
-    public List<String> additionalCommandParts() {
-        return Collections.emptyList();
-    }
-
-    @NotNull
-    @Override
-    public Map<String, String> getTargetContainerEnvConfig() {
-        Map<String, String> envConfig = new HashMap<>(super.getTargetContainerEnvConfig());
-        envConfig.put("xroad.management-service.api-base-url", mockServerAuxContainer.getEndpoint());
-        envConfig.put("xroad.management-service.api-token", CommonTestData.API_KEY_TOKEN_WITH_ALL_ROLES);
-        return envConfig;
-    }
-
-    @Override
-    public void additionalImageFromDockerfileConfiguration(@NotNull ImageFromDockerfile imageFromDockerfile) {
-        var filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
-        imageFromDockerfile.withFileFromFile(".", filesToAdd);
-    }
-
-    @Override
-    public void onContainerStartupInitiated() {
-        //do nothing
+            @Override
+            public void afterStart(@NotNull GenericContainer<?> genericContainer) {
+                //do nothing
+            }
+        };
     }
 }

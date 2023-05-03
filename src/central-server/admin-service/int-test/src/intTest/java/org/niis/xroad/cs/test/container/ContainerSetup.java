@@ -25,13 +25,16 @@
  */
 package org.niis.xroad.cs.test.container;
 
-import com.nortal.test.testcontainers.AbstractTestableSpringBootContainerSetup;
+import com.nortal.test.testcontainers.configurator.SpringBootTestContainerConfigurator;
+import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
 import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.cs.test.container.database.LiquibaseExecutor;
 import org.niis.xroad.cs.test.container.database.PostgresContextualContainer;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.dockerfile.DockerfileBuilder;
 
 import java.nio.file.Paths;
@@ -39,69 +42,74 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
-@RequiredArgsConstructor
-public class ContainerSetup extends AbstractTestableSpringBootContainerSetup {
-    private final PostgresContextualContainer postgresContextualContainer;
-    private final ExtMockServerContainer mockServerContainer;
-    private final LiquibaseExecutor liquibaseExecutor;
+@Configuration
+@SuppressWarnings("checkstyle:MagicNumber")
+public class ContainerSetup {
 
-    @NotNull
-    @Override
-    public String applicationName() {
-        return "cs-admin-service";
+    @Bean
+    public TestContainerConfigurator testContainerConfigurator() {
+        return new SpringBootTestContainerConfigurator();
     }
 
-    @NotNull
-    @Override
-    public String maxMemory() {
-        return "512m";
+    @Bean
+    public SpringBootTestContainerConfigurator.TestContainerCustomizer testContainerCustomizer(
+            ExtMockServerContainer mockServerContainer,
+            PostgresContextualContainer postgresContextualContainer) {
+        return new SpringBootTestContainerConfigurator.TestContainerCustomizer() {
+            @Override
+            public void customizeImageDefinition(@NotNull ImageFromDockerfile imageFromDockerfile) {
+                var filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
+                imageFromDockerfile.withFileFromFile(".", filesToAdd);
+            }
+
+            @Override
+            public void customizeDockerFileBuilder(@NotNull DockerfileBuilder dockerfileBuilder) {
+                dockerfileBuilder.copy(".", ".");
+            }
+
+            @NotNull
+            @Override
+            public List<String> customizeCommandParts() {
+                return List.of("-Dxroad.signer.enforce-token-pin-policy=true");
+            }
+
+            @NotNull
+            @Override
+            public Map<String, String> additionalEnvironmentalVariables() {
+                Map<String, String> envConfig = new HashMap<>();
+                envConfig.put("spring.datasource.url", postgresContextualContainer.getJdbcUrl());
+                envConfig.put("spring.datasource.username", "xrd");
+                envConfig.put("spring.datasource.password", "secret");
+                envConfig.put("signerProxyMockUri", mockServerContainer.getEndpoint());
+                envConfig.put("script.generate-backup.path", "/usr/share/xroad/scripts/backup_xroad_center_configuration.sh");
+                envConfig.put("script.restore-configuration.path", "/usr/share/xroad/scripts/restore_xroad_center_configuration.sh");
+                return envConfig;
+            }
+
+            @NotNull
+            @Override
+            public List<Integer> additionalExposedPorts() {
+                return List.of(4000);
+            }
+        };
     }
 
-    @Override
-    public int[] getTargetContainerExposedPorts() {
-        return super.getTargetContainerExposedPorts();
+    @Bean
+    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener(LiquibaseExecutor liquibaseExecutor) {
+        return new TestContainerConfigurator.TestContainerInitListener() {
+
+            @Override
+            public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
+                genericContainer.waitingFor(Wait.forLogMessage(".*Started Main in.*", 1));
+
+                liquibaseExecutor.executeChangesets();
+            }
+
+            @Override
+            public void afterStart(@NotNull GenericContainer<?> genericContainer) {
+                //do nothing
+            }
+        };
     }
 
-    @Override
-    public void additionalBuilderConfiguration(@NotNull DockerfileBuilder dockerfileBuilder) {
-        dockerfileBuilder.copy(".", ".");
-    }
-
-    @NotNull
-    @Override
-    public List<String> additionalCommandParts() {
-        return List.of("-Dxroad.signer.enforce-token-pin-policy=true");
-    }
-
-    @Override
-    public void additionalImageFromDockerfileConfiguration(@NotNull ImageFromDockerfile imageFromDockerfile) {
-        var filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
-        imageFromDockerfile.withFileFromFile(".", filesToAdd);
-    }
-
-    @NotNull
-    @Override
-    public Map<String, String> getTargetContainerEnvConfig() {
-        Map<String, String> envConfig = new HashMap<>(super.getTargetContainerEnvConfig());
-        envConfig.put("spring.datasource.url", postgresContextualContainer.getJdbcUrl());
-        envConfig.put("spring.datasource.username", "xrd");
-        envConfig.put("spring.datasource.password", "secret");
-        envConfig.put("signerProxyMockUri", mockServerContainer.getEndpoint());
-        envConfig.put("script.generate-backup.path", "/usr/share/xroad/scripts/backup_xroad_center_configuration.sh");
-        envConfig.put("script.restore-configuration.path", "/usr/share/xroad/scripts/restore_xroad_center_configuration.sh");
-        return envConfig;
-    }
-
-    @Override
-    public void initialize() {
-        liquibaseExecutor.executeChangesets();
-
-        super.initialize();
-    }
-
-    @Override
-    public void onContainerStartupInitiated() {
-        //do nothing
-    }
 }
