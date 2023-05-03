@@ -54,7 +54,7 @@ public final class FISubjectClientIdDecoder {
      * @param cert certificate from which to construct the client ID
      * @return a fully constructed Client identifier from DN of the certificate.
      */
-    public static ClientId getSubjectClientId(X509Certificate cert) {
+    public static ClientId.Conf getSubjectClientId(X509Certificate cert) {
         X500Principal principal = cert.getSubjectX500Principal();
         X500Name x500name = new X500Name(principal.getName());
 
@@ -79,7 +79,7 @@ public final class FISubjectClientIdDecoder {
 
     private static final Pattern SPLIT_PATTERN = Pattern.compile("/");
 
-    private static ClientId parseClientId(X500Name x500name) {
+    private static ClientId.Conf parseClientId(X500Name x500name) {
         String c = getRDNValue(x500name, BCStyle.C);
         if (!"FI".equals(c)) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
@@ -110,7 +110,7 @@ public final class FISubjectClientIdDecoder {
         }
 
         // Note. components[1] = serverCode, unused
-        return ClientId.create(
+        return ClientId.Conf.create(
                 components[0], // instanceId
                 components[2], // memberClass
                 memberCode);
@@ -127,7 +127,7 @@ public final class FISubjectClientIdDecoder {
      *  <li>CN = memberCode (business code without "Y" prefix)</li>
      * </ul>
      */
-    private static ClientId parseClientIdFromLegacyName(X500Name x500name) {
+    private static ClientId.Conf parseClientIdFromLegacyName(X500Name x500name) {
         String c = getRDNValue(x500name, BCStyle.C);
         if (!"FI".equals(c)) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
@@ -152,6 +152,6 @@ public final class FISubjectClientIdDecoder {
                     "Certificate subject name does not contain common name");
         }
 
-        return ClientId.create(instanceId, memberClass, memberCode);
+        return ClientId.Conf.create(instanceId, memberClass, memberCode);
     }
 }

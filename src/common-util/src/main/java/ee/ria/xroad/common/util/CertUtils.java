@@ -197,7 +197,7 @@ public final class CertUtils {
      * @param cert certificate from which to construct the client ID
      * @return a fully constructed Client identifier from DN of the certificate.
      */
-    public static ClientId getSubjectClientId(X509Certificate cert) {
+    public static ClientId.Conf getSubjectClientId(X509Certificate cert) {
         X500Principal principal = cert.getSubjectX500Principal();
         X500Name x500name = new X500Name(principal.getName());
 
@@ -222,7 +222,7 @@ public final class CertUtils {
                     "Certificate subject name does not contain common name");
         }
 
-        return ClientId.create(c, o, cn);
+        return ClientId.Conf.create(c, o, cn);
     }
 
     /**
@@ -234,7 +234,7 @@ public final class CertUtils {
      * @return boolean
      * @throws Exception if the cert has no keyUsage extension
      */
-    public static boolean isAuthCert(X509Certificate cert) throws Exception {
+    public static boolean isAuthCert(X509Certificate cert) throws CertificateParsingException {
         List<String> extendedKeyUsage = cert.getExtendedKeyUsage();
 
         if (extendedKeyUsage != null && extendedKeyUsage.contains("1.3.6.1.5.5.7.3.2")) {
@@ -244,7 +244,7 @@ public final class CertUtils {
         boolean[] keyUsage = cert.getKeyUsage();
 
         if (keyUsage == null) {
-            throw new RuntimeException("Certificate does not contain keyUsage extension");
+            throw new CertificateParsingException("Certificate does not contain keyUsage extension");
         }
 
         return keyUsage[DIGITAL_SIGNATURE_IDX]

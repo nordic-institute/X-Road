@@ -99,21 +99,21 @@ public class SkEsteIdCertificateProfileInfoProvider
         private final SignCertificateProfileInfo.Parameters params;
 
         @Override
-        public ClientId getSubjectIdentifier(X509Certificate certificate)
+        public ClientId.Conf getSubjectIdentifier(X509Certificate certificate)
                 throws Exception {
             return getSubjectIdentifier(
                 new X500Name(certificate.getSubjectX500Principal().getName())
             );
         }
 
-        ClientId getSubjectIdentifier(X500Name x500name) throws Exception {
+        ClientId.Conf getSubjectIdentifier(X500Name x500name) throws Exception {
             String sn = CertUtils.getRDNValue(x500name, BCStyle.SERIALNUMBER);
             if (StringUtils.isEmpty(sn)) {
                 throw new Exception(
                         "Subject name does not contain serial number");
             }
 
-            return ClientId.create(
+            return ClientId.Conf.create(
                 params.getClientId().getXRoadInstance(),
                 PERSON,
                 sn

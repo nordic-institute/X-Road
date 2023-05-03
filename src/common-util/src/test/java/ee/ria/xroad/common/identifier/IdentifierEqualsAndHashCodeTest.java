@@ -38,10 +38,8 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests to verify X-Road identifier hashCode and equals methods behavior.
@@ -76,22 +74,22 @@ public class IdentifierEqualsAndHashCodeTest {
                 new DataProvider() {
                     @Override
                     XRoadId provideVariant1() {
-                        return ClientId.create(
+                        return ClientId.Conf.create(
                                 "EE", "BUSINESS", "member");
                     }
                     @Override
                     XRoadId provideVariant2() {
-                        return ClientId.create(
+                        return ClientId.Conf.create(
                                 "EE", "BUSINESS", "foobar");
                     }
                     @Override
                     XRoadId provideVariant3() {
-                        return ClientId.create(
+                        return ClientId.Conf.create(
                                 "EE", "BUSINESS", "member", "foo");
                     }
                     @Override
                     XRoadId provideVariant4() {
-                        return ClientId.create(
+                        return ClientId.Conf.create(
                                 "EE", "COMPANY", "member");
                     }
                 },
@@ -100,43 +98,23 @@ public class IdentifierEqualsAndHashCodeTest {
                 new DataProvider() {
                     @Override
                     XRoadId provideVariant1() {
-                        return ServiceId.create(
+                        return ServiceId.Conf.create(
                                 "EE", "BUSINESS", "member", null, "getState");
                     }
                     @Override
                     XRoadId provideVariant2() {
-                        return ServiceId.create(
+                        return ServiceId.Conf.create(
                                 "EE", "BUSINESS", "member", null, "putState");
                     }
                     @Override
                     XRoadId provideVariant3() {
-                        return ServiceId.create(
+                        return ServiceId.Conf.create(
                                 "EE", "BUSINESS", "member", "foo", "getState");
                     }
                     @Override
                     XRoadId provideVariant4() {
-                        return ServiceId.create(
+                        return ServiceId.Conf.create(
                                 "EE", "COMPANY", "member", null, "getState");
-                    }
-                },
-            },
-            {// Set #3 -- CentralServiceId
-                new DataProvider() {
-                    @Override
-                    XRoadId provideVariant1() {
-                        return CentralServiceId.create("EE", "a");
-                    }
-                    @Override
-                    XRoadId provideVariant2() {
-                        return CentralServiceId.create("EE", "lorem_ipsum");
-                    }
-                    @Override
-                    XRoadId provideVariant3() {
-                        return CentralServiceId.create("UK", "blah");
-                    }
-                    @Override
-                    XRoadId provideVariant4() {
-                        return CentralServiceId.create("EE", "foo");
                     }
                 },
             },
@@ -144,19 +122,19 @@ public class IdentifierEqualsAndHashCodeTest {
                 new DataProvider() {
                     @Override
                     XRoadId provideVariant1() {
-                        return SecurityCategoryId.create("EE", "K1");
+                        return SecurityCategoryId.Conf.create("EE", "K1");
                     }
                     @Override
                     XRoadId provideVariant2() {
-                        return SecurityCategoryId.create("EE", "K2");
+                        return SecurityCategoryId.Conf.create("EE", "K2");
                     }
                     @Override
                     XRoadId provideVariant3() {
-                        return SecurityCategoryId.create("UK", "K3");
+                        return SecurityCategoryId.Conf.create("UK", "K3");
                     }
                     @Override
                     XRoadId provideVariant4() {
-                        return SecurityCategoryId.create("EE", "K4");
+                        return SecurityCategoryId.Conf.create("EE", "K4");
                     }
                 },
             },
@@ -164,22 +142,22 @@ public class IdentifierEqualsAndHashCodeTest {
                 new DataProvider() {
                     @Override
                     XRoadId provideVariant1() {
-                        return SecurityServerId.create(
+                        return SecurityServerId.Conf.create(
                                 "EE", "COMPANY", "producer", "server1");
                     }
                     @Override
                     XRoadId provideVariant2() {
-                        return SecurityServerId.create(
+                        return SecurityServerId.Conf.create(
                                 "EE", "COMPANY", "consumer", "server1");
                     }
                     @Override
                     XRoadId provideVariant3() {
-                        return SecurityServerId.create(
+                        return SecurityServerId.Conf.create(
                                 "EE", "BUSINESS", "producer", "server1");
                     }
                     @Override
                     XRoadId provideVariant4() {
-                        return SecurityServerId.create(
+                        return SecurityServerId.Conf.create(
                                 "EE", "COMPANY", "producer", "server3");
                     }
                 },
@@ -188,19 +166,19 @@ public class IdentifierEqualsAndHashCodeTest {
                 new DataProvider() {
                     @Override
                     XRoadId provideVariant1() {
-                        return GlobalGroupId.create("EE", "G1");
+                        return GlobalGroupId.Conf.create("EE", "G1");
                     }
                     @Override
                     XRoadId provideVariant2() {
-                        return GlobalGroupId.create("EE", "G2");
+                        return GlobalGroupId.Conf.create("EE", "G2");
                     }
                     @Override
                     XRoadId provideVariant3() {
-                        return GlobalGroupId.create("UE", "G1");
+                        return GlobalGroupId.Conf.create("UE", "G1");
                     }
                     @Override
                     XRoadId provideVariant4() {
-                        return GlobalGroupId.create("EE", "G5");
+                        return GlobalGroupId.Conf.create("EE", "G5");
                     }
                 },
             }
@@ -215,7 +193,7 @@ public class IdentifierEqualsAndHashCodeTest {
     public void shouldBeEqual() {
         XRoadId first = provider.provideVariant1();
         XRoadId second = provider.provideVariant1();
-        assertTrue(first.equals(second));
+        assertEquals(first, second);
     }
 
     /**
@@ -225,7 +203,7 @@ public class IdentifierEqualsAndHashCodeTest {
     public void shouldNotBeEqual() {
         XRoadId first = provider.provideVariant1();
         XRoadId second = provider.provideVariant2();
-        assertFalse(first.equals(second));
+        assertNotEquals(first, second);
     }
 
     /**
@@ -235,7 +213,7 @@ public class IdentifierEqualsAndHashCodeTest {
     public void shouldNotBeEqual2() {
         XRoadId first = provider.provideVariant1();
         XRoadId second = provider.provideVariant3();
-        assertFalse(first.equals(second));
+        assertNotEquals(first, second);
     }
 
     /**

@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -100,6 +101,7 @@ public class SystemPropertiesLoader {
     private static final String DEFAULT_PREFIX = SystemProperties.PREFIX;
     private static final String ADDON_GLOB = "*.ini";
     private static final String OVERRIDE_GLOB = "override-*.ini";
+    private static final String CONF_FILE_DOES_NOT_EXIST_WARN = "Configuration file {} does not exist";
     static final Comparator<Path> LOADING_ORDER_COMPARATOR = Comparator.comparing(Path::getFileName);
 
     @Getter
@@ -259,12 +261,28 @@ public class SystemPropertiesLoader {
      * order based on the filename.
      */
     public void load() {
+        loadCommonConfFile();
+        loadSpecifiedIniFiles();
+        loadMutuallyAlternativeFiles();
+        loadAddonConfFiles();
+        loadOverrideConfFiles();
+        loadLocalConfFile();
+        loadOptionalLocalFiles();
+
+        log.debug("Loaded properties:\n{}", loadedProperties);
+    }
+
+    private void loadCommonConfFile() {
         if (withCommon) {
             load(new FileWithSections(SystemProperties.CONF_FILE_COMMON));
         }
+    }
 
+    private void loadSpecifiedIniFiles() {
         files.forEach(this::load);
+    }
 
+    private void loadMutuallyAlternativeFiles() {
         if (withAtLeastOneOf) {
             try {
                 loadMutuallyAlternativeFilesInEntryOrder(mutuallyAlternativeFiles);
@@ -272,36 +290,46 @@ public class SystemPropertiesLoader {
                 log.error("Configuration loading failed", e);
             }
         }
+    }
 
+    private void loadAddonConfFiles() {
         if (withAddOn) {
             try {
                 Path addOnDir = Paths.get(SystemProperties.CONF_FILE_ADDON_PATH);
                 loadFilesInOrder(addOnDir, ADDON_GLOB, LOADING_ORDER_COMPARATOR);
+            } catch (NoSuchFileException e) {
+                log.warn(CONF_FILE_DOES_NOT_EXIST_WARN, e.getFile());
             } catch (IOException e) {
                 log.error("Cannot load addon configuration", e);
             }
         }
+    }
 
+    private void loadOverrideConfFiles() {
         if (withOverrides) {
             try {
                 Path overrideDir = Paths.get(SystemProperties.getConfPath(), "conf.d");
                 loadFilesInOrder(overrideDir, OVERRIDE_GLOB, LOADING_ORDER_COMPARATOR);
+            } catch (NoSuchFileException e) {
+                log.warn(CONF_FILE_DOES_NOT_EXIST_WARN, e.getFile());
             } catch (IOException e) {
                 log.error("Cannot load override configuration", e);
             }
         }
+    }
 
+    private void loadLocalConfFile() {
         if (withLocal) {
             load(new FileWithSections(SystemProperties.CONF_FILE_USER_LOCAL));
         }
+    }
 
+    private void loadOptionalLocalFiles() {
         optionalLocalFiles.forEach(f -> {
             if (Files.isReadable(Paths.get(f.getName()))) {
                 load(f);
             }
         });
-
-        log.debug("Loaded properties:\n{}", loadedProperties);
     }
 
     // ------------------------------------------------------------------------
@@ -360,6 +388,8 @@ public class SystemPropertiesLoader {
                     loadSection(sectionName, ini.getSection(sectionName));
                 }
             }
+        } catch (NoSuchFileException e) {
+            log.warn(CONF_FILE_DOES_NOT_EXIST_WARN, e.getFile());
         } catch (ConfigurationException | IOException e) {
             log.warn("Error while loading {}: {}", file.getName(), e);
         }

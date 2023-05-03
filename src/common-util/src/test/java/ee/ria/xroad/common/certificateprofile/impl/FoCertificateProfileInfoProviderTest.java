@@ -57,7 +57,7 @@ public class FoCertificateProfileInfoProviderTest {
                 "Must return instance of FoAuthCertificateProfileInfo",
                 provider.getAuthCertProfile(
                         new AuthCertificateProfileInfoParameters(
-                                SecurityServerId.create("XX", "foo", "bar", "server"), "foo"
+                                SecurityServerId.Conf.create("XX", "foo", "bar", "server"), "foo"
                         )
                 ) instanceof FoAuthCertificateProfileInfo
         );
@@ -66,8 +66,8 @@ public class FoCertificateProfileInfoProviderTest {
                 "Must return instance of FoSignCertificateProfileInfo",
                 provider.getSignCertProfile(
                         new SignCertificateProfileInfoParameters(
-                                SecurityServerId.create("XX", "CLASS", "OWNER", "server"),
-                                ClientId.create("XX", "CLASS", "CLIENT"), "client"
+                                SecurityServerId.Conf.create("XX", "CLASS", "OWNER", "server"),
+                                ClientId.Conf.create("XX", "CLASS", "CLIENT"), "client"
                         )
                 ) instanceof FoSignCertificateProfileInfo
         );
@@ -160,7 +160,7 @@ public class FoCertificateProfileInfoProviderTest {
                 new X500Principal("C=FO, O=XX, OU=Foo, CN=bar, serialNumber=qux")
         );
         assertEquals(
-                ClientId.create("XX", "Foo", "bar"),
+                ClientId.Conf.create("XX", "Foo", "bar"),
                 getSignProfile().getSubjectIdentifier(mockCert)
         );
     }
@@ -182,7 +182,7 @@ public class FoCertificateProfileInfoProviderTest {
         };
 
         assertTrue(
-                "Did not get expected fields" + SecurityServerId.create("XX", "foo", "bar", "server").toShortString(),
+                "Did not get expected fields" + SecurityServerId.Conf.create("XX", "foo", "bar", "server").toShortString(),
                 Arrays.areEqual(expectedFields, getAuthProfile().getSubjectFields())
         );
     }
@@ -248,15 +248,15 @@ public class FoCertificateProfileInfoProviderTest {
     private FoSignCertificateProfileInfo getSignProfile() {
         return new FoSignCertificateProfileInfo(
                 new SignCertificateProfileInfoParameters(
-                        SecurityServerId.create("YY", "ORG", "OWNER", "server"),
-                        ClientId.create("XX", "COM", "CLIENT"), "client"
+                        SecurityServerId.Conf.create("YY", "ORG", "OWNER", "server"),
+                        ClientId.Conf.create("XX", "COM", "CLIENT"), "client"
                 ));
     }
 
     private FoAuthCertificateProfileInfo getAuthProfile() {
         return new FoAuthCertificateProfileInfo(
                 new AuthCertificateProfileInfoParameters(
-                        SecurityServerId.create("XX", "foo", "bar", "server"),
+                        SecurityServerId.Conf.create("XX", "foo", "bar", "server"),
                         "owner"
                 )
         );

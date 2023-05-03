@@ -52,7 +52,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
  *
  * Security is configured with from 4 different WebSecurityConfigurerAdapters.
  * Authentication configurations are used in the following order:
- * - ManageApiKeysWebSecurityConfigurerAdapter, @Order(1), matches /api/api-keys/**
+ * - ManageApiKeysWebSecurityConfigurerAdapter, @Order(1), matches /api/v1/api-keys/**
  * - ApiWebSecurityConfigurerAdapter, @Order(2), matches /api/**
  * - StaticAssetsWebSecurityConfig, @Order(3), matches static asset paths such as /js/**
  * - FormLoginWebSecurityConfigurerAdapter, @Order(100), matches any URL (denies /api/**)

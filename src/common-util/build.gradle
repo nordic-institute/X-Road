@@ -14,7 +14,7 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', 'build/generated-sources']
+        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
     }
 }
 
@@ -44,6 +44,8 @@ dependencies {
     api 'com.google.code.gson:gson:2.9.0'
     api "com.google.guava:guava:$guavaVersion"
 
+    api "io.vavr:vavr:$vavrVersion"
+
     api ('org.quartz-scheduler:quartz:2.3.2') {
         exclude module: 'c3p0'
     }
@@ -56,6 +58,7 @@ dependencies {
     implementation "ch.qos.logback:logback-classic:$logbackVersion"
 
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation "org.assertj:assertj-core:$assertjVersion"
     testImplementation project(':common-test')
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
@@ -66,74 +69,68 @@ test {
     jvmArgs '-Djava.library.path=../lib'
 }
 
-task createDirs() {
-    doLast {
-        project.ext.schemaTargetDir.mkdirs()
-    }
-}
-
 task xjc() {
     inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
     outputs.dir schemaTargetDir
 
     doLast {
-    ant.taskdef(name: 'xjc',
-        classname: 'com.sun.tools.xjc.XJCTask',
-        classpath: configurations.xjc.asPath)
+        ant.taskdef(name: 'xjc',
+            classname: 'com.sun.tools.xjc.XJCTask',
+            classpath: configurations.xjc.asPath)
 
-    // Generate classes for identifiers
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.identifier',
-        schema: 'src/main/resources/identifiers.xsd'
-    )
+        // Generate classes for identifiers
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.identifier',
+            schema: 'src/main/resources/identifiers.xsd'
+        )
 
-    // Generate classes for message, using identifier classes
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.message',
-        schema: 'src/main/resources/message.xsd',
-        binding: 'src/main/resources/identifiers-bindings.xml'
-    )
+        // Generate classes for message, using identifier classes
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.message',
+            schema: 'src/main/resources/message.xsd',
+            binding: 'src/main/resources/identifiers-bindings.xml'
+        )
 
-    // Generate classes for federateable global external conf
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v2',
-        schema: 'src/main/resources/globalconf/shared-parameters.xsd',
-        binding: 'src/main/resources/identifiers-bindings.xml'
-    )
+        // Generate classes for federateable global external conf
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v2',
+            schema: 'src/main/resources/globalconf/shared-parameters.xsd',
+            binding: 'src/main/resources/identifiers-bindings.xml'
+        )
 
-    // Generate classes for federateable global internal conf
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.conf.globalconf.privateparameters.v2',
-        schema: 'src/main/resources/globalconf/private-parameters.xsd',
-        binding: 'src/main/resources/identifiers-bindings.xml'
-    )
+        // Generate classes for federateable global internal conf
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.privateparameters.v2',
+            schema: 'src/main/resources/globalconf/private-parameters.xsd',
+            binding: 'src/main/resources/identifiers-bindings.xml'
+        )
 
-    // Generate classes for request, using identifier classes
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.request',
-        schema: 'src/main/resources/request.xsd',
-        binding: 'src/main/resources/identifiers-bindings.xml'
-    )
+        // Generate classes for request, using identifier classes
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.request',
+            schema: 'src/main/resources/request.xsd',
+            binding: 'src/main/resources/identifiers-bindings.xml'
+        )
 
-    // Generate classes for hash chains
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.hashchain',
-        schema: 'src/main/resources/hashchain.xsd',
-    )
+        // Generate classes for hash chains
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.hashchain',
+            schema: 'src/main/resources/hashchain.xsd',
+        )
 
-    // Generate classes for service metainfo
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.metadata',
-        schema: 'src/main/resources/service-metainfo.xsd',
-        binding: 'src/main/resources/identifiers-bindings.xml'
-    )
+        // Generate classes for service metainfo
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.metadata',
+            schema: 'src/main/resources/service-metainfo.xsd',
+            binding: 'src/main/resources/identifiers-bindings.xml'
+        )
     }
 }
 
@@ -163,7 +160,6 @@ licenseFormatTest {
     outputs.upToDateWhen { false }
 }
 
-xjc.dependsOn createDirs
 compileJava.dependsOn xjc
 
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {

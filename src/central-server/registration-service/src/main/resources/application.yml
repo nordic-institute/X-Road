@@ -1,0 +1,21 @@
+spring:
+  servlet:
+    multipart.enabled: false
+server:
+  error:
+    whitelabel:
+      enabled: false
+  jetty:
+    connection-idle-timeout: 15s
+    threads:
+      max-queue-capacity: 10000
+      max: 32
+      acceptors: 2
+  servlet:
+    jsp:
+      registered: false
+    session:
+      tracking-modes:
+  port: 8084
+  address: 127.0.0.1
+  forward-headers-strategy: framework

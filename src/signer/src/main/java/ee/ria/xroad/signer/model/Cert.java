@@ -51,7 +51,7 @@ public class Cert {
 
     /** If this certificate belongs to signing key, then this attribute contains
      * identifier of the member that uses this certificate. */
-    private ClientId memberId;
+    private ClientId.Conf memberId;
 
     /** Whether this certificate can be used by the proxy. */
     private boolean active;

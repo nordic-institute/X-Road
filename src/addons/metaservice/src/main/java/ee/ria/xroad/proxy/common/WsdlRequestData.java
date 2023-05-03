@@ -60,7 +60,7 @@ public class WsdlRequestData {
      * @param client the client
      * @return the service identifier for a specified client
      */
-    public ServiceId toServiceId(ClientId client) {
-        return ServiceId.create(client, serviceCode, serviceVersion);
+    public ServiceId.Conf toServiceId(ClientId client) {
+        return ServiceId.Conf.create(client, serviceCode, serviceVersion);
     }
 }

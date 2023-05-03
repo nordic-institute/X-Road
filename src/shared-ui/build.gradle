@@ -34,16 +34,17 @@ task npmBuild(type: NpmTask, dependsOn: npmInstall) {
 }
 
 task npmPack(type: NpmTask, dependsOn: npmBuild) {
-    inputs.files('dist/')
-    outputs.file('niis-shared-ui-0.1.0.tgz')
+    inputs.files("dist")
+    outputs.file("niis-shared-ui-0.1.0.tgz")
     args = ['pack', '--quiet']
 }
 
 task checkFrontAudit(type: NpmTask) {
-    inputs.files("package.json", "package-lock.json")
-    outputs.files('build/reports/audit-ci.txt')
-    // do a front end audit with npm run npx-check-audit
-    // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
+    inputs.files(
+        'package.json',
+        'package-lock.json'
+    )
+    outputs.files("${buildDir}/reports/audit-ci.txt")
     args = ['run', 'npx-check-audit']
 }
 

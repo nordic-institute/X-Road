@@ -450,7 +450,7 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeKeyShouldNotCopyOverCertList() {
 
 
-        final ClientId clientId = ClientId.create("FI", "CLIENTMEMBERCLASS", "MEMBERCODE11");
+        final ClientId.Conf clientId = ClientId.Conf.create("FI", "CLIENTMEMBERCLASS", "MEMBERCODE11");
 
         final Key memKey = new Key(null, "memId");
 
@@ -652,7 +652,7 @@ public class MergeOntoFileTokenStrategyTest {
         final String fileId = "file";
         Cert fileCert = new Cert(fileId);
         fileCert.setActive(false);
-        final ClientId fileClientId = ClientId.create("FI", "GOV", "FILEMEMBER");
+        final ClientId.Conf fileClientId = ClientId.Conf.create("FI", "GOV", "FILEMEMBER");
         fileCert.setMemberId(fileClientId);
 
         fileCert.setSavedToConfiguration(false);
@@ -665,7 +665,7 @@ public class MergeOntoFileTokenStrategyTest {
         Cert memCert = new Cert("memory");
         memCert.setOcspResponse(ocspResp);
         memCert.setStatus("asdasdgg");
-        memCert.setMemberId(ClientId.create("FI", "COM", "CLIENTMEMBER"));
+        memCert.setMemberId(ClientId.Conf.create("FI", "COM", "CLIENTMEMBER"));
         memCert.setSavedToConfiguration(true);
 
         testedStrategy.mergeCert(fileCert, memCert);

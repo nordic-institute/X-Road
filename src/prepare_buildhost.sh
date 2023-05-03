@@ -16,15 +16,6 @@ fi
 sudo apt-get install -y openjdk-8-jdk-headless build-essential git unzip debhelper devscripts
 sudo update-ca-certificates -f
 
-if ! command -v rvm &>/dev/null; then
-    gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-    curl -L https://get.rvm.io | bash -s stable
-    source ~/.rvm/scripts/rvm
-fi
-
-rvm install jruby-$JRUBY_VERSION --binary --skip-gemsets
-rvm jruby-$JRUBY_VERSION do jgem install jruby-openssl jruby-launcher gem-wrappers rubygems-bundler rake:13.0.6 rvm jruby-jars:$JRUBY_VERSION bundler:1.14.6 warbler:2.0.4 bundler-audit
-
 mkdir -p /var/tmp/xroad
 
 if [[ $REL -ge 20 && ! -e /.dockerenv ]]; then
@@ -35,4 +26,3 @@ if [[ $REL -ge 20 && ! -e /.dockerenv ]]; then
         newgrp docker
     fi
 fi
-

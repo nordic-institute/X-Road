@@ -72,7 +72,7 @@ public class FiVRKSignCertificateProfileInfo
         this.params = params;
     }
     @Override
-    public ClientId getSubjectIdentifier(X509Certificate certificate) {
+    public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
         return FISubjectClientIdDecoder.getSubjectClientId(certificate);
     }
 

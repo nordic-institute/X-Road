@@ -42,3 +42,4 @@ rpmbuild \
     --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
     --define "_binary_payload $compress" \
     -"${CMD}" "${ROOT}/SPECS/"${FILES}
+

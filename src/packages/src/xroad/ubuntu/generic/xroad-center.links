@@ -1,4 +1,2 @@
-etc/xroad/nginx/xroad-center.conf etc/nginx/sites-enabled/xroad-center
-etc/xroad/nginx/insecure-xroad-center.conf etc/nginx/sites-enabled/insecure-xroad-center
 etc/xroad/nginx/xroad-public.conf etc/nginx/sites-enabled/xroad-public
-etc/xroad/conf.d/center-ui-jetty-logback-context-name.xml etc/xroad/conf.d/jetty-logback-context-name.xml
+usr/share/xroad/jlib/centralserver-admin-service-1.0.jar usr/share/xroad/jlib/centralserver-admin-service.jar

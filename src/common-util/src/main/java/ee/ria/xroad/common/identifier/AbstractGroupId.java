@@ -25,34 +25,70 @@
  */
 package ee.ria.xroad.common.identifier;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.Objects;
+
 /**
  * Base class for group IDs.
  */
-public abstract class AbstractGroupId extends XRoadId {
+public interface AbstractGroupId extends XRoadId {
 
-    private final String groupCode;
+    String getGroupCode();
 
-    AbstractGroupId() { // required by Hibernate
-        this(null, null, null);
+    default String[] getFieldsForStringFormat() {
+        return new String[]{getGroupCode()};
     }
 
-    protected AbstractGroupId(XRoadObjectType type, String xRoadInstance,
-            String groupCode) {
-        super(type, xRoadInstance);
+    abstract class Conf extends XRoadId.Conf implements AbstractGroupId {
 
-        this.groupCode = groupCode;
+        private final String groupCode;
+
+        Conf() { // required by Hibernate
+            this(null, null, null);
+        }
+
+        protected Conf(XRoadObjectType type, String xRoadInstance, String groupCode) {
+            super(type, xRoadInstance);
+
+            this.groupCode = groupCode;
+        }
+
+        /**
+         * Gets the group code.
+         *
+         * @return String
+         */
+        public String getGroupCode() {
+            return groupCode;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return AbstractGroupId.equals(this, other);
+        }
+
+        @Override
+        public int hashCode() {
+            return AbstractGroupId.hashCode(this);
+        }
+
     }
 
-    /**
-     * Gets the group code.
-     * @return String
-     */
-    public String getGroupCode() {
-        return groupCode;
+    static boolean equals(AbstractGroupId self, Object other) {
+        if (self == other) return true;
+        if (!(other instanceof AbstractGroupId)) return false;
+        if (!XRoadId.equals(self, other)) return false;
+        AbstractGroupId identifier = (AbstractGroupId) other;
+        if (!Objects.equals(self.getGroupCode(), identifier.getGroupCode())) return false;
+        return true;
     }
 
-    @Override
-    public String[] getFieldsForStringFormat() {
-        return new String[] {groupCode};
+    static int hashCode(AbstractGroupId self) {
+        return new HashCodeBuilder()
+                .appendSuper(XRoadId.hashCode(self))
+                .append(self.getGroupCode())
+                .build();
     }
+
 }

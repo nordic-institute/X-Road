@@ -1,0 +1,4 @@
+../../../../../central-server/management-service/application/build/libs/centralserver-management-service-1.0.jar /usr/share/xroad/jlib/
+../../../../src/xroad/common/center-management-service/usr/* usr/
+../../../../src/xroad/common/center-management-service/etc/* etc/
+../../../../src/xroad/default-configuration/centralserver-management-service-logback.xml etc/xroad/conf.d

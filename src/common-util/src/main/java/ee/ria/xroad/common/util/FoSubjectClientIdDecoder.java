@@ -52,10 +52,10 @@ public final class FoSubjectClientIdDecoder {
      * @param cert certificate from which to construct the client ID
      * @return a fully constructed Client identifier from DN of the certificate.
      */
-    public static ClientId getSubjectClientId(X509Certificate cert) {
+    public static ClientId.Conf getSubjectClientId(X509Certificate cert) {
         X500Principal principal = cert.getSubjectX500Principal();
         X500Name x500name = new X500Name(principal.getName());
-        
+
         return parseClientId(x500name);
     }
 
@@ -68,7 +68,7 @@ public final class FoSubjectClientIdDecoder {
      *  CN = memberCode
      *  serialNumber = serverId, not used
      */
-    private static ClientId parseClientId(X500Name x500name) {
+    private static ClientId.Conf parseClientId(X500Name x500name) {
 
         // Country Code Identifier
         String memberCountry = getRDNValue(x500name, BCStyle.C);
@@ -105,7 +105,7 @@ public final class FoSubjectClientIdDecoder {
         }
 
         // Call factory method for creating a new ClientId.
-        return ClientId.create(memberInstance, memberClass, memberCode);
+        return ClientId.Conf.create(memberInstance, memberClass, memberCode);
 
     }
 

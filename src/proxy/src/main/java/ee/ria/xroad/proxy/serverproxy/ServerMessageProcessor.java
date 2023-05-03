@@ -314,7 +314,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void checkRequest() throws Exception {
+    private void checkRequest() {
         if (requestMessage.getSoap() == null) {
             throw new CodedException(X_MISSING_SOAP, "Request does not have SOAP message");
         }
@@ -325,7 +325,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
         checkIdentifier(requestMessage.getSoap().getClient());
         checkIdentifier(requestMessage.getSoap().getService());
         checkIdentifier(requestMessage.getSoap().getSecurityServer());
-        checkIdentifier(requestMessage.getSoap().getCentralService());
     }
 
     private void verifyClientStatus() {
@@ -405,14 +404,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private void verifySecurityCategory(ServiceId service) throws Exception {
-        Collection<SecurityCategoryId> required = ServerConf.getRequiredCategories(service);
+        Collection<SecurityCategoryId.Conf> required = ServerConf.getRequiredCategories(service);
 
         if (required == null || required.isEmpty()) {
             // Service requires nothing, we are satisfied.
             return;
         }
 
-        Collection<SecurityCategoryId> provided = GlobalConf.getProvidedCategories(getClientAuthCert());
+        Collection<SecurityCategoryId.Conf> provided = GlobalConf.getProvidedCategories(getClientAuthCert());
 
         for (SecurityCategoryId cat : required) {
             if (provided.contains(cat)) {

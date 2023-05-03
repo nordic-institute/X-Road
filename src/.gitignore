@@ -1,10 +1,8 @@
 legacy/passwordstore/libpasswordstore.so
-packages/xroad-jetty9/jetty9/
 passwordstore/libpasswordstore.so
 **/log/
 center-service/db/migrate/
 center-ui/db/migrate/
-packages/xroad-jetty9/jetty-distribution-*
 **/public/javascripts/translations.js
 packages/*.changes
 BUILDROOT/

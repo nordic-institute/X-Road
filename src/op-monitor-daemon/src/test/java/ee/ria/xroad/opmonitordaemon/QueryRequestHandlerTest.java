@@ -49,6 +49,7 @@ import org.w3c.dom.Element;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.GSON;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.OBJECT_READER;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.formatFullOperationalDataAsJson;
 import static org.junit.Assert.assertEquals;
 
@@ -200,7 +201,7 @@ public class QueryRequestHandlerTest {
                 responseData.getMonitoringStartupTimestamp());
         assertEquals(2, responseData.getServicesEvents()
                 .getServiceEvents().size());
-        assertEquals(ServiceId.create("XTEE-CI-XM", "GOV", "00000001",
+        assertEquals(ServiceId.Conf.create("XTEE-CI-XM", "GOV", "00000001",
                 "System1", "xroad/GetRandom", "v2"),
                 responseData.getServicesEvents().getServiceEvents()
                 .get(0).getService());
@@ -213,13 +214,13 @@ public class QueryRequestHandlerTest {
     }
 
     private final class TestMetricsRegistry extends MetricRegistry {
-        TestMetricsRegistry() {
+        TestMetricsRegistry() throws IOException {
             HealthDataMetrics.registerInitialMetrics(this,
                     () -> TEST_TIMESTAMP);
 
             List<OperationalDataRecord> records = new ArrayList<>();
 
-            ServiceId id = ServiceId.create("XTEE-CI-XM", "GOV",
+            ServiceId id = ServiceId.Conf.create("XTEE-CI-XM", "GOV",
                     "00000001", "System1", "xroad/GetRandom");
 
             for (int i = 0; i < 10; i++) {
@@ -228,14 +229,14 @@ public class QueryRequestHandlerTest {
                 records.add(record);
             }
 
-            id = ServiceId.create("XTEE-CI-XM", "GOV",
+            id = ServiceId.Conf.create("XTEE-CI-XM", "GOV",
                     "00000001", "System2", "xroad/GetRandom");
 
             for (int i = 0; i < 10; i++) {
                 records.add(createRecord(id, i % 2 == 0));
             }
 
-            id = ServiceId.create("XTEE-CI-XM", "GOV",
+            id = ServiceId.Conf.create("XTEE-CI-XM", "GOV",
                     "00000001", "System1", "xroad/GetRandom", "v2");
 
             for (int i = 0; i < 10; i++) {
@@ -248,8 +249,8 @@ public class QueryRequestHandlerTest {
         }
 
         private OperationalDataRecord createRecord(ServiceId serviceId,
-                boolean success) {
-            OperationalDataRecord record = GSON.fromJson(
+                boolean success) throws IOException {
+            OperationalDataRecord record = OBJECT_READER.readValue(
                     formatFullOperationalDataAsJson(),
                     OperationalDataRecord.class);
             record.setServiceXRoadInstance(serviceId.getXRoadInstance());

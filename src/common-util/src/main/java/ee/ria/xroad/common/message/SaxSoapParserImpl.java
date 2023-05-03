@@ -26,7 +26,6 @@
 package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -110,7 +109,6 @@ public class SaxSoapParserImpl implements SoapParser {
     private static final String PROTOCOL_VERSION = "protocolVersion";
     private static final String CLIENT = "client";
     private static final String SERVICE = "service";
-    private static final String CENTRAL_SERVICE = "centralService";
     private static final String SECURITY_SERVER = "securityServer";
     private static final String REQUEST_HASH = "requestHash";
     private static final String INSTANCE = "xRoadInstance";
@@ -138,7 +136,6 @@ public class SaxSoapParserImpl implements SoapParser {
     protected static final QName QNAME_XROAD_REQUEST_HASH = new QName(SoapHeader.NS_XROAD, REQUEST_HASH);
     protected static final QName QNAME_XROAD_CLIENT = new QName(SoapHeader.NS_XROAD, CLIENT);
     protected static final QName QNAME_XROAD_SERVICE = new QName(SoapHeader.NS_XROAD, SERVICE);
-    protected static final QName QNAME_XROAD_CENTRAL_SERVICE = new QName(SoapHeader.NS_XROAD, CENTRAL_SERVICE);
     protected static final QName QNAME_XROAD_SECURITY_SERVER = new QName(SoapHeader.NS_XROAD, SECURITY_SERVER);
 
     protected static final QName QNAME_ID_INSTANCE = new QName(URI_IDENTIFIERS, INSTANCE);
@@ -154,7 +151,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
     private static final String MISSING_HEADER_MESSAGE = "Malformed SOAP message: header missing";
     private static final String MISSING_SERVICE_MESSAGE =
-            "Message header must contain either service id or central service id";
+            "Message header must contain service id";
     private static final String MISSING_HEADER_FIELD_MESSAGE = "Required field '%s' is missing";
     private static final String DUPLICATE_HEADER_MESSAGE = "SOAP header contains duplicate field '%s'";
     private static final String MISSING_BODY_MESSAGE = "Malformed SOAP message: body missing";
@@ -660,8 +657,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         private ServiceId getService() {
             SoapHeader header = headerHandler.getHeader();
-            ServiceId service = header.getService() != null ? header.getService() : header.getCentralService();
-            return service;
+            return header.getService();
         }
 
     }
@@ -683,7 +679,7 @@ public class SaxSoapParserImpl implements SoapParser {
          * Called when a security server header has been parsed.
          * @param securityServerId the parsed client ID
          */
-        protected void onSecurityServer(SecurityServerId securityServerId) {
+        protected void onSecurityServer(SecurityServerId.Conf securityServerId) {
             header.setSecurityServer(securityServerId);
         }
 
@@ -691,7 +687,7 @@ public class SaxSoapParserImpl implements SoapParser {
          * Called when a client header has been parsed.
          * @param clientId the parsed client ID
          */
-        protected void onClient(ClientId clientId) {
+        protected void onClient(ClientId.Conf clientId) {
             header.setClient(clientId);
         }
 
@@ -699,19 +695,11 @@ public class SaxSoapParserImpl implements SoapParser {
          * Called when a service header has been parsed.
          * @param serviceId the parsed service ID
          */
-        protected void onService(ServiceId serviceId) {
+        protected void onService(ServiceId.Conf serviceId) {
             header.setService(serviceId);
         }
 
-        /**
-         * Called when a central service header has been parsed.
-         * @param centralServiceId the parsed central service ID
-         */
-        protected void onCentralService(CentralServiceId centralServiceId) {
-            header.setCentralService(centralServiceId);
-        }
-
-        /**
+         /**
          * Called when a represented party header has been paresed.
          * @param representedParty the represented party
          */
@@ -742,9 +730,6 @@ public class SaxSoapParserImpl implements SoapParser {
             } else if (element.equals(QNAME_REPR_REPRESENTED_PARTY)) {
                 validateDuplicateHeader(element, header.getRepresentedParty());
                 return new XRoadRepresentedPartyHeaderHandler(this::onRepresentedParty);
-            } else if (element.equals(QNAME_XROAD_CENTRAL_SERVICE)) {
-                validateDuplicateHeader(element, header.getService());
-                return new XRoadCentralServiceHeaderHandler(this::onCentralService);
             } else if (element.equals(QNAME_XROAD_SECURITY_SERVER)) {
                 validateDuplicateHeader(element, header.getSecurityServer());
                 return new XRoadSecurityServerHeaderHandler(this::onSecurityServer);
@@ -857,9 +842,9 @@ public class SaxSoapParserImpl implements SoapParser {
                 QNAME_ID_INSTANCE, QNAME_ID_MEMBER_CLASS, QNAME_ID_MEMBER_CODE,
                 QNAME_ID_SUBSYSTEM_CODE);
 
-        private final Consumer<ClientId> onClientCallback;
+        private final Consumer<ClientId.Conf> onClientCallback;
 
-        XRoadClientHeaderHandler(Consumer<ClientId> callback) {
+        XRoadClientHeaderHandler(Consumer<ClientId.Conf> callback) {
             super(Arrays.asList(XRoadObjectType.MEMBER, XRoadObjectType.SUBSYSTEM));
             this.onClientCallback = callback;
         }
@@ -871,7 +856,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         @Override
         public void closeTag() {
-            onClientCallback.accept(ClientId.create(
+            onClientCallback.accept(ClientId.Conf.create(
                     getValue(QNAME_ID_INSTANCE),
                     getValue(QNAME_ID_MEMBER_CLASS),
                     getValue(QNAME_ID_MEMBER_CODE),
@@ -889,9 +874,9 @@ public class SaxSoapParserImpl implements SoapParser {
                 QNAME_ID_SUBSYSTEM_CODE, QNAME_ID_SERVICE_CODE,
                 QNAME_ID_SERVICE_VERSION);
 
-        private final Consumer<ServiceId> onServiceCallback;
+        private final Consumer<ServiceId.Conf> onServiceCallback;
 
-        XRoadServiceHeaderHandler(Consumer<ServiceId> callback) {
+        XRoadServiceHeaderHandler(Consumer<ServiceId.Conf> callback) {
             super(Collections.singletonList(XRoadObjectType.SERVICE));
             this.onServiceCallback = callback;
         }
@@ -903,7 +888,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         @Override
         protected void closeTag() {
-            onServiceCallback.accept(ServiceId.create(
+            onServiceCallback.accept(ServiceId.Conf.create(
                     getValue(QNAME_ID_INSTANCE),
                     getValue(QNAME_ID_MEMBER_CLASS),
                     getValue(QNAME_ID_MEMBER_CODE),
@@ -973,34 +958,6 @@ public class SaxSoapParserImpl implements SoapParser {
     }
 
     /**
-     * Handler for the XRoad protocol central service header.
-     */
-    private static class XRoadCentralServiceHeaderHandler extends XRoadIdentifierHeaderHandler {
-
-        protected static final List<QName> CENTRAL_SERVICE_ID_PARTS =
-                Arrays.asList(QNAME_ID_INSTANCE, QNAME_ID_SERVICE_CODE);
-
-        private final Consumer<CentralServiceId> onServiceCallback;
-
-        XRoadCentralServiceHeaderHandler(Consumer<CentralServiceId> callback) {
-            super(Collections.singletonList(XRoadObjectType.CENTRALSERVICE));
-            this.onServiceCallback = callback;
-        }
-
-        @Override
-        protected List<QName> getAllowedChildElements() {
-            return CENTRAL_SERVICE_ID_PARTS;
-        }
-
-        @Override
-        protected void closeTag() {
-            onServiceCallback.accept(CentralServiceId.create(
-                    getValue(QNAME_ID_INSTANCE),
-                    getValue(QNAME_ID_SERVICE_CODE)));
-        }
-    }
-
-    /**
      * Handler for the XRoad protocol security server header.
      */
     private static class XRoadSecurityServerHeaderHandler extends XRoadIdentifierHeaderHandler {
@@ -1009,9 +966,9 @@ public class SaxSoapParserImpl implements SoapParser {
                 Arrays.asList(QNAME_ID_INSTANCE, QNAME_ID_MEMBER_CLASS,
                         QNAME_ID_MEMBER_CODE, QNAME_ID_SERVER_CODE);
 
-        private final Consumer<SecurityServerId> onServiceCallback;
+        private final Consumer<SecurityServerId.Conf> onServiceCallback;
 
-        XRoadSecurityServerHeaderHandler(Consumer<SecurityServerId> callback) {
+        XRoadSecurityServerHeaderHandler(Consumer<SecurityServerId.Conf> callback) {
             super(Collections.singletonList(XRoadObjectType.SERVER));
             this.onServiceCallback = callback;
         }
@@ -1023,7 +980,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         @Override
         protected void closeTag() {
-            onServiceCallback.accept(SecurityServerId.create(
+            onServiceCallback.accept(SecurityServerId.Conf.create(
                     getValue(QNAME_ID_INSTANCE),
                     getValue(QNAME_ID_MEMBER_CLASS),
                     getValue(QNAME_ID_MEMBER_CODE),

@@ -25,11 +25,16 @@
  */
 package ee.ria.xroad.common;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Value;
 /**
  * Information about status (enabled/disabled) of addons
  */
 @Value
+@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 public class AddOnStatusDiagnostics {
     boolean messageLogEnabled;
 }

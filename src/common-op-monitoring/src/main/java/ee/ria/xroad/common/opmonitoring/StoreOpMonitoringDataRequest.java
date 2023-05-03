@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common.opmonitoring;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -42,7 +42,7 @@ import java.util.Map;
 @ToString
 public class StoreOpMonitoringDataRequest {
 
-    @SerializedName("records")
+    @JsonProperty("records")
     private final List<Map<String, Object>> records = new ArrayList<>();
 
     public void addRecord(Map<String, Object> record) {

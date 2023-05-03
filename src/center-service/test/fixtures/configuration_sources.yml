@@ -1,3 +1,0 @@
-configurationSource_first:
-  source_type: "internal"
-  active_key: <%= ActiveRecord::Fixtures.identify(:configurationSigningKey_first) %>

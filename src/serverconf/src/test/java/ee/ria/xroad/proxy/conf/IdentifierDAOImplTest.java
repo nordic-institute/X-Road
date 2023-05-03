@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
@@ -82,8 +81,8 @@ public class IdentifierDAOImplTest {
      */
     @Test
     public void clientId() throws Exception {
-        assertCreateRead(() -> ClientId.create("EE", "class", "code1"));
-        assertCreateRead(() -> ClientId.create("EE", "class", "code2"));
+        assertCreateRead(() -> ClientId.Conf.create("EE", "class", "code1"));
+        assertCreateRead(() -> ClientId.Conf.create("EE", "class", "code2"));
     }
 
     /**
@@ -93,20 +92,10 @@ public class IdentifierDAOImplTest {
     @Test
     public void serviceId() throws Exception {
         assertCreateRead(() ->
-                ServiceId.create("EE", "cls", "code", null, "service1"));
+                ServiceId.Conf.create("EE", "cls", "code", null, "service1"));
 
         assertCreateRead(() ->
-                ServiceId.create("EE", "cls", "code", null, "service2"));
-    }
-
-    /**
-     * CentralServiceId.
-     * @throws Exception if an error occurs
-     */
-    @Test
-    public void centralServiceId() throws Exception {
-        assertCreateRead(() -> CentralServiceId.create("EE", "central1"));
-        assertCreateRead(() -> CentralServiceId.create("EE", "central2"));
+                ServiceId.Conf.create("EE", "cls", "code", null, "service2"));
     }
 
     /**
@@ -115,8 +104,8 @@ public class IdentifierDAOImplTest {
      */
     @Test
     public void globalGroupId() throws Exception {
-        assertCreateRead(() -> GlobalGroupId.create("XX", "globalGroup1"));
-        assertCreateRead(() -> GlobalGroupId.create("XX", "globalGroup2"));
+        assertCreateRead(() -> GlobalGroupId.Conf.create("XX", "globalGroup1"));
+        assertCreateRead(() -> GlobalGroupId.Conf.create("XX", "globalGroup2"));
     }
 
     /**
@@ -125,8 +114,8 @@ public class IdentifierDAOImplTest {
      */
     @Test
     public void localGroupId() throws Exception {
-        assertCreateRead(() -> LocalGroupId.create("localGroup1"));
-        assertCreateRead(() -> LocalGroupId.create("localGroup2"));
+        assertCreateRead(() -> LocalGroupId.Conf.create("localGroup1"));
+        assertCreateRead(() -> LocalGroupId.Conf.create("localGroup2"));
     }
 
     /**
@@ -135,8 +124,8 @@ public class IdentifierDAOImplTest {
      */
     @Test
     public void securityCategoryId() throws Exception {
-        assertCreateRead(() -> SecurityCategoryId.create("XX", "cat1"));
-        assertCreateRead(() -> SecurityCategoryId.create("XX", "cat2"));
+        assertCreateRead(() -> SecurityCategoryId.Conf.create("XX", "cat1"));
+        assertCreateRead(() -> SecurityCategoryId.Conf.create("XX", "cat2"));
     }
 
     /**
@@ -146,10 +135,10 @@ public class IdentifierDAOImplTest {
     @Test
     public void securityServerId() throws Exception {
         assertCreateRead(() ->
-                SecurityServerId.create("XX", "class", "code", "srv1"));
+                SecurityServerId.Conf.create("XX", "class", "code", "srv1"));
 
         assertCreateRead(() ->
-                SecurityServerId.create("XX", "class", "code", "srv2"));
+                SecurityServerId.Conf.create("XX", "class", "code", "srv2"));
     }
 
     private <T extends XRoadId> T get(T example) throws Exception {

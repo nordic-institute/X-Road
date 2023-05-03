@@ -83,7 +83,7 @@ public class FoSignCertificateProfileInfo extends AbstractCertificateProfileInfo
     }
 
     @Override
-    public ClientId getSubjectIdentifier(X509Certificate certificate) {
+    public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
         return FoSubjectClientIdDecoder.getSubjectClientId(certificate);
     }
 

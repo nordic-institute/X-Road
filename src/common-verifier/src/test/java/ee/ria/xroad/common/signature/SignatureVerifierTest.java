@@ -371,7 +371,7 @@ public class SignatureVerifierTest {
     }
 
     private static ClientId createClientId(String memberCode) {
-        return ClientId.create("EE", "BUSINESS", memberCode);
+        return ClientId.Conf.create("EE", "BUSINESS", memberCode);
     }
 
     private static class Resolver implements HashChainReferenceResolver {

@@ -1,26 +1,27 @@
 # Audit log events
 
-Version: 1.9
+Version: 1.10
 
 Doc. ID: SPEC-AL
 
 ## Version history
 
- Date       | Version | Description                                                                                                                                               | Author
- ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------
- 11.09.2015 | 0.1     | Initial version                                                                                                                                           | Kristo Heero
- 14.09.2015 | 0.2	    | Bug fixes                                                                                                                                                 | Kristo Heero
- 16.09.2015 | 0.3     |	Made editorial changes in introduction                                                                                                                    | Margus Freudenthal
- 18.09.2015 | 1.0     | Editorial changes made                                                                                                                                    | Imbi Nõgisto
- 09.10.2015 | 1.1     | Delete certificate/key events of security server updated                                                                                                  | Kristo Heero
- 12.10.2015 | 1.2     | Updated CSR generation events. Fields nameExtractorMemberClass and nameExractorMethod replaced with field certificateProfileInfo                          | Kristo Heero
- 20.10.2015 | 1.3     | New events 'Add subsystem' and 'Register management service provider as security server client' added                                                     | Kristo Heero
- 21.10.2015 | 1.4     | New fields managementRequestId and keyLabel added                                                                                                         | Kristo Heero
- 23.10.2015 | 1.5     | Data field of the event 'Edit WSDL' changed                                                                                                               | Kristo Heero
- 08.12.2015 | 1.6     | Added audit log events for TLS internal key certificate requests and certificate import                                                                   | Ilkka Seppälä
- 10.05.2016 | 1.7     | Merged changes from xtee6-doc repo.<br>Added New event ‘Skip unregistration of authentication certificate' added change made by Meril Vaht on 10.12.2015. | Kedi Välba
- 10.05.2020 | 1.8     | Updated to match current implementation                                                                                                                   | Janne Mattila
- 16.02.2023 | 1.9     | Converted document from docx to markdown                                                                                                                  | Raido Kaju
+| Date       | Version | Description                                                                                                                                               | Author             |
+|------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
+| 11.09.2015 | 0.1     | Initial version                                                                                                                                           | Kristo Heero       |
+| 14.09.2015 | 0.2	    | Bug fixes                                                                                                                                                 | Kristo Heero       |
+| 16.09.2015 | 0.3     | 	Made editorial changes in introduction                                                                                                                   | Margus Freudenthal |
+| 18.09.2015 | 1.0     | Editorial changes made                                                                                                                                    | Imbi Nõgisto       |
+| 09.10.2015 | 1.1     | Delete certificate/key events of security server updated                                                                                                  | Kristo Heero       |
+| 12.10.2015 | 1.2     | Updated CSR generation events. Fields nameExtractorMemberClass and nameExractorMethod replaced with field certificateProfileInfo                          | Kristo Heero       |
+| 20.10.2015 | 1.3     | New events 'Add subsystem' and 'Register management service provider as security server client' added                                                     | Kristo Heero       |
+| 21.10.2015 | 1.4     | New fields managementRequestId and keyLabel added                                                                                                         | Kristo Heero       |
+| 23.10.2015 | 1.5     | Data field of the event 'Edit WSDL' changed                                                                                                               | Kristo Heero       |
+| 08.12.2015 | 1.6     | Added audit log events for TLS internal key certificate requests and certificate import                                                                   | Ilkka Seppälä      |
+| 10.05.2016 | 1.7     | Merged changes from xtee6-doc repo.<br>Added New event ‘Skip unregistration of authentication certificate' added change made by Meril Vaht on 10.12.2015. | Kedi Välba         |
+| 10.05.2020 | 1.8     | Updated to match current implementation                                                                                                                   | Janne Mattila      |
+| 16.02.2023 | 1.9     | Converted document from docx to markdown                                                                                                                  | Raido Kaju         |
+| 17.04.2023 | 1.10    | Remove central services support                                                                                                                           | Justas Samuolis    |
 
 ## Table of Contents
 
@@ -35,13 +36,12 @@ Doc. ID: SPEC-AL
     * [2.1.2 Members Events](#212-members-events)
     * [2.1.3 Security Servers Events](#213-security-servers-events)
     * [2.1.4 Global Groups Events](#214-global-groups-events)
-    * [2.1.5 Central Services Events](#215-central-services-events)
-    * [2.1.6 Certification Services Events](#216-certification-services-events)
-    * [2.1.7 Timestamping Services Events](#217-timestamping-services-events)
-    * [2.1.8 Management Requests Events](#218-management-requests-events)
-    * [2.1.9 Configuration Management Events](#219-configuration-management-events)
-    * [2.1.10 System Settings Events](#2110-system-settings-events)
-    * [2.1.11 Backup and Restore Events](#2111-backup-and-restore-events)
+    * [2.1.5 Certification Services Events](#216-certification-services-events)
+    * [2.1.6 Timestamping Services Events](#217-timestamping-services-events)
+    * [2.1.7 Management Requests Events](#218-management-requests-events)
+    * [2.1.8 Configuration Management Events](#219-configuration-management-events)
+    * [2.1.9 System Settings Events](#2110-system-settings-events)
+    * [2.1.10 Backup and Restore Events](#2111-backup-and-restore-events)
   * [2.2 Security Server](#22-security-server)
     * [2.2.1 Common Events](#221-common-events)
     * [2.2.2 Initialization Events](#222-initialization-events)
@@ -225,17 +225,7 @@ The audit log events related to configuration of the X-Road global groups.
 | Add members to global group      | <ul><li>code - the group code of the selected global group</li><li>description - the description of the selected global group</li><li>memberIdentifiers - the list of member identifiers of the members added to the selected global group</li></ul>     |
 | Remove members from global group | <ul><li>code - the group code of the selected global group</li><li>description - the description of the selected global group</li><li>memberIdentifiers - the list of member identifiers of the members removed from the selected global group</li></ul> |
 
-#### 2.1.5 Central Services Events
-
-The audit log events related to configuration of the X-Road central services.
-
-| Event                  | Data fields                                                                                                                                                                                                                                                                                                                                                   |
-|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Add central service    | <ul><li>serviceCode - the service code of the added central service</li><li>targetServiceCode - the target service code of the added central service</li><li>targetServiceVersion - the target service version of the added central service</li><li>providerIdentifier - the provider identifier of the added central service</li></ul>                       |
-| Edit central service   | <ul><li>serviceCode - the service code of the edited central service</li><li>targetServiceCode - the (new) target service code of the edited central service</li><li>targetServiceVersion - the (new) target service version of the edited central service</li><li>providerIdentifier - the (new) provider identifier of the edited central service</li></ul> |
-| Delete central service | <ul><li>serviceCode - the service code of the deleted central service</li></ul>                                                                                                                                                                                                                                                                               |
-
-#### 2.1.6 Certification Services Events
+#### 2.1.5 Certification Services Events
 
 The audit log events related to configuration of the X-Road certification services.
 
@@ -251,7 +241,7 @@ The audit log events related to configuration of the X-Road certification servic
 | Edit OCSP responder                         | <ul><li>ocspId - the identifier of the edited OCSP responder</li><li>ocspUrl - the (new) URL of the edited OCSP responder</li><li>ocspCertHash - the (new) hash of the edited OCSP responder certificate</li><li>ocspCertHashAlgorithm - the hash algorithm used to calculate value of the field ocspCertHash</li></ul>                                                                                                                                                                                                        |
 | Delete OCSP responder                       | <ul><li>ocspId - the identifier of the deleted OCSP responder</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
-#### 2.1.7 Timestamping Services Events
+#### 2.1.6 Timestamping Services Events
 
 The audit log events related to configuration of the X-Road timpestamping services.
 
@@ -261,7 +251,7 @@ The audit log events related to configuration of the X-Road timpestamping servic
 | Edit timestamping service   | <ul><li>tsaId - the identifier of the edited timestamping service</li><li>tsaName - the (new) name of the edited timestamping service</li><li>tsaUrl - the (new) URL of the edited timestamping service</li></ul>                                                                                                                                                            |
 | Delete timestamping service | <ul><li>tsaId - the identifier of the deleted timestamping service</li><li>tsaName - the name of the deleted timestamping service</li><li>tsaUrl - the URL of the deleted timestamping service</li></ul>                                                                                                                                                                     |
 
-#### 2.1.8 Management Requests Events
+#### 2.1.7 Management Requests Events
 
 The audit log events related to the management requests.
 
@@ -272,7 +262,7 @@ The audit log events related to the management requests.
 | Approve registration request                           | <ul><li>requestId - the identifier of the approved request</li></ul> | 
 | Decline registration request                           | <ul><li>requestId - the identifier of the declined request</li></ul> |
 
-#### 2.1.9 Configuration Management Events
+#### 2.1.8 Configuration Management Events
 
 The audit log events related to configuration management.
 
@@ -292,7 +282,7 @@ The audit log events related to configuration management.
 | Log out from token                          | <ul><li>tokenId - the identifier of the token logged out</li><li>tokenSerialNumber - the serial number of token</li><li>tokenFriendlyName - the friendly name of token</li></ul>                                                                                                                                                                                                                                                                                                                                                    |
 | Upload configuration part                   | <ul><li>sourceType - the source type (internal or external) of the uploaded configuration part</li><li>contentIdentifier - the content identifier of the uploaded configuration part</li><li>partFileName - the internal name of the configuration part file</li><li>uploadFileName - the name of the uploaded configuration part file</li><li>uploadFileHash - the hash of the uploaded configuration part file</li><li>uploadFileHashAlgorithm - the hash algorithm used to calculate value of the field uploadFileHash</li></ul> |
 
-#### 2.1.10 System Settings Events
+#### 2.1.9 System Settings Events
 
 The audit log events related to the system settings.
 
@@ -305,7 +295,7 @@ The audit log events related to the system settings.
 | Edit member class description                                  | <ul><li>code - the code of the edited member class</li><li>description - the new description of the edited member class</li></ul>                                                                                                                                                                                                                         |
 | Delete member class                                            | <ul><li>code - the code of the deleted member class</li></ul>                                                                                                                                                                                                                                                                                             |
 
-#### 2.1.11 Backup and Restore Events
+#### 2.1.10 Backup and Restore Events
 
 The audit log events related to backup and restore.
 

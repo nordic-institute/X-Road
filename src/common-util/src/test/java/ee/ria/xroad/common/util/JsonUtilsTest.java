@@ -25,15 +25,17 @@
  */
 package ee.ria.xroad.common.util;
 
-import com.google.gson.Gson;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.junit.Test;
 
 import java.time.OffsetDateTime;
 
-import static ee.ria.xroad.common.util.JsonUtils.Exclude;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
@@ -42,29 +44,29 @@ import static org.junit.Assert.assertNotEquals;
  */
 public class JsonUtilsTest {
 
-    private static final Gson GSON = JsonUtils.getSerializer(true);
+    private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter(true);
+    private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
+    @Value
+    @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
     @RequiredArgsConstructor
-    @EqualsAndHashCode
     public static class Foo {
-        @Getter
-        private final int a;
-        @Exclude
-        @Getter
-        private final int b;
+        int a;
+        @JsonIgnore
+        int b;
 
-        private final OffsetDateTime offsetDateTime;
-        private final OffsetDateTime otherUpdate;
+        OffsetDateTime offsetDateTime;
+        OffsetDateTime otherUpdate;
     }
 
     /**
      * Ensure excluded field is not serialized.
      */
     @Test
-    public void testIgnoresTabsInContentType() {
+    public void testIgnoresTabsInContentType() throws Exception {
         final Foo foo = new Foo(100, 200, OffsetDateTime.now(), null);
-        final String json = GSON.toJson(foo);
-        final Foo foo2 = GSON.fromJson(json, Foo.class);
+        final String json = OBJECT_WRITER.writeValueAsString(foo);
+        final Foo foo2 = OBJECT_READER.readValue(json, Foo.class);
 
         assertEquals(foo.a, foo2.a);
         assertEquals(foo.offsetDateTime, foo2.offsetDateTime);

@@ -26,73 +26,172 @@
 package ee.ria.xroad.common.identifier;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.vavr.control.Option;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import java.util.Objects;
+
 import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.SUBSYSTEM;
+import static ee.ria.xroad.common.util.Validation.validateArgument;
+import static ee.ria.xroad.common.util.Validation.validateOptionalArgument;
 
 /**
  * Client ID.
  */
-@XmlJavaTypeAdapter(IdentifierTypeConverter.ClientIdAdapter.class)
-public final class ClientId extends XRoadId {
+public interface ClientId extends XRoadId {
 
-    private final String memberClass;
-    private final String memberCode;
-    private final String subsystemCode;
+    String getMemberClass();
 
-    ClientId() { // required by Hibernate
-        this(null, null, null, null);
+    String getMemberCode();
+
+    String getSubsystemCode();
+
+    ClientId getMemberId();
+
+    @Override
+    default String[] getFieldsForStringFormat() {
+        return new String[]{getMemberClass(), getMemberCode(), getSubsystemCode()};
     }
 
-    private ClientId(String xRoadInstance, String memberClass,
-            String memberCode, String subsystemCode) {
-        super(subsystemCode == null ? MEMBER : SUBSYSTEM, xRoadInstance);
+    // todo: move to a proper location
+    @XmlJavaTypeAdapter(IdentifierTypeConverter.ClientIdAdapter.class)
+    final class Conf extends XRoadId.Conf implements ClientId {
 
-        this.memberClass = memberClass;
-        this.memberCode = memberCode;
-        this.subsystemCode = subsystemCode;
-    }
+        private final String memberClass;
+        private final String memberCode;
+        private final String subsystemCode;
 
-    /**
-     * Returns the member class of the client.
-     * @return String
-     */
-    public String getMemberClass() {
-        return memberClass;
-    }
 
-    /**
-     * Returns the member code of the client.
-     * @return String
-     */
-    public String getMemberCode() {
-        return memberCode;
-    }
+        Conf() { // required by Hibernate
+            this(null, null, null, null);
+        }
 
-    /**
-     * Returns subsystem code, if present, or null otherwise.
-     * @return String or null
-     */
-    public String getSubsystemCode() {
-        return subsystemCode;
+        private Conf(String xRoadInstance, String memberClass,
+                     String memberCode, String subsystemCode) {
+            super(subsystemCode == null ? MEMBER : SUBSYSTEM, xRoadInstance);
+
+            this.memberClass = memberClass;
+            this.memberCode = memberCode;
+            this.subsystemCode = subsystemCode;
+        }
+
+        public static ClientId.Conf ensure(ClientId identifier) {
+            validateArgument("identifier", identifier);
+            return Option.of(identifier)
+                    .filter(ClientId.Conf.class::isInstance)
+                    .map(ClientId.Conf.class::cast)
+                    .getOrElse(() -> new ClientId.Conf(identifier.getXRoadInstance(),
+                            identifier.getMemberClass(),
+                            identifier.getMemberCode(),
+                            identifier.getSubsystemCode()));
+        }
+
+        /**
+         * Returns the member class of the client.
+         *
+         * @return String
+         */
+        public String getMemberClass() {
+            return memberClass;
+        }
+
+        /**
+         * Returns the member code of the client.
+         *
+         * @return String
+         */
+        public String getMemberCode() {
+            return memberCode;
+        }
+
+        /**
+         * Returns subsystem code, if present, or null otherwise.
+         *
+         * @return String or null
+         */
+        public String getSubsystemCode() {
+            return subsystemCode;
+        }
+
+        /**
+         * Returns {@code this} if this id already is a member id, or ClientId
+         * of this subsystem's member if this id is a subsystem id
+         */
+        @JsonIgnore
+        public ClientId.Conf getMemberId() {
+            if (getSubsystemCode() == null) {
+                return this;
+            } else {
+                return ClientId.Conf.create(this.getXRoadInstance(),
+                        this.getMemberClass(),
+                        this.getMemberCode());
+            }
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return ClientId.equals(this, other);
+        }
+
+        @Override
+        public int hashCode() {
+            return ClientId.hashCode(this);
+        }
+
+        /**
+         * Factory method for creating a new Subsystem.
+         *
+         * @param xRoadInstance instance of the new subsystem
+         * @param memberClass   member class of the new subsystem
+         * @param memberCode    member code of the new subsystem
+         * @param subsystemCode subsystem code of the new subsystem
+         * @return ClientId
+         */
+        public static ClientId.Conf create(String xRoadInstance,
+                                           String memberClass,
+                                           String memberCode,
+                                           String subsystemCode) {
+            validateArgument("xRoadInstance", xRoadInstance);
+            validateArgument("memberClass", memberClass);
+            validateArgument("memberCode", memberCode);
+            validateOptionalArgument("subsystemCode", subsystemCode);
+
+            return new ClientId.Conf(
+                    xRoadInstance, memberClass, memberCode, subsystemCode);
+        }
+
+        /**
+         * Factory method for creating a new ClientId.
+         *
+         * @param xRoadInstance instance of the new client
+         * @param memberClass   member class of the new client
+         * @param memberCode    member code of the new client
+         * @return ClientId
+         */
+        public static ClientId.Conf create(String xRoadInstance,
+                                           String memberClass,
+                                           String memberCode) {
+            return create(xRoadInstance, memberClass, memberCode, null);
+        }
+
     }
 
     /**
      * Determines whether the given member is a subsystem of this client.
+     *
      * @param member ID of the potential subsystem
      * @return true if and only if this object represents a subsystem and
      * the argument represents a member and this object contains the member
      * class and code
      */
-    public boolean subsystemContainsMember(ClientId member) {
+    default boolean subsystemContainsMember(ClientId member) {
         if (member != null
                 && getObjectType() == XRoadObjectType.SUBSYSTEM
                 && member.getObjectType() == XRoadObjectType.MEMBER) {
-            return getXRoadInstance().equals(member.getXRoadInstance())
-                    && getMemberClass().equals(member.getMemberClass())
-                    && getMemberCode().equals(member.getMemberCode());
+            return memberEquals(member);
         }
 
         return false;
@@ -103,11 +202,12 @@ public final class ClientId extends XRoadId {
      * ignores subsystem part of the identifier.
      * Thus, SUBSYSTEM:XX/YY/ZZ/WW is considered equal to
      * SUBSYSTEM:XX/YY/ZZ/TT and MEMBER:XX/YY/ZZ.
+     *
      * @param other the ID of the other client
      * @return true, if two identifiers, this and other, refer to the same
      * X-Road member
      */
-    public boolean memberEquals(ClientId other) {
+    default boolean memberEquals(ClientId other) {
         if (other == null) {
             return false;
         }
@@ -117,54 +217,24 @@ public final class ClientId extends XRoadId {
                 && getMemberCode().equals(other.getMemberCode());
     }
 
-    @Override
-    public String[] getFieldsForStringFormat() {
-        return new String[] {memberClass, memberCode, subsystemCode};
+    static boolean equals(ClientId self, Object other) {
+        if (self == other) return true;
+        if (!(other instanceof ClientId)) return false;
+        if (!XRoadId.equals(self, other)) return false;
+        ClientId identifier = (ClientId) other;
+        if (!Objects.equals(self.getMemberClass(), identifier.getMemberClass())) return false;
+        if (!Objects.equals(self.getMemberCode(), identifier.getMemberCode())) return false;
+        if (!Objects.equals(self.getSubsystemCode(), identifier.getSubsystemCode())) return false;
+        return true;
     }
 
-    /**
-     * Factory method for creating a new Subsystem.
-     * @param xRoadInstance instance of the new subsystem
-     * @param memberClass member class of the new subsystem
-     * @param memberCode member code of the new subsystem
-     * @param subsystemCode subsystem code of the new subsystem
-     * @return ClientId
-     */
-    public static ClientId create(String xRoadInstance,
-            String memberClass, String memberCode, String subsystemCode) {
-        validateField("xRoadInstance", xRoadInstance);
-        validateField("memberClass", memberClass);
-        validateField("memberCode", memberCode);
-        validateOptionalField("subsystemCode", subsystemCode);
-
-        return new ClientId(
-                xRoadInstance, memberClass, memberCode, subsystemCode);
+    static int hashCode(ClientId self) {
+        return new HashCodeBuilder()
+                .appendSuper(XRoadId.hashCode(self))
+                .append(self.getMemberClass())
+                .append(self.getMemberCode())
+                .append(self.getSubsystemCode())
+                .build();
     }
 
-    /**
-     * Factory method for creating a new ClientId.
-     * @param xRoadInstance instance of the new client
-     * @param memberClass member class of the new client
-     * @param memberCode member code of the new client
-     * @return ClientId
-     */
-    public static ClientId create(String xRoadInstance,
-            String memberClass, String memberCode) {
-        return create(xRoadInstance, memberClass, memberCode, null);
-    }
-
-    /**
-     * Returns {@code this} if this id already is a member id, or ClientId
-     * of this subsystem's member if this id is a subsystem id
-     */
-    @JsonIgnore
-    public ClientId getMemberId() {
-        if (getSubsystemCode() == null) {
-            return this;
-        } else {
-            return ClientId.create(this.getXRoadInstance(),
-                    this.getMemberClass(),
-                    this.getMemberCode());
-        }
-    }
 }

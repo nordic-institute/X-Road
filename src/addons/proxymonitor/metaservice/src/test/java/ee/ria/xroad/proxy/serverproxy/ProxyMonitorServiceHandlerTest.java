@@ -74,13 +74,13 @@ public class ProxyMonitorServiceHandlerTest {
 
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
-    private static final ClientId DEFAULT_OWNER_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+    private static final ClientId.Conf DEFAULT_OWNER_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT");
 
-    private static final SecurityServerId DEFAULT_OWNER_SERVER =
-            SecurityServerId.create(DEFAULT_OWNER_CLIENT, "ownerServer");
+    private static final SecurityServerId.Conf DEFAULT_OWNER_SERVER =
+            SecurityServerId.Conf.create(DEFAULT_OWNER_CLIENT, "ownerServer");
 
-    private static final ServiceId MONITOR_SERVICE_ID = ServiceId.create(DEFAULT_OWNER_CLIENT,
+    private static final ServiceId.Conf MONITOR_SERVICE_ID = ServiceId.Conf.create(DEFAULT_OWNER_CLIENT,
             ProxyMonitorServiceHandlerImpl.SERVICE_CODE);
 
     private static Unmarshaller unmarshaller;
@@ -128,7 +128,7 @@ public class ProxyMonitorServiceHandlerTest {
         KeyConf.reload(new TestSuiteKeyConf());
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
-            public SecurityServerId getIdentifier() {
+            public SecurityServerId.Conf getIdentifier() {
                 return DEFAULT_OWNER_SERVER;
             }
         });
@@ -145,7 +145,7 @@ public class ProxyMonitorServiceHandlerTest {
         // setup
         ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl();
 
-        final ServiceId requestedService = ServiceId.create(DEFAULT_OWNER_CLIENT, "theWrongService");
+        final ServiceId.Conf requestedService = ServiceId.Conf.create(DEFAULT_OWNER_CLIENT, "theWrongService");
 
         // execution & verification
         assertThat("Should not be able to handle wrong service",
@@ -189,7 +189,7 @@ public class ProxyMonitorServiceHandlerTest {
         ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl();
 
         // the allowed monitoring client from test resources monitoring metricNames
-        final ClientId allowedClient = ClientId.create(EXPECTED_XR_INSTANCE, "BUSINESS",
+        final ClientId.Conf allowedClient = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "BUSINESS",
                 "producer");
 
         final SoapMessageImpl mockSoap = mock(SoapMessageImpl.class);
@@ -211,7 +211,7 @@ public class ProxyMonitorServiceHandlerTest {
         ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl();
 
         // the allowed monitoring client from test resources monitoring metricNames
-        final ClientId nonAllowedClient = ClientId.create(EXPECTED_XR_INSTANCE, "COM",
+        final ClientId.Conf nonAllowedClient = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "COM",
                 "justSomeClient");
 
         final SoapMessageImpl mockSoap = mock(SoapMessageImpl.class);

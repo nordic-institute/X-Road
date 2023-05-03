@@ -219,7 +219,7 @@ public class BasicCertificateProfileInfoProviderTest {
         return provider().getSignCertProfile(new SignCertificateProfileInfo.Parameters() {
             @Override
             public ClientId getClientId() {
-                return ClientId.create("XX", "bar", "baz");
+                return ClientId.Conf.create("XX", "bar", "baz");
             }
 
             @Override
@@ -238,7 +238,7 @@ public class BasicCertificateProfileInfoProviderTest {
         return provider().getAuthCertProfile(new AuthCertificateProfileInfo.Parameters() {
             @Override
             public SecurityServerId getServerId() {
-                return SecurityServerId.create("XX", "foo", "bar", "server");
+                return SecurityServerId.Conf.create("XX", "foo", "bar", "server");
             }
 
             @Override

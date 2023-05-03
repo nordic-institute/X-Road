@@ -35,7 +35,7 @@ import lombok.Data;
 @Data
 public final class MemberInfo {
 
-    private final ClientId id;
+    private final ClientId.Conf id;
     private final String name;
 
 }

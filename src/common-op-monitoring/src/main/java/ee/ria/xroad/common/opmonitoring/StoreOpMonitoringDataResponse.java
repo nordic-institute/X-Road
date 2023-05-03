@@ -25,7 +25,8 @@
  */
 package ee.ria.xroad.common.opmonitoring;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -40,16 +41,18 @@ public class StoreOpMonitoringDataResponse {
     public static final String STATUS_OK = "OK";
     public static final String STATUS_ERROR = "Error";
 
-    @SerializedName("status")
+    @JsonProperty("status")
     private String status;
-    @SerializedName("errorMessage")
+    @JsonProperty("errorMessage")
     private String errorMessage;
 
+    @JsonCreator
     public StoreOpMonitoringDataResponse() {
         this.status = STATUS_OK;
     }
 
-    public StoreOpMonitoringDataResponse(String errorMessage) {
+    @JsonCreator
+    public StoreOpMonitoringDataResponse(@JsonProperty("errorMessage") String errorMessage) {
         this.status = STATUS_ERROR;
         this.errorMessage = errorMessage;
     }

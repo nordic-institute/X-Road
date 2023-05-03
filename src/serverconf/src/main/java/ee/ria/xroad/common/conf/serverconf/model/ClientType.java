@@ -56,7 +56,7 @@ public class ClientType {
 
     private ServerConfType conf;
 
-    private ClientId identifier;
+    private ClientId.Conf identifier;
 
     private String clientStatus;
     private String isAuthentication;

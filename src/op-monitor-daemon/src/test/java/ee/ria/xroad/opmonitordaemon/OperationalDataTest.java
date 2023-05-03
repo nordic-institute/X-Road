@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.hibernate.PropertyValueException;
 import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
@@ -36,7 +37,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.GSON;
+import java.io.IOException;
+
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.OBJECT_READER;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.fillMinimalOperationalData;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.formatInvalidOperationalDataAsJson;
 import static org.junit.Assert.assertEquals;
@@ -104,13 +107,13 @@ public class OperationalDataTest extends BaseTestUsingDB {
     }
 
     @Test
-    public void convertFromOutdatedJson() {
+    public void convertFromOutdatedJson() throws IOException {
         String jsonRec = formatInvalidOperationalDataAsJson();
 
-        expectedException.expect(RuntimeException.class);
+        expectedException.expect(JsonMappingException.class);
         expectedException.expectMessage("Invalid value of securityServerType");
 
-        GSON.fromJson(jsonRec, OperationalDataRecord.class);
+        OBJECT_READER.readValue(jsonRec, OperationalDataRecord.class);
     }
 
     @Test

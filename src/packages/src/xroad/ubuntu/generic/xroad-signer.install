@@ -5,5 +5,5 @@
 ../../../../src/xroad/default-configuration/signer-console-logback.xml etc/xroad/conf.d/
 ../../../../src/xroad/default-configuration/devices.ini usr/share/xroad/doc/
 ../../../../../signer/build/libs/signer-1.0.jar usr/share/xroad/jlib/
-../../../../../signer-console/build/libs/signer-console-1.0.jar usr/share/xroad/jlib/
+ ../../../../../signer-console/build/libs/signer-console-1.0.jar usr/share/xroad/jlib/
 ../../../../../lib/libpasswordstore.so usr/share/xroad/lib/

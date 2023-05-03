@@ -40,7 +40,7 @@ import static org.junit.Assert.assertTrue;
 public class ClientIdTest {
     @Test
     public void getMemberId() throws Exception {
-        ClientId subsystemId = ClientId.create("instance",
+        ClientId subsystemId = ClientId.Conf.create("instance",
                 "memberclass",
                 "membercode",
                 "subsystemcode");

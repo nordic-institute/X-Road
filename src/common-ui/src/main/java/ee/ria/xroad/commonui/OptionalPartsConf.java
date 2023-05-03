@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,6 +27,7 @@ package ee.ria.xroad.commonui;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 
 import lombok.Getter;
@@ -56,7 +57,6 @@ import java.util.Set;
 public class OptionalPartsConf {
     private static final String KEY_PART_FILE_NAME;
     private static final String KEY_CONTENT_IDENTIFIER;
-    private static final String KEY_VALIDATION_PROGRAM;
 
     private static final List<String> RESERVED_FILE_NAMES;
     private static final List<String> RESERVED_CONTENT_IDENTIFIERS;
@@ -64,7 +64,6 @@ public class OptionalPartsConf {
     static {
         KEY_PART_FILE_NAME = "file-name";
         KEY_CONTENT_IDENTIFIER = "content-identifier";
-        KEY_VALIDATION_PROGRAM = "validation-program";
 
         RESERVED_FILE_NAMES = Arrays.asList(
                 ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS,
@@ -74,8 +73,6 @@ public class OptionalPartsConf {
                 ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
     }
 
-    private final Map<String, String> partFileNameToValidationProgram =
-            new HashMap<>();
     private final Map<String, String> partFileNameToContentIdentifier =
             new HashMap<>();
 
@@ -86,6 +83,11 @@ public class OptionalPartsConf {
     private final List<String> errors = new ArrayList<>();
 
     private final Set<String> existingPartFileNames = new HashSet<>();
+
+    @SneakyThrows
+    public static OptionalPartsConf getOptionalPartsConf() {
+        return new OptionalPartsConf(SystemProperties.getConfPath() + "/configuration-parts");
+    }
 
     /**
      * Creates optional parts configuration.
@@ -126,22 +128,6 @@ public class OptionalPartsConf {
     }
 
     /**
-     * Returns absolute path to validation program according to path file name.
-     *
-     * @param partFile - Simple name of the part file.
-     * @return - absolute path to validation program.
-     */
-    public String getValidationProgram(String partFile) {
-        String validationProgram =
-                partFileNameToValidationProgram.get(partFile);
-
-        log.debug("Validation program for part file '{}': '{}'",
-                partFile, validationProgram);
-
-        return validationProgram;
-    }
-
-    /**
      * Returns content identifier respective to path file name.
      *
      * @param partFile - simple name of the part file.
@@ -155,6 +141,24 @@ public class OptionalPartsConf {
                 partFile, contentIdentifier);
 
         return contentIdentifier;
+    }
+
+    /**
+     * Returns part filename for content identifier.
+     *
+     * @param contentIdentifier - content identifier.
+     * @return - part filename.
+     */
+    public String getPartFileName(String contentIdentifier) {
+        final String partFileName = getAllParts().stream()
+                .filter(part -> part.getContentIdentifier().equals(contentIdentifier))
+                .findFirst()
+                .map(OptionalConfPart::getFileName)
+                .orElseThrow(() -> new CodedException(ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF,
+                        "Part file name not found for content identifier " + contentIdentifier));
+
+        log.debug("Part filename for content identifier '{}': '{}'", contentIdentifier, partFileName);
+        return partFileName;
     }
 
     @SneakyThrows
@@ -173,13 +177,10 @@ public class OptionalPartsConf {
                 return;
             }
 
-            String validationProgram = props.getProperty(KEY_VALIDATION_PROGRAM);
-
             validatePartFileName(partFileName);
 
             validateContentIdentifier(contentId);
 
-            partFileNameToValidationProgram.put(partFileName, validationProgram);
             partFileNameToContentIdentifier.put(partFileName, contentId);
 
             allParts.add(new OptionalConfPart(partFileName, contentId));

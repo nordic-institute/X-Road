@@ -57,7 +57,7 @@ public class EjbcaCertificateProfileInfoProviderTest {
                 "Must return instance of DefaultAuthCertificateProfileInfo",
                 provider.getAuthCertProfile(
                         new AuthCertificateProfileInfoParameters(
-                                SecurityServerId.create("XX", "foo", "bar", "server"), "foo"
+                                SecurityServerId.Conf.create("XX", "foo", "bar", "server"), "foo"
                         )
                 ) instanceof EjbcaAuthCertificateProfileInfo
         );
@@ -66,7 +66,7 @@ public class EjbcaCertificateProfileInfoProviderTest {
                 "Must return instance of DefaultSignCertificateProfileInfo",
                 provider.getSignCertProfile(
                         new SignCertificateProfileInfoParameters(
-                                ClientId.create("XX", "foo", "bar"), "foo"
+                                ClientId.Conf.create("XX", "foo", "bar"), "foo"
                         )
                 ) instanceof EjbcaSignCertificateProfileInfo
         );
@@ -158,7 +158,7 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
 
         assertEquals(
-                ClientId.create("XX", "Foo", "bar"),
+                ClientId.Conf.create("XX", "Foo", "bar"),
                 getSignProfile().getSubjectIdentifier(mockCert)
         );
     }
@@ -246,7 +246,7 @@ public class EjbcaCertificateProfileInfoProviderTest {
     private EjbcaSignCertificateProfileInfo getSignProfile() {
         return new EjbcaSignCertificateProfileInfo(
                 new SignCertificateProfileInfoParameters(
-                        ClientId.create("XX", "foo", "bar"),
+                        ClientId.Conf.create("XX", "foo", "bar"),
                         "foo"
                 )
         );
@@ -255,7 +255,7 @@ public class EjbcaCertificateProfileInfoProviderTest {
     private EjbcaAuthCertificateProfileInfo getAuthProfile() {
         return new EjbcaAuthCertificateProfileInfo(
                 new AuthCertificateProfileInfoParameters(
-                        SecurityServerId.create("XX", "foo", "bar", "server"),
+                        SecurityServerId.Conf.create("XX", "foo", "bar", "server"),
                         "foo"
                 )
         );

@@ -270,7 +270,8 @@ public final class ConfigurationClientMain {
                     log.info("handler /status");
 
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(ConfigurationClientJobListener.getStatus(), response.getWriter());
+                    JsonUtils.getObjectWriter()
+                            .writeValue(response.getWriter(), ConfigurationClientJobListener.getStatus());
                 } catch (Exception e) {
                     log.error("Error getting conf client status", e);
                 }

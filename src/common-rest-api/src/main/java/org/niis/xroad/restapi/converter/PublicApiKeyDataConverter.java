@@ -29,7 +29,7 @@ import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.PublicApiKeyData;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 /**
  * Converter for api keys related data between openapi and service domain classes
  */
-@Component
+@Service
 public class PublicApiKeyDataConverter {
 
     public PublicApiKeyData convert(PersistentApiKeyType persistentApiKeyType) {

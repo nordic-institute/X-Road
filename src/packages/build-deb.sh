@@ -57,10 +57,7 @@ DIR="$(cd "$(dirname $0)" && pwd)"
 cd "$DIR"
 
 mkdir -p build/xroad
-mkdir -p build/xroad-jetty9
 cp -a src/xroad/ubuntu build/xroad/
-cp -a src/xroad-jetty9/ubuntu build/xroad-jetty9/
-./download_jetty.sh
 
 # version was not given, use empty
 if [ -z "$2" ]; then
@@ -70,15 +67,17 @@ else
 fi
 
 case "$1" in
+    bionic)
+        prepare ubuntu18.04
+        builddeb build/xroad/ubuntu bionic ubuntu18.04 "$PACKAGE_VERSION"
+        ;;
     focal)
         prepare ubuntu20.04
         builddeb build/xroad/ubuntu focal ubuntu20.04 "$PACKAGE_VERSION"
-        builddeb build/xroad-jetty9/ubuntu focal ubuntu20.04 "$PACKAGE_VERSION"
         ;;
     jammy)
         prepare ubuntu22.04
         builddeb build/xroad/ubuntu jammy ubuntu22.04 "$PACKAGE_VERSION"
-        builddeb build/xroad-jetty9/ubuntu jammy ubuntu22.04 "$PACKAGE_VERSION"
         ;;
     *)
         echo "Unsupported distribution $dist"

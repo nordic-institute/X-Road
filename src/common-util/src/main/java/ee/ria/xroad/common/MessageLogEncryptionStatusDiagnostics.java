@@ -25,6 +25,9 @@
  */
 package ee.ria.xroad.common;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Value;
 
 import java.util.List;
@@ -33,6 +36,8 @@ import java.util.List;
  * DTO for message log encryption statuses
  */
 @Value
+@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 public class MessageLogEncryptionStatusDiagnostics {
     boolean messageLogArchiveEncryptionStatus;
     boolean messageLogDatabaseEncryptionStatus;

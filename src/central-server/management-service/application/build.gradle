@@ -1,0 +1,36 @@
+ plugins {
+    id 'org.springframework.boot'
+}
+
+archivesBaseName = 'centralserver-management-service'
+
+jar {
+    enabled = false
+}
+bootJar {
+    enabled = true
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Central Server Management Service',
+            'Implementation-Version': xroadVersion
+        )
+    }
+}
+
+
+dependencies {
+    implementation(project(":central-server:management-service:core")) {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    }
+    implementation(project(":central-server:management-service:infra-api-soap")) {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    }
+
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    }
+    implementation('org.springframework.boot:spring-boot-starter-jetty')
+
+    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:7.4.0') //TODO this and ip throttling is duplicated
+}
+

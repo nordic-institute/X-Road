@@ -66,7 +66,7 @@ public class EjbcaSignCertificateProfileInfo
         this.params = params;
     }
     @Override
-    public ClientId getSubjectIdentifier(X509Certificate certificate) {
+    public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
         return CertUtils.getSubjectClientId(certificate);
     }
 

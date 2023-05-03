@@ -1,0 +1,65 @@
+plugins {
+    id 'java-library'
+    id 'org.openapi.generator' version "$openApiGeneratorVersion"
+    id 'org.niis.xroad.oasvalidatorplugin'
+}
+
+dependencies {
+    compileOnly("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
+    compileOnly("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
+
+    api("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
+}
+
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java',
+            "${buildDir}/generated-sources/openapi/src/main/java",
+        ]
+    }
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$projectDir/src/main/resources/META-INF/openapi-definition.yaml".toString()
+    outputDir = "$buildDir/generated-sources/openapi".toString()
+    apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
+    modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
+    globalProperties = [
+        modelDocs              : "false",
+        apis                   : "", // must use empty strings instead of "true":
+        // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
+        models                 : "",
+        generateSupportingFiles: "true",
+        supportingFiles        : 'ApiUtil.java'
+    ]
+    configOptions = [
+        interfaceOnly        : "true",
+        useTags              : "true",
+        documentationProvider: "none",
+        skipDefaultInterface : "true",
+        openApiNullable      : "false"
+    ]
+}
+
+// Fix up to date check
+tasks.openApiGenerate {
+    inputs.files(openApiGenerate.inputSpec)
+    outputs.dir(openApiGenerate.outputDir)
+}
+
+apiValidationParameters.apiDefinitionPaths = [
+    "$projectDir/src/main/resources/META-INF/openapi-definition.yaml".toString(),
+    "$projectDir/src/main/resources/META-INF/openapi-authentication.yaml".toString()
+]
+
+validateApiDefinitions {
+    inputs.files(
+        "src/main/resources/META-INF/openapi-definition.yaml",
+        "src/main/resources/META-INF/openapi-authentication.yaml")
+    outputs.upToDateWhen { true }
+}
+
+tasks.openApiGenerate.dependsOn 'validateApiDefinitions'
+tasks.compileJava.dependsOn tasks.openApiGenerate

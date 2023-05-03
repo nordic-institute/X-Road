@@ -3,17 +3,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.config.audit;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.base.CaseFormat;
-import com.google.gson.annotations.JsonAdapter;
 
 /**
  * Enumeration for data properties that are audit logged.
@@ -35,7 +34,6 @@ import com.google.gson.annotations.JsonAdapter;
  * For example CLIENT_IDENTIFIER -> clientIdentifier.
  * JSON serialized using {@link #getPropertyName()}
  */
-@JsonAdapter(RestApiAuditPropertyJsonAdapter.class) // changes how direct properties are JSON serialized
 public enum RestApiAuditProperty {
 
     USER, // only when not available via UsernameHelper, e.g. when form login fails
@@ -89,7 +87,14 @@ public enum RestApiAuditProperty {
     CSR_FORMAT,
     CERT_ID,
     CSR_ID,
-
+    CA_ID,
+    OCSP_ID,
+    OCSP_URL,
+    OCSP_CERT_HASH,
+    OCSP_CERT_HASH_ALGORITHM,
+    INTERMEDIATE_CA_ID,
+    INTERMEDIATE_CA_CERT_HASH,
+    INTERMEDIATE_CA_CERT_HASH_ALGORITHM,
     CERT_FILE_NAME,
     ADDRESS,
     CERT_STATUS,
@@ -98,21 +103,55 @@ public enum RestApiAuditProperty {
 
     ANCHOR_FILE_HASH,
     ANCHOR_FILE_HASH_ALGORITHM,
+    ANCHOR_URLS,
     GENERATED_AT,
     TSP_NAME,
     TSP_URL,
 
     OWNER_IDENTIFIER,
+    OWNER_CLASS,
+    OWNER_CODE,
     SERVER_CODE,
 
     API_KEY_ID,
-    API_KEY_ROLES;
+    API_KEY_ROLES,
+
+    INSTANCE_IDENTIFIER,
+    CENTRAL_SERVER_ADDRESS,
+    HA_NODE,
+
+    MEMBER_NAME,
+    MEMBER_CLASS,
+    MEMBER_CODE,
+
+    MEMBER_SUBSYSTEM_CODE,
+
+    CODE,
+    DESCRIPTION,
+
+    AUTHENTICATION_ONLY,
+    CERTIFICATE_PROFILE_INFO,
+
+    TSA_ID,
+    TSA_NAME,
+    TSA_URL,
+    TSA_CERT_HASH,
+    TSA_CERT_HASH_ALGORITHM,
+    SOURCE_TYPE,
+    PART_FILE_NAME,
+    UPLOAD_FILE_HASH,
+    UPLOAD_FILE_HASH_ALGORITHM,
+    CONTENT_IDENTIFIER,
+
+    SERVICE_PROVIDER_IDENTIFIER,
+    SERVICE_PROVIDER_NAME;
 
     /**
      * Gets logged property name for the enum value.
      * Returns enum name converted to lower camel case.
      * For example CLIENT_IDENTIFIER -> clientIdentifier
-     * @return
+     *
+     * @return enum name converted to lower camel case.
      */
     @JsonValue
     String getPropertyName() {

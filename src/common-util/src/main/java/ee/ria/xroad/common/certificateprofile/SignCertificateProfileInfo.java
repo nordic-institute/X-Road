@@ -36,7 +36,7 @@ public interface SignCertificateProfileInfo extends CertificateProfileInfo {
     /**
      * Parameters used to provide the instance of SignCertificateProfileInfo.
      */
-    public interface Parameters {
+    interface Parameters {
 
         /**
          * @return the server identifier
@@ -60,6 +60,6 @@ public interface SignCertificateProfileInfo extends CertificateProfileInfo {
      * @return the subject identifier
      * @throws Exception if an error occurs while reading the identifier
      */
-    ee.ria.xroad.common.identifier.ClientId getSubjectIdentifier(
+    ee.ria.xroad.common.identifier.ClientId.Conf getSubjectIdentifier(
             java.security.cert.X509Certificate certificate) throws Exception;
 }

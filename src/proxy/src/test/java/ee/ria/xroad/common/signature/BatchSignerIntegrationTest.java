@@ -80,7 +80,7 @@ public final class BatchSignerIntegrationTest {
 
     private static final String KEY_ID = "consumer";
 
-    private static final ClientId CORRECT_MEMBER = ClientId.create("EE", "FOO", "consumer");
+    private static final ClientId CORRECT_MEMBER = ClientId.Conf.create("EE", "FOO", "consumer");
 
     private static final Date CORRECT_VALIDATION_DATE = createDate(30, 9, 2014);
 

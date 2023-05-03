@@ -136,7 +136,7 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     private void testWithSender(URI... addresses) throws Exception {
         try (HttpSender sender = new HttpSender(client)) {
             sender.setAttribute(ID_TARGETS, addresses);
-            sender.setAttribute(ID_PROVIDERNAME, ServiceId.create("INSTANCE", "CLASS", "CODE", "SUB", "SERVICE"));
+            sender.setAttribute(ID_PROVIDERNAME, ServiceId.Conf.create("INSTANCE", "CLASS", "CODE", "SUB", "SERVICE"));
             sender.setConnectionTimeout(1000);
             sender.doGet(new URI("https://localhost:1234/"));
         }

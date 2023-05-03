@@ -91,19 +91,17 @@ public class ServerProxyConnectionAborted extends MessageTestCase {
 
                 LOG.debug("Starting to listen at 127.0.0.3:{}", port);
 
-                ServerSocket srvr = new ServerSocket(port, 1,
-                        InetAddress.getByName("127.0.0.3"));
-                Socket skt = srvr.accept();
+                try (ServerSocket srvr = new ServerSocket(port, 1, InetAddress.getByName("127.0.0.3"));
+                     Socket skt = srvr.accept()) {
 
-                LOG.debug("Received connection from {}",
-                        skt.getRemoteSocketAddress());
+                    LOG.debug("Received connection from {}", skt.getRemoteSocketAddress());
 
-                // Read something.
-                skt.getInputStream().read(buffer);
-                skt.getInputStream().close();
-                skt.close();
-                srvr.close();
-                LOG.debug("Closing the test socket");
+                    // Read something.
+                    skt.getInputStream().read(buffer);
+                    //abort connection
+                    LOG.debug("Closing the test socket");
+                    skt.setSoLinger(true, 0);
+                }
             } catch (Exception ex) {
                 LOG.debug("Aborting server failed", ex);
             }

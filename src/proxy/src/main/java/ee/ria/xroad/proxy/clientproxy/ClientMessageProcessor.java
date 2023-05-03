@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,15 +27,12 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RequestHash;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -52,23 +49,18 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.AttributesImpl;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.namespace.QName;
 
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.io.Writer;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -213,7 +205,6 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     private void checkRequestIdentifiers() {
         checkIdentifier(requestSoap.getClient());
         checkIdentifier(requestSoap.getService());
-        checkIdentifier(requestSoap.getCentralService());
         checkIdentifier(requestSoap.getSecurityServer());
     }
 
@@ -453,7 +444,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     public void handleSoap() {
         try (SoapMessageHandler handler = new SoapMessageHandler()) {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(servletRequest.getContentType(),
-                    handler, new RequestSoapParserImpl());
+                    handler, new SaxSoapParserImpl());
             try {
                 originalSoapAction = validateSoapActionHeader(servletRequest.getHeader("SOAPAction"));
                 soapMessageDecoder.parse(servletRequest.getInputStream());
@@ -577,158 +568,4 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    /**
-     * Soap parser that changes the CentralServiceId to ServiceId in message
-     * header.
-     */
-    private class RequestSoapParserImpl extends SaxSoapParserImpl {
-
-        private ServiceId serviceId;
-
-        private String nestedPrefix;
-
-        private AttributesImpl wrapperElementAttributes;
-        private Attributes nestedElementAttributes;
-
-        private char[] nestedTabs;
-        private char[] wrapperTabs;
-
-        private boolean inServiceElement;
-        private boolean inHeader;
-
-        private SoapHeaderHandler headerHandler;
-
-        // do not write processed XML beyond the header if not a central
-        // service request, use raw request XML instead
-        @Override
-        protected boolean isProcessedXmlRequired() {
-            boolean headerNotProcessed = headerHandler == null || !headerHandler.isFinished();
-
-            return headerNotProcessed || headerHandler.getHeader().getCentralService() != null;
-        }
-
-        @Override
-        protected void writeStartElementXml(String prefix, QName element, Attributes attributes, Writer writer) {
-            if (inHeader && element.equals(QNAME_XROAD_CENTRAL_SERVICE)) {
-                beginServiceElementSubstitution(attributes);
-                inServiceElement = true;
-            } else if (!inServiceElement) {
-                super.writeStartElementXml(prefix, element, attributes, writer);
-            }
-        }
-
-        @Override
-        protected void writeEndElementXml(String prefix, QName element,
-                Attributes attributes, Writer writer) {
-            if (inHeader) {
-                if (element.equals(QNAME_XROAD_CENTRAL_SERVICE)) {
-                    if (serviceId != null) {
-                        finishServiceElementSubstitution(prefix, writer);
-                    }
-
-                    inServiceElement = false;
-                } else if (!inServiceElement) {
-                    super.writeEndElementXml(prefix, element, attributes, writer);
-                }
-
-                if (inServiceElement && element.equals(QNAME_ID_SERVICE_CODE)) {
-                    nestedPrefix = prefix;
-                    nestedElementAttributes = attributes;
-                }
-            } else {
-                super.writeEndElementXml(prefix, element, attributes, writer);
-            }
-        }
-
-        @Override
-        protected void writeCharactersXml(char[] characters, int start, int length, Writer writer) {
-            if (inServiceElement) {
-                String value = new String(characters, start, length);
-                char[] chars = value.toCharArray();
-
-                if (value.trim().isEmpty()) {
-                    if (nestedTabs == null) {
-                        nestedTabs = chars;
-                    }
-
-                    wrapperTabs = chars;
-                }
-            } else {
-                super.writeCharactersXml(characters, start, length, writer);
-            }
-        }
-
-        @Override
-        protected SoapHeaderHandler getSoapHeaderHandler(SoapHeader header) {
-            headerHandler = new SoapHeaderHandler(header) {
-                @Override
-                protected void openTag() {
-                    super.openTag();
-                    inHeader = true;
-                }
-
-                @Override
-                protected void onCentralService(CentralServiceId centralServiceId) {
-                    super.onCentralService(centralServiceId);
-                    header.setCentralService(centralServiceId);
-                    serviceId = GlobalConf.getServiceId(centralServiceId);
-                    header.setService(serviceId);
-                }
-
-                @Override
-                protected void closeTag() {
-                    super.closeTag();
-                    inHeader = false;
-                }
-            };
-
-            return headerHandler;
-        }
-
-        private void beginServiceElementSubstitution(Attributes attributes) {
-            wrapperElementAttributes = new AttributesImpl(attributes);
-
-            for (int i = 0; i < wrapperElementAttributes.getLength(); i++) {
-                if (wrapperElementAttributes.getValue(i).endsWith("CENTRALSERVICE")) {
-                    wrapperElementAttributes.setValue(i, "SERVICE");
-
-                    break;
-                }
-            }
-        }
-
-        private void finishServiceElementSubstitution(String prefix, Writer writer) {
-            super.writeStartElementXml(prefix, QNAME_XROAD_SERVICE, wrapperElementAttributes, writer);
-
-            writeElement(writer, QNAME_ID_INSTANCE, serviceId.getXRoadInstance());
-            writeElement(writer, QNAME_ID_MEMBER_CLASS, serviceId.getMemberClass());
-            writeElement(writer, QNAME_ID_MEMBER_CODE, serviceId.getMemberCode());
-
-            if (serviceId.getSubsystemCode() != null) {
-                String subsystemCode = serviceId.getSubsystemCode();
-                writeElement(writer, QNAME_ID_SUBSYSTEM_CODE, subsystemCode);
-            }
-
-            writeElement(writer, QNAME_ID_SERVICE_CODE, serviceId.getServiceCode());
-
-            if (serviceId.getServiceVersion() != null) {
-                String serviceVersion = serviceId.getServiceVersion();
-                writeElement(writer, QNAME_ID_SERVICE_VERSION, serviceVersion);
-            }
-
-            char[] tabs = wrapperTabs != null ? wrapperTabs : new char[0];
-            super.writeCharactersXml(tabs, 0, tabs.length, writer);
-            super.writeEndElementXml(prefix, QNAME_XROAD_SERVICE, wrapperElementAttributes, writer);
-        }
-
-        @SneakyThrows
-        private void writeElement(Writer writer, QName element, String value) {
-            char[] tabs = nestedTabs != null ? nestedTabs : new char[0];
-
-            super.writeCharactersXml(tabs, 0, tabs.length, writer);
-            super.writeStartElementXml(nestedPrefix, element, nestedElementAttributes, writer);
-            super.writeCharactersXml(value.toCharArray(), 0, value.length(), writer);
-            super.writeEndElementXml(nestedPrefix, element, nestedElementAttributes, writer);
-        }
-    }
 }

@@ -64,18 +64,19 @@ public class AntiDosConnector extends ServerConnector {
 
     private final AntiDosConnectionManager<SocketChannelWrapperImpl> manager =
             new AntiDosConnectionManager<SocketChannelWrapperImpl>(configuration) {
-        @Override
-        void closeConnection(SocketChannelWrapperImpl sock) throws IOException {
-            try {
-                super.closeConnection(sock);
-            } finally {
-                onConnectionClosed();
-            }
-        }
-    };
+                @Override
+                void closeConnection(SocketChannelWrapperImpl sock) throws IOException {
+                    try {
+                        super.closeConnection(sock);
+                    } finally {
+                        onConnectionClosed();
+                    }
+                }
+            };
 
     /**
      * Construct a new AntiDos connector.
+     *
      * @param server the server
      * @param acceptorCount acceptor count
      */
@@ -85,6 +86,7 @@ public class AntiDosConnector extends ServerConnector {
 
     /**
      * Constructs a new SSL-enabled AntiDos connector.
+     *
      * @param server the server
      * @param acceptorCount acceptor count
      * @param sslContextFactory SSL context factory to use for configuration

@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 
 /**
  * Methods for storing various {@link RestApiAuditProperty} values in request scope
@@ -86,11 +87,9 @@ public class AuditDataHelper {
      * @param value
      */
     public void addListPropertyItem(RestApiAuditProperty listProperty, Object value) {
-        List<Object> data = Collections.synchronizedList(new ArrayList<>());
-        requestScopedAuditDataHolder.getEventData().putIfAbsent(listProperty, data);
-        List<Object> sharedListData = (List<Object>) requestScopedAuditDataHolder.getEventData()
-                .get(listProperty);
-        sharedListData.add(value);
+        ((List<Object>) requestScopedAuditDataHolder.getEventData()
+                .computeIfAbsent(listProperty, key -> Collections.synchronizedList(new ArrayList<>())))
+                .add(value);
     }
 
     /**
@@ -212,17 +211,18 @@ public class AuditDataHelper {
     /**
      * calculates hash, formats it according to audit log format, and puts hash and hash algorithm properties
      * @param bytes anchor bytes
+     * @return calculated formatted hash
      */
-    public void putAnchorHash(byte[] bytes) {
-        String algorithm = CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
-        String hash = null;
+    public String putAnchorHash(byte[] bytes) {
+        String formattedHash = null;
         try {
-            hash = CryptoUtils.hexDigest(algorithm, bytes);
+            formattedHash = CryptoUtils.calculateAnchorHashDelimited(bytes);
         } catch (Exception e) {
             log.error("audit logging certificate hash forming failed", e);
         }
-        put(RestApiAuditProperty.ANCHOR_FILE_HASH, formatHash(hash));
-        put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, algorithm);
+        put(RestApiAuditProperty.ANCHOR_FILE_HASH, formattedHash);
+        put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID);
+        return formattedHash;
     }
 
     /**
@@ -234,6 +234,15 @@ public class AuditDataHelper {
     }
 
     /**
+     * calculates and puts certificate hash using default hash algorithm
+     * @param certificate certificate
+     */
+    public void putCertificateHash(byte[] certificate) {
+        put(RestApiAuditProperty.CERT_HASH, calculateCertHexHashDelimited(certificate));
+        putDefaulCertHashAlgorithm();
+    }
+
+    /**
      * Puts hash and default hash algorithm
      * @param formattedHash formatted "63:0B:9F:83" hash
      */
@@ -241,7 +250,6 @@ public class AuditDataHelper {
         put(RestApiAuditProperty.CERT_HASH, formattedHash);
         putDefaulCertHashAlgorithm();
     }
-
 
     /**
      * Put (only) cert hash, and hash default algorithm
@@ -256,12 +264,12 @@ public class AuditDataHelper {
 
     /**
      * Put cert id, hash and default algorithm
-     * @param id
-     * @param unformattedHash unformatted hash "630b9f83", will be changed to formatted "63:0B:9F:83"
+     * @param id certificate id
+     * @param bytes unformatted hash "630b9f83", will be changed to formatted "63:0B:9F:83"
      */
-    public void putCertificateData(String id, String unformattedHash) {
+    public void putCertificateData(String id, byte[] bytes) {
         put(RestApiAuditProperty.CERT_ID, id);
-        putCertificateHash(unformattedHash);
+        putCertificateHash(createUnformattedHash(bytes));
     }
 
     /**
@@ -270,8 +278,7 @@ public class AuditDataHelper {
      */
     public void put(CertificateInfo certificateInfo) {
         if (certificateInfo != null) {
-            String hash = createUnformattedHash(certificateInfo.getCertificateBytes());
-            putCertificateData(certificateInfo.getId(), hash);
+            putCertificateData(certificateInfo.getId(), certificateInfo.getCertificateBytes());
         }
     }
 

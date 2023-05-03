@@ -110,6 +110,7 @@ public final class CryptoUtils {
 
     /** Default digest algorithm id used for calculating configuration anchor hashes. */
     public static final String DEFAULT_ANCHOR_HASH_ALGORITHM_ID = CryptoUtils.SHA224_ID;
+    public static final String DEFAULT_UPLOAD_FILE_HASH_ALGORITHM = CryptoUtils.SHA224_ID;
 
     /** Hash algorithm identifier constants. */
     public static final String MD5_ID = "MD5";
@@ -646,7 +647,7 @@ public final class CryptoUtils {
      */
     public static String calculateCertHexHash(X509Certificate cert)
             throws Exception {
-        return hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, cert.getEncoded());
+        return calculateCertHexHash(cert.getEncoded());
     }
 
     /**
@@ -670,6 +671,38 @@ public final class CryptoUtils {
     public static String calculateCertHexHash(byte[] bytes)
             throws Exception {
         return hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, bytes);
+    }
+
+    /**
+     * Calculates a sha-1 digest of the given bytes and encodes it in
+     * format 92:62:34:C5:39:1B:95:1F:BF:AF:8D:D6:23:24:AE:56:83:DC...
+     * @return calculated certificate hex hash uppercase and separated by semicolons String
+     * @param bytes the bytes
+     * @throws HexCalculationException if any errors occur
+     */
+    public static String calculateCertHexHashDelimited(byte[] bytes) {
+        try {
+            return calculateCertHexHash(bytes).toUpperCase().replaceAll("(?<=..)(..)", ":$1");
+        } catch (Exception e) {
+            throw new HexCalculationException(e);
+        }
+    }
+
+    /**
+     * Calculates a SHA-224 digest of the given bytes and encodes it in
+     * format 92:62:34:C5:39:1B:95:1F:BF:AF:8D:D6:23:24:AE:56:83:DC...
+     * @return calculated hex hash uppercase and separated by semicolons String
+     * @param bytes the bytes
+     * @throws HexCalculationException if any errors occur
+     */
+    public static String calculateAnchorHashDelimited(byte[] bytes) {
+        try {
+            return hexDigest(DEFAULT_ANCHOR_HASH_ALGORITHM_ID, bytes)
+                    .toUpperCase()
+                    .replaceAll("(?<=..)(..)", ":$1");
+        } catch (Exception e) {
+            throw new HexCalculationException(e);
+        }
     }
 
     /**

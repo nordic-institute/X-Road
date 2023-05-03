@@ -39,8 +39,4 @@ public class TestProperties {
      * Security server admin UI url.
      */
     private String securityServerUrl;
-    /**
-     * Central server admin UI url.
-     */
-    private String centralServerUrl;
 }

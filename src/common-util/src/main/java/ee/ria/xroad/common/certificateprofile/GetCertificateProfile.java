@@ -61,14 +61,13 @@ public class GetCertificateProfile {
      * Returns the class that implements the
      * {@link ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider} interface.
      * @return the class
-     * @throws Exception if the class cannot be found in the classpath or
      * if the class does not implement the interface
      */
     @SuppressWarnings("unchecked")
-    public Class<CertificateProfileInfoProvider> klass() throws Exception {
+    public Class<CertificateProfileInfoProvider> klass() {
         try {
             Class<?> clazz = Class.forName(className);
-            if (CertificateProfileInfoProvider.class.isAssignableFrom(clazz)) {
+            if (CertificateProfileInfoProvider.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
                 return (Class<CertificateProfileInfoProvider>) clazz;
             } else {
                 throw new CodedException(X_INTERNAL_ERROR,

@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,17 +25,35 @@
  */
 package ee.ria.xroad.common;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import org.apache.commons.io.IOUtils;
+import lombok.SneakyThrows;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+
+import javax.security.auth.x500.X500Principal;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
+import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Base64;
+import java.util.Date;
 
 /**
  * Contains various certificate related utility methods for using in test cases,
@@ -53,7 +71,6 @@ public final class TestCertUtil {
     private static final String CERT_ERROR_WITH_PASSWD_MSG = CERT_ERROR_MSG + " using password \"%2$s\"";
 
     /** Lazily initialized cached instances of the certs. */
-    private static volatile X509Certificate caCert;
     private static volatile X509Certificate tspCert;
     private static volatile PKCS12 producer;
     private static volatile PKCS12 consumer;
@@ -61,9 +78,11 @@ public final class TestCertUtil {
     private static volatile PKCS12 ocspSigner;
     private static volatile PKCS12 internal;
 
+    private static volatile PKCS12 ca;
+
     private static final class ClientKeyHolder {
         private static final PKCS12 INSTANCE = loadPKCS12("client.p12", "1", "test");
-    };
+    }
 
     private TestCertUtil() {
     }
@@ -85,11 +104,17 @@ public final class TestCertUtil {
      * @return AdminCA1 from test resources
      */
     public static X509Certificate getCaCert() {
-        if (caCert == null) {
-            caCert = loadPKCS12("root-ca.p12", "1", "test").certChain[0];
-        }
+        return getCa().certChain[0];
+    }
 
-        return caCert;
+    /**
+     * @return AdminCA1 from test resources
+     */
+    public static PKCS12 getCa() {
+        if (ca == null) {
+            ca = loadPKCS12("root-ca.p12", "1", "test");
+        }
+        return ca;
     }
 
     /**
@@ -164,7 +189,7 @@ public final class TestCertUtil {
     /**
      * @param fileName name of the certificate file
      * @return a certificate from the certificate chain test
-     * (certs under "cert-chain" subdirectory).
+     *         (certs under "cert-chain" subdirectory).
      */
     public static X509Certificate getCertChainCert(String fileName) {
         String file = CERT_PATH + "test_chain/" + fileName;
@@ -175,7 +200,7 @@ public final class TestCertUtil {
     /**
      * @param fileName name of the private key file
      * @return a private key from the certificate chain test
-     * (certs under "cert-chain" subdirectory).
+     *         (certs under "cert-chain" subdirectory).
      */
     public static PrivateKey getCertChainKey(String fileName) {
         String file = CERT_PATH + "test_chain/" + fileName;
@@ -191,9 +216,8 @@ public final class TestCertUtil {
      * @return X509Certificate
      */
     public static X509Certificate getCert(String pemFileName) {
-        try {
-            String data = IOUtils.toString(getFile(pemFileName));
-            return CryptoUtils.readCertificate(data);
+        try (InputStream is = getFile(pemFileName)) {
+            return CryptoUtils.readCertificate(Base64.getMimeDecoder().wrap(is));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -248,7 +272,7 @@ public final class TestCertUtil {
      * @return PrivateKey
      */
     public static PrivateKey getKey(KeyStore keyStore, String password,
-            String orgName) {
+                                    String orgName) {
         try {
             PrivateKey key = (PrivateKey) keyStore.getKey(orgName,
                     password.toCharArray());
@@ -291,7 +315,7 @@ public final class TestCertUtil {
      * @return KeyStore
      */
     public static KeyStore loadKeyStore(String type, String file,
-            String password) {
+                                        String password) {
         try {
             KeyStore keyStore = KeyStore.getInstance(type);
             InputStream fis = getFile(file);
@@ -313,7 +337,7 @@ public final class TestCertUtil {
      * @return PKCS12 container containing the private key and certificate
      */
     public static PKCS12 loadPKCS12(String file, String orgName,
-            String password) {
+                                    String password) {
         KeyStore orgKeyStore = loadPKCS12KeyStore(CERT_PATH + file, password);
         return new PKCS12(getCertChain(orgKeyStore, orgName), getKey(orgKeyStore, password, orgName));
     }
@@ -324,6 +348,71 @@ public final class TestCertUtil {
 
     public static char[] getKeyStorePassword(String name) {
         return "test".toCharArray();
+    }
+
+    public static byte[] generateAuthCert() throws NoSuchAlgorithmException, OperatorCreationException, IOException {
+        var subjectKey = getKeyPairGenerator().generateKeyPair();
+        return generateAuthCert(subjectKey.getPublic());
+    }
+
+    @SneakyThrows
+    @SuppressWarnings({"checkstyle:MagicNumber", "java:S4426"})
+    public static KeyPairGenerator getKeyPairGenerator() {
+        var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        keyPairGenerator.initialize(1024);
+        return keyPairGenerator;
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static byte[] generateAuthCert(PublicKey subjectKey) throws OperatorCreationException, IOException {
+
+        var signer = new JcaContentSignerBuilder("SHA256withRSA").build(getCa().key);
+        var issuer = ca.certChain[0].getSubjectX500Principal();
+        var subject = new X500Principal("CN=Subject");
+
+        return new JcaX509v3CertificateBuilder(
+                issuer,
+                BigInteger.ONE,
+                Date.from(Instant.now()),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                subject,
+                subjectKey)
+                .addExtension(Extension.create(
+                        Extension.keyUsage,
+                        true,
+                        new KeyUsage(KeyUsage.digitalSignature)))
+                .build(signer)
+                .getEncoded();
+
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    @SneakyThrows
+    public static X509Certificate generateSignCert(PublicKey subjectKey, ClientId id) {
+
+        var signer = new JcaContentSignerBuilder("SHA256withRSA").build(getCa().key);
+        var issuer = ca.certChain[0].getSubjectX500Principal();
+        var subject = new X500Principal(
+                //EJBCA Profile format
+                String.format("C=%s,O=%s,CN=%s",
+                        id.getXRoadInstance(),
+                        id.getMemberClass(),
+                        id.getMemberCode()));
+
+        var cert = new JcaX509v3CertificateBuilder(
+                issuer,
+                BigInteger.TWO,
+                Date.from(Instant.now()),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                subject,
+                subjectKey)
+                .addExtension(Extension.create(
+                        Extension.keyUsage,
+                        true,
+                        new KeyUsage(KeyUsage.nonRepudiation)))
+                .build(signer);
+
+        return new JcaX509CertificateConverter().getCertificate(cert);
     }
 
     private static InputStream getFile(String fileName) throws Exception {

@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,14 +27,23 @@ package org.niis.xroad.restapi.exceptions;
 
 import ee.ria.xroad.common.CodedException;
 
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import javax.validation.ConstraintViolationException;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_VALIDATION_FAILURE;
 import static org.niis.xroad.restapi.exceptions.ResponseStatusUtil.getAnnotatedResponseStatus;
 
 /**
@@ -56,12 +65,13 @@ public class ExceptionTranslator {
      * Create ResponseEntity<ErrorInfo> from an Exception.
      * Use provided status or override it with value from
      * Exception's ResponseStatus annotation if one exists
-     * @param e
-     * @param defaultStatus
-     * @return
+     *
+     * @param e             exception to convert
+     * @param defaultStatus status to be used if not specified with method annotation
+     * @return ResponseEntity with properly filled ErrorInfo
      */
     public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
-        HttpStatus status = getAnnotatedResponseStatus(e, defaultStatus);
+        HttpStatus status = resolveHttpStatus(e, defaultStatus);
         ErrorInfo errorDto = new ErrorInfo();
         errorDto.setStatus(status.value());
         if (e instanceof DeviationAware) {
@@ -78,12 +88,21 @@ public class ExceptionTranslator {
         } else if (e instanceof CodedException) {
             // map fault code and string from core CodedException
             CodedException c = (CodedException) e;
-            Deviation deviation = new Deviation(CORE_CODED_EXCEPTION_PREFIX + c.getFaultCode(), c.getFaultString());
+            Deviation deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + c.getFaultCode(), c.getFaultString());
             errorDto.setError(convert(deviation));
         } else if (e instanceof MethodArgumentNotValidException) {
             errorDto.setError(validationErrorHelper.createError((MethodArgumentNotValidException) e));
+        } else if (e instanceof ConstraintViolationException) {
+            Map<String, List<String>> violations = new HashMap<>();
+            ((ConstraintViolationException) e).getConstraintViolations()
+                    .forEach(constraintViolation -> violations.put(constraintViolation.getPropertyPath().toString(),
+                            List.of(constraintViolation.getMessage())));
+            errorDto.setError(new CodeWithDetails().code(ERROR_VALIDATION_FAILURE).validationErrors(violations));
         }
-        return new ResponseEntity<>(errorDto, status);
+
+        return ResponseEntity.status(status)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(errorDto);
     }
 
     private CodeWithDetails convert(Deviation deviation) {
@@ -95,5 +114,12 @@ public class ExceptionTranslator {
             }
         }
         return result;
+    }
+
+    public HttpStatus resolveHttpStatus(Exception e, HttpStatus defaultStatus) {
+        if (e instanceof ServiceException) {
+            return HttpStatus.resolve(((ServiceException) e).getHttpStatus());
+        }
+        return getAnnotatedResponseStatus(e, defaultStatus);
     }
 }

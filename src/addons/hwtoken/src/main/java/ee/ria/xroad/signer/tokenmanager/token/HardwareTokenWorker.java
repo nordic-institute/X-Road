@@ -360,7 +360,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected void deleteCert(String certId) throws Exception {
+    protected void deleteCert(String certId) {
         log.trace("deleteCert({})", certId);
 
         assertTokenWritable();

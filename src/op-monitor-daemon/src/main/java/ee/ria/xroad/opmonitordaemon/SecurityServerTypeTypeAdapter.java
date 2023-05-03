@@ -27,34 +27,36 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 import java.io.IOException;
 
 /**
- * Type adapter for the securityServerType field used with the JsonAdapter annotation.
+ * Type adapter for the securityServerType field used with the JsonDeserialize annotation.
  *
  * We use this type adapter to ensure an exception is thrown if the given value cannot
  * be converted to any values defined in SecurityServerType, instead of silently setting
  * the securityServerField to null.
  */
-class SecurityServerTypeTypeAdapter extends TypeAdapter<String> {
+class SecurityServerTypeTypeAdapter extends StdDeserializer<String> {
 
-    @Override
-    public String read(final JsonReader in) throws IOException {
-        String value = in.nextString();
+    protected SecurityServerTypeTypeAdapter() {
+        this(null);
+    }
 
-        if (OpMonitoringData.SecurityServerType.fromString(value) == null) {
-            throw new RuntimeException("Invalid value of securityServerType");
-        }
-
-        return value;
+    protected SecurityServerTypeTypeAdapter(Class<?> vc) {
+        super(vc);
     }
 
     @Override
-    public void write(JsonWriter out, String value) throws IOException {
-        out.value(value);
+    public String deserialize(JsonParser p,
+            DeserializationContext ctxt) throws IOException {
+        String value = p.getValueAsString();
+        if (OpMonitoringData.SecurityServerType.fromString(value) == null) {
+            throw new RuntimeException("Invalid value of securityServerType");
+        }
+        return value;
     }
 }

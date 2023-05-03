@@ -13,7 +13,7 @@
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
-        <property name="encodedKey" access="field"/>
+        <property name="encodedKey" column="encodedkey" access="field"/>
         <!--<set name="roles" table="APIKEY_ROLES" access="field" lazy="false" cascade="all-delete-orphan">-->
         <set name="roles" table="APIKEY_ROLES" access="field" lazy="false">
             <key column="apikey_id" not-null="true"/>

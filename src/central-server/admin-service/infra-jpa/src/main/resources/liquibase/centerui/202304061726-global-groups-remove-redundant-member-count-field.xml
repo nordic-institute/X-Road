@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/202304061726-global-groups-remove-redundant-member-count-field.xml">
+    <changeSet author="niis" id="202304061726-global-groups-remove-redundant-member-count-field">
+        <dropColumn tableName="global_groups">
+            <column name="member_count"/>
+        </dropColumn>
+    </changeSet>
+</databaseChangeLog>

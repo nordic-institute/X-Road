@@ -45,7 +45,7 @@ import java.util.Set;
 public class TestSuiteServerConf extends EmptyServerConf {
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
-    private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+    private static final ClientId DEFAULT_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", "SUBCODE5");
     private static final String SERVICE1 = "SERVICE1";
     private static final String SERVICE2 = "SERVICE2";
@@ -53,8 +53,8 @@ public class TestSuiteServerConf extends EmptyServerConf {
     private static final String SERVICE4 = "SERVICE4";
 
     @Override
-    public SecurityServerId getIdentifier() {
-        return SecurityServerId.create("EE", "BUSINESS", "consumer",
+    public SecurityServerId.Conf getIdentifier() {
+        return SecurityServerId.Conf.create("EE", "BUSINESS", "consumer",
                 "proxytest");
     }
 
@@ -85,7 +85,7 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public Set<SecurityCategoryId> getRequiredCategories(ServiceId service) {
+    public Set<SecurityCategoryId.Conf> getRequiredCategories(ServiceId service) {
         return currentTestCase().getRequiredCategories(service);
     }
 
@@ -101,33 +101,33 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
-        List<ServiceId> list = new ArrayList<>();
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+        List<ServiceId.Conf> list = new ArrayList<>();
         if (descriptionType == DescriptionType.REST) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));
         }
         if (descriptionType == DescriptionType.OPENAPI3) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE3));
         }
         if (descriptionType == DescriptionType.WSDL) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE4));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE4));
         }
         return list;
     }
 
     @Override
-    public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
                                                                DescriptionType descriptionType) {
-        List<ServiceId> list = new ArrayList<>();
+        List<ServiceId.Conf> list = new ArrayList<>();
         if (descriptionType == DescriptionType.REST) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));
         }
         if (descriptionType == DescriptionType.OPENAPI3) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE3));
         }
         if (descriptionType == DescriptionType.WSDL) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE4));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE4));
         }
         return list;
     }

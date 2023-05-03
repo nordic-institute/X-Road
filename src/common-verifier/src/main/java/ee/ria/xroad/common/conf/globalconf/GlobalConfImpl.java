@@ -33,19 +33,16 @@ import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedCATypeV2;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.CentralServiceType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalGroupType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.MemberClassType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.MemberType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.OcspInfoType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SecurityServerType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SubsystemType;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -138,34 +135,14 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public ServiceId getServiceId(CentralServiceId serviceId) {
-        SharedParametersV2 p = getSharedParameters(serviceId.getXRoadInstance());
-
-        for (CentralServiceType centralServiceType : p.getCentralServices()) {
-            if (centralServiceType.getImplementingService() == null) {
-                continue;
-            }
-
-            if (serviceId.getServiceCode().equals(
-                    centralServiceType.getServiceCode())) {
-                return centralServiceType.getImplementingService();
-            }
-        }
-
-        throw new CodedException(X_INTERNAL_ERROR,
-                "Cannot find implementing service for central service '%s'",
-                serviceId);
-    }
-
-    @Override
-    public List<SecurityServerId> getSecurityServers(
+    public List<SecurityServerId.Conf> getSecurityServers(
             String... instanceIdentifiers) {
-        List<SecurityServerId> serverIds = new ArrayList<SecurityServerId>();
+        List<SecurityServerId.Conf> serverIds = new ArrayList<>();
 
         for (SharedParametersV2 p : getSharedParameters(instanceIdentifiers)) {
             for (SecurityServerType s : p.getSecurityServers()) {
                 MemberType owner = SharedParametersV2.getOwner(s);
-                serverIds.add(SecurityServerId.create(
+                serverIds.add(SecurityServerId.Conf.create(
                         p.getInstanceIdentifier(),
                         owner.getMemberClass().getCode(),
                         owner.getMemberCode(), s.getServerCode()));
@@ -208,17 +185,6 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 .map(MemberType::getName)
                 .findFirst()
                 .orElse(null);
-    }
-
-    @Override
-    public List<CentralServiceId> getCentralServices(
-            String instanceIdentifier) {
-        return getSharedParameters(instanceIdentifier)
-                .getCentralServices()
-                .stream()
-                .map(c -> CentralServiceId.create(instanceIdentifier,
-                        c.getServiceCode()))
-                .collect(Collectors.toList());
     }
 
     @Override
@@ -439,7 +405,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public SecurityServerId getServerId(X509Certificate cert)
+    public SecurityServerId.Conf getServerId(X509Certificate cert)
             throws Exception {
         String b64 = encodeBase64(certHash(cert));
 
@@ -447,7 +413,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
             SecurityServerType serverType = p.getServerByAuthCert().get(b64);
             if (serverType != null) {
                 MemberType owner = SharedParametersV2.getOwner(serverType);
-                return SecurityServerId.create(p.getInstanceIdentifier(),
+                return SecurityServerId.Conf.create(p.getInstanceIdentifier(),
                         owner.getMemberClass().getCode(),
                         owner.getMemberCode(),
                         serverType.getServerCode());
@@ -458,7 +424,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public ClientId getServerOwner(SecurityServerId serverId) {
+    public ClientId.Conf getServerOwner(SecurityServerId serverId) {
         for (SharedParametersV2 p : getSharedParameters()) {
             SecurityServerType server = p.getSecurityServersById()
                     .get(serverId);
@@ -476,13 +442,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
         byte[] inputCertHash = certHash(cert);
         return getSharedParameters().stream()
                 .map(p -> p.getMemberAuthCerts().get(memberId))
-                .filter(Objects::nonNull).flatMap(h -> h.stream())
-                .filter(h -> Arrays.equals(inputCertHash, h)).findFirst()
-                .isPresent();
+                .filter(Objects::nonNull).flatMap(Collection::stream)
+                .anyMatch(h -> Arrays.equals(inputCertHash, h));
     }
 
     @Override
-    public Set<SecurityCategoryId> getProvidedCategories(
+    public Set<SecurityCategoryId.Conf> getProvidedCategories(
             X509Certificate authCert) throws Exception {
         // Currently not implemented.
         return new HashSet<>();

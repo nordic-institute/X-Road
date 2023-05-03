@@ -1,0 +1,16 @@
+---
+debug: true
+
+spring:
+  cache:
+    type: none
+  jpa:
+    show-sql: true
+
+cache:
+  simple:
+    ttl: -1
+
+server:
+  ssl:
+    enabled: false

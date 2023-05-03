@@ -1,0 +1,6 @@
+#!/bin/bash
+. /etc/xroad/services/centralserver-registration-service.conf
+exec java \
+  $XROAD_PARAMS \
+  ${XROAD_CS_REGISTRATION_SERVICE_PARAMS} \
+  -jar /usr/share/xroad/jlib/centralserver-registration-service.jar

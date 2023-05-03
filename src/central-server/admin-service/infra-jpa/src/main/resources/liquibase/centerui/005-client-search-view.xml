@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/005-client-search-view.xml">
+    <changeSet author="niis" id="005-client-search-view">
+        <createView fullDefinition="false" viewName="flattened_security_server_client">
+            (SELECT c.id,
+            c.server_client_id,
+            c.member_code,
+            c.name as member_name,
+            c.type,
+            c.member_class_id,
+            c.subsystem_code,
+            c.created_at,
+            c.updated_at,
+            i.xroad_instance
+            FROM security_server_clients c
+            LEFT JOIN identifiers i
+            ON c.server_client_id = i.id
+            WHERE c.type = 'XRoadMember')
+            union
+            (SELECT c.id,
+            c.server_client_id,
+            m.member_code,
+            m.name as member_name,
+            c.type,
+            m.member_class_id,
+            c.subsystem_code,
+            c.created_at,
+            c.updated_at,
+            i.xroad_instance
+            FROM security_server_clients c
+            LEFT JOIN security_server_clients m
+            ON c.xroad_member_id = m.id
+            LEFT JOIN identifiers i
+            ON c.server_client_id = i.id
+            WHERE c.type = 'Subsystem');
+        </createView>
+    </changeSet>
+</databaseChangeLog>

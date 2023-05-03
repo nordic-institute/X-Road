@@ -4,14 +4,14 @@
 
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.28  
+Version: 2.30  
 Doc. ID: IG-CS
 
 ---
 
 ## Version history <!-- omit in toc -->
-| Date       | Version | Description                                                                                                                                                                                   | Author           |
-|------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
+| Date       | Version | Description                                                                                                                                                                                   | Author             |
+|------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
 | 01.12.2014 | 1.0     | Initial version                                                                                                                                                                               ||
 | 19.01.2015 | 1.1     | License information added                                                                                                                                                                     ||
 | 02.02.2015 | 1.2     | References fixed                                                                                                                                                                              ||
@@ -23,33 +23,35 @@ Doc. ID: IG-CS
 | 18.09.2015 | 1.8     | Minor corrections done                                                                                                                                                                        ||
 | 18.09.2015 | 2.0     | Editorial changes made                                                                                                                                                                        ||
 | 16.12.2015 | 2.1     | Added installation instructions for monitoring                                                                                                                                                ||
-| 09.12.2016 | 2.2     | Converted to markdown format                                                                                                                                                                  | Ilkka Seppälä    |
-| 20.12.2016 | 2.3     | Add chapter about additional configuration to central server's user manual                                                                                                                    | Ilkka Seppälä    |
-| 20.01.2017 | 2.4     | Added license text and version history                                                                                                                                                        | Sami Kallio      |
-| 25.08.2017 | 2.5     | Update installation instructions concerning the support for environmental monitoring                                                                                                          | Ilkka Seppälä    |
-| 05.03.2018 | 2.6     | Added terms and abbreviations reference, links to references and actual documents                                                                                                             | Tatu Repo        | 
-| 10.04.2018 | 2.7     | Updated chapter "[Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS   |
-| 14.10.2018 | 2.8     | Update package repository address                                                                                                                                                             | Petteri Kivimäki |
-| 15.11.2018 | 2.9     | Add Ubuntu 18.04 installation instructions                                                                                                                                                    | Jarkko Hyöty     |
-| 05.02.2019 | 2.10    | Update ports                                                                                                                                                                                  | Jarkko Hyöty     |
-| 04.09.2019 | 2.11    | Update ports                                                                                                                                                                                  | Petteri Kivimäki |
-| 11.09.2019 | 2.12    | Remove Ubuntu 14.04 from supported platforms                                                                                                                                                  | Jarkko Hyöty     |
-| 26.11.2019 | 2.13    | Add instructions for using remote database                                                                                                                                                    | Ilkka Seppälä    |
-| 29.04.2020 | 2.14    | Add instructions how to use remote database located in Microsoft Azure                                                                                                                        | Ilkka Seppälä    |
-| 24.06.2020 | 2.15    | Add repository sign key details in section [2.2 Reference data](#22-reference-data)                                                                                                           | Petteri Kivimäki |
-| 30.07.2020 | 2.16    | Default database password is autogenerated.                                                                                                                                                   | Ilkka Seppälä    |
-| 02.09.2020 | 2.17    | Improve database setup instructions.                                                                                                                                                          | Ilkka Seppälä    |
-| 23.09.2020 | 2.18    | List database users.                                                                                                                                                                          | Ilkka Seppälä    |
-| 29.09.2020 | 2.19    | Add instructions for creating database structure and roles manually.                                                                                                                          | Ilkka Seppälä    |
-| 19.01.2021 | 2.20    | Add instructions for using an alternative Java distribution.                                                                                                                                  | Jarkko Hyöty     |
-| 04.02.2021 | 2.21    | Minor updates.                                                                                                                                                                                | Ilkka Seppälä    |
-| 16.04.2021 | 2.22    | Update remote database installation instructions.                                                                                                                                             | Jarkko Hyöty     |
-| 18.05.2021 | 2.23    | Update installation error handling section.                                                                                                                                                   | Ilkka Seppälä    |
-| 01.07.2021 | 2.24    | Update 3rd party key server                                                                                                                                                                   | Petteri Kivimäki |
-| 18.08.2021 | 2.25    | Minor updates to Annex D                                                                                                                                                                      | Ilkka Seppälä    |
-| 24.08.2021 | 2.26    | Add instructions for running the database migrations manually.                                                                                                                                | Ilkka Seppälä    |
-| 25.08.2021 | 2.27    | Update X-Road references from version 6 to 7                                                                                                                                                  | Caro Hautamäki   |
-| 26.09.2022 | 2.28    | Remove Ubuntu 18.04 support                                                                                                                                                                   | Andres Rosenthal |
+| 09.12.2016 | 2.2     | Converted to markdown format                                                                                                                                                                  | Ilkka Seppälä      |
+| 20.12.2016 | 2.3     | Add chapter about additional configuration to central server's user manual                                                                                                                    | Ilkka Seppälä      |
+| 20.01.2017 | 2.4     | Added license text and version history                                                                                                                                                        | Sami Kallio        |
+| 25.08.2017 | 2.5     | Update installation instructions concerning the support for environmental monitoring                                                                                                          | Ilkka Seppälä      |
+| 05.03.2018 | 2.6     | Added terms and abbreviations reference, links to references and actual documents                                                                                                             | Tatu Repo          | 
+| 10.04.2018 | 2.7     | Updated chapter "[Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)" with configurable parameters described in the configuration file 'devices.ini' | Cybernetica AS     |
+| 14.10.2018 | 2.8     | Update package repository address                                                                                                                                                             | Petteri Kivimäki   |
+| 15.11.2018 | 2.9     | Add Ubuntu 18.04 installation instructions                                                                                                                                                    | Jarkko Hyöty       |
+| 05.02.2019 | 2.10    | Update ports                                                                                                                                                                                  | Jarkko Hyöty       |
+| 04.09.2019 | 2.11    | Update ports                                                                                                                                                                                  | Petteri Kivimäki   |
+| 11.09.2019 | 2.12    | Remove Ubuntu 14.04 from supported platforms                                                                                                                                                  | Jarkko Hyöty       |
+| 26.11.2019 | 2.13    | Add instructions for using remote database                                                                                                                                                    | Ilkka Seppälä      |
+| 29.04.2020 | 2.14    | Add instructions how to use remote database located in Microsoft Azure                                                                                                                        | Ilkka Seppälä      |
+| 24.06.2020 | 2.15    | Add repository sign key details in section [2.2 Reference data](#22-reference-data)                                                                                                           | Petteri Kivimäki   |
+| 30.07.2020 | 2.16    | Default database password is autogenerated.                                                                                                                                                   | Ilkka Seppälä      |
+| 02.09.2020 | 2.17    | Improve database setup instructions.                                                                                                                                                          | Ilkka Seppälä      |
+| 23.09.2020 | 2.18    | List database users.                                                                                                                                                                          | Ilkka Seppälä      |
+| 29.09.2020 | 2.19    | Add instructions for creating database structure and roles manually.                                                                                                                          | Ilkka Seppälä      |
+| 19.01.2021 | 2.20    | Add instructions for using an alternative Java distribution.                                                                                                                                  | Jarkko Hyöty       |
+| 04.02.2021 | 2.21    | Minor updates.                                                                                                                                                                                | Ilkka Seppälä      |
+| 16.04.2021 | 2.22    | Update remote database installation instructions.                                                                                                                                             | Jarkko Hyöty       |
+| 18.05.2021 | 2.23    | Update installation error handling section.                                                                                                                                                   | Ilkka Seppälä      |
+| 01.07.2021 | 2.24    | Update 3rd party key server                                                                                                                                                                   | Petteri Kivimäki   |
+| 18.08.2021 | 2.25    | Minor updates to Annex D                                                                                                                                                                      | Ilkka Seppälä      |
+| 24.08.2021 | 2.26    | Add instructions for running the database migrations manually.                                                                                                                                | Ilkka Seppälä      |
+| 25.08.2021 | 2.27    | Update X-Road references from version 6 to 7                                                                                                                                                  | Caro Hautamäki     |
+| 23.09.2022 | 2.28    | Added new Registration Web Service                                                                                                                                                            | Eneli Reimets      |
+| 26.09.2022 | 2.29    | Remove Ubuntu 18.04 support                                                                                                                                                                   | Andres Rosenthal   |
+| 19.04.2023 | 2.30    | Removed unused properties from db.properties                                                                                                                                                  | Mikk-Erik Bachmann |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -71,7 +73,8 @@ Doc. ID: IG-CS
   - [2.7 Package Installation](#27-package-installation)
   - [2.8 Installing the Support for Hardware Tokens](#28-installing-the-support-for-hardware-tokens)
   - [2.9 Installing the Support for Monitoring](#29-installing-the-support-for-monitoring)
-  - [2.10 Post-Installation Checks](#210-post-installation-checks)
+  - [2.10 Pre-configuration for Registration Web Service](#210-pre-configuration-for-registration-web-service)
+  - [2.11 Post-Installation Checks](#211-post-installation-checks)
 - [3 Initial Configuration](#3-initial-configuration)
   - [3.1 Reference Data](#31-reference-data)
   - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
@@ -122,6 +125,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 3. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 4. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] Cybernetica AS. X-Road 7. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
 5. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+6. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md).
 
 ## 2. Installation
 
@@ -308,24 +312,24 @@ If you are running a high availability (HA) hardware token setup (such as a clus
 
 Depending on the hardware token there may be a need for more additional configuration. All possible configurable parameters in the `/etc/xroad/devices.ini` are described in the next table.
 
-Parameter   | Type    | Default Value | Explanation
------------ | ------- |-------------- | ---------------------------------------
-*enabled*     | BOOLEAN | *true* | Indicates whether this device is enabled.
-*library*     | STRING  |      | The path to the pkcs#11 library of the device driver.
-*library_cant_create_os_threads* | BOOLEAN | *false* | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads). 
-*os_locking_ok* | BOOLEAN | *false* | Indicates whether the pkcs#11 library may use the native operation system threading model for locking.
-*sign_verify_pin* | BOOLEAN | *false* | Indicates whether the PIN should be entered per signing operation.
-*token_id_format* | STRING | *{moduleType}{slotIndex}{serialNumber}{label}* | Specifies the identifier format used to uniquely identify a token. In certain high availability setups may need be constrained to support replicated tokens (eg. by removing the slot index part which may be diffirent for the token replicas).
-*sign_mechanism*  | STRING | *CKM_RSA_PKCS* | Specifies the signing mechanism. Supported values: *CKM_RSA_PKCS*, *CKM_RSA_PKCS_PSS*.
-*pub_key_attribute_encrypt*  | BOOLEAN | *true* | Indicates whether public key can be used for encryption.
-*pub_key_attribute_verify* | BOOLEAN | *true* | Indicates whether public key can be used for verification.
-*pub_key_attribute_wrap* | BOOLEAN | | Indicates whether public key can be used for wrapping other keys.
-*pub_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies public key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
-*priv_key_attribute_sensitive* | BOOLEAN | *true* | Indicates whether private key is sensitive.
-*priv_key_attribute_decrypt* | BOOLEAN | *true* | Indicates whether private key can be used for encryption.
-*priv_key_attribute_sign* | BOOLEAN | *true* | Indicates whether private key can be used for signing.
-*priv_key_attribute_unwrap* | BOOLEAN | | Indicates whether private key can be used for unwrapping wrapped keys.
-*priv_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies private key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
+| Parameter                               | Type        | Default Value                                  | Explanation                                                                                                                                                                                                                                               |
+|-----------------------------------------|-------------|------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *enabled*                               | BOOLEAN     | *true*                                         | Indicates whether this device is enabled.                                                                                                                                                                                                                 |
+| *library*                               | STRING      |                                                | The path to the pkcs#11 library of the device driver.                                                                                                                                                                                                     |
+| *library_cant_create_os_threads*        | BOOLEAN     | *false*                                        | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads).                              |
+| *os_locking_ok*                         | BOOLEAN     | *false*                                        | Indicates whether the pkcs#11 library may use the native operation system threading model for locking.                                                                                                                                                    |
+| *sign_verify_pin*                       | BOOLEAN     | *false*                                        | Indicates whether the PIN should be entered per signing operation.                                                                                                                                                                                        |
+| *token_id_format*                       | STRING      | *{moduleType}{slotIndex}{serialNumber}{label}* | Specifies the identifier format used to uniquely identify a token. In certain high availability setups may need be constrained to support replicated tokens (eg. by removing the slot index part which may be diffirent for the token replicas).          |
+| *sign_mechanism*                        | STRING      | *CKM_RSA_PKCS*                                 | Specifies the signing mechanism. Supported values: *CKM_RSA_PKCS*, *CKM_RSA_PKCS_PSS*.                                                                                                                                                                    |
+| *pub_key_attribute_encrypt*             | BOOLEAN     | *true*                                         | Indicates whether public key can be used for encryption.                                                                                                                                                                                                  |
+| *pub_key_attribute_verify*              | BOOLEAN     | *true*                                         | Indicates whether public key can be used for verification.                                                                                                                                                                                                |
+| *pub_key_attribute_wrap*                | BOOLEAN     |                                                | Indicates whether public key can be used for wrapping other keys.                                                                                                                                                                                         |
+| *pub_key_attribute_allowed_mechanisms*  | STRING LIST |                                                | Specifies public key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.  |
+| *priv_key_attribute_sensitive*          | BOOLEAN     | *true*                                         | Indicates whether private key is sensitive.                                                                                                                                                                                                               |
+| *priv_key_attribute_decrypt*            | BOOLEAN     | *true*                                         | Indicates whether private key can be used for encryption.                                                                                                                                                                                                 |
+| *priv_key_attribute_sign*               | BOOLEAN     | *true*                                         | Indicates whether private key can be used for signing.                                                                                                                                                                                                    |
+| *priv_key_attribute_unwrap*             | BOOLEAN     |                                                | Indicates whether private key can be used for unwrapping wrapped keys.                                                                                                                                                                                    |
+| *priv_key_attribute_allowed_mechanisms* | STRING LIST |                                                | Specifies private key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*. |
 
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.  
 **Note 2:** The item separator of the type STRING LIST is ",".
@@ -336,7 +340,16 @@ The optional configuration for monitoring parameters is installed by package xr
 
 The central monitoring client may be configured as specified in the [UG-CS](#Ref_UG-CS).
 
-### 2.10 Post-Installation Checks
+### 2.10 Pre-configuration for Registration Web Service
+
+The registration web service is installed by package xroad-centralserver-registration-service. The registration web service can be installed on the same host with the central server or on a separate host. The package is included in the central server installation by default.
+
+Configuration parameters for registration web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section „Registration service parameters“.
+
+**Note 1:** The installer does not currently generate the API token, it must be manually configured.  
+**Note 2:** With new registration service, a maximum size limit (MAX_REQUEST_SIZE = 100 KB) is set for the authentication certificate SOAP message.
+
+### 2.11 Post-Installation Checks
 
 The installation is successful if the system services are started and the user interface is responding.
 
@@ -535,13 +548,10 @@ apt upgrade xroad-centralserver
 `/etc/xroad/db.properties`
 
 ```properties
-adapter=postgresql
-encoding=utf8
 username=centerui
 password=<randomly generated password stored is stored here>
 database=centerui_production
 schema=centerui
-reconnect=true
 host=127.0.0.1
 port=5432
 skip_migrations=false
@@ -611,18 +621,44 @@ psql -h <database host> -U <superuser> -d postgres
 ```
 
 Run the following commands to create the necessary database structures and roles.
+If necessary, customize the database and role names to suit your environment.
+By default, the database is named `centerui_production`, database user and schema both are named `centerui`, and the admin user is named with `_admin` suffix (e.g. `centerui_admin`).
+
 
 ```sql
-CREATE DATABASE <database name> ENCODING 'UTF8';
-REVOKE ALL ON DATABASE <database name> FROM PUBLIC;
-CREATE ROLE <database user> LOGIN PASSWORD '<database password>';
-GRANT <database user> to <superuser>;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <database name> TO <database user>;
-\c <database name>
+CREATE DATABASE <database> ENCODING 'UTF8';
+REVOKE ALL ON DATABASE <database> FROM PUBLIC;
+CREATE ROLE <admin_user> LOGIN PASSWORD '<admin_user password>';
+GRANT <admin_user> TO <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <database> TO <admin_user>;
+\c <database>
 CREATE EXTENSION hstore;
-CREATE SCHEMA <database schema> AUTHORIZATION <database user>;
+CREATE SCHEMA <database_schema> AUTHORIZATION <admin_user>;
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to <database user>;
+GRANT USAGE ON SCHEMA public TO <admin_user>;
+CREATE ROLE <database_user> LOGIN PASSWORD '<database_user password>';
+GRANT <database_user> TO <superuser>;
+GRANT TEMPORARY,CONNECT ON DATABASE <database> TO <database_user>;
+GRANT USAGE ON SCHEMA public TO <database_user>;
+GRANT USAGE ON SCHEMA <database_schema> TO <database_user>;
+GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA <database_schema> TO <database_user>;
+GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA <database_schema> TO <database_user>;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA <database_schema> TO <database_user>;
+```
+
+Create the `/etc/xroad.properties` file
+```bash
+sudo touch /etc/xroad.properties
+sudo chown root:root /etc/xroad.properties
+sudo chmod 0600 /etc/xroad.properties
+```
+
+Edit `/etc/xroad.properties` and add/update the following properties (if you customized the role names, use your own).
+The admin users are used to run database migrations during the install and upgrades.
+
+```properties
+centerui.database.admin_user = <admin_user>
+centerui.database.admin_password = <admin_user password>
 ```
 
 Create the `/etc/xroad/db.properties` file
@@ -635,18 +671,16 @@ sudo chmod 0640 /etc/xroad/db.properties
 sudo chown xroad:xroad /etc/xroad/db.properties
 ```
 
-Edit `/etc/xroad/db.properties` to match the values used when creating the database (the default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)).
+Edit `/etc/xroad/db.properties` file and add/update the following connection properties (if you customized the database, user, and/or role names, use the customized values).
+The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties).
 
 ```properties
-adapter=postgresql
-encoding=utf8
-username=<database user>
-password=<database password>
-database=<database name>
-reconnect=true
-host=<database host>
-port=<database port>
-schema=<database schema>
+username=<database_user>
+password=<database_user password>
+database=<database>
+host=<database_host>
+port=<database_port>
+schema=<database_schema>
 skip_migrations=<false by default, set to true to skip migrations>
 ```
 
@@ -661,7 +695,7 @@ To run the database migrations manually, follow the next steps.
 2. Ensure that the central server user interface process is stopped.
 
 ```bash
-systemctl stop xroad-jetty
+systemctl stop xroad-center
 ```
 
 3. Run the database migrations.
@@ -673,7 +707,7 @@ systemctl stop xroad-jetty
 4. Start the services, if they are not yet running.
 
 ```bash
-systemctl start xroad-signer nginx xroad-jetty
+systemctl start xroad-center
 ```
 
-5. Verify that everything is working by performing the steps described in [2.10 Post-Installation Checks](#210-post-installation-checks).
+5. Verify that everything is working by performing the steps described in [2.11 Post-Installation Checks](#211-post-installation-checks).

@@ -25,6 +25,9 @@
  */
 package ee.ria.xroad.common;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 import java.io.Serializable;
@@ -34,9 +37,11 @@ import java.time.OffsetDateTime;
  * Diagnostics status for single OCSP responder
  */
 @Value
+@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 public class OcspResponderStatus implements Serializable {
-    private int status;
-    private String url;
-    private OffsetDateTime prevUpdate;
-    private OffsetDateTime nextUpdate;
+    int status;
+    String url;
+    OffsetDateTime prevUpdate;
+    OffsetDateTime nextUpdate;
 }

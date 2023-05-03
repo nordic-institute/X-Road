@@ -87,7 +87,7 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
      */
     private void addSigningKey(final ConfProxyProperties conf,
                                final String keyId) throws Exception {
-        ClientId clientId = null;
+        ClientId.Conf clientId = null;
         GenerateSelfSignedCertResponse response = SignerClient.execute(
                 new GenerateSelfSignedCert(keyId, "N/A",
                         new Date(0), new Date(Integer.MAX_VALUE),

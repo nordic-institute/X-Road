@@ -1,9 +1,0 @@
-caInfo_firstApprovedCaTopCa:
-  cert: "topCaCert"
-
-caInfo_firstApprovedCaIntermediateCa:
-  intermediate_ca_id: <%= ActiveRecord::Fixtures.identify(:pki_first) %>
-  cert: "intermediateCaCert"
-
-caInfo_authOnlyTopCa:
-  cert: "topCaCert2"

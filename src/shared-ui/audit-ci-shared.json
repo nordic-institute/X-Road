@@ -7,6 +7,8 @@
     "*|@storybook*",
     "*|webpack-dev-server*",
     "*|webpack*",
+    "GHSA-ww39-953v-wcq6|globby>fast-glob>glob-parent>",
+    "GHSA-ww39-953v-wcq6|copy-webpack-plugin>glob-parent>",
     "GHSA-4wf5-vphf-c2xc|terser",
     "GHSA-fwr7-v2mv-hh25|async",
     "GHSA-rp65-9cf3-cjxr|@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check"

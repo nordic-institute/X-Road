@@ -166,7 +166,8 @@ public final class SignerMain {
                 }
                 try {
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(diagnostics, response.getWriter());
+                    JsonUtils.getObjectWriter()
+                            .writeValue(response.getWriter(), diagnostics);
                 } catch (IOException e) {
                     log.error("Error writing response {}", e);
                 }

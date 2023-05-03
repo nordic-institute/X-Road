@@ -57,7 +57,7 @@ public class FiVRKCertificateProfileInfoProviderTest {
                 "Must return instance of DefaultAuthCertificateProfileInfo",
                 provider.getAuthCertProfile(
                         new AuthCertificateProfileInfoParameters(
-                                SecurityServerId.create("XX", "foo", "bar", "server"), "foo"
+                                SecurityServerId.Conf.create("XX", "foo", "bar", "server"), "foo"
                         )
                 ) instanceof FiVRKAuthCertificateProfileInfo
         );
@@ -66,8 +66,8 @@ public class FiVRKCertificateProfileInfoProviderTest {
                 "Must return instance of DefaultSignCertificateProfileInfo",
                 provider.getSignCertProfile(
                         new SignCertificateProfileInfoParameters(
-                                SecurityServerId.create("XX", "foo", "bar", "server"),
-                                ClientId.create("XX", "foo", "bar"), "foo"
+                                SecurityServerId.Conf.create("XX", "foo", "bar", "server"),
+                                ClientId.Conf.create("XX", "foo", "bar"), "foo"
                         )
                 ) instanceof FiVRKSignCertificateProfileInfo
         );
@@ -159,7 +159,7 @@ public class FiVRKCertificateProfileInfoProviderTest {
         );
 
         assertEquals(
-                ClientId.create("XX", "Foo", "bar"),
+                ClientId.Conf.create("XX", "Foo", "bar"),
                 getSignProfile().getSubjectIdentifier(mockCert)
         );
     }
@@ -249,8 +249,8 @@ public class FiVRKCertificateProfileInfoProviderTest {
     private FiVRKSignCertificateProfileInfo getSignProfile() {
         return new FiVRKSignCertificateProfileInfo(
                 new SignCertificateProfileInfoParameters(
-                        SecurityServerId.create("XX", "foo", "bar", "server"),
-                        ClientId.create("XX", "Foo", "Bar"),
+                        SecurityServerId.Conf.create("XX", "foo", "bar", "server"),
+                        ClientId.Conf.create("XX", "Foo", "Bar"),
                         "foo"
                 )
         );
@@ -259,7 +259,7 @@ public class FiVRKCertificateProfileInfoProviderTest {
     private FiVRKAuthCertificateProfileInfo getAuthProfile() {
         return new FiVRKAuthCertificateProfileInfo(
                 new AuthCertificateProfileInfoParameters(
-                        SecurityServerId.create("XX", "foo", "bar", "server"),
+                        SecurityServerId.Conf.create("XX", "foo", "bar", "server"),
                         "foo"
                 )
         );

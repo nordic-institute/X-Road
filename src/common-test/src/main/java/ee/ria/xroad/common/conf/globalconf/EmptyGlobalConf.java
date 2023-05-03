@@ -29,12 +29,10 @@ import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -136,7 +134,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public Set<SecurityCategoryId> getProvidedCategories(
+    public Set<SecurityCategoryId.Conf> getProvidedCategories(
             X509Certificate authCert) {
         return Collections.emptySet();
     }
@@ -153,11 +151,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public ClientId getManagementRequestService() {
-        return null;
-    }
-
-    @Override
-    public ServiceId getServiceId(CentralServiceId serviceId) {
         return null;
     }
 
@@ -181,12 +174,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     public CertChain getCertChain(String instanceIdentifier,
             X509Certificate subject) throws Exception {
         return null;
-    }
-
-    @Override
-    public List<CentralServiceId> getCentralServices(
-            String instanceIdentifier) {
-        return Collections.emptyList();
     }
 
     @Override
@@ -251,12 +238,12 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public SecurityServerId getServerId(X509Certificate cert) throws Exception {
+    public SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception {
         return null;
     }
 
     @Override
-    public ClientId getServerOwner(SecurityServerId serverId) {
+    public ClientId.Conf getServerOwner(SecurityServerId serverId) {
         return null;
     }
 
@@ -271,7 +258,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<SecurityServerId> getSecurityServers(
+    public List<SecurityServerId.Conf> getSecurityServers(
             String... instanceIdentifiers) {
         return Collections.emptyList();
     }

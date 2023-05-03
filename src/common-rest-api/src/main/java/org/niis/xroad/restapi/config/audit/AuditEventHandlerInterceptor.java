@@ -40,7 +40,7 @@ import java.lang.reflect.Method;
  * {@link HandlerInterceptor} that figures out (possible) {@link org.springframework.boot.actuate.audit.AuditEvent}
  * associated with this request, and audit logs event success after request has been handled successfully
  */
-@Component
+@Component("auditEventHandlerInterceptor")
 @Slf4j
 public class AuditEventHandlerInterceptor implements HandlerInterceptor {
 
@@ -51,8 +51,7 @@ public class AuditEventHandlerInterceptor implements HandlerInterceptor {
     AuditEventHelper auditEventHelper;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-            throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (handler instanceof HandlerMethod) {
             // controller method calls are HandlerMethods, there are also other handlers
             // such as ResourceHttpRequestHandlers when serving static resources
@@ -67,8 +66,8 @@ public class AuditEventHandlerInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
-            ModelAndView modelAndView) throws Exception {
+    public void postHandle(HttpServletRequest request, HttpServletResponse response,
+                           Object handler, ModelAndView modelAndView) {
         if (handler instanceof HandlerMethod) {
             auditEventLoggingFacade.auditLogSuccess();
         }

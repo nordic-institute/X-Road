@@ -29,7 +29,6 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedCATypeV2;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.CaInfoType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.CentralServiceType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalGroupType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalSettingsType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.MemberType;
@@ -170,19 +169,19 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         }
     }
 
-    ClientId createMemberId(MemberType member) {
-        return ClientId.create(confType.getInstanceIdentifier(),
+    ClientId.Conf createMemberId(MemberType member) {
+        return ClientId.Conf.create(confType.getInstanceIdentifier(),
                 member.getMemberClass().getCode(), member.getMemberCode());
     }
 
-    ClientId createSubsystemId(MemberType member, SubsystemType subsystem) {
-        return ClientId.create(confType.getInstanceIdentifier(),
+    ClientId.Conf createSubsystemId(MemberType member, SubsystemType subsystem) {
+        return ClientId.Conf.create(confType.getInstanceIdentifier(),
                 member.getMemberClass().getCode(), member.getMemberCode(),
                 subsystem.getSubsystemCode());
     }
 
-    GlobalGroupId createGlobalGroupId(GlobalGroupType globalGroup) {
-        return GlobalGroupId.create(confType.getInstanceIdentifier(),
+    GlobalGroupId.Conf createGlobalGroupId(GlobalGroupType globalGroup) {
+        return GlobalGroupId.Conf.create(confType.getInstanceIdentifier(),
                 globalGroup.getGroupCode());
     }
 
@@ -208,10 +207,6 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
 
     List<GlobalGroupType> getGlobalGroups() {
         return confType.getGlobalGroup();
-    }
-
-    List<CentralServiceType> getCentralServices() {
-        return confType.getCentralService();
     }
 
     GlobalSettingsType getGlobalSettings() {
@@ -306,7 +301,7 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
             addServerClient(createMemberId(owner), securityServer);
 
             // cache security server information by serverId
-            SecurityServerId securityServerId = SecurityServerId.create(
+            SecurityServerId securityServerId = SecurityServerId.Conf.create(
                     confType.getInstanceIdentifier(),
                     owner.getMemberClass().getCode(),
                     owner.getMemberCode(), securityServer.getServerCode());
@@ -340,7 +335,7 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         }
 
         MemberType owner = getOwner(server);
-        SecurityServerId securityServerId = SecurityServerId.create(
+        SecurityServerId securityServerId = SecurityServerId.Conf.create(
                 confType.getInstanceIdentifier(),
                 owner.getMemberClass().getCode(),
                 owner.getMemberCode(), server.getServerCode());

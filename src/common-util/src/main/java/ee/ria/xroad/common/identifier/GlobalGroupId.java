@@ -27,30 +27,37 @@ package ee.ria.xroad.common.identifier;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import static ee.ria.xroad.common.util.Validation.validateArgument;
+
 /**
  * Global group ID.
  */
-@XmlJavaTypeAdapter(IdentifierTypeConverter.GlobalGroupIdAdapter.class)
-public final class GlobalGroupId extends AbstractGroupId {
+public interface GlobalGroupId extends AbstractGroupId {
 
-    GlobalGroupId() { // required by Hibernate
-        this(null, null);
-    }
+    @XmlJavaTypeAdapter(IdentifierTypeConverter.GlobalGroupIdAdapter.class)
+    final class Conf extends AbstractGroupId.Conf implements GlobalGroupId {
 
-    private GlobalGroupId(String xRoadInstance, String groupCode) {
-        super(XRoadObjectType.GLOBALGROUP, xRoadInstance, groupCode);
-    }
+        Conf() { // required by Hibernate
+            this(null, null);
+        }
 
-    /**
-     * Factory method for creating a new GlobalGroupId.
-     * @param xRoadInstance instance of the new group
-     * @param groupCode code of the new group
-     * @return GlobalGroupId
-     */
-    public static GlobalGroupId create(String xRoadInstance, String groupCode) {
-        validateField("xRoadInstance", xRoadInstance);
-        validateField("groupCode", groupCode);
-        return new GlobalGroupId(xRoadInstance, groupCode);
+        private Conf(String xRoadInstance, String groupCode) {
+            super(XRoadObjectType.GLOBALGROUP, xRoadInstance, groupCode);
+        }
+
+        /**
+         * Factory method for creating a new GlobalGroupId.
+         *
+         * @param xRoadInstance instance of the new group
+         * @param groupCode     code of the new group
+         * @return GlobalGroupId
+         */
+        public static GlobalGroupId.Conf create(String xRoadInstance,
+                                                String groupCode) {
+            validateArgument("xRoadInstance", xRoadInstance);
+            validateArgument("groupCode", groupCode);
+            return new GlobalGroupId.Conf(xRoadInstance, groupCode);
+        }
     }
 
 }
