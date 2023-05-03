@@ -29,13 +29,14 @@ package org.niis.xroad.cs.admin.api.service;
 
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
+import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchorWithFile;
 
 import java.util.Optional;
 
 public interface ConfigurationAnchorService {
     Optional<ConfigurationAnchor> getConfigurationAnchor(ConfigurationSourceType sourceType);
 
-    Optional<ConfigurationAnchor> getConfigurationAnchorWithFile(ConfigurationSourceType sourceType);
+    Optional<ConfigurationAnchorWithFile> getConfigurationAnchorWithFile(ConfigurationSourceType sourceType);
 
     ConfigurationAnchor recreateAnchor(ConfigurationSourceType configurationType);
 }

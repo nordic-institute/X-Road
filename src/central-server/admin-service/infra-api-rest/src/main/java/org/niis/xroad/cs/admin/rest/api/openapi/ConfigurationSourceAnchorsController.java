@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
-import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.rest.api.converter.ConfigurationAnchorDtoConverter;
 import org.niis.xroad.cs.openapi.ConfigurationSourceAnchorsApi;
@@ -44,12 +43,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CONFIGURATION_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_ANCHOR;
+import static org.niis.xroad.restapi.openapi.ControllerUtil.createAttachmentResourceResponse;
 import static org.springframework.http.ResponseEntity.ok;
 
 @Controller
@@ -57,10 +53,6 @@ import static org.springframework.http.ResponseEntity.ok;
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class ConfigurationSourceAnchorsController implements ConfigurationSourceAnchorsApi {
-
-    private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
-    private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
-    private static final String ANCHOR_DOWNLOAD_FILE_EXTENSION = ".xml";
     private final ConfigurationAnchorService configurationAnchorService;
     private final ConfigurationAnchorDtoConverter configurationAnchorDtoConverter;
 
@@ -68,10 +60,12 @@ public class ConfigurationSourceAnchorsController implements ConfigurationSource
     @PreAuthorize("hasAuthority('DOWNLOAD_SOURCE_ANCHOR')")
     public ResponseEntity<Resource> downloadAnchor(ConfigurationTypeDto configurationType) {
         final var sourceType = ConfigurationSourceType.valueOf(configurationType.getValue());
-        ConfigurationAnchor configurationAnchor = configurationAnchorService.getConfigurationAnchorWithFile(sourceType)
+        final var configurationAnchor = configurationAnchorService.getConfigurationAnchorWithFile(sourceType)
                 .orElseThrow(() -> new NotFoundException(CONFIGURATION_NOT_FOUND));
-        String anchorFilename = getAnchorFilenameForDownload(configurationAnchor.getAnchorGeneratedAt());
-        return ControllerUtil.createAttachmentResourceResponse(configurationAnchor.getAnchorFile(), anchorFilename);
+
+        return createAttachmentResourceResponse(
+                configurationAnchor.getAnchorFile(),
+                configurationAnchor.getAnchorFileName());
     }
 
     @Override
@@ -92,12 +86,6 @@ public class ConfigurationSourceAnchorsController implements ConfigurationSource
         return ok(configurationAnchorDtoConverter.convert(
                 configurationAnchorService.recreateAnchor(ConfigurationSourceType.valueOf(configurationType.getValue()))
         ));
-    }
-
-    private String getAnchorFilenameForDownload(Instant generatedAt) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ANCHOR_DOWNLOAD_DATE_TIME_FORMAT)
-                .withZone(ZoneId.systemDefault());
-        return ANCHOR_DOWNLOAD_FILENAME_PREFIX + formatter.format(generatedAt) + ANCHOR_DOWNLOAD_FILE_EXTENSION;
     }
 
     private ConfigurationAnchorContainerDto wrapAnchor(ConfigurationAnchorDto anchorDto) {

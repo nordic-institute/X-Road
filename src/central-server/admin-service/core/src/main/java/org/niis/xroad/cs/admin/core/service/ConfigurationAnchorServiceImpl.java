@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
+import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchorWithFile;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
@@ -60,6 +61,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Optional;
@@ -76,13 +78,16 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_IN
 @Transactional
 @RequiredArgsConstructor
 public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorService {
+    private static final JAXBContext JAXB_CTX;
+
+    private static final DateTimeFormatter ANCHOR_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss")
+            .withZone(ZoneId.systemDefault());
 
     private final ConfigurationSourceRepository configurationSourceRepository;
     private final SystemParameterService systemParameterService;
     private final AuditEventHelper auditEventHelper;
     private final AuditDataHelper auditDataHelper;
     private final HAConfigStatus haConfigStatus;
-    private static final JAXBContext JAXB_CTX;
 
     static {
         try {
@@ -99,12 +104,13 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
     }
 
     @Override
-    public Optional<ConfigurationAnchor> getConfigurationAnchorWithFile(ConfigurationSourceType sourceType) {
+    public Optional<ConfigurationAnchorWithFile> getConfigurationAnchorWithFile(ConfigurationSourceType sourceType) {
         return findConfigurationSourceBySourceType(sourceType)
-                .map(cfgSrc -> new ConfigurationAnchor(
-                        cfgSrc.getAnchorFile(),
+                .map(cfgSrc -> new ConfigurationAnchorWithFile(
                         cfgSrc.getAnchorFileHash(),
-                        cfgSrc.getAnchorGeneratedAt())
+                        cfgSrc.getAnchorGeneratedAt(),
+                        cfgSrc.getAnchorFile(),
+                        getAnchorFilename(cfgSrc))
                 );
     }
 
@@ -197,5 +203,13 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
     private Optional<ConfigurationSourceEntity> findConfigurationSourceBySourceType(ConfigurationSourceType sourceType) {
         return configurationSourceRepository.findBySourceTypeAndHaNodeName(sourceType.name().toLowerCase(),
                 haConfigStatus.getCurrentHaNodeName());
+    }
+
+
+    private String getAnchorFilename(ConfigurationSourceEntity cfgSource) {
+        return String.format("configuration_anchor_%s_%s_UTC_%s.xml",
+                systemParameterService.getInstanceIdentifier(),
+                cfgSource.getSourceType(),
+                ANCHOR_DATE_FORMATTER.format(cfgSource.getAnchorGeneratedAt()));
     }
 }
