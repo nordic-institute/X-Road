@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.cs.test.glue;
 
-import com.nortal.test.asserts.Assertion;
-import com.nortal.test.asserts.AssertionOperation;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.BackupDto;
@@ -37,14 +35,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static java.lang.ClassLoader.getSystemResourceAsStream;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -52,8 +45,6 @@ import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class BackupStepDefs extends BaseStepDefs {
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
-    private static final String FILE_NAME_FORMAT = "conf_backup_%s.gpg";
     @Autowired
     private FeignBackupsApi backupsApi;
 
@@ -122,18 +113,10 @@ public class BackupStepDefs extends BaseStepDefs {
     public void containsBackupData() {
         validate(newBackup)
                 .assertion(equalsStatusCodeAssertion(CREATED))
-                .assertion(notNullAssertion("body.createdAt"))
-                .assertion(new Assertion.Builder()
-                        .message("Filename matches created at date/time")
-                        .expression("body.filename")
-                        .operation(AssertionOperation.LIST_CONTAINS_VALUE)
-                        .expectedValue(expectedFilename(newBackup.getBody().getCreatedAt()))
-                        .build())
                 .execute();
 
         validate(getRequiredStepData(StepDataKey.RESPONSE))
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(newBackup.getBody().getCreatedAt(), "body[0].createdAt"))
                 .assertion(equalsAssertion(newBackup.getBody().getFilename(), "body[0].filename"))
                 .execute();
     }
@@ -147,14 +130,6 @@ public class BackupStepDefs extends BaseStepDefs {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
-    }
-
-    private List<String> expectedFilename(OffsetDateTime dateTime) {
-        return Stream.of(dateTime, dateTime.minusSeconds(1), dateTime.plusSeconds(1))
-                .map(dt -> dt.format(DATE_TIME_FORMATTER))
-                .map(dt -> String.format(FILE_NAME_FORMAT, dt))
-                .collect(Collectors.toList());
-
     }
 
     @Step("Central server is restored from {}")

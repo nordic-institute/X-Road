@@ -66,7 +66,7 @@ paths:
           content:
             application/json:
               schema:
-                description: array of backup objects
+                description: array of backup objects sorted newest to oldest
                 items:
                   $ref: '#/components/schemas/Backup'
                 type: array
@@ -3546,13 +3546,6 @@ components:
     Backup:
       description: central server backup # potential-common-api
       properties:
-        created_at:
-          description: backup created at
-          example: '2022-01-15T00:00:00.001Z'
-          format: date-time
-          maxLength: 24
-          minLength: 24
-          type: string
         filename:
           description: backup filename
           example: configuration_backup_20181224.tar
@@ -3562,7 +3555,6 @@ components:
           type: string
       required:
         - filename
-        - created_at
       type: object
     BackupArchive:
       description: central server backup archive file # potential-common-api

@@ -51,6 +51,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -106,6 +107,7 @@ public class BackupsApiController implements BackupsApi {
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<List<BackupDto>> getBackups() {
         return ResponseEntity.ok(backupService.getBackupFiles().stream()
+                .sorted(Comparator.comparing(BackupFile::getCreatedAt).reversed())
                 .map(backupDtoConverter::toTarget)
                 .collect(toList()));
     }

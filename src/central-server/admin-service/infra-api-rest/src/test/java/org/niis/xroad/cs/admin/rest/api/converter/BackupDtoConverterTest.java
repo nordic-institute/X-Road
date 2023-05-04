@@ -42,6 +42,5 @@ class BackupDtoConverterTest {
         var result = backupDtoConverter.toTarget(backupFile);
 
         assertThat(result.getFilename()).isEqualTo(backupFile.getFilename());
-        assertThat(result.getCreatedAt()).isEqualTo(backupFile.getCreatedAt());
     }
 }

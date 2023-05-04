@@ -42,12 +42,7 @@ export const useBackupsStore = defineStore('backup', {
     getBackups() {
       return axios
         .get<Backup[]>('/backups')
-        .then(
-          (resp) =>
-            (this.backups = resp.data.sort((a, b) => {
-              return b.created_at.localeCompare(a.created_at);
-            })),
-        )
+        .then((resp) => (this.backups = resp.data))
         .catch((error) => {
           throw error;
         });
