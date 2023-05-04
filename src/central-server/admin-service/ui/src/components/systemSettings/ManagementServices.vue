@@ -78,7 +78,16 @@
             <td data-test="management-security-server-field">
               {{ managementServicesConfiguration.security_server_id }}
             </td>
-            <td></td>
+            <td class="action-cell">
+              <xrd-button
+                v-if="canEditSecurityServer"
+                text
+                :outlined="false"
+                data-test="edit-management-security-server"
+                @click="openSelectSecurityServerDialog"
+                >{{ $t('action.edit') }}
+              </xrd-button>
+            </td>
           </tr>
 
           <tr>
@@ -150,11 +159,24 @@
       @cancel="hideSelectSubsystemDialog"
     >
     </SelectSubsystemDialog>
+    <SelectSecurityServerDialog
+      :dialog="showSelectSecurityServerDialog"
+      :default-security-server-id="
+        managementServicesConfiguration.security_server_id
+      "
+      @select="registerServiceProvider"
+      @cancel="hideSelectSecurityServerDialog"
+    >
+    </SelectSecurityServerDialog>
   </div>
 </template>
 
 <script lang="ts">
-import { Client, ManagementServicesConfiguration } from '@/openapi-types';
+import {
+  Client,
+  ManagementServicesConfiguration,
+  SecurityServer,
+} from '@/openapi-types';
 import Vue from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { managementServicesStore } from '@/store/modules/management-services';
@@ -163,15 +185,18 @@ import { toIdentifier } from '@/util/helpers';
 import { Permissions } from '@/global';
 import { userStore } from '@/store/modules/user';
 import SelectSubsystemDialog from '@/components/systemSettings/SelectSubsystemDialog.vue';
+import SelectSecurityServerDialog from '@/components/systemSettings/SelectSecurityServerDialog.vue';
 
 export default Vue.extend({
   components: {
     SelectSubsystemDialog,
+    SelectSecurityServerDialog,
   },
   data() {
     return {
       loading: false,
       showSelectSubsystemDialog: false,
+      showSelectSecurityServerDialog: false,
     };
   },
   computed: {
@@ -182,6 +207,13 @@ export default Vue.extend({
     },
     hasPermissionToEditServiceProvider(): boolean {
       return this.hasPermission(Permissions.VIEW_SYSTEM_SETTINGS);
+    },
+    canEditSecurityServer(): boolean {
+      return (
+        this.isServiceProviderSelected() &&
+        this.isServiceProviderUnRegistered() &&
+        this.hasPermission(Permissions.REGISTER_SERVICE_PROVIDER)
+      );
     },
   },
   created() {
@@ -206,6 +238,24 @@ export default Vue.extend({
     hideSelectSubsystemDialog(): void {
       this.showSelectSubsystemDialog = false;
     },
+    isServiceProviderSelected(): boolean {
+      return (
+        this.managementServicesStore.managementServicesConfiguration
+          .service_provider_id !== undefined
+      );
+    },
+    isServiceProviderUnRegistered(): boolean {
+      return (
+        this.managementServicesStore.managementServicesConfiguration
+          .security_server_id === ``
+      );
+    },
+    openSelectSecurityServerDialog(): void {
+      this.showSelectSecurityServerDialog = true;
+    },
+    hideSelectSecurityServerDialog(): void {
+      this.showSelectSecurityServerDialog = false;
+    },
     updateServiceProvider(subsystems: Client[]): void {
       this.loading = true;
       this.managementServicesStore
@@ -217,6 +267,30 @@ export default Vue.extend({
             this.$t('systemSettings.serviceProvider.changedSuccess'),
           );
           this.showSelectSubsystemDialog = false;
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    registerServiceProvider(securityServers: SecurityServer[]): void {
+      this.loading = true;
+      this.managementServicesStore
+        .registerServiceProvider({
+          security_server_id: securityServers[0].id || '',
+        })
+        .then(() => {
+          this.showSuccess(
+            this.$t('systemSettings.serviceProvider.registeredSuccess', {
+              subsystemId:
+                this.managementServicesConfiguration.service_provider_id,
+              securityServerId:
+                this.managementServicesConfiguration.security_server_id,
+            }),
+          );
+          this.showSelectSecurityServerDialog = false;
         })
         .catch((error) => {
           this.showError(error);

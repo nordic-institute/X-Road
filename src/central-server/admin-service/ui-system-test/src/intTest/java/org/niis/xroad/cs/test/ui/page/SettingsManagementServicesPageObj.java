@@ -33,6 +33,7 @@ import static com.codeborne.selenide.Selenide.$x;
 public class SettingsManagementServicesPageObj {
 
     public final EditManagementSubsystemDialog editManagementSubsystemDialog = new EditManagementSubsystemDialog();
+    public final EditManagementSecurityServerDialog editManagementSecurityServerDialog = new EditManagementSecurityServerDialog();
 
     public SelenideElement serviceProviderIdentifier() {
         return $x("//td[@data-test='management-service-provider-identifier-field']");
@@ -70,6 +71,15 @@ public class SettingsManagementServicesPageObj {
         return $x("//button[@data-test='edit-management-subsystem']");
     }
 
+    public SelenideElement editManagementSecurityServerButton() {
+        return $x("//button[@data-test='edit-management-security-server']");
+    }
+
+    public SelenideElement title(String title) {
+        var xpath = "//span[@class='dialog-title-text' and contains(text(),'%s')]";
+        return $x(String.format(xpath, title));
+    }
+
     public class EditManagementSubsystemDialog {
 
         public SelenideElement search() {
@@ -86,6 +96,19 @@ public class SettingsManagementServicesPageObj {
         }
     }
 
+    public class EditManagementSecurityServerDialog {
 
+        public SelenideElement search() {
+            return $x("//input[@data-test='management-security-server-search-field']");
+        }
 
+        public SelenideElement checkboxOf(String code) {
+            var xpath = "//td[text()='%s']/../td/div[@data-test='management-security-server-checkbox']";
+            return $x(String.format(xpath, code));
+        }
+
+        public SelenideElement selectButton() {
+            return $x("//button[@data-test='management-security-server-select-button']");
+        }
+    }
 }
