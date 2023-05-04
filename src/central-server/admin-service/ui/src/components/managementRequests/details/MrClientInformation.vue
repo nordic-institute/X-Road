@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <data-block block-title-key="managementRequestDetails.clientInformation">
+  <data-block :block-title-key="clientInfoTitle">
     <data-line
       label-text-key="managementRequestDetails.ownerName"
       :value="managementRequest.client_owner_name"
@@ -39,6 +39,7 @@
       :value="managementRequest.clientId.member_code"
     />
     <data-line
+      v-if="!isOwnerChange"
       label-text-key="managementRequestDetails.subsystemCode"
       :value="managementRequest.clientId.subsystem_code"
     />
@@ -47,11 +48,28 @@
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import { ManagementRequestDetailedView } from '@/openapi-types';
+import {
+  ManagementRequestDetailedView,
+  ManagementRequestType,
+} from '@/openapi-types';
 import DataLine from './DetailsLine.vue';
 import DataBlock from './DetailsBlock.vue';
 
 export default Vue.extend({
+  computed: {
+    isOwnerChange(): boolean {
+      return (
+        this.managementRequest.type ===
+        ManagementRequestType.OWNER_CHANGE_REQUEST
+      );
+    },
+    clientInfoTitle(): string {
+      if (this.isOwnerChange) {
+        return 'managementRequestDetails.ownerChangeInformation';
+      }
+      return 'managementRequestDetails.clientInformation';
+    },
+  },
   components: { DataBlock, DataLine },
   props: {
     managementRequest: {
