@@ -31,6 +31,7 @@ import feign.FeignException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ManagementServicesConfigurationDto;
+import org.niis.xroad.cs.openapi.model.RegisterServiceProviderRequestDto;
 import org.niis.xroad.cs.openapi.model.ServiceProviderIdDto;
 import org.niis.xroad.cs.test.api.FeignManagementServicesApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,4 +88,17 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @Step("security server {string} is registered as management service provider")
+    public void securityServerIsRegisteredAsManagementServiceProvider(String securityServerId) {
+        final RegisterServiceProviderRequestDto dto = new RegisterServiceProviderRequestDto();
+        dto.setSecurityServerId(securityServerId);
+
+        try {
+            response = managementServicesApi.registerServiceProvider(dto);
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
 }

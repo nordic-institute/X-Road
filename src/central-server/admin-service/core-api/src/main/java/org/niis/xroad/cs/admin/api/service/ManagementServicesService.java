@@ -26,6 +26,7 @@
 package org.niis.xroad.cs.admin.api.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.niis.xroad.cs.admin.api.domain.ManagementServicesConfiguration;
 
@@ -37,6 +38,14 @@ public interface ManagementServicesService {
      * @return configuration
      */
     ManagementServicesConfiguration updateManagementServicesProvider(ClientId serviceProviderClientId);
+
+    /**
+     * Register management service as security server client.
+     *
+     * @param securityServerId security server identifier
+     * @return configuration
+     */
+    ManagementServicesConfiguration registerManagementServicesSecurityServer(SecurityServerId securityServerId);
 
     /**
      * Get aggregated management services configuration.

@@ -35,6 +35,11 @@ sonarqube {
         property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
         property "sonar.exclusions", "**/build/generated-sources/**"
         property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+
+        property "sonar.issue.ignore.multicriteria", "e1"
+        //# ignore 'Local-Variable Type Inference should be used"
+        property "sonar.issue.ignore.multicriteria.e1.ruleKey", "java:S6212"
+        property "sonar.issue.ignore.multicriteria.e1.resourceKey", "**/*.java"
     }
 }
 
