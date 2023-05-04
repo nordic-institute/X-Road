@@ -151,8 +151,8 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("owner of security server {string} can be changed to {string}")
-    public void ownedOfSecurityServerCanBeSetToMember(String securityServerId, String memberId) {
+    @Step("owner of security server {string} is changed to {string}")
+    public void ownerOfSecurityServerisChangedToMember(String securityServerId, String memberId) {
         final OwnerChangeRequestDto managementRequest = new OwnerChangeRequestDto();
         managementRequest.setType(OWNER_CHANGE_REQUEST);
         managementRequest.setOrigin(SECURITY_SERVER);

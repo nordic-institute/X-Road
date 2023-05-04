@@ -95,7 +95,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     @Override
     public ClientRegistrationRequest add(ClientRegistrationRequest request) {
         final SecurityServerIdEntity serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
-        final ClientIdEntity clientId = clientIds.findOrCreate(ClientIdEntity.ensure(request.getClientId()));
+        ClientIdEntity clientId = ClientIdEntity.ensure(request.getClientId());
         final Origin origin = request.getOrigin();
 
         MemberIdEntity ownerId = serverId.getOwner();
@@ -117,12 +117,14 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
                             request.getClientId().toString()));
         }
 
+        clientId = clientIds.findOrCreate(clientId);
         servers.findBy(serverId, clientId).map(s -> {
             throw new DataIntegrityException(MR_CLIENT_ALREADY_REGISTERED);
         });
 
-        List<ClientRegistrationRequestEntity> pending = clientRegRequests.findBy(serverId, clientId,
-                EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
+        List<ClientRegistrationRequestEntity> pending = clientRegRequests.findBy(
+                serverId, clientId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)
+        );
 
         ClientRegistrationRequestEntity req;
         switch (pending.size()) {

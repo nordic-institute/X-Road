@@ -140,16 +140,20 @@ Feature: Management requests API
 
   @Modifying
   Scenario: Changing security server owner
-    And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And member 'CS:E2E:member-1' is in global group 'security-server-owners'
     And new member 'CS:E2E:member-2' is added
     And member 'CS:E2E:member-2' is not in global group 'security-server-owners'
-    When client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
     And management request is approved
-    Then owner of security server 'CS:E2E:member-1:SS-X' can be changed to 'CS:E2E:member-2'
+    And security server 'CS:E2E:member-1:SS-X' clients do not contain 'CS:E2E:member-1'
+    And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
+    When owner of security server 'CS:E2E:member-1:SS-X' is changed to 'CS:E2E:member-2'
     And management request is approved
-    And management request is with status 'APPROVED'
+    Then management request is with status 'APPROVED'
+    And security server 'CS:E2E:member-2:SS-X' clients contains 'CS:E2E:member-1'
+    And security server 'CS:E2E:member-2:SS-X' clients do not contain 'CS:E2E:member-2'
     And member 'CS:E2E:member-1' is not in global group 'security-server-owners'
     And member 'CS:E2E:member-2' is in global group 'security-server-owners'
     And member 'CS:E2E:member-2' owned servers contains 'CS:E2E:member-2:SS-X'
@@ -176,7 +180,7 @@ Feature: Management requests API
     And management request is approved
     And client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-3' client from 'SECURITY_SERVER'
     And management request is approved
-    And owner of security server 'CS:E2E:member-1:SS-3' can be changed to 'CS:E2E:member-2'
+    And owner of security server 'CS:E2E:member-1:SS-3' is changed to 'CS:E2E:member-2'
     And management request is approved
     And authentication certificate of 'CS:E2E:member-1:SS-2' is deleted
     And client 'CS:E2E:member-3' is registered as security server 'CS:E2E:member-1:SS-1' client from 'SECURITY_SERVER'

@@ -44,11 +44,13 @@ import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.OwnerChangeRequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +58,9 @@ import javax.transaction.Transactional;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.APPROVED;
@@ -82,6 +87,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final IdentifierRepository<MemberIdEntity> memberIds;
     private final SecurityServerRepository servers;
+    private final ServerClientRepository serverClients;
 
     private final GlobalGroupMemberService groupMemberService;
 
@@ -95,16 +101,14 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
 
     @Override
     public OwnerChangeRequest add(OwnerChangeRequest request) {
-        assertNoOtherSubmittedRequests(request);
+        SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
+        assertNoOtherSubmittedRequests(serverId);
         validateRequest(request);
-
-        final SecurityServerIdEntity securityServerIdEntity = serverIds.findOne(
-                SecurityServerIdEntity.create(request.getSecurityServerId()));
         final MemberIdEntity memberIdEntity = memberIds.findOne(MemberIdEntity.create(request.getClientId()));
 
         OwnerChangeRequestEntity entity = new OwnerChangeRequestEntity(
                 request.getOrigin(),
-                securityServerIdEntity,
+                serverId,
                 memberIdEntity);
 
         final OwnerChangeRequestEntity saved = ownerChangeRequestRepository.save(entity);
@@ -140,12 +144,9 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         }
     }
 
-    private void assertNoOtherSubmittedRequests(OwnerChangeRequest request) {
-        final SecurityServerIdEntity securityServerIdEntity = serverIds.findOne(
-                SecurityServerIdEntity.create(request.getSecurityServerId()));
-        final List<OwnerChangeRequestEntity> pendingRequests = ownerChangeRequestRepository.findBy(securityServerIdEntity,
-                EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
-
+    private void assertNoOtherSubmittedRequests(SecurityServerIdEntity serverId) {
+        final List<OwnerChangeRequestEntity> pendingRequests =
+                ownerChangeRequestRepository.findBy(serverId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
         if (!pendingRequests.isEmpty()) {
             throw new DataIntegrityException(MR_EXISTS);
         }
@@ -168,12 +169,15 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
                 .getOrElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND,
                         ownerChangeRequestEntity.getClientId().toString()));
 
-        final var currentOwnerIdentifier = securityServer.getOwner().getIdentifier();
+        final var currentOwner = securityServer.getOwner();
 
         securityServer.setOwner(newOwner);
+        ensureServerIdCreated(securityServer.getServerId());
+        ensureSecurityServerClient(securityServer, currentOwner);
+        ensureNotASecurityServerClient(securityServer, newOwner);
         servers.saveAndFlush(securityServer);
 
-        updateGlobalGroups(currentOwnerIdentifier, newOwner);
+        updateGlobalGroups(currentOwner.getIdentifier(), newOwner);
 
         ownerChangeRequestEntity.setProcessingStatus(APPROVED);
         final OwnerChangeRequestEntity saved = ownerChangeRequestRepository.save(ownerChangeRequestEntity);
@@ -185,6 +189,28 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
             throw new ValidationFailureException(MR_INVALID_STATE_FOR_APPROVAL,
                     valueOf(requestEntity.getId()));
         }
+    }
+
+    private void ensureServerIdCreated(SecurityServerIdEntity serverId) {
+        Optional<SecurityServerIdEntity> existingServerId = serverIds.findOpt(serverId);
+        if (existingServerId.isEmpty()) {
+            serverIds.saveAndFlush(serverId);
+        }
+    }
+
+    private void ensureSecurityServerClient(SecurityServerEntity securityServer, XRoadMemberEntity member) {
+        boolean isMemberAlreadyClient = securityServer.getServerClients().stream()
+                .anyMatch(serverClient -> serverClient.getSecurityServerClient().getIdentifier().equals(member.getIdentifier()));
+        if (!isMemberAlreadyClient) {
+            serverClients.saveAndFlush(new ServerClientEntity(securityServer, member));
+        }
+    }
+
+    private void ensureNotASecurityServerClient(SecurityServerEntity securityServer, XRoadMemberEntity member) {
+        Set<ServerClientEntity> existingClients = securityServer.getServerClients().stream()
+                .filter(serverClient -> serverClient.getSecurityServerClient().getIdentifier().equals(member.getIdentifier()))
+                .collect(Collectors.toSet());
+        existingClients.forEach(serverClients::delete);
     }
 
     private void updateGlobalGroups(ClientIdEntity currentOwnerIdentifier, XRoadMemberEntity newOwner) {
