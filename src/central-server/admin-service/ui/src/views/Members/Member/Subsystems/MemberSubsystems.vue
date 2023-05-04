@@ -54,91 +54,93 @@
         hide-default-footer
         data-test="subsystems-table"
       >
-        <template #[`item`]="{ item }">
-          <tr v-if="item.usedSecurityServers.length === 0">
-            <td class="unregistered-subsystem">
-              {{ item.subsystem_id.subsystem_code }}
-            </td>
-            <td class="unregistered-subsystem" />
-            <td class="unregistered-subsystem" />
-            <td class="status unregistered-subsystem">
-              <xrd-icon-base>
-                <XrdIconError />
-              </xrd-icon-base>
-              {{ getStatusText(undefined) }}
-            </td>
-            <td class="subsystem-actions unregistered-subsystem">
-              <div>
-                <xrd-button
-                  v-if="allowMemberSubsystemDelete"
-                  text
-                  :outlined="false"
-                  data-test="delete-subsystem"
-                  @click="deleteClicked(item)"
-                >
-                  {{ $t('action.delete') }}
-                </xrd-button>
-              </div>
-            </td>
-          </tr>
-          <tr
-            v-for="(subitem, iSub) in item.usedSecurityServers"
-            :key="item.subsystem_id.subsystem_code + ':' + subitem.serverCode"
-          >
-            <td v-if="iSub === 0" :rowspan="item.usedSecurityServers.length">
-              {{ item.subsystem_id.subsystem_code }}
-            </td>
-            <td class="xrd-clickable">{{ subitem.serverCode }}</td>
-            <td class="xrd-clickable">{{ subitem.serverOwner }}</td>
-            <td class="status">
-              <xrd-icon-base>
-                <XrdIconChecked
-                  v-if="subitem.status === 'APPROVED'"
-                  :color="colors.Success100"
-                />
-                <XrdIconInProgress
-                  v-if="
-                    subitem.status === 'WAITING' ||
-                    subitem.status === 'SUBMITTED FOR APPROVAL'
-                  "
-                  :color="colors.Success100"
-                />
-                <XrdIconError v-if="subitem.status === undefined" />
-              </xrd-icon-base>
-              {{ getStatusText(subitem.status) }}
-            </td>
-            <td class="subsystem-actions">
-              <div>
-                <xrd-button
-                  v-if="
-                    subitem.status === 'APPROVED' &&
-                    allowToUnregisterMemberSubsystem
-                  "
-                  text
-                  :outlined="false"
-                  @click="unregisterClicked(item, subitem)"
-                >
-                  {{ $t('action.unregister') }}
-                </xrd-button>
+        <template #body="{ items }">
+          <tbody v-for="(item, index) in items" :key="index">
+            <tr v-if="item.usedSecurityServers.length === 0">
+              <td class="unregistered-subsystem">
+                {{ item.subsystem_id.subsystem_code }}
+              </td>
+              <td class="unregistered-subsystem" />
+              <td class="unregistered-subsystem" />
+              <td class="status unregistered-subsystem">
+                <xrd-icon-base>
+                  <XrdIconError />
+                </xrd-icon-base>
+                {{ getStatusText(undefined) }}
+              </td>
+              <td class="subsystem-actions unregistered-subsystem">
+                <div>
+                  <xrd-button
+                    v-if="allowMemberSubsystemDelete"
+                    text
+                    :outlined="false"
+                    data-test="delete-subsystem"
+                    @click="deleteClicked(item)"
+                  >
+                    {{ $t('action.delete') }}
+                  </xrd-button>
+                </div>
+              </td>
+            </tr>
+            <tr
+              v-for="(subitem, iSub) in item.usedSecurityServers"
+              :key="item.subsystem_id.subsystem_code + ':' + subitem.serverCode"
+            >
+              <td v-if="iSub === 0" :rowspan="item.usedSecurityServers.length">
+                {{ item.subsystem_id.subsystem_code }}
+              </td>
+              <td class="xrd-clickable">{{ subitem.serverCode }}</td>
+              <td class="xrd-clickable">{{ subitem.serverOwner }}</td>
+              <td class="status">
+                <xrd-icon-base>
+                  <XrdIconChecked
+                    v-if="subitem.status === 'APPROVED'"
+                    :color="colors.Success100"
+                  />
+                  <XrdIconInProgress
+                    v-if="
+                      subitem.status === 'WAITING' ||
+                      subitem.status === 'SUBMITTED FOR APPROVAL'
+                    "
+                    :color="colors.Success100"
+                  />
+                  <XrdIconError v-if="subitem.status === undefined" />
+                </xrd-icon-base>
+                {{ getStatusText(subitem.status) }}
+              </td>
+              <td class="subsystem-actions">
+                <div>
+                  <xrd-button
+                    v-if="
+                      subitem.status === 'APPROVED' &&
+                      allowToUnregisterMemberSubsystem
+                    "
+                    text
+                    :outlined="false"
+                    @click="unregisterClicked(item, subitem)"
+                  >
+                    {{ $t('action.unregister') }}
+                  </xrd-button>
 
-                <xrd-button
-                  v-if="subitem.status === 'WAITING'"
-                  text
-                  :outlined="false"
-                >
-                  {{ $t('action.approve') }}
-                </xrd-button>
+                  <xrd-button
+                    v-if="subitem.status === 'WAITING'"
+                    text
+                    :outlined="false"
+                  >
+                    {{ $t('action.approve') }}
+                  </xrd-button>
 
-                <xrd-button
-                  v-if="subitem.status === 'WAITING'"
-                  text
-                  :outlined="false"
-                >
-                  {{ $t('action.decline') }}
-                </xrd-button>
-              </div>
-            </td>
-          </tr>
+                  <xrd-button
+                    v-if="subitem.status === 'WAITING'"
+                    text
+                    :outlined="false"
+                  >
+                    {{ $t('action.decline') }}
+                  </xrd-button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
         </template>
         <template #footer>
           <div class="custom-footer"></div>
@@ -392,7 +394,9 @@ export default Vue.extend({
 }
 
 .custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
   height: 16px;
+}
+tbody tr:last-child td {
+  border-bottom: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
 }
 </style>
