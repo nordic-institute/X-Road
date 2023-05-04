@@ -83,7 +83,7 @@ import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DE
 public class AuthenticationCertificateRegistrationRequestHandler implements
         RequestHandler<AuthenticationCertificateRegistrationRequest> {
 
-    private final IdentifierRepository<SecurityServerIdEntity> identifiers;
+    private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final SecurityServerClientRepository<XRoadMemberEntity> members;
     private final AuthenticationCertificateRegistrationRequestRepository authCertReqRequests;
     private final AuthCertRepository authCerts;
@@ -102,7 +102,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
      * @throws DataIntegrityException     if request violates data integrity rules
      */
     public AuthenticationCertificateRegistrationRequest add(AuthenticationCertificateRegistrationRequest request) {
-        final SecurityServerIdEntity serverId = identifiers.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
+        final SecurityServerIdEntity serverId = SecurityServerIdEntity.create(request.getSecurityServerId());
         final Origin origin = request.getOrigin();
 
         if (CENTER.equals(origin)) {
@@ -228,8 +228,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
 
     private AuthenticationCertificateRegistrationRequestEntity newRequest(
             AuthenticationCertificateRegistrationRequest request) {
-
-        SecurityServerIdEntity serverId = identifiers.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
+        SecurityServerIdEntity serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
         return new AuthenticationCertificateRegistrationRequestEntity(request.getOrigin(), serverId);
     }
 

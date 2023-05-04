@@ -147,13 +147,16 @@ Feature: Management requests API
     And member 'CS:E2E:member-2' is not in global group 'security-server-owners'
     And client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
     And management request is approved
+    And security server 'CS:E2E:member-1:SS-X' clients do not contain 'CS:E2E:member-1'
+    And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
     When owner of security server 'CS:E2E:member-1:SS-X' is changed to 'CS:E2E:member-2'
     And management request is approved
     Then management request is with status 'APPROVED'
+    And security server 'CS:E2E:member-2:SS-X' clients contains 'CS:E2E:member-1'
+    And security server 'CS:E2E:member-2:SS-X' clients do not contain 'CS:E2E:member-2'
     And member 'CS:E2E:member-1' is not in global group 'security-server-owners'
     And member 'CS:E2E:member-2' is in global group 'security-server-owners'
     And member 'CS:E2E:member-2' owned servers contains 'CS:E2E:member-2:SS-X'
-    And security server 'CS:E2E:member-2:SS-X' clients contains 'CS:E2E:member-1'
 
   @Modifying
   Scenario: View management request details

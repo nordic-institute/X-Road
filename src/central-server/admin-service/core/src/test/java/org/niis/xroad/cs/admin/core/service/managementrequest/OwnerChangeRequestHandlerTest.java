@@ -283,7 +283,7 @@ class OwnerChangeRequestHandlerTest {
     void add() {
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
 
-        when(serverIds.findOne(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity, securityServerIdEntity);
+        when(serverIds.findOne(isA(SecurityServerIdEntity.class))).thenReturn(securityServerIdEntity);
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
@@ -336,19 +336,28 @@ class OwnerChangeRequestHandlerTest {
         final ClientIdEntity currentOwnerIdentifier = MemberIdEntity.create("x", "y", "z");
         when(currentOwnerMock.getOwnedServers()).thenReturn(ownedServersMock);
         when(currentOwnerMock.getIdentifier()).thenReturn(currentOwnerIdentifier);
+        when(securityServerEntity.getServerClients())
+                .thenReturn(Set.of(new ServerClientEntity(securityServerEntity, xRoadMemberEntity)));
         when(members.findOneBy(currentOwnerMock.getIdentifier())).thenReturn(Option.of(currentOwnerMock));
         when(ownedServersMock.isEmpty()).thenReturn(true);
 
         final OwnerChangeRequest result = ownerChangeRequestHandler.approve(request);
-
         assertThat(result).isEqualTo(ownerChangeRequestDto);
+
         verify(securityServerEntity).setOwner(xRoadMemberEntity);
-        verify(servers).saveAndFlush(securityServerEntity);
+        verify(serverIds).findOpt(securityServerEntity.getServerId());
+        verify(serverIds).saveAndFlush(securityServerEntity.getServerId());
 
         ArgumentCaptor<ServerClientEntity> argHandler = ArgumentCaptor.forClass(ServerClientEntity.class);
         verify(serverClients).saveAndFlush(argHandler.capture());
         assertThat(argHandler.getValue().getSecurityServer()).isEqualTo(securityServerEntity);
         assertThat(argHandler.getValue().getSecurityServerClient()).isEqualTo(currentOwnerMock);
+
+        verify(serverClients).delete(argHandler.capture());
+        assertThat(argHandler.getValue().getSecurityServer()).isEqualTo(securityServerEntity);
+        assertThat(argHandler.getValue().getSecurityServerClient()).isEqualTo(xRoadMemberEntity);
+
+        verify(servers).saveAndFlush(securityServerEntity);
 
         verify(ownerChangeRequestEntity).setProcessingStatus(APPROVED);
 

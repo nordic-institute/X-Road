@@ -58,6 +58,9 @@ import javax.transaction.Transactional;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.APPROVED;
@@ -98,16 +101,14 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
 
     @Override
     public OwnerChangeRequest add(OwnerChangeRequest request) {
-        assertNoOtherSubmittedRequests(request);
+        SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
+        assertNoOtherSubmittedRequests(serverId);
         validateRequest(request);
-
-        final SecurityServerIdEntity securityServerIdEntity = serverIds.findOne(
-                SecurityServerIdEntity.create(request.getSecurityServerId()));
         final MemberIdEntity memberIdEntity = memberIds.findOne(MemberIdEntity.create(request.getClientId()));
 
         OwnerChangeRequestEntity entity = new OwnerChangeRequestEntity(
                 request.getOrigin(),
-                securityServerIdEntity,
+                serverId,
                 memberIdEntity);
 
         final OwnerChangeRequestEntity saved = ownerChangeRequestRepository.save(entity);
@@ -143,12 +144,9 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         }
     }
 
-    private void assertNoOtherSubmittedRequests(OwnerChangeRequest request) {
-        final SecurityServerIdEntity securityServerIdEntity = serverIds.findOne(
-                SecurityServerIdEntity.create(request.getSecurityServerId()));
-        final List<OwnerChangeRequestEntity> pendingRequests = ownerChangeRequestRepository.findBy(securityServerIdEntity,
-                EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
-
+    private void assertNoOtherSubmittedRequests(SecurityServerIdEntity serverId) {
+        final List<OwnerChangeRequestEntity> pendingRequests =
+                ownerChangeRequestRepository.findBy(serverId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
         if (!pendingRequests.isEmpty()) {
             throw new DataIntegrityException(MR_EXISTS);
         }
@@ -174,7 +172,9 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         final var currentOwner = securityServer.getOwner();
 
         securityServer.setOwner(newOwner);
+        ensureServerIdCreated(securityServer.getServerId());
         ensureSecurityServerClient(securityServer, currentOwner);
+        ensureNotASecurityServerClient(securityServer, newOwner);
         servers.saveAndFlush(securityServer);
 
         updateGlobalGroups(currentOwner.getIdentifier(), newOwner);
@@ -191,12 +191,26 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         }
     }
 
+    private void ensureServerIdCreated(SecurityServerIdEntity serverId) {
+        Optional<SecurityServerIdEntity> existingServerId = serverIds.findOpt(serverId);
+        if (existingServerId.isEmpty()) {
+            serverIds.saveAndFlush(serverId);
+        }
+    }
+
     private void ensureSecurityServerClient(SecurityServerEntity securityServer, XRoadMemberEntity member) {
-        var isMemberAlreadyClient = securityServer.getServerClients().stream()
-                        .anyMatch(serverClient -> serverClient.getSecurityServerClient().getIdentifier().equals(member.getIdentifier()));
+        boolean isMemberAlreadyClient = securityServer.getServerClients().stream()
+                .anyMatch(serverClient -> serverClient.getSecurityServerClient().getIdentifier().equals(member.getIdentifier()));
         if (!isMemberAlreadyClient) {
             serverClients.saveAndFlush(new ServerClientEntity(securityServer, member));
         }
+    }
+
+    private void ensureNotASecurityServerClient(SecurityServerEntity securityServer, XRoadMemberEntity member) {
+        Set<ServerClientEntity> existingClients = securityServer.getServerClients().stream()
+                .filter(serverClient -> serverClient.getSecurityServerClient().getIdentifier().equals(member.getIdentifier()))
+                .collect(Collectors.toSet());
+        existingClients.forEach(serverClients::delete);
     }
 
     private void updateGlobalGroups(ClientIdEntity currentOwnerIdentifier, XRoadMemberEntity newOwner) {
