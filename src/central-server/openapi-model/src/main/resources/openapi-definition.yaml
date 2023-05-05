@@ -190,15 +190,7 @@ paths:
       description: <h3>Administrator deletes the backup of the central server.</h3>
       operationId: deleteBackup
       parameters:
-        - description: filename of the backup
-          in: path
-          name: filename
-          required: true
-          schema:
-            format: filename
-            maxLength: 255
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/filenameParam'
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -222,15 +214,7 @@ paths:
       description: <h3>Administrator downloads the backup of the central server.</h3>
       operationId: downloadBackup
       parameters:
-        - description: filename of the backup
-          in: path
-          name: filename
-          required: true
-          schema:
-            format: filename
-            maxLength: 255
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/filenameParam'
       responses:
         '200':
           content:
@@ -260,15 +244,7 @@ paths:
         <p>This endpoint can also return metadata in the error response. The metadata array contains the output of a failed backup restore script.</p>
       operationId: restoreBackup
       parameters:
-        - description: filename of the backup
-          in: path
-          name: filename
-          required: true
-          schema:
-            format: filename
-            maxLength: 255
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/filenameParam'
       responses:
         '200':
           content:
@@ -349,18 +325,12 @@ paths:
       summary: add a new certification service
       tags:
         - certification-services
-  /certification-services/{id}:
+  /certification-services/{certification_service_id}:
+    parameters:
+      - $ref: '#/components/parameters/certificationServiceIdParam'
     delete:
       description: <h3>CS Administrator deletes a certification service.</h3>
       operationId: deleteCertificationService
-      parameters:
-        - description: unique identifier of the certification service
-          in: path
-          name: id
-          required: true
-          schema:
-            minLength: 1
-            type: integer
       responses:
         '204':
           description: certification service deletion was successful
@@ -389,15 +359,6 @@ paths:
     get:
       description: <h3>CS administrator views the details of an approved certification service.</h3>
       operationId: getCertificationService
-      parameters:
-        - description: unique identifier of the certification service
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       responses:
         '200':
           content:
@@ -421,15 +382,6 @@ paths:
     patch:
       description: <h3>CS administrator edits the settings of a certification service.</h3>
       operationId: updateCertificationService
-      parameters:
-        - description: unique identifier of the certification service
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            minLength: 1
-            type: string
       requestBody:
         content:
           application/json:
@@ -457,19 +409,12 @@ paths:
       summary: update the certification service
       tags:
         - certification-services
-  /certification-services/{id}/certificate:
+  /certification-services/{certification_service_id}/certificate:
     get:
       description: <h3>CS administrator views the details of an approved certification service cetificate.</h3>
       operationId: getCertificationServiceCertificate
       parameters:
-        - description: unique identifier of the certification service
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
+        - $ref: '#/components/parameters/certificationServiceIdParam'
       responses:
         '200':
           content:
@@ -490,19 +435,12 @@ paths:
       summary: get a certification service
       tags:
         - certification-services
-  /certification-services/{id}/intermediate-cas:
+  /certification-services/{certification_service_id}/intermediate-cas:
+    parameters:
+      - $ref: '#/components/parameters/certificationServiceIdParam'
     get:
       description: <h3>CS administrator views the intermediate CAs configured for a certification service.</h3>
       operationId: getCertificationServiceIntermediateCas
-      parameters:
-        - description: unique identifier of the certification service
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       responses:
         '200':
           content:
@@ -530,15 +468,6 @@ paths:
     post:
       description: <h3>CS administrator configures an intermediate CA for a certification service.</h3>
       operationId: addCertificationServiceIntermediateCa
-      parameters:
-        - description: unique identifier of the certification service
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -561,19 +490,12 @@ paths:
       summary: add a new intermediate certificate authority to a certification service
       tags:
         - certification-services
-  /certification-services/{id}/ocsp-responders:
+  /certification-services/{certification_service_id}/ocsp-responders:
+    parameters:
+      - $ref: '#/components/parameters/certificationServiceIdParam'
     get:
       description: <h3>CS administrator views the OCSP responders configured for a CA.</h3>
       operationId: getCertificationServiceOcspResponders
-      parameters:
-        - description: unique identifier of the certification service
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       responses:
         '200':
           content:
@@ -601,15 +523,6 @@ paths:
     post:
       description: <h3>CS administrator adds an OCSP responder service information for a CA.</h3>
       operationId: addCertificationServiceOcspResponder
-      parameters:
-        - description: unique identifier of the certification service
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -5109,5 +5022,24 @@ components:
       in: header
       name: Authorization
       type: apiKey
+  parameters:
+    certificationServiceIdParam:
+      in: path
+      name: certification_service_id
+      description: unique identifier of the certification service
+      required: true
+      schema:
+        minLength: 1
+        type: integer
+    filenameParam:
+      in: path
+      name: filename
+      description: filename of the backup
+      required: true
+      schema:
+        format: filename
+        maxLength: 255
+        minLength: 1
+        type: string
 security:
   - ApiKeyAuth: [ ]

@@ -45,5 +45,4 @@ public interface ApprovedCertificationServiceDtoConverter extends GenericMapper 
     ApprovedCertificationServiceListItemDto convertListItem(CertificationServiceListItem listItem);
 
     List<ApprovedCertificationServiceListItemDto> convertListItems(Collection<CertificationServiceListItem> items);
-
 }

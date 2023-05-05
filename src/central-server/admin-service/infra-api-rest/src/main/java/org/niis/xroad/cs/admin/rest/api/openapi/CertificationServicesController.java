@@ -154,9 +154,10 @@ public class CertificationServicesController implements CertificationServicesApi
     @Override
     @PreAuthorize("hasAuthority('EDIT_APPROVED_CA')")
     @AuditEventMethod(event = EDIT_CERTIFICATION_SERVICE_SETTINGS)
-    public ResponseEntity<ApprovedCertificationServiceDto> updateCertificationService(String id, CertificationServiceSettingsDto settings) {
+    public ResponseEntity<ApprovedCertificationServiceDto> updateCertificationService(Integer id,
+                                                                                      CertificationServiceSettingsDto settings) {
         CertificationService approvedCa = new CertificationService()
-                .setId(Integer.valueOf(id))
+                .setId(id)
                 .setCertificateProfileInfo(settings.getCertificateProfileInfo())
                 .setTlsAuth(parseBoolean(settings.getTlsAuth()));
 
