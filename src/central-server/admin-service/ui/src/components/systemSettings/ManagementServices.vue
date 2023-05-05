@@ -266,12 +266,12 @@ export default Vue.extend({
           this.showSuccess(
             this.$t('systemSettings.serviceProvider.changedSuccess'),
           );
-          this.showSelectSubsystemDialog = false;
         })
         .catch((error) => {
           this.showError(error);
         })
         .finally(() => {
+          this.showSelectSubsystemDialog = false;
           this.loading = false;
         });
     },
@@ -290,12 +290,12 @@ export default Vue.extend({
                 this.managementServicesConfiguration.security_server_id,
             }),
           );
-          this.showSelectSecurityServerDialog = false;
         })
         .catch((error) => {
           this.showError(error);
         })
         .finally(() => {
+          this.showSelectSecurityServerDialog = false;
           this.loading = false;
         });
     },

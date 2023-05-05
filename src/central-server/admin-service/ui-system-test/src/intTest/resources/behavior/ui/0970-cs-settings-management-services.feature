@@ -38,7 +38,7 @@ Feature: CS: Settings -> System Settings -> Management Services
     And security server field should be empty
     And management service security server Edit button is visible
     When management service security server Edit button is clicked
-    Then Select Security Serve dialog should be open
+    Then Select Security Server dialog should be open
     When e2e-ss3 is written in security server search field
     And checkbox for security server E2E-SS3 is selected
     And Select button for security server is clicked
