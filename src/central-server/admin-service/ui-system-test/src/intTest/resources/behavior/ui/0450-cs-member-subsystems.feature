@@ -21,6 +21,8 @@ Feature: CS Member details view Subsystem tab
     And Subsystems tab is selected
     When A new subsystem with code: e2e-tc2-subsystem is added
     Then Subsystem with code: e2e-tc2-subsystem and status: Unregistered is listed
+    When A new subsystem with code: e2e-tc4-subsystem is added
+    Then Subsystem with code: e2e-tc4-subsystem and status: Unregistered is listed
 
   Scenario: Can be delete an unregistered subsystem
     Given Members tab is selected
