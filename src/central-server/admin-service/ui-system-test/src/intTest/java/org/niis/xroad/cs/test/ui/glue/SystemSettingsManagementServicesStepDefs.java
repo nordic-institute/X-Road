@@ -26,11 +26,14 @@
 package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.ClickOptions;
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.page.SettingsManagementServicesPageObj;
+
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
 
@@ -39,47 +42,52 @@ public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
 
     @Step("service provider identifier field should have value {}")
     public void serviceProviderIdentifierFieldHasText(String serviceProviderIdentifier) {
-        settingsManagementServicesPageObj.serviceProviderIdentifier().shouldHave(Condition.text(serviceProviderIdentifier));
+        settingsManagementServicesPageObj.serviceProviderIdentifier().shouldHave(text(serviceProviderIdentifier));
     }
 
     @Step("service provider identifier field should be empty")
     public void serviceProviderIdentifierFieldIsEmpty() {
-        settingsManagementServicesPageObj.serviceProviderIdentifier().shouldBe(Condition.empty);
+        settingsManagementServicesPageObj.serviceProviderIdentifier().shouldBe(empty);
     }
 
     @Step("service provider name field should have value {}")
     public void serviceProviderNameFieldHasText(String serviceProviderName) {
-        settingsManagementServicesPageObj.serviceProviderName().shouldHave(Condition.text(serviceProviderName));
+        settingsManagementServicesPageObj.serviceProviderName().shouldHave(text(serviceProviderName));
     }
 
     @Step("service provider name field should be empty")
     public void serviceProviderNameFieldIsEmpty() {
-        settingsManagementServicesPageObj.serviceProviderName().shouldHave(Condition.empty);
+        settingsManagementServicesPageObj.serviceProviderName().shouldHave(empty);
     }
 
     @Step("security server field should have value {}")
     public void securityServerFieldHasText(String securityServer) {
-        settingsManagementServicesPageObj.securityServer().shouldHave(Condition.text(securityServer));
+        settingsManagementServicesPageObj.securityServer().shouldHave(text(securityServer));
     }
 
     @Step("security server field should be empty")
     public void securityServerFieldIsEmpty() {
-        settingsManagementServicesPageObj.securityServer().shouldHave(Condition.empty);
+        settingsManagementServicesPageObj.securityServer().shouldHave(empty);
+    }
+
+    @Step("security server field should have {}")
+    public void securityServerFieldIsEmpty(String securityServerId) {
+        settingsManagementServicesPageObj.securityServer().shouldHave(text(securityServerId));
     }
 
     @Step("wsdl address field should have value {}")
     public void wsdlAddressFieldHasText(String wsdlAddress) {
-        settingsManagementServicesPageObj.wsdlAddress().shouldHave(Condition.text(wsdlAddress));
+        settingsManagementServicesPageObj.wsdlAddress().shouldHave(text(wsdlAddress));
     }
 
     @Step("central server address field should have value {}")
     public void centralServerAddressFieldHasText(String centralServerAddress) {
-        settingsManagementServicesPageObj.centralServerAddress().shouldHave(Condition.text(centralServerAddress));
+        settingsManagementServicesPageObj.centralServerAddress().shouldHave(text(centralServerAddress));
     }
 
     @Step("security server owner group code field should have value {}")
     public void ownerGroupCodeFieldHasText(String ownerGroupCode) {
-        settingsManagementServicesPageObj.ownerGroupCode().shouldHave(Condition.text(ownerGroupCode));
+        settingsManagementServicesPageObj.ownerGroupCode().shouldHave(text(ownerGroupCode));
     }
 
     @Step("wsdl address copy button is clicked")
@@ -103,9 +111,34 @@ public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
         settingsManagementServicesPageObj.editManagementSubsystemButton().click();
     }
 
+    @Step("management service security server Edit button is visible")
+    public void editManagementSecurityServerButtonIsVisible() {
+        settingsManagementServicesPageObj.editManagementSecurityServerButton().shouldBe(visible);
+    }
+
+    @Step("management service security server Edit button is not visible")
+    public void editManagementSecurityServerButtonIsNotVisible() {
+        settingsManagementServicesPageObj.editManagementSecurityServerButton().shouldNotBe(visible);
+    }
+
+    @Step("management service security server Edit button is clicked")
+    public void editManagementSecurityServerButtonIsClicked() {
+        settingsManagementServicesPageObj.editManagementSecurityServerButton().click();
+    }
+
     @Step("{} is written in search field")
     public void isWrittenInSearchField(String searchTerm) {
         settingsManagementServicesPageObj.editManagementSubsystemDialog.search().setValue(searchTerm);
+    }
+
+    @Step("{} is written in security server search field")
+    public void isWrittenInSecurityServerSearchField(String searchTerm) {
+        settingsManagementServicesPageObj.editManagementSecurityServerDialog.search().setValue(searchTerm);
+    }
+
+    @Step("{} dialog should be open")
+    public void selectSecurityServerDialog(String title) {
+        settingsManagementServicesPageObj.title(title).shouldBe(visible);
     }
 
     @Step("checkbox for subsystem {} is selected")
@@ -113,13 +146,23 @@ public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
         settingsManagementServicesPageObj.editManagementSubsystemDialog.checkboxOf(subsystem).click(ClickOptions.usingJavaScript());
     }
 
+    @Step("checkbox for security server {} is selected")
+    public void checkboxForSecurityServerIsSelected(String code) {
+        settingsManagementServicesPageObj.editManagementSecurityServerDialog.checkboxOf(code).click(ClickOptions.usingJavaScript());
+    }
+
     @Step("select button is clicked")
     public void selectButtonIsClicked() {
         settingsManagementServicesPageObj.editManagementSubsystemDialog.selectButton().click();
     }
 
+    @Step("Select button for security server is clicked")
+    public void selectButtonForSecurityServerIsClicked() {
+        settingsManagementServicesPageObj.editManagementSecurityServerDialog.selectButton().click();
+    }
+
     @Step("success snackbar should be visible")
     public void successSnackbarIsVisible() {
-        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.success().shouldBe(visible);
     }
 }

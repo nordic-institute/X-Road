@@ -663,7 +663,17 @@
     "managementServiceSecurityServer": "Management Services' Security Server",
     "managementServices": "Management Services",
     "selectSubsystem": {
-      "title": "Select subsystem",
+      "title": "Select Subsystem",
+      "search": "Search",
+      "name": "Name",
+      "memberClass": "Class",
+      "memberCode": "Code",
+      "subsystemCode": "Subsystem",
+      "xroadInstance": "Instance",
+      "type": "Type"
+    },
+    "selectSecurityServer": {
+      "title": "Select Security Server",
       "search": "Search",
       "name": "Name",
       "memberClass": "Class",
@@ -673,7 +683,8 @@
       "type": "Type"
     },
     "serviceProvider": {
-      "changedSuccess": "Service Provider changed successfully"
+      "changedSuccess": "Service Provider changed successfully",
+      "registeredSuccess": "Management service provider '{subsystemId}' registered as security server '{securityServerId}' client"
     },
     "memberClasses": "Member classes",
     "securityServerOwnerGroupCode": "Security Server Owners Group Code",

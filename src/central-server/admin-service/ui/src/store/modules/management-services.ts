@@ -28,6 +28,7 @@
 import * as api from '@/util/api';
 import {
   ManagementServicesConfiguration,
+  RegisterServiceProviderRequest,
   ServiceProviderId,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
@@ -67,6 +68,19 @@ export const managementServicesStore = defineStore('managementServices', {
         .patch<ManagementServicesConfiguration>(
           '/management-services-configuration',
           serviceProviderId,
+        )
+        .then((resp) => {
+          this.managementServicesConfiguration = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    registerServiceProvider(securityServerId: RegisterServiceProviderRequest) {
+      return api
+        .post<ManagementServicesConfiguration>(
+          '/management-services-configuration/register-provider',
+          securityServerId,
         )
         .then((resp) => {
           this.managementServicesConfiguration = resp.data;
