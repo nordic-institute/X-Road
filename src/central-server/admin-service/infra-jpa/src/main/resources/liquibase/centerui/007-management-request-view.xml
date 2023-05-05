@@ -4,14 +4,14 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
                    logicalFilePath="centerui/007-management-request-view.xml">
 
-    <changeSet author="niis" id="007-management-request-view-drop">
+    <changeSet author="niis" id="drop-007-management-request-view">
         <preConditions onFail="MARK_RAN">
-                <viewExists viewName="management_request_view"/>
+            <viewExists viewName="management_request_view"/>
         </preConditions>
         <dropView viewName="management_request_view"/>
     </changeSet>
 
-    <changeSet author="niis" id="007-management-request-view-create">
+    <changeSet author="niis" id="create-007-management-request-view">
         <createView fullDefinition="false" viewName="management_request_view">
             SELECT r.id,
                    r.origin,
@@ -20,19 +20,19 @@
                    r.security_server_id,
 
                    r.request_processing_id,
-                   rp.status AS request_processing_status,
+                   rp.status             AS request_processing_status,
 
-                   ssc.name  AS security_server_owner_name,
+                   ssc.name              AS security_server_owner_name,
                    owner.xroad_instance,
                    owner.member_code,
                    owner.member_class,
                    owner.server_code,
 
-                   clientssc.name AS client_owner_name,
-                   client.object_type AS client_type,
+                   client_ssc.name       AS client_owner_name,
+                   client.object_type    AS client_type,
                    client.xroad_instance AS client_xroad_instance,
-                   client.member_code AS client_member_code,
-                   client.member_class AS client_member_class,
+                   client.member_code    AS client_member_code,
+                   client.member_class   AS client_member_class,
                    client.subsystem_code AS client_subsystem_code,
 
                    r.auth_cert,
@@ -48,8 +48,11 @@
                                ON (ssc.member_code = owner.member_code
                                    AND ssc.member_class_id = mc.id
                                    AND ssc.type = 'XRoadMember')
-                     LEFT JOIN security_server_client_names clientssc
-                               ON (clientssc.client_identifier_id = client.id)
+                     LEFT JOIN member_classes client_mc ON (client_mc.code = client.member_class)
+                     LEFT JOIN security_server_clients client_ssc
+                               ON (client_ssc.member_code = client.member_code
+                                   AND client_ssc.member_class_id = client_mc.id
+                                   AND client_ssc.type = 'XRoadMember')
         </createView>
     </changeSet>
 </databaseChangeLog>
