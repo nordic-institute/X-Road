@@ -149,7 +149,8 @@
 }
 
 // Override Vuetify table row hover color
-.v-data-table > .v-data-table__wrapper > table > tbody > tr:hover {
+.v-data-table > .v-data-table__wrapper > table > tbody:hover td[rowspan],
+.v-data-table > .v-data-table__wrapper > table > tbody > tr:hover td {
   background: $XRoad-Purple10 !important;
 }
 
