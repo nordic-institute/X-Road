@@ -32,21 +32,15 @@ import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
 import org.springframework.stereotype.Component;
 
-import java.time.ZoneOffset;
-
 @Component
 @RequiredArgsConstructor
 public class OcspResponderDtoConverter {
-
-    private final ZoneOffset dtoZoneOffset;
 
     public OcspResponderDto toDto(OcspResponder ocspResponder) {
         var dto = new OcspResponderDto();
         dto.setId(ocspResponder.getId());
         dto.setUrl(ocspResponder.getUrl());
         dto.hasCertificate(ArrayUtils.isNotEmpty(ocspResponder.getCertificate()));
-        dto.setCreatedAt(ocspResponder.getCreatedAt().atOffset(dtoZoneOffset));
-        dto.setUpdatedAt(ocspResponder.getUpdatedAt().atOffset(dtoZoneOffset));
         return dto;
     }
 

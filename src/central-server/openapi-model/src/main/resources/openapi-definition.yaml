@@ -3484,8 +3484,6 @@ components:
         - not_after
       type: object
     ApprovedCertificationService:
-      allOf:
-        - $ref: '#/components/schemas/ModificationTimestamps'
       description: certification service
       properties:
         id:
@@ -3574,8 +3572,6 @@ components:
         - central_server_address
       type: object
     CertificateAuthority:
-      allOf:
-        - $ref: '#/components/schemas/ModificationTimestamps'
       description: approved certificate authority information
       properties:
         id:
@@ -4296,7 +4292,6 @@ components:
     OcspResponder:
       allOf:
         - $ref: '#/components/schemas/OcspResponderUrl'
-        - $ref: '#/components/schemas/ModificationTimestamps'
       description: OCSP responder
       properties:
         id:

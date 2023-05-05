@@ -115,8 +115,6 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
                 .assertion(notNullAssertion("body.notBefore"))
                 .assertion(equalsAssertion(params.get("$certificateProfileInfo"), "body.certificateProfileInfo"))
                 .assertion(equalsAssertion(parseBoolean(params.get("$tlsAuth")), "body.tlsAuth"))
-                .assertion(notNullAssertion("body.createdAt"))
-                .assertion(notNullAssertion("body.updatedAt"))
                 .execute();
     }
 
@@ -267,9 +265,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
             var currIndex = index.getAndIncrement();
             validation.assertion(equalsAssertion(safeToInt(params.get("$id")), format("body[%d].id", currIndex)))
                     .assertion(equalsAssertion(params.get("$url"), format("body[%d].url", currIndex)))
-                    .assertion(equalsAssertion(parseBoolean(params.get("$hasCertificate")), format("body[%d].hasCertificate", currIndex)))
-                    .assertion(notNullAssertion(format("body[%d].createdAt", currIndex)))
-                    .assertion(notNullAssertion(format("body[%d].updatedAt", currIndex)));
+                    .assertion(equalsAssertion(parseBoolean(params.get("$hasCertificate")), format("body[%d].hasCertificate", currIndex)));
         });
 
         validation.execute();
