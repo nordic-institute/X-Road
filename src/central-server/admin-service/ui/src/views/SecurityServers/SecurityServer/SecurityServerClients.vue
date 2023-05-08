@@ -81,7 +81,7 @@ import { clientStore } from '@/store/modules/clients';
 import { notificationsStore } from '@/store/modules/notifications';
 import { Permissions, RouteName } from '@/global';
 import { userStore } from '@/store/modules/user';
-import { toMemberId } from "@/util/helpers";
+import { toMemberId } from '@/util/helpers';
 
 export default Vue.extend({
   name: 'SecurityServerClients',
