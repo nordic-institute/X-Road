@@ -69,8 +69,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
         ClientIdDto clientIdDto = clientIdDtoConverter.toDto(clientId);
 
         ClientDto clientDto = new ClientDto();
-        clientDto.setId(clientId.toShortString());
-        clientDto.setXroadId(clientIdDto);
+        clientDto.setClientId(clientIdDto);
         clientDto.setCreatedAt(Optional.ofNullable(source.getCreatedAt())
                 .map(instant -> instant.atOffset(dtoZoneOffset))
                 .orElse(null));
@@ -92,7 +91,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
 
     @Override
     public SecurityServerClient fromDto(ClientDto source) {
-        ClientIdDto clientIdDto = source.getXroadId();
+        ClientIdDto clientIdDto = source.getClientId();
         ClientId clientId = clientIdDtoConverter.fromDto(clientIdDto);
         XRoadIdDto.TypeEnum clientType = clientIdDto.getType();
 
@@ -140,9 +139,8 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
         @Override
         public ClientDto toDto(FlattenedSecurityServerClientView source) {
             return self(new ClientDto(), clientDto -> {
-                clientDto.setId(String.valueOf(source.getId()));
                 clientDto.setMemberName(source.getMemberName());
-                clientDto.setXroadId(self(new ClientIdDto(), clientIdDto -> {
+                clientDto.setClientId(self(new ClientIdDto(), clientIdDto -> {
                     clientIdDto.setInstanceId(source.getXroadInstance());
                     MemberClass memberClass = source.getMemberClass();
                     Optional.ofNullable(memberClass)

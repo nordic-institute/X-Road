@@ -42,6 +42,7 @@ import org.niis.xroad.cs.admin.rest.api.converter.db.SecurityServerDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.db.SubsystemDtoConverter;
 import org.niis.xroad.cs.openapi.MembersApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
+import org.niis.xroad.cs.openapi.model.MemberAddDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.cs.openapi.model.MemberNameDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
@@ -81,9 +82,9 @@ public class MembersApiController implements MembersApi {
     @Override
     @PreAuthorize("hasAuthority('ADD_NEW_MEMBER')")
     @AuditEventMethod(event = ADD_MEMBER)
-    public ResponseEntity<ClientDto> addMember(ClientDto clientDto) {
+    public ResponseEntity<ClientDto> addMember(MemberAddDto memberAddDto) {
 
-        return Try.success(clientDto)
+        return Try.success(memberAddDto)
                 .map(memberCreationRequestMapper::toTarget)
                 .map(memberService::add)
                 .map(clientDtoConverter::toDto)
@@ -166,5 +167,4 @@ public class MembersApiController implements MembersApi {
             throw new ValidationFailureException(INVALID_MEMBER_ID, id);
         }
     }
-
 }

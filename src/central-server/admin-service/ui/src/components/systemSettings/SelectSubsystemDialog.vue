@@ -77,20 +77,20 @@
           <template #[`item.member_name`]="{ item }">
             <div>{{ item.member_name }}</div>
           </template>
-          <template #[`item.xroad_id.member_code`]="{ item }">
-            <div>{{ item.xroad_id.member_code }}</div>
+          <template #[`item.client_id.member_code`]="{ item }">
+            <div>{{ item.client_id.member_code }}</div>
           </template>
-          <template #[`item.xroad_id.member_class`]="{ item }">
-            <div>{{ item.xroad_id.member_class }}</div>
+          <template #[`item.client_id.member_class`]="{ item }">
+            <div>{{ item.client_id.member_class }}</div>
           </template>
-          <template #[`item.xroad_id.subsystem_code`]="{ item }">
-            <div>{{ item.xroad_id.subsystem_code }}</div>
+          <template #[`item.client_id.subsystem_code`]="{ item }">
+            <div>{{ item.client_id.subsystem_code }}</div>
           </template>
-          <template #[`item.xroad_id.instance_id`]="{ item }">
-            <div>{{ item.xroad_id.instance_id }}</div>
+          <template #[`item.client_id.instance_id`]="{ item }">
+            <div>{{ item.client_id.instance_id }}</div>
           </template>
-          <template #[`item.xroad_id.type`]="{ item }">
-            <div>{{ item.xroad_id.type }}</div>
+          <template #[`item.client_id.type`]="{ item }">
+            <div>{{ item.client_id.type }}</div>
           </template>
         </v-data-table>
       </v-card-text>
@@ -170,13 +170,13 @@ export default Vue.extend({
         {
           text: this.$t('systemSettings.selectSubsystem.memberCode') as string,
           align: 'start',
-          value: 'xroad_id.member_code',
+          value: 'client_id.member_code',
           class: 'xrd-table-header text-uppercase',
         },
         {
           text: this.$t('systemSettings.selectSubsystem.memberClass') as string,
           align: 'start',
-          value: 'xroad_id.member_class',
+          value: 'client_id.member_class',
           class: 'xrd-table-header text-uppercase',
         },
         {
@@ -184,7 +184,7 @@ export default Vue.extend({
             'systemSettings.selectSubsystem.subsystemCode',
           ) as string,
           align: 'start',
-          value: 'xroad_id.subsystem_code',
+          value: 'client_id.subsystem_code',
           class: 'xrd-table-header text-uppercase',
         },
         {
@@ -192,13 +192,13 @@ export default Vue.extend({
             'systemSettings.selectSubsystem.xroadInstance',
           ) as string,
           align: 'start',
-          value: 'xroad_id.instance_id',
+          value: 'client_id.instance_id',
           class: 'xrd-table-header text-uppercase',
         },
         {
           text: this.$t('systemSettings.selectSubsystem.type') as string,
           align: 'start',
-          value: 'xroad_id.type',
+          value: 'client_id.type',
           class: 'xrd-table-header text-uppercase',
         },
       ];
@@ -243,7 +243,7 @@ export default Vue.extend({
     setSelectedSubsystems() {
       const filteredList = this.selectableSubsystems?.filter(
         (subsystem) =>
-          `SUBSYSTEM:${toIdentifier(subsystem.xroad_id)}` ===
+          `SUBSYSTEM:${toIdentifier(subsystem.client_id)}` ===
           this.defaultSubsystemId,
       );
 

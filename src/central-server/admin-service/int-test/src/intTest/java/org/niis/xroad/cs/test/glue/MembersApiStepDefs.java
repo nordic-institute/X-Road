@@ -31,6 +31,7 @@ import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.ClientIdDto;
+import org.niis.xroad.cs.openapi.model.MemberAddDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.cs.openapi.model.MemberNameDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
@@ -72,9 +73,9 @@ public class MembersApiStepDefs extends BaseStepDefs {
         clientIdDto.setType(MEMBER);
         clientIdDto.setInstanceId(idParts[0]);
 
-        final ClientDto dto = new ClientDto()
+        final MemberAddDto dto = new MemberAddDto()
                 .memberName(name)
-                .xroadId(clientIdDto);
+                .memberId(clientIdDto);
 
         final ResponseEntity<ClientDto> response = membersApi.addMember(dto);
         validateMemberResponse(response, CREATED, memberId, name);
@@ -178,10 +179,10 @@ public class MembersApiStepDefs extends BaseStepDefs {
         validate(response)
                 .assertion(equalsStatusCodeAssertion(status))
                 .assertion(equalsAssertion(memberName, "body.memberName"))
-                .assertion(equalsAssertion(MEMBER, "body.xroadId.type"))
-                .assertion(equalsAssertion(idParts[0], "body.xroadId.instanceId"))
-                .assertion(equalsAssertion(idParts[1], "body.xroadId.memberClass"))
-                .assertion(equalsAssertion(idParts[2], "body.xroadId.memberCode"))
+                .assertion(equalsAssertion(MEMBER, "body.clientId.type"))
+                .assertion(equalsAssertion(idParts[0], "body.clientId.instanceId"))
+                .assertion(equalsAssertion(idParts[1], "body.clientId.memberClass"))
+                .assertion(equalsAssertion(idParts[2], "body.clientId.memberCode"))
                 .execute();
     }
 
@@ -221,5 +222,4 @@ public class MembersApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(0, "body.size()"))
                 .execute();
     }
-
 }

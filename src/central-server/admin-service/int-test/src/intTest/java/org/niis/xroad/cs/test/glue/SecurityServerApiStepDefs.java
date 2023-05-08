@@ -144,11 +144,11 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
     @SuppressWarnings("checkstyle:MagicNumber")
     private String xroadIdEqualsCondition(String clientId) {
         final String[] idParts = split(clientId, ':');
-        String condition = "xroadId.instanceId =='" + idParts[0] + "' "
-                + "and xroadId.memberClass == '" + idParts[1] + "' "
-                + "and xroadId.memberCode == '" + idParts[2] + "'";
+        String condition = "clientId.instanceId =='" + idParts[0] + "' "
+                + "and clientId.memberClass == '" + idParts[1] + "' "
+                + "and clientId.memberCode == '" + idParts[2] + "'";
         if (idParts.length > 3) {
-            condition += " and xroadId.subsystemCode == '" + idParts[3] + "'";
+            condition += " and clientId.subsystemCode == '" + idParts[3] + "'";
         }
         return condition;
     }

@@ -39,11 +39,7 @@
               <b>{{ subsystemCode }}</b>
             </template>
             <template #memberId>
-              <b>{{
-                currentMember.xroad_id.member_class +
-                '/' +
-                currentMember.xroad_id.member_code
-              }}</b>
+              <b>{{ currentMember.client_id | formatShortMemberId }}</b>
             </template>
           </i18n>
         </v-card-text>
@@ -115,7 +111,7 @@ export default Vue.extend({
       this.loading = true;
       this.subsystemStore
         .deleteById(
-          toIdentifier(this.currentMember.xroad_id) + ':' + this.subsystemCode,
+          toIdentifier(this.currentMember.client_id) + ':' + this.subsystemCode,
         )
         .then(() => {
           this.showSuccess(

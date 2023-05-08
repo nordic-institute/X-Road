@@ -28,6 +28,7 @@ import axios from 'axios';
 import {
   Client,
   ClientId,
+  MemberAdd,
   MemberGlobalGroup,
   MemberName,
   SecurityServer,
@@ -41,13 +42,13 @@ export interface State {
 export const memberStore = defineStore('member', {
   state: (): State => ({
     currentMember: {
-      xroad_id: {} as ClientId,
+      client_id: {} as ClientId,
     } as Client,
   }),
 
   actions: {
-    async add(client: Client) {
-      return axios.post('/members', client);
+    async add(member: MemberAdd) {
+      return axios.post('/members', member);
     },
     loadById(memberId: string) {
       return axios

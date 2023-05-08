@@ -102,7 +102,6 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
         public void shouldConvertXRoadMember() {
             doReturn(memberClientId).when(xRoadMember).getIdentifier();
             doReturn(clientIdDto).when(clientIdDtoConverter).toDto(memberClientId);
-            doReturn(MEMBER_ID_STRING).when(memberClientId).toShortString();
             doReturn(createdAtInstance).when(xRoadMember).getCreatedAt();
             doReturn(updatedAtInstance).when(xRoadMember).getUpdatedAt();
             doReturn(MEMBER_NAME).when(xRoadMember).getName();
@@ -110,14 +109,12 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
             ClientDto clientDto = converter.toDto(xRoadMember);
 
             assertNotNull(clientDto);
-            assertEquals(MEMBER_ID_STRING, clientDto.getId());
-            assertEquals(clientIdDto, clientDto.getXroadId());
+            assertEquals(clientIdDto, clientDto.getClientId());
             assertEquals(createdAtOffsetDateTime, clientDto.getCreatedAt());
             assertEquals(updatedAtOffsetDateTime, clientDto.getUpdatedAt());
             inOrder().verify(inOrder -> {
                 inOrder.verify(xRoadMember).getIdentifier();
                 inOrder.verify(clientIdDtoConverter).toDto(memberClientId);
-                inOrder.verify(memberClientId).toShortString();
                 inOrder.verify(xRoadMember).getCreatedAt();
                 inOrder.verify(xRoadMember).getUpdatedAt();
                 inOrder.verify(xRoadMember).getName();
@@ -129,7 +126,6 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
         public void shouldConvertXRoadMemberWithoutTimestamps() {
             doReturn(memberClientId).when(xRoadMember).getIdentifier();
             doReturn(clientIdDto).when(clientIdDtoConverter).toDto(memberClientId);
-            doReturn(MEMBER_ID_STRING).when(memberClientId).toShortString();
             doReturn(null).when(xRoadMember).getCreatedAt();
             doReturn(null).when(xRoadMember).getUpdatedAt();
             doReturn(MEMBER_NAME).when(xRoadMember).getName();
@@ -137,14 +133,12 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
             ClientDto clientDto = converter.toDto(xRoadMember);
 
             assertNotNull(clientDto);
-            assertEquals(MEMBER_ID_STRING, clientDto.getId());
-            assertEquals(clientIdDto, clientDto.getXroadId());
+            assertEquals(clientIdDto, clientDto.getClientId());
             assertEquals(null, clientDto.getCreatedAt());
             assertEquals(null, clientDto.getUpdatedAt());
             inOrder().verify(inOrder -> {
                 inOrder.verify(xRoadMember).getIdentifier();
                 inOrder.verify(clientIdDtoConverter).toDto(memberClientId);
-                inOrder.verify(memberClientId).toShortString();
                 inOrder.verify(xRoadMember).getCreatedAt();
                 inOrder.verify(xRoadMember).getUpdatedAt();
                 inOrder.verify(xRoadMember).getName();
@@ -156,21 +150,18 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
         public void shouldConvertSubsystem() {
             doReturn(subsystemClientId).when(subsystem).getIdentifier();
             doReturn(clientIdDto).when(clientIdDtoConverter).toDto(subsystemClientId);
-            doReturn(SUBSYSTEM_ID_STRING).when(subsystemClientId).toShortString();
             doReturn(createdAtInstance).when(subsystem).getCreatedAt();
             doReturn(updatedAtInstance).when(subsystem).getUpdatedAt();
 
             ClientDto clientDto = converter.toDto(subsystem);
 
             assertNotNull(clientDto);
-            assertEquals(SUBSYSTEM_ID_STRING, clientDto.getId());
-            assertEquals(clientIdDto, clientDto.getXroadId());
+            assertEquals(clientIdDto, clientDto.getClientId());
             assertEquals(createdAtOffsetDateTime, clientDto.getCreatedAt());
             assertEquals(updatedAtOffsetDateTime, clientDto.getUpdatedAt());
             inOrder().verify(inOrder -> {
                 inOrder.verify(subsystem).getIdentifier();
                 inOrder.verify(clientIdDtoConverter).toDto(subsystemClientId);
-                inOrder.verify(subsystemClientId).toShortString();
                 inOrder.verify(subsystem).getCreatedAt();
                 inOrder.verify(subsystem).getUpdatedAt();
             });
@@ -181,21 +172,18 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
         public void shouldConvertSubsystemWithoutTimestamps() {
             doReturn(subsystemClientId).when(subsystem).getIdentifier();
             doReturn(clientIdDto).when(clientIdDtoConverter).toDto(subsystemClientId);
-            doReturn(SUBSYSTEM_ID_STRING).when(subsystemClientId).toShortString();
             doReturn(null).when(subsystem).getCreatedAt();
             doReturn(null).when(subsystem).getUpdatedAt();
 
             ClientDto clientDto = converter.toDto(subsystem);
 
             assertNotNull(clientDto);
-            assertEquals(SUBSYSTEM_ID_STRING, clientDto.getId());
-            assertEquals(clientIdDto, clientDto.getXroadId());
+            assertEquals(clientIdDto, clientDto.getClientId());
             assertEquals(null, clientDto.getCreatedAt());
             assertEquals(null, clientDto.getUpdatedAt());
             inOrder().verify(inOrder -> {
                 inOrder.verify(subsystem).getIdentifier();
                 inOrder.verify(clientIdDtoConverter).toDto(subsystemClientId);
-                inOrder.verify(subsystemClientId).toShortString();
                 inOrder.verify(subsystem).getCreatedAt();
                 inOrder.verify(subsystem).getUpdatedAt();
             });
@@ -207,7 +195,6 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
             SecurityServerClient unknownSecurityServerClient = mock(SecurityServerClient.class);
             doReturn(subsystemClientId).when(unknownSecurityServerClient).getIdentifier();
             doReturn(clientIdDto).when(clientIdDtoConverter).toDto(subsystemClientId);
-            doReturn(SUBSYSTEM_ID_STRING).when(subsystemClientId).toShortString();
             doReturn(null).when(unknownSecurityServerClient).getCreatedAt();
             doReturn(null).when(unknownSecurityServerClient).getUpdatedAt();
 
@@ -219,7 +206,6 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
             inOrder(unknownSecurityServerClient).verify(inOrder -> {
                 inOrder.verify(unknownSecurityServerClient).getIdentifier();
                 inOrder.verify(clientIdDtoConverter).toDto(subsystemClientId);
-                inOrder.verify(subsystemClientId).toShortString();
                 inOrder.verify(unknownSecurityServerClient).getCreatedAt();
                 inOrder.verify(unknownSecurityServerClient).getUpdatedAt();
             });
@@ -238,7 +224,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
         @Test
         @DisplayName("should create new XRoadMember entity if missing")
         public void shouldCreateNewXRoadMemberEntity() {
-            doReturn(clientIdDto).when(clientDto).getXroadId();
+            doReturn(clientIdDto).when(clientDto).getClientId();
             doReturn(memberClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.MEMBER).when(clientIdDto).getType();
             doReturn(MEMBER_CLASS_CODE).when(clientIdDto).getMemberClass();
@@ -258,7 +244,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
                         assertEquals(memberClass, actualXRoadMember.getMemberClass());
                     });
             inOrder().verify(inOrder -> {
-                inOrder.verify(clientDto).getXroadId();
+                inOrder.verify(clientDto).getClientId();
                 inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
                 inOrder.verify(clientIdDto).getType();
                 inOrder.verify(clientIdDto).getMemberClass();
@@ -273,7 +259,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
         @Test
         @DisplayName("should fail creating new XRoadMember entity if MemberCLass entity missing")
         public void shouldFailCreateNewXRoadMemberEntityIfMemberClassEntityMissing() {
-            doReturn(clientIdDto).when(clientDto).getXroadId();
+            doReturn(clientIdDto).when(clientDto).getClientId();
             doReturn(memberClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.MEMBER).when(clientIdDto).getType();
             doReturn(MEMBER_CLASS_CODE).when(clientIdDto).getMemberClass();
@@ -285,7 +271,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
                     .usingRecursiveComparison()
                     .isEqualTo(new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", MEMBER_CLASS_CODE));
             inOrder().verify(inOrder -> {
-                inOrder.verify(clientDto).getXroadId();
+                inOrder.verify(clientDto).getClientId();
                 inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
                 inOrder.verify(clientIdDto).getType();
                 inOrder.verify(clientIdDto).getMemberClass();
@@ -296,7 +282,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
         @Test
         @DisplayName("should create new Subsystem entity if missing")
         public void shouldCreateNewSubsystemEntityIfMissing() {
-            doReturn(clientIdDto).when(clientDto).getXroadId();
+            doReturn(clientIdDto).when(clientDto).getClientId();
             doReturn(subsystemClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.SUBSYSTEM).when(clientIdDto).getType();
             doReturn(memberClientId).when(subsystemClientId).getMemberId();
@@ -321,7 +307,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
                         assertEquals(SUBSYSTEM_CODE, actualSubsystem.getSubsystemCode());
                     });
             inOrder().verify(inOrder -> {
-                inOrder.verify(clientDto).getXroadId();
+                inOrder.verify(clientDto).getClientId();
                 inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
                 inOrder.verify(clientIdDto).getType();
                 inOrder.verify(subsystemClientId).getMemberId();
@@ -339,7 +325,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
         @Test
         @DisplayName("should fail creating new Subsystem entity if XRoadMember entity missing")
         public void shouldFailCreateNewSubsystemEntityIfXRoadMemberEntityMissing() {
-            doReturn(clientIdDto).when(clientDto).getXroadId();
+            doReturn(clientIdDto).when(clientDto).getClientId();
             doReturn(subsystemClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.SUBSYSTEM).when(clientIdDto).getType();
             doReturn(memberClientId).when(subsystemClientId).getMemberId();
@@ -352,7 +338,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
                     .usingRecursiveComparison()
                     .isEqualTo(new NotFoundException(MEMBER_NOT_FOUND, "code", MEMBER_CODE));
             inOrder().verify(inOrder -> {
-                inOrder.verify(clientDto).getXroadId();
+                inOrder.verify(clientDto).getClientId();
                 inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
                 inOrder.verify(clientIdDto).getType();
                 inOrder.verify(subsystemClientId).getMemberId();
@@ -365,7 +351,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
         @Test
         @DisplayName("should fail if unknown ClientDto provided")
         public void shouldFailIfUnknownSecurityServerClientProvided() {
-            doReturn(clientIdDto).when(clientDto).getXroadId();
+            doReturn(clientIdDto).when(clientDto).getClientId();
             doReturn(subsystemClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(null).when(clientIdDto).getType();
 
@@ -375,7 +361,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Invalid client type: null");
             inOrder().verify(inOrder -> {
-                inOrder.verify(clientDto).getXroadId();
+                inOrder.verify(clientDto).getClientId();
                 inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
                 inOrder.verify(clientIdDto).getType();
             });

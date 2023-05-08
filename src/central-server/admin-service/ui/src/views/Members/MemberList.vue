@@ -145,13 +145,13 @@ export default Vue.extend({
         {
           text: this.$t('global.memberClass') as string,
           align: 'start',
-          value: 'xroad_id.member_class',
+          value: 'client_id.member_class',
           class: 'xrd-table-header members-table-header-class',
         },
         {
           text: this.$t('global.memberCode') as string,
           align: 'start',
-          value: 'xroad_id.member_code',
+          value: 'client_id.member_code',
           class: 'xrd-table-header members-table-header-code',
         },
       ];
@@ -187,7 +187,7 @@ export default Vue.extend({
     toDetails(member: Client): void {
       this.$router.push({
         name: RouteName.MemberDetails,
-        params: { memberid: toIdentifier(member.xroad_id) },
+        params: { memberid: toIdentifier(member.client_id) },
       });
     },
     changeOptions: async function () {

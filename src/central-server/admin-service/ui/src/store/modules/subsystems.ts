@@ -25,13 +25,13 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { Client, Subsystem } from '@/openapi-types';
+import { Subsystem, SubsystemAdd } from '@/openapi-types';
 import { defineStore } from 'pinia';
 
 export const subsystemStore = defineStore('subsystem', {
   actions: {
-    async addSubsystem(client: Client) {
-      return axios.post('/subsystems', client);
+    async addSubsystem(subsystem: SubsystemAdd) {
+      return axios.post('/subsystems', subsystem);
     },
     loadByMemberId(memberid: string) {
       return axios

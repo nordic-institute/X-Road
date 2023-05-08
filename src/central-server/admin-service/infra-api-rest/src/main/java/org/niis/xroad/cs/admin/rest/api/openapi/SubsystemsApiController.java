@@ -36,6 +36,7 @@ import org.niis.xroad.cs.admin.rest.api.converter.SubsystemCreationRequestMapper
 import org.niis.xroad.cs.admin.rest.api.converter.db.ClientDtoConverter;
 import org.niis.xroad.cs.openapi.SubsystemsApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
+import org.niis.xroad.cs.openapi.model.SubsystemAddDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
@@ -67,8 +68,8 @@ public class SubsystemsApiController implements SubsystemsApi {
     @Override
     @PreAuthorize("hasAuthority('ADD_MEMBER_SUBSYSTEM')")
     @AuditEventMethod(event = ADD_SUBSYSTEM)
-    public ResponseEntity<ClientDto> addSubsystem(ClientDto clientDto) {
-        return Try.success(clientDto)
+    public ResponseEntity<ClientDto> addSubsystem(SubsystemAddDto subsystemAddDto) {
+        return Try.success(subsystemAddDto)
                 .map(subsystemCreationRequestMapper::toTarget)
                 .map(subsystemService::add)
                 .map(clientDtoConverter::toDto)
@@ -103,5 +104,4 @@ public class SubsystemsApiController implements SubsystemsApi {
             throw new ValidationFailureException(INVALID_SUBSYSTEM_ID, clientId);
         }
     }
-
 }

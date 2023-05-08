@@ -25,6 +25,8 @@
  * THE SOFTWARE.
  */
 import Vue from 'vue';
+import { ClientId } from '@/openapi-types';
+import { toShortMemberId } from '@/util/helpers';
 
 Vue.filter('capitalize', (value: string): string => {
   if (!value) {
@@ -139,4 +141,8 @@ Vue.filter('formatHoursMins', (value: string): string => {
 
 Vue.filter('commaSeparate', (value: string[]) => {
   return value.join(', ');
+});
+
+Vue.filter('formatShortMemberId', (value: ClientId) => {
+  return toShortMemberId(value);
 });
