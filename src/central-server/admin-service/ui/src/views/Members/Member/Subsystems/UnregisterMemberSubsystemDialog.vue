@@ -112,8 +112,8 @@ export default Vue.extend({
       const currentMember = this.memberStore.$state.currentMember;
       this.subsystemStore
         .unregisterById(
-          toIdentifier(currentMember.xroad_id) + ':' + this.subsystemCode,
-          toIdentifier(currentMember.xroad_id) + ':' + this.serverCode,
+          toIdentifier(currentMember.client_id) + ':' + this.subsystemCode,
+          toIdentifier(currentMember.client_id) + ':' + this.serverCode,
         )
         .then(() => {
           this.showSuccess(

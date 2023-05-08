@@ -31,6 +31,7 @@ import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.ClientIdDto;
+import org.niis.xroad.cs.openapi.model.SubsystemAddDto;
 import org.niis.xroad.cs.test.api.FeignSubsystemsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -61,8 +62,8 @@ public class SubsystemsApiStepDefs extends BaseStepDefs {
         clientIdDto.setType(SUBSYSTEM);
         clientIdDto.setInstanceId(idParts[0]);
 
-        final ClientDto dto = new ClientDto()
-                .xroadId(clientIdDto);
+        final var dto = new SubsystemAddDto()
+                .subsystemId(clientIdDto);
 
         final ResponseEntity<ClientDto> response = subsystemsApi.addSubsystem(dto);
 

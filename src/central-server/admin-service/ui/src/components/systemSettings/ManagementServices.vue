@@ -260,7 +260,7 @@ export default Vue.extend({
       this.loading = true;
       this.managementServicesStore
         .updateManagementServicesConfiguration({
-          service_provider_id: toIdentifier(subsystems[0].xroad_id),
+          service_provider_id: toIdentifier(subsystems[0].client_id),
         })
         .then(() => {
           this.showSuccess(

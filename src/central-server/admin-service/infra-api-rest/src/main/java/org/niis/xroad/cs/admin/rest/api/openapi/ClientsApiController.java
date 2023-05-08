@@ -69,12 +69,13 @@ public class ClientsApiController implements ClientsApi {
             new PageRequestConverter.MappableSortParameterConverter(
                     entry("id", "id"),
                     entry("member_name", "memberName"),
-                    entry("xroad_id.instance_id", "xroadInstance"),
-                    entry("xroad_id.member_class", "memberClass"),
-                    entry("xroad_id.member_code", "memberCode"),
+                    entry("client_id.instance_id", "xroadInstance"),
+                    entry("client_id.member_class", "memberClass"),
+                    entry("client_id.member_code", "memberCode"),
                     entry("client_type", "type")
             );
 
+    @Override
     @PreAuthorize("hasAuthority('SEARCH_MEMBERS') or hasAuthority('VIEW_MEMBERS')")
     public ResponseEntity<PagedClientsDto> findClients(String query,
                                                        PagingSortingParametersDto pagingSorting,

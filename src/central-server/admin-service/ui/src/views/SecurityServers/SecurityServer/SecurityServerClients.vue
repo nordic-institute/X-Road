@@ -81,6 +81,7 @@ import { clientStore } from '@/store/modules/clients';
 import { notificationsStore } from '@/store/modules/notifications';
 import { Permissions, RouteName } from '@/global';
 import { userStore } from '@/store/modules/user';
+import { toMemberId } from "@/util/helpers";
 
 export default Vue.extend({
   name: 'SecurityServerClients',
@@ -111,19 +112,19 @@ export default Vue.extend({
         {
           text: this.$t('global.class') as string,
           align: 'start',
-          value: 'xroad_id.member_class',
+          value: 'client_id.member_class',
           class: 'xrd-table-header clients-table-header-class',
         },
         {
           text: this.$t('global.code') as string,
           align: 'start',
-          value: 'xroad_id.member_code',
+          value: 'client_id.member_code',
           class: 'xrd-table-header clients-table-header-code',
         },
         {
           text: this.$t('global.subsystem') as string,
           align: 'start',
-          value: 'xroad_id.subsystem_code',
+          value: 'client_id.subsystem_code',
           class: 'xrd-table-header clients-table-header-subsystem',
         },
       ];
@@ -152,7 +153,7 @@ export default Vue.extend({
       this.$router.push({
         name: RouteName.MemberDetails,
         params: {
-          memberid: `${client.xroad_id.instance_id}:${client.xroad_id.member_class}:${client.xroad_id.member_code}`,
+          memberid: toMemberId(client.client_id),
         },
       });
     },

@@ -45,7 +45,7 @@
               <ValidationProvider
                 v-slot="{ errors }"
                 name="memberCode"
-                :rules="{ required: true, is: member.xroad_id.member_code }"
+                :rules="{ required: true, is: member.client_id.member_code }"
                 data-test="instance-identifier--validation"
               >
                 <v-text-field
@@ -119,7 +119,7 @@ export default Vue.extend({
     proceedDelete(): void {
       this.loading = true;
       this.memberStore
-        .deleteById(toIdentifier(this.member.xroad_id))
+        .deleteById(toIdentifier(this.member.client_id))
         .then(() => {
           this.$emit('deleted');
         })

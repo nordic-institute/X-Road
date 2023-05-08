@@ -84,7 +84,7 @@ export default Vue.extend({
     saveNewMemberName(): void {
       this.loading = true;
       this.memberStore
-        .editMemberName(toIdentifier(this.member.xroad_id), {
+        .editMemberName(toIdentifier(this.member.client_id), {
           member_name: this.newMemberName,
         })
         .then(() => {

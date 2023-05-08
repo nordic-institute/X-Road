@@ -98,10 +98,9 @@ export default Vue.extend({
         ?.instance_identifier as string;
       this.subsystemStore
         .addSubsystem({
-          member_name: this.memberStore.currentMember.member_name,
-          xroad_id: {
-            member_class: this.memberStore.currentMember.xroad_id.member_class,
-            member_code: this.memberStore.currentMember.xroad_id.member_code,
+          subsystem_id: {
+            member_class: this.memberStore.currentMember.client_id.member_class,
+            member_code: this.memberStore.currentMember.client_id.member_code,
             subsystem_code: this.subsystemCode,
             type: XRoadId.type.SUBSYSTEM,
             instance_id: instanceId,

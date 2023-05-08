@@ -206,12 +206,19 @@ export function isEmpty(str: string | []): boolean {
 
 // Get identifier in format CS:ORG:MEMBER[:SUBSYSTEM]
 export function toIdentifier(client: ClientId): string {
-  let identifier =
-    client.instance_id + ':' + client.member_class + ':' + client.member_code;
+  let identifier = toMemberId(client);
   if (client.subsystem_code) {
     identifier += ':' + client.subsystem_code;
   }
   return identifier;
+}
+
+export function toMemberId(client: ClientId): string {
+  return `${client.instance_id}:${toShortMemberId(client)}`;
+}
+
+export function toShortMemberId(client: ClientId): string {
+  return `${client.member_class}:${client.member_code}`;
 }
 
 export function managementTypeToText(

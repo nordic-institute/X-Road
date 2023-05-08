@@ -124,7 +124,7 @@ export default Vue.extend({
       this.memberStore
         .add({
           member_name: this.memberName,
-          xroad_id: {
+          member_id: {
             member_class: this.memberClass,
             member_code: this.memberCode,
             type: XRoadId.type.MEMBER,

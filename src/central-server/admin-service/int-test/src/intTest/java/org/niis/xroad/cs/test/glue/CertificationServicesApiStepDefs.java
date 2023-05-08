@@ -206,7 +206,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
                     .certificateProfileInfo(certificateProfileInfo);
 
             final ResponseEntity<ApprovedCertificationServiceDto> result = certificationServicesApi
-                    .updateCertificationService(String.valueOf(id), request);
+                    .updateCertificationService(id, request);
 
             putStepData(RESPONSE, result);
             putStepData(RESPONSE_STATUS, result.getStatusCodeValue());
@@ -280,5 +280,4 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(NO_CONTENT))
                 .execute();
     }
-
 }
