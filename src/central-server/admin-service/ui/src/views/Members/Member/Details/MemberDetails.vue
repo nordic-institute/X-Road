@@ -42,13 +42,13 @@
 
       <info-card
         :title-text="$t('global.memberClass')"
-        :info-text="memberStore.currentMember.xroad_id.member_class || ''"
+        :info-text="memberStore.currentMember.client_id.member_class || ''"
         data-test="member-class-card"
       />
 
       <info-card
         :title-text="$t('global.memberCode')"
-        :info-text="memberStore.currentMember.xroad_id.member_code || ''"
+        :info-text="memberStore.currentMember.client_id.member_code || ''"
         data-test="member-code-card"
       />
     </div>

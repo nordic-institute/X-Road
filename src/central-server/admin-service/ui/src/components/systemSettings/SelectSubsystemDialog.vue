@@ -54,7 +54,7 @@
         <v-data-table
           v-model="selectedSubsystems"
           class="elevation-0 data-table"
-          item-key="id"
+          item-key="identifier"
           show-select
           single-select
           :loading="loading"
@@ -118,12 +118,26 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Client, PagedClients } from '@/openapi-types';
+import { Client, ClientId, PagedClients } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { clientStore } from '@/store/modules/clients';
 import { notificationsStore } from '@/store/modules/notifications';
 import { debounce, toIdentifier } from '@/util/helpers';
 import { DataOptions, DataTableHeader } from 'vuetify';
+
+interface SelectableClient {
+  identifier: string;
+  client_id: ClientId;
+  member_name: string|undefined;
+}
+
+function mapClient(client: Client): SelectableClient {
+  return {
+    client_id: client.client_id,
+    member_name: client.member_name,
+    identifier: toIdentifier(client.client_id)
+  };
+}
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -148,7 +162,7 @@ export default Vue.extend({
       pagingSortingOptions: {} as DataOptions,
       clients: {} as PagedClients,
       search: '',
-      selectedSubsystems: [] as Client[],
+      selectedSubsystems: [] as SelectableClient[],
     };
   },
   computed: {
@@ -156,8 +170,8 @@ export default Vue.extend({
     totalItems(): number {
       return this.clients.paging_metadata?.total_items || 0;
     },
-    selectableSubsystems(): Client[] {
-      return this.clients.clients || [];
+    selectableSubsystems(): SelectableClient[] {
+      return this.clients?.clients?.map(client => mapClient(client)) || [];
     },
     headers(): DataTableHeader[] {
       return [
@@ -243,7 +257,7 @@ export default Vue.extend({
     setSelectedSubsystems() {
       const filteredList = this.selectableSubsystems?.filter(
         (subsystem) =>
-          `SUBSYSTEM:${toIdentifier(subsystem.client_id)}` ===
+          `SUBSYSTEM:${subsystem.identifier}` ===
           this.defaultSubsystemId,
       );
 
