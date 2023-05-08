@@ -24,26 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.registrationservice;
+package org.niis.xroad.cs.management.core.service;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-@SpringBootApplication(scanBasePackages = {
-        "org.niis.xroad.cs.registrationservice",
-        "org.niis.xroad.restapi"
-})
-@Slf4j
-public class Main {
+import java.util.concurrent.TimeUnit;
 
-    public static void main(String[] args) {
-        var app = new SpringApplication(Main.class);
-        app.addInitializers(ctx -> SystemPropertiesLoader.create().withCommonAndLocal().load());
-        app.run(args);
+@Service
+@ConditionalOnProperty(value = "test", havingValue = "false", matchIfMissing = true)
+class GlobalConfUpdater {
+
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
+    public void update() {
+        GlobalConf.reload();
     }
 }
-

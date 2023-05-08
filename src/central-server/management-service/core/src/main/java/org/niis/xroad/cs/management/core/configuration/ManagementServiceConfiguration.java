@@ -29,9 +29,11 @@ package org.niis.xroad.cs.management.core.configuration;
 import org.niis.xroad.cs.admin.client.configuration.AdminServiceClientConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Import({AdminServiceClientConfiguration.class})
 @Configuration
-public class ManagementConfiguration {
+@EnableScheduling
+public class ManagementServiceConfiguration {
 
 }
