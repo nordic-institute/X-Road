@@ -85,7 +85,6 @@ export default Vue.extend({
               this.messageData,
             ),
           );
-          this.showDialog = false;
           this.$emit('decline');
         })
         .catch((error) => {
@@ -93,6 +92,7 @@ export default Vue.extend({
         })
         .finally(() => {
           this.loading = false;
+          this.showDialog = false;
         });
     },
     openDialog() {
