@@ -16,11 +16,11 @@ Feature: Configuration Info API
 
   Scenario: Download internal configuration anchor
     When user downloads INTERNAL configuration source anchor
-    Then it should return internal configuration source anchor file
+    Then it should return internal configuration source anchor file with filename "configuration_anchor_CS_internal_UTC_2022-01-01_01_00_00.xml"
 
   Scenario: Download external configuration anchor
     When user downloads EXTERNAL configuration source anchor
-    Then it should return external configuration source anchor file
+    Then it should return external configuration source anchor file with filename "configuration_anchor_CS_external_UTC_2022-01-01_01_00_00.xml"
 
   Scenario: Download configuration part
     * User can download EXTERNAL configuration part SHARED-PARAMETERS version 2

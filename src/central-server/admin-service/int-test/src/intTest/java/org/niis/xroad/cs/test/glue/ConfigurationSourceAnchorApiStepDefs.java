@@ -93,15 +93,4 @@ public class ConfigurationSourceAnchorApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion(hash, "body.anchor.hash", "must be same as from previous step"))
                 .execute();
     }
-
-    @Step("recreated anchor is downloaded and filename matches {string}")
-    public void downloadRecreatedAnchor(String filename) {
-        final var response = configurationSourceAnchorsApi.downloadAnchor(configurationTypeDto);
-
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(createdAt, "body.filename", "must match"))
-                .assertion(equalsAssertion(hash, "body.anchor.hash", "must be same as from previous step"))
-                .execute();
-    }
 }

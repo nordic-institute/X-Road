@@ -178,15 +178,15 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                 .downloadAnchor(ConfigurationTypeDto.fromValue(configurationType));
     }
 
-    @Step("it should return internal configuration source anchor file")
-    public void validateInternalDownloadedAnchor() throws IOException {
+    @Step("it should return internal configuration source anchor file with filename {string}")
+    public void validateInternalDownloadedAnchor(String filename) throws IOException {
         String expectedAnchorContent = IOUtils.resourceToString("/test-data/internal-configuration-anchor.xml",
                 StandardCharsets.UTF_8);
         validate(downloadedAnchor)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(EXPECTED_INTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH, "body.contentLength",
                         "Response contains configuration anchor has correct content length"))
-                .assertion(equalsAssertion("configuration_anchor_UTC_2022-01-01_01_00_00.xml", "body.filename",
+                .assertion(equalsAssertion(filename, "body.filename",
                         "Configuration anchor file has correct name"))
                 .assertion(equalsAssertion(expectedAnchorContent,
                         "T(org.apache.commons.io.IOUtils).toString(body.inputStream, 'UTF-8')",
@@ -194,15 +194,15 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("it should return external configuration source anchor file")
-    public void validateExternalDownloadedAnchor() throws IOException {
+    @Step("it should return external configuration source anchor file with filename {string}")
+    public void validateExternalDownloadedAnchor(String filename) throws IOException {
         String expectedAnchorContent = IOUtils.resourceToString("/test-data/external-configuration-anchor.xml",
                 StandardCharsets.UTF_8);
         validate(downloadedAnchor)
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(EXPECTED_EXTERNAL_CONFIGURATION_ANCHOR_CONTENT_LENGTH, "body.contentLength",
                         "Response contains configuration anchor has correct content length"))
-                .assertion(equalsAssertion("configuration_anchor_UTC_2022-01-01_01_00_00.xml", "body.filename",
+                .assertion(equalsAssertion(filename, "body.filename",
                         "Configuration anchor file has correct name"))
                 .assertion(equalsAssertion(expectedAnchorContent,
                         "T(org.apache.commons.io.IOUtils).toString(body.inputStream, 'UTF-8')",
