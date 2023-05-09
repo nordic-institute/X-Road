@@ -262,12 +262,13 @@ export default Vue.extend({
       );
       api.put(`/clients/${encodePathParameter(clientId)}/register`, {}).then(
         () => {
-          this.showSuccess(this.$t('wizard.subsystem.subsystemAdded'));
           this.exitView();
+          this.showSuccess(this.$t('wizard.subsystem.subsystemAdded'));
         },
         (error) => {
-          this.showError(error);
+
           this.exitView();
+          this.showError(error);
         },
       );
     },
