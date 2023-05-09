@@ -36,7 +36,6 @@ public enum XRoadObjectType { // todo: the usage of this enumeration is a mess. 
     MEMBER,
     SUBSYSTEM,
     GLOBALGROUP,
-    SECURITYCATEGORY,
     /** @deprecated this type will be removed in the future */
     @Deprecated LOCALGROUP;
 

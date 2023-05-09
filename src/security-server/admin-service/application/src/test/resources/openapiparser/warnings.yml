@@ -71,7 +71,6 @@ components:
                 - SUBSYSTEM
                 - SERVER
                 - GLOBALGROUP
-                - SECURITYCATEGORY
                 - SERVICE
                 - LOCALGROUP
         xRoadInstance:

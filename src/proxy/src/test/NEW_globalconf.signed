@@ -24,14 +24,6 @@ Content-Date: 2013-05-29T13:59:41+0000
         <code>BUSINESS</code>
         <description>Business clients</description>
     </memberClass>
-    <securityCategory>
-        <code>firstCategoryCode</code>
-        <description>Description of first category</description>
-    </securityCategory>
-    <securityCategory>
-        <code>secondCategoryCode</code>
-        <description>Description of second category</description>
-    </securityCategory>
     <securityServer>
         <owner>consumerId</owner>
         <serverCode>firstServerCode</serverCode>

@@ -28,7 +28,6 @@ package ee.ria.xroad.common.conf.serverconf;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
@@ -36,7 +35,6 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.cert.X509Certificate;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -208,17 +206,6 @@ public class ServerConf {
         log.trace("getAllowedServicesByDescriptionType({}, {}, {})", serviceProvider, client, descriptionType);
 
         return getInstance().getAllowedServicesByDescriptionType(serviceProvider, client, descriptionType);
-    }
-
-    /**
-     * @param service the service identifier
-     * @return set of security category codes required by this service.
-     */
-    public static Collection<SecurityCategoryId.Conf> getRequiredCategories(
-            ServiceId service) {
-        log.trace("getRequiredCategories({})", service);
-
-        return getInstance().getRequiredCategories(service);
     }
 
     /**
