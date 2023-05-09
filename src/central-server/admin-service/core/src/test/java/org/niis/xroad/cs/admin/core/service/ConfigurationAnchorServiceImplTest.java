@@ -37,6 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
+import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchorWithFile;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
@@ -110,7 +111,7 @@ public class ConfigurationAnchorServiceImplTest {
 
             final Optional<ConfigurationAnchor> optResult = configurationAnchorService.getConfigurationAnchor(INTERNAL);
 
-            assertThat(optResult.isPresent()).isTrue();
+            assertThat(optResult).isPresent();
 
             final var result = optResult.get();
             assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
@@ -123,7 +124,7 @@ public class ConfigurationAnchorServiceImplTest {
             when(configurationSourceRepository.findBySourceTypeAndHaNodeName(INTERNAL_CONFIGURATION, HA_NODE_NAME))
                     .thenReturn(Optional.of(configurationSourceEntityWithFile()));
 
-            final Optional<ConfigurationAnchor> optResult = configurationAnchorService.getConfigurationAnchorWithFile(INTERNAL);
+            final Optional<ConfigurationAnchorWithFile> optResult = configurationAnchorService.getConfigurationAnchorWithFile(INTERNAL);
 
             assertThat(optResult.isPresent()).isTrue();
 
@@ -139,7 +140,7 @@ public class ConfigurationAnchorServiceImplTest {
                     .thenReturn(Optional.of(configurationSourceEntity()));
 
             final Optional<ConfigurationAnchor> optResult = configurationAnchorService.getConfigurationAnchor(EXTERNAL);
-            assertThat(optResult.isPresent()).isTrue();
+            assertThat(optResult).isPresent();
 
             final var result = optResult.get();
             assertThat(result.getAnchorFileHash()).isEqualTo(HASH);
@@ -151,7 +152,7 @@ public class ConfigurationAnchorServiceImplTest {
             when(configurationSourceRepository.findBySourceTypeAndHaNodeName(EXTERNAL_CONFIGURATION, HA_NODE_NAME))
                     .thenReturn(Optional.of(configurationSourceEntityWithFile()));
 
-            final Optional<ConfigurationAnchor> optResult = configurationAnchorService.getConfigurationAnchorWithFile(EXTERNAL);
+            final Optional<ConfigurationAnchorWithFile> optResult = configurationAnchorService.getConfigurationAnchorWithFile(EXTERNAL);
             assertThat(optResult.isPresent()).isTrue();
 
             final var result = optResult.get();

@@ -26,14 +26,23 @@
  */
 package org.niis.xroad.cs.admin.api.dto;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.time.Instant;
 
-@Data
-@RequiredArgsConstructor
-public class ConfigurationAnchor {
-    private final String anchorFileHash;
-    private final Instant anchorGeneratedAt;
+@Getter
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class ConfigurationAnchorWithFile extends ConfigurationAnchor {
+
+    private final byte[] anchorFile;
+    private final String anchorFileName;
+
+    public ConfigurationAnchorWithFile(String anchorFileHash, Instant anchorGeneratedAt, byte[] anchorFile, String anchorFileName) {
+        super(anchorFileHash, anchorGeneratedAt);
+        this.anchorFile = anchorFile;
+        this.anchorFileName = anchorFileName;
+    }
 }
