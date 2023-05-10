@@ -71,6 +71,7 @@ public class SecurityServerIdDtoConverterTest extends AbstractDtoConverterTest i
             assertEquals(MEMBER_CODE, converted.getMemberCode());
             assertEquals(SERVER_CODE, converted.getServerCode());
             assertEquals(SERVER_TYPE, converted.getType());
+            assertEquals(SECURITY_SERVER_ID.asEncodedId(), converted.getEncodedId());
             inOrder().verifyNoMoreInteractions();
         }
     }

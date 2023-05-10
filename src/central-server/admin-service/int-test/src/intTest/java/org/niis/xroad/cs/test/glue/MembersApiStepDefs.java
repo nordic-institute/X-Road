@@ -199,7 +199,7 @@ public class MembersApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(1, "body.?[id=='" + serverId + "'].size()"))
+                .assertion(equalsAssertion(1, "body.?[serverId.encodedId=='" + serverId + "'].size()"))
                 .execute();
     }
 

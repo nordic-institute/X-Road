@@ -47,7 +47,7 @@
         </p>
         <ValidationProvider
           v-slot="{ errors }"
-          :rules="`required|is:${securityServer.xroad_id.server_code}`"
+          :rules="`required|is:${securityServer.server_id .server_code}`"
           name="securityServerCode"
         >
           <v-text-field
@@ -111,7 +111,7 @@ export default Vue.extend({
       this.loading = true;
       this.securityServerAuthCertStore
         .delete(
-          this.securityServer?.id as string,
+          this.securityServer?.server_id.encoded_id as string,
           this.authenticationCertificateId,
         )
         .then(() => {

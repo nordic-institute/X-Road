@@ -27,15 +27,15 @@ Feature: Security Server API
     When user requests security servers list sorted by '<$sortField>' '<$sortDirection>'
     Then the list is sorted by '<$responseFieldExpression>' '<$sortDirection>'
     Examples:
-      | $sortField            | $sortDirection | $responseFieldExpression |
-      | xroad_id.server_code  | desc           | xroadId.serverCode       |
-      | xroad_id.server_code  | asc            | xroadId.serverCode       |
-      | xroad_id.member_code  | desc           | xroadId.memberCode       |
-      | xroad_id.member_code  | asc            | xroadId.memberCode       |
-      | xroad_id.member_class | desc           | xroadId.memberClass      |
-      | xroad_id.member_class | asc            | xroadId.memberClass      |
-      | owner_name            | desc           | ownerName                |
-      | owner_name            | asc            | ownerName                |
+      | $sortField             | $sortDirection | $responseFieldExpression |
+      | server_id.server_code  | desc           | serverId.serverCode      |
+      | server_id.server_code  | asc            | serverId.serverCode      |
+      | server_id.member_code  | desc           | serverId.memberCode      |
+      | server_id.member_code  | asc            | serverId.memberCode      |
+      | server_id.member_class | desc           | serverId.memberClass     |
+      | server_id.member_class | asc            | serverId.memberClass     |
+      | owner_name             | desc           | ownerName                |
+      | owner_name             | asc            | ownerName                |
 
   @Modifying
   Scenario: Security server list paging and query

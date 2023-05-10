@@ -51,17 +51,17 @@
       disable-filtering
       class="elevation-0 data-table"
       :no-data-text="emptyListReasoning"
-      item-key="id"
+      item-key="server_id.server_code"
       :loader-height="2"
       :footer-props="{ itemsPerPageOptions: [10, 25] }"
       @update:options="findServers"
     >
-      <template #[`item.xroad_id.server_code`]="{ item }">
+      <template #[`item.server_id.server_code`]="{ item }">
         <div class="server-code xrd-clickable" @click="toDetails(item)">
           <xrd-icon-base class="mr-4">
             <XrdIconSecurityServer />
           </xrd-icon-base>
-          {{ item.xroad_id.server_code }}
+          {{ item.server_id.server_code }}
         </div>
       </template>
     </v-data-table>
@@ -103,7 +103,7 @@ export default Vue.extend({
         {
           text: this.$t('securityServers.serverCode') as string,
           align: 'start',
-          value: 'xroad_id.server_code',
+          value: 'server_id.server_code',
           class: 'xrd-table-header ss-table-header-sercer-code',
         },
         {
@@ -115,13 +115,13 @@ export default Vue.extend({
         {
           text: this.$t('securityServers.ownerCode') as string,
           align: 'start',
-          value: 'xroad_id.member_code',
+          value: 'server_id.member_code',
           class: 'xrd-table-header ss-table-header-owner-code',
         },
         {
           text: this.$t('securityServers.ownerClass') as string,
           align: 'start',
-          value: 'xroad_id.member_class',
+          value: 'server_id.member_class',
           class: 'xrd-table-header ss-table-header-owner-class',
         },
       ];
@@ -150,7 +150,7 @@ export default Vue.extend({
     toDetails(securityServer: SecurityServer): void {
       this.$router.push({
         name: RouteName.SecurityServerDetails,
-        params: { serverId: securityServer.id || '' },
+        params: { serverId: securityServer.server_id.encoded_id || '' },
       });
     },
     changeOptions: async function () {

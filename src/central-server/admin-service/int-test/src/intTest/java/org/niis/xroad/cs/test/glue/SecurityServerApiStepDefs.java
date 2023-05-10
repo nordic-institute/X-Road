@@ -76,11 +76,11 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(serverId, "body.id", "Server id should match"))
-                .assertion(equalsAssertion(idParts[0], "body.xroadId.instanceId", "Instance id should match"))
-                .assertion(equalsAssertion(idParts[1], "body.xroadId.memberClass", "Member class id should match"))
-                .assertion(equalsAssertion(idParts[2], "body.xroadId.memberCode", "Member code class id should match"))
-                .assertion(equalsAssertion(idParts[3], "body.xroadId.serverCode", "Server code class id should match"))
+                .assertion(equalsAssertion(serverId, "body.serverId.encodedId", "Server id should match"))
+                .assertion(equalsAssertion(idParts[0], "body.serverId.instanceId", "Instance id should match"))
+                .assertion(equalsAssertion(idParts[1], "body.serverId.memberClass", "Member class id should match"))
+                .assertion(equalsAssertion(idParts[2], "body.serverId.memberCode", "Member code class id should match"))
+                .assertion(equalsAssertion(idParts[3], "body.serverId.serverCode", "Server code class id should match"))
                 .assertion(equalsAssertion("Member name for " + serverId.substring(0, serverId.lastIndexOf(':')),
                         "body.ownerName", "Owner name id should match"))
                 .assertion(equalsAssertion("security-server-address-" + idParts[3], "body.serverAddress", "Server address id should match"))
@@ -112,7 +112,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(1, "body.items.?[id=='" + serverId + "'].size",
+                .assertion(equalsAssertion(1, "body.items.?[serverId.encodedId=='" + serverId + "'].size",
                         "Servers list contains id " + serverId))
                 .execute();
     }

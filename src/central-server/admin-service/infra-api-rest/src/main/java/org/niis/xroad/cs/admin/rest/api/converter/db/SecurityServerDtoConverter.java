@@ -65,8 +65,7 @@ public class SecurityServerDtoConverter extends DtoConverter<SecurityServer, Sec
     public SecurityServerDto toDto(SecurityServer source) {
         return self(new SecurityServerDto(), self -> {
             self(source.getServerId(), securityServerId -> {
-                self.id(securityServerIdConverter.convert(securityServerId));
-                self.xroadId(securityServerIdDtoConverter.toDto(securityServerId));
+                self.serverId(securityServerIdDtoConverter.toDto(securityServerId));
             });
             self.ownerName(source.getOwner().getName());
             self.serverAddress(source.getAddress());
@@ -77,7 +76,7 @@ public class SecurityServerDtoConverter extends DtoConverter<SecurityServer, Sec
 
     @Override
     public SecurityServer fromDto(SecurityServerDto source) {
-        SecurityServerIdDto securityServerIdDto = source.getXroadId();
+        SecurityServerIdDto securityServerIdDto = source.getServerId();
         SecurityServerId serverId = securityServerIdConverter.convert(securityServerIdDto);
         XRoadMember owner = memberService.findMember(serverId.getOwner())
                 .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));

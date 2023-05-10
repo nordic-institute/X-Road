@@ -29,9 +29,9 @@
     <v-card class="xrd-card">
       <v-card-title>
         <slot name="title">
-          <span class="dialog-title-text">{{
-            $t('systemSettings.selectSubsystem.title')
-          }}</span>
+          <span class="dialog-title-text">
+            {{ $t('systemSettings.selectSubsystem.title') }}
+          </span>
         </slot>
         <v-spacer />
         <xrd-close-button id="dlg-close-x" @click="cancel()" />
@@ -54,7 +54,7 @@
         <v-data-table
           v-model="selectedSubsystems"
           class="elevation-0 data-table"
-          item-key="identifier"
+          item-key="client_id.encoded_id"
           show-select
           single-select
           :loading="loading"
@@ -102,15 +102,17 @@
           outlined
           data-test="cancel-button"
           @click="cancel()"
-          >{{ $t('action.cancel') }}</xrd-button
         >
+          {{ $t('action.cancel') }}
+        </xrd-button>
 
         <xrd-button
           :disabled="!selectedSubsystems || selectedSubsystems.length === 0"
           data-test="management-subsystem-select-button"
           @click="selectSubSystem()"
-          >{{ $t('action.select') }}</xrd-button
         >
+          {{ $t('action.select') }}
+        </xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -118,26 +120,12 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Client, ClientId, PagedClients } from '@/openapi-types';
+import { Client, PagedClients } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { clientStore } from '@/store/modules/clients';
 import { notificationsStore } from '@/store/modules/notifications';
 import { debounce, toIdentifier } from '@/util/helpers';
 import { DataOptions, DataTableHeader } from 'vuetify';
-
-interface SelectableClient {
-  identifier: string;
-  client_id: ClientId;
-  member_name: string|undefined;
-}
-
-function mapClient(client: Client): SelectableClient {
-  return {
-    client_id: client.client_id,
-    member_name: client.member_name,
-    identifier: toIdentifier(client.client_id)
-  };
-}
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -162,7 +150,7 @@ export default Vue.extend({
       pagingSortingOptions: {} as DataOptions,
       clients: {} as PagedClients,
       search: '',
-      selectedSubsystems: [] as SelectableClient[],
+      selectedSubsystems: [] as Client[],
     };
   },
   computed: {
@@ -170,8 +158,8 @@ export default Vue.extend({
     totalItems(): number {
       return this.clients.paging_metadata?.total_items || 0;
     },
-    selectableSubsystems(): SelectableClient[] {
-      return this.clients?.clients?.map(client => mapClient(client)) || [];
+    selectableSubsystems(): Client[] {
+      return this.clients.clients || [];
     },
     headers(): DataTableHeader[] {
       return [
@@ -257,7 +245,7 @@ export default Vue.extend({
     setSelectedSubsystems() {
       const filteredList = this.selectableSubsystems?.filter(
         (subsystem) =>
-          `SUBSYSTEM:${subsystem.identifier}` ===
+          `SUBSYSTEM:${toIdentifier(subsystem.client_id)}` ===
           this.defaultSubsystemId,
       );
 
