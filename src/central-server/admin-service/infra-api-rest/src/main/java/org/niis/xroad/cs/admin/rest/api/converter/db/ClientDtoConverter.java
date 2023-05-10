@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.admin.rest.api.converter.db;
 
+import ee.ria.xroad.common.identifier.ClientId.Conf;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -43,7 +45,6 @@ import org.niis.xroad.cs.openapi.model.XRoadIdDto;
 import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.util.Fn.self;
@@ -54,8 +55,6 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUN
 @Service
 @RequiredArgsConstructor
 public class ClientDtoConverter extends DtoConverter<SecurityServerClient, ClientDto> {
-
-    private final ZoneOffset dtoZoneOffset;
 
     private final MemberService memberService;
     private final MemberClassService memberClassService;
@@ -70,12 +69,6 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
 
         ClientDto clientDto = new ClientDto();
         clientDto.setClientId(clientIdDto);
-        clientDto.setCreatedAt(Optional.ofNullable(source.getCreatedAt())
-                .map(instant -> instant.atOffset(dtoZoneOffset))
-                .orElse(null));
-        clientDto.setUpdatedAt(Optional.ofNullable(source.getUpdatedAt())
-                .map(instant -> instant.atOffset(dtoZoneOffset))
-                .orElse(null));
 
         if (source instanceof XRoadMember) {
             XRoadMember xRoadMember = (XRoadMember) source;
@@ -149,13 +142,8 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                     clientIdDto.setMemberCode(source.getMemberCode());
                     clientIdDto.setSubsystemCode(source.getSubsystemCode());
                     clientIdDto.setType(xRoadObjectTypeDtoMapper.convert(source.getType()));
+                    clientIdDto.setEncodedId(toEncodedId(clientIdDto));
                 }));
-                if (source.getCreatedAt() != null) {
-                    clientDto.setCreatedAt(source.getCreatedAt().atOffset(dtoZoneOffset));
-                }
-                if (source.getUpdatedAt() != null) {
-                    clientDto.setUpdatedAt(source.getUpdatedAt().atOffset(dtoZoneOffset));
-                }
             });
         }
 
@@ -163,5 +151,14 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
         public FlattenedSecurityServerClientView fromDto(ClientDto source) {
             throw new UnsupportedOperationException();
         }
+    }
+
+    private static String toEncodedId(ClientIdDto idDto) {
+        return Conf.create(
+                        idDto.getInstanceId(),
+                        idDto.getMemberClass(),
+                        idDto.getMemberCode(),
+                        idDto.getSubsystemCode())
+                .asEncodedId();
     }
 }

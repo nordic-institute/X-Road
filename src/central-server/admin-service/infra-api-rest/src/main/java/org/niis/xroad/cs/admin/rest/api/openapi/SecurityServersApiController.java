@@ -80,9 +80,9 @@ public class SecurityServersApiController implements SecurityServersApi {
     private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
             new PageRequestConverter.MappableSortParameterConverter(
                     entry("owner_name", "owner.name"),
-                    entry("xroad_id.member_class", "owner.memberClass.code"),
-                    entry("xroad_id.member_code", "owner.memberCode"),
-                    entry("xroad_id.server_code", "serverCode")
+                    entry("server_id.member_class", "owner.memberClass.code"),
+                    entry("server_id.member_code", "owner.memberCode"),
+                    entry("server_id.server_code", "serverCode")
             );
 
     @Override

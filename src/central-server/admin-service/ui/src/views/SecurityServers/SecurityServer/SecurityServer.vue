@@ -67,8 +67,8 @@ export default Vue.extend({
     ...mapStores(useSecurityServerStore),
     securityServerCode(): string {
       return (
-        this.securityServerStore?.currentSecurityServer?.xroad_id.server_code ||
-        ''
+        this.securityServerStore?.currentSecurityServer?.server_id
+          .server_code || ''
       );
     },
     securityServerNavigationTabs(): PageNavigationTab[] {

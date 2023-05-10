@@ -45,6 +45,7 @@ public class SecurityServerIdDtoConverter extends DtoConverter<SecurityServerId,
             self.memberCode(source.getMemberCode());
             self.serverCode(source.getServerCode());
             self.instanceId(source.getXRoadInstance());
+            self.encodedId(source.asEncodedId());
             self.type(XRoadIdDto.TypeEnum.SERVER);
         });
     }

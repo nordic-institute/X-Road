@@ -54,7 +54,7 @@
       :options.sync="pagingSortingOptions"
       :server-items-length="clientStore.pagingOptions.total_items"
       class="elevation-0 data-table"
-      item-key="id"
+      item-key="client_id.encoded_id"
       :loader-height="2"
       :footer-props="{ itemsPerPageOptions: [10, 25] }"
       data-test="members-table"

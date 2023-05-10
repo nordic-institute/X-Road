@@ -49,13 +49,13 @@
 
         <info-card
           :title-text="$t('securityServers.ownerClass')"
-          :info-text="securityServer.xroad_id.member_class"
+          :info-text="securityServer.server_id.member_class"
           data-test="security-server-owner-class"
         />
 
         <info-card
           :title-text="$t('securityServers.ownerCode')"
-          :info-text="securityServer.xroad_id.member_code"
+          :info-text="securityServer.server_id.member_code"
           data-test="security-server-owner-code"
         />
       </div>
@@ -63,7 +63,7 @@
       <info-card
         class="mb-6"
         :title-text="$t('securityServers.serverCode')"
-        :info-text="securityServer.xroad_id.server_code"
+        :info-text="securityServer.server_id.server_code"
         data-test="security-server-server-code"
       />
 
@@ -96,7 +96,7 @@
         >
           {{
             `${$t('securityServers.securityServer.deleteSecurityServer')} "${
-              securityServer.xroad_id.server_code
+              securityServer.server_id.server_code
             }"`
           }}
         </div>
@@ -168,7 +168,7 @@ export default Vue.extend({
       return this.securityServer?.server_address || null;
     },
     serveCode(): string | null {
-      return this.securityServer?.xroad_id.server_code || null;
+      return this.securityServer?.server_id.server_code || null;
     },
   },
   methods: {

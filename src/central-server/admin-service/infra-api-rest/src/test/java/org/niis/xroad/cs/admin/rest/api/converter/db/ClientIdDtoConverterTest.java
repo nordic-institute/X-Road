@@ -83,6 +83,7 @@ public class ClientIdDtoConverterTest extends AbstractDtoConverterTest implement
             assertEquals(MEMBER_CODE, converted.getMemberCode());
             assertNull(converted.getSubsystemCode());
             assertEquals(expectedType, converted.getType());
+            assertEquals(memberId.asEncodedId(), converted.getEncodedId());
             inOrder().verify(inOrder -> {
                 inOrder.verify(xRoadObjectTypeConverter).convert(inputType);
             });
@@ -103,6 +104,7 @@ public class ClientIdDtoConverterTest extends AbstractDtoConverterTest implement
             assertEquals(MEMBER_CODE, converted.getMemberCode());
             assertEquals(SUBSYSTEM_CODE, converted.getSubsystemCode());
             assertEquals(expectedType, converted.getType());
+            assertEquals(subsystemId.asEncodedId(), converted.getEncodedId());
             inOrder().verify(inOrder -> {
                 inOrder.verify(xRoadObjectTypeConverter).convert(inputType);
             });

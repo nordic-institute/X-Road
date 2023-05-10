@@ -3966,7 +3966,6 @@ components:
     Client:
       allOf:
         - $ref: '#/components/schemas/MemberName'
-        - $ref: '#/components/schemas/ModificationTimestamps'
       description: x-road member
       required:
         - client_id
@@ -4196,19 +4195,13 @@ components:
         - $ref: '#/components/schemas/ModificationTimestamps'
       description: security server information
       properties:
-        id:
-          description: <instance_id>:<member_class>:<member_code>:<security_server_code>
-          example: FI:GOV:123:server123
-          format: text
-          type: string
-          readOnly: true
-        xroad_id:
+        server_id:
           $ref: '#/components/schemas/SecurityServerId'
         owner_name:
           type: string
           readOnly: true
       required:
-        - xroad_id
+        - server_id
       type: object
     PagedClients:
       description: array of Clients with paging metadata
@@ -4591,8 +4584,9 @@ components:
           SUBSYSTEM: "ClientId"
       properties:
         encoded_id:
+          readOnly: true
           type: string
-          description: Encoded Security Server Id
+          description: Encoded Security Server/Member/Subsystem Id
         instance_id:
           description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: FI

@@ -55,6 +55,7 @@ public class ClientIdDtoConverter extends DtoConverter<ClientId, ClientIdDto> {
             self.setMemberClass(source.getMemberClass());
             self.setMemberCode(source.getMemberCode());
             self.setSubsystemCode(source.getSubsystemCode());
+            self.setEncodedId(source.asEncodedId());
             self.setType(xRoadObjectTypeConverter.convert(source.getObjectType()));
         });
     }
