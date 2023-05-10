@@ -39,6 +39,7 @@ import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
+import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.service.ClientService;
@@ -46,6 +47,7 @@ import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.StableSortHelper;
+import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
@@ -86,6 +88,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     private final ManagementRequestService managementRequestService;
     private final ClientService clientService;
     private final GlobalGroupMemberService groupMemberService;
+    private final SubsystemService subsystemService;
     private final SecurityServerMapper securityServerMapper;
     private final CertificateConverter certificateConverter;
     private final AuditDataHelper auditDataHelper;
@@ -105,7 +108,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
 
     @Override
     public ManagementRequestStatus findSecurityServerClientRegistrationStatus(SecurityServerId serverId, ClientId clientId) {
-        return managementRequestService.findRequests(
+        ManagementRequestStatus managementRequestStatus = managementRequestService.findRequests(
                         ManagementRequestService.Criteria.builder()
                                 .serverId(serverId)
                                 .clientId(clientId)
@@ -115,6 +118,20 @@ public class SecurityServerServiceImpl implements SecurityServerService {
                 .map(ManagementRequestView::getStatus)
                 .findFirst()
                 .orElse(null);
+
+        if (managementRequestStatus == null) {
+            final boolean containsAsServerClient =
+                    subsystemService.findByIdentifier(clientId).stream()
+                            .flatMap(subsystem -> subsystem.getServerClients().stream())
+                            .map(ServerClient::getServerId)
+                            .anyMatch(server -> server.equals(serverId));
+
+            if (containsAsServerClient) {
+                return ManagementRequestStatus.APPROVED;
+            }
+        }
+
+        return managementRequestStatus;
     }
 
     @Override

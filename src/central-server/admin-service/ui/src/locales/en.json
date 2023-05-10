@@ -544,6 +544,7 @@
     "serverCode": "Server Code",
     "address": "Address",
     "clientInformation": "Client Submitted for Registration",
+    "ownerChangeInformation": "New Owner Submitted for Registration",
     "subsystemCode": "Subsystem Code",
     "certificateformation": "Authentication Certificate Submitted for Registration",
     "ca": "CA",
