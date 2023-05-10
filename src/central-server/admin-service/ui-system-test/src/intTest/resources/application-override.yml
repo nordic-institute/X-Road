@@ -32,7 +32,7 @@ test-automation:
     file-download: proxy
   custom:
     package-host: "replace-me"
-    package-source: develop-7.x
+    package-source: develop
     package-repo: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/debian"
     package-repo-key: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/jenkins@niis.org.gpg"
     #central-server-url-override: "replace-me" #Use when you want to run against custom target.
