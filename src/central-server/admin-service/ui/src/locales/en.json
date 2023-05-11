@@ -147,7 +147,7 @@
     "error_deleting_signing_key": "Error deleting signing key",
     "error_recreating_anchor": "Error re-creating anchor file",
     "global_group_exists": "Global group with the same code already exists.",
-    "global_group_not_found": "Global group by given id does not exist",
+    "global_group_not_found": "Global group by given code does not exist",
     "global_group_member_mismatch": "Global member is not a member of the global group",
     "init_already_initialized": "Central server Initialization failed, already fully initialized",
     "init_invalid_params": "Empty, missing or redundant parameters provided for initialization",

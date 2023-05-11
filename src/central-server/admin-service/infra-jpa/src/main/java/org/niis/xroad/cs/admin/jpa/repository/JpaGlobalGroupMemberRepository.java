@@ -50,7 +50,7 @@ public interface JpaGlobalGroupMemberRepository
         extends JpaRepository<GlobalGroupMemberEntity, Integer>, JpaSpecificationExecutor<GlobalGroupMemberEntity>,
         GlobalGroupMemberRepository {
 
-    List<GlobalGroupMemberEntity> findByGlobalGroupId(Integer groupId);
+    List<GlobalGroupMemberEntity> findByGlobalGroupGroupCode(String groupCode);
 
     default List<GlobalGroupMemberEntity> findMemberGroups(ee.ria.xroad.common.identifier.ClientId memberId) {
         return findAll(findSpecification(GlobalGroupService.Criteria.builder()

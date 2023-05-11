@@ -80,7 +80,7 @@ export default Vue.extend({
     ValidationObserver,
   },
   props: {
-    groupId: {
+    groupCode: {
       type: String,
       required: true,
     },
@@ -119,7 +119,7 @@ export default Vue.extend({
       }
       this.deleting = true;
       this.globalGroupStore
-        .deleteGroupMember(this.groupId, this.member.id)
+        .deleteGroupMember(this.groupCode, this.member.id)
         .then(() => this.$emit('deleted'))
         .then(() =>
           this.showSuccess(

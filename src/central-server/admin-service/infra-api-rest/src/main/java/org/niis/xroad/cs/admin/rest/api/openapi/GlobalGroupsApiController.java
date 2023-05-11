@@ -91,16 +91,17 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
 
         var persistedGlobalGroup = globalGroupService.addGlobalGroup(globalGroup);
         return new ResponseEntity<>(
-                globalGroupConverter.convert(persistedGlobalGroup, globalGroupService.countGroupMembers(persistedGlobalGroup.getId())),
+                globalGroupConverter.convert(persistedGlobalGroup,
+                        globalGroupService.countGroupMembers(persistedGlobalGroup.getGroupCode())),
                 CREATED);
     }
 
     @Override
     @PreAuthorize("hasAuthority('ADD_AND_REMOVE_GROUP_MEMBERS')")
     @AuditEventMethod(event = RestApiAuditEvent.ADD_GLOBAL_GROUP_MEMBERS)
-    public ResponseEntity<MembersDto> addGlobalGroupMembers(Integer groupId, MembersDto members) {
+    public ResponseEntity<MembersDto> addGlobalGroupMembers(String groupCode, MembersDto members) {
         final var response = new MembersDto();
-        response.setItems(globalGroupService.addGlobalGroupMembers(groupId, toMembersList(members)));
+        response.setItems(globalGroupService.addGlobalGroupMembers(groupCode, toMembersList(members)));
         return status(CREATED)
                 .body(response);
     }
@@ -108,16 +109,16 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.DELETE_GLOBAL_GROUP)
     @PreAuthorize("hasAuthority('DELETE_GROUP')")
-    public ResponseEntity<Void> deleteGlobalGroup(Integer groupId) {
-        globalGroupService.deleteGlobalGroupMember(groupId);
+    public ResponseEntity<Void> deleteGlobalGroup(String groupCode) {
+        globalGroupService.deleteGlobalGroupMember(groupCode);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.DELETE_GLOBAL_GROUP_MEMBER)
     @PreAuthorize("hasAuthority('ADD_AND_REMOVE_GROUP_MEMBERS')")
-    public ResponseEntity<Void> deleteGlobalGroupMember(Integer groupId, Integer memberId) {
-        globalGroupMemberService.removeMemberFromGlobalGroup(groupId, memberId);
+    public ResponseEntity<Void> deleteGlobalGroupMember(String groupCode, Integer memberId) {
+        globalGroupMemberService.removeMemberFromGlobalGroup(groupCode, memberId);
         return ResponseEntity.noContent().build();
     }
 
@@ -134,9 +135,9 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_GROUP_DETAILS')")
-    public ResponseEntity<PagedGroupMemberListViewDto> findGlobalGroupMembers(Integer groupId, GroupMembersFilterDto filter) {
+    public ResponseEntity<PagedGroupMemberListViewDto> findGlobalGroupMembers(String groupCode, GroupMembersFilterDto filter) {
         var pageRequest = pageRequestConverter.convert(filter.getPagingSorting(), findSortParameterConverter);
-        var resultPage = globalGroupMemberService.find(groupMemberViewConverter.convert(groupId, filter), pageRequest);
+        var resultPage = globalGroupMemberService.find(groupMemberViewConverter.convert(groupCode, filter), pageRequest);
 
         PagedGroupMemberListViewDto pagedResults = pagedGroupMemberConverter.convert(resultPage, filter.getPagingSorting());
         return ok(pagedResults);
@@ -144,17 +145,17 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_GROUP_DETAILS')")
-    public ResponseEntity<GlobalGroupResourceDto> getGlobalGroup(Integer groupId) {
+    public ResponseEntity<GlobalGroupResourceDto> getGlobalGroup(String groupCode) {
         var globalGroup = globalGroupConverter.convert(
-                globalGroupService.getGlobalGroup(groupId),
-                globalGroupService.countGroupMembers(groupId));
+                globalGroupService.getGlobalGroup(groupCode),
+                globalGroupService.countGroupMembers(groupCode));
         return ok(globalGroup);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_GROUP_DETAILS')")
-    public ResponseEntity<GroupMembersFilterModelDto> getGroupMembersFilterModel(Integer groupId) {
-        var globalGroupMembers = globalGroupMemberService.findByGroupId(groupId);
+    public ResponseEntity<GroupMembersFilterModelDto> getGroupMembersFilterModel(String groupCode) {
+        var globalGroupMembers = globalGroupMemberService.findByGroupCode(groupCode);
         var groupMemberFilterModelDto = groupMemberFilterModelConverter.convert(globalGroupMembers);
 
         return ok(groupMemberFilterModelDto);
@@ -164,13 +165,13 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     @AuditEventMethod(event = RestApiAuditEvent.EDIT_GLOBAL_GROUP_DESCRIPTION)
     @PreAuthorize("hasAuthority('EDIT_GROUP_DESCRIPTION')")
     public ResponseEntity<GlobalGroupResourceDto> updateGlobalGroupDescription(
-            Integer groupId, GlobalGroupDescriptionDto globalGroupDescription) {
-        GlobalGroupUpdateDto updateDto = new GlobalGroupUpdateDto(groupId, globalGroupDescription.getDescription());
+            String groupCode, GlobalGroupDescriptionDto globalGroupDescription) {
+        GlobalGroupUpdateDto updateDto = new GlobalGroupUpdateDto(groupCode, globalGroupDescription.getDescription());
 
         var updatedGlobalGroup = globalGroupService.updateGlobalGroupDescription(updateDto);
         var updatedGlobalGroupDto = globalGroupConverter.convert(
                 updatedGlobalGroup,
-                globalGroupService.countGroupMembers(groupId));
+                globalGroupService.countGroupMembers(groupCode));
         return ok(updatedGlobalGroupDto);
     }
 
@@ -180,5 +181,4 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
                 .stream().flatMap(Collection::stream)
                 .collect(toList());
     }
-
 }

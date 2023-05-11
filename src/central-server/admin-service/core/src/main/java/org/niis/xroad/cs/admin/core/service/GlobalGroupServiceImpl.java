@@ -105,26 +105,26 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     }
 
     @Override
-    public GlobalGroup getGlobalGroup(Integer groupId) {
-        return Try.success(findGlobalGroupOrThrowException(groupId))
+    public GlobalGroup getGlobalGroup(String groupCode) {
+        return Try.success(findGlobalGroupOrThrowException(groupCode))
                 .map(globalGroupMapper::toTarget)
                 .get();
     }
 
     @Override
-    public void deleteGlobalGroupMember(Integer groupId) {
-        handleInternalDelete(findGlobalGroupOrThrowException(groupId));
+    public void deleteGlobalGroupMember(String groupCode) {
+        handleInternalDelete(findGlobalGroupOrThrowException(groupCode));
     }
 
     @Override
     public GlobalGroup updateGlobalGroupDescription(GlobalGroupUpdateDto updateDto) {
-        GlobalGroupEntity globalGroup = findGlobalGroupOrThrowException(updateDto.getGroupId());
+        GlobalGroupEntity globalGroup = findGlobalGroupOrThrowException(updateDto.getGroupCode());
         return handleInternalUpdate(globalGroup, updateDto);
     }
 
     @Override
-    public List<String> addGlobalGroupMembers(Integer groupId, List<String> membersToAdd) {
-        final var group = findGlobalGroupOrThrowException(groupId);
+    public List<String> addGlobalGroupMembers(String groupCode, List<String> membersToAdd) {
+        final var group = findGlobalGroupOrThrowException(groupCode);
 
         addAuditData(group);
         verifyCompositionEditability(group.getGroupCode(), CANNOT_ADD_MEMBER_TO_OWNERS_GROUP);
@@ -137,8 +137,8 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     }
 
     @Override
-    public int countGroupMembers(Integer groupId) {
-        return globalGroupRepository.countGroupMembers(groupId);
+    public int countGroupMembers(String groupCode) {
+        return globalGroupRepository.countGroupMembers(groupCode);
     }
 
     @Override
@@ -170,8 +170,8 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
         }
     }
 
-    private GlobalGroupEntity findGlobalGroupOrThrowException(Integer groupId) {
-        return globalGroupRepository.findById(groupId)
+    private GlobalGroupEntity findGlobalGroupOrThrowException(String groupCode) {
+        return globalGroupRepository.getByGroupCode(groupCode)
                 .orElseThrow(() -> new NotFoundException(GLOBAL_GROUP_NOT_FOUND));
     }
 

@@ -120,7 +120,7 @@
 
     <!-- Dialogs -->
     <group-members-filter-dialog
-      :group-id="groupId"
+      :group-code="groupCode"
       :dialog="showFilterDialog"
       cancel-button-text="action.cancel"
       @cancel="cancelFilter"
@@ -128,12 +128,12 @@
     />
     <add-group-members-dialog
       ref="addDialog"
-      :group-id="groupId"
+      :group-code="groupCode"
       @added="refreshList"
     />
     <delete-group-member-dialog
       ref="deleteDialog"
-      :group-id="groupId"
+      :group-code="groupCode"
       @deleted="refreshList"
     />
   </section>
@@ -165,7 +165,7 @@ export default Vue.extend({
     GroupMembersFilterDialog,
   },
   props: {
-    groupId: {
+    groupCode: {
       type: String,
       required: true,
     },
@@ -269,7 +269,7 @@ export default Vue.extend({
     ) {
       this.loading = true;
       try {
-        await this.globalGroupStore.findMembers(this.groupId, options, filter);
+        await this.globalGroupStore.findMembers(this.groupCode, options, filter);
       } catch (error: unknown) {
         this.showError(error);
       } finally {

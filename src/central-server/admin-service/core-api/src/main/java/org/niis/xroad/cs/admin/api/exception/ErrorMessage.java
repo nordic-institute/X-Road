@@ -69,7 +69,7 @@ public enum ErrorMessage implements DeviationProvider {
     INVALID_SERVICE_PROVIDER_ID("invalid_service_provider_id", "Invalid service provider id"),
     INVALID_MEMBER_ID("invalid_member_id", "Invalid member id"),
     INVALID_SUBSYSTEM_ID("invalid_subsystem_id", "Invalid subsystem id"),
-    GLOBAL_GROUP_NOT_FOUND("global_group_not_found", "Global group by given id does not exist"),
+    GLOBAL_GROUP_NOT_FOUND("global_group_not_found", "Global group by given code does not exist"),
     GLOBAL_GROUP_MEMBER_MISMATCH("global_group_member_mismatch", "Global member is not a member of the global group"),
     OWNERS_GLOBAL_GROUP_CANNOT_BE_DELETED("owners_global_group_cannot_be_deleted", "Cannot perform delete action on server owners group"),
     OWNERS_GLOBAL_GROUP_MEMBER_CANNOT_BE_DELETED("owners_global_group_member_cannot_be_deleted",

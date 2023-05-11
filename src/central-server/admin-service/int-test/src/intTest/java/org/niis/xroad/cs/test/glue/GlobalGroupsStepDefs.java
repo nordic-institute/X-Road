@@ -88,9 +88,6 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
 
             validate(response)
                     .assertion(equalsStatusCodeAssertion(CREATED))
-                    .assertion(notNullAssertion("body.id"))
-                    .assertion(notNullAssertion("body.createdAt"))
-                    .assertion(notNullAssertion("body.updatedAt"))
                     .assertion(equalsAssertion(groupCode, "body.code"))
                     .assertion(equalsAssertion(description, "body.description"))
                     .assertion(equalsAssertion(0, "body.memberCount"))
@@ -116,7 +113,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                 .forEach(members.getItems()::add);
 
         try {
-            final ResponseEntity<MembersDto> response = globalGroupsApi.addGlobalGroupMembers(resolveGlobalGroupId(groupCode), members);
+            final ResponseEntity<MembersDto> response = globalGroupsApi.addGlobalGroupMembers(groupCode, members);
 
             validate(response)
                     .assertion(equalsStatusCodeAssertion(CREATED))
@@ -138,26 +135,20 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                 .description(description);
 
         final ResponseEntity<GlobalGroupResourceDto> response =
-                globalGroupsApi.updateGlobalGroupDescription(resolveGlobalGroupId(groupCode), dto);
+                globalGroupsApi.updateGlobalGroupDescription(groupCode, dto);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(notNullAssertion("body.id"))
-                .assertion(notNullAssertion("body.createdAt"))
-                .assertion(notNullAssertion("body.updatedAt"))
                 .assertion(equalsAssertion(description, "body.description"))
                 .execute();
     }
 
     @Step("global group {string} description is {string}")
     public void globalGroupTestGroupDescriptionIsNewDescription(String groupCode, String description) {
-        final ResponseEntity<GlobalGroupResourceDto> response = globalGroupsApi.getGlobalGroup(resolveGlobalGroupId(groupCode));
+        final ResponseEntity<GlobalGroupResourceDto> response = globalGroupsApi.getGlobalGroup(groupCode);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(notNullAssertion("body.id"))
-                .assertion(notNullAssertion("body.createdAt"))
-                .assertion(notNullAssertion("body.updatedAt"))
                 .assertion(equalsAssertion(groupCode, "body.code"))
                 .assertion(equalsAssertion(description, "body.description"))
                 .execute();
@@ -166,13 +157,10 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
     @Step("global group {string} has {int} member")
     @Step("global group {string} has {int} members")
     public void globalGroupTestGroupMemberCount(String groupCode, int members) {
-        final ResponseEntity<GlobalGroupResourceDto> response = globalGroupsApi.getGlobalGroup(resolveGlobalGroupId(groupCode));
+        final ResponseEntity<GlobalGroupResourceDto> response = globalGroupsApi.getGlobalGroup(groupCode);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(notNullAssertion("body.id"))
-                .assertion(notNullAssertion("body.createdAt"))
-                .assertion(notNullAssertion("body.updatedAt"))
                 .assertion(equalsAssertion(groupCode, "body.code"))
                 .assertion(equalsAssertion(members, "body.memberCount"))
                 .execute();
@@ -190,7 +178,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
 
     @Step("global group {string} is deleted")
     public void globalGroupTestGroupIsDeleted(String code) {
-        final ResponseEntity<Void> response = globalGroupsApi.deleteGlobalGroup(resolveGlobalGroupId(code));
+        final ResponseEntity<Void> response = globalGroupsApi.deleteGlobalGroup(code);
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(NO_CONTENT))
@@ -211,7 +199,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
     @Step("global group {string} member {int} is deleted")
     public void globalGroupMemberIsDeleted(String code, Integer memberId) {
         try {
-            final ResponseEntity<Void> response = globalGroupsApi.deleteGlobalGroupMember(resolveGlobalGroupId(code), memberId);
+            final ResponseEntity<Void> response = globalGroupsApi.deleteGlobalGroupMember(code, memberId);
 
             putStepData(RESPONSE, response);
             putStepData(RESPONSE_STATUS, response.getStatusCodeValue());
@@ -231,7 +219,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                 .pagingSorting(new PagingSortingParametersDto().limit(pageSize));
         try {
             final ResponseEntity<PagedGroupMemberListViewDto> response = globalGroupsApi
-                    .findGlobalGroupMembers(resolveGlobalGroupId(groupCode), filterDto);
+                    .findGlobalGroupMembers(groupCode, filterDto);
 
             putStepData(RESPONSE, response);
             putStepData(RESPONSE_STATUS, response.getStatusCodeValue());
@@ -250,9 +238,8 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
         ResponseEntity<PagedGroupMemberListViewDto> response = getRequiredStepData(RESPONSE);
         validate(response)
                 .assertion(equalsAssertion(0, "body.items.?[name=='" + memberCode + "'].size()",
-                        "Timestamping services list contains the added service"))
+                        "Global group member list contains the member"))
                 .execute();
-
     }
 
     @Step("global group {string} members list is queried and validated using params")
@@ -275,7 +262,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
             filterDto.setPagingSorting(pagingSortingDto);
 
             final ResponseEntity<PagedGroupMemberListViewDto> response = globalGroupsApi
-                    .findGlobalGroupMembers(resolveGlobalGroupId(code), filterDto);
+                    .findGlobalGroupMembers(code, filterDto);
 
             final ValidationHelper validations = validate(response)
                     .assertion(equalsStatusCodeAssertion(OK))
@@ -302,14 +289,6 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                 .orElse(null);
     }
 
-    private Integer resolveGlobalGroupId(String groupCode) {
-        return globalGroupsApi.findGlobalGroups().getBody().stream()
-                .filter(group -> groupCode.equals(group.getCode()))
-                .map(GlobalGroupResourceDto::getId)
-                .findFirst()
-                .orElseThrow();
-    }
-
     private Optional<Integer> resolveGlobalGroupMemberId(String groupCode, String memberName) {
         final GroupMembersFilterDto filterDto = new GroupMembersFilterDto();
 
@@ -321,7 +300,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
         filterDto.setPagingSorting(pagingSortingDto);
 
         final ResponseEntity<PagedGroupMemberListViewDto> response = globalGroupsApi
-                .findGlobalGroupMembers(resolveGlobalGroupId(groupCode), filterDto);
+                .findGlobalGroupMembers(groupCode, filterDto);
 
         return response.getBody().getItems().stream()
                 .filter(member -> memberName.equals(member.getName()))
@@ -333,7 +312,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
     @Step("global group {string} has filter model as follows")
     public void globalGroupHasFilterModelAsFollows(String groupCode, DataTable dataTable) {
         final ResponseEntity<GroupMembersFilterModelDto> response =
-                globalGroupsApi.getGroupMembersFilterModel(resolveGlobalGroupId(groupCode));
+                globalGroupsApi.getGroupMembersFilterModel(groupCode);
 
         final Map<String, String> values = dataTable.asMap();
 
@@ -358,7 +337,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
     @Step("deleting not existing group fails with status code {int} and error code {string}")
     public void deletingNotExistingGroup(int status, String error) {
         try {
-            globalGroupsApi.deleteGlobalGroup(Integer.MIN_VALUE);
+            globalGroupsApi.deleteGlobalGroup("random");
             fail("should fail");
         } catch (FeignException feignException) {
             validateErrorResponse(status, error, feignException);
@@ -368,7 +347,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
     @Step("deleting global group {string} fails with status code {int} and error code {string}")
     public void deletingGlobalGroupFailsWithStatusCodeAndErrorCode(String groupCode, int status, String error) {
         try {
-            globalGroupsApi.deleteGlobalGroup(resolveGlobalGroupId(groupCode));
+            globalGroupsApi.deleteGlobalGroup(groupCode);
             fail("should fail");
         } catch (FeignException feignException) {
             validateErrorResponse(status, error, feignException);

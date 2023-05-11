@@ -174,11 +174,11 @@ class SharedParametersLoader {
         return new SharedParameters.GlobalGroup(
                 globalGroup.getGroupCode(),
                 globalGroup.getDescription(),
-                getGroupMembers(globalGroup.getId()));
+                getGroupMembers(globalGroup.getGroupCode()));
     }
 
-    private List<ClientId> getGroupMembers(int id) {
-        return globalGroupMemberService.findByGroupId(id).stream()
+    private List<ClientId> getGroupMembers(String groupCode) {
+        return globalGroupMemberService.findByGroupCode(groupCode).stream()
                 .map(GlobalGroupMember::getIdentifier)
                 .collect(toList());
     }

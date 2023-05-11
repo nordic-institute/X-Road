@@ -119,12 +119,12 @@ class GlobalGroupServiceImplTest {
 
     @Test
     void getGlobalGroupResultsInException() {
-        assertThrows(NotFoundException.class, () -> service.getGlobalGroup(1));
+        assertThrows(NotFoundException.class, () -> service.getGlobalGroup("code"));
     }
 
     @Test
     void updateGlobalGroupDescriptionResultsInException() {
-        GlobalGroupUpdateDto updateDto = new GlobalGroupUpdateDto(1, "New description");
+        GlobalGroupUpdateDto updateDto = new GlobalGroupUpdateDto("code", "New description");
         assertThrows(NotFoundException.class, () -> service.updateGlobalGroupDescription(updateDto));
     }
 
@@ -132,11 +132,11 @@ class GlobalGroupServiceImplTest {
     void deleteGlobalGroupResultsInException() {
         GlobalGroupEntity entity = new GlobalGroupEntity();
         entity.setGroupCode(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
-        when(globalGroupRepository.findById(1)).thenReturn(Optional.of(entity));
+        when(globalGroupRepository.getByGroupCode("code")).thenReturn(Optional.of(entity));
         SystemParameterEntity systemParameter = new SystemParameterEntity();
         systemParameter.setValue(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
         when(systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP)).thenReturn(List.of(systemParameter));
 
-        assertThrows(ValidationFailureException.class, () -> service.deleteGlobalGroupMember(1));
+        assertThrows(ValidationFailureException.class, () -> service.deleteGlobalGroupMember("code"));
     }
 }

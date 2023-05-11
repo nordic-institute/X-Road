@@ -71,9 +71,9 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
           this.groupsLoading = false;
         });
     },
-    getById(groupId: string) {
+    getByCode(groupCode: string) {
       return axios
-        .get<GlobalGroupResource>(`/global-groups/${groupId}`)
+        .get<GlobalGroupResource>(`/global-groups/${groupCode}`)
         .then((resp) => resp.data)
         .catch((error) => {
           throw error;
@@ -90,7 +90,7 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
         });
     },
     async findMembers(
-      groupId: string,
+      groupCode: string,
       dataOptions: DataOptions,
       filter: GroupMembersFilter,
     ) {
@@ -104,7 +104,7 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
 
       return axios
         .post<PagedGroupMemberListView>(
-          `/global-groups/${groupId}/members/`,
+          `/global-groups/${groupCode}/members/`,
           filter,
         )
         .then((resp) => {
@@ -117,28 +117,28 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
         .post('/global-groups', codeAndDescription)
         .finally(() => this.findAll());
     },
-    addGroupMembers(groupId: string, clientIds: string[]) {
+    addGroupMembers(groupCode: string, clientIds: string[]) {
       const request: Members = {
         items: clientIds,
       };
       return axios.post<Members>(
-        `/global-groups/${groupId}/members/add`,
+        `/global-groups/${groupCode}/members/add`,
         request,
       );
     },
-    deleteGroupMember(groupId: string, memberId: number) {
-      return axios.delete(`/global-groups/${groupId}/members/${memberId}`);
+    deleteGroupMember(groupCode: string, memberId: number) {
+      return axios.delete(`/global-groups/${groupCode}/members/${memberId}`);
     },
-    deleteById(groupId: string) {
+    deleteByCode(groupCode: string) {
       return axios
-        .delete<GlobalGroupResource>(`/global-groups/${groupId}`)
+        .delete<GlobalGroupResource>(`/global-groups/${groupCode}`)
         .catch((error) => {
           throw error;
         });
     },
-    editGroupDescription(groupId: string, description: GlobalGroupDescription) {
+    editGroupDescription(groupCode: string, description: GlobalGroupDescription) {
       return axios
-        .patch<GlobalGroupResource>(`/global-groups/${groupId}`, description)
+        .patch<GlobalGroupResource>(`/global-groups/${groupCode}`, description)
         .catch((error) => {
           throw error;
         });

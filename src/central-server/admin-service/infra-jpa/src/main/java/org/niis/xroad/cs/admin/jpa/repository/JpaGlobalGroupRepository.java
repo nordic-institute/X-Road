@@ -40,8 +40,8 @@ import java.util.Optional;
 public interface JpaGlobalGroupRepository extends JpaRepository<GlobalGroupEntity, Integer>, GlobalGroupRepository {
     Optional<GlobalGroupEntity> getByGroupCode(String code);
 
-    @Query("select count(ggm.id) from GlobalGroupMemberEntity ggm where ggm.globalGroup.id = :groupId")
-    int countGroupMembers(Integer groupId);
+    @Query("select count(ggm.id) from GlobalGroupMemberEntity ggm where ggm.globalGroup.groupCode = :groupCode")
+    int countGroupMembers(String groupCode);
 
     @Query("select new org.niis.xroad.cs.admin.core.entity.GroupMemberCount(ggm.globalGroup.id, count(ggm.id)) "
             + "from GlobalGroupMemberEntity ggm group by ggm.globalGroup.id")

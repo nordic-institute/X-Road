@@ -43,18 +43,18 @@ public interface GlobalGroupMemberService {
 
     Page<GlobalGroupMemberView> find(Criteria criteria, PageRequestDto pageRequest);
 
-    List<GlobalGroupMember> findByGroupId(Integer groupId);
+    List<GlobalGroupMember> findByGroupCode(String groupCode);
 
     void addMemberToGlobalGroup(MemberId memberId, String groupCode);
 
-    void removeMemberFromGlobalGroup(Integer groupId, Integer memberId);
+    void removeMemberFromGlobalGroup(String groupCode, Integer memberId);
 
     void removeMemberFromGlobalGroup(MemberId memberId, String groupCode);
 
     @Builder
     @Getter
     class Criteria {
-        private final Integer groupId;
+        private final String groupCode;
         private final String query;
         private final String memberClass;
         private final String instance;

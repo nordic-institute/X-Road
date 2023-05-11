@@ -122,7 +122,7 @@ class SharedParametersLoaderTest {
                 .thenReturn(List.of(getFlattenedSecurityServerClientView("M2", "S1")));
 
         when(globalGroupService.findGlobalGroups()).thenReturn(List.of(getGlobalGroup()));
-        when(globalGroupMemberService.findByGroupId(GLOBAL_GROUP_ID)).thenReturn(List.of(
+        when(globalGroupMemberService.findByGroupCode(GLOBAL_GROUP_CODE)).thenReturn(List.of(
                 new GlobalGroupMember(null, ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S2"))));
 
         when(memberClassService.findAll()).thenReturn(List.of(new MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION)));

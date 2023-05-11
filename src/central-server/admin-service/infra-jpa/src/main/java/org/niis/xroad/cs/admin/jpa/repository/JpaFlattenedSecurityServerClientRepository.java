@@ -31,6 +31,7 @@ import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity;
 import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity_;
 import org.niis.xroad.cs.admin.core.entity.FlattenedServerClientEntity_;
+import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity_;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity_;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity_;
@@ -229,7 +230,7 @@ public interface JpaFlattenedSecurityServerClientRepository extends
         return builder.equal(securityServer.get(FlattenedSecurityServerClientViewEntity_.ID), id);
     }
 
-    static Predicate clientNotPartOfGroupPredicate(Root root, CriteriaBuilder builder, Integer groupId) {
+    static Predicate clientNotPartOfGroupPredicate(Root root, CriteriaBuilder builder, String groupCode) {
         var criteriaQuery = builder.createQuery();
 
         var memberClass = root.join(FlattenedSecurityServerClientViewEntity_.MEMBER_CLASS);
@@ -237,10 +238,11 @@ public interface JpaFlattenedSecurityServerClientRepository extends
         var subquery = criteriaQuery.subquery(Integer.class);
         var globalGroupMember = subquery.from(GlobalGroupMemberEntity.class);
         var identifier = globalGroupMember.join(GlobalGroupMemberEntity_.IDENTIFIER);
+        var globalGroup = globalGroupMember.join(GlobalGroupMemberEntity_.globalGroup);
         subquery
                 .select(identifier.get(XRoadIdEntity_.ID))
                 .where(
-                        builder.equal(globalGroupMember.get(GlobalGroupMemberEntity_.GLOBAL_GROUP), groupId),
+                        builder.equal(globalGroup.get(GlobalGroupEntity_.GROUP_CODE), groupCode),
                         builder.equal(identifier.get(XRoadIdEntity_.X_ROAD_INSTANCE),
                                 root.get(FlattenedSecurityServerClientViewEntity_.XROAD_INSTANCE)),
                         builder.equal(identifier.get(XRoadIdEntity_.MEMBER_CLASS),

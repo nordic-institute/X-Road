@@ -171,7 +171,7 @@ export default Vue.extend({
   name: 'GroupMembersFilterDialog',
   components: {},
   props: {
-    groupId: {
+    groupCode: {
       type: String,
       required: true,
     },
@@ -210,7 +210,7 @@ export default Vue.extend({
     ...mapStores(useGlobalGroupsStore),
   },
   created() {
-    this.globalGroupStore.getMembersFilterModel(this.groupId).then((resp) => {
+    this.globalGroupStore.getMembersFilterModel(this.groupCode).then((resp) => {
       this.instances = resp.instances;
       this.memberClasses = resp.memberClasses;
       this.subsystems = resp.subsystems;

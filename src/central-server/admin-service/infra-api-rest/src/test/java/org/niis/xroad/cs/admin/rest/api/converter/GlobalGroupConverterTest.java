@@ -31,8 +31,6 @@ import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.openapi.model.GlobalGroupCodeAndDescriptionDto;
 import org.niis.xroad.cs.openapi.model.GlobalGroupResourceDto;
 
-import java.time.ZoneOffset;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class GlobalGroupConverterTest {
@@ -45,12 +43,9 @@ class GlobalGroupConverterTest {
 
         GlobalGroupResourceDto result = converter.convert(mockEntity, COUNT);
 
-        assertThat(result.getId()).isEqualTo(mockEntity.getId());
         assertThat(result.getCode()).isEqualTo(mockEntity.getGroupCode());
         assertThat(result.getDescription()).isEqualTo(mockEntity.getDescription());
         assertThat(result.getMemberCount()).isEqualTo(COUNT);
-        assertThat(result.getCreatedAt()).isEqualTo(mockEntity.getCreatedAt().atOffset(ZoneOffset.UTC));
-        assertThat(result.getUpdatedAt()).isEqualTo(mockEntity.getUpdatedAt().atOffset(ZoneOffset.UTC));
     }
 
     @Test

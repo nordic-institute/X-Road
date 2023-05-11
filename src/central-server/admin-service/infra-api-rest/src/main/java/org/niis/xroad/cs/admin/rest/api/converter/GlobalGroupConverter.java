@@ -31,20 +31,15 @@ import org.niis.xroad.cs.openapi.model.GlobalGroupCodeAndDescriptionDto;
 import org.niis.xroad.cs.openapi.model.GlobalGroupResourceDto;
 import org.springframework.stereotype.Component;
 
-import java.time.ZoneOffset;
-
 @Component
 @RequiredArgsConstructor
 public class GlobalGroupConverter {
 
     public GlobalGroupResourceDto convert(GlobalGroup entity, int count) {
         return new GlobalGroupResourceDto()
-                .id(entity.getId())
                 .code(entity.getGroupCode())
                 .memberCount(count)
-                .description(entity.getDescription())
-                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC))
-                .updatedAt(entity.getUpdatedAt().atOffset(ZoneOffset.UTC));
+                .description(entity.getDescription());
     }
 
     public GlobalGroup toEntity(

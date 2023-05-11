@@ -148,7 +148,7 @@ export default Vue.extend({
     toDetails(globalGroup: GlobalGroupResource): void {
       this.$router.push({
         name: RouteName.GlobalGroup,
-        params: { groupId: String(globalGroup.id) || '' },
+        params: { groupCode: globalGroup.code || '' },
       });
     },
     fetchAllGroups(): void {

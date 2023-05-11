@@ -142,7 +142,7 @@ let that: any;
 
 export default Vue.extend({
   props: {
-    groupId: {
+    groupCode: {
       type: String,
       required: true,
     },
@@ -243,7 +243,7 @@ export default Vue.extend({
       this.loading = true;
       return this.clientStore
         .getByExcludingGroup(
-          this.groupId,
+          this.groupCode,
           this.search,
           this.pagingSortingOptions,
         )
@@ -273,7 +273,7 @@ export default Vue.extend({
         toIdentifier(client.client_id),
       );
       this.globalGroupStore
-        .addGroupMembers(this.groupId, clientIds)
+        .addGroupMembers(this.groupCode, clientIds)
         .then((resp) => this.$emit('added', resp.data.items))
         .then(() => (this.opened = false))
         .then(() => this.showSuccessMessage(clientIds))
