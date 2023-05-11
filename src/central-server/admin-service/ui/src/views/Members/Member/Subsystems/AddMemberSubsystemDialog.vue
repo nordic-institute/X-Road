@@ -102,8 +102,6 @@ export default Vue.extend({
             member_class: this.memberStore.currentMember.client_id.member_class,
             member_code: this.memberStore.currentMember.client_id.member_code,
             subsystem_code: this.subsystemCode,
-            type: XRoadId.type.SUBSYSTEM,
-            instance_id: instanceId,
           },
         })
         .then(() => {

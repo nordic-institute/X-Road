@@ -26,16 +26,20 @@
  */
 package org.niis.xroad.cs.admin.rest.api.converter;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
-import org.niis.xroad.cs.openapi.model.ClientIdDto;
+import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.openapi.model.MemberAddDto;
-import org.niis.xroad.cs.openapi.model.XRoadIdDto;
+import org.niis.xroad.cs.openapi.model.NewMemberIdDto;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class MemberCreationRequestMapper implements GenericUniDirectionalMapper<MemberAddDto, MemberCreationRequest> {
+
+    private final SystemParameterService systemParameterService;
 
     @Override
     public MemberCreationRequest toTarget(MemberAddDto source) {
@@ -47,13 +51,10 @@ public class MemberCreationRequestMapper implements GenericUniDirectionalMapper<
                 memberId);
     }
 
-    private MemberId createMemberId(ClientIdDto source) {
-        if (source.getType() != XRoadIdDto.TypeEnum.MEMBER) {
-            throw new IllegalArgumentException("illegal ClientId type: " + source.getType());
-        }
+    private MemberId createMemberId(NewMemberIdDto source) {
 
         return MemberId.create(
-                source.getInstanceId(),
+                systemParameterService.getInstanceIdentifier(),
                 source.getMemberClass(),
                 source.getMemberCode());
     }

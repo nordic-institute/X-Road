@@ -30,10 +30,10 @@ package org.niis.xroad.cs.test.glue;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ClientDto;
-import org.niis.xroad.cs.openapi.model.ClientIdDto;
 import org.niis.xroad.cs.openapi.model.MemberAddDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
 import org.niis.xroad.cs.openapi.model.MemberNameDto;
+import org.niis.xroad.cs.openapi.model.NewMemberIdDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SubsystemDto;
 import org.niis.xroad.cs.test.api.FeignMembersApi;
@@ -67,11 +67,9 @@ public class MembersApiStepDefs extends BaseStepDefs {
     public void newMemberAddedWithName(String memberId, String name) {
         final String[] idParts = split(memberId, ':');
 
-        final ClientIdDto clientIdDto = new ClientIdDto()
+        final var clientIdDto = new NewMemberIdDto()
                 .memberClass(idParts[1])
                 .memberCode(idParts[2]);
-        clientIdDto.setType(MEMBER);
-        clientIdDto.setInstanceId(idParts[0]);
 
         final MemberAddDto dto = new MemberAddDto()
                 .memberName(name)

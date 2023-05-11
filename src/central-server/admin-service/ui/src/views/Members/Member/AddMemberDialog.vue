@@ -127,8 +127,6 @@ export default Vue.extend({
           member_id: {
             member_class: this.memberClass,
             member_code: this.memberCode,
-            type: XRoadId.type.MEMBER,
-            instance_id: instanceId,
           },
         })
         .then(() => {

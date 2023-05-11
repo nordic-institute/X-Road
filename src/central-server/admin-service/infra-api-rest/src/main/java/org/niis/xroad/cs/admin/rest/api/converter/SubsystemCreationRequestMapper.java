@@ -26,16 +26,20 @@
  */
 package org.niis.xroad.cs.admin.rest.api.converter;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
-import org.niis.xroad.cs.openapi.model.ClientIdDto;
+import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.openapi.model.NewSubsystemIdDto;
 import org.niis.xroad.cs.openapi.model.SubsystemAddDto;
-import org.niis.xroad.cs.openapi.model.XRoadIdDto;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class SubsystemCreationRequestMapper implements GenericUniDirectionalMapper<SubsystemAddDto, SubsystemCreationRequest> {
+
+    private final SystemParameterService systemParameterService;
 
     @Override
     public SubsystemCreationRequest toTarget(SubsystemAddDto source) {
@@ -46,13 +50,10 @@ public class SubsystemCreationRequestMapper implements GenericUniDirectionalMapp
                 subsystemId);
     }
 
-    private SubsystemId createSubsystemId(ClientIdDto source) {
-        if (source.getType() != XRoadIdDto.TypeEnum.SUBSYSTEM) {
-            throw new IllegalArgumentException("illegal ClientId type: " + source.getType());
-        }
+    private SubsystemId createSubsystemId(NewSubsystemIdDto source) {
 
         return SubsystemId.create(
-                source.getInstanceId(),
+                systemParameterService.getInstanceIdentifier(),
                 source.getMemberClass(),
                 source.getMemberCode(),
                 source.getSubsystemCode());
