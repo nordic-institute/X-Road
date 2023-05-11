@@ -51,9 +51,9 @@ public class GroupMemberViewConverter {
                 .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
     }
 
-    public GlobalGroupMemberService.Criteria convert(Integer groupId, GroupMembersFilterDto filter) {
+    public GlobalGroupMemberService.Criteria convert(String groupCode, GroupMembersFilterDto filter) {
         return GlobalGroupMemberService.Criteria.builder()
-                .groupId(groupId)
+                .groupCode(groupCode)
                 .query(filter.getQuery())
                 .memberClass(filter.getMemberClass())
                 .instance(filter.getInstance())

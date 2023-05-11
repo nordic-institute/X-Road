@@ -103,7 +103,7 @@ export default Vue.extend({
     InfoCard,
   },
   props: {
-    groupId: {
+    groupCode: {
       type: String,
       required: true,
     },
@@ -135,7 +135,7 @@ export default Vue.extend({
   created() {
     this.loading = true;
     this.globalGroupStore
-      .getById(this.groupId)
+      .getByCode(this.groupCode)
       .then((resp) => {
         this.globalGroup = resp;
       })
@@ -156,7 +156,7 @@ export default Vue.extend({
     },
     deleteGlobalGroup(): void {
       this.globalGroupStore
-        .deleteById(this.groupId)
+        .deleteByCode(this.groupCode)
         .then(() => {
           this.$router.replace({ name: RouteName.GlobalResources });
           this.showSuccess(this.$t('globalGroup.groupDeletedSuccessfully'));
@@ -170,7 +170,7 @@ export default Vue.extend({
     },
     editDescription(newDescription: string): void {
       this.globalGroupStore
-        .editGroupDescription(this.groupId, { description: newDescription })
+        .editGroupDescription(this.groupCode, { description: newDescription })
         .then((resp) => {
           this.globalGroup = resp.data;
           this.showSuccess(this.$t('globalGroup.descriptionSaved'));

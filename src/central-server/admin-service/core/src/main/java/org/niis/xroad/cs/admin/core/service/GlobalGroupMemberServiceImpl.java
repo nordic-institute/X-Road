@@ -93,8 +93,8 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
     }
 
     @Override
-    public List<GlobalGroupMember> findByGroupId(Integer groupId) {
-        return globalGroupMemberRepository.findByGlobalGroupId(groupId).stream()
+    public List<GlobalGroupMember> findByGroupCode(String groupCode) {
+        return globalGroupMemberRepository.findByGlobalGroupGroupCode(groupCode).stream()
                 .map(globalGroupMemberMapper::toTarget)
                 .collect(toList());
     }
@@ -111,7 +111,7 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
     }
 
     @Override
-    public void removeMemberFromGlobalGroup(Integer groupId, Integer memberId) {
+    public void removeMemberFromGlobalGroup(String groupCode, Integer memberId) {
         var globalGroupMemberEntity = globalGroupMemberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND, memberId));
         var globalGroup = globalGroupMemberEntity.getGlobalGroup();
@@ -122,10 +122,10 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
 
         globalGroupService.verifyCompositionEditability(globalGroup.getGroupCode(), OWNERS_GLOBAL_GROUP_MEMBER_CANNOT_BE_DELETED);
 
-        if (Objects.equals(globalGroupMemberEntity.getGlobalGroup().getId(), groupId)) {
+        if (Objects.equals(globalGroupMemberEntity.getGlobalGroup().getGroupCode(), groupCode)) {
             globalGroupMemberRepository.delete(globalGroupMemberEntity);
         } else {
-            throw new ValidationFailureException(GLOBAL_GROUP_MEMBER_MISMATCH, groupId);
+            throw new ValidationFailureException(GLOBAL_GROUP_MEMBER_MISMATCH, groupCode);
         }
     }
 

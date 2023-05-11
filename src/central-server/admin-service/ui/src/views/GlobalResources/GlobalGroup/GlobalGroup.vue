@@ -26,9 +26,9 @@
  -->
 <template>
   <details-view back-to="/settings/global-resources">
-    <global-group-details :group-id="groupId" />
+    <global-group-details :group-code="groupCode" />
 
-    <global-group-members :group-id="groupId" />
+    <global-group-members :group-code="groupCode" />
   </details-view>
 </template>
 
@@ -48,7 +48,7 @@ export default Vue.extend({
     GlobalGroupDetails,
   },
   props: {
-    groupId: {
+    groupCode: {
       type: String,
       required: true,
     },

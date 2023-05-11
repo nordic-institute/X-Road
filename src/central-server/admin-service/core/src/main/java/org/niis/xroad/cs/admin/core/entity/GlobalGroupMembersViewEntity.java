@@ -55,8 +55,9 @@ public class GlobalGroupMembersViewEntity extends AuditableEntity {
     @Column(name = "id", unique = true, nullable = false)
     private int id;
 
-    @Column(name = "global_group_id")
-    private Integer globalGroupId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "global_group_id")
+    private GlobalGroupEntity globalGroup;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "group_member_id", nullable = false, updatable = false)

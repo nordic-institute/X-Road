@@ -135,7 +135,7 @@ const routes: RouteConfig[] = [
               },
               {
                 name: RouteName.GlobalGroup,
-                path: 'globalgroup/:groupId',
+                path: 'globalgroup/:groupCode',
                 component: GlobalGroup,
                 props: true,
                 meta: { permissions: [Permissions.VIEW_GROUP_DETAILS] },

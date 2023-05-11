@@ -40,15 +40,15 @@ public interface GlobalGroupService {
 
     GlobalGroup addGlobalGroup(GlobalGroup globalGroup);
 
-    GlobalGroup getGlobalGroup(Integer groupId);
+    GlobalGroup getGlobalGroup(String groupCode);
 
-    void deleteGlobalGroupMember(Integer groupId);
+    void deleteGlobalGroupMember(String groupCode);
 
     GlobalGroup updateGlobalGroupDescription(GlobalGroupUpdateDto updateDto);
 
-    List<String> addGlobalGroupMembers(Integer groupId, List<String> membersToAdd);
+    List<String> addGlobalGroupMembers(String groupCode, List<String> membersToAdd);
 
-    int countGroupMembers(Integer groupId);
+    int countGroupMembers(String groupCode);
 
     Map<Integer, Long> countGroupMembers();
 

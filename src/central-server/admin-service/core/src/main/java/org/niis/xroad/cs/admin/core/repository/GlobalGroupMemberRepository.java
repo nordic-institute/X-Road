@@ -32,7 +32,7 @@ import java.util.List;
 
 public interface GlobalGroupMemberRepository extends GenericRepository<GlobalGroupMemberEntity, Integer> {
 
-    List<GlobalGroupMemberEntity> findByGlobalGroupId(Integer groupId);
+    List<GlobalGroupMemberEntity> findByGlobalGroupGroupCode(String groupCode);
 
     List<GlobalGroupMemberEntity> findMemberGroups(ee.ria.xroad.common.identifier.ClientId memberId);
 

@@ -617,7 +617,9 @@ paths:
       summary: add new global group
       tags:
         - global-groups
-  /global-groups/{group_id}:
+  /global-groups/{group_code}:
+    parameters:
+      - $ref: '#/components/parameters/GroupCodeParam'
     delete:
       description:
         <h3>CS administrator deletes a global group.</h3>
@@ -625,15 +627,6 @@ paths:
           subsystems that were the members of this group.
         </p>
       operationId: deleteGlobalGroup
-      parameters:
-        - description: id of the global group
-          in: path
-          name: group_id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -653,15 +646,6 @@ paths:
     get:
       description: <h3>CS administrator views the details of a global group.</h3>
       operationId: getGlobalGroup
-      parameters:
-        - description: id of the global group
-          in: path
-          name: group_id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       responses:
         '200':
           content:
@@ -685,15 +669,6 @@ paths:
     patch:
       description: <h3>CS administrator changes the description of the global group.</h3>
       operationId: updateGlobalGroupDescription
-      parameters:
-        - description: id of the global group
-          in: path
-          name: group_id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       requestBody:
         content:
           application/json:
@@ -719,19 +694,12 @@ paths:
       summary: update global group description
       tags:
         - global-groups
-  /global-groups/{group_id}/members/filter-model:
+  /global-groups/{group_code}/members/filter-model:
     get:
       description: <h3>CS administrator filter model to search global group members.</h3>
       operationId: getGroupMembersFilterModel
       parameters:
-        - description: id of the global group
-          in: path
-          name: group_id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
+        - $ref: '#/components/parameters/GroupCodeParam'
       responses:
         '200':
           content:
@@ -750,19 +718,12 @@ paths:
       summary: get filter model to search global group members
       tags:
         - global-groups
-  /global-groups/{group_id}/members/add:
+  /global-groups/{group_code}/members/add:
     post:
       description: <h3>CS administrator adds an X-Road member or a member's subsystem to a global group.</h3>
       operationId: addGlobalGroupMembers
       parameters:
-        - description: id of the global group
-          in: path
-          name: group_id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
+        - $ref: '#/components/parameters/GroupCodeParam'
       requestBody:
         content:
           application/json:
@@ -790,19 +751,12 @@ paths:
       summary: add new members for the global group
       tags:
         - global-groups
-  /global-groups/{group_id}/members:
+  /global-groups/{group_code}/members:
     post:
       description: <h3>CS administrator view of global group members.</h3>
       operationId: findGlobalGroupMembers
       parameters:
-        - description: id of the global group
-          in: path
-          name: group_id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
+        - $ref: '#/components/parameters/GroupCodeParam'
       requestBody:
         content:
           application/json:
@@ -828,19 +782,12 @@ paths:
       summary: find global group members
       tags:
         - global-groups
-  /global-groups/{group_id}/members/{member_id}:
+  /global-groups/{group_code}/members/{member_id}:
     delete:
       description: <h3>Administrator deletes member from global group.</h3>
       operationId: deleteGlobalGroupMember
       parameters:
-        - description: id of the global group
-          in: path
-          name: group_id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
+        - $ref: '#/components/parameters/GroupCodeParam'
         - description: id of the global group member
           in: path
           name: member_id
@@ -872,12 +819,7 @@ paths:
       description: <h3>Administrator views the anchor of a specified configuration source.</h3>
       operationId: getAnchor
       parameters:
-        - description: the type of the configuration for which the anchor is fetched for
-          in: path
-          name: configuration_type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConfigurationType'
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
       responses:
         '200':
           content:
@@ -903,12 +845,7 @@ paths:
       description: <h3>Administrator downloads the configuration anchor information of a specified configuration source.</h3>
       operationId: downloadAnchor
       parameters:
-        - description: the type of the configuration for which the anchor is fetched for
-          in: path
-          name: configuration_type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConfigurationType'
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
       responses:
         '200':
           content:
@@ -936,12 +873,7 @@ paths:
       description: <h3>Administrator re-creates the configuration anchor of a specified configuration source.</h3>
       operationId: reCreateAnchor
       parameters:
-        - description: the type of the configuration for which the anchor is re-created for
-          in: path
-          name: configuration_type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConfigurationType'
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
       responses:
         '200':
           content:
@@ -964,16 +896,11 @@ paths:
         - configuration-source-anchors
   /configuration-sources/{configuration_type}/configuration-parts:
     # Note: only ConfigurationType INTERNAL is supported
+    parameters:
+      - $ref: '#/components/parameters/ConfigurationTypeParam'
     get:
       description: <h3>Administrator views the configuration parts of a specified configuration source.</h3>
       operationId: getConfigurationParts
-      parameters:
-        - description: the type of the configuration for which the configuration parts are fetched for
-          in: path
-          name: configuration_type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConfigurationType'
       responses:
         '200':
           content:
@@ -999,13 +926,6 @@ paths:
     post:
       description: <h3>Administrator uploads additional configuration parts file. Note - only supported for ConfigurationType = INTERNAL</h3>
       operationId: uploadConfigurationParts
-      parameters:
-        - description: the type of the configuration for which the configuration parts are uploaded for
-          in: path
-          name: configuration_type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConfigurationType'
       requestBody:
         content:
           multipart/form-data:
@@ -1032,12 +952,7 @@ paths:
       description: <h3>Administrator downloads a configuration parts file.</h3>
       operationId: downloadConfigurationParts
       parameters:
-        - description: the type of the configuration
-          in: path
-          name: configuration_type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConfigurationType'
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
         - description: the content identifier of the configuration part
           in: path
           name: content_identifier
@@ -1142,41 +1057,12 @@ paths:
       summary: activate key
       tags:
         - signing-keys
-  /tokens:
-    get:
-      description: <h3>Administrator views tokens</h3>
-      operationId: getTokens
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                description: array of token objects
-                items:
-                  $ref: '#/components/schemas/Token'
-                type: array
-                uniqueItems: false
-          description: list of tokens
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: CS administrator views the tokens of the central server
-      tags:
-        - tokens
   /configuration-sources/{configuration_type}/signing-keys:
     post:
       description: <h3>Adds configuration signing key for selected configuration source and token.</h3>
       operationId: addKey
       parameters:
-        - description: the type of the configuration for which the signing key is generated
-          in: path
-          name: configuration_type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConfigurationType'
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
       requestBody:
         content:
           application/json:
@@ -1202,6 +1088,30 @@ paths:
       summary: add new key
       tags:
         - signing-keys
+  /tokens:
+    get:
+      description: <h3>Administrator views tokens</h3>
+      operationId: getTokens
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of token objects
+                items:
+                  $ref: '#/components/schemas/Token'
+                type: array
+                uniqueItems: false
+          description: list of tokens
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: CS administrator views the tokens of the central server
+      tags:
+        - tokens
   /tokens/{id}/login:
     put:
       description: <h3>Administrator logs in to a token</h3>
@@ -1428,12 +1338,7 @@ paths:
       description: <h3>Administrator views the download url of a specified configuration source.</h3>
       operationId: getDownloadUrl
       parameters:
-        - description: the type of the configuration for which the download url is fetched for
-          in: path
-          name: configuration_type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConfigurationType'
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
       responses:
         '200':
           content:
@@ -2129,7 +2034,6 @@ paths:
       summary: add new subsystem to the central server
       tags:
         - subsystems
-
   /subsystems/{subsystem_id}:
     delete:
       description: <h3>CS administrator deletes a subsystem</h3>
@@ -2175,7 +2079,6 @@ paths:
       summary: delete a subsystem
       tags:
         - subsystems
-
   /clients:
     get:
       description: <h3>CS administrator searches for X-Road clients.</h3>
@@ -2268,13 +2171,16 @@ paths:
             example: FI:GOV:123:sserver1
             format: text
             type: string
-        - description: an optional global group id parameter - only return clients that do not belong to this group. Empty value means the parameter is ignored.
+        - description: an optional global group code parameter - only return clients that do not belong to this group. Empty value means the parameter is ignored.
           in: query
           name: excluding_group
+          example: groupcode
           required: false
           schema:
-            format: int32
-            type: integer
+            format: text
+            maxLength: 255
+            minLength: 1
+            type: string
       responses:
         '200':
           content:
@@ -3682,22 +3588,8 @@ components:
     GlobalGroupResource:
       allOf:
         - $ref: '#/components/schemas/GlobalGroupCodeAndDescription'
-        - $ref: '#/components/schemas/ModificationTimestamps'
       description: group
       properties:
-        id:
-          description: unique identifier
-          example: 123
-          format: int32
-          readOnly: true
-          type: integer
-        code:
-          type: string
-          format: text
-          description: group code
-          example: groupcode
-          minLength: 1
-          maxLength: 255
         member_count:
           description: member count
           example: 10
@@ -3705,9 +3597,6 @@ components:
           maximum: 1000000
           minimum: 0
           type: integer
-      required:
-        - code
-        - description
       type: object
     GlobalGroupCodeAndDescription:
       description: group code and description
@@ -4655,7 +4544,7 @@ components:
         member_class:
           description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: GOV
-          format: text
+          format: text§
           maxLength: 255
           minLength: 1
           pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
@@ -5012,6 +4901,24 @@ components:
       schema:
         format: text
         maxLength: 1023
+        minLength: 1
+        type: string
+    ConfigurationTypeParam:
+      in: path
+      name: configuration_type
+      description: the type of the configuration for which the anchor is fetched for
+      required: true
+      schema:
+        $ref: '#/components/schemas/ConfigurationType'
+    GroupCodeParam:
+      in: path
+      name: group_code
+      description: group code
+      example: groupcode
+      required: true
+      schema:
+        format: text
+        maxLength: 255
         minLength: 1
         type: string
 security:

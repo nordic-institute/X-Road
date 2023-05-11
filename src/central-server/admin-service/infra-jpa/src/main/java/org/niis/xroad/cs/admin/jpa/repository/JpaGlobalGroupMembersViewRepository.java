@@ -29,6 +29,8 @@ package org.niis.xroad.cs.admin.jpa.repository;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
+import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
+import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity_;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMembersViewEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMembersViewEntity_;
 import org.niis.xroad.cs.admin.core.entity.XRoadIdEntity_;
@@ -66,9 +68,10 @@ public interface JpaGlobalGroupMembersViewRepository extends JpaRepository<Globa
     private static Predicate findPredicate(Root<GlobalGroupMembersViewEntity> root, CriteriaBuilder builder,
                                            GlobalGroupMemberService.Criteria criteria) {
         final Join<GlobalGroupMembersViewEntity, ClientIdEntity> member = root.join(GlobalGroupMembersViewEntity_.IDENTIFIER);
+        final Join<GlobalGroupMembersViewEntity, GlobalGroupEntity> group = root.join(GlobalGroupMembersViewEntity_.GLOBAL_GROUP);
         final List<Predicate> predicates = new ArrayList<>();
 
-        predicates.add(builder.equal(root.get(GlobalGroupMembersViewEntity_.GLOBAL_GROUP_ID), criteria.getGroupId()));
+        predicates.add(builder.equal(group.get(GlobalGroupEntity_.GROUP_CODE), criteria.getGroupCode()));
 
         if (StringUtils.isNotBlank(criteria.getQuery())) {
             predicates.add(searchPredicate(root, member, builder, criteria));

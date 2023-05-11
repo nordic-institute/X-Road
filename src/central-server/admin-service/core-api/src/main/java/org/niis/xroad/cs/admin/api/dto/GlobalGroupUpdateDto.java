@@ -32,6 +32,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class GlobalGroupUpdateDto {
-    private final Integer groupId;
+    private final String groupCode;
     private final String description;
 }
