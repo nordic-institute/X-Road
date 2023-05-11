@@ -30,7 +30,7 @@ package org.niis.xroad.cs.test.glue;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ClientDto;
-import org.niis.xroad.cs.openapi.model.ClientIdDto;
+import org.niis.xroad.cs.openapi.model.NewSubsystemIdDto;
 import org.niis.xroad.cs.openapi.model.SubsystemAddDto;
 import org.niis.xroad.cs.test.api.FeignSubsystemsApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,6 @@ import org.springframework.http.ResponseEntity;
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.junit.Assert.fail;
-import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.SUBSYSTEM;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -55,12 +54,11 @@ public class SubsystemsApiStepDefs extends BaseStepDefs {
     public void createSubsystem(String subsystemId) {
         final String[] idParts = split(subsystemId, ':');
 
-        final ClientIdDto clientIdDto = new ClientIdDto()
-                .memberClass(idParts[1])
-                .memberCode(idParts[2])
+        final var clientIdDto = new NewSubsystemIdDto()
                 .subsystemCode(idParts[3]);
-        clientIdDto.setType(SUBSYSTEM);
-        clientIdDto.setInstanceId(idParts[0]);
+
+        clientIdDto.setMemberClass(idParts[1]);
+        clientIdDto.setMemberCode(idParts[2]);
 
         final var dto = new SubsystemAddDto()
                 .subsystemId(clientIdDto);

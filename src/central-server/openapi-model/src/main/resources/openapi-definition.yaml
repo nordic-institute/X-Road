@@ -3976,21 +3976,41 @@ components:
     MemberAdd:
       allOf:
         - $ref: '#/components/schemas/MemberName'
-      description: x-road member
+      description: x-road member to add
       required:
         - member_id
       properties:
         member_id:
-          $ref: '#/components/schemas/ClientId'
+          $ref: '#/components/schemas/NewMemberId'
       type: object
     SubsystemAdd:
-      description: x-road subsystem
+      description: x-road subsystem to add
+      type: object
       required:
         - subsystem_id
       properties:
         subsystem_id:
-          $ref: '#/components/schemas/ClientId'
+          $ref: '#/components/schemas/NewSubsystemId'
+    NewSubsystemId:
+      description: ID for x-road subsystem to add
       type: object
+      allOf:
+        - $ref: '#/components/schemas/NewMemberId'
+      properties:
+        subsystem_code:
+          type: string
+          format: text
+          description: Subsystem code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: ABC
+          minLength: 1
+          maxLength: 255
+      required:
+        - subsystem_code
+    NewMemberId:
+      description: ID for x-road member to add
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MemberId'
     MemberClass:
       allOf:
         - $ref: '#/components/schemas/MemberClassDescription'
@@ -4583,10 +4603,6 @@ components:
           SERVER: "SecurityServerId"
           SUBSYSTEM: "ClientId"
       properties:
-        encoded_id:
-          readOnly: true
-          type: string
-          description: Encoded Security Server/Member/Subsystem Id
         instance_id:
           description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: FI
@@ -4609,11 +4625,32 @@ components:
       required:
         - instance_id
         - type
+    EncodedId:
+      type: object
+      description: Encoded identifier
+      properties:
+        encoded_id:
+          readOnly: true
+          type: string
+          description: Encoded ID of Security Serve, Member or Subsystem Id
     ClientId:
       type: object
-      description: Member identifier
+      description: Client identifier
       allOf:
         - $ref: '#/components/schemas/XRoadId'
+        - $ref: '#/components/schemas/MemberId'
+        - $ref: '#/components/schemas/EncodedId'
+      properties:
+        subsystem_code:
+          type: string
+          format: text
+          description: Subsystem code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: ABC
+          minLength: 1
+          maxLength: 255
+    MemberId:
+      type: object
+      description: Member identifier
       properties:
         member_class:
           description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
@@ -4630,8 +4667,6 @@ components:
           maxLength: 255
           minLength: 1
           pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
-          type: string
-        subsystem_code:
           type: string
       required:
         - member_class
@@ -4639,22 +4674,10 @@ components:
     SecurityServerId:
       allOf:
         - $ref: '#/components/schemas/XRoadId'
+        - $ref: '#/components/schemas/MemberId'
+        - $ref: '#/components/schemas/EncodedId'
       type: object
       properties:
-        member_class:
-          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: GOV
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-        member_code:
-          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: 123
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
         server_code:
           description: security server code
           example: server123
@@ -4663,8 +4686,6 @@ components:
           minLength: 1
           type: string
       required:
-        - member_class
-        - member_code
         - server_code
     ManagementRequestDetailedView:
       type: object
