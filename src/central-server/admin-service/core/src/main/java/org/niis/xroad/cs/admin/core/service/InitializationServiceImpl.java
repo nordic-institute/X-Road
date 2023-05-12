@@ -71,7 +71,6 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SIGNER_PIN
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SOFTWARE_TOKEN_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_FAILED;
 
-@SuppressWarnings("checkstyle:TodoComment")
 @Slf4j
 @Service
 @Transactional(rollbackOn = ValidationFailureException.class)

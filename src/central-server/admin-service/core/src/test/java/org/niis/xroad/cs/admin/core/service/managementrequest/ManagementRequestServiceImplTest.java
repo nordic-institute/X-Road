@@ -40,7 +40,6 @@ import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 
-import java.security.cert.CertificateEncodingException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -53,7 +52,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class ManagementRequestServiceImplTest {
+class ManagementRequestServiceImplTest {
     private final AuthenticationCertificateRegistrationRequestHandler certificateRegistrationRequestHandler =
             mock(AuthenticationCertificateRegistrationRequestHandler.class);
     private final ClientRegistrationRequestHandler clientRegistrationRequestHandler =
@@ -68,11 +67,12 @@ public class ManagementRequestServiceImplTest {
             clientRegistrationRequestHandler,
             clientDeletionRequestHandler,
             ownerChangeRequestHandler);
+
     @InjectMocks
     private ManagementRequestServiceImpl service;
 
     @Test
-    public void shouldSelectCorrectHandler() throws CertificateEncodingException {
+    void shouldSelectCorrectHandler() {
         AuthenticationCertificateRegistrationRequest request = new AuthenticationCertificateRegistrationRequest(
                 Origin.SECURITY_SERVER, SecurityServerId.create("Instance",
                 "memberClass",
@@ -91,7 +91,7 @@ public class ManagementRequestServiceImplTest {
     }
 
     @Test
-    public void shouldThrowExceptionIfNoCorrectHandler() {
+    void shouldThrowExceptionIfNoCorrectHandler() {
         when(certificateRegistrationRequestHandler.narrow(any())).thenReturn(Option.none());
         when(clientRegistrationRequestHandler.narrow(any())).thenReturn(Option.none());
         when(clientDeletionRequestHandler.narrow(any())).thenReturn(Option.none());

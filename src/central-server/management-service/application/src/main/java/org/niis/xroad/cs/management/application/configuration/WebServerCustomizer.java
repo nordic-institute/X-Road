@@ -64,7 +64,7 @@ class WebServerCustomizer implements WebServerFactoryCustomizer<JettyServletWebS
         var filter = new IpThrottlingFilter(properties);
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE + 1);
-        bean.addUrlPatterns("/managementservice", "/managementservice/", "/managementservice/manage"); //TODO verify url patterns
+        bean.addUrlPatterns("/managementservice/*");
         return bean;
     }
 }

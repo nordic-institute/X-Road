@@ -26,17 +26,19 @@
  */
 package org.niis.xroad.cs.admin.api.domain;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public abstract class RequestWithProcessing extends Request {
     @Getter
     @Setter
     private ManagementRequestStatus processingStatus;
 
-    public RequestWithProcessing(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId serverId) {
+    protected RequestWithProcessing(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId serverId) {
         super(origin, serverId);
     }
 

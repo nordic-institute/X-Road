@@ -62,7 +62,6 @@ public abstract class RequestWithProcessingEntity extends RequestEntity {
         requestProcessing.getRequests().add(this);
     }
 
-    @Override
     @Transient
     public ManagementRequestStatus getProcessingStatus() {
         return requestProcessing.getStatus();

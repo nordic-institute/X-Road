@@ -39,6 +39,7 @@ import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
+import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverter;
@@ -90,21 +91,15 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
 
         } else if (request instanceof AuthenticationCertificateDeletionRequest) {
             AuthenticationCertificateDeletionRequest req = (AuthenticationCertificateDeletionRequest) request;
-            result = self(new AuthenticationCertificateDeletionRequestDto(), self -> {
-                self.setAuthenticationCertificate(req.getAuthCert());
-            });
+            result = self(new AuthenticationCertificateDeletionRequestDto(), self -> self.setAuthenticationCertificate(req.getAuthCert()));
 
         } else if (request instanceof ClientRegistrationRequest) {
             ClientRegistrationRequest req = (ClientRegistrationRequest) request;
-            result = self(new ClientRegistrationRequestDto(), self -> {
-                self.setClientId(clientIdConverter.convertId(req.getClientId()));
-            });
+            result = self(new ClientRegistrationRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
 
         } else if (request instanceof ClientDeletionRequest) {
             ClientDeletionRequest req = (ClientDeletionRequest) request;
-            result = self(new ClientDeletionRequestDto(), self -> {
-                self.setClientId(clientIdConverter.convertId(req.getClientId()));
-            });
+            result = self(new ClientDeletionRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
 
         } else if (request instanceof OwnerChangeRequest) {
             OwnerChangeRequest req = (OwnerChangeRequest) request;
@@ -114,11 +109,14 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             throw new ValidationFailureException(MR_UNKNOWN_TYPE, request);
         }
 
+        if (request instanceof RequestWithProcessing) {
+            result.status(statusMapper.toDto(((RequestWithProcessing) request).getProcessingStatus()));
+        }
+
         return result.id(request.getId())
                 .type(requestTypeConverter.toDto(request.getManagementRequestType()))
                 .origin(originMapper.toDto(request.getOrigin()))
                 .securityServerId(securityServerIdMapper.convertId(request.getSecurityServerId()))
-                .status(statusMapper.toDto(request.getProcessingStatus()))
                 .createdAt(request.getCreatedAt().atOffset(dtoZoneOffset))
                 .updatedAt(request.getUpdatedAt().atOffset(dtoZoneOffset));
     }
@@ -210,10 +208,6 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             return Optional.empty();
         }
         return Optional.ofNullable(securityServerIdMapper.convertId(id));
-    }
-
-    private String convert(ee.ria.xroad.common.identifier.SecurityServerId id) {
-        return securityServerIdMapper.convertId(id);
     }
 
 }

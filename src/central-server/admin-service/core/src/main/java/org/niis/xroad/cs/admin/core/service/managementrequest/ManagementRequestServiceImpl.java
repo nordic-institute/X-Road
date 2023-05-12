@@ -68,6 +68,10 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_NOT_SUPPORTE
 @RequiredArgsConstructor
 @Transactional
 public class ManagementRequestServiceImpl implements ManagementRequestService {
+    private static final EnumSet<ManagementRequestStatus> REVOCABLE_MR_STATUSES = EnumSet.of(
+            ManagementRequestStatus.WAITING,
+            ManagementRequestStatus.SUBMITTED_FOR_APPROVAL);
+
     private final RequestRepository<RequestEntity> requests;
     private final ManagementRequestViewRepository managementRequestViewRepository;
     private final List<RequestHandler<? extends Request>> handlers;
@@ -138,13 +142,13 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     @Override
     public void revoke(Integer requestId) {
         var request = findRequest(requestId);
-        if (!EnumSet.of(ManagementRequestStatus.WAITING, ManagementRequestStatus.SUBMITTED_FOR_APPROVAL)
-                .contains(request.getProcessingStatus())) {
-            throw new ValidationFailureException(ErrorMessage.MR_INVALID_STATE);
-        }
 
         if (request instanceof RequestWithProcessingEntity) {
             var processing = ((RequestWithProcessingEntity) request).getRequestProcessing();
+            if (!REVOCABLE_MR_STATUSES.contains(processing.getStatus())) {
+                throw new ValidationFailureException(ErrorMessage.MR_INVALID_STATE);
+            }
+
             if (processing.getRequests().size() == 1 && request.getOrigin() == Origin.CENTER) {
                 processing.setStatus(ManagementRequestStatus.REVOKED);
             } else {
