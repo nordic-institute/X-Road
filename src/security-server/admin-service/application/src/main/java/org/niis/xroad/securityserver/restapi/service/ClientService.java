@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
@@ -366,66 +367,30 @@ public class ClientService {
     public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException {
         ClientType clientType = getLocalClientOrThrowNotFound(id);
-        Optional<CertificateType> certificateType = clientType.getIsCert().stream()
+        return clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();
-        return certificateType;
     }
 
     /**
      * Find clients in the local serverconf
-     *
-     * @param name
-     * @param instance
-     * @param propertyClass
-     * @param memberCode
-     * @param subsystemCode
-     * @param showMembers include members (without subsystemCode) in the results
-     * @param hasValidLocalSignCert true = include only clients who have local valid sign cert (registered & OCSP good)
-     *                              false = include only clients who don't have a local valid sign cert
-     *                              null = don't care whether client has a local valid sign cert
-     *                              NOTE: parameter does not have an effect on whether local or global clients are
-     *                              searched (unlike {@code onlyLocalClientsWithValidLocalSignCert}, which limits
-     *                              to local clients only
-     * @return ClientType list
      */
-    public List<ClientType> findLocalClients(String name, String instance, String propertyClass, String memberCode,
-            String subsystemCode, boolean showMembers, Boolean hasValidLocalSignCert) {
-        Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
-                memberCode, subsystemCode, hasValidLocalSignCert);
-
-        List<ClientType> allLocalClients = getAllLocalClients();
-
-        return allLocalClients.stream()
-                .filter(matchingSearchTerms)
-                .filter(ct -> showMembers || ct.getIdentifier().getSubsystemCode() != null)
-                .collect(Collectors.toList());
+    public List<ClientType> findLocalClients(ClientService.SearchParameters searchParameters) {
+        return searchClients(searchParameters, getAllLocalClients());
     }
 
     /**
-     * Find clients in the globalconf and return them as new ClientTypes
-     *
-     * @param name
-     * @param instance
-     * @param propertyClass
-     * @param memberCode
-     * @param subsystemCode
-     * @param showMembers include members (without susbsystemCode) in the results
-     * @param hasValidLocalSignCert true = include only clients who have local valid sign cert (registered & OCSP good)
-     *                              false = include only clients who don't have a local valid sign cert
-     *                              null = don't care whether client has a local valid sign cert
-     *                              NOTE: parameter does not have an effect on whether local or global clients are
-     *                              searched (unlike {@code onlyLocalClientsWithValidLocalSignCert}, which limits
-     *                              to local clients only
-     * @return ClientType list
+     * Find clients in the globalconf
      */
-    public List<ClientType> findGlobalClients(String name, String instance, String propertyClass, String memberCode,
-            String subsystemCode, boolean showMembers, Boolean hasValidLocalSignCert) {
-        Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
-                memberCode, subsystemCode, hasValidLocalSignCert);
-        return getAllGlobalClients().stream()
+    public List<ClientType> findGlobalClients(ClientService.SearchParameters searchParameters) {
+        return searchClients(searchParameters, getAllGlobalClients());
+    }
+
+    private List<ClientType> searchClients(SearchParameters searchParameters, List<ClientType> allClients) {
+        Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(searchParameters);
+        return allClients.stream()
                 .filter(matchingSearchTerms)
-                .filter(clientType -> showMembers || clientType.getIdentifier().getSubsystemCode() != null)
+                .filter(c -> searchParameters.showMembers || c.getIdentifier().getSubsystemCode() != null)
                 .collect(Collectors.toList());
     }
 
@@ -447,36 +412,15 @@ public class ClientService {
 
     /**
      * Find from all clients (local or global)
-     *
-     * @param name
-     * @param instance
-     * @param memberClass
-     * @param memberCode
-     * @param subsystemCode
-     * @param showMembers include members (without subsystemCode) in the results
-     * @param internalSearch search only in the local clients
-     * @param excludeLocal list only clients that are missing from this security server
-     * @param hasValidLocalSignCert true = include only clients who have local valid sign cert (registered & OCSP good)
-     *                              false = include only clients who don't have a local valid sign cert
-     *                              null = don't care whether client has a local valid sign cert
-     *                              NOTE: parameter does not have an effect on whether local or global clients are
-     *                              searched
-     * @return ClientType list
      */
-    public List<ClientType> findClients(String name, String instance, String memberClass, String memberCode,
-            String subsystemCode, boolean showMembers, boolean internalSearch,
-            boolean excludeLocal, Boolean hasValidLocalSignCert) {
-
-        List<ClientType> localClients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
-                showMembers, hasValidLocalSignCert);
-        if (internalSearch) {
+    public List<ClientType> findClients(ClientService.SearchParameters searchParameters) {
+        List<ClientType> localClients = findLocalClients(searchParameters);
+        if (searchParameters.internalSearch) {
             return localClients;
         }
 
-        List<ClientType> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
-                showMembers, hasValidLocalSignCert);
-
-        if (excludeLocal) {
+        List<ClientType> globalClients = findGlobalClients(searchParameters);
+        if (searchParameters.excludeLocal) {
             return subtractLocalFromGlobalClients(globalClients, localClients);
         }
 
@@ -637,39 +581,33 @@ public class ClientService {
         return new ArrayList<>(uniqueClientMap.values());
     }
 
-    /**
-     * @param localValidSignCert true = client must have a local valid sign cert (registered & OCSP good)
-     *                           false = client must not have a local valid sign cert
-     *                           null = don't care about local valid sign cert
-     */
-    private Predicate<ClientType> buildClientSearchPredicate(String name, String instance,
-            String memberClass, String memberCode, String subsystemCode, Boolean localValidSignCert) {
+    private Predicate<ClientType> buildClientSearchPredicate(ClientService.SearchParameters searchParameters) {
         Predicate<ClientType> clientTypePredicate = clientType -> true;
-        if (!StringUtils.isEmpty(name)) {
+        if (!StringUtils.isEmpty(searchParameters.name)) {
             clientTypePredicate = clientTypePredicate.and(ct -> {
                 String memberName = globalConfFacade.getMemberName(ct.getIdentifier());
-                return memberName != null && memberName.toLowerCase().contains(name.toLowerCase());
+                return memberName != null && memberName.toLowerCase().contains(searchParameters.name.toLowerCase());
             });
         }
-        if (!StringUtils.isEmpty(instance)) {
-            clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getXRoadInstance().toLowerCase()
-                    .contains(instance.toLowerCase()));
+        if (!StringUtils.isEmpty(searchParameters.instance)) {
+            clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getXRoadInstance()
+                    .equalsIgnoreCase(searchParameters.instance));
         }
-        if (!StringUtils.isEmpty(memberClass)) {
+        if (!StringUtils.isEmpty(searchParameters.memberClass)) {
             clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getMemberClass().toLowerCase()
-                    .contains(memberClass.toLowerCase()));
+                    .contains(searchParameters.memberClass.toLowerCase()));
         }
-        if (!StringUtils.isEmpty(memberCode)) {
+        if (!StringUtils.isEmpty(searchParameters.memberCode)) {
             clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getMemberCode().toLowerCase()
-                    .contains(memberCode.toLowerCase()));
+                    .contains(searchParameters.memberCode.toLowerCase()));
         }
-        if (!StringUtils.isEmpty(subsystemCode)) {
+        if (!StringUtils.isEmpty(searchParameters.subsystemCode)) {
             clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getSubsystemCode() != null
-                    && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
+                    && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(searchParameters.subsystemCode.toLowerCase()));
         }
-        if (localValidSignCert != null) {
+        if (searchParameters.hasValidLocalSignCert != null) {
             clientTypePredicate = clientTypePredicate.and(
-                    ct -> localValidSignCert.equals(hasValidLocalSignCertCheck(ct)));
+                    ct -> searchParameters.hasValidLocalSignCert.equals(hasValidLocalSignCertCheck(ct)));
         }
         return clientTypePredicate;
     }
@@ -908,5 +846,27 @@ public class ClientService {
         public InvalidInstanceIdentifierException(String s) {
             super(s, new ErrorDeviation(ERROR_INVALID_INSTANCE_IDENTIFIER));
         }
+    }
+
+    @Builder
+    public static class SearchParameters {
+        private String name;
+        private String instance;
+        private String memberClass;
+        private String memberCode;
+        private String subsystemCode;
+        /** include members (without subsystemCode) in the results */
+        private boolean showMembers;
+        /** search only in the local clients */
+        private boolean internalSearch;
+        /** list only clients that are missing from this security server */
+        private boolean excludeLocal;
+        /**
+          true = include only clients who have local valid sign cert (registered & OCSP good) <br>
+          false = include only clients who don't have a local valid sign cert <br>
+          null = don't care whether client has a local valid sign cert <br>
+          NOTE: parameter does not have an effect on whether local or global clients are searched
+         */
+        private Boolean hasValidLocalSignCert;
     }
 }

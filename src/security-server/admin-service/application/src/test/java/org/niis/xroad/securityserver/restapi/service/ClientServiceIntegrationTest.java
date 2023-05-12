@@ -788,86 +788,126 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     /* Test findClients search */
     @Test
     public void findClientsWithOnlyLocallyMissingClients() {
-        List<ClientType> allFiGovClients = clientService.findClients(null, TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, null, null, false, false, false, null);
-        assertEquals(5, allFiGovClients.size());
-        List<ClientType> locallyMissingFiGovClients = clientService.findClients(null, TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, null, null, false, false, true, null);
+        var searchParams = ClientService.SearchParameters.builder()
+                .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
+                .instance(TestUtils.INSTANCE_FI)
+                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .showMembers(false)
+                .internalSearch(false)
+                .excludeLocal(true)
+                .build();
+        List<ClientType> locallyMissingFiGovClients = clientService.findClients(searchParams);
         assertEquals(1, locallyMissingFiGovClients.size());
     }
 
     /* Test LOCAL client search */
     @Test
     public void findLocalClientsByNameIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
-                null,
-                null, null, true, false);
+        var searchParams = ClientService.SearchParameters.builder()
+                .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
+                .showMembers(true)
+                .hasValidLocalSignCert(false).build();
+        List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(1, clients.size());
     }
 
     @Test
     public void findLocalClientsByInstanceIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
-                null, null, true, false);
+        var searchParams = ClientService.SearchParameters.builder()
+                .instance(TestUtils.INSTANCE_FI)
+                .showMembers(true)
+                .hasValidLocalSignCert(false).build();
+        List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(6, clients.size());
     }
 
     @Test
     public void findLocalClientsByClassIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
-                null, null, true, false);
+        var searchParams = ClientService.SearchParameters.builder()
+                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .showMembers(true)
+                .hasValidLocalSignCert(false).build();
+        List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(5, clients.size());
     }
 
     @Test
     public void findLocalClientsByInstanceAndMemberCodeIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
-                TestUtils.MEMBER_CODE_M1, null, true, false);
+        var searchParams = ClientService.SearchParameters.builder()
+                .instance(TestUtils.INSTANCE_FI)
+                .memberCode(TestUtils.MEMBER_CODE_M1)
+                .showMembers(true)
+                .hasValidLocalSignCert(false).build();
+        List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findLocalClientsByAllTermsIncludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
-                TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, true, false);
+        var searchParams = ClientService.SearchParameters.builder()
+                .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
+                .instance(TestUtils.INSTANCE_FI)
+                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .memberCode(TestUtils.MEMBER_CODE_M1)
+                .subsystemCode(TestUtils.SUBSYSTEM1)
+                .showMembers(true)
+                .hasValidLocalSignCert(false).build();
+        List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(1, clients.size());
     }
 
     @Test
     public void findLocalClientsByNameExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
-                null,
-                null, null, false, false);
+        var searchParams = ClientService.SearchParameters.builder()
+                .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
+                .showMembers(false)
+                .hasValidLocalSignCert(false).build();
+        List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(1, clients.size());
     }
 
     @Test
     public void findLocalClientsByInstanceExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
-                null, null, false, false);
+        var searchParams = ClientService.SearchParameters.builder()
+                .instance(TestUtils.INSTANCE_FI)
+                .showMembers(false)
+                .hasValidLocalSignCert(false).build();
+        List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(5, clients.size());
     }
 
     @Test
     public void findLocalClientsByClassExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
-                null, null, false, false);
+        var searchParams = ClientService.SearchParameters.builder()
+                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .showMembers(false)
+                .hasValidLocalSignCert(false).build();
+        List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(4, clients.size());
     }
 
     @Test
     public void findLocalClientsByInstanceAndMemberCodeExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(null, TestUtils.INSTANCE_FI, null,
-                TestUtils.MEMBER_CODE_M1, null, false, false);
+        var searchParams = ClientService.SearchParameters.builder()
+                .instance(TestUtils.INSTANCE_FI)
+                .memberCode(TestUtils.MEMBER_CODE_M1)
+                .showMembers(false)
+                .hasValidLocalSignCert(false).build();
+        List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findLocalClientsByAllTermsExcludeMembers() {
-        List<ClientType> clients = clientService.findLocalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
-                TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, false, false);
+        var searchParams = ClientService.SearchParameters.builder()
+                .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
+                .instance(TestUtils.INSTANCE_FI)
+                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .memberCode(TestUtils.MEMBER_CODE_M1)
+                .subsystemCode(TestUtils.SUBSYSTEM1)
+                .showMembers(false)
+                .hasValidLocalSignCert(false).build();
+        List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(1, clients.size());
     }
 
@@ -880,7 +920,10 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
          */
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(createSimpleSignCertList());
         // all local clients FI:GOV:M1:* have a valid sign cert
-        List<ClientType> clients = clientService.findLocalClients(null, null, null, null, null, false, true);
+        var searchParams = ClientService.SearchParameters.builder()
+                .showMembers(false)
+                .hasValidLocalSignCert(true).build();
+        List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(2, clients.size());
         assertTrue("GOV".equals(clients.get(0).getIdentifier().getMemberClass()));
         assertTrue("M1".equals(clients.get(0).getIdentifier().getMemberCode()));
@@ -892,7 +935,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     /**
      * Test hasValidLocalSignCert parameter in
-     * {@link ClientService#findClients(String, String, String, String, String, boolean, boolean, boolean, Boolean)}
+     * {@link ClientService#findClients(ClientService.SearchParameters)}
      * @throws Exception
      */
     @Test
@@ -992,20 +1035,21 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     /**
      * Convenience wrapper for clientService.findClients which takes only relevant params and returns client ids
-     * @param hasValidLocalSignCert see {@link ClientService#findClients(String, String, String, String, String,
-     *                                                                   boolean, boolean, boolean, Boolean)}
-     * @param excludeLocal          see {@link ClientService#findClients(String, String, String, String, String,
-     *                                                                   boolean, boolean, boolean, Boolean)}
-     * @param internalSearch        see {@link ClientService#findClients(String, String, String, String, String,
-     *                                                                   boolean, boolean, boolean, Boolean)}
+     * @param hasValidLocalSignCert see {@link ClientService.SearchParameters#hasValidLocalSignCert}
+     * @param excludeLocal          see {@link ClientService.SearchParameters#excludeLocal}
+     * @param internalSearch        see {@link ClientService.SearchParameters#internalSearch}
      * @return matching clientIds
      */
     private SortedSet<ClientId> findClientIds(Boolean hasValidLocalSignCert,
             boolean excludeLocal, boolean internalSearch) {
-        List<ClientType> clients = clientService.findClients(null, null, null, null, null, true, internalSearch,
-                excludeLocal, hasValidLocalSignCert);
+        var searchParams = ClientService.SearchParameters.builder()
+                .excludeLocal(excludeLocal)
+                .internalSearch(internalSearch)
+                .showMembers(true)
+                .hasValidLocalSignCert(hasValidLocalSignCert).build();
+        List<ClientType> clients = clientService.findClients(searchParams);
         return createSortedClientIdSet(clients.stream()
-                .map(client -> client.getIdentifier())
+                .map(ClientType::getIdentifier)
                 .collect(Collectors.toSet()));
     }
 
@@ -1021,75 +1065,111 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     /* Test GLOBAL client search */
     @Test
     public void findGlobalClientsByNameIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
-                null,
-                null, null, true, null);
+        var searchParams = ClientService.SearchParameters.builder()
+                .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
+                .showMembers(true)
+                .build();
+        List<ClientType> clients = clientService.findGlobalClients(searchParams);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_EE, null,
-                null, null, true, null);
+        var searchParams = ClientService.SearchParameters.builder()
+                .instance(TestUtils.INSTANCE_EE)
+                .showMembers(true)
+                .build();
+        List<ClientType> clients = clientService.findGlobalClients(searchParams);
         assertEquals(5, clients.size());
     }
 
     @Test
     public void findGlobalClientsByClassIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
-                null, null, true, null);
+        var searchParams = ClientService.SearchParameters.builder()
+                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .showMembers(true)
+                .build();
+        List<ClientType> clients = clientService.findGlobalClients(searchParams);
         assertEquals(6, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceAndMemberCodeIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_FI, null,
-                TestUtils.MEMBER_CODE_M1, null, true, null);
+        var searchParams = ClientService.SearchParameters.builder()
+                .instance(TestUtils.INSTANCE_FI)
+                .memberCode(TestUtils.MEMBER_CODE_M1)
+                .showMembers(true)
+                .build();
+        List<ClientType> clients = clientService.findGlobalClients(searchParams);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findGlobalClientsByAllTermsIncludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
-                TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, true, null);
+        var searchParams = ClientService.SearchParameters.builder()
+                .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
+                .instance(TestUtils.INSTANCE_FI)
+                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .memberCode(TestUtils.MEMBER_CODE_M1)
+                .subsystemCode(TestUtils.SUBSYSTEM1)
+                .showMembers(true)
+                .build();
+        List<ClientType> clients = clientService.findGlobalClients(searchParams);
         assertEquals(1, clients.size());
     }
 
     @Test
     public void findGlobalClientsByNameExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
-                null,
-                null, null, false, null);
+        var searchParams = ClientService.SearchParameters.builder()
+                .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
+                .showMembers(false)
+                .build();
+        List<ClientType> clients = clientService.findGlobalClients(searchParams);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_EE, null,
-                null, null, false, null);
+        var searchParams = ClientService.SearchParameters.builder()
+                .instance(TestUtils.INSTANCE_EE)
+                .showMembers(false)
+                .build();
+        List<ClientType> clients = clientService.findGlobalClients(searchParams);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByClassExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
-                null, null, false, null);
+        var searchParams = ClientService.SearchParameters.builder()
+                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .showMembers(false)
+                .build();
+        List<ClientType> clients = clientService.findGlobalClients(searchParams);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceAndMemberCodeExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_FI, null,
-                TestUtils.MEMBER_CODE_M1, null, false, null);
+        var searchParams = ClientService.SearchParameters.builder()
+                .instance(TestUtils.INSTANCE_FI)
+                .memberCode(TestUtils.MEMBER_CODE_M1)
+                .showMembers(false)
+                .build();
+        List<ClientType> clients = clientService.findGlobalClients(searchParams);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByAllTermsExcludeMembers() {
-        List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
-                TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, false, null);
+        var searchParams = ClientService.SearchParameters.builder()
+                .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
+                .instance(TestUtils.INSTANCE_FI)
+                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .memberCode(TestUtils.MEMBER_CODE_M1)
+                .subsystemCode(TestUtils.SUBSYSTEM1)
+                .showMembers(false)
+                .build();
+        List<ClientType> clients = clientService.findGlobalClients(searchParams);
         assertEquals(1, clients.size());
     }
 

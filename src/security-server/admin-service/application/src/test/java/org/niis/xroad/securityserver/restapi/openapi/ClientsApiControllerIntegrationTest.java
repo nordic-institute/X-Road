@@ -281,13 +281,13 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(OffsetDateTime.parse("2038-01-01T00:00:00Z"),
                 onlyCertificate.getCertificateDetails().getNotAfter());
         assertEquals("1", onlyCertificate.getCertificateDetails().getSerial());
-        assertEquals(new Integer(3), onlyCertificate.getCertificateDetails().getVersion());
+        assertEquals(Integer.valueOf(3), onlyCertificate.getCertificateDetails().getVersion());
         assertEquals("SHA512withRSA", onlyCertificate.getCertificateDetails().getSignatureAlgorithm());
         assertEquals("RSA", onlyCertificate.getCertificateDetails().getPublicKeyAlgorithm());
         assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getCertificateDetails().getHash());
         assertTrue(onlyCertificate.getCertificateDetails().getSignature().startsWith("314b7a50a09a9b74322671"));
         assertTrue(onlyCertificate.getCertificateDetails().getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
-        assertEquals(new Integer(65537), onlyCertificate.getCertificateDetails().getRsaPublicKeyExponent());
+        assertEquals(Integer.valueOf(65537), onlyCertificate.getCertificateDetails().getRsaPublicKeyExponent());
         assertEquals(new ArrayList<>(
                 Arrays.asList(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsage.NON_REPUDIATION)),
                 new ArrayList<>(onlyCertificate.getCertificateDetails().getKeyUsages()));
@@ -649,10 +649,19 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENTS" })
     public void findAllClientsByPartialSearchTermsIncludeMembers() {
-        ResponseEntity<Set<Client>> clientsResponse = clientsApiController.findClients(null, "F",
+        ResponseEntity<Set<Client>> clientsResponse = clientsApiController.findClients(null, "FI",
                 "OV", "1", "1", false, true, null, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(1, clientsResponse.getBody().size());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_CLIENTS" })
+    public void findAllClientsShouldNotFindByPartialInstance() {
+        ResponseEntity<Set<Client>> clientsResponse = clientsApiController.findClients(null, "F",
+                 "OV", "1", "1", false, true, null, false);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(0, clientsResponse.getBody().size());
     }
 
     private Client createTestClient(String memberClass, String memberCode, String subsystemCode) {
