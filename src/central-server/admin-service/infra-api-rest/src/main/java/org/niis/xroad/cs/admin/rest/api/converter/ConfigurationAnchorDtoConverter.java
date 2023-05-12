@@ -28,13 +28,14 @@
 package org.niis.xroad.cs.admin.rest.api.converter;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.converter.GenericMapper;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.openapi.model.ConfigurationAnchorDto;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ConfigurationAnchorDtoConverter implements BaseConverter {
+public class ConfigurationAnchorDtoConverter implements GenericMapper {
 
     public ConfigurationAnchorDto convert(ConfigurationAnchor confAnchor) {
         if (confAnchor == null) {

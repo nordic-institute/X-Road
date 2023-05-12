@@ -29,11 +29,12 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericMapper;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.openapi.model.ConfigurationPartDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ConfigurationPartsDtoConverter extends BaseConverter {
+public interface ConfigurationPartsDtoConverter extends GenericMapper {
 
     ConfigurationPartDto convert(ConfigurationParts configurationParts);
 

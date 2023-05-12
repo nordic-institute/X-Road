@@ -29,11 +29,12 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericMapper;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.openapi.model.GlobalConfDownloadUrlDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface GlobalConfDownloadUrlDtoConverter extends BaseConverter {
+public interface GlobalConfDownloadUrlDtoConverter extends GenericMapper {
 
     GlobalConfDownloadUrlDto convert(GlobalConfDownloadUrl globalConfDownloadUrl);
 
