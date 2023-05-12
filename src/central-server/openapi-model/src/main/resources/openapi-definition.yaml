@@ -782,20 +782,13 @@ paths:
       summary: find global group members
       tags:
         - global-groups
-  /global-groups/{group_code}/members/{member_id}:
+  /global-groups/{group_code}/members/{client_id}:
     delete:
       description: <h3>Administrator deletes member from global group.</h3>
       operationId: deleteGlobalGroupMember
       parameters:
         - $ref: '#/components/parameters/GroupCodeParam'
-        - description: id of the global group member
-          in: path
-          name: member_id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
+        - $ref: '#/components/parameters/ClientIdParam'
       responses:
         '204':
           description: member deleted
@@ -4874,6 +4867,17 @@ components:
       in: path
       name: member_id
       description: the encoded string representation of the x-road member id
+      example: FI:GOV:123
+      required: true
+      schema:
+        format: text
+        maxLength: 1023
+        minLength: 1
+        type: string
+    ClientIdParam:
+      in: path
+      name: client_id
+      description: the encoded string representation of the x-road client id
       example: FI:GOV:123
       required: true
       schema:

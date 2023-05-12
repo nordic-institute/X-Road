@@ -325,8 +325,8 @@ class SecurityServerServiceImplTest implements WithInOrder {
             verifyClientDeletionRequest(requestCaptor.getAllValues(), "client-1");
             verifyClientDeletionRequest(requestCaptor.getAllValues(), "client-2");
 
-            verify(groupMemberService).removeMemberFromGlobalGroup(MemberId.create(clientIdEntity),
-                    DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+            verify(groupMemberService).removeMemberFromGlobalGroup(DEFAULT_SECURITY_SERVER_OWNERS_GROUP,
+                    MemberId.create(clientIdEntity));
             verify(securityServerRepository).delete(securityServerEntity);
         }
 
