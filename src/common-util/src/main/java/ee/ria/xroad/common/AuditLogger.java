@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -49,6 +49,7 @@ public final class AuditLogger {
 
     private static final String EVENT_PARAM = "event";
     private static final String USER_PARAM = "user";
+    private static final String IP_ADDRESS = "ipaddress";
     private static final String REASON_PARAM = "reason";
     private static final String UNHANDLED_WARNING_PARAM = "warning";
     private static final String AUTH_PARAM = "auth";
@@ -87,32 +88,34 @@ public final class AuditLogger {
      * @param data  relevant details of the event
      */
     public static void log(String event, Map<String, Object> data) {
-        log(event, SYSTEM_USER, data);
+        log(event, SYSTEM_USER, null, null, data);
     }
 
     /**
      * Log an event with data for a user.
      *
-     * @param event logged event
-     * @param user  the user who initiated the event
-     * @param data  relevant details of the event
+     * @param event     logged event
+     * @param user      the user who initiated the event
+     * @param ipAddress the users IP address
+     * @param data      relevant details of the event
      */
-    public static void log(String event, String user, Map<String, Object> data) {
-        Map<String, Object> message = createSuccessMessageMap(event, user, data, null, null);
+    public static void log(String event, String user, String ipAddress, Map<String, Object> data) {
+        Map<String, Object> message = createSuccessMessageMap(event, user, ipAddress, data, null, null);
         log(serializeJson(message));
     }
 
     /**
      * Log a (non-warning) failure event with data for a user.
      *
-     * @param event  logged event (suffix " failed" is added to the event)
-     * @param user   the user who initiated the event
-     * @param reason the reason of the failure
-     * @param data   relevant details of the event
+     * @param event     logged event (suffix " failed" is added to the event)
+     * @param user      the user who initiated the event
+     * @param ipAddress users IP address
+     * @param reason    the reason of the failure
+     * @param data      relevant details of the event
      */
-    public static void log(String event, String user, String reason,
-            Map<String, Object> data) {
-        Map<String, Object> message = createMessageMap(event, user, reason, data, null, null, true, false);
+    public static void log(String event, String user, String ipAddress, String reason,
+                           Map<String, Object> data) {
+        Map<String, Object> message = createMessageMap(event, user, ipAddress, reason, data, null, null, true, false);
         log(serializeJson(message));
     }
 
@@ -121,12 +124,13 @@ public final class AuditLogger {
      *
      * @param event
      * @param user
+     * @param ipAddress
      * @param data
      * @param auth
      * @param url
      */
-    public static void log(String event, String user, Map<String, Object> data, String auth, String url) {
-        Map<String, Object> message = createSuccessMessageMap(event, user, data, auth, url);
+    public static void log(String event, String user, String ipAddress, Map<String, Object> data, String auth, String url) {
+        Map<String, Object> message = createSuccessMessageMap(event, user, ipAddress, data, auth, url);
         log(serializeJson(message));
     }
 
@@ -135,14 +139,15 @@ public final class AuditLogger {
      *
      * @param event
      * @param user
+     * @param ipAddress
      * @param reason
      * @param data
      * @param auth
      * @param url
      */
-    public static void log(String event, String user, String reason, Map<String, Object> data,
-            String auth, String url) {
-        Map<String, Object> message = createMessageMap(event, user, reason, data, auth, url, true, false);
+    public static void log(String event, String user, String ipAddress, String reason, Map<String, Object> data,
+                           String auth, String url) {
+        Map<String, Object> message = createMessageMap(event, user, ipAddress, reason, data, auth, url, true, false);
         log(serializeJson(message));
     }
 
@@ -151,14 +156,15 @@ public final class AuditLogger {
      *
      * @param event
      * @param user
+     * @param ipAddress
      * @param reason
      * @param data
      * @param auth
      * @param url
      */
-    public static void logWarning(String event, String user, String reason, Map<String, Object> data,
-            String auth, String url) {
-        Map<String, Object> message = createMessageMap(event, user, reason, data, auth, url, true, true);
+    public static void logWarning(String event, String user, String ipAddress, String reason, Map<String, Object> data,
+                                  String auth, String url) {
+        Map<String, Object> message = createMessageMap(event, user, ipAddress, reason, data, auth, url, true, true);
         log(serializeJson(message));
     }
 
@@ -175,13 +181,14 @@ public final class AuditLogger {
 
     // message map for successful event (no reason)
     private static Map<String, Object> createSuccessMessageMap(String event, String user,
-            Map<String, Object> data, String auth, String url) {
-        return createMessageMap(event, user, null, data, auth, url, false, false);
+                                                               String ipAddress, Map<String, Object> data, String auth, String url) {
+        return createMessageMap(event, user, ipAddress, null, data, auth, url, false, false);
     }
 
     /**
      * @param event     raw event name. " failure" postfix will be added for failures
      * @param user      user, always included (even if null)
+     * @param ipAddress users IP address, only included if not null
      * @param reason    possible reason, only included if not null
      * @param data      data, always included (even if null)
      * @param auth      possible authentication type, only included if not null
@@ -189,8 +196,9 @@ public final class AuditLogger {
      * @param isFailure if true, this is about a failed event
      * @param isWarning if true, include boolean that indicates this failure event is about unhandled warnings
      */
-    private static Map<String, Object> createMessageMap(String event, String user, String reason,
-            Map<String, Object> data, String auth, String url, boolean isFailure, boolean isWarning) {
+    private static Map<String, Object> createMessageMap(String event, String user, String ipAddress, String reason,
+                                                        Map<String, Object> data, String auth, String url,
+                                                        boolean isFailure, boolean isWarning) {
         if (!isFailure && isWarning) {
             throw new IllegalArgumentException("illegal parameter (!isFailure && isWarning)");
         }
@@ -201,6 +209,9 @@ public final class AuditLogger {
         }
         message.put(EVENT_PARAM, eventName);
         message.put(USER_PARAM, user);
+        if (ipAddress != null) {
+            message.put(IP_ADDRESS, ipAddress);
+        }
         if (reason != null) {
             message.put(REASON_PARAM, reason);
         }
