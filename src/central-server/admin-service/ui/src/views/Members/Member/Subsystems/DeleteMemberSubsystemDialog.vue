@@ -127,6 +127,7 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.showError(error);
+          this.$emit('cancel');
         })
         .finally(() => {
           this.loading = false;

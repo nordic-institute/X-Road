@@ -172,7 +172,6 @@
         :server-code="clickedServerCode"
         data-test="unregister-subsystem"
         @cancel="cancel"
-        @error="cancel"
         @unregisteredSubsystem="unregisteredSubsystem"
       ></UnregisterMemberSubsystemDialog>
     </v-card>
