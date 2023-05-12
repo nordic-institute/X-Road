@@ -89,6 +89,7 @@ public class SubsystemsApiController implements SubsystemsApi {
         return noContent().build();
     }
 
+    @Override
     @PreAuthorize("hasAuthority('REMOVE_MEMBER_SUBSYSTEM')")
     @AuditEventMethod(event = DELETE_SUBSYSTEM)
     public ResponseEntity<Void> deleteSubsystem(String id) {

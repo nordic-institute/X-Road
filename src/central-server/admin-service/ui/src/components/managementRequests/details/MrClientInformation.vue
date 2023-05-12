@@ -32,16 +32,16 @@
     />
     <data-line
       label-text-key="managementRequestDetails.ownerClass"
-      :value="managementRequest.clientId.member_class"
+      :value="managementRequest.client_id.member_class"
     />
     <data-line
       label-text-key="managementRequestDetails.ownerCode"
-      :value="managementRequest.clientId.member_code"
+      :value="managementRequest.client_id.member_code"
     />
     <data-line
       v-if="!isOwnerChange"
       label-text-key="managementRequestDetails.subsystemCode"
-      :value="managementRequest.clientId.subsystem_code"
+      :value="managementRequest.client_id.subsystem_code"
     />
   </data-block>
 </template>
