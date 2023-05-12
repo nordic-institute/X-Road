@@ -190,7 +190,7 @@ paths:
       description: <h3>Administrator deletes the backup of the central server.</h3>
       operationId: deleteBackup
       parameters:
-        - $ref: '#/components/parameters/filenameParam'
+        - $ref: '#/components/parameters/FilenameParam'
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -214,7 +214,7 @@ paths:
       description: <h3>Administrator downloads the backup of the central server.</h3>
       operationId: downloadBackup
       parameters:
-        - $ref: '#/components/parameters/filenameParam'
+        - $ref: '#/components/parameters/FilenameParam'
       responses:
         '200':
           content:
@@ -244,7 +244,7 @@ paths:
         <p>This endpoint can also return metadata in the error response. The metadata array contains the output of a failed backup restore script.</p>
       operationId: restoreBackup
       parameters:
-        - $ref: '#/components/parameters/filenameParam'
+        - $ref: '#/components/parameters/FilenameParam'
       responses:
         '200':
           content:
@@ -327,7 +327,7 @@ paths:
         - certification-services
   /certification-services/{certification_service_id}:
     parameters:
-      - $ref: '#/components/parameters/certificationServiceIdParam'
+      - $ref: '#/components/parameters/CertificationServiceIdParam'
     delete:
       description: <h3>CS Administrator deletes a certification service.</h3>
       operationId: deleteCertificationService
@@ -414,7 +414,7 @@ paths:
       description: <h3>CS administrator views the details of an approved certification service cetificate.</h3>
       operationId: getCertificationServiceCertificate
       parameters:
-        - $ref: '#/components/parameters/certificationServiceIdParam'
+        - $ref: '#/components/parameters/CertificationServiceIdParam'
       responses:
         '200':
           content:
@@ -437,7 +437,7 @@ paths:
         - certification-services
   /certification-services/{certification_service_id}/intermediate-cas:
     parameters:
-      - $ref: '#/components/parameters/certificationServiceIdParam'
+      - $ref: '#/components/parameters/CertificationServiceIdParam'
     get:
       description: <h3>CS administrator views the intermediate CAs configured for a certification service.</h3>
       operationId: getCertificationServiceIntermediateCas
@@ -492,7 +492,7 @@ paths:
         - certification-services
   /certification-services/{certification_service_id}/ocsp-responders:
     parameters:
-      - $ref: '#/components/parameters/certificationServiceIdParam'
+      - $ref: '#/components/parameters/CertificationServiceIdParam'
     get:
       description: <h3>CS administrator views the OCSP responders configured for a CA.</h3>
       operationId: getCertificationServiceOcspResponders
@@ -1443,19 +1443,12 @@ paths:
       summary: Check the initialization status of the Central Server
       tags:
         - initialization
-  /intermediate-cas/{id}:
+  /intermediate-cas/{intermediate_ca_id}:
+    parameters:
+      - $ref: '#/components/parameters/IntermediateCaIdParam'
     delete:
       description: <h3>CS administrator deletes an intermediate CA.</h3>
       operationId: deleteIntermediateCa
-      parameters:
-        - description: unique identifier of the intermediate certificate authority
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       responses:
         '204':
           description: ca deletion was successful
@@ -1484,15 +1477,6 @@ paths:
     get:
       description: <h3>CS administrator views the details of an intermediate CA.</h3>
       operationId: getIntermediateCa
-      parameters:
-        - description: unique identifier of the intermediate certificate authority
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       responses:
         '200':
           content:
@@ -1513,19 +1497,12 @@ paths:
       summary: get an intermediate certificate authority
       tags:
         - intermediate-cas
-  /intermediate-cas/{id}/ocsp-responders:
+  /intermediate-cas/{intermediate_ca_id}/ocsp-responders:
+    parameters:
+      - $ref: '#/components/parameters/IntermediateCaIdParam'
     get:
       description: <h3>CS administrator views the OCSP responders configured for an intermediate CA.</h3>
       operationId: getIntermediateCaOcspResponders
-      parameters:
-        - description: unique identifier of the intermediate certificate authority
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       responses:
         '200':
           content:
@@ -1553,15 +1530,6 @@ paths:
     post:
       description: <h3>CS administrator adds an OCSP responder service information for an intermediate CA.</h3>
       operationId: addIntermediateCaOcspResponder
-      parameters:
-        - description: unique identifier of the intermediate certificate authority
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -1593,27 +1561,13 @@ paths:
       summary: add an ocsp responder to an intermediate certificate authority
       tags:
         - intermediate-cas
-  /intermediate-cas/{id}/ocsp-responders/{ocspResponderId}:
+  /intermediate-cas/{intermediate_ca_id}/ocsp-responders/{ocsp_responder_id}:
     delete:
       description: <h3>CS administrator deletes an OCSP responder of intermediate CA.</h3>
       operationId: deleteIntermediateCaOcspResponder
       parameters:
-        - description: unique identifier of the intermediate certificate authority
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
-        - description: unique identifier of the intermediateCA ocsp responder
-          in: path
-          name: ocspResponderId
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
+        - $ref: '#/components/parameters/IntermediateCaIdParam'
+        - $ref: '#/components/parameters/OcspResponderIdParam'
       responses:
         '204':
           description: ocsp responder of ca deletion was successful
@@ -1821,7 +1775,7 @@ paths:
         - members
   /members/{member_id}:
     parameters:
-      - $ref: '#/components/parameters/memberIdParam'
+      - $ref: '#/components/parameters/MemberIdParam'
     delete:
       description: <h3>CS administrator deletes a member</h3>
       operationId: deleteMember
@@ -1903,7 +1857,7 @@ paths:
       description: <h3>CS Administrator lists subsystems.</h3>
       operationId: getSubsystems
       parameters:
-        - $ref: '#/components/parameters/memberIdParam'
+        - $ref: '#/components/parameters/MemberIdParam'
       responses:
         '200':
           content:
@@ -1933,7 +1887,7 @@ paths:
       description: <h3>CS administrator views a members' global groups.</h3>
       operationId: getMemberGlobalGroups
       parameters:
-        - $ref: '#/components/parameters/memberIdParam'
+        - $ref: '#/components/parameters/MemberIdParam'
       responses:
         '200':
           content:
@@ -1961,7 +1915,7 @@ paths:
       description: <h3>CS administrator views a members' owned servers.</h3>
       operationId: getOwnedServers
       parameters:
-        - $ref: '#/components/parameters/memberIdParam'
+        - $ref: '#/components/parameters/MemberIdParam'
       responses:
         '200':
           content:
@@ -2032,7 +1986,7 @@ paths:
       description: <h3>CS administrator deletes a subsystem</h3>
       operationId: deleteSubsystem
       parameters:
-        - $ref: '#/components/parameters/subsystemIdParam'
+        - $ref: '#/components/parameters/SubsystemIdParam'
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -2054,8 +2008,8 @@ paths:
       description: <h3>CS administrator unregisters a subsystem from a Security Server</h3>
       operationId: unregisterSubsystem
       parameters:
-        - $ref: '#/components/parameters/subsystemIdParam'
-        - $ref: '#/components/parameters/serverIdParam'
+        - $ref: '#/components/parameters/SubsystemIdParam'
+        - $ref: '#/components/parameters/ServerIdParam'
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -3008,20 +2962,15 @@ paths:
           description: request can not be processed due to data integrity or business rule violations
         '500':
           description: internal server error
-  /management-requests/{id}:
+  /management-requests/{management_request_id}:
+    parameters:
+      - $ref: '#/components/parameters/ManagementRequestIdParam'
     get:
       tags:
         - management-requests
       summary: get management request details
       operationId: getManagementRequest
       description: Administrator creates a management request
-      parameters:
-        - in: path
-          name: id
-          description: request id
-          required: true
-          schema:
-            type: integer
       responses:
         '200':
           description: The management request
@@ -3041,13 +2990,6 @@ paths:
       summary: Revoke/decline a management request
       operationId: revokeManagementRequest
       description: Administrator revokes a management request
-      parameters:
-        - in: path
-          name: id
-          description: request id
-          required: true
-          schema:
-            type: integer
       responses:
         '204':
           description: Revoke succeeded
@@ -3063,7 +3005,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /management-requests/{id}/approval:
+  /management-requests/{management_request_id}/approval:
     post:
       tags:
         - management-requests
@@ -3071,12 +3013,7 @@ paths:
       operationId: approveManagementRequest
       description: Administrator approves a management request
       parameters:
-        - in: path
-          name: id
-          description: request id
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/ManagementRequestIdParam'
       responses:
         '200':
           description: The management request was approved
@@ -4581,7 +4518,7 @@ components:
         comments:
           type: string
           format: text
-        certificateDetails:
+        certificate_details:
           $ref: '#/components/schemas/CertificateDetails'
     ManagementRequest:
       type: object
@@ -4642,7 +4579,7 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/ManagementRequestStatus'
-        clientId:
+        client_id:
           $ref: '#/components/schemas/ClientId'
         created_at:
           type: string
@@ -4651,7 +4588,7 @@ components:
       required:
         - type
         - source
-        - securityserverId
+        - security_server_id
     ManagementRequestType:
       type: string
       enum:
@@ -4845,15 +4782,16 @@ components:
       name: Authorization
       type: apiKey
   parameters:
-    certificationServiceIdParam:
+    CertificationServiceIdParam:
       in: path
       name: certification_service_id
       description: unique identifier of the certification service
       required: true
       schema:
-        minLength: 1
+        format: int32
+        minimum: 1
         type: integer
-    filenameParam:
+    FilenameParam:
       in: path
       name: filename
       description: filename of the backup
@@ -4863,7 +4801,7 @@ components:
         maxLength: 255
         minLength: 1
         type: string
-    memberIdParam:
+    MemberIdParam:
       in: path
       name: member_id
       description: the encoded string representation of the x-road member id
@@ -4885,7 +4823,7 @@ components:
         maxLength: 1023
         minLength: 1
         type: string
-    subsystemIdParam:
+    SubsystemIdParam:
       in: path
       name: subsystem_id
       description: the encoded string representation of the subsystem id
@@ -4896,7 +4834,7 @@ components:
         maxLength: 1023
         minLength: 1
         type: string
-    serverIdParam:
+    ServerIdParam:
       in: path
       name: server_id
       description: the encoded string representation of the Security Server id
@@ -4907,6 +4845,24 @@ components:
         maxLength: 1023
         minLength: 1
         type: string
+    IntermediateCaIdParam:
+      in: path
+      name: intermediate_ca_id
+      description: unique identifier of the intermediate certificate authority
+      required: true
+      schema:
+        format: int32
+        minimum: 1
+        type: integer
+    OcspResponderIdParam:
+      in: path
+      name: ocsp_responder_id
+      description: unique identifier of the intermediateCA ocsp responder
+      required: true
+      schema:
+        format: int32
+        minimum: 1
+        type: integer
     ConfigurationTypeParam:
       in: path
       name: configuration_type
@@ -4914,6 +4870,15 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/ConfigurationType'
+    ManagementRequestIdParam:
+      in: path
+      name: management_request_id
+      description: Management request id
+      required: true
+      schema:
+        minimum: 1
+        format: int32
+        type: integer
     GroupCodeParam:
       in: path
       name: group_code

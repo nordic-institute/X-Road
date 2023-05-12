@@ -101,7 +101,7 @@ Feature: Certification services API
   Scenario: Certification Service delete fails due to wrong id
     Given Authentication header is set to SYSTEM_ADMINISTRATOR
     And Certification service with name "cert1" and certificateProfileInfo "ee.ria.xroad.common.certificateprofile.impl.BasicCertificateProfileInfoProvider" is created
-    When Certification service with id -10 is deleted
+    When Certification service with id 999 is deleted
     Then Response is of status code 404 and error code "certification_service_not_found"
 
   @Modifying
