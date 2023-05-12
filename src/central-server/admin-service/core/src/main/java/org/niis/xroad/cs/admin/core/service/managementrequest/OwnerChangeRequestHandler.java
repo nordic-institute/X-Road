@@ -217,8 +217,8 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         var currentOwner = members.findOneBy(currentOwnerIdentifier)
                 .getOrElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND, currentOwnerIdentifier));
         if (currentOwner.getOwnedServers().isEmpty()) {
-            groupMemberService.removeMemberFromGlobalGroup(MemberId.create(currentOwner.getIdentifier()),
-                    DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+            groupMemberService.removeMemberFromGlobalGroup(DEFAULT_SECURITY_SERVER_OWNERS_GROUP,
+                    MemberId.create(currentOwner.getIdentifier()));
         }
         groupMemberService.addMemberToGlobalGroup(MemberId.create(newOwner.getIdentifier()),
                 DEFAULT_SECURITY_SERVER_OWNERS_GROUP);

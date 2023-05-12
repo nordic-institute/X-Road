@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.core.service;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMemberView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
@@ -56,12 +55,10 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.GLOBAL_GROUP_MEMBER_MISMATCH;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.GLOBAL_GROUP_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.OWNERS_GLOBAL_GROUP_MEMBER_CANNOT_BE_DELETED;
@@ -111,10 +108,12 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
     }
 
     @Override
-    public void removeMemberFromGlobalGroup(String groupCode, Integer memberId) {
-        var globalGroupMemberEntity = globalGroupMemberRepository.findById(memberId)
+    public void removeMemberFromGlobalGroup(String groupCode, String memberId) {
+        final var globalGroup = getGlobalGroupEntity(groupCode);
+        final var globalGroupMemberEntity = globalGroup.getGlobalGroupMembers().stream()
+                .filter(groupMember -> groupMember.getIdentifier().asEncodedId().equals(memberId))
+                .findFirst()
                 .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND, memberId));
-        var globalGroup = globalGroupMemberEntity.getGlobalGroup();
 
         auditDataHelper.put(RestApiAuditProperty.CODE, globalGroup.getGroupCode());
         auditDataHelper.put(RestApiAuditProperty.DESCRIPTION, globalGroup.getDescription());
@@ -122,15 +121,11 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
 
         globalGroupService.verifyCompositionEditability(globalGroup.getGroupCode(), OWNERS_GLOBAL_GROUP_MEMBER_CANNOT_BE_DELETED);
 
-        if (Objects.equals(globalGroupMemberEntity.getGlobalGroup().getGroupCode(), groupCode)) {
-            globalGroupMemberRepository.delete(globalGroupMemberEntity);
-        } else {
-            throw new ValidationFailureException(GLOBAL_GROUP_MEMBER_MISMATCH, groupCode);
-        }
+        globalGroupMemberRepository.delete(globalGroupMemberEntity);
     }
 
     @Override
-    public void removeMemberFromGlobalGroup(MemberId memberId, String groupCode) {
+    public void removeMemberFromGlobalGroup(String groupCode, MemberId memberId) {
         final XRoadMemberEntity memberEntity = getMemberIdEntity(memberId);
         final GlobalGroupEntity globalGroupEntity = getGlobalGroupEntity(groupCode);
 

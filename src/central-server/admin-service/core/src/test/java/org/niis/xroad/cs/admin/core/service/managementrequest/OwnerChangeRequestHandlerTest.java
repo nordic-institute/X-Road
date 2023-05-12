@@ -361,7 +361,7 @@ class OwnerChangeRequestHandlerTest {
 
         verify(ownerChangeRequestEntity).setProcessingStatus(APPROVED);
 
-        verify(groupMemberService).removeMemberFromGlobalGroup(MemberId.create("x", "y", "z"), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+        verify(groupMemberService).removeMemberFromGlobalGroup(DEFAULT_SECURITY_SERVER_OWNERS_GROUP, MemberId.create("x", "y", "z"));
         verify(groupMemberService).addMemberToGlobalGroup(
                 MemberId.create(xRoadMemberEntity.getIdentifier()), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
     }

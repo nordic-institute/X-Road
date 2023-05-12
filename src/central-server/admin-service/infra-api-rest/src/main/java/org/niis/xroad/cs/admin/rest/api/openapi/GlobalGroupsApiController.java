@@ -117,8 +117,8 @@ public class GlobalGroupsApiController implements GlobalGroupsApi {
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.DELETE_GLOBAL_GROUP_MEMBER)
     @PreAuthorize("hasAuthority('ADD_AND_REMOVE_GROUP_MEMBERS')")
-    public ResponseEntity<Void> deleteGlobalGroupMember(String groupCode, Integer memberId) {
-        globalGroupMemberService.removeMemberFromGlobalGroup(groupCode, memberId);
+    public ResponseEntity<Void> deleteGlobalGroupMember(String groupCode, String clientId) {
+        globalGroupMemberService.removeMemberFromGlobalGroup(groupCode, clientId);
         return ResponseEntity.noContent().build();
     }
 

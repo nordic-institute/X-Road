@@ -132,7 +132,7 @@ class GlobalGroupMemberServiceImplTest {
         globalGroupEntity.getGlobalGroupMembers().add(
                 new GlobalGroupMemberEntity(globalGroupEntity, MemberIdEntity.create(INSTANCE, MEMBER_CLASS, "code-2")));
 
-        globalGroupMemberService.removeMemberFromGlobalGroup(MemberId.create(INSTANCE, MEMBER_CLASS, codeToDelete), GROUP_CODE);
+        globalGroupMemberService.removeMemberFromGlobalGroup(GROUP_CODE, MemberId.create(INSTANCE, MEMBER_CLASS, codeToDelete));
 
         verify(globalGroupMemberRepository).delete(toBeRemoved);
     }
@@ -151,7 +151,7 @@ class GlobalGroupMemberServiceImplTest {
         globalGroupEntity.getGlobalGroupMembers().add(
                 new GlobalGroupMemberEntity(globalGroupEntity, MemberIdEntity.create(INSTANCE, MEMBER_CLASS, "code-2")));
 
-        globalGroupMemberService.removeMemberFromGlobalGroup(memberId, GROUP_CODE);
+        globalGroupMemberService.removeMemberFromGlobalGroup(GROUP_CODE, memberId);
 
         assertThat(globalGroupEntity.getGlobalGroupMembers()).hasSize(2);
 

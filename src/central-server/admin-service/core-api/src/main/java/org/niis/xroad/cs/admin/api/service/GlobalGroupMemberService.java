@@ -47,9 +47,9 @@ public interface GlobalGroupMemberService {
 
     void addMemberToGlobalGroup(MemberId memberId, String groupCode);
 
-    void removeMemberFromGlobalGroup(String groupCode, Integer memberId);
+    void removeMemberFromGlobalGroup(String groupCode, String memberId);
 
-    void removeMemberFromGlobalGroup(MemberId memberId, String groupCode);
+    void removeMemberFromGlobalGroup(String groupCode, MemberId memberId);
 
     @Builder
     @Getter

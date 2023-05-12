@@ -188,18 +188,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
     @Step("global group {string} member {string} is deleted")
     public void globalGroupMemberIsDeleted(String code, String memberIdentifier) {
         try {
-            var memberId = resolveGlobalGroupMemberId(code, "Member name for " + memberIdentifier).orElse(999);
-            globalGroupMemberIsDeleted(code, memberId);
-        } catch (FeignException feignException) {
-            putStepData(RESPONSE_STATUS, feignException.status());
-            putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
-        }
-    }
-
-    @Step("global group {string} member {int} is deleted")
-    public void globalGroupMemberIsDeleted(String code, Integer memberId) {
-        try {
-            final ResponseEntity<Void> response = globalGroupsApi.deleteGlobalGroupMember(code, memberId);
+            final ResponseEntity<Void> response = globalGroupsApi.deleteGlobalGroupMember(code, memberIdentifier);
 
             putStepData(RESPONSE, response);
             putStepData(RESPONSE_STATUS, response.getStatusCodeValue());

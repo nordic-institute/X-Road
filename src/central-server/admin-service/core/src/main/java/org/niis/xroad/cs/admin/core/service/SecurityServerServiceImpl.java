@@ -227,8 +227,8 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     private void updateServerOwnersGroup(SecurityServerEntity securityServerEntity) {
         final XRoadMemberEntity owner = securityServerEntity.getOwner();
         if (owner.getOwnedServers().size() == 1) {
-            groupMemberService.removeMemberFromGlobalGroup(
-                    MemberId.create(owner.getIdentifier()), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+            groupMemberService.removeMemberFromGlobalGroup(DEFAULT_SECURITY_SERVER_OWNERS_GROUP,
+                    MemberId.create(owner.getIdentifier()));
         }
     }
 

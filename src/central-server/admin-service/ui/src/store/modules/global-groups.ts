@@ -126,7 +126,7 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
         request,
       );
     },
-    deleteGroupMember(groupCode: string, memberId: number) {
+    deleteGroupMember(groupCode: string, memberId: string) {
       return axios.delete(`/global-groups/${groupCode}/members/${memberId}`);
     },
     deleteByCode(groupCode: string) {
