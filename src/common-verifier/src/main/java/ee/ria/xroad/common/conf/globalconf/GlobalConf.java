@@ -33,7 +33,6 @@ import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
@@ -421,19 +420,6 @@ public final class GlobalConf {
                 memberId);
 
         return getInstance().authCertMatchesMember(cert, memberId);
-    }
-
-    /**
-     * @param authCert the authentication certificate
-     * @return set of codes corresponding to security categories assigned
-     * to security server associated with this authentication certificate
-     * @throws Exception if an error occurs
-     */
-    public static Collection<SecurityCategoryId.Conf> getProvidedCategories(
-            X509Certificate authCert) throws Exception {
-        log.trace("getProvidedCategories()");
-
-        return getInstance().getProvidedCategories(authCert);
     }
 
     /**

@@ -110,13 +110,6 @@
         <property name="url" access="field"/>
         <property name="sslAuthentication" access="field"/>
         <property name="timeout" access="field"/>
-
-        <bag name="requiredSecurityCategory" access="field"
-             cascade="all-delete-orphan" table="service_securitycategories">
-            <key column="service_id"/>
-            <many-to-many column="security_cat_id"
-                          class="ee.ria.xroad.common.identifier.SecurityCategoryId$Conf"/>
-        </bag>
     </class>
 
     <class name="LocalGroupType" table="LOCALGROUP">

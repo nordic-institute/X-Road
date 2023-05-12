@@ -46,7 +46,6 @@ import ee.ria.xroad.common.db.TransactionCallback;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -69,7 +68,6 @@ import javax.persistence.criteria.Root;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -320,17 +318,6 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public boolean isQueryAllowed(ClientId client, ServiceId service, String method, String path) {
         return tx(session -> internalIsQueryAllowed(session, client, service, method, path));
-    }
-
-    @Override
-    public List<SecurityCategoryId.Conf> getRequiredCategories(ServiceId service) {
-        return tx(session -> {
-            ServiceType serviceType = getService(session, service);
-            if (serviceType != null) {
-                return serviceType.getRequiredSecurityCategory();
-            }
-            return Collections.emptyList();
-        });
     }
 
     @Override

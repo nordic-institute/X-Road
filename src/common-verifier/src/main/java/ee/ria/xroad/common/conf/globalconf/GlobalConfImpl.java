@@ -41,7 +41,6 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SecurityServerTyp
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -57,7 +56,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -444,13 +442,6 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 .map(p -> p.getMemberAuthCerts().get(memberId))
                 .filter(Objects::nonNull).flatMap(Collection::stream)
                 .anyMatch(h -> Arrays.equals(inputCertHash, h));
-    }
-
-    @Override
-    public Set<SecurityCategoryId.Conf> getProvidedCategories(
-            X509Certificate authCert) throws Exception {
-        // Currently not implemented.
-        return new HashSet<>();
     }
 
     @Override

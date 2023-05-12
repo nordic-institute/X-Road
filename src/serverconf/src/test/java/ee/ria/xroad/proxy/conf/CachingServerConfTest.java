@@ -34,7 +34,6 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
@@ -47,7 +46,6 @@ import org.junit.Test;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
@@ -60,7 +58,6 @@ import static ee.ria.xroad.proxy.conf.TestUtil.NUM_CLIENTS;
 import static ee.ria.xroad.proxy.conf.TestUtil.NUM_SERVICEDESCRIPTIONS;
 import static ee.ria.xroad.proxy.conf.TestUtil.NUM_SERVICES;
 import static ee.ria.xroad.proxy.conf.TestUtil.NUM_TSPS;
-import static ee.ria.xroad.proxy.conf.TestUtil.SECURITY_CATEGORY;
 import static ee.ria.xroad.proxy.conf.TestUtil.SERVER_CODE;
 import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_CODE;
 import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_TIMEOUT;
@@ -253,20 +250,6 @@ public class CachingServerConfTest {
         assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo/bar"));
         assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "DELETE", "/api/test"));
         assertFalse(ServerConf.isQueryAllowed(client1, serviceRest));
-    }
-
-    /**
-     * Tests getting required categories.
-     */
-    @Test
-    public void getRequiredCategories() {
-        ServiceId.Conf service1 = createTestServiceId(client(1),
-                service(1, 1), SERVICE_VERSION);
-        Collection<SecurityCategoryId.Conf> securityCategories =
-                ServerConf.getRequiredCategories(service1);
-        assertEquals(1, securityCategories.size());
-        assertEquals(SecurityCategoryId.Conf.create(XROAD_INSTANCE,
-                SECURITY_CATEGORY + 1), securityCategories.iterator().next());
     }
 
     /**

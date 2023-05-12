@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -116,16 +115,6 @@ public class IdentifierDAOImplTest {
     public void localGroupId() throws Exception {
         assertCreateRead(() -> LocalGroupId.Conf.create("localGroup1"));
         assertCreateRead(() -> LocalGroupId.Conf.create("localGroup2"));
-    }
-
-    /**
-     * SecurityCategoryId.
-     * @throws Exception if an error occurs
-     */
-    @Test
-    public void securityCategoryId() throws Exception {
-        assertCreateRead(() -> SecurityCategoryId.Conf.create("XX", "cat1"));
-        assertCreateRead(() -> SecurityCategoryId.Conf.create("XX", "cat2"));
     }
 
     /**

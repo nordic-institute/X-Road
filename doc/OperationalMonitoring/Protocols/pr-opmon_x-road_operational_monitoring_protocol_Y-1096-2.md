@@ -6,18 +6,19 @@
 
 **Technical Specification**
 
-Version: 1.0  
+Version: 1.1  
 Doc. ID: PR-OPMON
 
-| Date | Version | Description | Author|
-|------|---------|-------------|-------|
-|            | 0.2 | Initial version |   |
-| 23.01.2017 | 0.3 | Added license text, table of contents and version history | Sami Kallio |
-| 05.03.2018 | 0.4 | Added terms and abbreviations reference | Tatu Repo |
-| 04.12.2018 | 0.5 | More detailed descriptions for *[request/response][In/Out]Ts* fields | Cybernetica AS |
-| 18.02.2019 | 0.6 | Example response updated: added xRequestId | Caro Hautamäki |
-| 23.05.2019 | 0.7 | Add info about status_code, request_rest_size, response_rest_size | Tapio Jaakkola |
-| 12.12.2019 | 1.0 | Update the protocol to the next major version | Ilkka Seppälä |
+| Date       | Version | Description                                                          | Author          |
+|------------|---------|----------------------------------------------------------------------|-----------------|
+|            | 0.2     | Initial version                                                      |                 |
+| 23.01.2017 | 0.3     | Added license text, table of contents and version history            | Sami Kallio     |
+| 05.03.2018 | 0.4     | Added terms and abbreviations reference                              | Tatu Repo       |
+| 04.12.2018 | 0.5     | More detailed descriptions for *[request/response][In/Out]Ts* fields | Cybernetica AS  |
+| 18.02.2019 | 0.6     | Example response updated: added xRequestId                           | Caro Hautamäki  |
+| 23.05.2019 | 0.7     | Add info about status_code, request_rest_size, response_rest_size    | Tapio Jaakkola  |
+| 12.12.2019 | 1.0     | Update the protocol to the next major version                        | Ilkka Seppälä   |
+| 10.05.2023 | 1.1     | Security Categories removed.                                         | Justas Samuolis |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -320,7 +321,6 @@ The WSDL is located in the file *src/op-monitor-daemon/src/main/resources/op-mon
                     <xs:element minOccurs="0" ref="groupCode"/>
                     <xs:element minOccurs="0" ref="serviceCode"/>
                     <xs:element minOccurs="0" ref="serviceVersion"/>
-                    <xs:element minOccurs="0" ref="securityCategoryCode"/>
                     <xs:element minOccurs="0" ref="serverCode"/>
                 </xs:sequence>
                 <xs:attribute ref="objectType" use="required"/>
@@ -336,7 +336,6 @@ The WSDL is located in the file *src/op-monitor-daemon/src/main/resources/op-mon
                     <xs:enumeration value="SERVER"/>
                     <xs:enumeration value="GLOBALGROUP"/>
                     <xs:enumeration value="LOCALGROUP"/>
-                    <xs:enumeration value="SECURITYCATEGORY"/>
                     <xs:enumeration value="SERVICE"/>
                 </xs:restriction>
             </xs:simpleType>
@@ -388,13 +387,6 @@ The WSDL is located in the file *src/op-monitor-daemon/src/main/resources/op-mon
                     <xs:documentation>Version of the service.</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="securityCategoryCode" type="xs:string">
-                <xs:annotation>
-                    <xs:documentation>Code that uniquely identifies security
-                        category in a given X-Road instance.
-                    </xs:documentation>
-                </xs:annotation>
-            </xs:element>
             <xs:element name="serverCode" type="xs:string">
                 <xs:annotation>
                     <xs:documentation>Code that uniquely identifies security
@@ -429,18 +421,6 @@ The WSDL is located in the file *src/op-monitor-daemon/src/main/resources/op-mon
                         </xs:sequence>
                         <xs:attribute ref="objectType" use="required"
                                 fixed="SERVICE"/>
-                    </xs:restriction>
-                </xs:complexContent>
-            </xs:complexType>
-            <xs:complexType name="XRoadSecurityCategoryIdentifierType">
-                <xs:complexContent>
-                    <xs:restriction base="XRoadIdentifierType">
-                        <xs:sequence>
-                            <xs:element ref="xRoadInstance"/>
-                            <xs:element ref="securityCategoryCode"/>
-                        </xs:sequence>
-                        <xs:attribute ref="objectType" use="required"
-                                fixed="SECURITYCATEGORY"/>
                     </xs:restriction>
                 </xs:complexContent>
             </xs:complexType>

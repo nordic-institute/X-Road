@@ -42,10 +42,6 @@
             <property name="groupCode" access="field"/>
         </subclass>
 
-        <subclass name="SecurityCategoryId$Conf" discriminator-value="SC">
-            <property name="securityCategory" access="field"/>
-        </subclass>
-
         <subclass name="SecurityServerId$Conf" discriminator-value="SS">
             <property name="memberClass" access="field"/>
             <property name="memberCode" access="field"/>

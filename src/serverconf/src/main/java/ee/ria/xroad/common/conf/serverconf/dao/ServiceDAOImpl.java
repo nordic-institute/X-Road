@@ -33,7 +33,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 
@@ -63,12 +62,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      * @return the service object
      */
     public ServiceType getService(Session session, ServiceId id) {
-        ServiceType serviceType = find(session, id);
-        if (serviceType != null) {
-            Hibernate.initialize(serviceType.getRequiredSecurityCategory());
-        }
-
-        return serviceType;
+        return find(session, id);
     }
 
     /**

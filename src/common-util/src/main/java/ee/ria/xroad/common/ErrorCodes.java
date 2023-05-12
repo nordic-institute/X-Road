@@ -121,7 +121,6 @@ public final class ErrorCodes {
     public static final String X_SERVICE_FAILED_X = "ServiceFailed";
     public static final String X_MISSING_SIGNATURE = "MissingSignature";
     public static final String X_UNKNOWN_SERVICE = "UnknownService";
-    public static final String X_SECURITY_CATEGORY = "SecurityCategory";
     public static final String X_INVALID_PROTOCOL_VERSION =
             "InvalidProtocolVersion";
     public static final String X_INVALID_CLIENT_IDENTIFIER =
