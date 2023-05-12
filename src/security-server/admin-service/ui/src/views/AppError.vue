@@ -106,7 +106,6 @@ export default Vue.extend({
   line-height: 150%;
   text-align: center;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
   margin-top: 60px;
 }
 
