@@ -39,16 +39,18 @@ import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import org.niis.xroad.cs.admin.api.paging.Page;
+import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
-import org.niis.xroad.cs.admin.api.service.StableSortHelper;
+import org.niis.xroad.cs.admin.core.converter.PageConverter;
+import org.niis.xroad.cs.admin.core.converter.PageRequestDtoConverter;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ManagementRequestViewMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.ManagementRequestViewRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.niis.xroad.cs.admin.core.repository.paging.StableSortHelper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -77,6 +79,8 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     private final List<RequestHandler<? extends Request>> handlers;
     private final RequestMapper requestMapper;
     private final ManagementRequestViewMapper viewMapper;
+    private final PageRequestDtoConverter pageRequestDtoConverter;
+    private final PageConverter pageConverter;
     private final StableSortHelper stableSortHelper;
 
     /**
@@ -110,9 +114,11 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     @Override
     public Page<ManagementRequestView> findRequests(
             ManagementRequestService.Criteria filter,
-            Pageable page) {
-        var result = managementRequestViewRepository.findAll(filter, stableSortHelper.addSecondaryIdSort(page));
-        return result.map(viewMapper::toTarget);
+            PageRequestDto pageRequest) {
+        var pageable = stableSortHelper.addSecondaryIdSort(pageRequestDtoConverter.convert(pageRequest));
+        var result = managementRequestViewRepository.findAll(filter, pageable).map(viewMapper::toTarget);
+
+        return pageConverter.convert(result);
     }
 
     /**

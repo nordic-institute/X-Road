@@ -10,7 +10,5 @@ dependencies {
     api project(':common-rest-api')
     api project(':common-management-request')
 
-    api('org.springframework.data:spring-data-commons') // TODO used for pagination, create DTOs.
-
     implementation("jakarta.validation:jakarta.validation-api")
 }

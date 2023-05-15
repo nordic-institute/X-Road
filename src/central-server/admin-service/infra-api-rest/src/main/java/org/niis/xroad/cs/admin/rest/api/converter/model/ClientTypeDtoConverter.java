@@ -26,66 +26,26 @@
 package org.niis.xroad.cs.admin.rest.api.converter.model;
 
 import ee.ria.xroad.common.identifier.XRoadObjectType;
-import ee.ria.xroad.common.util.NoCoverage;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.ValueMapping;
-import org.mapstruct.ValueMappings;
-import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 import org.niis.xroad.cs.openapi.model.ClientTypeDto;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 
-@Mapper
+@Mapper(componentModel = SPRING)
 public interface ClientTypeDtoConverter {
 
-    @Converter
-    @NoCoverage
-    class Impl extends ClientTypeDtoConverterImpl implements AttributeConverter<ClientTypeDto, XRoadObjectType> {
-
-        private static final Impl IMPLEMENTATION = new Impl();
-
-        @Override
-        public XRoadObjectType convertToDatabaseColumn(ClientTypeDto attribute) {
-            return IMPLEMENTATION.convert(attribute);
-        }
-
-        @Override
-        public ClientTypeDto convertToEntityAttribute(XRoadObjectType dbData) {
-            return IMPLEMENTATION.convert(dbData);
-        }
-    }
-
-    @org.springframework.stereotype.Service
-    @NoCoverage
-    class Service extends DtoConverter<XRoadObjectType, ClientTypeDto> {
-        private static final Impl IMPLEMENTATION = new Impl();
-
-        @Override
-        public ClientTypeDto toDto(XRoadObjectType source) {
-            return IMPLEMENTATION.convert(source);
-        }
-
-        @Override
-        public XRoadObjectType fromDto(ClientTypeDto source) {
-            return IMPLEMENTATION.convert(source);
-        }
-    }
-
-    @ValueMappings({
-            @ValueMapping(source = "MEMBER", target = "MEMBER"),
-            @ValueMapping(source = "SUBSYSTEM", target = "SUBSYSTEM"),
-            @ValueMapping(source = MappingConstants.ANY_UNMAPPED, target = MappingConstants.NULL),
-    })
+    @ValueMapping(source = "MEMBER", target = "MEMBER")
+    @ValueMapping(source = "SUBSYSTEM", target = "SUBSYSTEM")
+    @ValueMapping(source = MappingConstants.ANY_UNMAPPED, target = MappingConstants.NULL)
     XRoadObjectType convert(ClientTypeDto clientTypeDto);
 
-    @ValueMappings({
-            @ValueMapping(source = "MEMBER", target = "MEMBER"),
-            @ValueMapping(source = "SUBSYSTEM", target = "SUBSYSTEM"),
-            @ValueMapping(source = MappingConstants.ANY_UNMAPPED, target = MappingConstants.NULL),
-    })
+
+    @ValueMapping(source = "MEMBER", target = "MEMBER")
+    @ValueMapping(source = "SUBSYSTEM", target = "SUBSYSTEM")
+    @ValueMapping(source = MappingConstants.ANY_UNMAPPED, target = MappingConstants.NULL)
     ClientTypeDto convert(XRoadObjectType xRoadObjectType);
 
 }

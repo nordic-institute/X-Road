@@ -26,75 +26,27 @@
  */
 package org.niis.xroad.cs.admin.rest.api.converter.model;
 
-import ee.ria.xroad.common.util.NoCoverage;
-
-import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
 import org.mapstruct.ValueMapping;
-import org.mapstruct.ValueMappings;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 
-@Mapper
+@Mapper(componentModel = SPRING)
 public interface ManagementRequestDtoTypeConverter {
 
-    @Slf4j
-    @Converter
-    @NoCoverage
-    class Impl extends ManagementRequestDtoTypeConverterImpl implements AttributeConverter<
-            ManagementRequestTypeDto,
-            ManagementRequestType
-            > {
-
-        private static final Impl IMPLEMENTATION = new Impl();
-
-        @Override
-        public ManagementRequestType convertToDatabaseColumn(ManagementRequestTypeDto attribute) {
-            return IMPLEMENTATION.convert(attribute);
-        }
-
-        @Override
-        public ManagementRequestTypeDto convertToEntityAttribute(ManagementRequestType dbData) {
-            return IMPLEMENTATION.convert(dbData);
-        }
-    }
-
-    @Slf4j
-    @org.springframework.stereotype.Service
-    @NoCoverage
-    class Service extends DtoConverter<ManagementRequestType, ManagementRequestTypeDto> {
-        private static final Impl IMPLEMENTATION = new Impl();
-
-        @Override
-        public ManagementRequestTypeDto toDto(ManagementRequestType source) {
-            return IMPLEMENTATION.convert(source);
-        }
-
-        @Override
-        public ManagementRequestType fromDto(ManagementRequestTypeDto source) {
-            return IMPLEMENTATION.convert(source);
-        }
-    }
-
-    @ValueMappings({
-            @ValueMapping(source = "AUTH_CERT_REGISTRATION_REQUEST", target = "AUTH_CERT_REGISTRATION_REQUEST"),
-            @ValueMapping(source = "CLIENT_REGISTRATION_REQUEST", target = "CLIENT_REGISTRATION_REQUEST"),
-            @ValueMapping(source = "OWNER_CHANGE_REQUEST", target = "OWNER_CHANGE_REQUEST"),
-            @ValueMapping(source = "CLIENT_DELETION_REQUEST", target = "CLIENT_DELETION_REQUEST"),
-            @ValueMapping(source = "AUTH_CERT_DELETION_REQUEST", target = "AUTH_CERT_DELETION_REQUEST"),
-    })
+    @ValueMapping(source = "AUTH_CERT_REGISTRATION_REQUEST", target = "AUTH_CERT_REGISTRATION_REQUEST")
+    @ValueMapping(source = "CLIENT_REGISTRATION_REQUEST", target = "CLIENT_REGISTRATION_REQUEST")
+    @ValueMapping(source = "OWNER_CHANGE_REQUEST", target = "OWNER_CHANGE_REQUEST")
+    @ValueMapping(source = "CLIENT_DELETION_REQUEST", target = "CLIENT_DELETION_REQUEST")
+    @ValueMapping(source = "AUTH_CERT_DELETION_REQUEST", target = "AUTH_CERT_DELETION_REQUEST")
     ManagementRequestTypeDto convert(ManagementRequestType source);
 
-    @ValueMappings({
-            @ValueMapping(source = "AUTH_CERT_REGISTRATION_REQUEST", target = "AUTH_CERT_REGISTRATION_REQUEST"),
-            @ValueMapping(source = "CLIENT_REGISTRATION_REQUEST", target = "CLIENT_REGISTRATION_REQUEST"),
-            @ValueMapping(source = "OWNER_CHANGE_REQUEST", target = "OWNER_CHANGE_REQUEST"),
-            @ValueMapping(source = "CLIENT_DELETION_REQUEST", target = "CLIENT_DELETION_REQUEST"),
-            @ValueMapping(source = "AUTH_CERT_DELETION_REQUEST", target = "AUTH_CERT_DELETION_REQUEST"),
-    })
+    @ValueMapping(source = "AUTH_CERT_REGISTRATION_REQUEST", target = "AUTH_CERT_REGISTRATION_REQUEST")
+    @ValueMapping(source = "CLIENT_REGISTRATION_REQUEST", target = "CLIENT_REGISTRATION_REQUEST")
+    @ValueMapping(source = "OWNER_CHANGE_REQUEST", target = "OWNER_CHANGE_REQUEST")
+    @ValueMapping(source = "CLIENT_DELETION_REQUEST", target = "CLIENT_DELETION_REQUEST")
+    @ValueMapping(source = "AUTH_CERT_DELETION_REQUEST", target = "AUTH_CERT_DELETION_REQUEST")
     ManagementRequestType convert(ManagementRequestTypeDto source);
 }

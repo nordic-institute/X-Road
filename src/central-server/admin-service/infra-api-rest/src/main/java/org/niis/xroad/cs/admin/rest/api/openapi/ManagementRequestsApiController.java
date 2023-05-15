@@ -43,7 +43,6 @@ import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -117,7 +116,7 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
     @PreAuthorize("hasAuthority('VIEW_MANAGEMENT_REQUESTS')")
     public ResponseEntity<PagedManagementRequestsDto> findManagementRequests(ManagementRequestsFilterDto filter,
                                                                              PagingSortingParametersDto pagingSorting) {
-        PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
+        var pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
         var resultPage = service.findRequests(converter.convert(filter), pageRequest);
 
         PagedManagementRequestsDto pagedResults = pagedManagementRequestsConverter.convert(resultPage, pagingSorting);

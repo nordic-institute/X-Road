@@ -53,6 +53,7 @@ import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.rest.api.converter.AbstractDtoConverterTest;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverter;
+import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverterImpl;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestOriginDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestStatusConverter;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
@@ -95,15 +96,15 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
     private SecurityServerId securityServerId;
 
     @Mock
-    private ManagementRequestOriginDtoConverter.Service originDtoMapper;
+    private ManagementRequestOriginDtoConverter originDtoMapper;
     @Mock
     private SecurityServerIdConverter securityServerIdMapper;
     @Mock
-    private ManagementRequestStatusConverter.Service statusMapper;
+    private ManagementRequestStatusConverter statusMapper;
     @Mock
     private ClientIdConverter clientIdConverter;
     @Spy
-    private ManagementRequestDtoTypeConverter.Service requestTypeConverter = new ManagementRequestDtoTypeConverter.Service();
+    private ManagementRequestDtoTypeConverter requestTypeConverter = new ManagementRequestDtoTypeConverterImpl();
 
     @InjectMocks
     private ManagementRequestDtoConverter converter;
@@ -220,12 +221,12 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             doReturn(ID).when(request).getId();
             doReturn(origin).when(request).getOrigin();
             doReturn(type).when(request).getManagementRequestType();
-            doReturn(originDto).when(originDtoMapper).toDto(origin);
+            doReturn(originDto).when(originDtoMapper).convert(origin);
             doReturn(securityServerId).when(request).getSecurityServerId();
             doReturn("SECURITY_SERVER_ID").when(securityServerIdMapper).convertId(securityServerId);
 
             if (request instanceof RequestWithProcessing) {
-                doReturn(managementRequestStatusDto).when(statusMapper).toDto(managementRequestStatus);
+                doReturn(managementRequestStatusDto).when(statusMapper).convert(managementRequestStatus);
             } else {
                 managementRequestStatus = null;
                 managementRequestStatusDto = null;
@@ -253,13 +254,13 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
         private void verifyCommon(org.mockito.InOrder inOrder, Request request) {
             if (request instanceof RequestWithProcessing) {
                 inOrder.verify((RequestWithProcessing) request).getProcessingStatus();
-                inOrder.verify(statusMapper).toDto(managementRequestStatus);
+                inOrder.verify(statusMapper).convert(managementRequestStatus);
             }
 
             inOrder.verify(request).getId();
             inOrder.verify(request).getManagementRequestType();
             inOrder.verify(request).getOrigin();
-            inOrder.verify(originDtoMapper).toDto(origin);
+            inOrder.verify(originDtoMapper).convert(origin);
             inOrder.verify(request).getSecurityServerId();
             inOrder.verify(securityServerIdMapper).convertId(securityServerId);
 
@@ -357,7 +358,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         private void prepareCommonStubs(ManagementRequestDto requestDto) {
             doReturn(originDto).when(requestDto).getOrigin();
-            doReturn(origin).when(originDtoMapper).fromDto(originDto);
+            doReturn(origin).when(originDtoMapper).convert(originDto);
             doReturn("SECURITY_SERVER_ID").when(requestDto).getSecurityServerId();
             doReturn(securityServerId).when(securityServerIdMapper).convertId("SECURITY_SERVER_ID");
         }
@@ -370,7 +371,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         private void verifyCommon(org.mockito.InOrder inOrder, ManagementRequestDto requestDto) {
             inOrder.verify(requestDto).getOrigin();
-            inOrder.verify(originDtoMapper).fromDto(originDto);
+            inOrder.verify(originDtoMapper).convert(originDto);
             inOrder.verify(requestDto).getSecurityServerId();
             inOrder.verify(securityServerIdMapper).convertId("SECURITY_SERVER_ID");
         }

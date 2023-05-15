@@ -27,10 +27,10 @@
 package org.niis.xroad.cs.admin.rest.api.converter;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingMetadataDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;

@@ -28,10 +28,10 @@ package org.niis.xroad.cs.admin.rest.api.converter.db;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.openapi.model.MemberClassDto;
+import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;

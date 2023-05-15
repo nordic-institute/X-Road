@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.rest.api.converter.db;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
@@ -41,6 +40,7 @@ import org.niis.xroad.cs.admin.rest.api.converter.model.XRoadObjectTypeDtoConver
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.ClientIdDto;
 import org.niis.xroad.cs.openapi.model.XRoadIdDto;
+import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;
@@ -135,7 +135,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
     @RequiredArgsConstructor
     public class Flattened extends DtoConverter<FlattenedSecurityServerClientView, ClientDto> {
 
-        private final XRoadObjectTypeDtoConverter.Service xRoadObjectTypeDtoMapper;
+        private final XRoadObjectTypeDtoConverter xRoadObjectTypeDtoMapper;
 
         @Override
         public ClientDto toDto(FlattenedSecurityServerClientView source) {
@@ -150,7 +150,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                             .ifPresent(clientIdDto::setMemberClass);
                     clientIdDto.setMemberCode(source.getMemberCode());
                     clientIdDto.setSubsystemCode(source.getSubsystemCode());
-                    clientIdDto.setType(xRoadObjectTypeDtoMapper.toDto(source.getType()));
+                    clientIdDto.setType(xRoadObjectTypeDtoMapper.convert(source.getType()));
                 }));
                 if (source.getCreatedAt() != null) {
                     clientDto.setCreatedAt(source.getCreatedAt().atOffset(dtoZoneOffset));

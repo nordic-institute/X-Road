@@ -26,9 +26,9 @@
 package org.niis.xroad.cs.admin.rest.api.converter;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.openapi.model.PagingMetadataDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import static java.lang.Math.toIntExact;
@@ -36,7 +36,7 @@ import static java.lang.Math.toIntExact;
 @Component
 @RequiredArgsConstructor
 public class PagingMetadataConverter {
-    public PagingMetadataDto convert(Page page,
+    public PagingMetadataDto convert(Page<?> page,
                                      PagingSortingParametersDto pagingSorting) {
         PagingMetadataDto meta = new PagingMetadataDto();
         meta.setTotalItems(toIntExact(page.getTotalElements()));

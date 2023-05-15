@@ -27,13 +27,13 @@
 package org.niis.xroad.cs.admin.rest.api.converter.db;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.openapi.model.SubsystemDto;
 import org.niis.xroad.cs.openapi.model.UsedSecurityServersDto;
+import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 
 import static ee.ria.xroad.common.util.Fn.self;

@@ -1,6 +1,5 @@
 /**
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,49 +23,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.service;
+package org.niis.xroad.cs.admin.core.converter;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Component;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_PAGINATION_PROPERTIES;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
-public class StableSortHelperImplTest {
+@Component
+public class PageRequestDtoConverter {
 
-    StableSortHelperImpl stableSortHelper = new StableSortHelperImpl();
+    public Pageable convert(PageRequestDto pageRequestDto) {
+        try {
+            if (pageRequestDto.isUnpaged()) {
+                return Pageable.unpaged();
+            }
 
-    @Nested
-    @DisplayName("addSecondaryIdSort(Pageable original)")
-    class AddSecondaryIdSortMethod {
-        @Test
-        @DisplayName("should append sort identifier for pagination")
-        void shouldAppendSortIdentifierForPagination() {
-            Sort initialSort = Sort.by("id", "other").descending();
-            PageRequest original = PageRequest.of(0, 10).withSort(initialSort);
-            Sort expectedSort = Sort.by(
-                    Sort.Order.desc("id"),
-                    Sort.Order.desc("other"),
-                    Sort.Order.asc("id")
-            );
-
-            Pageable result = stableSortHelper.addSecondaryIdSort(original);
-
-            assertThat(result.getSort()).isNotEqualTo(initialSort);
-            assertThat(result.getSort()).isEqualTo(expectedSort);
-        }
-
-        @Test
-        @DisplayName("should not append sort identifier for unpaged")
-        void shouldNotAppendSort() {
-            Pageable original = Pageable.unpaged();
-
-            final Pageable result = stableSortHelper.addSecondaryIdSort(original);
-
-            assertThat(result).isEqualTo(original);
+            return PageRequest.of(
+                    pageRequestDto.getOffset(),
+                    pageRequestDto.getLimit(),
+                    convertToSort(pageRequestDto));
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new ValidationFailureException(INVALID_PAGINATION_PROPERTIES, e.getMessage());
         }
     }
+
+    private Sort convertToSort(PageRequestDto pagingSorting) {
+        Sort sort = Sort.unsorted();
+        if (StringUtils.isNotBlank(pagingSorting.getJpaSort())) {
+            sort = Sort.by(new Sort.Order(Boolean.TRUE.equals(pagingSorting.getDesc()) ? DESC : ASC,
+                    pagingSorting.getJpaSort())
+                    .ignoreCase());
+        }
+        return sort;
+    }
+
 }
+

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
+import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
@@ -43,8 +44,6 @@ import org.niis.xroad.cs.openapi.model.PagedClientsDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -64,7 +63,7 @@ public class ClientsApiController implements ClientsApi {
     private final PageRequestConverter pageRequestConverter;
     private final SecurityServerIdConverter securityServerIdConverter;
     private final ClientDtoConverter.Flattened flattenedSecurityServerClientViewDtoConverter;
-    private final ClientTypeDtoConverter.Service clientTypeDtoConverter;
+    private final ClientTypeDtoConverter clientTypeDtoConverter;
 
     private final PageRequestConverter.MappableSortParameterConverter findSortParameterConverter =
             new PageRequestConverter.MappableSortParameterConverter(
@@ -87,7 +86,7 @@ public class ClientsApiController implements ClientsApi {
                                                        ClientTypeDto clientTypeDto,
                                                        String encodedSecurityServerId,
                                                        Integer excludingGroup) {
-        PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
+        var pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
         ClientService.SearchParameters params =
                 new ClientService.SearchParameters()
                         .setMultifieldSearch(query)
@@ -97,7 +96,7 @@ public class ClientsApiController implements ClientsApi {
                         .setMemberCodeSearch(memberCode)
                         .setSubsystemCodeSearch(subsystemCode)
                         .setExcludingGroupParam(excludingGroup)
-                        .setClientType(clientTypeDtoConverter.fromDto(clientTypeDto));
+                        .setClientType(clientTypeDtoConverter.convert(clientTypeDto));
         if (StringUtils.isNotEmpty(encodedSecurityServerId)) {
             SecurityServerId id = securityServerIdConverter.convert(encodedSecurityServerId);
             var securityServer = securityServerService.find(id)

@@ -32,8 +32,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.niis.xroad.cs.admin.api.paging.Page;
+import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ import java.util.List;
  */
 public interface ClientService {
 
-    Page<FlattenedSecurityServerClientView> find(ClientService.SearchParameters params, Pageable pageable);
+    Page<FlattenedSecurityServerClientView> find(ClientService.SearchParameters params, PageRequestDto pageRequest);
 
     List<FlattenedSecurityServerClientView> find(ClientService.SearchParameters params);
 

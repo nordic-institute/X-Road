@@ -37,23 +37,35 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
+import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.core.converter.PageConverter;
+import org.niis.xroad.cs.admin.core.converter.PageRequestDtoConverter;
 import org.niis.xroad.cs.admin.core.entity.mapper.FlattenedSecurityServerClientViewMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.FlattenedSecurityServerClientViewMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.FlattenedSecurityServerClientRepository;
+import org.niis.xroad.cs.admin.core.repository.paging.StableSortHelper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ClientServiceImplTest implements WithInOrder {
 
     @Mock
-    private StableSortHelperImpl stableSortHelper;
+    private StableSortHelper stableSortHelper;
 
     @Mock
     private FlattenedSecurityServerClientRepository flattenedSecurityServerClientRepository;
+
+    @Mock
+    private PageRequestDtoConverter pageRequestDtoConverter;
+
+    @Mock
+    private PageConverter pageConverter;
 
     @Spy
     private FlattenedSecurityServerClientViewMapper flattenedSecurityServerClientViewMapper =
@@ -69,6 +81,8 @@ public class ClientServiceImplTest implements WithInOrder {
         @Mock
         private Pageable pageable;
         @Mock
+        private PageRequestDto pageRequest;
+        @Mock
         private Pageable modifiedPageable;
         @Mock
         private ClientService.SearchParameters params;
@@ -78,14 +92,16 @@ public class ClientServiceImplTest implements WithInOrder {
         @Test
         @DisplayName("should just verify sanity")
         void shouldJustVerifySanity() {
+            when(pageRequestDtoConverter.convert(pageRequest)).thenReturn(pageable);
             doReturn(modifiedPageable).when(stableSortHelper).addSecondaryIdSort(pageable);
             doReturn(result).when(flattenedSecurityServerClientRepository).findAll(params, modifiedPageable);
 
-            clientServiceImpl.find(params, pageable);
+            clientServiceImpl.find(params, pageRequest);
 
             inOrder().verify(inOrder -> {
                 inOrder.verify(stableSortHelper).addSecondaryIdSort(pageable);
                 inOrder.verify(flattenedSecurityServerClientRepository).findAll(params, modifiedPageable);
+                inOrder.verify(pageConverter).convert(any());
             });
         }
     }

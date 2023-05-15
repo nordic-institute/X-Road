@@ -26,10 +26,10 @@
 package org.niis.xroad.cs.admin.rest.api.converter.model;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.openapi.model.SecurityServerIdDto;
 import org.niis.xroad.cs.openapi.model.XRoadIdDto;
+import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 
 import static ee.ria.xroad.common.util.Fn.self;

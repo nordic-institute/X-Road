@@ -24,19 +24,64 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.admin.core.repository.paging;
 
-import org.springframework.data.domain.Pageable;
+import org.niis.xroad.cs.admin.api.paging.Page;
 
-/**
- * Helper that can add secondary id sort to Pageables
- */
-public interface StableSortHelper {
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-    /**
-     * Add secondary id-sort to Pageable, to guarantee stable results especially for paging
-     * {@link SecurityServerService} does the same, should use a shared utility
-     */
-    Pageable addSecondaryIdSort(Pageable original);
+public class PageDto<T> implements Page<T> {
+    private final org.springframework.data.domain.Page<T> innerPage;
 
+    public PageDto(final org.springframework.data.domain.Page<T> page) {
+        this.innerPage = page;
+    }
+
+    @Override
+    public List<T> getContent() {
+        return innerPage.getContent();
+    }
+
+    @Override
+    public int getNumber() {
+        return innerPage.getNumber();
+    }
+
+    @Override
+    public int getSize() {
+        return innerPage.getSize();
+    }
+
+    @Override
+    public int getNumberOfElements() {
+        return innerPage.getNumberOfElements();
+    }
+
+    @Override
+    public int getTotalPages() {
+        return innerPage.getTotalPages();
+    }
+
+    @Override
+    public long getTotalElements() {
+        return innerPage.getTotalElements();
+    }
+
+    @Override
+    public <U> Page<U> map(Function<? super T, ? extends U> converter) {
+        return new PageDto<>(innerPage.map(converter));
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return innerPage.iterator();
+    }
+
+    @Override
+    public Stream<T> get() {
+        return innerPage.get();
+    }
 }
