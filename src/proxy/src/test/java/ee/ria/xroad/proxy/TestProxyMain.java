@@ -32,7 +32,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,8 +57,6 @@ public final class TestProxyMain {
     static final String SERVICE_CODE = "serviceCode";
     static final String SERVICE_TITLE = "service";
     static final int SERVICE_TIMEOUT = 1234;
-
-    static final String SECURITY_CATEGORY = "securityCategory";
 
     static final int NUM_CLIENTS = 5;
     static final int NUM_SERVICEDESCRIPTIONS = 2;
@@ -145,9 +142,6 @@ public final class TestProxyMain {
         service.setServiceVersion(SERVICE_VERSION);
         service.setUrl(SERVICE_URL + k);
         service.setTimeout(SERVICE_TIMEOUT);
-
-        service.getRequiredSecurityCategory().add(SecurityCategoryId.Conf.create(
-                XROAD_INSTANCE, SECURITY_CATEGORY + k));
 
         return service;
     }

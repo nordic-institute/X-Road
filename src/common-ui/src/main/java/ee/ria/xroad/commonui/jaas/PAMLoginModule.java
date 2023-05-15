@@ -99,7 +99,7 @@ public class PAMLoginModule implements LoginModule {
 
     @Override
     public boolean commit() throws LoginException {
-        AuditLogger.log("Log in user", webName, null);
+        AuditLogger.log("Log in user", webName, null, null);
         webName = null;
 
         if (currentUser == null) {
@@ -118,7 +118,7 @@ public class PAMLoginModule implements LoginModule {
 
     @Override
     public boolean abort() throws LoginException {
-        AuditLogger.log("Log in user failed", webName, null);
+        AuditLogger.log("Log in user failed", webName, null, null);
         webName = null;
 
         if (currentUser == null) {
@@ -142,7 +142,7 @@ public class PAMLoginModule implements LoginModule {
             subject.getPrincipals().remove(new JAASRole(group));
         }
 
-        AuditLogger.log("Log out user", currentUser.getUserName(), null);
+        AuditLogger.log("Log out user", currentUser.getUserName(), null, null);
 
         return true;
     }

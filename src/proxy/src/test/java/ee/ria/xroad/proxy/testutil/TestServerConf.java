@@ -31,13 +31,9 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.proxy.testsuite.EmptyServerConf;
-
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * Test serverconf implementation.
@@ -68,11 +64,6 @@ public class TestServerConf extends EmptyServerConf {
     @Override
     public String getDisabledNotice(ServiceId service) {
         return null;
-    }
-
-    @Override
-    public Set<SecurityCategoryId.Conf> getRequiredCategories(ServiceId service) {
-        return Collections.emptySet();
     }
 
     @Override

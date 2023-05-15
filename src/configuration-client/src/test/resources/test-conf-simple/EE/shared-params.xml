@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" 
-    xmlns:tns="http://x-road.eu/xsd/xroad.xsd" 
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers"
+    xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
 
@@ -409,7 +409,6 @@
         <client>consumerId</client>
         <client>fooId</client>
         <client>foosubsystemId</client>
-        <!--<securityCategory>topSecret</securityCategory>-->
     </securityServer>
 
     <securityServer>
@@ -417,7 +416,6 @@
         <serverCode>consumerServerCode</serverCode>
         <address>https://www.foo.com/bar</address>
         <authCertHash>NS21xw8PH7goeyqkzhT9NdqXi9c=</authCertHash>
-        <!--<securityCategory>topSecret</securityCategory>-->
     </securityServer>
 
     <securityServer>

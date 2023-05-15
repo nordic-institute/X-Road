@@ -350,7 +350,6 @@
         <client>consumerId</client>
         <client>fooId</client>
         <client>foosubsystemId</client>
-        <!--<securityCategory>topSecret</securityCategory>-->
     </securityServer>
 
     <securityServer>
@@ -358,7 +357,6 @@
         <serverCode>consumerServerCode</serverCode>
         <address>https://www.foo.com/bar</address>
         <authCertHash>NS21xw8PH7goeyqkzhT9NdqXi9c=</authCertHash>
-        <!--<securityCategory>topSecret</securityCategory>-->
     </securityServer>
 
     <securityServer>

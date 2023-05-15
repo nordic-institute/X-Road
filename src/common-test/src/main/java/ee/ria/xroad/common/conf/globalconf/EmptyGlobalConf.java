@@ -31,7 +31,6 @@ import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import java.security.cert.CertificateException;
@@ -131,12 +130,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     public boolean authCertMatchesMember(X509Certificate cert,
             ClientId memberId) throws Exception {
         return false;
-    }
-
-    @Override
-    public Set<SecurityCategoryId.Conf> getProvidedCategories(
-            X509Certificate authCert) {
-        return Collections.emptySet();
     }
 
     @Override

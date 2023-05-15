@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<xroad:securityCategoryId id:objectType="SECURITYCATEGORY"
-        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
-        xmlns:id="http://x-road.eu/xsd/identifiers">
-    <id:xRoadInstance>EE</id:xRoadInstance>
-    <id:securityCategoryCode>ISKE_H</id:securityCategoryCode>
-</xroad:securityCategoryId>
-

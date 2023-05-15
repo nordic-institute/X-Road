@@ -34,7 +34,6 @@ import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
@@ -211,11 +210,6 @@ public class CachingServerConfImpl extends ServerConfImpl {
     @Override
     public int getServiceTimeout(ServiceId service) {
         return getService(service).map(ServiceType::getTimeout).orElse(DEFAULT_SERVICE_TIMEOUT);
-    }
-
-    @Override
-    public List<SecurityCategoryId.Conf> getRequiredCategories(ServiceId service) {
-        return getService(service).map(ServiceType::getRequiredSecurityCategory).orElse(Collections.emptyList());
     }
 
     @Override

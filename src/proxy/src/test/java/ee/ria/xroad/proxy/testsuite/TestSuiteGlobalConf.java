@@ -33,7 +33,6 @@ import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import java.security.cert.CertificateException;
@@ -42,7 +41,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
@@ -71,12 +69,6 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
         } else {
             return singleton(addr);
         }
-    }
-
-    @Override
-    public Set<SecurityCategoryId.Conf> getProvidedCategories(
-            X509Certificate authCert) {
-        return currentTestCase().getProvidedCategories();
     }
 
     @Override
