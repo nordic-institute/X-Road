@@ -1,10 +1,10 @@
 
 | ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| -------------------------: |
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.30  
+Version: 2.31  
 Doc. ID: IG-CS
 
 ---
@@ -12,17 +12,17 @@ Doc. ID: IG-CS
 ## Version history <!-- omit in toc -->
 | Date       | Version | Description                                                                                                                                                                                   | Author             |
 |------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
-| 01.12.2014 | 1.0     | Initial version                                                                                                                                                                               ||
-| 19.01.2015 | 1.1     | License information added                                                                                                                                                                     ||
-| 02.02.2015 | 1.2     | References fixed                                                                                                                                                                              ||
-| 18.03.2015 | 1.3     | Meta-package for central server                                                                                                                                                               ||
-| 02.04.2015 | 1.4     | „sdsb” changed to „xroad”                                                                                                                                                                     ||
-| 30.06.2015 | 1.5     | Minor corrections done                                                                                                                                                                        ||
-| 06.07.2015 | 1.6     | New repository address                                                                                                                                                                        ||
-| 17.09.2015 | 1.7     | Notes about high availability added, references updated                                                                                                                                       ||
-| 18.09.2015 | 1.8     | Minor corrections done                                                                                                                                                                        ||
-| 18.09.2015 | 2.0     | Editorial changes made                                                                                                                                                                        ||
-| 16.12.2015 | 2.1     | Added installation instructions for monitoring                                                                                                                                                ||
+| 01.12.2014 | 1.0     | Initial version                                                                                                                                                                               |                    |
+| 19.01.2015 | 1.1     | License information added                                                                                                                                                                     |                    |
+| 02.02.2015 | 1.2     | References fixed                                                                                                                                                                              |                    |
+| 18.03.2015 | 1.3     | Meta-package for central server                                                                                                                                                               |                    |
+| 02.04.2015 | 1.4     | „sdsb” changed to „xroad”                                                                                                                                                                     |                    |
+| 30.06.2015 | 1.5     | Minor corrections done                                                                                                                                                                        |                    |
+| 06.07.2015 | 1.6     | New repository address                                                                                                                                                                        |                    |
+| 17.09.2015 | 1.7     | Notes about high availability added, references updated                                                                                                                                       |                    |
+| 18.09.2015 | 1.8     | Minor corrections done                                                                                                                                                                        |                    |
+| 18.09.2015 | 2.0     | Editorial changes made                                                                                                                                                                        |                    |
+| 16.12.2015 | 2.1     | Added installation instructions for monitoring                                                                                                                                                |                    |
 | 09.12.2016 | 2.2     | Converted to markdown format                                                                                                                                                                  | Ilkka Seppälä      |
 | 20.12.2016 | 2.3     | Add chapter about additional configuration to central server's user manual                                                                                                                    | Ilkka Seppälä      |
 | 20.01.2017 | 2.4     | Added license text and version history                                                                                                                                                        | Sami Kallio        |
@@ -52,6 +52,7 @@ Doc. ID: IG-CS
 | 23.09.2022 | 2.28    | Added new Registration Web Service                                                                                                                                                            | Eneli Reimets      |
 | 26.09.2022 | 2.29    | Remove Ubuntu 18.04 support                                                                                                                                                                   | Andres Rosenthal   |
 | 19.04.2023 | 2.30    | Removed unused properties from db.properties                                                                                                                                                  | Mikk-Erik Bachmann |
+| 05.05.2023 | 2.31    | Minor updates                                                                                                                                                                                 | Justas Samuolis    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -183,7 +184,7 @@ Requirements for software and settings:
 
 - Ensure that the packages `locales` and `software-properties-common` are present
   
-  `sudo apt-get install locales software-properties-common`
+  `sudo apt install locales software-properties-common`
 
 - Set the operating system locale.
 
@@ -202,13 +203,6 @@ Add X-Road package repository (**reference data: 1.1**)
 sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
 ```
 
-**This is an optional step.** Add a package repository for an alternative Java distribution. According to [the Ubuntu blog](https://ubuntu.com/blog/announcing-openjdk-11-packages-in-ubuntu-18-04-lts), Ubuntu OpenJDK 8 security updates end in April 2021. [AdoptOpenJDK](https://adoptopenjdk.net/) is an open-source Java 8 distribution that is [supported until May, 2026](https://adoptopenjdk.net/support.html#roadmap).
-
-```bash
-curl https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | sudo apt-key add -
-sudo apt-add-repository -y "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb $(lsb_release -sc) main"
-```
-
 ### 2.6 Remote Database Setup (optional)
 
 *This is an optional step.* 
@@ -221,7 +215,7 @@ sudo apt install xroad-database-remote
 For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql-client` package (see https://www.postgresql.org/download/linux/ubuntu/)
 ```bash
 psql --version
-psql (PostgreSQL) 12.6 (Ubuntu 12.6-0ubuntu0.20.04.1)
+psql (PostgreSQL) 12.14 (Ubuntu 12.14-0ubuntu0.20.04.1)
 
 psql -h <database host> -U <superuser> -tAc 'show server_version'
 10.16 (Ubuntu 10.16-0ubuntu0.18.04.1)
@@ -260,16 +254,9 @@ Update package repository metadata:
 sudo apt update
 ```
 
-If using the AdoptOpenJDK Java distribution, install the Java runtime environment and set it as the default java:
+Issue the following command to install the central server packages:
 ```bash
-sudo apt install adoptopenjdk-8-hotspot-jre
-sudo update-java-alternatives -s adoptopenjdk-8-hotspot-jre-amd64
-```
-
-Issue the following commands to install the central server packages:
-```bash
-sudo apt-get update
-sudo apt-get install xroad-centralserver
+sudo apt install xroad-centralserver
 ```
 
 Upon the first installation of the central server software, the system asks for the following information.
@@ -298,7 +285,7 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 1.  Install the hardware token support module using the following command:
 
-        sudo apt-get install xroad-addon-hwtokens
+        sudo apt install xroad-addon-hwtokens
 
 2.  Install and configure a PKCS\#11 driver for the hardware token according to the manufacturer's instructions.
 
@@ -346,8 +333,7 @@ The registration web service is installed by package xroad-centralserver-registr
 
 Configuration parameters for registration web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section „Registration service parameters“.
 
-**Note 1:** The installer does not currently generate the API token, it must be manually configured.  
-**Note 2:** With new registration service, a maximum size limit (MAX_REQUEST_SIZE = 100 KB) is set for the authentication certificate SOAP message.
+**Note:** With new registration service, a maximum size limit (MAX_REQUEST_SIZE = 100 KB) is set for the authentication certificate SOAP message.
 
 ### 2.11 Post-Installation Checks
 
@@ -375,11 +361,11 @@ Note: The information in empty cells will be entered at the latest during the in
 
 Attention: Data necessary for the functioning of the operating system is not included.
 
-| **Ref** |        | **Explanation**                                           |
-|---------|--------|-----------------------------------------------------------|
-| 2.1     |        | The X-Road instance identifier                            |
-| 2.2     |        | The external DNS name or IP address of the central server |
-| 2.3     |        | The softtoken PIN                                         |
+| **Ref** |        | **Explanation**                                                          |
+|---------|--------|--------------------------------------------------------------------------|
+| 2.1     |        | The X-Road instance identifier                                           |
+| 2.2     |        | The external DNS name or IP address of the central server                |
+| 2.3     |        | The softtoken PIN                                                        |
 | 2.4     |        | Codes and descriptions of the member classes used in the X-Road instance |
 
 
@@ -430,7 +416,7 @@ If running the locale command results in the error message
 
 then the support for the particular language has not been installed. To install it, run the command (example uses the English language):
 
-`sudo apt-get install language-pack-en`
+`sudo apt install language-pack-en`
 
 Then, to update the system’s locale files, run the following commands (this example uses the US locale):
 
@@ -451,43 +437,43 @@ If the central server installation is aborted, with the error message
 
 then the PostgreSQL package is installed with the wrong locale. One way to fix it is to remove the data store created upon the PostgreSQL installation and recreate it with the correct encoding. WARNING: All data in the database will be erased!
 
-`sudo pg_dropcluster --stop 9.3 main`<br>
-`LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 9.3 main`
+`sudo pg_dropcluster --stop 12 main`<br>
+`LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 12 main`
 
 To complete the interrupted installation, run the command:
 
-`sudo apt-get -f install`
+`sudo apt -f install`
 
 ### 5.3 Could Not Create Default Cluster
 
 If the following error message is displayed during PostgreSQL installation
 
 `Error: The locale requested by the environment is invalid.`<br>
-`Error: could not create default cluster. Please create it manually with pg_createcluster 9.3 main –start`
+`Error: could not create default cluster. Please create it manually with pg_createcluster 12 main –start`
 
 Use the following command to create the PostgreSQL data cluster:
 
-`LC_ALL="en_US.UTF-8" sudo  pg_createcluster --start 9.3 main`
+`LC_ALL="en_US.UTF-8" sudo  pg_createcluster --start 12 main`
 
 The interrupted installation can be finished using
 
-`sudo apt-get -f install`
+`sudo apt -f install`
 
 ### 5.4 Is Postgres Running on Port 5432?
 
 If the following error message appears during installation
 
 `Is postgres running on port 5432 ?`<br>
-`Aborting installation! please fix issues and rerun with apt-get -f install`
+`Aborting installation! please fix issues and rerun with apt -f install`
 
 Then check if any of the following errors occurred during the installation of PostgreSQL.
 
 - Error installing the data cluster. Refer to section 4.3.
-- The PostgreSQL data cluster installed during the installation of the security server is not configured to listen on port 5432. To verify and configure the listening port, edit the PostgreSQL configuration file in /etc/postgresql/9.3/main/postgresql.conf. If you change the listening port, the postgresql service must be restarted.
+- The PostgreSQL data cluster installed during the installation of the security server is not configured to listen on port 5432. To verify and configure the listening port, edit the PostgreSQL configuration file in /etc/postgresql/12/main/postgresql.conf. If you change the listening port, the postgresql service must be restarted.
 
 The interrupted installation can be finished using
 
-`sudo apt-get -f install`
+`sudo apt -f install`
 
 ### 5.5 Upgrade supported from version X.Y.Z or newer
 
@@ -523,7 +509,7 @@ xroad-centralserver | 7.1.2-1.ubuntu20.04 | https://artifactory.niis.org/xroad-r
 Now trying to upgrade the central server packages directly will produce the following error.
 
 ```bash
-root@test-cs:~# apt-get upgrade xroad-centralserver
+root@test-cs:~# apt upgrade xroad-centralserver
 ...
 Preparing to unpack .../xroad-centralserver_7.3.0-1.ubuntu20.04_all.deb ...
 ERROR: Upgrade supported from version 7.1.2 or newer
@@ -559,10 +545,10 @@ skip_migrations=false
 
 ## Annex B Database Users
 
-| User          | Database            | Privileges               | Description                                                                                         |
-| ------------- | ------------------- | ------------------------ | --------------------------------------------------------------------------------------------------- |
-| centerui      | centerui_production | CREATE,TEMPORARY,CONNECT | The database user used to create the schema and read/write the database during application runtime. |
-| postgres      | ALL                 | ALL                      | PostgreSQL database default superuser.                                                              |
+| User     | Database            | Privileges               | Description                                                                                         |
+|----------|---------------------|--------------------------|-----------------------------------------------------------------------------------------------------|
+| centerui | centerui_production | CREATE,TEMPORARY,CONNECT | The database user used to create the schema and read/write the database during application runtime. |
+| postgres | ALL                 | ALL                      | PostgreSQL database default superuser.                                                              |
 
 
 ## Annex C Deployment Options
