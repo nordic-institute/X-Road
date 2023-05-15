@@ -67,9 +67,8 @@ public class AuditLoggerTest {
         }
         AuditLogger.log(
                 "event\u008d",
-                "test趍\uD801\uDC00user\u008d\r\n\t <" + new String(tmp, StandardCharsets.UTF_8) + ">",
-                null
-        );
+                "test趍\uD801\uDC00user\u008d\r\n\t <" + new String(tmp, StandardCharsets.UTF_8) + ">", "1.1.1.1",
+                null);
         assertTrue(appender.list.get(0).getFormattedMessage().chars().allMatch(x -> x > 31 && x < 128));
     }
 }

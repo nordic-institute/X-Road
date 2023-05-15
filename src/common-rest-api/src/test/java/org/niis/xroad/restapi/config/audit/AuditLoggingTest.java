@@ -94,6 +94,7 @@ class AuditLoggingTest {
         verify(auditEventLoggingFacade, times(1)).auditLogSuccess();
         ArgumentCaptor<RestApiAuditEvent> eventCaptor = ArgumentCaptor.forClass(RestApiAuditEvent.class);
         ArgumentCaptor<String> userNameCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ipAddressCaptor = ArgumentCaptor.forClass(String.class);
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> dataCaptor
@@ -103,9 +104,9 @@ class AuditLoggingTest {
         verify(auditEventLoggingFacade, times(1)).callAuditLoggerLogSuccess(
                 eventCaptor.capture(),
                 userNameCaptor.capture(),
+                ipAddressCaptor.capture(),
                 dataCaptor.capture(),
-                authCaptor.capture(),
-                urlCaptor.capture());
+                authCaptor.capture(), urlCaptor.capture());
         assertEquals(RestApiAuditEvent.INIT_CENTRAL_SERVER, eventCaptor.getValue());
 
         var data = dataCaptor.getValue();
@@ -128,6 +129,7 @@ class AuditLoggingTest {
 
         ArgumentCaptor<RestApiAuditEvent> eventCaptor = ArgumentCaptor.forClass(RestApiAuditEvent.class);
         ArgumentCaptor<String> userNameCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ipAddressCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> reasonCaptor = ArgumentCaptor.forClass(String.class);
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> dataCaptor = ArgumentCaptor.forClass(Map.class);
@@ -137,11 +139,11 @@ class AuditLoggingTest {
         verify(auditEventLoggingFacade, times(1)).callAuditLoggerLogFailure(
                 eventCaptor.capture(),
                 userNameCaptor.capture(),
+                ipAddressCaptor.capture(),
                 reasonCaptor.capture(),
                 dataCaptor.capture(),
                 authCaptor.capture(),
-                urlCaptor.capture()
-        );
+                urlCaptor.capture());
 
         assertEquals(RestApiAuditEvent.INIT_CENTRAL_SERVER, eventCaptor.getValue());
         assertEquals(INTERNAL_ERROR.getDescription(), reasonCaptor.getValue());

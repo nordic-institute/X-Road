@@ -35,6 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -73,7 +75,7 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
     @Override
     public void auditLogSuccess() {
         if (getRequestScopedEvent() != null) {
-            auditLog(getRequestScopedEvent(), usernameHelper.getUsername(),
+            auditLog(getRequestScopedEvent(), usernameHelper.getUsername(), getRequestSenderIPAddress(),
                     createConvertedEventData());
         }
     }
@@ -81,12 +83,12 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
 
     @Override
     public void auditLogSuccess(RestApiAuditEvent event) {
-        auditLog(event, usernameHelper.getUsername(), createConvertedEventData());
+        auditLog(event, usernameHelper.getUsername(), getRequestSenderIPAddress(), createConvertedEventData());
     }
 
     @Override
     public void auditLogSuccess(RestApiAuditEvent event, String username) {
-        auditLog(event, username, createConvertedEventData());
+        auditLog(event, username, getRequestSenderIPAddress(), createConvertedEventData());
     }
 
     @Override
@@ -135,39 +137,39 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
         }
     }
 
-    private void auditLog(RestApiAuditEvent event, String user, Map<String, Object> data) {
+    private void auditLog(RestApiAuditEvent event, String user, String ipAddress, Map<String, Object> data) {
         addRequestScopedLoggedEventForThisRequest(event);
-        callAuditLoggerLogSuccess(event, user, data, securityHelper.getCurrentAuthenticationScheme(),
-                requestHelper.getCurrentRequestUrl());
+        callAuditLoggerLogSuccess(event, user, ipAddress, data,
+                securityHelper.getCurrentAuthenticationScheme(), requestHelper.getCurrentRequestUrl());
     }
 
-    private void auditLogFailure(RestApiAuditEvent event, String user, String reason,
+    private void auditLogFailure(RestApiAuditEvent event, String user, String ipAddress, String reason,
                                  Map<String, Object> data) {
         addRequestScopedLoggedEventForThisRequest(event);
-        callAuditLoggerLogFailure(event, user, reason, data, securityHelper.getCurrentAuthenticationScheme(),
-                requestHelper.getCurrentRequestUrl());
+        callAuditLoggerLogFailure(event, user, ipAddress, reason, data,
+                securityHelper.getCurrentAuthenticationScheme(), requestHelper.getCurrentRequestUrl());
     }
 
-    private void auditLogWarning(RestApiAuditEvent event, String user, String reason,
+    private void auditLogWarning(RestApiAuditEvent event, String user, String ipAddress, String reason,
                                  Map<String, Object> data) {
         addRequestScopedLoggedEventForThisRequest(event);
-        callAuditLoggerLogWarning(event, user, reason, data, securityHelper.getCurrentAuthenticationScheme(),
-                requestHelper.getCurrentRequestUrl());
+        callAuditLoggerLogWarning(event, user, ipAddress, reason, data,
+                securityHelper.getCurrentAuthenticationScheme(), requestHelper.getCurrentRequestUrl());
     }
 
-    public void callAuditLoggerLogSuccess(RestApiAuditEvent event, String user, Map<String, Object> data,
-                                   String auth, String url) {
-        AuditLogger.log(event.getEventName(), user, data, auth, url);
+    public void callAuditLoggerLogSuccess(RestApiAuditEvent event, String user, String ipAddress, Map<String, Object> data,
+                                          String auth, String url) {
+        AuditLogger.log(event.getEventName(), user, ipAddress, data, auth, url);
     }
 
-    public void callAuditLoggerLogFailure(RestApiAuditEvent event, String user, String reason,
+    public void callAuditLoggerLogFailure(RestApiAuditEvent event, String user, String ipAddress, String reason,
                                           Map<String, Object> data, String auth, String url) {
-        AuditLogger.log(event.getEventName(), user, reason, data, auth, url);
+        AuditLogger.log(event.getEventName(), user, ipAddress, reason, data, auth, url);
     }
 
-    public void callAuditLoggerLogWarning(RestApiAuditEvent event, String user, String reason,
+    public void callAuditLoggerLogWarning(RestApiAuditEvent event, String user, String ipAddress, String reason,
                                           Map<String, Object> data, String auth, String url) {
-        AuditLogger.logWarning(event.getEventName(), user, reason, data, auth, url);
+        AuditLogger.logWarning(event.getEventName(), user, ipAddress, reason, data, auth, url);
     }
 
     private void addRequestScopedLoggedEventForThisRequest(RestApiAuditEvent event) {
@@ -208,14 +210,15 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
     }
 
     /**
-     * Audit logs an failure. Some helper logic for handling handling different username and event parameters.
+     * Audit logs a failure. Some helper logic for handling different username and event parameters.
      * Logs either request scoped event, or given defaultEvent, or skips logging if neither exists.
      * Based on exception root causes, calls proper AuditLogger method which includes boolean indicating if
      * failure was caused by unhandled warnings
-     * @param defaultEvent {@link RestApiAuditEvent} that will be used, if there is no request scoped event
-     * @param ex exception whose message is used as failure reason
+     *
+     * @param defaultEvent     {@link RestApiAuditEvent} that will be used, if there is no request scoped event
+     * @param ex               exception whose message is used as failure reason
      * @param usernameOverride username to log. If null, username associated with current
-     * {@link org.springframework.security.core.Authentication} is used. For exceptional cases where Authentication
+     *                         {@link org.springframework.security.core.Authentication} is used. For exceptional cases where Authentication
      *                         does not (yet?) contain username
      */
     private void auditLogFailInternal(RestApiAuditEvent defaultEvent, Exception ex, String usernameOverride) {
@@ -230,9 +233,9 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
         if (eventToLog != null) {
             String reason = ex.getMessage();
             if (causedByUnhandledWarnings(ex)) {
-                auditLogWarning(eventToLog, username, reason, createConvertedEventData());
+                auditLogWarning(eventToLog, username, getRequestSenderIPAddress(), reason, createConvertedEventData());
             } else {
-                auditLogFailure(eventToLog, username, reason, createConvertedEventData());
+                auditLogFailure(eventToLog, username, getRequestSenderIPAddress(), reason, createConvertedEventData());
             }
         }
     }
@@ -245,4 +248,15 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
         return ExceptionUtils.indexOfType(t, UnhandledWarningsException.class) != -1;
     }
 
+    /**
+     * Gets request senders IP address
+     */
+    private String getRequestSenderIPAddress() {
+        String ipAddress = null;
+        HttpServletRequest currentHttpRequest = requestHelper.getCurrentHttpRequest();
+        if (currentHttpRequest != null) {
+            ipAddress = currentHttpRequest.getRemoteAddr();
+        }
+        return ipAddress;
+    }
 }
