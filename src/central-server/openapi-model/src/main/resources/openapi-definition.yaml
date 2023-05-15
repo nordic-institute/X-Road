@@ -22,12 +22,16 @@ tags:
     description: resources related to Members
   - name: subsystems
     description: resources related to Subsystems
+  - name: member-classes
+    description: resources related to Central Server's member classes
   - name: clients
     description: resources related to Clients (Members and Subsystems)
   - name: configuration-sources
     description: general resources related to Configuration Sources
   - name: configuration-source-anchors
     description: resources related to Configuration Source Anchors
+  - name: trusted-anchors
+    description: resources related to Trusted Anchors
   - name: configuration-parts
     description: resources related to Configuration Parts
   - name: global-groups
@@ -40,22 +44,18 @@ tags:
     description: resources related to management requests
   - name: management-services
     description: resources related to Management Services
-  - name: member-classes
-    description: resources related to Central Server's member classes
   - name: ocsp-responders
     description: resources related to OCSP Responders
   - name: security-servers
     description: resources related to Security Servers
+  - name: tokens
+    description: resources related to Tokens
   - name: signing-keys
     description: resources related to Global Configuration Signing Keys
   - name: system
     description: resources related to System info
   - name: timestamping-services
     description: resources related to Central Server's Timestamping Services
-  - name: tokens
-    description: resources related to Tokens
-  - name: trusted-anchors
-    description: resources related to Trusted Anchors
 paths:
   /backups:
     get:
@@ -983,19 +983,12 @@ paths:
       summary: download a configuration parts file
       tags:
         - configuration-parts
-  /signing-keys/{id}:
+  /signing-keys/{sign_key_id}:
     delete:
       description: <h3>Administrator deletes the configuration signing key.</h3>
       operationId: deleteKey
       parameters:
-        - description: Id of the signing key
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/SigningKeyIdParam'
       responses:
         '204':
           description: key deletion was successful
@@ -1021,19 +1014,12 @@ paths:
       summary: delete key
       tags:
         - signing-keys
-  /signing-keys/{id}/activate:
+  /signing-keys/{sign_key_id}/activate:
     put:
       description: <h3>Administrator activates a configuration signing key.</h3>
       operationId: activateKey
       parameters:
-        - description: Id of the signing key
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/SigningKeyIdParam'
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -1105,19 +1091,12 @@ paths:
       summary: CS administrator views the tokens of the central server
       tags:
         - tokens
-  /tokens/{id}/login:
+  /tokens/{token_id}/login:
     put:
       description: <h3>Administrator logs in to a token</h3>
       operationId: loginToken
       parameters:
-        - description: id of the token
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/TokenIdParam'
       requestBody:
         content:
           application/json:
@@ -1144,19 +1123,12 @@ paths:
       summary: login to token
       tags:
         - tokens
-  /tokens/{id}/logout:
+  /tokens/{token_id}/logout:
     put:
       description: <h3>Administrator logs out from token.</h3>
       operationId: logoutToken
       parameters:
-        - description: id of the token
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/TokenIdParam'
       responses:
         '200':
           content:
@@ -1659,19 +1631,19 @@ paths:
       tags:
         - member-classes
   /member-classes/{code}:
+    parameters:
+      - description: code of the member class
+        in: path
+        name: code
+        required: true
+        schema:
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
     delete:
       description: <h3>CS Administrator deletes a member class.</h3>
       operationId: deleteMemberClass
-      parameters:
-        - description: code of the member class
-          in: path
-          name: code
-          required: true
-          schema:
-            format: text
-            maxLength: 255
-            minLength: 1
-            type: string
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -1694,16 +1666,6 @@ paths:
       summary: Update member class
       operationId: updateMemberClass
       description: CS Administrator updates a member class description.
-      parameters:
-        - in: path
-          name: code
-          description: code of the member class
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
       requestBody:
         description: the new description of the member class
         required: true
@@ -2144,19 +2106,12 @@ paths:
       summary: find clients
       tags:
         - clients
-  /ocsp-responders/{id}:
+  /ocsp-responders/{ocsp_responder_id}:
+    parameters:
+      - $ref: '#/components/parameters/OcspResponderIdParam'
     delete:
       description: <h3>CS administrator deletes an ocsp responder.</h3>
       operationId: deleteOcspResponder
-      parameters:
-        - description: unique identifier of the OCSP Responder
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       responses:
         '204':
           description: ocsp responder deletion was successful
@@ -2185,15 +2140,6 @@ paths:
     get:
       description: <h3>CS administrator views the details of an ocsp responder.</h3>
       operationId: getOcspResponder
-      parameters:
-        - description: unique identifier of the ocsp responder
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            minLength: 1
-            type: string
       responses:
         '200':
           content:
@@ -2217,15 +2163,6 @@ paths:
     patch:
       description: <h3>CS administrator updates the details of an ocsp responder.</h3>
       operationId: updateOcspResponder
-      parameters:
-        - description: unique identifier of the ocsp responder
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -2254,19 +2191,12 @@ paths:
       summary: update an ocsp responder
       tags:
         - ocsp-responders
-  /ocsp-responders/{id}/certificate:
+  /ocsp-responders/{ocsp_responder_id}/certificate:
     get:
       description: <h3>CS administrator views the details of an approved OCSP Responders cetificate.</h3>
       operationId: getOcspRespondersCertificate
       parameters:
-        - description: unique identifier of the OCSP Responder
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
+        - $ref: '#/components/parameters/OcspResponderIdParam'
       responses:
         '200':
           content:
@@ -2335,23 +2265,15 @@ paths:
       summary: find security servers
       tags:
         - security-servers
-  /security-servers/{id}:
+  /security-servers/{server_id}:
+    parameters:
+      - $ref: '#/components/parameters/ServerIdParam'
     delete:
       description:
         <h3>CS administrator deletes a security server. System generates deletion requests for the clients
           and authentication certificates registered for the deleted server.
         </h3>
       operationId: deleteSecurityServer
-      parameters:
-        - description: id of the security server
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -2373,16 +2295,6 @@ paths:
     get:
       description: <h3>CS administrator views a Security Server's details.</h3>
       operationId: getSecurityServer
-      parameters:
-        - description: id of the security server
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
       responses:
         '200':
           content:
@@ -2406,16 +2318,6 @@ paths:
     patch:
       description: <h3>CS administrator changes the address of a security server.</h3>
       operationId: updateSecurityServerAddress
-      parameters:
-        - description: id of the security server
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
       requestBody:
         content:
           application/json:
@@ -2443,20 +2345,12 @@ paths:
       summary: update the security server's address
       tags:
         - security-servers
-  /security-servers/{id}/authentication-certificates:
+  /security-servers/{server_id}/authentication-certificates:
     get:
       description: <h3>CS administrator views a Security Server's authentication certificates.</h3>
       operationId: getSecurityServerAuthCerts
       parameters:
-        - description: id of the security server
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/ServerIdParam'
       responses:
         '200':
           content:
@@ -2481,25 +2375,18 @@ paths:
       summary: get a security server's authentication certificates
       tags:
         - security-servers
-  /security-servers/{id}/authentication-certificates/{certificateId}:
+  /security-servers/{server_id}/authentication-certificates/{certificate_id}:
     delete:
       description: <h3>CS administrator deletes a Security Server's authentication certificate.</h3>
       operationId: deleteSecurityServerAuthCert
       parameters:
-        - description: id of the security server
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/ServerIdParam'
         - description: unique identifier of the authentication certificate
           in: path
-          name: certificateId
+          name: certificate_id
           required: true
           schema:
+            minimum: 1
             format: int32
             type: integer
       responses:
@@ -2518,20 +2405,12 @@ paths:
       summary: delete a security server's authentication certificate
       tags:
         - security-servers
-  /security-servers/{id}/clients:
+  /security-servers/{server_id}/clients:
     get:
       description: <h3>CS administrator views a Security Server's clients.</h3>
       operationId: getSecurityServerClients
       parameters:
-        - description: id of the security server
-          in: path
-          name: id
-          required: true
-          schema:
-            format: text
-            maxLength: 1023
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/ServerIdParam'
       responses:
         '200':
           content:
@@ -3833,7 +3712,6 @@ components:
     MemberClass:
       allOf:
         - $ref: '#/components/schemas/MemberClassDescription'
-        - $ref: '#/components/schemas/ModificationTimestamps'
       description: Central server's member classes
       properties:
         code:
@@ -4888,6 +4766,24 @@ components:
       schema:
         format: text
         maxLength: 255
+        minLength: 1
+        type: string
+    SigningKeyIdParam:
+      in: path
+      name: sign_key_id
+      description: Id of the signing key
+      required: true
+      schema:
+        format: text
+        minLength: 1
+        type: string
+    TokenIdParam:
+      in: path
+      name: token_id
+      description: id of the token
+      required: true
+      schema:
+        format: text
         minLength: 1
         type: string
 security:

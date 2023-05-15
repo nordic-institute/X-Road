@@ -67,7 +67,7 @@ public class OcspRespondersController implements OcspRespondersApi {
     }
 
     @Override
-    public ResponseEntity<OcspResponderDto> getOcspResponder(String id) {
+    public ResponseEntity<OcspResponderDto> getOcspResponder(Integer id) {
         throw new NotImplementedException("getOcspResponder not implemented yet");
     }
 

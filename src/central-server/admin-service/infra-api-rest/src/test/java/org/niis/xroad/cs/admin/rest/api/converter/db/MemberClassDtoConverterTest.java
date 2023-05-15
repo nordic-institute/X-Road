@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.rest.api.converter.db;
 
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -40,7 +39,6 @@ import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.rest.api.converter.AbstractDtoConverterTest;
 import org.niis.xroad.cs.openapi.model.MemberClassDto;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -63,11 +61,6 @@ public class MemberClassDtoConverterTest extends AbstractDtoConverterTest implem
     @InjectMocks
     private MemberClassDtoConverter converter;
 
-    @BeforeEach
-    private void setZoneOffset() {
-        ReflectionTestUtils.setField(converter, "dtoZoneOffset", dtoZoneOffset);
-    }
-
     @Nested
     @DisplayName("toDto(MemberClass source)")
     public class ToDtoMethod implements WithInOrder {
@@ -77,21 +70,15 @@ public class MemberClassDtoConverterTest extends AbstractDtoConverterTest implem
         public void shouldCheckForSanity() {
             doReturn(MEMBER_CLASS_CODE).when(memberClass).getCode();
             doReturn(DESCRIPTION).when(memberClass).getDescription();
-            doReturn(createdAtInstance).when(memberClass).getCreatedAt();
-            doReturn(updatedAtInstance).when(memberClass).getUpdatedAt();
 
             MemberClassDto converted = converter.toDto(memberClass);
 
             assertNotNull(converted);
             assertEquals(MEMBER_CLASS_CODE, converted.getCode());
             assertEquals(DESCRIPTION, converted.getDescription());
-            assertEquals(createdAtOffsetDateTime, converted.getCreatedAt());
-            assertEquals(updatedAtOffsetDateTime, converted.getUpdatedAt());
             inOrder().verify(inOrder -> {
                 inOrder.verify(memberClass).getCode();
                 inOrder.verify(memberClass).getDescription();
-                inOrder.verify(memberClass).getCreatedAt();
-                inOrder.verify(memberClass).getUpdatedAt();
             });
         }
     }

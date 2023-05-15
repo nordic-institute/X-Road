@@ -39,7 +39,6 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static com.nortal.test.asserts.Assertions.notNullAssertion;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.ERROR_RESPONSE_BODY;
 import static org.niis.xroad.cs.test.glue.BaseStepDefs.StepDataKey.RESPONSE_STATUS;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -79,8 +78,6 @@ public class MemberClassesApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(expectedStatus))
                 .assertion(equalsAssertion(code, "body.code"))
                 .assertion(equalsAssertion(description, "body.description"))
-                .assertion(notNullAssertion("body.createdAt"))
-                .assertion(notNullAssertion("body.updatedAt"))
                 .execute();
     }
 
@@ -128,5 +125,4 @@ public class MemberClassesApiStepDefs extends BaseStepDefs {
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
         }
     }
-
 }

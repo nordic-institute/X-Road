@@ -252,8 +252,6 @@ export default Vue.extend({
         this.activeItem = {
           code: '',
           description: '',
-          created_at: '',
-          updated_at: '',
         };
         this.adding = true;
       } else {

@@ -34,17 +34,12 @@ import org.niis.xroad.cs.openapi.model.MemberClassDto;
 import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneOffset;
-import java.util.Optional;
-
 import static ee.ria.xroad.common.util.Fn.self;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberClassDtoConverter extends DtoConverter<MemberClass, MemberClassDto> {
-
-    private final ZoneOffset dtoZoneOffset;
     private final MemberClassService memberClassService;
 
     @Override
@@ -52,12 +47,6 @@ public class MemberClassDtoConverter extends DtoConverter<MemberClass, MemberCla
         return self(new MemberClassDto(), self -> {
             self.setCode(source.getCode());
             self.setDescription(source.getDescription());
-            self.setCreatedAt(Optional.ofNullable(source.getCreatedAt())
-                    .map(instant -> instant.atOffset(dtoZoneOffset))
-                    .orElse(null));
-            self.setUpdatedAt(Optional.ofNullable(source.getUpdatedAt())
-                    .map(instant -> instant.atOffset(dtoZoneOffset))
-                    .orElse(null));
         });
     }
 
