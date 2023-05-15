@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
@@ -38,10 +37,8 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 
 /**
  * Implementation of ServerConfProvider that does nothing but return nulls. You
@@ -67,11 +64,6 @@ public class EmptyServerConf implements ServerConfProvider {
     @Override
     public String getServiceAddress(ServiceId service) {
         return null;
-    }
-
-    @Override
-    public Set<SecurityCategoryId.Conf> getRequiredCategories(ServiceId service) {
-        return emptySet();
     }
 
     @Override

@@ -51,7 +51,6 @@ public class XRoadObjectTypeTest extends TestCase {
                     { XRoadObjectType.SUBSYSTEM, "SUBSYSTEM" },
                     { XRoadObjectType.SERVER, "SERVER" },
                     { XRoadObjectType.GLOBALGROUP, "GLOBALGROUP" },
-                    { XRoadObjectType.SECURITYCATEGORY, "SECURITYCATEGORY" },
                     { XRoadObjectType.SERVICE, "SERVICE" },
                     { XRoadObjectType.LOCALGROUP, "LOCALGROUP" },
                     { null, "unknown" },

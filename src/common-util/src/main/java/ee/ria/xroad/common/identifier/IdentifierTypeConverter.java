@@ -64,16 +64,6 @@ final class IdentifierTypeConverter {
         return type;
     }
 
-    static XRoadSecurityCategoryIdentifierType printSecurityCategoryId(
-            SecurityCategoryId v) {
-        XRoadSecurityCategoryIdentifierType type =
-                new XRoadSecurityCategoryIdentifierType();
-        type.setObjectType(v.getObjectType());
-        type.setXRoadInstance(v.getXRoadInstance());
-        type.setSecurityCategoryCode(v.getCategoryCode());
-        return type;
-    }
-
     static XRoadSecurityServerIdentifierType printSecurityServerId(
             SecurityServerId v) {
         XRoadSecurityServerIdentifierType type =
@@ -129,11 +119,6 @@ final class IdentifierTypeConverter {
                 v.getServiceVersion());
     }
 
-    static SecurityCategoryId parseSecurityCategoryId(XRoadIdentifierType v) {
-        return SecurityCategoryId.Conf.create(v.getXRoadInstance(),
-                v.getSecurityCategoryCode());
-    }
-
     static SecurityServerId parseSecurityServerId(XRoadIdentifierType v) {
         return SecurityServerId.Conf.create(v.getXRoadInstance(),
                 v.getMemberClass(), v.getMemberCode(), v.getServerCode());
@@ -187,23 +172,6 @@ final class IdentifierTypeConverter {
             } else {
                 return null;
             }
-        }
-    }
-
-    static class SecurityCategoryIdAdapter
-            extends XmlAdapter<
-            XRoadSecurityCategoryIdentifierType, SecurityCategoryId> {
-
-        @Override
-        public XRoadSecurityCategoryIdentifierType marshal(SecurityCategoryId v)
-                throws Exception {
-            return v == null ? null : printSecurityCategoryId(v);
-        }
-
-        @Override
-        public SecurityCategoryId unmarshal(
-                XRoadSecurityCategoryIdentifierType v) throws Exception {
-            return v == null ? null : parseSecurityCategoryId(v);
         }
     }
 
@@ -277,8 +245,6 @@ final class IdentifierTypeConverter {
                     return printGlobalGroupId((GlobalGroupId) v);
                 case LOCALGROUP:
                     return printLocalGroupId((LocalGroupId) v);
-                case SECURITYCATEGORY:
-                    return printSecurityCategoryId((SecurityCategoryId) v);
                 default:
                     throw new CodedException(X_INTERNAL_ERROR,
                             "Unsupported object type: " + v.getObjectType());
@@ -303,8 +269,6 @@ final class IdentifierTypeConverter {
                     return parseGlobalGroupId(v);
                 case LOCALGROUP:
                     return parseLocalGroupId(v);
-                case SECURITYCATEGORY:
-                    return parseSecurityCategoryId(v);
                 default:
                     throw new CodedException(X_INTERNAL_ERROR,
                             "Unsupported object type: " + v.getObjectType());

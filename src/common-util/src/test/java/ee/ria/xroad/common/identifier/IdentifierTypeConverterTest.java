@@ -42,13 +42,11 @@ import java.io.FileInputStream;
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseClientId;
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseGlobalGroupId;
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseLocalGroupId;
-import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseSecurityCategoryId;
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseSecurityServerId;
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.parseServiceId;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.GLOBALGROUP;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.LOCALGROUP;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
-import static ee.ria.xroad.common.identifier.XRoadObjectType.SECURITYCATEGORY;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.SERVER;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.SERVICE;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.SUBSYSTEM;
@@ -159,21 +157,6 @@ public class IdentifierTypeConverterTest {
         assertEquals("getState", id.getServiceCode());
         assertEquals("SERVICE:EE/BUSINESS/JODA/getState/v1", id.toString());
         assertEquals("v1", id.getServiceVersion());
-    }
-
-    /**
-     * Test to ensure security category ID can be read from XML.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void readSecurityCategoryIdentifier() throws Exception {
-        SecurityCategoryId id = parseSecurityCategoryId(
-                fileToType("securitycategoryid.xml", SECURITYCATEGORY,
-                        XRoadSecurityCategoryIdentifierType.class));
-
-        assertEquals("EE", id.getXRoadInstance());
-        assertEquals("ISKE_H", id.getCategoryCode());
-        assertEquals("SECURITYCATEGORY:EE/ISKE_H", id.toString());
     }
 
     /**

@@ -34,7 +34,6 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
@@ -75,7 +74,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -87,7 +85,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
-import static ee.ria.xroad.common.ErrorCodes.X_SECURITY_CATEGORY;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MALFORMED_URL;
@@ -389,8 +386,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
                     "Service is a REST service and cannot be called using SOAP interface");
         }
 
-        verifySecurityCategory(requestServiceId);
-
         if (!ServerConf.isQueryAllowed(requestMessage.getSoap().getClient(), requestServiceId)) {
             throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
         }
@@ -401,27 +396,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,
                     disabledNotice);
         }
-    }
-
-    private void verifySecurityCategory(ServiceId service) throws Exception {
-        Collection<SecurityCategoryId.Conf> required = ServerConf.getRequiredCategories(service);
-
-        if (required == null || required.isEmpty()) {
-            // Service requires nothing, we are satisfied.
-            return;
-        }
-
-        Collection<SecurityCategoryId.Conf> provided = GlobalConf.getProvidedCategories(getClientAuthCert());
-
-        for (SecurityCategoryId cat : required) {
-            if (provided.contains(cat)) {
-                return; // All OK.
-            }
-        }
-
-        throw new CodedException(X_SECURITY_CATEGORY,
-                "Service requires security categories (%s), but client only satisfies (%s)",
-                StringUtils.join(required, ", "), StringUtils.join(provided, ", "));
     }
 
     private void verifySignature() throws Exception {

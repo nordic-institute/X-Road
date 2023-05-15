@@ -58,7 +58,7 @@ class WebServerCustomizer implements WebServerFactoryCustomizer<JettyServletWebS
 
     @Bean
     @ConditionalOnProperty(
-            value = "xroad.registration-service.rate-limit-enabled",
+            value = "xroad.management-service.rate-limit-enabled",
             havingValue = "true", matchIfMissing = true)
     public FilterRegistrationBean<IpThrottlingFilter> ipThrottlingFilter(ManagementServiceProperties properties) {
         var filter = new IpThrottlingFilter(properties);

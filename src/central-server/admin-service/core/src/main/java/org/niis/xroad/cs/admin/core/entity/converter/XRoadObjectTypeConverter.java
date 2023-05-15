@@ -82,7 +82,6 @@ public interface XRoadObjectTypeConverter {
             @ValueMapping(source = "MEMBER", target = "MEMBER"),
             @ValueMapping(source = "SUBSYSTEM", target = "SUBSYSTEM"),
             @ValueMapping(source = "GLOBALGROUP", target = "GLOBALGROUP"),
-            @ValueMapping(source = "SECURITYCATEGORY", target = "SECURITYCATEGORY"),
             @ValueMapping(source = "LOCALGROUP", target = "LOCALGROUP"),
             @ValueMapping(source = MappingConstants.ANY_UNMAPPED, target = MappingConstants.NULL),
     })
@@ -94,7 +93,6 @@ public interface XRoadObjectTypeConverter {
             @ValueMapping(source = "MEMBER", target = "MEMBER"),
             @ValueMapping(source = "SUBSYSTEM", target = "SUBSYSTEM"),
             @ValueMapping(source = "GLOBALGROUP", target = "GLOBALGROUP"),
-            @ValueMapping(source = "SECURITYCATEGORY", target = "SECURITYCATEGORY"),
             @ValueMapping(source = "LOCALGROUP", target = "LOCALGROUP"),
     })
     String convert(XRoadObjectType source);

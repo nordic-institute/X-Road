@@ -86,15 +86,16 @@ public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestConte
         verify(auditEventLoggingFacade, times(1)).auditLogSuccess();
         ArgumentCaptor<RestApiAuditEvent> eventCaptor = ArgumentCaptor.forClass(RestApiAuditEvent.class);
         ArgumentCaptor<String> userNameCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ipAddressCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Map<String, Object>> dataCaptor = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<String> authCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
         verify(auditEventLoggingFacade, times(1)).callAuditLoggerLogSuccess(
                 eventCaptor.capture(),
                 userNameCaptor.capture(),
+                ipAddressCaptor.capture(),
                 dataCaptor.capture(),
-                authCaptor.capture(),
-                urlCaptor.capture());
+                authCaptor.capture(), urlCaptor.capture());
         Assert.assertEquals(RestApiAuditEvent.SET_CONNECTION_TYPE, eventCaptor.getValue());
         assertEquals("api-key-1", userNameCaptor.getValue());
         Map<String, Object> data = dataCaptor.getValue();
@@ -129,6 +130,7 @@ public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestConte
         verify(auditEventLoggingFacade, times(1)).auditLogFail(any());
         ArgumentCaptor<RestApiAuditEvent> eventCaptor = ArgumentCaptor.forClass(RestApiAuditEvent.class);
         ArgumentCaptor<String> userNameCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ipAddressCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> reasonCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Map<String, Object>> dataCaptor = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<String> authCaptor = ArgumentCaptor.forClass(String.class);
@@ -136,10 +138,10 @@ public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestConte
         verify(auditEventLoggingFacade, times(1)).callAuditLoggerLogFailure(
                 eventCaptor.capture(),
                 userNameCaptor.capture(),
+                ipAddressCaptor.capture(),
                 reasonCaptor.capture(),
                 dataCaptor.capture(),
-                authCaptor.capture(),
-                urlCaptor.capture());
+                authCaptor.capture(), urlCaptor.capture());
         Assert.assertEquals(RestApiAuditEvent.SET_CONNECTION_TYPE, eventCaptor.getValue());
         assertEquals("api-key-1", userNameCaptor.getValue());
         assertTrue(reasonCaptor.getValue().startsWith(

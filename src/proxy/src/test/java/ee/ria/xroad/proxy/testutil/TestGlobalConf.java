@@ -32,7 +32,6 @@ import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import java.security.cert.CertificateException;
@@ -41,7 +40,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Test globalconf implementation.
@@ -56,11 +54,6 @@ public class TestGlobalConf extends EmptyGlobalConf {
     @Override
     public Collection<String> getProviderAddress(ClientId provider) {
         return Collections.singleton("127.0.0.1");
-    }
-
-    @Override
-    public Set<SecurityCategoryId.Conf> getProvidedCategories(X509Certificate authCert) {
-        return Collections.emptySet();
     }
 
     @Override

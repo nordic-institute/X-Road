@@ -39,7 +39,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -73,8 +72,6 @@ public final class TestUtil {
     static final String SERVICE_CODE = "serviceCode";
     static final String SERVICE_TITLE = "service";
     static final int SERVICE_TIMEOUT = 1234;
-
-    static final String SECURITY_CATEGORY = "securityCategory";
 
     static final int NUM_CLIENTS = 5;
     static final int NUM_SERVICEDESCRIPTIONS = 2;
@@ -203,10 +200,6 @@ public final class TestUtil {
 
                     service.setUrl(SERVICE_URL + k);
                     service.setTimeout(SERVICE_TIMEOUT);
-
-                    service.getRequiredSecurityCategory().add(
-                            SecurityCategoryId.Conf.create(XROAD_INSTANCE,
-                                    SECURITY_CATEGORY + k));
 
                     service.setSslAuthentication(k % 2 == 0);
 

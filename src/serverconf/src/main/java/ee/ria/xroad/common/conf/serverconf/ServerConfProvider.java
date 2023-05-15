@@ -28,14 +28,12 @@ package ee.ria.xroad.common.conf.serverconf;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import java.security.cert.X509Certificate;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -170,12 +168,6 @@ public interface ServerConfProvider {
      * to invoke service <code>serviceName</code>
      */
     boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path);
-
-    /**
-     * @param service the service identifier
-     * @return set of security category codes required by this service.
-     */
-    Collection<SecurityCategoryId.Conf> getRequiredCategories(ServiceId service);
 
     /**
      * @return list of URLs for the Time-stamping providers configured

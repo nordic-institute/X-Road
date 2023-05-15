@@ -426,7 +426,6 @@
         <client>consumerId</client>
         <client>fooId</client>
         <client>foosubsystemId</client>
-        <!--<securityCategory>topSecret</securityCategory>-->
     </securityServer>
 
     <securityServer>
@@ -434,7 +433,6 @@
         <serverCode>consumerServerCode</serverCode>
         <address>https://www.foo.com/bar</address>
         <authCertHash>mxwUY66bn81Nkvbmbgif0agWZgM=</authCertHash>
-        <!--<securityCategory>topSecret</securityCategory>-->
     </securityServer>
 
     <securityServer>
