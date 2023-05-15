@@ -41,7 +41,6 @@ public interface XRoadObjectTypeDtoConverter {
     @ValueMapping(source = "MEMBER", target = "MEMBER")
     @ValueMapping(source = "SUBSYSTEM", target = "SUBSYSTEM")
     @ValueMapping(source = "GLOBALGROUP", target = "GLOBALGROUP")
-    @ValueMapping(source = "SECURITYCATEGORY", target = "SECURITYCATEGORY")
     @ValueMapping(source = "LOCALGROUP", target = "LOCALGROUP")
     XRoadIdDto.TypeEnum convert(XRoadObjectType source);
 
@@ -50,7 +49,6 @@ public interface XRoadObjectTypeDtoConverter {
     @ValueMapping(source = "MEMBER", target = "MEMBER")
     @ValueMapping(source = "SUBSYSTEM", target = "SUBSYSTEM")
     @ValueMapping(source = "GLOBALGROUP", target = "GLOBALGROUP")
-    @ValueMapping(source = "SECURITYCATEGORY", target = "SECURITYCATEGORY")
     @ValueMapping(source = "LOCALGROUP", target = "LOCALGROUP")
     XRoadObjectType convert(XRoadIdDto.TypeEnum source);
 }
