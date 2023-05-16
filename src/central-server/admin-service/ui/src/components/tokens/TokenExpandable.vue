@@ -169,7 +169,7 @@ export default Vue.extend({
     signingKeys(): ConfigurationSigningKey[] {
       return (
         this.token.configuration_signing_keys?.filter(
-          (key) => key.sourceType === this.configurationType,
+          (key) => key.source_type === this.configurationType,
         ) || []
       );
     },

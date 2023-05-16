@@ -212,7 +212,7 @@ export default Vue.extend({
   created() {
     this.globalGroupStore.getMembersFilterModel(this.groupCode).then((resp) => {
       this.instances = resp.instances;
-      this.memberClasses = resp.memberClasses;
+      this.memberClasses = resp.member_classes;
       this.subsystems = resp.subsystems;
       this.codes = resp.codes;
     });

@@ -101,7 +101,7 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('securityServers.serverCode') as string,
+          text: this.$t('securityServers.server_code') as string,
           align: 'start',
           value: 'server_id.server_code',
           class: 'xrd-table-header ss-table-header-sercer-code',
