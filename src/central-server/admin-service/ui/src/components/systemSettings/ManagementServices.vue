@@ -279,7 +279,7 @@ export default Vue.extend({
       this.loading = true;
       this.managementServicesStore
         .registerServiceProvider({
-          security_server_id: securityServers[0].id || '',
+          security_server_id: securityServers[0].server_id.encoded_id || '',
         })
         .then(() => {
           this.showSuccess(

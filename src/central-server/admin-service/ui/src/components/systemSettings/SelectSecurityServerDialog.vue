@@ -80,20 +80,20 @@
           <template #[`item.member_name`]="{ item }">
             <div>{{ item.member_name }}</div>
           </template>
-          <template #[`item.xroad_id.member_code`]="{ item }">
-            <div>{{ item.xroad_id.member_code }}</div>
+          <template #[`item.server_id.member_code`]="{ item }">
+            <div>{{ item.server_id.member_code }}</div>
           </template>
-          <template #[`item.xroad_id.member_class`]="{ item }">
-            <div>{{ item.xroad_id.member_class }}</div>
+          <template #[`item.server_id.member_class`]="{ item }">
+            <div>{{ item.server_id.member_class }}</div>
           </template>
-          <template #[`item.xroad_id.subsystem_code`]="{ item }">
-            <div>{{ item.xroad_id.subsystem_code }}</div>
+          <template #[`item.server_id.subsystem_code`]="{ item }">
+            <div>{{ item.server_id.subsystem_code }}</div>
           </template>
-          <template #[`item.xroad_id.instance_id`]="{ item }">
-            <div>{{ item.xroad_id.instance_id }}</div>
+          <template #[`item.server_id.instance_id`]="{ item }">
+            <div>{{ item.server_id.instance_id }}</div>
           </template>
-          <template #[`item.xroad_id.type`]="{ item }">
-            <div>{{ item.xroad_id.type }}</div>
+          <template #[`item.server_id.type`]="{ item }">
+            <div>{{ item.server_id.type }}</div>
           </template>
         </v-data-table>
       </v-card-text>
@@ -167,7 +167,7 @@ export default Vue.extend({
         {
           text: this.$t('securityServers.serverCode') as string,
           align: 'start',
-          value: 'xroad_id.server_code',
+          value: 'server_id.server_code',
           class: 'xrd-table-header ss-table-header-sercer-code',
         },
         {
@@ -179,13 +179,13 @@ export default Vue.extend({
         {
           text: this.$t('securityServers.ownerCode') as string,
           align: 'start',
-          value: 'xroad_id.member_code',
+          value: 'server_id.member_code',
           class: 'xrd-table-header ss-table-header-owner-code',
         },
         {
           text: this.$t('securityServers.ownerClass') as string,
           align: 'start',
-          value: 'xroad_id.member_class',
+          value: 'server_id.member_class',
           class: 'xrd-table-header ss-table-header-owner-class',
         },
       ];
