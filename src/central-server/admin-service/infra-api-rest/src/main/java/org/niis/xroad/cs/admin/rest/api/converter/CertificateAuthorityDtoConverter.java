@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericMapper;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
 
@@ -36,7 +37,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface CertificateAuthorityDtoConverter extends BaseConverter {
+public interface CertificateAuthorityDtoConverter extends GenericMapper {
 
     CertificateAuthorityDto convert(CertificateAuthority certificateAuthority);
 

@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
@@ -34,24 +37,21 @@ import javax.persistence.criteria.Root;
 /**
  * Utility for working with CriteriaBuilder
  */
-public final class CriteriaBuilderUtil { // todo: refactor to a helper service
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class CriteriaBuilderUtil {
 
     public static final char LIKE_EXPRESSION_ESCAPE_CHAR = '\\';
     public static final String LIKE_EXPRESSION_ESCAPE_STRING = String.valueOf(LIKE_EXPRESSION_ESCAPE_CHAR);
-
-    private CriteriaBuilderUtil() {
-    }
 
     /**
      * Create a case-insensite LIKE expression Predicate. Also escape special characters \, % and _
      */
     public static Predicate caseInsensitiveLike(Root root, CriteriaBuilder builder, String s, Expression expression) {
-        var predicate = builder.like(
+        return builder.like(
                 builder.lower(expression),
                 builder.lower(builder.literal("%" + escapeSpecialChars(s) + "%")),
                 LIKE_EXPRESSION_ESCAPE_CHAR
         );
-        return predicate;
     }
 
     private static String escapeSpecialChars(String s) {

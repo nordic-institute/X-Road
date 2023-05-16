@@ -45,7 +45,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-jetty')
 
     implementation('javax.validation:validation-api')
-    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:7.4.0')
+    implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
 
     testImplementation project(':common-test')
     testImplementation(testFixtures(project(":common-management-request")))

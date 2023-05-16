@@ -49,6 +49,7 @@ import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
+import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.rest.api.converter.AbstractDtoConverterTest;
 import org.niis.xroad.cs.admin.rest.api.converter.model.ManagementRequestDtoTypeConverter;
@@ -117,8 +118,8 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
     public class ToDtoMethod {
 
         private static final int ID = 1;
-        private final ManagementRequestStatus managementRequestStatus = ManagementRequestStatus.APPROVED;
-        private final ManagementRequestStatusDto managementRequestStatusDto = ManagementRequestStatusDto.APPROVED;
+        private ManagementRequestStatus managementRequestStatus = ManagementRequestStatus.APPROVED;
+        private ManagementRequestStatusDto managementRequestStatusDto = ManagementRequestStatusDto.APPROVED;
 
         @Test
         @DisplayName("should successfully perform  AuthenticationCertificateRegistrationRequest conversion")
@@ -222,10 +223,20 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
             doReturn(originDto).when(originDtoMapper).toDto(origin);
             doReturn(securityServerId).when(request).getSecurityServerId();
             doReturn("SECURITY_SERVER_ID").when(securityServerIdMapper).convertId(securityServerId);
-            doReturn(managementRequestStatus).when(request).getProcessingStatus();
-            doReturn(managementRequestStatusDto).when(statusMapper).toDto(managementRequestStatus);
+
+            if (request instanceof RequestWithProcessing) {
+                doReturn(managementRequestStatusDto).when(statusMapper).toDto(managementRequestStatus);
+            } else {
+                managementRequestStatus = null;
+                managementRequestStatusDto = null;
+            }
+
             doReturn(createdAtInstance).when(request).getCreatedAt();
             doReturn(updatedAtInstance).when(request).getUpdatedAt();
+
+            if (request instanceof RequestWithProcessing) {
+                doReturn(managementRequestStatus).when((RequestWithProcessing) request).getProcessingStatus();
+            }
         }
 
         private void assertCommon(ManagementRequestDto requestDto, ManagementRequestTypeDto type) {
@@ -240,14 +251,18 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
         }
 
         private void verifyCommon(org.mockito.InOrder inOrder, Request request) {
+            if (request instanceof RequestWithProcessing) {
+                inOrder.verify((RequestWithProcessing) request).getProcessingStatus();
+                inOrder.verify(statusMapper).toDto(managementRequestStatus);
+            }
+
             inOrder.verify(request).getId();
             inOrder.verify(request).getManagementRequestType();
             inOrder.verify(request).getOrigin();
             inOrder.verify(originDtoMapper).toDto(origin);
             inOrder.verify(request).getSecurityServerId();
             inOrder.verify(securityServerIdMapper).convertId(securityServerId);
-            inOrder.verify(request).getProcessingStatus();
-            inOrder.verify(statusMapper).toDto(managementRequestStatus);
+
             inOrder.verify(request).getCreatedAt();
             inOrder.verify(request).getUpdatedAt();
         }

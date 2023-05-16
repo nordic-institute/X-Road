@@ -42,7 +42,7 @@ public abstract class Request extends Auditable {
     private Origin origin;
     private String comments;
 
-    public Request(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId identifier) {
+    protected Request(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId identifier) {
         this.origin = origin;
         this.securityServerId = SecurityServerId.ensure(identifier);
     }
@@ -52,12 +52,6 @@ public abstract class Request extends Auditable {
      *
      * @return {@link ManagementRequestType}
      */
-
     public abstract ManagementRequestType getManagementRequestType();
-
-
-    public ManagementRequestStatus getProcessingStatus() {
-        return null; //TODO it is bad practice to return null like that.
-    }
 
 }

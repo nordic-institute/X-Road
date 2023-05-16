@@ -25,12 +25,11 @@ dependencies {
     implementation(project(":central-server:management-service:infra-api-soap")) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
-
     implementation('org.springframework.boot:spring-boot-starter-web') {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
     implementation('org.springframework.boot:spring-boot-starter-jetty')
 
-    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:7.4.0') //TODO this and ip throttling is duplicated
+    implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
 }
 

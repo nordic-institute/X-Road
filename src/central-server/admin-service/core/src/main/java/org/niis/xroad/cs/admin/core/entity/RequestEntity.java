@@ -30,7 +30,6 @@ package org.niis.xroad.cs.admin.core.entity;
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 
 import javax.persistence.Column;
@@ -87,7 +86,7 @@ public abstract class RequestEntity extends AuditableEntity {
         //JPA
     }
 
-    public RequestEntity(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId identifier) {
+    protected RequestEntity(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId identifier) {
         this.origin = origin;
         this.securityServerId = SecurityServerIdEntity.ensure(identifier);
     }
@@ -99,10 +98,5 @@ public abstract class RequestEntity extends AuditableEntity {
      */
     @Transient
     public abstract ManagementRequestType getManagementRequestType();
-
-    @Transient
-    public ManagementRequestStatus getProcessingStatus() {
-        return null; //TODO it is bad practice to return null like that.
-    }
 
 }

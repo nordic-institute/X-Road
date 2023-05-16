@@ -29,13 +29,14 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericMapper;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface CertificateDetailsDtoConverter extends BaseConverter {
+public interface CertificateDetailsDtoConverter extends GenericMapper {
 
     CertificateDetailsDto convert(CertificateDetails certificateDetails);
 

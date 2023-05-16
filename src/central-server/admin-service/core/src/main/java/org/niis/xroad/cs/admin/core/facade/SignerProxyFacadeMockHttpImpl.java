@@ -122,10 +122,7 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     private TokenInfo parseTokenInfo(JsonNode json) {
-        // todo when needed
         final List<KeyInfo> keyInfoList = List.of();
-
-        //todo when needed
         Map<String, String> tokenParams = Map.of();
 
         return new TokenInfo(json.get("type").asText(), json.get("friendlyName").asText(), json.get("id").asText(),

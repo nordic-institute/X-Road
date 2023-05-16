@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericMapper;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificationServiceListItem;
 import org.niis.xroad.cs.openapi.model.ApprovedCertificationServiceDto;
@@ -37,7 +38,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ApprovedCertificationServiceDtoConverter extends BaseConverter {
+public interface ApprovedCertificationServiceDtoConverter extends GenericMapper {
 
     ApprovedCertificationServiceDto convert(CertificationService certificationService);
 

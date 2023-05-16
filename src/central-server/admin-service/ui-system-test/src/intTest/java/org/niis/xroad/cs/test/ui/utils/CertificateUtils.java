@@ -124,7 +124,7 @@ public final class CertificateUtils {
         return new JcaX509v3CertificateBuilder(
                 new X500Principal(principalName),
                 serial,
-                Date.from(Instant.now()),
+                Date.from(Instant.now().minus(1, ChronoUnit.MINUTES)),
                 Date.from(Instant.now().plus(365 + serial.abs().intValue(), ChronoUnit.DAYS)),
                 subject,
                 issuerCertificate.getPublicKey())
