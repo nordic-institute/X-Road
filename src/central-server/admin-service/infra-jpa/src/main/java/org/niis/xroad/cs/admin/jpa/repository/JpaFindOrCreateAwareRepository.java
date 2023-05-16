@@ -53,8 +53,6 @@ public interface JpaFindOrCreateAwareRepository<ENTITY, ID> extends JpaRepositor
 
     /**
      * Return or create an equivalent model from the repository.
-     * <p>
-     * todo: this should use findOne (old data model does not guarantee unique identifiers)
      */
     default ENTITY findOrCreate(ENTITY model) {
         return findBy(Example.of(model, exampleMatcher(model)), FluentQuery.FetchableFluentQuery::first)

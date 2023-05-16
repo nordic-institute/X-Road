@@ -34,8 +34,6 @@ public interface FindOrCreateAwareRepository<ENTITY, ID> extends GenericReposito
 
     /**
      * Return or create an equivalent model from the repository.
-     * <p>
-     * todo: this should use findOne (old data model does not guarantee unique identifiers)
      */
     ENTITY findOrCreate(ENTITY model);
 

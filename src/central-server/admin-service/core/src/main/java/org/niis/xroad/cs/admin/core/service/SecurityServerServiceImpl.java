@@ -143,7 +143,6 @@ public class SecurityServerServiceImpl implements SecurityServerService {
 
     @Override
     public Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode) {
-        //TODO we should map back to entities just for lookups.
         return securityServerRepository.findByOwnerIdAndServerCode(owner.getId(), serverCode).toJavaOptional()
                 .map(securityServerMapper::toTarget);
     }
