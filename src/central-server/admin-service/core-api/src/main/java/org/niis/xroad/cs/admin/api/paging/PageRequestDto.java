@@ -24,36 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.service;
+package org.niis.xroad.cs.admin.api.paging;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.service.StableSortHelper;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
+import lombok.Builder;
+import lombok.Value;
 
-/**
- * Helper that can add secondary id sort to Pageables
- */
-@Slf4j
-@Service
-public class StableSortHelperImpl implements StableSortHelper {
+@Value
+@Builder
+public class PageRequestDto {
+    String jpaSort;
+    Boolean desc;
+
+    Integer limit;
+    Integer offset;
+
+    boolean unpaged;
 
     /**
-     * Add secondary id-sort to Pageable, to guarantee stable results especially for paging
-     * {@link SecurityServerServiceImpl} does the same, should use a shared utility
+     * Returns an instance representing no pagination setup.
      */
-    public Pageable addSecondaryIdSort(Pageable original) {
-        if (original.isPaged()) {
-            Sort sortingToAdd = Sort.by(Sort.Order.asc("id"));
-            // always add id-sort as last one. We could already have an id sort, that does not matter
-            Sort refinedSorting = original.getSort()
-                    .and(sortingToAdd);
-
-            return PageRequest.of(original.getPageNumber(), original.getPageSize(), refinedSorting);
-        }
-        return original;
+    public static PageRequestDto unpaged() {
+        return PageRequestDto.builder()
+                .unpaged(true)
+                .build();
     }
-
 }

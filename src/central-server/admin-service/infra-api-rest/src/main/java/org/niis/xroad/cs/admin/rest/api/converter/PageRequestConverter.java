@@ -27,9 +27,8 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -40,32 +39,22 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_SORTING
 @Component
 public class PageRequestConverter {
 
-    public PageRequest convert(PagingSortingParametersDto pagingSorting,
-                               SortParameterConverter sortParameterConverter) {
+    public PageRequestDto convert(PagingSortingParametersDto pagingSorting,
+                                  SortParameterConverter sortParameterConverter) {
         try {
-            return PageRequest.of(
-                    pagingSorting.getOffset(),
-                    pagingSorting.getLimit(),
-                    convertToSort(pagingSorting, sortParameterConverter));
-        } catch (IllegalArgumentException | NullPointerException e) {
-            throw new ValidationFailureException(INVALID_PAGINATION_PROPERTIES, e.getMessage());
-        }
-    }
+            var builder = PageRequestDto.builder()
+                    .desc(pagingSorting.getDesc())
+                    .limit(pagingSorting.getLimit())
+                    .offset(pagingSorting.getOffset());
 
-    private Sort convertToSort(PagingSortingParametersDto pagingSorting,
-                               SortParameterConverter sortParameterConverter) {
-        Sort sort = Sort.unsorted();
-        if (!StringUtils.isBlank(pagingSorting.getSort())) {
-            Sort.Direction direction = Sort.Direction.ASC;
-            if (Boolean.TRUE.equals(pagingSorting.getDesc())) {
-                direction = Sort.Direction.DESC;
+            if (StringUtils.isNotBlank(pagingSorting.getSort())) {
+                builder.jpaSort(sortParameterConverter.convertToSortProperty(pagingSorting.getSort()));
             }
 
-            sort = Sort.by(new Sort.Order(direction,
-                    sortParameterConverter.convertToSortProperty(pagingSorting.getSort()))
-                    .ignoreCase());
+            return builder.build();
+        } catch (NullPointerException e) {
+            throw new ValidationFailureException(INVALID_PAGINATION_PROPERTIES, e.getMessage());
         }
-        return sort;
     }
 
     public interface SortParameterConverter {

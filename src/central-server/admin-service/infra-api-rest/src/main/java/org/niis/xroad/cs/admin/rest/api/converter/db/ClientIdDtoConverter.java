@@ -28,13 +28,13 @@ package org.niis.xroad.cs.admin.rest.api.converter.db;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.niis.xroad.cs.admin.rest.api.converter.model.XRoadObjectTypeDtoConverter;
 import org.niis.xroad.cs.openapi.model.ClientIdDto;
 import org.niis.xroad.cs.openapi.model.XRoadIdDto;
+import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +46,7 @@ import static ee.ria.xroad.common.util.Fn.self;
 @RequiredArgsConstructor
 public class ClientIdDtoConverter extends DtoConverter<ClientId, ClientIdDto> {
 
-    private final XRoadObjectTypeDtoConverter.Service xRoadObjectTypeConverter;
+    private final XRoadObjectTypeDtoConverter xRoadObjectTypeConverter;
 
     @Override
     public ClientIdDto toDto(ClientId source) {
@@ -55,7 +55,7 @@ public class ClientIdDtoConverter extends DtoConverter<ClientId, ClientIdDto> {
             self.setMemberClass(source.getMemberClass());
             self.setMemberCode(source.getMemberCode());
             self.setSubsystemCode(source.getSubsystemCode());
-            self.setType(xRoadObjectTypeConverter.toDto(source.getObjectType()));
+            self.setType(xRoadObjectTypeConverter.convert(source.getObjectType()));
         });
     }
 

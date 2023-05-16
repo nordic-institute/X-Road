@@ -59,7 +59,7 @@ public class ClientIdDtoConverterTest extends AbstractDtoConverterTest implement
     private ClientIdDto clientIdDto;
 
     @Mock
-    private XRoadObjectTypeDtoConverter.Service xRoadObjectTypeConverter;
+    private XRoadObjectTypeDtoConverter xRoadObjectTypeConverter;
 
     @InjectMocks
     private ClientIdDtoConverter converter;
@@ -73,7 +73,7 @@ public class ClientIdDtoConverterTest extends AbstractDtoConverterTest implement
         public void shouldConvertMemberId() {
             XRoadObjectType inputType = memberId.getObjectType();
             XRoadIdDto.TypeEnum expectedType = XRoadIdDto.TypeEnum.SUBSYSTEM;
-            doReturn(expectedType).when(xRoadObjectTypeConverter).toDto(inputType);
+            doReturn(expectedType).when(xRoadObjectTypeConverter).convert(inputType);
 
             ClientIdDto converted = converter.toDto(memberId);
 
@@ -84,7 +84,7 @@ public class ClientIdDtoConverterTest extends AbstractDtoConverterTest implement
             assertNull(converted.getSubsystemCode());
             assertEquals(expectedType, converted.getType());
             inOrder().verify(inOrder -> {
-                inOrder.verify(xRoadObjectTypeConverter).toDto(inputType);
+                inOrder.verify(xRoadObjectTypeConverter).convert(inputType);
             });
         }
 
@@ -93,7 +93,7 @@ public class ClientIdDtoConverterTest extends AbstractDtoConverterTest implement
         public void shouldConvertSubsystemId() {
             XRoadObjectType inputType = subsystemId.getObjectType();
             XRoadIdDto.TypeEnum expectedType = XRoadIdDto.TypeEnum.SUBSYSTEM;
-            doReturn(expectedType).when(xRoadObjectTypeConverter).toDto(inputType);
+            doReturn(expectedType).when(xRoadObjectTypeConverter).convert(inputType);
 
             ClientIdDto converted = converter.toDto(subsystemId);
 
@@ -104,7 +104,7 @@ public class ClientIdDtoConverterTest extends AbstractDtoConverterTest implement
             assertEquals(SUBSYSTEM_CODE, converted.getSubsystemCode());
             assertEquals(expectedType, converted.getType());
             inOrder().verify(inOrder -> {
-                inOrder.verify(xRoadObjectTypeConverter).toDto(inputType);
+                inOrder.verify(xRoadObjectTypeConverter).convert(inputType);
             });
         }
     }

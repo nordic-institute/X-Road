@@ -50,6 +50,7 @@ import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
+import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
@@ -65,10 +66,10 @@ import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+import org.niis.xroad.cs.admin.core.repository.paging.PageDto;
 import org.niis.xroad.cs.admin.core.service.managementrequest.ManagementRequestServiceImpl;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 
 import java.util.HashSet;
@@ -140,8 +141,8 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         @DisplayName("should find management status approved")
-        public void shouldReturnStatusApproved() {
-            Page<ManagementRequestView> managementRequestViews = new PageImpl<>(List.of(managementRequestView));
+        void shouldReturnStatusApproved() {
+            Page<ManagementRequestView> managementRequestViews = new PageDto<>(new PageImpl<>(List.of(managementRequestView)));
             doReturn(managementRequestViews).when(managementRequestService)
                     .findRequests(any(), any());
             doReturn(ManagementRequestStatus.APPROVED).when(managementRequestView).getStatus();
@@ -154,8 +155,8 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         @DisplayName("should return null if no management request exit")
-        public void shouldReturnNullWhenRequestNotFound() {
-            Page<ManagementRequestView> emptyManagementRequestViews = Page.empty();
+        void shouldReturnNullWhenRequestNotFound() {
+            Page<ManagementRequestView> emptyManagementRequestViews = new PageDto<>(org.springframework.data.domain.Page.empty());
             doReturn(emptyManagementRequestViews).when(managementRequestService)
                     .findRequests(any(), any());
 

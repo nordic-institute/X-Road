@@ -33,9 +33,12 @@ import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMemberView;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
+import org.niis.xroad.cs.admin.api.paging.Page;
+import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
-import org.niis.xroad.cs.admin.api.service.StableSortHelper;
+import org.niis.xroad.cs.admin.core.converter.PageConverter;
+import org.niis.xroad.cs.admin.core.converter.PageRequestDtoConverter;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
@@ -45,10 +48,9 @@ import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMembersViewRepository;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
+import org.niis.xroad.cs.admin.core.repository.paging.StableSortHelper;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -76,13 +78,18 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
     private final GlobalGroupService globalGroupService;
     private final GlobalGroupMemberMapper globalGroupMemberMapper;
     private final GlobalGroupMemberViewMapper globalGroupMemberViewMapper;
+    private final PageRequestDtoConverter pageRequestDtoConverter;
+    private final PageConverter pageConverter;
     private final AuditDataHelper auditDataHelper;
     private final StableSortHelper stableSortHelper;
 
     @Override
-    public Page<GlobalGroupMemberView> find(GlobalGroupMemberService.Criteria criteria, Pageable pageable) {
-        return globalGroupMembersViewRepository.findAll(criteria, stableSortHelper.addSecondaryIdSort(pageable))
+    public Page<GlobalGroupMemberView> find(GlobalGroupMemberService.Criteria criteria, PageRequestDto pageRequest) {
+        var pageable = stableSortHelper.addSecondaryIdSort(pageRequestDtoConverter.convert(pageRequest));
+
+        var result = globalGroupMembersViewRepository.findAll(criteria, pageable)
                 .map(globalGroupMemberViewMapper::toTarget);
+        return pageConverter.convert(result);
     }
 
     @Override

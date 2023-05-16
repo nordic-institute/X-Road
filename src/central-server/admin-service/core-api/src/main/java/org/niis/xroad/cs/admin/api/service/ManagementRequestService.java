@@ -36,8 +36,8 @@ import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.niis.xroad.cs.admin.api.paging.Page;
+import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -71,7 +71,7 @@ public interface ManagementRequestService {
      */
     Page<ManagementRequestView> findRequests(
             ManagementRequestService.Criteria filter,
-            Pageable page);
+            PageRequestDto pageRequest);
 
     /**
      * Add new management request

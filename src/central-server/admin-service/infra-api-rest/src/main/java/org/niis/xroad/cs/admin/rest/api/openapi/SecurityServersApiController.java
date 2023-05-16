@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.PageRequestConverter;
@@ -44,8 +45,6 @@ import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -107,7 +106,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
     public ResponseEntity<PagedSecurityServersDto> findSecurityServers(String query,
                                                                        PagingSortingParametersDto pagingSorting) {
-        PageRequest pageRequest = pageRequestConverter.convert(
+        var pageRequest = pageRequestConverter.convert(
                 pagingSorting, findSortParameterConverter);
 
         Page<SecurityServerDto> servers = securityServerService.findSecurityServers(query, pageRequest)

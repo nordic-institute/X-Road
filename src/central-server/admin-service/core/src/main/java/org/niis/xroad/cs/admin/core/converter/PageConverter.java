@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,42 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.core.converter;
 
-package org.niis.xroad.cs.admin.api.service;
-
-import ee.ria.xroad.common.identifier.XRoadObjectType;
-
-import lombok.Builder;
-import lombok.Getter;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
-import org.niis.xroad.cs.admin.api.domain.GlobalGroupMemberView;
-import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.paging.Page;
-import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
+import org.niis.xroad.cs.admin.core.repository.paging.PageDto;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
+@Component
+public class PageConverter {
 
-public interface GlobalGroupMemberService {
-
-    Page<GlobalGroupMemberView> find(Criteria criteria, PageRequestDto pageRequest);
-
-    List<GlobalGroupMember> findByGroupId(Integer groupId);
-
-    void addMemberToGlobalGroup(MemberId memberId, String groupCode);
-
-    void removeMemberFromGlobalGroup(Integer groupId, Integer memberId);
-
-    void removeMemberFromGlobalGroup(MemberId memberId, String groupCode);
-
-    @Builder
-    @Getter
-    class Criteria {
-        private final Integer groupId;
-        private final String query;
-        private final String memberClass;
-        private final String instance;
-        private final List<String> codes;
-        private final List<String> subsystems;
-        private final List<XRoadObjectType> types;
+    public <T> Page<T> convert(org.springframework.data.domain.Page<T> page) {
+        return new PageDto<>(page);
     }
 }
+

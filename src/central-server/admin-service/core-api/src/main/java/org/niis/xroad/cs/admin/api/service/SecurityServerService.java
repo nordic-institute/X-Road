@@ -34,8 +34,8 @@ import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.niis.xroad.cs.admin.api.paging.Page;
+import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +43,7 @@ import java.util.Set;
 
 public interface SecurityServerService {
 
-    Page<SecurityServer> findSecurityServers(String q, Pageable pageable);
+    Page<SecurityServer> findSecurityServers(String q, PageRequestDto pageRequest);
 
     Optional<SecurityServer> find(SecurityServerId id);
 

@@ -42,22 +42,24 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
+import org.niis.xroad.cs.admin.api.paging.Page;
+import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
-import org.niis.xroad.cs.admin.api.service.StableSortHelper;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
+import org.niis.xroad.cs.admin.core.converter.PageConverter;
+import org.niis.xroad.cs.admin.core.converter.PageRequestDtoConverter;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+import org.niis.xroad.cs.admin.core.repository.paging.StableSortHelper;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -91,13 +93,18 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     private final SubsystemService subsystemService;
     private final SecurityServerMapper securityServerMapper;
     private final CertificateConverter certificateConverter;
+    private final PageRequestDtoConverter pageRequestDtoConverter;
+    private final PageConverter pageConverter;
     private final AuditDataHelper auditDataHelper;
 
     @Override
-    public Page<SecurityServer> findSecurityServers(String q, Pageable pageable) {
-        return securityServerRepository
-                .findAllByQuery(q, stableSortHelper.addSecondaryIdSort(pageable))
+    public Page<SecurityServer> findSecurityServers(String q, PageRequestDto pageRequest) {
+        var pageable = stableSortHelper.addSecondaryIdSort(pageRequestDtoConverter.convert(pageRequest));
+
+        var result = securityServerRepository
+                .findAllByQuery(q, pageable)
                 .map(securityServerMapper::toTarget);
+        return pageConverter.convert(result);
     }
 
     @Override
@@ -113,7 +120,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
                                 .serverId(serverId)
                                 .clientId(clientId)
                                 .types(List.of(ManagementRequestType.CLIENT_REGISTRATION_REQUEST))
-                                .build(), Pageable.unpaged())
+                                .build(), PageRequestDto.unpaged())
                 .stream()
                 .map(ManagementRequestView::getStatus)
                 .findFirst()

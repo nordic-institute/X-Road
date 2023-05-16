@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
@@ -54,6 +53,7 @@ import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.converter.DtoConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.stereotype.Service;
 
@@ -74,10 +74,10 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
     private final ZoneOffset dtoZoneOffset;
 
     private final SecurityServerIdConverter securityServerIdMapper;
-    private final ManagementRequestOriginDtoConverter.Service originMapper;
+    private final ManagementRequestOriginDtoConverter originMapper;
     private final ClientIdConverter clientIdConverter;
-    private final ManagementRequestStatusConverter.Service statusMapper;
-    private final ManagementRequestDtoTypeConverter.Service requestTypeConverter;
+    private final ManagementRequestStatusConverter statusMapper;
+    private final ManagementRequestDtoTypeConverter requestTypeConverter;
 
     public ManagementRequestDto toDto(Request request) {
         ManagementRequestDto result;
@@ -110,12 +110,12 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         }
 
         if (request instanceof RequestWithProcessing) {
-            result.status(statusMapper.toDto(((RequestWithProcessing) request).getProcessingStatus()));
+            result.status(statusMapper.convert(((RequestWithProcessing) request).getProcessingStatus()));
         }
 
         return result.id(request.getId())
-                .type(requestTypeConverter.toDto(request.getManagementRequestType()))
-                .origin(originMapper.toDto(request.getOrigin()))
+                .type(requestTypeConverter.convert(request.getManagementRequestType()))
+                .origin(originMapper.convert(request.getOrigin()))
                 .securityServerId(securityServerIdMapper.convertId(request.getSecurityServerId()))
                 .createdAt(request.getCreatedAt().atOffset(dtoZoneOffset))
                 .updatedAt(request.getUpdatedAt().atOffset(dtoZoneOffset));
@@ -126,7 +126,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             AuthenticationCertificateRegistrationRequestDto req =
                     (AuthenticationCertificateRegistrationRequestDto) request;
             return new AuthenticationCertificateRegistrationRequest(
-                    originMapper.fromDto(req.getOrigin()),
+                    originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()))
 
                     .setAuthCert(req.getAuthenticationCertificate())
@@ -136,7 +136,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         } else if (request instanceof AuthenticationCertificateDeletionRequestDto) {
             AuthenticationCertificateDeletionRequestDto req = (AuthenticationCertificateDeletionRequestDto) request;
             return new AuthenticationCertificateDeletionRequest(
-                    originMapper.fromDto(req.getOrigin()),
+                    originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()))
                     .setAuthCert(req.getAuthenticationCertificate());
 
@@ -145,7 +145,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             ClientRegistrationRequestDto req = (ClientRegistrationRequestDto) request;
 
             return new ClientRegistrationRequest(
-                    originMapper.fromDto(req.getOrigin()),
+                    originMapper.convert(req.getOrigin()),
 
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
@@ -153,14 +153,14 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         } else if (request instanceof ClientDeletionRequestDto) {
             ClientDeletionRequestDto req = (ClientDeletionRequestDto) request;
             return new ClientDeletionRequest(
-                    originMapper.fromDto(req.getOrigin()),
+                    originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
 
         } else if (request instanceof OwnerChangeRequestDto) {
             OwnerChangeRequestDto req = (OwnerChangeRequestDto) request;
             return new OwnerChangeRequest(
-                    originMapper.fromDto(req.getOrigin()),
+                    originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
 
@@ -198,7 +198,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
     private List<ManagementRequestType> convert(List<ManagementRequestTypeDto> types) {
         return Optional.ofNullable(types)
                 .map(managementRequestTypes -> managementRequestTypes.stream()
-                        .map(requestTypeConverter::convertToA)
+                        .map(requestTypeConverter::convert)
                         .collect(toList()))
                 .orElseGet(Collections::emptyList);
     }

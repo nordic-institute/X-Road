@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
@@ -40,6 +39,7 @@ import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.model.SecurityServerIdDtoConverter;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerIdDto;
+import org.niis.xroad.restapi.converter.DtoConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.stereotype.Service;
 

@@ -26,10 +26,10 @@
  */
 package org.niis.xroad.cs.admin.rest.api.converter.model;
 
-import org.niis.xroad.cs.admin.api.converter.DtoConverter;
 import org.niis.xroad.cs.admin.api.dto.TokenInitStatus;
 import org.niis.xroad.cs.openapi.model.InitializationStatusDto;
 import org.niis.xroad.cs.openapi.model.TokenInitStatusDto;
+import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -27,11 +27,11 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
+import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.openapi.model.ManagementRequestListViewDto;
 import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
 import org.niis.xroad.cs.openapi.model.PagingMetadataDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
