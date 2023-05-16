@@ -11,6 +11,6 @@ Feature: Management request: Auth cert deletion
     "type" : "AUTH_CERT_DELETION_REQUEST",
     "origin" : "SECURITY_SERVER",
     "security_server_id" : "EE:CLASS:MEMBER:SS1",
-    "authenticationCertificate" : []
+    "authentication_certificate" : []
     }
     """

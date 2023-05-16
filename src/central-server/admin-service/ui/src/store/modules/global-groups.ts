@@ -95,7 +95,7 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
       filter: GroupMembersFilter,
     ) {
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
-      filter.pagingSorting = {
+      filter.paging_sorting = {
         limit: dataOptions.itemsPerPage,
         offset: offset,
         sort: dataOptions.sortBy[0],
@@ -136,7 +136,10 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
           throw error;
         });
     },
-    editGroupDescription(groupCode: string, description: GlobalGroupDescription) {
+    editGroupDescription(
+      groupCode: string,
+      description: GlobalGroupDescription,
+    ) {
       return axios
         .patch<GlobalGroupResource>(`/global-groups/${groupCode}`, description)
         .catch((error) => {

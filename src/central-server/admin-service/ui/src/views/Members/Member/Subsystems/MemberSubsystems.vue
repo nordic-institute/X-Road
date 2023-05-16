@@ -56,7 +56,7 @@
       >
         <template #body="{ items }">
           <tbody v-for="(item, index) in items" :key="index">
-            <tr v-if="item.usedSecurityServers.length === 0">
+            <tr v-if="item.used_security_servers.length === 0">
               <td class="unregistered-subsystem">
                 {{ item.subsystem_id.subsystem_code }}
               </td>
@@ -83,14 +83,14 @@
               </td>
             </tr>
             <tr
-              v-for="(subitem, iSub) in item.usedSecurityServers"
-              :key="item.subsystem_id.subsystem_code + ':' + subitem.serverCode"
+              v-for="(subitem, iSub) in item.used_security_servers"
+              :key="item.subsystem_id.subsystem_code + ':' + subitem.server_code"
             >
-              <td v-if="iSub === 0" :rowspan="item.usedSecurityServers.length">
+              <td v-if="iSub === 0" :rowspan="item.used_security_servers.length">
                 {{ item.subsystem_id.subsystem_code }}
               </td>
-              <td class="xrd-clickable">{{ subitem.serverCode }}</td>
-              <td class="xrd-clickable">{{ subitem.serverOwner }}</td>
+              <td class="xrd-clickable">{{ subitem.server_code }}</td>
+              <td class="xrd-clickable">{{ subitem.server_owner }}</td>
               <td class="status">
                 <xrd-icon-base>
                   <XrdIconChecked
@@ -252,13 +252,13 @@ export default Vue.extend({
         {
           text: this.$t('members.member.subsystems.servercode') as string,
           align: 'start',
-          value: 'usedSecurityServers[0].serverCode',
+          value: 'usedSecurityServers[0].server_code',
           class: 'xrd-table-header subsystems-table-header-server-code',
         },
         {
-          text: this.$t('members.member.subsystems.serverOwner') as string,
+          text: this.$t('members.member.subsystems.server_owner') as string,
           align: 'start',
-          value: 'usedSecurityServers[0].serverOwner',
+          value: 'usedSecurityServers[0].server_owner',
           class: 'xrd-table-header subsystems-table-header-server-owner',
         },
         {
@@ -311,7 +311,7 @@ export default Vue.extend({
     unregisterClicked(subsystem: Subsystem, subitem: UsedSecurityServers) {
       this.clickedSubsystemCode = subsystem.subsystem_id
         ?.subsystem_code as string;
-      this.clickedServerCode = subitem.serverCode as string;
+      this.clickedServerCode = subitem.server_code as string;
       this.showUnregisterDialog = true;
     },
     addedSubsystem() {

@@ -11,7 +11,7 @@ Feature: Management requests API
     "type" : "CLIENT_REGISTRATION_REQUEST",
     "origin" : "SECURITY_SERVER",
     "security_server_id" : "EE:CLASS:MEMBER:SS1",
-    "clientId" : "EE:CLASS:MEMBER"
+    "client_id" : "EE:CLASS:MEMBER"
     }
     """
 

@@ -1237,15 +1237,7 @@ paths:
       description: <h3>Administrator deletes a trusted anchor.</h3>
       operationId: deleteTrustedAnchor
       parameters:
-        - description: hash of the trusted anchor
-          in: path
-          name: hash
-          required: true
-          schema:
-            format: text
-            maxLength: 255
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/HashParam'
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -1267,15 +1259,7 @@ paths:
       description: <h3>Administrator downloads the trusted anchor.</h3>
       operationId: downloadTrustedAnchor
       parameters:
-        - description: hash of the trusted anchor
-          in: path
-          name: hash
-          required: true
-          schema:
-            format: text
-            maxLength: 255
-            minLength: 1
-            type: string
+        - $ref: '#/components/parameters/HashParam'
       responses:
         '200':
           content:
@@ -2645,19 +2629,12 @@ paths:
       summary: add a timestamping service
       tags:
         - timestamping-services
-  /timestamping-services/{id}:
+  /timestamping-services/{timestamping_service_id}:
+    parameters:
+      - $ref: '#/components/parameters/TimestampingServiceIdParam'
     delete:
       description: <h3>CS administrator deletes an approved timestamping service.</h3>
       operationId: deleteTimestampingService
-      parameters:
-        - description: unique identifier of the timestamping service
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       responses:
         '204':
           description: timestamping service deletion was successful
@@ -2677,15 +2654,6 @@ paths:
     get:
       description: <h3>CS administrator views an approved timestamping service's details.</h3>
       operationId: getTimestampingService
-      parameters:
-        - description: unique identifier of the timestamping service
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       responses:
         '200':
           content:
@@ -2709,15 +2677,6 @@ paths:
     patch:
       description: <h3>CS administrator edits the URL or certificate of a timestamping server.</h3>
       operationId: updateTimestampingService
-      parameters:
-        - description: unique identifier of the timestamping service
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int32
-            minLength: 1
-            type: integer
       requestBody:
         content:
           multipart/form-data:
@@ -3324,7 +3283,7 @@ components:
       properties:
         content_identifier:
           $ref: '#/components/schemas/ConfigurationPartContentIdentifier'
-        fileName:
+        file_name:
           example: shared-params.xml
           format: filename
           maxLength: 255
@@ -3577,7 +3536,7 @@ components:
           items:
             $ref: '#/components/schemas/PossibleKeyAction'
           type: array
-        sourceType:
+        source_type:
             $ref: '#/components/schemas/ConfigurationType'
       required:
         - id
@@ -3729,16 +3688,16 @@ components:
       properties:
         subsystem_id:
           $ref: '#/components/schemas/ClientId'
-        usedSecurityServers:
+        used_security_servers:
           items:
             $ref: '#/components/schemas/UsedSecurityServers'
       type: object
     UsedSecurityServers:
       properties:
-        serverCode:
+        server_code:
           description: security server code
           type: string
-        serverOwner:
+        server_owner:
           description: security server owner
           type: string
         status:
@@ -4087,7 +4046,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/TimestampingServiceUrl'
         - $ref: '#/components/schemas/TimestampingServiceCertificate'
-        - $ref: '#/components/schemas/ModificationTimestamps'
       description: timestamping service
       properties:
         id:
@@ -4513,7 +4471,7 @@ components:
           nullable: true
           allOf:
             - $ref: '#/components/schemas/ManagementRequestStatus'
-        serverId:
+        server_id:
           description: security server id
           nullable: true
           type: string
@@ -4527,7 +4485,7 @@ components:
           items:
             type: string
           type: array
-        memberClasses:
+        member_classes:
           description: member classes
           nullable: true
           items:
@@ -4553,7 +4511,7 @@ components:
           description: free text query
           nullable: true
           type: string
-        memberClass:
+        member_class:
           description: member class
           nullable: true
           type: string
@@ -4578,7 +4536,7 @@ components:
           nullable: true
           items:
             $ref: '#/components/schemas/ClientType'
-        pagingSorting:
+        paging_sorting:
           description: paging sorting parameters
           nullable: false
           allOf:
@@ -4593,10 +4551,10 @@ components:
         size:
           type: integer
           description: page size
-        totalPages:
+        total_pages:
           type: integer
           description: total number of pages
-        totalElements:
+        total_elements:
           type: integer
           description: total number of elements (<=size * totalPages)
     AuthenticationCertificateRegistrationRequest:
@@ -4604,9 +4562,9 @@ components:
         - $ref: '#/components/schemas/ManagementRequest'
       type: object
       properties:
-        serverAddress:
+        server_address:
           type: string
-        authenticationCertificate:
+        authentication_certificate:
           type: string
           format: byte
       required:
@@ -4617,7 +4575,7 @@ components:
         - $ref: '#/components/schemas/ManagementRequest'
       type: object
       properties:
-        authenticationCertificate:
+        authentication_certificate:
           type: string
           format: byte
       required:
@@ -4627,7 +4585,7 @@ components:
         - $ref: '#/components/schemas/ManagementRequest'
       type: object
       properties:
-        clientId:
+        client_id:
           type: string
           description: Encoded Client ID
       required:
@@ -4637,7 +4595,7 @@ components:
         - $ref: '#/components/schemas/ManagementRequest'
       type: object
       properties:
-        clientId:
+        client_id:
           type: string
           description: Encoded Client ID
       required:
@@ -4647,7 +4605,7 @@ components:
         - $ref: '#/components/schemas/ManagementRequest'
       type: object
       properties:
-        clientId:
+        client_id:
           type: string
           description: Encoded Client ID
       required:
@@ -4784,6 +4742,25 @@ components:
       required: true
       schema:
         format: text
+        minLength: 1
+        type: string
+    TimestampingServiceIdParam:
+      in: path
+      name: timestamping_service_id
+      description: unique identifier of the timestamping service
+      required: true
+      schema:
+        format: int32
+        minLength: 1
+        type: integer
+    HashParam:
+      in: path
+      name: hash
+      description: hash of the trusted anchor
+      required: true
+      schema:
+        format: text
+        maxLength: 255
         minLength: 1
         type: string
 security:

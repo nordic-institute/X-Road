@@ -11,6 +11,6 @@ Feature: Management request: Client deletion
     "type" : "CLIENT_DELETION_REQUEST",
     "origin" : "SECURITY_SERVER",
     "security_server_id" : "EE:CLASS:MEMBER:SS1",
-    "clientId" : "EE:CLASS:MEMBER"
+    "client_id" : "EE:CLASS:MEMBER"
     }
     """
