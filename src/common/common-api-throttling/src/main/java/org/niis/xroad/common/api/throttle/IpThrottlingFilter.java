@@ -23,16 +23,13 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package org.niis.xroad.cs.management.application.configuration;
+package org.niis.xroad.common.api.throttle;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.management.core.configuration.ManagementServiceProperties;
-import org.springframework.http.HttpStatus;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -46,21 +43,24 @@ import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static io.github.bucket4j.Bandwidth.simple;
+
 /**
  * Rate-limits requests
  */
 @Slf4j
 public class IpThrottlingFilter implements Filter {
+    private static final int HTTP_STATUS_TOO_MANY_REQUESTS = 429;
 
-    private final Bandwidth limit;
+    private final IpThrottlingFilterConfig ipThrottlingFilterConfig;
     private final LoadingCache<String, Bucket> bucketCache;
 
-    public IpThrottlingFilter(ManagementServiceProperties properties) {
+    public IpThrottlingFilter(IpThrottlingFilterConfig properties) {
+        this.ipThrottlingFilterConfig = properties;
         //BandWidth is immutable and can be reused
-        limit = Bandwidth.simple(properties.getRateLimitRequestsPerMinute(), Duration.ofMinutes(1));
         bucketCache = CacheBuilder.newBuilder()
                 .maximumSize(properties.getRateLimitCacheSize())
-                .expireAfterAccess(2, TimeUnit.MINUTES)
+                .expireAfterAccess(properties.getRateLimitExpireAfterAccessMinutes(), TimeUnit.MINUTES)
                 .build(CacheLoader.from(this::createStandardBucket));
     }
 
@@ -68,7 +68,18 @@ public class IpThrottlingFilter implements Filter {
      * create a new bucket
      */
     private Bucket createStandardBucket() {
-        return Bucket.builder().addLimit(limit).build();
+        var builder = Bucket.builder();
+        if (ipThrottlingFilterConfig.getRateLimitRequestsPerSecond() > 0) {
+            builder.addLimit(simple(ipThrottlingFilterConfig.getRateLimitRequestsPerSecond(), Duration.ofSeconds(1)));
+        }
+        if (ipThrottlingFilterConfig.getRateLimitRequestsPerMinute() > 0) {
+            builder.addLimit(simple(ipThrottlingFilterConfig.getRateLimitRequestsPerMinute(), Duration.ofMinutes(1)));
+        }
+
+        log.info("API access rate limiting initialized with {} req/sec and {} req/min",
+                ipThrottlingFilterConfig.getRateLimitRequestsPerSecond(),
+                ipThrottlingFilterConfig.getRateLimitRequestsPerMinute());
+        return builder.build();
     }
 
     @Override
@@ -89,14 +100,16 @@ public class IpThrottlingFilter implements Filter {
         if (probe.isConsumed()) {
             filterChain.doFilter(servletRequest, servletResponse);
             if (probe.getRemainingTokens() == 0) {
-                log.warn("Request rate limit {} per minute met by IP {}", limit.getCapacity(), ip);
+                log.warn("Request rate limit exceeded for ip {}, responding with 429 TOO_MANY_REQUESTS", ip);
             }
         } else {
             if (servletResponse instanceof HttpServletResponse) {
                 HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
-                httpResponse.setContentType("text/plain");
-                httpResponse.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+                httpResponse.setContentType("application/json");
+                httpResponse.setCharacterEncoding("UTF-8");
                 httpResponse.addHeader("Connection", "close");
+                httpResponse.setStatus(HTTP_STATUS_TOO_MANY_REQUESTS);
+                httpResponse.getWriter().append("{\"status\":429}");
             }
         }
     }

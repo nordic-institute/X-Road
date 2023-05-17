@@ -29,6 +29,7 @@ package org.niis.xroad.cs.management.application.configuration;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.server.handler.ErrorHandler;
+import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
 import org.niis.xroad.cs.management.core.configuration.ManagementServiceProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;

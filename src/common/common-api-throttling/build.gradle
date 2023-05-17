@@ -1,0 +1,12 @@
+plugins {
+  id 'java-library'
+}
+
+dependencies {
+  compileOnly "jakarta.servlet:jakarta.servlet-api:4.0.4"
+
+  api "com.google.guava:guava:$guavaVersion"
+  api("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
+
+  implementation "org.slf4j:slf4j-api:$slf4jVersion"
+}

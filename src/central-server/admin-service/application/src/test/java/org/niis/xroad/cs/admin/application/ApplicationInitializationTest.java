@@ -37,6 +37,7 @@ import org.springframework.test.context.ActiveProfiles;
  */
 
 @SpringBootTest(classes = {
+        Main.class,
         AbstractSpringMvcTest.CommonRestApiTestConfiguration.class,
         BootstrapConfiguration.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

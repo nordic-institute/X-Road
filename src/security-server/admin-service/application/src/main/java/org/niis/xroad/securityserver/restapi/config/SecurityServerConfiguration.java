@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,8 +27,14 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
+import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
+
+import javax.servlet.Filter;
 
 /**
  * A generic, configuration class for bean initialization.
@@ -39,5 +45,12 @@ public class SecurityServerConfiguration {
     @Bean
     public ExternalProcessRunner externalProcessRunner() {
         return new ExternalProcessRunner();
+    }
+
+    @Bean
+    @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3)
+    @Profile("nontest")
+    public Filter ipThrottlingFilter(AdminServiceProperties properties) {
+        return new IpThrottlingFilter(properties);
     }
 }
