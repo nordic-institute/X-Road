@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.admin.application;
 
 import org.niis.xroad.cs.admin.core.config.BootstrapConfiguration;
-import org.niis.xroad.cs.admin.core.config.CentralServerSystemPropertiesInitializer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -37,10 +36,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class Main {
     public static void main(String[] args) {
-        var app = new SpringApplication(
+        SpringApplication.run(new Class[]{
                 Main.class,
-                BootstrapConfiguration.class);
-        app.addInitializers(ctx -> CentralServerSystemPropertiesInitializer.initialize());
-        app.run(args);
+                BootstrapConfiguration.class
+        }, args);
     }
 }
