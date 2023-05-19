@@ -58,19 +58,23 @@ import java.util.Date;
 /**
  * Contains various certificate related utility methods for using in test cases,
  * all in one place.
- *
+ * <p>
  * Whenever you need to use a certificate in a test class, use this class. Add
  * necessary convenience methods if needed.
  */
 public final class TestCertUtil {
 
-    /** Hard coded path to all the certificates. */
+    /**
+     * Hard coded path to all the certificates.
+     */
     private static final String CERT_PATH = "/";
 
     private static final String CERT_ERROR_MSG = "Unable to get certificate for name \"%1$s\" from keystore";
     private static final String CERT_ERROR_WITH_PASSWD_MSG = CERT_ERROR_MSG + " using password \"%2$s\"";
 
-    /** Lazily initialized cached instances of the certs. */
+    /**
+     * Lazily initialized cached instances of the certs.
+     */
     private static volatile X509Certificate tspCert;
     private static volatile PKCS12 producer;
     private static volatile PKCS12 consumer;
@@ -87,7 +91,9 @@ public final class TestCertUtil {
     private TestCertUtil() {
     }
 
-    /** Tiny container to keep the certificate and private key together. */
+    /**
+     * Tiny container to keep the certificate and private key together.
+     */
     public static final class PKCS12 {
         public final X509Certificate[] certChain;
         public final PrivateKey key;
@@ -189,7 +195,7 @@ public final class TestCertUtil {
     /**
      * @param fileName name of the certificate file
      * @return a certificate from the certificate chain test
-     *         (certs under "cert-chain" subdirectory).
+     * (certs under "cert-chain" subdirectory).
      */
     public static X509Certificate getCertChainCert(String fileName) {
         String file = CERT_PATH + "test_chain/" + fileName;
@@ -200,7 +206,7 @@ public final class TestCertUtil {
     /**
      * @param fileName name of the private key file
      * @return a private key from the certificate chain test
-     *         (certs under "cert-chain" subdirectory).
+     * (certs under "cert-chain" subdirectory).
      */
     public static PrivateKey getCertChainKey(String fileName) {
         String file = CERT_PATH + "test_chain/" + fileName;
@@ -212,6 +218,7 @@ public final class TestCertUtil {
 
     /**
      * Loads a certificate in PEM format.
+     *
      * @param pemFileName filename of the certificate
      * @return X509Certificate
      */
@@ -225,8 +232,9 @@ public final class TestCertUtil {
 
     /**
      * Loads a certificate with the specified org name from a keystore.
+     *
      * @param keyStore keystore from which to load the certificate
-     * @param orgName name of the certificate org
+     * @param orgName  name of the certificate org
      * @return X509Certificate
      */
     public static X509Certificate getCert(KeyStore keyStore, String orgName) {
@@ -245,8 +253,9 @@ public final class TestCertUtil {
 
     /**
      * Loads a certificate with the specified org name from a keystore.
+     *
      * @param keyStore keystore from which to load the certificate
-     * @param orgName name of the certificate org
+     * @param orgName  name of the certificate org
      * @return X509Certificate
      */
     public static X509Certificate[] getCertChain(KeyStore keyStore, String orgName) {
@@ -266,8 +275,9 @@ public final class TestCertUtil {
 
     /**
      * Loads a private key with the specified org name from a keystore.
+     *
      * @param keyStore keystore from which to load the private key
-     * @param orgName name of the private key org
+     * @param orgName  name of the private key org
      * @param password keystore password
      * @return PrivateKey
      */
@@ -289,7 +299,8 @@ public final class TestCertUtil {
 
     /**
      * Loads a PKCS12 keystore with the specified filename.
-     * @param file keystore filename
+     *
+     * @param file     keystore filename
      * @param password keystore password
      * @return KeyStore
      */
@@ -299,7 +310,8 @@ public final class TestCertUtil {
 
     /**
      * Loads a JKS keystore with the specified filename.
-     * @param file keystore filename
+     *
+     * @param file     keystore filename
      * @param password keystore password
      * @return KeyStore
      */
@@ -309,8 +321,9 @@ public final class TestCertUtil {
 
     /**
      * Loads a keystore with the given type from the specified filename.
-     * @param type type of the keystore
-     * @param file keystore filename
+     *
+     * @param type     type of the keystore
+     * @param file     keystore filename
      * @param password keystore password
      * @return KeyStore
      */
@@ -331,8 +344,9 @@ public final class TestCertUtil {
     /**
      * Loads private key and certificate with the specified org name
      * from a PKCS12 keystore.
-     * @param file filename of the keystore
-     * @param orgName name of the org
+     *
+     * @param file     filename of the keystore
+     * @param orgName  name of the org
      * @param password keystore password
      * @return PKCS12 container containing the private key and certificate
      */
@@ -402,7 +416,7 @@ public final class TestCertUtil {
         var cert = new JcaX509v3CertificateBuilder(
                 issuer,
                 BigInteger.TWO,
-                Date.from(Instant.now().minus(1,ChronoUnit.MINUTES)),
+                Date.from(Instant.now().minus(1, ChronoUnit.MINUTES)),
                 Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
                 subject,
                 subjectKey)
