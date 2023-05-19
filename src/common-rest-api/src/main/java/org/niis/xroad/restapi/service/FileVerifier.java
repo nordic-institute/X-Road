@@ -45,6 +45,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.function.Predicate.not;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.DOUBLE_FILE_EXTENSION;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_FILE_CONTENT_TYPE;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_FILE_EXTENSION;
 
@@ -87,7 +88,9 @@ public class FileVerifier {
         }
     }
 
-    private static void validateContentType(final String filename, final byte[] contents, final Set<String> allowedContentTypes) throws IOException {
+    private static void validateContentType(final String filename,
+                                            final byte[] contents,
+                                            final Set<String> allowedContentTypes) throws IOException {
         Metadata metadata = new Metadata();
         metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, filename);
         try (var inputStream = new ByteArrayInputStream(contents)) {
@@ -101,11 +104,19 @@ public class FileVerifier {
     }
 
     private static void validateExtension(final String filename, final Set<String> allowedExtensions) {
+        validateDoubleExtension(filename);
         final var extension = FilenameUtils.getExtension(filename);
         if (!allowedExtensions.contains(extension)) {
             throw new ValidationFailureException(INVALID_FILE_EXTENSION,
                     extension,
                     String.join(", ", allowedExtensions));
+        }
+    }
+
+    private static void validateDoubleExtension(final String filename) {
+        var withoutExtension = FilenameUtils.removeExtension(filename);
+        if (!withoutExtension.equals(FilenameUtils.removeExtension(withoutExtension))) {
+            throw new ValidationFailureException(DOUBLE_FILE_EXTENSION);
         }
     }
 }
