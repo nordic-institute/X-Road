@@ -6,7 +6,6 @@ logging:
 spring:
   main:
     allow-bean-definition-overriding: true
-    lazy-initialization: true
     banner-mode: off
 xroad:
   registration-service:

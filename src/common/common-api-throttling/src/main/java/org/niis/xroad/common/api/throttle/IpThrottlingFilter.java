@@ -95,14 +95,10 @@ public class IpThrottlingFilter implements Filter {
             throw new ServletException("Rate limit failure", e);
         }
 
-        var probe = bucket.tryConsumeAndReturnRemaining(1);
-
-        if (probe.isConsumed()) {
+        if (bucket.tryConsume(1)) {
             filterChain.doFilter(servletRequest, servletResponse);
-            if (probe.getRemainingTokens() == 0) {
-                log.warn("Request rate limit exceeded for ip {}, responding with 429 TOO_MANY_REQUESTS", ip);
-            }
         } else {
+            log.warn("Request rate limit exceeded for ip {}, responding with 429 TOO_MANY_REQUESTS", ip);
             if (servletResponse instanceof HttpServletResponse) {
                 HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
                 httpResponse.setContentType("application/json");

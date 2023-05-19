@@ -30,5 +30,7 @@ dependencies {
     }
   implementation('org.springframework.boot:spring-boot-starter-jetty')
 
+  testImplementation project(":common-test")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

@@ -84,6 +84,6 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig {
     /**
      * Controls how long the rate-limit cache entries are valid.
      */
-    private int rateLimitExpireAfterAccessMinutes = 2;
+    private int rateLimitExpireAfterAccessMinutes = 5;
 
 }

@@ -50,8 +50,11 @@ dependencies {
 
     testImplementation project(':common-test')
     testImplementation(testFixtures(project(":common-management-request")))
-    testImplementation "junit:junit:$junitVersion"
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('com.github.tomakehurst:wiremock-jre8:2.33.1')
+}
+
+test {
+  useJUnitPlatform()
 }
 

@@ -402,7 +402,7 @@ public final class TestCertUtil {
         var cert = new JcaX509v3CertificateBuilder(
                 issuer,
                 BigInteger.TWO,
-                Date.from(Instant.now()),
+                Date.from(Instant.now().minus(1,ChronoUnit.MINUTES)),
                 Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
                 subject,
                 subjectKey)
