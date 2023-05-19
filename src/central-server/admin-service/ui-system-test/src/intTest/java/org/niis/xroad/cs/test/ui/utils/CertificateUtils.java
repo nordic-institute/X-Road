@@ -68,7 +68,7 @@ public final class CertificateUtils {
     }
 
     public static File getAsFile(byte[] certificate) throws Exception {
-        final File certificateFile = File.createTempFile(UUID.randomUUID().toString(), null);
+        final File certificateFile = File.createTempFile(UUID.randomUUID().toString(), ".cer");
         try (FileOutputStream fos = new FileOutputStream(certificateFile)) {
             fos.write(certificate);
         }
