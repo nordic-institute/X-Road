@@ -62,7 +62,10 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
     @Step("timestamping service is added")
     public void timestampingServiceIsAdded() throws Exception {
         final String url = "https://timestamping-service-" + UUID.randomUUID();
-        final MultipartFile certificate = new MockMultipartFile("certificate", CertificateUtils.generateAuthCert("CN=Subject"));
+        final MultipartFile certificate = new MockMultipartFile("certificate",
+                "certificate.cer",
+                null,
+                CertificateUtils.generateAuthCert("CN=Subject"));
 
         final ResponseEntity<TimestampingServiceDto> response = timestampingServicesApi.addTimestampingService(url, certificate);
 
@@ -99,7 +102,10 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
     @Step("user tries to add timestamping service with invalid url")
     public void userTriesToAddTimestampingServiceWithInvalidUrl() throws Exception {
         final String url = "not valid url";
-        final MultipartFile certificate = new MockMultipartFile("certificate", CertificateUtils.generateAuthCert("CN=Subject"));
+        final MultipartFile certificate = new MockMultipartFile("certificate",
+                "certificate.pem",
+                null,
+                CertificateUtils.generateAuthCert("CN=Subject"));
 
         try {
             final ResponseEntity<TimestampingServiceDto> response = timestampingServicesApi.addTimestampingService(url, certificate);
@@ -156,7 +162,10 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
     @Step("timestamping service URL and certificate are updated")
     public void timestampingServiceIsUpdated() throws Exception {
         final String url = "https://timestamping-service-" + UUID.randomUUID();
-        final MultipartFile certificate = new MockMultipartFile("certificate", CertificateUtils.generateAuthCert("CN=Subject"));
+        final MultipartFile certificate = new MockMultipartFile("certificate",
+                "certificate.cer",
+                null,
+                CertificateUtils.generateAuthCert("CN=Subject"));
 
         final ResponseEntity<TimestampingServiceDto> response =
                 timestampingServicesApi.updateTimestampingService(this.timestampingServiceId, url, certificate);

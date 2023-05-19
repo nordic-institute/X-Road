@@ -82,7 +82,10 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
     public void addIntermediateCa(String name, Integer certificationServiceId) throws Exception {
         try {
             generatedCertificate = generateAuthCertHolder("CN=" + name);
-            final MultipartFile certificate = new MockMultipartFile("certificate", generatedCertificate.getEncoded());
+            final MultipartFile certificate = new MockMultipartFile("certificate",
+                    "certificate.der",
+                    null,
+                    generatedCertificate.getEncoded());
             final ResponseEntity<CertificateAuthorityDto> response = certificationServicesApi
                     .addCertificationServiceIntermediateCa(certificationServiceId, certificate);
 
