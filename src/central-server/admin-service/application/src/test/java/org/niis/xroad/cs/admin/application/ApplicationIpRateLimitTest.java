@@ -28,20 +28,29 @@ package org.niis.xroad.cs.admin.application;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
 import org.niis.xroad.cs.admin.core.config.BootstrapConfiguration;
-import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -51,13 +60,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @SuppressWarnings("java:S2925")
 @SpringBootTest(classes = {
         Main.class,
-        AbstractSpringMvcTest.CommonRestApiTestConfiguration.class,
         BootstrapConfiguration.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "xroad.admin-service.rate-limit-requests-per-minute=10",
                 "xroad.admin-service.rate-limit-requests-per-second=5"})
 @ActiveProfiles({"test", "audit-test"})
+
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class ApplicationIpRateLimitTest {
     private static final int RUNS_PER_MINUTE = 11;
@@ -65,6 +74,11 @@ class ApplicationIpRateLimitTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @PostConstruct
+    void setGlobalSecurityContext() {
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+    }
 
     @Nested
     @DirtiesContext
@@ -75,22 +89,26 @@ class ApplicationIpRateLimitTest {
             var expectedStatus = repetitionInfo.getCurrentRepetition() == RUNS_PER_MINUTE
                     ? MockMvcResultMatchers.status().is(TOO_MANY_REQUESTS.value()) : MockMvcResultMatchers.status().is2xxSuccessful();
             mvc.perform(get("/api/v1/system/version"))
-                    .andExpect(expectedStatus);
+                    .andExpect(expectedStatus).andReturn();
 
             TimeUnit.MILLISECONDS.sleep(500);
         }
     }
 
-    @Nested
+    @Test
     @DirtiesContext
-    class PerSecondTests {
-        @RepeatedTest(RUNS_PER_SECOND)
-        @WithMockUser(authorities = "VIEW_VERSION")
-        void shouldTriggerRateLimitPerSec(RepetitionInfo repetitionInfo) throws Exception {
-            var expectedStatus = repetitionInfo.getCurrentRepetition() == RUNS_PER_SECOND
-                    ? MockMvcResultMatchers.status().is(TOO_MANY_REQUESTS.value()) : MockMvcResultMatchers.status().is2xxSuccessful();
-            mvc.perform(get("/api/v1/system/version"))
-                    .andExpect(expectedStatus);
+    @WithMockUser(authorities = "VIEW_VERSION")
+    void shouldTriggerRateLimitPerSec() throws Exception {
+        try (var executor = new ParallelMockMvcExecutor(mvc)) {
+            executor.run(() -> (get("/api/v1/system/version")), RUNS_PER_SECOND);
+
+            List<Integer> result = executor.getExecuted().stream()
+                    .map(MvcResult::getResponse)
+                    .map(MockHttpServletResponse::getStatus)
+                    .collect(Collectors.toList());
+
+            assertThat(result).asList().containsOnlyOnce(TOO_MANY_REQUESTS.value());
         }
     }
 }
+

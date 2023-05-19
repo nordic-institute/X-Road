@@ -28,18 +28,28 @@ package org.niis.xroad.securityserver.restapi;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -62,6 +72,11 @@ class ApplicationIpRateLimitTest {
     @Autowired
     private MockMvc mvc;
 
+    @PostConstruct
+    void setGlobalSecurityContext() {
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+    }
+
     @Nested
     @DirtiesContext
     class PerMinuteTests {
@@ -77,18 +92,19 @@ class ApplicationIpRateLimitTest {
         }
     }
 
-    @Nested
+    @Test
     @DirtiesContext
-    class PerSecondTests {
-        @RepeatedTest(RUNS_PER_SECOND)
-        @WithMockUser(authorities = "VIEW_VERSION")
-        void shouldTriggerRateLimitPerSec(RepetitionInfo repetitionInfo) throws Exception {
-            var expectedStatus = repetitionInfo.getCurrentRepetition() == RUNS_PER_SECOND
-                    ? MockMvcResultMatchers.status().is(TOO_MANY_REQUESTS.value()) : MockMvcResultMatchers.status().is2xxSuccessful();
-            mvc.perform(get("/api/v1/system/version"))
-                    .andExpect(expectedStatus);
+    @WithMockUser(authorities = "VIEW_VERSION")
+    void shouldTriggerRateLimitPerSec() throws Exception {
+        try (var executor = new ParallelMockMvcExecutor(mvc)) {
+            executor.run(() -> (get("/api/v1/system/version")), RUNS_PER_SECOND);
+
+            List<Integer> result = executor.getExecuted().stream()
+                    .map(MvcResult::getResponse)
+                    .map(MockHttpServletResponse::getStatus)
+                    .collect(Collectors.toList());
+
+            assertThat(result).asList().containsOnlyOnce(TOO_MANY_REQUESTS.value());
         }
     }
-
-
 }

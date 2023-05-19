@@ -29,18 +29,25 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -81,15 +88,19 @@ class ApplicationIpRateLimitTest {
         }
     }
 
-    @Nested
+    @Test
     @DirtiesContext
-    class PerSecondTests {
-        @RepeatedTest(RUNS_PER_SECOND)
-        void shouldTriggerRateLimitPerSec(RepetitionInfo repetitionInfo) throws Exception {
-            var expectedStatus = repetitionInfo.getCurrentRepetition() == RUNS_PER_SECOND
-                    ? MockMvcResultMatchers.status().is(TOO_MANY_REQUESTS.value()) : MockMvcResultMatchers.status().is4xxClientError();
-            mvc.perform(get("/managementservice"))
-                    .andExpect(expectedStatus);
+    void shouldTriggerRateLimitPerSec() throws Exception {
+        try (var executor = new ParallelMockMvcExecutor(mvc)) {
+            executor.run(() -> (get("/managementservice")), RUNS_PER_SECOND);
+
+            List<Integer> result = executor.getExecuted().stream()
+                    .map(MvcResult::getResponse)
+                    .map(MockHttpServletResponse::getStatus)
+                    .collect(Collectors.toList());
+
+            assertThat(result).asList().containsOnlyOnce(TOO_MANY_REQUESTS.value());
         }
     }
+
 }

@@ -51,7 +51,7 @@ dependencies {
     testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock:3.1.2")
     testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.33.2")
-
+    testImplementation(testFixtures(project(":common:common-api-throttling")))
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }
 
