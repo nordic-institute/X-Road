@@ -10,6 +10,10 @@ Feature: Trusted Anchors Api
     Then Response is of status code 400 and error code 'malformed_anchor'
     When user uploads trusted anchor 'trusted-anchor-invalid-2.xml' for preview
     Then Response is of status code 400 and error code 'malformed_anchor'
+    When trusted anchor file "files/attack/script.sh" as 'script.sh' is uploaded
+    Then Response is of status code 400 and error code 'invalid_file_extension'
+    When trusted anchor file "files/attack/script.sh" as 'trusted-anchor.xml' is uploaded
+    Then Response is of status code 400 and error code 'invalid_file_content_type'
     When trusted anchors list is retrieved
     Then trusted anchors list contains 0 items
 

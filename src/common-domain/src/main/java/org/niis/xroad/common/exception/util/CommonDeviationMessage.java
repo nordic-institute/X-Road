@@ -39,6 +39,8 @@ public enum CommonDeviationMessage implements DeviationProvider {
     API_KEY_NOT_FOUND("api_key_not_found", "Api key not found"),
     API_KEY_INVALID_ROLE("invalid_role", "Invalid role"),
     INVALID_FILENAME("invalid_filename", "Invalid filename"),
+    INVALID_FILE_CONTENT_TYPE("invalid_file_content_type", "Invalid file content type"),
+    INVALID_FILE_EXTENSION("invalid_file_extension", "Invalid file extension"),
     INVALID_BACKUP_FILE("invalid_backup_file", "Invalid backup file"),
 
     BACKUP_FILE_NOT_FOUND("backup_file_not_found", "Backup was not found"),

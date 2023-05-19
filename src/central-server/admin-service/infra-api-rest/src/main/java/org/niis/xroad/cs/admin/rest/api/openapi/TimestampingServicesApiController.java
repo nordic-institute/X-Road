@@ -33,8 +33,10 @@ import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 import org.niis.xroad.cs.admin.rest.api.mapper.TimestampingServiceMapper;
 import org.niis.xroad.cs.openapi.TimestampingServicesApi;
 import org.niis.xroad.cs.openapi.model.TimestampingServiceDto;
+import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.service.FileVerifier;
 import org.niis.xroad.restapi.util.MultipartFileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,13 +64,16 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     private final TimestampingServicesService timestampingServicesService;
 
     private final TimestampingServiceMapper timestampingServiceMapper;
+    private final FileVerifier fileVerifier;
 
     @Override
     @AuditEventMethod(event = ADD_TSP)
     @PreAuthorize("hasAuthority('ADD_APPROVED_TSA')")
     public ResponseEntity<TimestampingServiceDto> addTimestampingService(String url, MultipartFile certificate) {
+        byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.certificate);
         return status(HttpStatus.CREATED).body(timestampingServiceMapper.toTarget(
-                timestampingServicesService.add(url, MultipartFileUtils.readBytes(certificate))));
+                timestampingServicesService.add(url, fileBytes)));
     }
 
     @Override
@@ -101,7 +106,9 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
                 .setId(id)
                 .setUrl(url);
         if (certificate != null) {
-            updateRequest.setCertificate(MultipartFileUtils.readBytes(certificate));
+            byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
+            fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.certificate);
+            updateRequest.setCertificate(fileBytes);
         }
         return ok(timestampingServiceMapper.toTarget(timestampingServicesService.update(updateRequest)));
     }

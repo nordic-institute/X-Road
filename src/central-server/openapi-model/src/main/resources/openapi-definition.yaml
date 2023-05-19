@@ -1178,12 +1178,10 @@ paths:
       operationId: uploadTrustedAnchor
       requestBody:
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              description: trusted anchor file
-              format: binary
-              type: string
-        description: the new trusted anchor file to add
+              $ref: '#/components/schemas/TrustedAnchorFile'
+        description: Trusted anchor to add
         required: true
       responses:
         '201':
@@ -1207,12 +1205,10 @@ paths:
       operationId: previewTrustedAnchor
       requestBody:
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              description: trusted anchor file
-              format: binary
-              type: string
-        description: the trusted anchor file to validate
+              $ref: '#/components/schemas/TrustedAnchorFile'
+        description: Trusted anchor to preview
         required: true
       responses:
         '200':
@@ -3063,6 +3059,15 @@ components:
           format: binary
           type: string
       type: object
+    TrustedAnchorFile:
+      description: Trusted Anchor File
+      properties:
+        anchor:
+          description: the trusted anchor file
+          format: binary
+          type: string
+      required:
+        - anchor
     CentralServerAddress:
       description: address of the central server
       properties:

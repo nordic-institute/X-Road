@@ -178,7 +178,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
 
     @Step("Certification service with name {string} and certificateProfileInfo {string} is created")
     public void createCertificationService(String name, String certificateProfileInfo) throws Exception {
-        MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert("CN=" + name));
+        MultipartFile certificate = new MockMultipartFile("certificate", "certificate.cer", null, generateAuthCert("CN=" + name));
 
         try {
             final ResponseEntity<ApprovedCertificationServiceDto> result = certificationServicesApi
@@ -228,7 +228,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
 
     @Step("OCSP responder with url {string} is added to certification service with id {}")
     public void ocspResponderIsAddedToIntermediateCA(String url, Integer id) throws Exception {
-        final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert("CN=Subject"));
+        final MultipartFile certificate = new MockMultipartFile("certificate", "certificate.pem", null, generateAuthCert("CN=Subject"));
 
 
         final ResponseEntity<OcspResponderDto> response = certificationServicesApi

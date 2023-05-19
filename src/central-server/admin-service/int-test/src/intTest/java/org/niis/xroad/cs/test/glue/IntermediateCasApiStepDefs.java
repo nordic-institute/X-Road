@@ -147,7 +147,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
 
     @Step("OCSP responder is added to intermediate CA")
     public void ocspResponderIsAddedToIntermediateCA() throws Exception {
-        final MultipartFile certificate = new MockMultipartFile("certificate", generateAuthCert("CN=Subject"));
+        final MultipartFile certificate = new MockMultipartFile("certificate", "certificate.der", null, generateAuthCert("CN=Subject"));
         final String url = "https://" + UUID.randomUUID();
 
         final ResponseEntity<OcspResponderDto> response = intermediateCasApi
@@ -168,7 +168,6 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(count, "body.size", "Response contains " + count + " items"))
                 .execute();
-
     }
 
     @Step("intermediate CA has the updated OCSP responder")

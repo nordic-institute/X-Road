@@ -38,9 +38,11 @@ import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
 import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
 import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
+import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.service.FileVerifier;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -70,6 +72,7 @@ public class BackupsApiController implements BackupsApi {
     private final TokensService tokensService;
     private final BackupDtoConverter backupDtoConverter;
     private final BaseConfigurationBackupGenerator centralServerConfigurationBackupGenerator;
+    private final FileVerifier fileVerifier;
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
@@ -133,8 +136,10 @@ public class BackupsApiController implements BackupsApi {
     @AuditEventMethod(event = RestApiAuditEvent.UPLOAD_BACKUP)
     public ResponseEntity<BackupDto> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
         try {
+            byte[] fileBytes = file.getBytes();
+            fileVerifier.validate(file.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.backup, Boolean.TRUE);
             final BackupFile backupFile = backupService.uploadBackup(ignoreWarnings,
-                    file.getOriginalFilename(), file.getBytes());
+                    file.getOriginalFilename(), fileBytes);
             return ResponseEntity.status(CREATED).body(backupDtoConverter.toTarget(backupFile));
         } catch (UnhandledWarningsException e) {
             throw new ValidationFailureException(e);
