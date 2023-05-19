@@ -33,8 +33,10 @@ import org.niis.xroad.cs.admin.rest.api.converter.ConfigurationPartsDtoConverter
 import org.niis.xroad.cs.openapi.ConfigurationPartsApi;
 import org.niis.xroad.cs.openapi.model.ConfigurationPartDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
+import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.service.FileVerifier;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -59,6 +61,7 @@ public class ConfigurationPartsController implements ConfigurationPartsApi {
 
     private final ConfigurationService configurationService;
     private final ConfigurationPartsDtoConverter configurationPartsDtoConverter;
+    private final FileVerifier fileVerifier;
 
     @Override
     @PreAuthorize("hasAuthority('DOWNLOAD_CONFIGURATION_PART')")
@@ -87,10 +90,12 @@ public class ConfigurationPartsController implements ConfigurationPartsApi {
     @PreAuthorize("hasAuthority('UPLOAD_CONFIGURATION_PART')")
     public ResponseEntity<Void> uploadConfigurationParts(ConfigurationTypeDto configurationType,
                                                          String contentIdentifier, MultipartFile file) {
+        byte[] fileBytes = readBytes(file);
+        fileVerifier.validate(file.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.xml);
         final var sourceType = ConfigurationSourceType.valueOf(configurationType.getValue());
         configurationService.uploadConfigurationPart(sourceType,
                 contentIdentifier,
-                file.getOriginalFilename(), readBytes(file));
+                file.getOriginalFilename(), fileBytes);
         return noContent().build();
     }
 }

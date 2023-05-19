@@ -37,8 +37,10 @@ import org.niis.xroad.cs.admin.rest.api.converter.OcspResponderDtoConverter;
 import org.niis.xroad.cs.openapi.IntermediateCasApi;
 import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
+import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.service.FileVerifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -67,14 +69,17 @@ public class IntermediateCasController implements IntermediateCasApi {
 
     private final CertificateAuthorityDtoConverter certificateAuthorityDtoConverter;
     private final OcspResponderDtoConverter ocspResponderDtoConverter;
+    private final FileVerifier fileVerifier;
 
     @Override
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     @AuditEventMethod(event = ADD_INTERMEDIATE_CA_OCSP_RESPONDER)
     public ResponseEntity<OcspResponderDto> addIntermediateCaOcspResponder(Integer id, String url, MultipartFile certificate) {
+        byte[] fileBytes = readBytes(certificate);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.certificate);
         final OcspResponderRequest ocspResponderRequest = new OcspResponderAddRequest()
                 .setUrl(url)
-                .setCertificate(readBytes(certificate));
+                .setCertificate(fileBytes);
 
         final OcspResponder ocspResponder = intermediateCasService.addOcspResponder(id, ocspResponderRequest);
 
@@ -110,5 +115,4 @@ public class IntermediateCasController implements IntermediateCasApi {
                 .map(ocspResponderDtoConverter::toDto)
                 .collect(toList()));
     }
-
 }

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
+
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.cs.admin.api.dto.OcspResponderRequest;
@@ -34,9 +35,11 @@ import org.niis.xroad.cs.admin.rest.api.converter.OcspResponderDtoConverter;
 import org.niis.xroad.cs.openapi.OcspRespondersApi;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
+import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.service.FileVerifier;
 import org.niis.xroad.restapi.util.MultipartFileUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,6 +59,7 @@ public class OcspRespondersController implements OcspRespondersApi {
     private final OcspRespondersService ocspRespondersService;
     private final CertificateDetailsDtoConverter certificateDetailsDtoConverter;
     private final OcspResponderDtoConverter ocspResponderDtoConverter;
+    private final FileVerifier fileVerifier;
 
 
     @Override
@@ -79,7 +83,9 @@ public class OcspRespondersController implements OcspRespondersApi {
                 .setId(id)
                 .setUrl(url);
         if (certificate != null) {
-            updateRequest.setCertificate(MultipartFileUtils.readBytes(certificate));
+            byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
+            fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.certificate);
+            updateRequest.setCertificate(fileBytes);
         }
         return ok(ocspResponderDtoConverter.toDto(ocspRespondersService.update(updateRequest)));
     }
@@ -89,5 +95,4 @@ public class OcspRespondersController implements OcspRespondersApi {
     public ResponseEntity<CertificateDetailsDto> getOcspRespondersCertificate(Integer id) {
         return ok(certificateDetailsDtoConverter.convert(ocspRespondersService.getOcspResponderCertificateDetails(id)));
     }
-
 }

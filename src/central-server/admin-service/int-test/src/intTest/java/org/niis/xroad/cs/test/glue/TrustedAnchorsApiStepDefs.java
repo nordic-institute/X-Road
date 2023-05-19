@@ -34,9 +34,10 @@ import org.apache.commons.io.IOUtils;
 import org.niis.xroad.cs.openapi.model.TrustedAnchorDto;
 import org.niis.xroad.cs.test.api.FeignTrustedAnchorsApi;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileUrlResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -44,7 +45,7 @@ import java.util.List;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
-import static java.lang.ClassLoader.getSystemResource;
+import static java.lang.ClassLoader.getSystemResourceAsStream;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -53,9 +54,14 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
     private FeignTrustedAnchorsApi trustedAnchorsApi;
 
     @Step("user uploads trusted anchor {string} for preview")
-    public void userUploadsTrustedAnchorFileForPreview(String filename) {
+    public void userUploadsTrustedAnchorFileForPreview(String filename) throws IOException {
+        userUploadsTrustedAnchorFileForPreview("files/trusted-anchor/" + filename, filename);
+    }
+
+    @Step("user uploads trusted anchor {string} as {string} for preview")
+    public void userUploadsTrustedAnchorFileForPreview(String resource, String filename) throws IOException {
         try {
-            var result = trustedAnchorsApi.previewTrustedAnchor(getFileAsResource(filename));
+            var result = trustedAnchorsApi.previewTrustedAnchor(getFileAsMultipart(filename, resource));
             putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
             putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
         } catch (FeignException feignException) {
@@ -64,14 +70,20 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
         }
     }
 
-    private Resource getFileAsResource(String filename) {
-        return new FileUrlResource(getSystemResource("files/trusted-anchor/" + filename));
+    private MultipartFile getFileAsMultipart(String filename, String resource) throws IOException {
+        return new MockMultipartFile("anchor", filename, null,
+                getSystemResourceAsStream(resource));
     }
 
     @Step("trusted anchor file {string} is uploaded")
-    public void userUploadsTrustedAnchorFile(String filename) {
+    public void userUploadsTrustedAnchorFile(String filename) throws IOException {
+        userUploadsTrustedAnchorFile("files/trusted-anchor/" + filename, filename);
+    }
+
+    @Step("trusted anchor file {string} as {string} is uploaded")
+    public void userUploadsTrustedAnchorFile(String resource, String filename) throws IOException {
         try {
-            var result = trustedAnchorsApi.uploadTrustedAnchor(getFileAsResource(filename));
+            var result = trustedAnchorsApi.uploadTrustedAnchor(getFileAsMultipart(filename, resource));
             putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
             putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
         } catch (FeignException feignException) {
@@ -114,12 +126,12 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
     }
 
     @Step("trusted anchor response contains instance {string} and hash {string}")
-    public void validateTrustedAnchorResponse(String instanceid, String hash) {
+    public void validateTrustedAnchorResponse(String instanceId, String hash) {
         final TrustedAnchorDto response = getRequiredStepData(StepDataKey.RESPONSE_BODY);
 
         validate(response)
                 .assertion(equalsAssertion(hash, "hash"))
-                .assertion(equalsAssertion(instanceid, "instanceIdentifier"))
+                .assertion(equalsAssertion(instanceId, "instanceIdentifier"))
                 .assertion(notNullAssertion("generatedAt"))
                 .execute();
     }

@@ -250,7 +250,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
     @Step("user uploads {} configuration {} file {}")
     public void userUploadsConfigurationPart(String configurationType, String contentIdentifier, String filename) throws Exception {
-        MultipartFile file = new MockMultipartFile("file",
+        MultipartFile file = new MockMultipartFile("file", "file.xml", null,
                 readAllBytes(Paths.get(getSystemResource("files/" + filename).toURI())));
 
         final ResponseEntity<Void> response = configurationPartsApi
@@ -278,7 +278,7 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
 
     @Step("{} configuration part {} file upload fails")
     public void uploadingConfigurationPartFails(String configurationType, String contentIdentifier) {
-        MultipartFile file = new MockMultipartFile("file", new byte[]{0, 0, 0});
+        MultipartFile file = new MockMultipartFile("file", "file.xml", null, new byte[]{0, 0, 0});
         try {
             configurationPartsApi
                     .uploadConfigurationParts(ConfigurationTypeDto.fromValue(configurationType), contentIdentifier, file);
@@ -294,5 +294,4 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
                     .execute();
         }
     }
-
 }

@@ -38,25 +38,29 @@ export const trustedAnchorStore = defineStore('trustedAnchor', {
       });
     },
     previewTrustedAnchors(file: File) {
+      const formData = new FormData();
+      formData.append('anchor', file, file.name);
       const config = {
         headers: {
-          'Content-Type': 'application/octet-stream',
-        },
+          'Content-Type': 'multipart/form-data',
+        }
       };
       return axios
-        .post<TrustedAnchor>('/trusted-anchors/preview', file, config)
+        .post<TrustedAnchor>('/trusted-anchors/preview', formData, config)
         .catch((error) => {
           throw error;
         });
     },
     uploadTrustedAnchor(file: File) {
+      const formData = new FormData();
+      formData.append('anchor', file, file.name);
       const config = {
         headers: {
-          'Content-Type': 'application/octet-stream',
-        },
+          'Content-Type': 'multipart/form-data',
+        }
       };
       return axios
-        .post<TrustedAnchor>('/trusted-anchors', file, config)
+        .post<TrustedAnchor>('/trusted-anchors', formData, config)
         .catch((error) => {
           throw error;
         });

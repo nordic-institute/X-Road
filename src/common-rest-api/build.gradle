@@ -42,6 +42,8 @@ dependencies {
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('javax.validation:validation-api')
+    implementation('org.apache.tika:tika-core:2.8.0')
+
 }
 
 bootJar {
