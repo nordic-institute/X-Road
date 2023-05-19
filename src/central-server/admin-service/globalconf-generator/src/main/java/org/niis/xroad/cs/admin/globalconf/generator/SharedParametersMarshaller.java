@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidatorV2;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
 
 import lombok.SneakyThrows;
@@ -38,13 +39,14 @@ import java.io.StringWriter;
 
 @Component
 class SharedParametersMarshaller {
-    private JAXBContext jaxbContext = createJaxbContext();
+    private final JAXBContext jaxbContext = createJaxbContext();
 
     @SneakyThrows
     String marshall(SharedParameters parameters) {
         var writer = new StringWriter();
         var marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.setSchema(SharedParametersSchemaValidatorV2.getSchema());
         marshaller.marshal(new ObjectFactory().createConf(SharedParametersConverter.INSTANCE.convert(parameters)), writer);
         return writer.toString();
     }
