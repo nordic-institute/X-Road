@@ -71,7 +71,7 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     @PreAuthorize("hasAuthority('ADD_APPROVED_TSA')")
     public ResponseEntity<TimestampingServiceDto> addTimestampingService(String url, MultipartFile certificate) {
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.certificate);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
         return status(HttpStatus.CREATED).body(timestampingServiceMapper.toTarget(
                 timestampingServicesService.add(url, fileBytes)));
     }
@@ -107,7 +107,7 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
                 .setUrl(url);
         if (certificate != null) {
             byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-            fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.certificate);
+            fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
             updateRequest.setCertificate(fileBytes);
         }
         return ok(timestampingServiceMapper.toTarget(timestampingServicesService.update(updateRequest)));

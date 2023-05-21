@@ -88,7 +88,7 @@ public class CertificationServicesController implements CertificationServicesApi
                                                                                    String tlsAuth) {
         var isForTlsAuth = parseBoolean(tlsAuth);
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.certificate);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
         var approvedCa = new ApprovedCertificationService(fileBytes, certificateProfileInfo, isForTlsAuth);
 
         CertificationService persistedApprovedCa = certificationServicesService.add(approvedCa);
@@ -100,7 +100,7 @@ public class CertificationServicesController implements CertificationServicesApi
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     public ResponseEntity<CertificateAuthorityDto> addCertificationServiceIntermediateCa(Integer id, MultipartFile certificate) {
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.certificate);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
         final CertificateAuthority certificateAuthority = certificationServicesService
                 .addIntermediateCa(id, fileBytes);
         return status(CREATED).body(certificateAuthorityDtoConverter.convert(certificateAuthority));
@@ -112,7 +112,7 @@ public class CertificationServicesController implements CertificationServicesApi
     public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(Integer caId, String url, MultipartFile certificate) {
         final var addRequest = new OcspResponderAddRequest();
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.certificate);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
         addRequest.setCaId(caId).setUrl(url).setCertificate(fileBytes);
 
         var ocspResponder = certificationServicesService.addOcspResponder(addRequest);

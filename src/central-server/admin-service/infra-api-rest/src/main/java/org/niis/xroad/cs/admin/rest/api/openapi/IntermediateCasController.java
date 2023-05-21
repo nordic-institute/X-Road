@@ -76,7 +76,7 @@ public class IntermediateCasController implements IntermediateCasApi {
     @AuditEventMethod(event = ADD_INTERMEDIATE_CA_OCSP_RESPONDER)
     public ResponseEntity<OcspResponderDto> addIntermediateCaOcspResponder(Integer id, String url, MultipartFile certificate) {
         byte[] fileBytes = readBytes(certificate);
-        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.certificate);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
         final OcspResponderRequest ocspResponderRequest = new OcspResponderAddRequest()
                 .setUrl(url)
                 .setCertificate(fileBytes);
