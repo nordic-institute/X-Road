@@ -44,9 +44,9 @@ public class FileValidationConfiguration {
 
 
     public enum FileType {
-        certificate,
-        backup,
-        xml
+        CERTIFICATE,
+        BACKUP,
+        XML
     }
 
     @Getter

@@ -100,7 +100,7 @@ public class TrustedAnchorsApiController implements TrustedAnchorsApi {
     @PreAuthorize("hasAuthority('UPLOAD_TRUSTED_ANCHOR')")
     public ResponseEntity<TrustedAnchorDto> previewTrustedAnchor(MultipartFile anchor) {
         byte[] fileBytes = MultipartFileUtils.readBytes(anchor);
-        fileVerifier.validate(anchor.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.xml);
+        fileVerifier.validate(anchor.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.XML);
         return ok(trustedAnchorConverter.toTarget(
                 trustedAnchorService.preview(fileBytes))
         );
@@ -111,7 +111,7 @@ public class TrustedAnchorsApiController implements TrustedAnchorsApi {
     @PreAuthorize("hasAuthority('UPLOAD_TRUSTED_ANCHOR')")
     public ResponseEntity<TrustedAnchorDto> uploadTrustedAnchor(MultipartFile anchor) {
         byte[] fileBytes = MultipartFileUtils.readBytes(anchor);
-        fileVerifier.validate(anchor.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.xml);
+        fileVerifier.validate(anchor.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.XML);
         return status(CREATED).body(
                 trustedAnchorConverter.toTarget(
                         trustedAnchorService.upload(fileBytes))

@@ -91,7 +91,7 @@ public class ConfigurationPartsController implements ConfigurationPartsApi {
     public ResponseEntity<Void> uploadConfigurationParts(ConfigurationTypeDto configurationType,
                                                          String contentIdentifier, MultipartFile file) {
         byte[] fileBytes = readBytes(file);
-        fileVerifier.validate(file.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.xml);
+        fileVerifier.validate(file.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.XML);
         final var sourceType = ConfigurationSourceType.valueOf(configurationType.getValue());
         configurationService.uploadConfigurationPart(sourceType,
                 contentIdentifier,

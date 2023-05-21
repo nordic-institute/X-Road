@@ -84,7 +84,7 @@ public class OcspRespondersController implements OcspRespondersApi {
                 .setUrl(url);
         if (certificate != null) {
             byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-            fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.certificate);
+            fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
             updateRequest.setCertificate(fileBytes);
         }
         return ok(ocspResponderDtoConverter.toDto(ocspRespondersService.update(updateRequest)));

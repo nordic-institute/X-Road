@@ -58,13 +58,13 @@ script:
 
 file-validation:
   files:
-    certificate:
+    CERTIFICATE:
       allowed-extensions: der,crt,pem,cer
       allowed-content-types: application/x-x509-cert,text/plain
-    backup:
+    BACKUP:
       allowed-extensions: gpg
       allowed-content-types: application/pgp-encrypted
-    xml:
+    XML:
       allowed-extensions: xml
       allowed-content-types: text/xml,application/xml
 
