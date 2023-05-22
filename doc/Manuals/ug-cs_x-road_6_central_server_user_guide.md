@@ -87,7 +87,7 @@ Doc. ID: UG-CS
     - [5.4.1 Generating a Configuration Signing Key](#541-generating-a-configuration-signing-key)
     - [5.4.2 Activating a Configuration Signing Key](#542-activating-a-configuration-signing-key)
     - [5.4.3 Deleting a Configuration Signing Key](#543-deleting-a-configuration-signing-key)
-  - [5.5 Viewing the Contents of a Configuration Part](#55-viewing-the-contents-of-a-configuration-part)
+  - [5.5 Managing the Contents of a Configuration Part](#55-managing-the-contents-of-a-configuration-part)
   - [5.6 Uploading a Trusted Anchor](#56-uploading-a-trusted-anchor)
   - [5.7 Viewing the Contents of a Trusted Anchor](#57-viewing-the-contents-of-a-trusted-anchor)
   - [5.8 Deleting a Trusted Anchor](#58-deleting-a-trusted-anchor)
@@ -1003,17 +1003,6 @@ To upload a configuration file from the local file system to the central server:
 ## 12.5 Automatic Backups
 
 By default the Central Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-center` file.
-
-Automatic backup schedule can be adjusted  in the file `/etc/xroad/conf.d/local.ini`,
-in the `[configuration-client]` section (add or edit this section).
-
-```ini
-[configuration-client]
-proxy-configuration-backup-cron=* 15 3 * * ?
-```
-
-**Note:** In cases where automatic backup is not required (ex: extensions which rely on configuration-client)
-it is suggested to disable it by using cron expression that will never trigger. For example `* * * * * ? 2099`
 
 ## 12.6 Backup Encryption Configuration
 
