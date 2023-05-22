@@ -9,8 +9,7 @@ spring:
     defer-datasource-initialization: true
   profiles:
     active: test
-  main:
-    lazy-initialization: true
+
 
 logging:
   level:
@@ -35,8 +34,3 @@ ratelimit:
 server:
   tomcat:
     accesslog.enabled: false
-
-#server:
-#  error:
-#    include-stacktrace: always
-#    include-exception: true

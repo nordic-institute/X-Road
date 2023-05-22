@@ -1,6 +1,5 @@
 plugins {
     id 'java-library'
-    id 'java-test-fixtures'
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
     id 'org.openapi.generator' version "$openApiGeneratorVersion"
@@ -43,12 +42,6 @@ dependencies {
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('javax.validation:validation-api')
-
-    testFixturesImplementation('org.springframework.boot:spring-boot-starter-web')
-    testFixturesImplementation('org.springframework.boot:spring-boot-starter-test')
-    testFixturesImplementation('org.springframework.security:spring-security-test')
-    testFixturesImplementation('org.springframework.boot:spring-boot-starter-data-jpa')
-
 }
 
 bootJar {

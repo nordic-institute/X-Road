@@ -33,11 +33,11 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.runner.RunWith;
 import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestBaseManagementRequest;
@@ -64,25 +64,27 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(properties = "spring.main.lazy-initialization=true")
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
-public class RegistrationRequestApiTest {
+class RegistrationRequestApiTest {
 
     public static final String ENDPOINT = "/managementservice";
 
-    @ClassRule
-    public static WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
-            .keystorePath("./build/resources/test/testconf/ssl/center-admin-service.p12")
-            .keystoreType("PKCS12")
-            .keystorePassword("center-admin-service")
-            .keyManagerPassword("center-admin-service")
-            .httpDisabled(true)
-            .dynamicHttpsPort());
+    @RegisterExtension
+    static WireMockExtension wireMockRule = WireMockExtension.newInstance()
+            .options(wireMockConfig()
+                    .keystorePath("./build/resources/test/testconf/ssl/center-admin-service.p12")
+                    .keystoreType("PKCS12")
+                    .keystorePassword("center-admin-service")
+                    .keyManagerPassword("center-admin-service")
+                    .httpDisabled(true)
+                    .dynamicHttpsPort())
+            .build();
 
     @Autowired
     private RegistrationServiceProperties properties;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/testconf");
         GlobalConf.reload(new TestGlobalConf());
@@ -92,9 +94,9 @@ public class RegistrationRequestApiTest {
     private MockMvc mvc;
 
     @Test
-    public void shouldRegisterAuthCert() throws Exception {
+    void shouldRegisterAuthCert() throws Exception {
 
-        properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.httpsPort())));
+        properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.getHttpsPort())));
         var response = new ManagementRequestDto();
         response.setId(42);
         response.setType(AUTH_CERT_REGISTRATION_REQUEST);
@@ -114,9 +116,9 @@ public class RegistrationRequestApiTest {
     }
 
     @Test
-    public void shouldReturnSoapFaultOnApiError() throws Exception {
+    void shouldReturnSoapFaultOnApiError() throws Exception {
 
-        properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.httpsPort())));
+        properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.getHttpsPort())));
         var response = new ErrorInfoDto();
         response.setStatus(409);
         response.setError(new CodeWithDetailsDto().code("error"));

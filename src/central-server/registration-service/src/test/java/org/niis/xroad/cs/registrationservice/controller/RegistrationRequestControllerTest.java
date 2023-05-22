@@ -35,9 +35,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
 import org.niis.xroad.cs.registrationservice.service.AdminApiService;
@@ -47,7 +46,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPException;
@@ -64,9 +62,9 @@ import java.util.Random;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-public class RegistrationRequestControllerTest {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+        properties = "spring.main.lazy-initialization=true")
+class RegistrationRequestControllerTest {
     public static final String CONTENT_TYPE = "multipart/related; boundary=partboundary";
     private static KeyPair ownerKeyPair;
     private static KeyPair authKeyPair;
@@ -86,7 +84,7 @@ public class RegistrationRequestControllerTest {
         }
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws Exception {
         var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(1024);
@@ -99,7 +97,7 @@ public class RegistrationRequestControllerTest {
     }
 
     @Test
-    public void shouldFailIfAuthSignatureIsInvalid() throws Exception {
+    void shouldFailIfAuthSignatureIsInvalid() throws Exception {
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
         var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
 
@@ -127,7 +125,7 @@ public class RegistrationRequestControllerTest {
     }
 
     @Test
-    public void shouldFailIfOwnerSignatureIsInvalid() throws Exception {
+    void shouldFailIfOwnerSignatureIsInvalid() throws Exception {
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
         var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
 
@@ -155,7 +153,7 @@ public class RegistrationRequestControllerTest {
     }
 
     @Test
-    public void shouldFailIfOwnerCertIsRevoked() throws Exception {
+    void shouldFailIfOwnerCertIsRevoked() throws Exception {
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
         var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
 
@@ -183,7 +181,7 @@ public class RegistrationRequestControllerTest {
     }
 
     @Test
-    public void shouldFailIfAuthCertIsInvalid() throws Exception {
+    void shouldFailIfAuthCertIsInvalid() throws Exception {
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
         var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
 
@@ -211,14 +209,14 @@ public class RegistrationRequestControllerTest {
     }
 
     @Test
-    public void shouldFailIfEmptyRequest() throws SOAPException, IOException {
+    void shouldFailIfEmptyRequest() throws SOAPException, IOException {
         var result = controller.register(CONTENT_TYPE, new ByteArrayInputStream(new byte[0]));
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "InvalidRequest");
     }
 
     @Test
-    public void shouldFailIfWrongInstanceId() throws Exception {
+    void shouldFailIfWrongInstanceId() throws Exception {
         var sid = SecurityServerId.Conf.create(GlobalConf.getInstanceIdentifier() + "-X", "CLASS", "MEMBER", "SS1");
         var result = register(sid, "ss1.example.org");
         assertTrue(result.getStatusCode().is5xxServerError());
@@ -226,7 +224,7 @@ public class RegistrationRequestControllerTest {
     }
 
     @Test
-    public void shouldFailIfInvalidServerId() throws Exception {
+    void shouldFailIfInvalidServerId() throws Exception {
         var sid = SecurityServerId.Conf.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEM BER", "S:;S1");
         var result = register(sid, "ss1.example.org");
         assertTrue(result.getStatusCode().is5xxServerError());
@@ -234,14 +232,14 @@ public class RegistrationRequestControllerTest {
     }
 
     @Test
-    public void shouldFailIfInvalidServerAddress() throws Exception {
+    void shouldFailIfInvalidServerAddress() throws Exception {
         var result = register(serverId, String.format("%s.invalid", "a".repeat(64)));
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "InvalidRequest");
     }
 
     @Test
-    public void shouldFailIfInvalidCertificate() throws Exception {
+    void shouldFailIfInvalidCertificate() throws Exception {
         var result = registerWithInvalidCerts(serverId);
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "IncorrectCertificate");

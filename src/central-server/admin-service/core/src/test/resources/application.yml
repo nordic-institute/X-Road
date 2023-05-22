@@ -51,6 +51,4 @@ spring:
 
   profiles:
     active: test
-  main:
-    lazy-initialization: true
 
