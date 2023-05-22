@@ -44,6 +44,7 @@ import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.KeyLabel;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
@@ -78,6 +79,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
 
@@ -108,6 +111,8 @@ class ConfigurationSigningKeysServiceImplTest {
     private SignerProxyFacade signerProxyFacade;
     @Mock
     private SystemParameterService systemParameterService;
+    @Mock
+    private ConfigurationAnchorService configurationAnchorService;
     @Spy
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
     @Spy
@@ -119,6 +124,7 @@ class ConfigurationSigningKeysServiceImplTest {
     @BeforeEach
     void beforeEach() {
         configurationSigningKeysServiceImpl = new ConfigurationSigningKeysServiceImpl(systemParameterService,
+                configurationAnchorService,
                 configurationSigningKeyRepository,
                 configurationSourceRepository,
                 configurationSigningKeyMapper,
@@ -195,6 +201,7 @@ class ConfigurationSigningKeysServiceImplTest {
         verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
         verify(configurationSigningKeyRepository).deleteByKeyIdentifier(signingKeyEntity.getKeyIdentifier());
         verify(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
+        verify(configurationAnchorService).recreateAnchor(INTERNAL);
     }
 
     @Test
@@ -214,6 +221,7 @@ class ConfigurationSigningKeysServiceImplTest {
         verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
         verify(configurationSigningKeyRepository).deleteByKeyIdentifier(signingKeyEntity.getKeyIdentifier());
         verify(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
+        verify(configurationAnchorService).recreateAnchor(EXTERNAL);
     }
 
     @Test

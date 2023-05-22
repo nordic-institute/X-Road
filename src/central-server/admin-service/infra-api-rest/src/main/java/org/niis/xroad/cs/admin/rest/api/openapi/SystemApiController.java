@@ -27,7 +27,9 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.rest.api.converter.model.InitializationStatusDtoConverter;
@@ -46,6 +48,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.Arrays;
+
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
@@ -57,6 +61,7 @@ public class SystemApiController implements SystemApi {
     private final AuditDataHelper auditDataHelper;
     private final HAConfigStatus currentHaConfigStatus;
     private final InitializationStatusDtoConverter initializationStatusDtoConverter;
+    private final ConfigurationAnchorService configurationAnchorService;
 
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
     public ResponseEntity<SystemStatusDto> getSystemStatus() {
@@ -82,6 +87,9 @@ public class SystemApiController implements SystemApi {
                 centralServerAddress.getCentralServerAddress());
         systemParameterService.updateOrCreateParameter(SystemParameterService.CENTRAL_SERVER_ADDRESS,
                 centralServerAddress.getCentralServerAddress());
+
+        Arrays.stream(ConfigurationSourceType.values()).forEach(configurationAnchorService::recreateAnchor);
+
         return getSystemStatusResponseEntity();
     }
 

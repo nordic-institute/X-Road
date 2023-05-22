@@ -86,9 +86,10 @@ export default Vue.extend({
       this.tokensLoading = true;
       this.fetchTokens().finally(() => (this.tokensLoading = false));
     },
-    fetchKeys(): void {
+    fetchKeys(action: string): void {
       this.loadingKeys = true;
       this.fetchTokens().finally(() => (this.loadingKeys = false));
+      this.$emit('update-keys', action);
     },
   },
 });

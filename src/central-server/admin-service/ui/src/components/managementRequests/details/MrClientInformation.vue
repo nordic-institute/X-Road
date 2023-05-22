@@ -56,6 +56,13 @@ import DataLine from './DetailsLine.vue';
 import DataBlock from './DetailsBlock.vue';
 
 export default Vue.extend({
+  components: { DataBlock, DataLine },
+  props: {
+    managementRequest: {
+      type: Object as PropType<ManagementRequestDetailedView>,
+      required: true,
+    },
+  },
   computed: {
     isOwnerChange(): boolean {
       return (
@@ -68,13 +75,6 @@ export default Vue.extend({
         return 'managementRequestDetails.ownerChangeInformation';
       }
       return 'managementRequestDetails.clientInformation';
-    },
-  },
-  components: { DataBlock, DataLine },
-  props: {
-    managementRequest: {
-      type: Object as PropType<ManagementRequestDetailedView>,
-      required: true,
     },
   },
 });
