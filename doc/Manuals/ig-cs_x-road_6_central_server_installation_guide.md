@@ -75,7 +75,8 @@ Doc. ID: IG-CS
   - [2.8 Installing the Support for Hardware Tokens](#28-installing-the-support-for-hardware-tokens)
   - [2.9 Installing the Support for Monitoring](#29-installing-the-support-for-monitoring)
   - [2.10 Pre-configuration for Registration Web Service](#210-pre-configuration-for-registration-web-service)
-  - [2.11 Post-Installation Checks](#211-post-installation-checks)
+  - [2.11 Pre-configuration for Management Web Service](#211-pre-configuration-for-management-web-service)
+  - [2.12 Post-Installation Checks](#211-post-installation-checks)
 - [3 Initial Configuration](#3-initial-configuration)
   - [3.1 Reference Data](#31-reference-data)
   - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
@@ -329,13 +330,18 @@ The central monitoring client may be configured as specified in the [UG-CS](#Ref
 
 ### 2.10 Pre-configuration for Registration Web Service
 
-The registration web service is installed by package xroad-centralserver-registration-service. The registration web service can be installed on the same host with the central server or on a separate host. The package is included in the central server installation by default.
+The registration web service is installed by package xroad-center-registration-service. The registration web service can be installed on the same host with the central server or on a separate host. The package is included in the central server installation by default.
 
-Configuration parameters for registration web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section „Registration service parameters“.
+Configuration parameters for registration web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section "Registration service parameters".
 
 **Note:** With new registration service, a maximum size limit (MAX_REQUEST_SIZE = 100 KB) is set for the authentication certificate SOAP message.
 
-### 2.11 Post-Installation Checks
+### 2.11 Pre-configuration for Management Web Service
+The management web service is installed by package xroad-center-management-service. The registration web service can be installed on the same host with the central server or on a separate host. The package is included in the central server installation by default.
+
+Configuration parameters for management web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section "Management service parameters".
+
+### 2.12 Post-Installation Checks
 
 The installation is successful if the system services are started and the user interface is responding.
 
@@ -345,10 +351,12 @@ The installation is successful if the system services are started and the user i
         ```bash
         sudo systemctl list-units "xroad*"
 
-        UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
-        xroad-base.service       loaded active exited  X-Road initialization
-        xroad-jetty.service      loaded active running X-Road Jetty server
-        xroad-signer.service     loaded active running X-Road signer
+        UNIT                                      LOAD   ACTIVE SUB     DESCRIPTION
+        xroad-base.service                        loaded active exited  X-Road initialization
+        xroad-center-management-service.service   loaded active running X-Road Central Server Management Service
+        xroad-center-registration-service.service loaded active running X-Road Central Server Registration Service
+        xroad-center.service                      loaded active running X-Road Central Server
+        xroad-signer.service                      loaded active running X-Road signer
         ```
 
 -   Ensure that the central server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
@@ -696,4 +704,4 @@ systemctl stop xroad-center
 systemctl start xroad-center
 ```
 
-5. Verify that everything is working by performing the steps described in [2.11 Post-Installation Checks](#211-post-installation-checks).
+5. Verify that everything is working by performing the steps described in [2.12 Post-Installation Checks](#211-post-installation-checks).
