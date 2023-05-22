@@ -76,7 +76,7 @@ Doc. ID: IG-CS
   - [2.9 Installing the Support for Monitoring](#29-installing-the-support-for-monitoring)
   - [2.10 Pre-configuration for Registration Web Service](#210-pre-configuration-for-registration-web-service)
   - [2.11 Pre-configuration for Management Web Service](#211-pre-configuration-for-management-web-service)
-  - [2.12 Post-Installation Checks](#211-post-installation-checks)
+  - [2.12 Post-Installation Checks](#212-post-installation-checks)
 - [3 Initial Configuration](#3-initial-configuration)
   - [3.1 Reference Data](#31-reference-data)
   - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
@@ -704,4 +704,4 @@ systemctl stop xroad-center
 systemctl start xroad-center
 ```
 
-5. Verify that everything is working by performing the steps described in [2.12 Post-Installation Checks](#211-post-installation-checks).
+5. Verify that everything is working by performing the steps described in [2.12 Post-Installation Checks](#212-post-installation-checks).
