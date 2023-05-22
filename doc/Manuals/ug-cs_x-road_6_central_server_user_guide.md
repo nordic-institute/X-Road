@@ -93,7 +93,7 @@ Doc. ID: UG-CS
   - [5.8 Deleting a Trusted Anchor](#58-deleting-a-trusted-anchor)
 - [6. The Management Requests System](#6-the-management-requests-system)
   - [6.1 Registration Requests](#61-registration-requests)
-    - [6.1.1 State Machine Model for Registration Requests](#611-state-machine-model-for-registration-requests)
+    - [6.1.1 State Model for Registration Requests](#611-state-model-for-registration-requests)
   - [6.2 Deletion Requests](#62-deletion-requests)
   - [6.3 Viewing the Management Request Details](#63-viewing-the-management-request-details)
 - [7 Managing the X-Road Members](#7-managing-the-x-road-members)
@@ -216,7 +216,7 @@ To remove a user, enter:
 ## 2.3 Managing API Keys
 
 On the central server can role associated with the API key. The roles define the permissions granted to the API key. In addition to the User role, the API key can be added to the Management Services role.
-Management Services role is used for Registration & Management Services to authenticate and successfully communicate with Admin Service. API key for Management Services role is need to generated after central server installation.
+Management Services role is used for Registration & Management Services to authenticate and successfully communicate with Admin Service. Registration & management services are configured with valid API KEYS automatically during installation.
 
 Access rights: System Administrator
 
@@ -1113,13 +1113,11 @@ An audit log record contains
 
 For example, adding a new member in the central server produces the following log record:
 
-`2023-05-21T16:20:06+03:00 my-central-server-host correlation-id: [655a2150c4688558] INFO  [X-Road Central Server Admin Service] 2023-05-21T16:20:06.267+03:00 - {"event":"Add member","user":"xrd","ipaddress":"192.0.2.1","auth":"Session","url":"/api/v1/members","data":{"memberName":"SS2 OWNER","memberClass":"TEST","memberCode":"SS2_OWNER"}}
-`
+`2023-05-21T16:20:06+03:00 my-central-server-host correlation-id: [655a2150c4688558] INFO  [X-Road Central Server Admin Service] 2023-05-21T16:20:06.267+03:00 - {"event":"Add member","user":"xrd","ipaddress":"192.0.2.1","auth":"Session","url":"/api/v1/members","data":{"memberName":"SS2 OWNER","memberClass":"TEST","memberCode":"SS2_OWNER"}}`
 
 The event is present in JSON [JSON](#13-references) format, in order to ensure machine processability. The field event represents the description of the event, the field user represents the user name of the performer, and the field data represents data related with the event. The failed action event record contains an additional field reason for the error message. For example:
 
-`2023-05-21T12:16:11+03:00 my-central-server-host correlation-id: [f9ee1a7bdf3e3d19] INFO  [X-Road Central Server Admin Service] 2023-05-21T12:16:11.232+03:00 - {"event":"Log in to token failed","user":"xrd","ipaddress":"192.0.2.1","reason":"Token action not possible","warning":false,"auth":"Session","url":"/api/v1/tokens/0/login","data":{"tokenId":"0","tokenSerialNumber":null,"tokenFriendlyName":"softToken-0"}}
-`
+`2023-05-21T12:16:11+03:00 my-central-server-host correlation-id: [f9ee1a7bdf3e3d19] INFO  [X-Road Central Server Admin Service] 2023-05-21T12:16:11.232+03:00 - {"event":"Log in to token failed","user":"xrd","ipaddress":"192.0.2.1","reason":"Token action not possible","warning":false,"auth":"Session","url":"/api/v1/tokens/0/login","data":{"tokenId":"0","tokenSerialNumber":null,"tokenFriendlyName":"softToken-0"}}`
 
 By default, audit log is located in the file
 
