@@ -85,7 +85,7 @@
           <keys-table
             :keys="signingKeys"
             :loading-keys="loadingKeys"
-            @update-keys="$emit('update-keys')"
+            @update-keys="$emit('update-keys', $event)"
           />
         </div>
       </div>
@@ -182,7 +182,7 @@ export default Vue.extend({
     ]),
     addKey(): void {
       this.showAddKeyDialog = false;
-      this.$emit('update-keys');
+      this.$emit('update-keys', 'add');
     },
     tokenNameClick(): void {
       this.isExpanded(this.token.id)

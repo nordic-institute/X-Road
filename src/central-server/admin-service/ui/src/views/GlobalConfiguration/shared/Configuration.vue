@@ -32,7 +32,10 @@
       </div>
     </div>
 
-    <tokens :configuration-type="configurationType" />
+    <tokens
+      :configuration-type="configurationType"
+      @update-keys="refreshAnchor"
+    />
 
     <!-- Internal configuration -->
     <div class="header-row mt-7">
@@ -40,7 +43,10 @@
     </div>
 
     <!-- Anchor -->
-    <configuration-anchor :configuration-type="configurationType" />
+    <configuration-anchor
+      ref="anchor"
+      :configuration-type="configurationType"
+    />
 
     <!-- Download URL -->
     <configuration-download-url :configuration-type="configurationType" />
@@ -77,6 +83,15 @@ export default Vue.extend({
     configurationType: {
       type: String as Prop<ConfigurationType>,
       required: true,
+    },
+  },
+  methods: {
+    refreshAnchor(action: string) {
+      if (action === 'add' || action === 'delete') {
+        (
+          this.$refs.anchor as InstanceType<typeof ConfigurationAnchor>
+        ).fetchConfigurationAnchor();
+      }
     },
   },
 });

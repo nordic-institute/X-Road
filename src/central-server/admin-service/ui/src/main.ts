@@ -53,9 +53,11 @@ Vue.use(VueCompositionAPI);
 Vue.use(PiniaVuePlugin);
 
 const pinia = createPinia();
-pinia.use(createPersistedState({
-  storage: sessionStorage,
-}));
+pinia.use(
+  createPersistedState({
+    storage: sessionStorage,
+  }),
+);
 Vue.config.productionTip = false;
 
 axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;

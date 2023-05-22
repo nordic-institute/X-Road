@@ -32,14 +32,15 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TokenActionsResolver;
@@ -90,6 +91,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     private static final Date SIGNING_KEY_CERT_NOT_AFTER = Date.from(Instant.parse("2038-01-01T00:00:00Z"));
 
     private final SystemParameterService systemParameterService;
+    private final ConfigurationAnchorService configurationAnchorService;
     private final ConfigurationSigningKeyRepository configurationSigningKeyRepository;
     private final ConfigurationSourceRepository configurationSourceRepository;
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
@@ -143,10 +145,10 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                 .map(configurationSigningKeyMapper::toTarget)
                 .orElseThrow(ConfigurationSigningKeysServiceImpl::notFoundException);
 
-
-        if (signingKey.getSourceType() == INTERNAL) {
+        final ConfigurationSourceType configurationSourceType = signingKey.getSourceType();
+        if (configurationSourceType == INTERNAL) {
             auditEventHelper.changeRequestScopedEvent(DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY);
-        } else if (signingKey.getSourceType() == EXTERNAL) {
+        } else if (configurationSourceType == EXTERNAL) {
             auditEventHelper.changeRequestScopedEvent(DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY);
         }
         auditDataHelper.put(RestApiAuditProperty.TOKEN_ID, signingKey.getTokenIdentifier());
@@ -165,6 +167,8 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         } catch (Exception e) {
             throw new SigningKeyException(ERROR_DELETING_SIGNING_KEY, e);
         }
+
+        configurationAnchorService.recreateAnchor(configurationSourceType);
     }
 
     @Override
@@ -197,7 +201,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
 
     @Override
     public ConfigurationSigningKeyWithDetails addKey(String sourceType, String tokenId, String keyLabel) {
-
+        final ConfigurationSourceType configurationSourceType = ConfigurationSourceType.valueOf(sourceType.toUpperCase());
         var response = new ConfigurationSigningKey();
         response.setActiveSourceSigningKey(Boolean.FALSE);
 
@@ -205,7 +209,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                 .findBySourceTypeOrCreate(sourceType.toLowerCase(), haConfigStatus);
 
         final TokenInfo tokenInfo = getToken(tokenId);
-        final PossibleTokenAction action = StringUtils.endsWithIgnoreCase(SOURCE_TYPE_INTERNAL, sourceType)
+        final PossibleTokenAction action = INTERNAL.equals(configurationSourceType)
                 ? GENERATE_INTERNAL_KEY
                 : GENERATE_EXTERNAL_KEY;
         tokenActionsResolver.requireAction(action, tokenInfo, findByTokenIdentifier(tokenInfo));
@@ -245,6 +249,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                     .setKeyGeneratedAt(generatedAt)
                     .setTokenIdentifier(tokenId);
 
+            configurationAnchorService.recreateAnchor(configurationSourceType);
             return mapWithDetails(tokenInfo, response, keyInfo);
         } catch (Exception e) {
             deleteKey(keyInfo.getId());

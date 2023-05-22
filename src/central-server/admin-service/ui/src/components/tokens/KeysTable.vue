@@ -70,13 +70,13 @@
       v-if="showDeleteKeyDialog"
       :signing-key="selectedKey"
       @cancel="closeDialogs"
-      @key-delete="updateKeys"
+      @key-delete="updateKeys('delete')"
     />
     <signing-key-activate-dialog
       v-if="showActivateKeyDialog"
       :signing-key="selectedKey"
       @cancel="closeDialogs"
-      @key-activate="updateKeys"
+      @key-activate="updateKeys('activate')"
     />
   </div>
 </template>
@@ -169,9 +169,9 @@ export default Vue.extend({
       this.showActivateKeyDialog = true;
       this.selectedKey = key;
     },
-    updateKeys() {
+    updateKeys(action: string) {
       this.closeDialogs();
-      this.$emit('update-keys');
+      this.$emit('update-keys', action);
     },
     closeDialogs() {
       this.showDeleteKeyDialog = false;
