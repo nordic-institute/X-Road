@@ -63,6 +63,7 @@ export default Vue.extend({
     ...mapActions(userStore, { storeLogout: 'logout' }),
     logout(): void {
       this.storeLogout();
+      sessionStorage.clear();
       this.$router.replace({ name: RouteName.Login });
     },
   },

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -44,6 +44,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +63,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"spring.main.lazy-initialization=true"})
 @WithMockUser(authorities = {"DIAGNOSTICS"})
 @AutoConfigureWireMock(port = PortNumbers.ADMIN_PORT)
 public class DiagnosticsApiControllerTest extends AbstractApiControllerTestContext {
@@ -123,8 +125,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     public void getMessageLogEncryptionDiagnostics() {
         stubForDiagnosticsRequest("/message-log-encryption-status",
                 "{\"messageLogArchiveEncryptionStatus\":true,\"messageLogDatabaseEncryptionStatus\":true,"
-                + "\"messageLogGroupingRule\":\"none\",\"members\":[{\"memberId\":\"memberId\","
-                + "\"keys\":[\"key\"], \"defaultKeyUsed\":false}]}");
+                        + "\"messageLogGroupingRule\":\"none\",\"members\":[{\"memberId\":\"memberId\","
+                        + "\"keys\":[\"key\"], \"defaultKeyUsed\":false}]}");
         ResponseEntity<MessageLogEncryptionStatus> response = diagnosticsApiController
                 .getMessageLogEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -135,7 +137,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
         stubForDiagnosticsRequest("/message-log-encryption-status",
                 "{\"messageLogArchiveEncryptionStatus\":false,\"messageLogDatabaseEncryptionStatus\":false, "
-                + "\"messageLogGroupingRule\":\"none\",\"members\":[]}");
+                        + "\"messageLogGroupingRule\":\"none\",\"members\":[]}");
         response = diagnosticsApiController.getMessageLogEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(false, response.getBody().getMessageLogArchiveEncryptionStatus());
@@ -150,7 +152,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         final OffsetDateTime nextUpdate = prevUpdate.plusHours(1);
         stubForDiagnosticsRequest("/status",
                 "{\"returnCode\":" + DiagnosticsErrorCodes.RETURN_SUCCESS + ",\"prevUpdate\":\"" + prevUpdate
-                + "\",\"nextUpdate\":\"" + nextUpdate + "\"}");
+                        + "\",\"nextUpdate\":\"" + nextUpdate + "\"}");
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -185,7 +187,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
         stubForDiagnosticsRequest("/status",
                 "{\"returnCode\":" + DiagnosticsErrorCodes.ERROR_CODE_INTERNAL + ",\"prevUpdate\":\"" + prevUpdate
-                + "\",\"nextUpdate\":\"" + nextUpdate + "\"}");
+                        + "\",\"nextUpdate\":\"" + nextUpdate + "\"}");
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -203,7 +205,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
         stubForDiagnosticsRequest("/status",
                 "{\"returnCode\":" + ERROR_CODE_UNKNOWN + ",\"prevUpdate\":\"" + prevUpdate + "\",\"nextUpdate\":\""
-                + nextUpdate + "\"}");
+                        + nextUpdate + "\"}");
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -228,7 +230,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     public void getTimestampingServiceDiagnosticsSuccess() {
         stubForDiagnosticsRequest("/timestampstatus",
                 "{\"" + TSA_URL_1 + "\":{\"returnCode\":" + DiagnosticsErrorCodes.RETURN_SUCCESS
-                + ",\"prevUpdate\":\"" + PREVIOUS_UPDATE + "\",\"description\":\"" + TSA_URL_1 + "\"}}");
+                        + ",\"prevUpdate\":\"" + PREVIOUS_UPDATE + "\",\"description\":\"" + TSA_URL_1 + "\"}}");
 
         ResponseEntity<Set<TimestampingServiceDiagnostics>> response =
                 diagnosticsApiController.getTimestampingServicesDiagnostics();
@@ -250,7 +252,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     public void getTimestampingServiceDiagnosticsWaiting() {
         stubForDiagnosticsRequest("/timestampstatus",
                 "{\"" + TSA_URL_1 + "\":{\"returnCode\":" + DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED
-                + ",\"prevUpdate\":\"" + PREVIOUS_UPDATE + "\",\"description\":\"" + TSA_URL_1 + "\"}}");
+                        + ",\"prevUpdate\":\"" + PREVIOUS_UPDATE + "\",\"description\":\"" + TSA_URL_1 + "\"}}");
 
         ResponseEntity<Set<TimestampingServiceDiagnostics>> response =
                 diagnosticsApiController.getTimestampingServicesDiagnostics();
@@ -273,8 +275,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     public void getTimestampingServiceDiagnosticsFailPreviousUpdateYesterday() {
         stubForDiagnosticsRequest("/timestampstatus",
                 "{\"" + TSA_URL_1 + "\":{\"returnCode\":"
-                + DiagnosticsErrorCodes.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL + ",\"prevUpdate\":\""
-                + PREVIOUS_UPDATE_MIDNIGHT + "\",\"description\":\"" + TSA_URL_1 + "\"}}");
+                        + DiagnosticsErrorCodes.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL + ",\"prevUpdate\":\""
+                        + PREVIOUS_UPDATE_MIDNIGHT + "\",\"description\":\"" + TSA_URL_1 + "\"}}");
 
         ResponseEntity<Set<TimestampingServiceDiagnostics>> response =
                 diagnosticsApiController.getTimestampingServicesDiagnostics();
@@ -306,10 +308,10 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     public void getOcspResponderDiagnosticsSuccess() {
         stubForDiagnosticsRequest("/status",
                 "{\"certificationServiceStatusMap\":{\"" + CA_NAME_1 + "\":{\"name\":\"" + CA_NAME_1
-                + "\",\"ocspResponderStatusMap\":{\"" + OCSP_URL_1 + "\":{\"status\":"
-                + DiagnosticsErrorCodes.RETURN_SUCCESS + ",\"url\":\""
-                + OCSP_URL_1 + "\",\"prevUpdate\":\"" + PREVIOUS_UPDATE + "\",\"nextUpdate\":\"" + NEXT_UPDATE
-                + "\"}}}}}");
+                        + "\",\"ocspResponderStatusMap\":{\"" + OCSP_URL_1 + "\":{\"status\":"
+                        + DiagnosticsErrorCodes.RETURN_SUCCESS + ",\"url\":\""
+                        + OCSP_URL_1 + "\",\"prevUpdate\":\"" + PREVIOUS_UPDATE + "\",\"nextUpdate\":\"" + NEXT_UPDATE
+                        + "\"}}}}}");
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response =
                 diagnosticsApiController.getOcspRespondersDiagnostics();
@@ -331,9 +333,9 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     public void getOcspResponderDiagnosticsWaiting() {
         stubForDiagnosticsRequest("/status",
                 "{\"certificationServiceStatusMap\":{\"" + CA_NAME_2 + "\":{\"name\":\"" + CA_NAME_2 + "\","
-                + "\"ocspResponderStatusMap\":{\"" + OCSP_URL_2 + "\":{\"status\":"
-                + DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED + ",\"url\":\"" + OCSP_URL_2
-                + "\",\"nextUpdate\":\"" + NEXT_UPDATE + "\"}}}}}");
+                        + "\"ocspResponderStatusMap\":{\"" + OCSP_URL_2 + "\":{\"status\":"
+                        + DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED + ",\"url\":\"" + OCSP_URL_2
+                        + "\",\"nextUpdate\":\"" + NEXT_UPDATE + "\"}}}}}");
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response =
                 diagnosticsApiController.getOcspRespondersDiagnostics();
@@ -356,9 +358,9 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     public void getOcspResponderDiagnosticsFailNextUpdateTomorrow() {
         stubForDiagnosticsRequest("/status",
                 "{\"certificationServiceStatusMap\":{\"" + CA_NAME_1 + "\":{\"name\":\"" + CA_NAME_1
-                + "\",\"ocspResponderStatusMap\":{\"" + OCSP_URL_1 + "\":{\"status\":"
-                + DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID + ",\"url\":\"" + OCSP_URL_1
-                + "\",\"nextUpdate\":\"" + NEXT_UPDATE_MIDNIGHT + "\"}}}}}");
+                        + "\",\"ocspResponderStatusMap\":{\"" + OCSP_URL_1 + "\":{\"status\":"
+                        + DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID + ",\"url\":\"" + OCSP_URL_1
+                        + "\",\"nextUpdate\":\"" + NEXT_UPDATE_MIDNIGHT + "\"}}}}}");
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();
@@ -381,9 +383,9 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     public void getOcspResponderDiagnosticsFailPreviousUpdateYesterday() {
         stubForDiagnosticsRequest("/status",
                 "{\"certificationServiceStatusMap\":{\"" + CA_NAME_2 + "\":{\"name\":\"" + CA_NAME_2
-                + "\",\"ocspResponderStatusMap\":{\"" + OCSP_URL_2 + "\":{\"status\":" + ERROR_CODE_UNKNOWN
-                + ",\"url\":\"" + OCSP_URL_2 + "\",\"prevUpdate\":\""
-                + PREVIOUS_UPDATE_MIDNIGHT + "\",\"nextUpdate\":\"" + NEXT_UPDATE_MIDNIGHT + "\"}}}}}");
+                        + "\",\"ocspResponderStatusMap\":{\"" + OCSP_URL_2 + "\":{\"status\":" + ERROR_CODE_UNKNOWN
+                        + ",\"url\":\"" + OCSP_URL_2 + "\",\"prevUpdate\":\""
+                        + PREVIOUS_UPDATE_MIDNIGHT + "\",\"nextUpdate\":\"" + NEXT_UPDATE_MIDNIGHT + "\"}}}}}");
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();

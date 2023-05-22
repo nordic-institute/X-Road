@@ -14,6 +14,7 @@ dependencies {
 
     api project(':central-server:admin-service:core-api')
     api project(':monitoring-conf')
+    api(project(":common:common-api-throttling"))
 
     api('org.springframework.boot:spring-boot-starter-web')
     api('org.springframework.boot:spring-boot-starter-security')
@@ -26,7 +27,6 @@ dependencies {
     implementation("io.vavr:vavr:$vavrVersion")
 
     testImplementation project(':common-test')
-    testImplementation(testFixtures(project(":common-rest-api")))
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")

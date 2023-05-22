@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":common:common-api-throttling"))
     api project(":central-server:management-service:core-api")
 
     api project(":central-server:admin-service:api-client")

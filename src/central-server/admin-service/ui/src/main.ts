@@ -26,7 +26,7 @@
  */
 
 /*
-Startpoint of the Vue application. 
+Startpoint of the Vue application.
 Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
 Initialises the app root component.
@@ -47,13 +47,15 @@ import '@fontsource/open-sans';
 import i18n from './i18n';
 import { createPinia, PiniaVuePlugin } from 'pinia';
 import VueCompositionAPI from '@vue/composition-api';
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+import { createPersistedState } from 'pinia-plugin-persistedstate';
 
 Vue.use(VueCompositionAPI);
 Vue.use(PiniaVuePlugin);
 
 const pinia = createPinia();
-pinia.use(piniaPluginPersistedstate);
+pinia.use(createPersistedState({
+  storage: sessionStorage,
+}));
 Vue.config.productionTip = false;
 
 axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;

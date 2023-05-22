@@ -18,6 +18,9 @@ include "common-rest-api"
 include "common-management-request"
 include "common-domain"
 
+include "common"
+include "common:common-api-throttling"
+
 // Main projects
 include "proxy"
 include "signer"

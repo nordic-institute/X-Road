@@ -27,7 +27,6 @@ package org.niis.xroad.cs.admin.application;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.core.config.BootstrapConfiguration;
-import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -37,7 +36,7 @@ import org.springframework.test.context.ActiveProfiles;
  */
 
 @SpringBootTest(classes = {
-        AbstractSpringMvcTest.CommonRestApiTestConfiguration.class,
+        Main.class,
         BootstrapConfiguration.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"test", "audit-test"})
