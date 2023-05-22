@@ -964,32 +964,48 @@ To restore configuration from the command line, the following data must be avail
 It is expected that the restore command is run by the xroad user.
 
 Use the following command to restore configuration in non-HA setup:
-`/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i <instance_ID> -f <path + filename> [-P -N]`
+```bash
+/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i <instance_ID> -f <path + filename> [-P -N]
+```
 
 In HA setup, this command has an additional mandatory parameter, the node name:
-`/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i <instance_ID> -n <node_name> -f <path + filename> [-P -N]`
+```bash
+/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i <instance_ID> -n <node_name> -f <path + filename> [-P -N]
+```
 
 For example (all in one line, non-HA setup):
-`/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i EE -f /var/lib/xroad/backup/ conf_backup_20230515-114736.gpg`
+```bash
+/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i EE -f /var/lib/xroad/backup/ conf_backup_20230515-114736.gpg
+```
 
 For example (all in one line, HA setup):
-`/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i EE -n node_0 -f /var/lib/xroad/backup/ conf_backup_20230515-114736.gpg`
+```bash
+/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i EE -n node_0 -f /var/lib/xroad/backup/ conf_backup_20230515-114736.gpg
+```
 
 In case original backup encryption and signing key is lost additional parameters can be specified to skip decryption and/or signature verification. Use `-P` command line switch when backup archive is already decrypted externally and `-N` switch to skip checking archive signature.
 
 If a backup is restored on a new uninitialized (the initial configuration hasn't been completed) central server, the central server's gpg key must be manually created before restoring the backup:
-`/usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome <instance_ID>`
+```bash
+/usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome <instance_ID>
+```
 
 If it is absolutely necessary to restore the system from a backup made on a different central server, the forced mode of the restore command can be used with the –F option. For example:
-`/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -F -P -f /var/lib/xroad/backup/conf_backup_20230515-114736.tar`
+```bash
+/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -F -P -f /var/lib/xroad/backup/conf_backup_20230515-114736.tar
+```
 
 In case backup archives were encrypted they have to be first unencrypted in external safe environment and then securely transported to central server filesystem.
 
 It is possible to restore the configuration while skipping the database restoration by appending the -S switch, e.g.
-`/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i <instance_ID> -f <path + filename> -S`
+```bash
+/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i <instance_ID> -f <path + filename> -S
+```
 
 To see all the possible parameters use the -h switch, e.g.
-`/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -h`
+```bash
+/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -h
+```
 
 ## 12.4 Downloading, Uploading and Deleting Configuration Backup Files
 
