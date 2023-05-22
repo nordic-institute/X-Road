@@ -132,6 +132,8 @@ Doc. ID: UG-CS
   - [12.3 Restoring the Configuration from the Command Line](#123-restoring-the-configuration-from-the-command-line)
   - [12.4 Downloading, Uploading and Deleting Configuration Backup Files](#124-downloading-uploading-and-deleting-configuration-backup-files)
   - [12.5 Automatic Backups](#125-automatic-backups)
+  - [12.6 Backup Encryption Configuration](#126-backup-encryption-configuration)
+  - [12.7 Verifying Backup Archive Consistency](#127-verifying-backup-archive-consistency)
 - [13. Audit Log](#13-audit-log)
   - [13.1 Changing the Configuration of the Audit Log](#131-changing-the-configuration-of-the-audit-log)
   - [13.2 Archiving the Audit Log](#132-archiving-the-audit-log)
