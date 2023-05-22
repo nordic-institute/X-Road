@@ -216,7 +216,7 @@ To remove a user, enter:
 ## 2.3 Managing API Keys
 
 On the central server can role associated with the API key. The roles define the permissions granted to the API key. In addition to the User role, the API key can be added to the Management Services role.
-Management Services role is used for Registration & Management Services to authenticate and successfully communicate with Admin Service. Registration & management services are configured with valid API KEYS automatically during installation.
+Management Services role is used for registration and management services to authenticate and successfully communicate with admin service. Registration and management services are configured with valid API keys during installation automatically.
 
 Access rights: System Administrator
 
