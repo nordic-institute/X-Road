@@ -27,7 +27,6 @@
 package org.niis.xroad.common.managemenetrequest.test;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import lombok.SneakyThrows;
