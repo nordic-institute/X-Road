@@ -48,18 +48,19 @@ import static ee.ria.xroad.common.TestCertUtil.getKeyPairGenerator;
 public class TestGenericClientRequestBuilder {
     private static final KeyPairGenerator KEY_PAIR_GENERATOR = getKeyPairGenerator();
 
-    private SecurityServerId.Conf serverId;
+    private ClientId.Conf senderClientId;
     private ClientId.Conf receiverClientId;
 
+    private SecurityServerId.Conf serverId;
     private ClientId.Conf clientId;
     private CertificateStatus clientOcspStatus;
 
     private TestBaseManagementRequestBuilder requestBuilder = (_keyPairGenerator, _clientCert, _clientCertOcsp, _clientKey, _request) ->
             new TestGenericClientRequest(_clientCert, _clientCertOcsp, _clientKey, _request);
 
-    private RequestAssembler requestAssembler = (_keyPairGenerator, _clientRegTypeBuilder, _soapMessageBuilder, _serverId,
-                                                 _receiverClientId, _clientId, _clientOcspStatus) -> {
-        var builder = new TestManagementRequestBuilder(_serverId.getOwner(), _receiverClientId);
+    private RequestAssembler requestAssembler = (_keyPairGenerator, _clientRegTypeBuilder, _soapMessageBuilder, _senderClientId,
+                                                 _receiverClientId, _serverId, _clientId, _clientOcspStatus) -> {
+        var builder = new TestManagementRequestBuilder(_senderClientId, _receiverClientId);
 
         var clientKeyPair = _keyPairGenerator.generateKeyPair();
         var clientCert = TestCertUtil.generateSignCert(clientKeyPair.getPublic(), _serverId.getOwner());
@@ -82,6 +83,11 @@ public class TestGenericClientRequestBuilder {
 
     public TestGenericClientRequestBuilder withServerId(SecurityServerId.Conf serverId) {
         this.serverId = serverId;
+        return this;
+    }
+
+    public TestGenericClientRequestBuilder withSenderClientId(ClientId.Conf senderClientId) {
+        this.senderClientId = senderClientId;
         return this;
     }
 
@@ -118,15 +124,15 @@ public class TestGenericClientRequestBuilder {
     @SneakyThrows
     public TestGenericClientRequest build() {
         return requestAssembler.assemble(KEY_PAIR_GENERATOR, requestBuilder, soapMessageBuilder,
-                serverId, receiverClientId, clientId, clientOcspStatus);
+                senderClientId, receiverClientId, serverId, clientId, clientOcspStatus);
     }
 
     public interface RequestAssembler {
         TestGenericClientRequest assemble(KeyPairGenerator keyPairGenerator,
                                           TestBaseManagementRequestBuilder clientRegTypeBuilder,
                                           SoapMessageBuilder soapMessageBuilder,
-                                          SecurityServerId.Conf serverId,
-                                          ClientId.Conf receiverClientId, ClientId.Conf clientId,
+                                          ClientId.Conf senderClientId, ClientId.Conf receiverClientId,
+                                          SecurityServerId.Conf serverId, ClientId.Conf clientId,
                                           CertificateStatus clientOcspStatus) throws IOException, CertificateEncodingException;
     }
 

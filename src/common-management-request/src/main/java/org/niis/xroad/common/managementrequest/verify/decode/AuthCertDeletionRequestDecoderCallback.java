@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 
 import lombok.Getter;
@@ -33,7 +36,11 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 
+import java.util.Objects;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
 
 @Getter
 @RequiredArgsConstructor
@@ -45,7 +52,14 @@ public class AuthCertDeletionRequestDecoderCallback implements ManagementRequest
     @Override
     public void onCompleted() {
         try {
-            authCertDeletionRequestType = ManagementRequestParser.parseAuthCertDeletionRequest(rootCallback.getSoapMessage());
+            final SoapMessageImpl soap = rootCallback.getSoapMessage();
+            authCertDeletionRequestType = ManagementRequestParser.parseAuthCertDeletionRequest(soap);
+
+            final SecurityServerId serverId = authCertDeletionRequestType.getServer();
+            validateServerId(serverId);
+            if (!Objects.equals(soap.getClient(), serverId.getOwner())) {
+                throw new CodedException(X_INVALID_REQUEST, "Sender does not match server owner.");
+            }
         } catch (Exception e) {
             throw translateException(e);
         }

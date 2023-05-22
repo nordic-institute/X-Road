@@ -30,6 +30,8 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.ClientRequestType;
 import ee.ria.xroad.common.util.MimeUtils;
 
@@ -45,12 +47,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
 import java.util.Map;
+import java.util.Objects;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifyCertificate;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifySignature;
 
@@ -98,7 +102,7 @@ public abstract class BaseClientRequestCallback implements ManagementRequestDeco
 
         try {
             clientRequestType = ManagementRequestParser.parseRequest(rootCallback.getSoapMessage(), requestType.getServiceCode());
-            verifyClientRequestTypeRequest();
+            verifyMessage();
         } catch (Exception e) {
             log.error("Failed to verify management request of type {}", requestType, e);
             throw translateException(e);
@@ -110,8 +114,9 @@ public abstract class BaseClientRequestCallback implements ManagementRequestDeco
         return clientRequestType;
     }
 
-    private void verifyClientRequestTypeRequest() throws Exception {
-        byte[] dataToVerify = rootCallback.getSoapMessage().getBytes();
+    private void verifyMessage() throws Exception {
+        final SoapMessageImpl soap = rootCallback.getSoapMessage();
+        byte[] dataToVerify = soap.getBytes();
 
         log.info("Verifying client signature");
 
@@ -126,11 +131,15 @@ public abstract class BaseClientRequestCallback implements ManagementRequestDeco
         OCSPResp clientCertOcsp = new OCSPResp(this.clientCertOcspBytes);
         verifyCertificate(x509ClientCert, clientCertOcsp);
 
+        final SecurityServerId serverId = clientRequestType.getServer();
+        validateServerId(serverId);
+        if (!Objects.equals(soap.getClient(), serverId.getOwner())) {
+            throw new CodedException(X_INVALID_REQUEST, "Sender does not match server owner.");
+        }
+
         // Verify that the subject id from the certificate matches the one
         // in the request (client). The certificate must belong to the member
         // that is used as a client.
-
-
         ClientId idFromCert = getClientIdFromCert(x509ClientCert);
 
         ClientId idFromReq = clientRequestType.getClient();

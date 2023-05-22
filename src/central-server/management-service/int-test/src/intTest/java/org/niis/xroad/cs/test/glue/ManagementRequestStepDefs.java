@@ -91,45 +91,73 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .execute();
     }
 
-    @Step("Client Registration request with ClientId {string} was sent")
+    @SneakyThrows
+    @Step("Response of status code {int} and soap faultCode {string} and soap faultString {string} is returned")
+    public void responseIsValidatedWithFaultCodeAndString(Integer statusCode, String faultCode, String faultString) {
+        ResponseEntity<String> responseEntity = getRequiredStepData(StepDataKey.RESPONSE);
+        var msg = messageFactory.createMessage(null,
+                new ByteArrayInputStream(Objects.requireNonNull(responseEntity.getBody()).getBytes(StandardCharsets.UTF_8)));
+        validate(responseEntity)
+                .assertion(equalsStatusCodeAssertion(HttpStatus.valueOf(statusCode)))
+                .assertion(new Assertion.Builder()
+                        .message("Verify fault code")
+                        .expression("=")
+                        .actualValue(msg.getSOAPBody().getFault().getFaultCode())
+                        .expectedValue(faultCode)
+                        .build())
+                .assertion(new Assertion.Builder()
+                        .message("Verify fault string")
+                        .expression("=")
+                        .actualValue(msg.getSOAPBody().getFault().getFaultString())
+                        .expectedValue(faultString)
+                        .build())
+                .execute();
+    }
+
+    @Step("Client Registration request with clientId {string} was sent")
     public void executeRequest(String clientIdStr) throws Exception {
+        executeRequestWithCustomServerId(clientIdStr, DEFAULT_SERVER_ID.asEncodedId());
+    }
+
+    @Step("Client Registration request with clientId {string} and serverId {string} was sent")
+    public void executeRequestWithCustomServerId(String clientIdStr, String serverId) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdStr);
         var req = TestGenericClientRequestBuilder.newBuilder()
-                .withServerId(DEFAULT_SERVER_ID)
+                .withSenderClientId(clientId)
                 .withReceiverClientId(DEFAULT_RECEIVER)
-                .withClientId(resolveClientIdFromEncodedStr(clientIdStr))
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
                 .withClientOcsp(CertificateStatus.GOOD)
                 .build();
         executeRequest(req.createPayload());
     }
 
-    @Step("Owner change request with ClientId {string} was sent")
+    @Step("Owner change request with clientId {string} was sent")
     public void executeRequestOwnerChange(String clientIdStr) throws Exception {
+        executeRequestOwnerChangeWithCustomServerId(clientIdStr, DEFAULT_SERVER_ID.asEncodedId());
+    }
+
+    @Step("Owner change request with clientId {string} and serverId {string} was sent")
+    public void executeRequestOwnerChangeWithCustomServerId(String clientIdStr, String serverId) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdStr);
         var req = TestGenericClientRequestBuilder.newBuilder()
-                .withServerId(DEFAULT_SERVER_ID)
+                .withSenderClientId(clientId)
                 .withReceiverClientId(DEFAULT_RECEIVER)
-                .withClientId(resolveClientIdFromEncodedStr(clientIdStr))
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
                 .withClientOcsp(CertificateStatus.GOOD)
                 .withSoapMessageBuilder(TestManagementRequestBuilder::buildOwnerChangeRegRequest)
                 .build();
         executeRequest(req.createPayload());
     }
 
-    @Step("Client Registration request with ClientId {string} and serverId {string} and receiverId {string} was sent")
-    public void executeRequestWithCustomServerId(String clientIdStr, String serverId, String receiverId) throws Exception {
-        var req = TestGenericClientRequestBuilder.newBuilder()
-                .withServerId(resolveServerIdFromEncodedStr(serverId))
-                .withReceiverClientId(resolveClientIdFromEncodedStr(receiverId))
-                .withClientId(resolveClientIdFromEncodedStr(clientIdStr))
-                .withClientOcsp(CertificateStatus.GOOD)
-                .build();
-        executeRequest(req.createPayload());
-    }
-
-    @Step("Client Registration request with ClientId {string} and invalid signature was sent")
+    @Step("Client Registration request with clientId {string} and invalid signature was sent")
     public void executeRequestWithInvalidSignature(String clientIdStr) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdStr);
         var request = TestGenericClientRequestBuilder.newBuilder()
-                .withServerId(DEFAULT_SERVER_ID)
+                .withSenderClientId(clientId)
                 .withReceiverClientId(DEFAULT_RECEIVER)
+                .withServerId(DEFAULT_SERVER_ID)
                 .withClientId(resolveClientIdFromEncodedStr(clientIdStr))
                 .withClientOcsp(CertificateStatus.GOOD)
                 .withRequestTypeBuilder((keyPairGenerator, clientCert, clientCertOcsp, clientKey, req) ->
@@ -142,11 +170,13 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
         executeRequest(request.createPayload());
     }
 
-    @Step("Client Registration request with ClientId {string} and invalid client certificate was sent")
+    @Step("Client Registration request with clientId {string} and invalid client certificate was sent")
     public void executeRequestWithInvalidCert(String clientIdStr) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdStr);
         var request = TestGenericClientRequestBuilder.newBuilder()
-                .withServerId(DEFAULT_SERVER_ID)
+                .withSenderClientId(clientId)
                 .withReceiverClientId(DEFAULT_RECEIVER)
+                .withServerId(DEFAULT_SERVER_ID)
                 .withClientId(resolveClientIdFromEncodedStr(clientIdStr))
                 .withClientOcsp(CertificateStatus.GOOD)
                 .withRequestTypeBuilder((keyPairGenerator, clientCert, clientCertOcsp, clientKey, req) ->
@@ -160,10 +190,12 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
 
     @Step("Client Registration request with ClientId {string} and revoked OCSP was sent")
     public void executeRequestWithRevokedOcsp(String clientIdStr) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdStr);
         var request = TestGenericClientRequestBuilder.newBuilder()
-                .withServerId(DEFAULT_SERVER_ID)
+                .withSenderClientId(clientId)
                 .withReceiverClientId(DEFAULT_RECEIVER)
-                .withClientId(resolveClientIdFromEncodedStr(clientIdStr))
+                .withServerId(DEFAULT_SERVER_ID)
+                .withClientId(clientId)
                 .withClientOcsp(new RevokedStatus(Date.from(Instant.now().minusSeconds(3600)), CRLReason.unspecified))
                 .build();
         executeRequest(request.createPayload());

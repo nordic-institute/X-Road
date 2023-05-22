@@ -151,7 +151,6 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
         final SecurityServerId serverId = authCertRegRequestType.getServer();
         validateServerId(serverId);
 
-
         if (!Objects.equals(soap.getClient(), serverId.getOwner())) {
             throw new CodedException(X_INVALID_REQUEST, "Sender does not match server owner.");
         }
