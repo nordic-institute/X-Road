@@ -84,9 +84,12 @@
             </tr>
             <tr
               v-for="(subitem, iSub) in item.used_security_servers"
-              :key="item.subsystem_id.subsystem_code + ':' + subitem.server_code"
+              :key="`${item.subsystem_id.subsystem_code}:${subitem.server_code}`"
             >
-              <td v-if="iSub === 0" :rowspan="item.used_security_servers.length">
+              <td
+                v-if="iSub === 0"
+                :rowspan="item.used_security_servers.length"
+              >
                 {{ item.subsystem_id.subsystem_code }}
               </td>
               <td class="xrd-clickable">{{ subitem.server_code }}</td>

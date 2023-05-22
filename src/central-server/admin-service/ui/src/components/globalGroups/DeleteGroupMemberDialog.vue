@@ -119,7 +119,10 @@ export default Vue.extend({
       }
       this.deleting = true;
       this.globalGroupStore
-        .deleteGroupMember(this.groupCode, this.member.client_id.encoded_id || '')
+        .deleteGroupMember(
+          this.groupCode,
+          this.member.client_id.encoded_id || '',
+        )
         .then(() => this.$emit('deleted'))
         .then(() =>
           this.showSuccess(

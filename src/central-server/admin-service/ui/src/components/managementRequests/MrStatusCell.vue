@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="status-wrapper">
+  <div v-if="hasStatus" class="status-wrapper">
     <xrd-status-icon :status="statusIconType" />
     <div class="status-text">{{ getStatusText(status) }}</div>
   </div>
@@ -44,6 +44,9 @@ export default Vue.extend({
   },
 
   computed: {
+    hasStatus(): boolean {
+      return this.status !== undefined;
+    },
     statusIconType(): string {
       if (this.status) {
         switch (this.status) {
