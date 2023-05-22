@@ -47,7 +47,7 @@
         </p>
         <ValidationProvider
           v-slot="{ errors }"
-          :rules="`required|is:${securityServer.server_id .server_code}`"
+          :rules="`required|is:${securityServer.server_id.server_code}`"
           name="securityServerCode"
         >
           <v-text-field

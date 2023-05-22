@@ -269,7 +269,11 @@ export default Vue.extend({
     ) {
       this.loading = true;
       try {
-        await this.globalGroupStore.findMembers(this.groupCode, options, filter);
+        await this.globalGroupStore.findMembers(
+          this.groupCode,
+          options,
+          filter,
+        );
       } catch (error: unknown) {
         this.showError(error);
       } finally {
