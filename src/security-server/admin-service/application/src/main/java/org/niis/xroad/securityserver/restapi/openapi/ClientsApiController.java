@@ -184,11 +184,18 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<Set<Client>> findClients(String name, String instance, String memberClass,
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
             Boolean localValidSignCert, Boolean excludeLocal) {
-        boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
-        boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
-        Set<Client> clients = clientConverter.convert(clientService.findClients(name,
-                instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
-                excludeLocal, localValidSignCert));
+        ClientService.SearchParameters searchParams = ClientService.SearchParameters.builder()
+                .name(name)
+                .instance(instance)
+                .memberClass(memberClass)
+                .memberCode(memberCode)
+                .subsystemCode(subsystemCode)
+                .showMembers(showMembers)
+                .internalSearch(internalSearch)
+                .excludeLocal(excludeLocal)
+                .hasValidLocalSignCert(localValidSignCert)
+                .build();
+        Set<Client> clients = clientConverter.convert(clientService.findClients(searchParams));
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
