@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import lombok.Getter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
+import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +40,7 @@ import java.util.List;
 @Component
 @Getter
 @SuppressWarnings("checkstyle:MagicNumber")
-public class AdminServiceProperties implements IpThrottlingFilterConfig {
+public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig {
 
     /**
      * Controls how many requests from an IP address are allowed per minute.

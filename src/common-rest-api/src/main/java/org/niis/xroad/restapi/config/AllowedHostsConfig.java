@@ -25,21 +25,19 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.core.config;
+package org.niis.xroad.restapi.config;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.util.CollectionUtils;
 
 @Configuration
-@ComponentScan(basePackages = {"org.niis.xroad.cs.admin"})
 public class AllowedHostsConfig {
 
     @Bean
-    public WebSecurityCustomizer webSecurityCustomizer(AdminServiceProperties properties) {
+    public WebSecurityCustomizer webSecurityCustomizer(AllowedHostnamesConfig properties) {
         return web -> {
             if (!CollectionUtils.isEmpty(properties.getAllowedHostnames())) {
                 StrictHttpFirewall firewall = new StrictHttpFirewall();

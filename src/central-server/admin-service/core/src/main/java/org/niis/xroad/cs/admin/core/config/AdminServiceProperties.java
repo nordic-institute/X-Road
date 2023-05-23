@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.config;
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
+import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -48,7 +49,7 @@ import java.util.List;
 @Getter
 @Setter
 @SuppressWarnings("checkstyle:MagicNumber")
-public class AdminServiceProperties implements IpThrottlingFilterConfig {
+public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig {
 
     /**
      * Controls whether the built-in rate limiting is enabled.

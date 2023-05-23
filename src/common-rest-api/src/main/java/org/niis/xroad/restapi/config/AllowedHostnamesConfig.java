@@ -24,27 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.restapi.config;
 
-package org.niis.xroad.securityserver.restapi.config;
+import java.util.List;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.web.firewall.StrictHttpFirewall;
-import org.springframework.util.CollectionUtils;
+public interface AllowedHostnamesConfig {
 
-@Configuration
-public class AllowedHostsConfig {
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer(AdminServiceProperties properties) {
-        return web -> {
-            if (!CollectionUtils.isEmpty(properties.getAllowedHostnames())) {
-                StrictHttpFirewall firewall = new StrictHttpFirewall();
-                firewall.setAllowedHostnames(properties.getAllowedHostnames()::contains);
-                web.httpFirewall(firewall);
-            }
-        };
-    }
+    /**
+     * Determines which hostnames are allowed. Any hostname is allowed when left unspecified.
+     */
+    List<String> getAllowedHostnames();
 
 }
