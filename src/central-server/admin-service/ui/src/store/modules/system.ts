@@ -56,7 +56,9 @@ export const systemStore = defineStore('systemStore', {
       } as SystemStatus,
     };
   },
-  persist: true,
+  persist: {
+    storage: localStorage,
+  },
   getters: {
     getServerVersion(state) {
       return state.serverVersion;

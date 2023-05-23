@@ -34,7 +34,6 @@ import { mainTabs } from '@/global';
 import { get } from '@/util/api';
 
 export const userStore = defineStore('userStore', {
-  persist: true,
   state: () => {
     return {
       authenticated: false,
@@ -43,6 +42,9 @@ export const userStore = defineStore('userStore', {
       permissions: [] as string[],
       count: 0,
     };
+  },
+  persist: {
+    storage: localStorage,
   },
   getters: {
     getUsername(): string {
