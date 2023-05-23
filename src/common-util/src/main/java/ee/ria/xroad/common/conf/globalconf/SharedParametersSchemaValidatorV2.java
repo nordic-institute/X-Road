@@ -38,10 +38,10 @@ import java.io.StringReader;
  * Schema validator of shared parameters.
  */
 public class SharedParametersSchemaValidatorV2 extends SchemaValidator {
-    private static Schema schema;
+    private static final Schema SCHEMA = createSchema("globalconf/shared-parameters.xsd");
 
-    static {
-        schema = createSchema("globalconf/shared-parameters.xsd");
+    public static Schema getSchema() {
+        return SCHEMA;
     }
 
     /**
@@ -59,6 +59,6 @@ public class SharedParametersSchemaValidatorV2 extends SchemaValidator {
      * @throws Exception if validation fails
      */
     public static void validate(Source source) throws Exception {
-        validate(schema, source, ErrorCodes.X_MALFORMED_GLOBALCONF);
+        validate(SCHEMA, source, ErrorCodes.X_MALFORMED_GLOBALCONF);
     }
 }

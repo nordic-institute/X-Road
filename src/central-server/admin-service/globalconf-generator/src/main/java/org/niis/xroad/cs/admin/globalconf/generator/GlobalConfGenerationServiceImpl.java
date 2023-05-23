@@ -174,12 +174,12 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     }
 
     private void writeDirectoryContentFile(ConfigurationDistributor configDistributor,
-                                           Set<ConfigurationPart> internalConfigurationParts,
-                                           ConfigurationSigningKey internalSigningKey,
+                                           Set<ConfigurationPart> configurationParts,
+                                           ConfigurationSigningKey signingKey,
                                            String fileName) {
-        String signedDirectory = createSignedDirectory(internalConfigurationParts,
+        String signedDirectory = createSignedDirectory(configurationParts,
                 "/" + configDistributor.getSubPath().toString(),
-                internalSigningKey);
+                signingKey);
         configDistributor.writeDirectoryContentFile(fileName, signedDirectory.getBytes(UTF_8));
     }
 
@@ -201,11 +201,10 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
         return directoryContentSigner.createSignedDirectory(directoryContent, signingKey.getKeyIdentifier(), signingKey.getCert());
     }
 
-    private List<ConfigurationPart> generateAndSaveConfiguration() {
+    private void generateAndSaveConfiguration() {
         var configurationParts = generateConfiguration();
         configurationParts.forEach(gp -> configurationService
                 .saveConfigurationPart(gp.getContentIdentifier(), gp.getFilename(), gp.getData(), CONFIGURATION_VERSION));
-        return configurationParts;
     }
 
     private Set<ConfigurationPart> toConfigurationParts(Set<DistributedFile> configurationFiles) {
