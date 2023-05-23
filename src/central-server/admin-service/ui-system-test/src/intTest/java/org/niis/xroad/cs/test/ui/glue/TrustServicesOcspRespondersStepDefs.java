@@ -44,7 +44,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
 
     @Step("OCSP responders tab is selected")
     public void ocspRespondersTabIsSelected() {
-        trustServicesPageObj.certServiceDetails.tabOcspResponders().click();
+        trustServicesPageObj.certServiceDetails.tabOcspResponders().scrollIntoView(false).click();
     }
 
     @Step("OCSP responder with URL {} is added")
