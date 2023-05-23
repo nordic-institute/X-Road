@@ -28,8 +28,11 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import lombok.Getter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
+import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Admin service configuration properties.
@@ -37,7 +40,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Getter
 @SuppressWarnings("checkstyle:MagicNumber")
-public class AdminServiceProperties implements IpThrottlingFilterConfig {
+public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig {
 
     /**
      * Controls how many requests from an IP address are allowed per minute.
@@ -67,6 +70,12 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig {
      * Controls how long the rate-limit cache entries are valid.
      */
     private final int rateLimitExpireAfterAccessMinutes = 5;
+
+    /**
+     * Determines which hostnames are allowed. Any hostname is allowed when left unspecified.
+     */
+    @Value("${allowed.hostnames:}")
+    private List<String> allowedHostnames;
 
 }
 
