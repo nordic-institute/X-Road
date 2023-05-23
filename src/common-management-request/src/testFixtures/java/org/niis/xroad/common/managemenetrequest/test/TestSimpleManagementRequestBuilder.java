@@ -27,7 +27,6 @@
 package org.niis.xroad.common.managemenetrequest.test;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import lombok.SneakyThrows;
@@ -44,15 +43,10 @@ import static ee.ria.xroad.common.TestCertUtil.getKeyPairGenerator;
 public class TestSimpleManagementRequestBuilder {
     private static final KeyPairGenerator KEY_PAIR_GENERATOR = getKeyPairGenerator();
 
-    private SecurityServerId.Conf serverId;
     private ClientId.Conf receiverClientId;
+    private ClientId.Conf senderClientId;
 
     private SoapMessageBuilder soapMessageBuilder;
-
-    public TestSimpleManagementRequestBuilder withServerId(SecurityServerId.Conf serverId) {
-        this.serverId = serverId;
-        return this;
-    }
 
     public TestSimpleManagementRequestBuilder withReceiverClientId(ClientId.Conf receiverClientId) {
         this.receiverClientId = receiverClientId;
@@ -64,9 +58,14 @@ public class TestSimpleManagementRequestBuilder {
         return this;
     }
 
+    public TestSimpleManagementRequestBuilder withSenderClientId(ClientId.Conf senderClientId) {
+        this.senderClientId = senderClientId;
+        return this;
+    }
+
     @SneakyThrows
     public TestSimpleManagementRequest build() {
-        var builder = new TestManagementRequestBuilder(serverId.getOwner(), receiverClientId);
+        var builder = new TestManagementRequestBuilder(senderClientId, receiverClientId);
 
         return new TestSimpleManagementRequest(soapMessageBuilder.build(KEY_PAIR_GENERATOR, builder));
     }
