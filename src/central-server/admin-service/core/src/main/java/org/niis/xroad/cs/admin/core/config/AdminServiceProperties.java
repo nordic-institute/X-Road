@@ -32,6 +32,8 @@ import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 /**
  * Admin service configuration properties.
  *
@@ -85,5 +87,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig {
      * Controls how long the rate-limit cache entries are valid.
      */
     private int rateLimitExpireAfterAccessMinutes = 5;
+
+    /**
+     * Determines which hostnames are allowed. Any hostname is allowed when left unspecified.
+     */
+    private List<String> allowedHostnames;
 
 }
