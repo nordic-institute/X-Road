@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.controller;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
@@ -61,6 +62,8 @@ class ApiKeysControllerTest extends AbstractSpringMvcTest {
     private ApiKeyService apiKeyService;
     @MockBean
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
+    @MockBean
+    private AllowedHostnamesConfig allowedHostnamesConfig;
 
     private static final String AUTHORITY_WRONG = "AUTHORITY_WRONG";
     private static final String AUTHORITY_CREATE_API_KEY = "CREATE_API_KEY";
