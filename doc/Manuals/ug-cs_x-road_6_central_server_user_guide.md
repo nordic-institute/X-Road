@@ -225,7 +225,7 @@ Access rights: System Administrator
 
 To create API key, follow these steps.
 
-1. On the Navigation tabs, select Settings --> API Keys, click Create API key.
+1. In the Navigation tabs, select Settings --> API Keys, click Create API key.
 2. In the window that opens, check selected roles checkbox and then click Next.
 3. In the next window click Create Key.
 4. Copy and save the API key in a secure place. _The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later_.
@@ -233,13 +233,13 @@ To create API key, follow these steps.
 
 To edit API key related roles, follow these steps.
 
-1. On the Navigation tabs, select Settings --> API Keys.
+1. In the Navigation tabs, select Settings --> API Keys.
 2. Select a API key and click Edit.
 3. In the window that opens, check selected roles checkbox and click Save.
 
 To revoke API key from roles, follow these steps.
 
-1. On the Navigation tabs, select Settings --> API Keys.
+1. In the Navigation tabs, select Settings --> API Keys.
 2. Select a API key and click Revoke key. 
 3. Confirm the revoking by clicking Yes.
 
@@ -273,19 +273,19 @@ Access rights: Security Officer
 
 To add a member class, follow these steps.
 
-1. On the Navigation tabs, select Settings --> System Settings.
+1. In the Navigation tabs, select Settings --> System Settings.
 2. Locate the Member Classes section and click Add.
 3. In the window that opens, enter the member class code and description. Click Save.
 
 To edit the description of a member class, follow these steps.
 
-1. On the Navigation tabs, select Settings --> System Settings.
+1. In the Navigation tabs, select Settings --> System Settings.
 2. Locate the Member Classes section, select a member class and click Edit.
 3. In the window that opens, enter the member class description and click Save.
 
 To delete a member class, follow these steps.
 
-1. On the Navigation tabs, select Settings --> System Settings.
+1. In the Navigation tabs, select Settings --> System Settings.
 2. Locate the Member Classes section, select a member class and click Yes.
 
 Only the member classes that are used by none of the X-Road members can be deleted.
@@ -304,7 +304,7 @@ Access rights: Security Officer
 
 To appoint the management service provider in the central server, follow these steps.
 
-1. On the Navigation tabs, select Settings --> System Settings.
+1. In the Navigation tabs, select Settings --> System Settings.
 2. Locate the Management Services section and click Edit on the Service Provider Identifier field.
 3. In the window that opens, find the subsystem of an X-Road member to be appointed as the management service provider and check the subsystem checkbox and then click Select.
 
@@ -314,7 +314,7 @@ The management service provider can be registered as a security server client as
 
 To register the appointed management service provider as a security server client to the management services’ security server, follow these steps.
 
-1. On the Navigation tabs, select Settings --> System Settings.
+1. In the Navigation tabs, select Settings --> System Settings.
 2. Locate the Management Services section and click Edit button next to the identifier of the Management Services' Security Server.
 3. In the window that opens, find the security server that will be used as the management services’ security server and check checkbox.
 4. Click Select button to submit the registration request.
@@ -329,7 +329,7 @@ The data necessary for configuring the management services in the security serve
 
 To configure management services in the management services’ security server, follow these steps.
 
-1. On the Clients tab of the security server, select the client who will provide the management services. On the details view click Services sub-tab.
+1. In the Clients tab of the security server, select the client who will provide the management services. On the details view click Services sub-tab.
 2. Click Add WSDL, enter the management services WSDL address in the window that opens and click Add.
 3. Expand the WSDL, by clicking the > icon, select a service by click Service Code.
 4. In the window that opens, enter the management services address. If necessary, edit other service parameters. Check the Apply to All in WSDL checkbox and click Save. Ensure that the parameters of all the management services have changed.
@@ -362,7 +362,7 @@ In an HA setup, internal and external configuration anchors contain information 
 
 To change the central server address, follow these steps.
 
-1. On the Navigation tabs, select Settings --> System Settings.
+1. In the Navigation tabs, select Settings --> System Settings.
 2. Locate the System Parameters section and click Edit.
 3. Enter the central server’s address and click Save. When the address is changed, the system:
   - changes the management services WSDL address,
@@ -391,7 +391,7 @@ Access rights: Security Officer
 
 To download a configuration anchor, follow these steps.
 
-1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
+1. In the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Anchor section, click Download and save the prompted file.
 
 ## 5.3 Re-Creating the Configuration Anchor
@@ -402,7 +402,7 @@ Normally, the configuration anchors are generated (and in an HA setup, distribut
 
 To re-create an anchor, follow these steps.
 
-1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
+1. In the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Anchor section, click Re-create.
 
 ## 5.4 Changing the Configuration Signing Keys
@@ -439,7 +439,7 @@ Access rights: Security Officer
 
 To generate a configuration signing key, follow these steps.
 
-1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
+1. In the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Signing Keys section, expand the token's information by clicking the caret next to the token name and then click Add key.
 3. In a window that opens, insert signing key friendly name, and click Add.
 4. Add key button is only active when the token has been logged in to.
@@ -453,7 +453,7 @@ Access rights: Security Officer
 
 To activate a configuration signing key, follow these steps.
 
-1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
+1. In the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Signing Keys section, expand the token's information by clicking the caret next to the token name and select an inactive key (only for an inactive key are the Activate and Delete buttons displayed) and click Activate.
 
 ### 5.4.3 Deleting a Configuration Signing Key
@@ -462,7 +462,7 @@ Access rights: Security Officer
 
 To delete a configuration signing key, follow these steps.
 
-1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
+1. In the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Signing Keys section,expand the token's information by clicking the caret next to the token name and select an inactive key (only for an inactive key are the Activate and Delete buttons displayed) and click Delete.
 3. Confirm the deletion by clicking Confirm.
 
@@ -474,7 +474,7 @@ The contents of a configuration part can be viewed by downloading the configurat
 
 To download or upload a configuration file, follow these steps.
 
-1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate
+1. In the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate
 2. In the Configuration Parts section, select a configuration part file and click Download or Upload
 
 ## 5.6 Uploading a Trusted Anchor
@@ -483,7 +483,7 @@ Access rights: Security Officer
 
 To upload a trusted anchor, follow these steps.
 
-1. On the Navigation tabs, select Global Configuration and select the Trusted Anchors sub-tab.
+1. In the Navigation tabs, select Global Configuration and select the Trusted Anchors sub-tab.
 2. Click Upload button, find the external configuration anchor received from a federation partner and click Open.
 3. Verify the integrity of the anchor file by comparing the displayed anchor file hash value with the hash value provided by the federation partner and confirm the anchor upload by clicking Confirm.
 
@@ -496,7 +496,7 @@ Access rights: Security Officer, System Administrator
 The contents of a trusted anchor can be viewed by downloading the anchor file.
 To download an anchor file, follow these steps.
 
-1. On the Navigation tabs, select Global Configuration and select the Trusted Anchors sub-tab.
+1. In the Navigation tabs, select Global Configuration and select the Trusted Anchors sub-tab.
 2. In an anchor section, click Download.
 3. Save or open the prompted file.
 
@@ -505,7 +505,7 @@ To download an anchor file, follow these steps.
 Access rights: Security Officer
 
 To delete an anchor file, follow these steps.
-1. On the Navigation tabs, select Global Configuration and select the Trusted Anchors sub-tab.
+1. In the Navigation tabs, select Global Configuration and select the Trusted Anchors sub-tab.
 2. In the anchor section, click Delete.
 3. Confirm the deletion by clicking Yes.
 
@@ -567,7 +567,7 @@ Deletion requests are
 Access rights: Registration Officer
 
 To open the detail view, follow these steps.
-1. On the Management Requests tab.
+1. In the Management Requests tab.
 2. Select from the table a request and click Id field.
 3. Uncheck "Show only pending requests" checkbox, if you want to see all requests.
 
@@ -606,7 +606,7 @@ There are three data sections in the view.
 Access rights: Registration Officer
 
 To add a new X-Road member, follow these steps.
-1. On the Members tab, click Add member.
+1. In the Members tab, click Add member.
 2. In the window that opens, enter the member's information and click Add. The new member appears in the list of members.
 
 ## 7.2 Viewing the Member Details
@@ -614,7 +614,7 @@ To add a new X-Road member, follow these steps.
 Access rights: Registration Officer
 
 To open the detail view, follow these steps.
-1. On the Members tab.
+1. In the Members tab.
 2. Select from the table an X-Road member and click members name.
 
 The view consists of five sections and a tab Subsystems.
@@ -630,7 +630,7 @@ The view consists of five sections and a tab Subsystems.
 Access rights: Registration Officer
 
 To add a subsystem to an X-Road member, follow these steps.
-1. On the Members tab, select the member to whom you wish to add a subsystem and click members name.
+1. In the Members tab, select the member to whom you wish to add a subsystem and click members name.
 2. In the view that opens, locate the Subsystems tab and click Add new subsystem to database.
 3. Enter the code of the subsystem and click Add.
 
@@ -651,7 +651,7 @@ To approve a request, it can be done either through in the Management request vi
 
 On the approval of the request
 - the request moves to the "Approved" state;
-- the registered security server appears both in the "Owned Servers" section of its owner’s detail view and in the list of security servers (on the Security Servers tab);
+- the registered security server appears both in the "Owned Servers" section of its owner’s detail view and in the list of security servers (in the Security Servers tab);
 - the security server's owner is added to the global "security-server-owners" group.
 
 To decline a request, it can be done either through in the Management request view list or in the Management request details view.
@@ -692,7 +692,7 @@ The association between the security server's owner and the security server cann
 Removing a client from the security server clients can be carried out through a member's detail view.
 
 To submit a security server client deletion request through a member's detail view, follow these steps.
-1. On the Members tab, select the member whose subsystem is to be removed from a security server and click members name.
+1. In the Members tab, select the member whose subsystem is to be removed from a security server and click members name.
 2. In the window that opens, select Subsystems tab and select the client subsystem, and click Unregister.
 3. Review the information displayed on the client deletion request and click Delete to submit the request.
 
@@ -718,7 +718,7 @@ Access rights: Registration Officer
 In the central server, the X-Road member's subsystem can be deleted only if the subsystem is not associated with any security servers, that is, not registered as a client of any security servers.
 
 To delete an X-Road member's subsystem, follow these steps.
-1. On the Members tab, select the member whose subsystem you wish to delete and click members name.
+1. In the Members tab, select the member whose subsystem you wish to delete and click members name.
 2. In the window that opens, select Subsystems tab and select the client subsystem, and click Delete. Note: The "Delete" button is displayed only if the subsystem is not a client of any security servers.
 
 ## 7.9 Deleting an X-Road Member
@@ -728,7 +728,7 @@ Access rights: Registration Officer
 When an X-Road member is deleted, information about all security servers in its ownership will be deleted as well.
 
 To delete an X-Road member, follow these steps.
-1. On the Members tab, select a member that you wish to delete, and click members name.
+1. In the Members tab, select a member that you wish to delete, and click members name.
 2. In the view that opens, click Delete member "\<member name\>". In the confirmation window that opens, enter member code and click Delete.
 
 # 8. Managing the Security Servers
@@ -736,8 +736,8 @@ To delete an X-Road member, follow these steps.
 
 Access rights: Registration Officer
 
-To open the detail view, follow these steps. On the Members tab, select a member that you wish to delete, and click members name.
-1. On the Security Servers tab.
+To open the detail view, follow these steps. In the Members tab, select a member that you wish to delete, and click members name.
+1. In the Security Servers tab.
 2. Choose from the table a security server and click server code.
 
 The view contains three sections.
@@ -758,7 +758,7 @@ There are several reasons why setting the security server’s address matters.
 - By registering the addresses of security servers, the service clients are certain to receive a response to their queries in a reasonable time, even if the relaying security server is overloaded with service requests (e.g., the requests from addresses belonging to registered security servers are served before requests coming from unknown addresses).
 
 To change the security server address, follow these steps.
-1. On the Security Servers tab, select the security server whose address you wish to change and click server code.
+1. In the Security Servers tab, select the security server whose address you wish to change and click server code.
 2. In the view that opens, locate the "Address" section and click Edit adjacent to the "Address" field.
 3. Enter the security server's address and click Save.
 
@@ -791,7 +791,7 @@ Access rights: Registration Officer
 The authentication certificate registered for a security server is deleted when an authentication certificate deletion request is received for that certificate. The request can be submitted through the security server or in the central server.
 
 To submit an authentication certificate deletion request in the central server, follow these steps.
-1. On the Security Servers tab, select the security server whose certificate you wish to delete and click server code.
+1. In the Security Servers tab, select the security server whose certificate you wish to delete and click server code.
 2. In the view that opens, locate the Authentication Certificates section, find the correct authentication certificate and click Delete.
 3. Review the information displayed on the deletion request and enter security server code and click Delete to submit the request.
 4. The submitted request appears in the management requests view (Management Requests tab).
@@ -801,7 +801,7 @@ To submit an authentication certificate deletion request in the central server, 
 Access rights: Registration Officer
 
 To delete a security server, follow these steps.
-1. On the Security Servers tab, select the security server that you wish to delete and click server code.
+1. In the Security Servers tab, select the security server that you wish to delete and click server code.
 2. In the view that opens, on the bottom left, click Delete Security Server "\<server code\>". Confirm the action by entering security server code and clicking Delete.
 
 If the security server being deleted has registered clients or authentication certificates, deletion requests for those associations are automatically generated.
@@ -812,7 +812,7 @@ If the security server being deleted has registered clients or authentication ce
 Access rights: Registration Officer
 
 To add a new global group, follow these steps.
-1. On the Navigation tabs, select Settings --> Global Resources and click Add Global Group.
+1. In the Navigation tabs, select Settings --> Global Resources and click Add Global Group.
 2. In the window that opens, enter the new group's code and description, and click Add. The new group is added to the list of global groups.
 
 ## 9.2 Viewing the Global Group Details
@@ -820,7 +820,7 @@ To add a new global group, follow these steps.
 Access rights: Registration Officer
 
 To see the details of a global group, follow these steps.
-1. On the Navigation tabs, select Settings --> Global Resources.
+1. In the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click code.
 
 In the global group detail view, a list of the group's members is displayed. The detail view allows you to change the group's description, delete the group, and add or remove its members.
@@ -830,7 +830,7 @@ In the global group detail view, a list of the group's members is displayed. The
 Access rights: Registration Officer
 
 To change the description of a global group, follow these steps.
-1. On the Navigation tabs, select Settings --> Global Resources.
+1. In the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click its Code.
 3. In the view that opens, click Edit, change the group’s description and click Save.
 
@@ -841,13 +841,13 @@ Access rights: Registration Officer
 Note that the members of the global group security-server-owners are managed automatically by the central server and cannot be added or removed manually.
 
 To add subsystems of X-Road members to a global group, follow these steps.
-1. On the Navigation tabs, select Settings --> Global Resources.
+1. In the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click its Code.
 3. In the view that opens, click Add Members.
 4. Select one or more subsystems from the list and click Add. Or filter a selection of subsystems with the search function.
 
 To remove members from a group, follow these steps.
-1. On the Navigation tabs, select Settings --> Global Resources.
+1. In the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click its Code.
 3. Click Remove button on the selected subsystem row.
 4. In the confirmation window that opens, enter the member code and then click Delete.
@@ -857,7 +857,7 @@ To remove members from a group, follow these steps.
 Access rights: Registration Officer
 
 To delete a global group, follow these steps.
-1. On the Navigation tabs, select Settings --> Global Resources.
+1. In the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click its Code.
 3. In the view that opens, click Delete Group and in the confirmation window click Yes.
 
@@ -867,7 +867,7 @@ To delete a global group, follow these steps.
 Access rights: System Administrator
 
 To add a certification service, follow these steps.
-1. On the Trust Services tab, click Add certification service
+1. In the Trust Services tab, click Add certification service
 2. Locate the certification service CA certificate file and click Upload.
 3. Set the certification service settings as follows.
   - If the certification service issues only authentication certificates, check the This CA can only be used for TLS authentication checkbox. However, if the certification service issues additionally or only signing certificates, leave the checkbox empty.
@@ -890,7 +890,7 @@ While it is not possible to change the certification service's CA certificate, i
 - add, change, and delete the certificates and OCSP service information of intermediate CAs.
 
 To edit a certification service, follow these steps.
-1. On the Trust Services tab, select Certification Services.
+1. In the Trust Services tab, select Certification Services.
 2. Select from the list the certification service you want to edit and click on the approved certification service field.
 
 ## 10.3 Deleting an Approved Certification Service
@@ -898,7 +898,7 @@ To edit a certification service, follow these steps.
 Access rights: System Administrator
 
 To delete a certification service from the list of approved services, follow these steps.
-1. On the Trust Services tab, select Certification Services.
+1. In the Trust Services tab, select Certification Services.
 2. Select from the list the approved certification service you wish to remove and click on the approved certification service field.
 3. In the window that opens, click Delete trust service "\<certification service name\>" and in the confirmation window click Yes.
 
@@ -908,7 +908,7 @@ To delete a certification service from the list of approved services, follow the
 Access rights: System Administrator
 
 To add an approved timestamping service, follow these steps.
-1. On the Trust Services tab, click Add timestamping service.
+1. In the Trust Services tab, click Add timestamping service.
 2. In the window that opens, enter the timestamping service URL and locate the certificate file of the timestamping service and click Add.
 3. Information about the new timestamping service appears in the list.
 
@@ -917,7 +917,7 @@ To add an approved timestamping service, follow these steps.
 Access rights: System Administrator
 
 To change the timestamping service, follow these steps.
-1. On the Trust Services tab, select Timestamping Services, select a timestamping service from the list and click Edit.
+1. In the Trust Services tab, select Timestamping Services, select a timestamping service from the list and click Edit.
 2. In the window that opens, edit the URL and/or upload new certificate. Click Save.
 
 ## 11.3 Deleting an Approved Timestamping Service
@@ -925,7 +925,7 @@ To change the timestamping service, follow these steps.
 Access rights: System Administrator
 
 To remove a timestamping service, follow these steps.
-1. On the Trust Services tab, select Timestamping Services, select a timestamping service from the list and click Delete.
+1. In the Trust Services tab, select Timestamping Services, select a timestamping service from the list and click Delete.
 2. In the window that opens, click Yes.
 
 # 12. Configuration Backup and Restore
@@ -943,14 +943,14 @@ Central server backups are signed and optionally encrypted. The GNU Privacy Guar
 ## 12.1 Backing Up the System Configuration
 
 To back up the configuration, follow these steps.
-1. On the Settings tab, select Back Up and Restore sub-tab.
+1. In the Settings tab, select Back Up and Restore sub-tab.
 2. Click Back up config. to start the backup process.
 3. When done, the configuration backup file appears in the list of configuration backup files.
 
 ## 12.2 Restoring the System Configuration in the User Interface
 
 To restore configuration, follow these steps.
-1. On the Settings tab, select Back Up and Restore sub-tab.
+1. In the Settings tab, select Back Up and Restore sub-tab.
 2. Select a file from the list of configuration backup files and click Restore.
 3. Confirm to proceed.
 4. A popup notification shows after the restore whether the restoring was successful or not.
