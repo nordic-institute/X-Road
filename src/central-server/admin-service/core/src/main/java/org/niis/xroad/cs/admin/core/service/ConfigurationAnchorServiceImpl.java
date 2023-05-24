@@ -149,17 +149,6 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         return new ConfigurationAnchor(anchorXmlHash, now.toInstant());
     }
 
-    @Override
-    public void recreateAnchorIgnoringMissingSigningKeys(ConfigurationSourceType configurationType) {
-        try {
-            recreateAnchor(configurationType);
-        } catch (ServiceException e) {
-            if (!NO_CONFIGURATION_SIGNING_KEYS_CONFIGURED.getCode().equals(e.getErrorDeviation().getCode())) {
-                throw e;
-            }
-        }
-    }
-
     private String buildAnchorXml(final ConfigurationSourceType configurationType,
                                   final String instanceIdentifier,
                                   final ZonedDateTime now,

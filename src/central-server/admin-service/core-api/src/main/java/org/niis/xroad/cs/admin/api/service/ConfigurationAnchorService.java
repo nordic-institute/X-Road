@@ -39,6 +39,4 @@ public interface ConfigurationAnchorService {
     Optional<ConfigurationAnchorWithFile> getConfigurationAnchorWithFile(ConfigurationSourceType sourceType);
 
     ConfigurationAnchor recreateAnchor(ConfigurationSourceType configurationType);
-
-    void recreateAnchorIgnoringMissingSigningKeys(ConfigurationSourceType configurationType);
 }
