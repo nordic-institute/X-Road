@@ -63,8 +63,9 @@ public class ClientDeletionRequestEntity extends RequestEntity {
 
     public ClientDeletionRequestEntity(Origin origin,
                                        SecurityServerId serverId,
-                                       ee.ria.xroad.common.identifier.ClientId clientId) {
-        super(origin, serverId);
+                                       ee.ria.xroad.common.identifier.ClientId clientId,
+                                       String comments) {
+        super(origin, serverId, comments);
         this.clientId = ClientIdEntity.ensure(clientId);
     }
 }

@@ -27,14 +27,12 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 
-import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
-import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
@@ -73,13 +71,14 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
         final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final ClientIdEntity clientId = clientIds.findOne(ClientIdEntity.ensure(request.getClientId()));
 
-        final var requestEntity = new ClientDeletionRequestEntity(request.getOrigin(), serverId, clientId);
-
         final SecurityServerEntity securityServer = servers.findBy(serverId, clientId).getOrElseThrow(() ->
                 new SecurityServerNotFoundException(serverId));
 
         final SecurityServerClientEntity client = clients.findOneBy(clientId).getOrElseThrow(() ->
                 new NotFoundException(MR_CLIENT_REGISTRATION_NOT_FOUND));
+
+        final var requestEntity = new ClientDeletionRequestEntity(request.getOrigin(), serverId, clientId, request.getComments());
+        final var persistedRequest = requests.save(requestEntity);
 
         securityServer.getServerClients()
                 .stream()
@@ -92,14 +91,8 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
          * and if there is a registration, there can not be pending requests (unless there is a concurrency issue
          * that should be addressed).
          */
-        return Option.of(requestEntity)
-                .map(RequestEntity::getOrigin)
-                .flatMap(origin -> Option.of(serverId)
-                        .map(serverIds::findOne)
-                        .map(dbSecurityServerId -> new ClientDeletionRequestEntity(origin, dbSecurityServerId, clientId)))
-                .map(requests::save)
-                .map(requestMapper::toDto)
-                .get();
+
+        return requestMapper.toDto(persistedRequest);
     }
 
     @Override

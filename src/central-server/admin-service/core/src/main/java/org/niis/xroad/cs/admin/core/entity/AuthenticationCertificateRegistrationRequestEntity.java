@@ -67,13 +67,13 @@ public class AuthenticationCertificateRegistrationRequestEntity extends RequestW
         return ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
     }
 
-    public AuthenticationCertificateRegistrationRequestEntity(Origin origin, SecurityServerId serverId) {
-        super(origin, serverId, new AuthenticationCertificateRegistrationRequestProcessingEntity());
+    public AuthenticationCertificateRegistrationRequestEntity(Origin origin, SecurityServerId serverId, String comments) {
+        super(origin, serverId, comments, new AuthenticationCertificateRegistrationRequestProcessingEntity());
     }
 
-    public AuthenticationCertificateRegistrationRequestEntity(Origin origin,
+    public AuthenticationCertificateRegistrationRequestEntity(Origin origin, String comments,
                                                               AuthenticationCertificateRegistrationRequestEntity other) {
-        super(origin, other.getSecurityServerId(), other.getRequestProcessing());
+        super(origin, other.getSecurityServerId(), comments, other.getRequestProcessing());
     }
 
 }

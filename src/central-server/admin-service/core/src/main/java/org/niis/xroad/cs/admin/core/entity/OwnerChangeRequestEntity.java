@@ -55,8 +55,8 @@ public class OwnerChangeRequestEntity extends RequestWithProcessingEntity {
         // JPA
     }
 
-    public OwnerChangeRequestEntity(Origin origin, SecurityServerIdEntity serverId, ClientIdEntity clientId) {
-        super(origin, serverId, new OwnerChangeRequestProcessingEntity());
+    public OwnerChangeRequestEntity(Origin origin, SecurityServerIdEntity serverId, ClientIdEntity clientId, String comments) {
+        super(origin, serverId, comments, new OwnerChangeRequestProcessingEntity());
         this.clientId = clientId;
     }
 

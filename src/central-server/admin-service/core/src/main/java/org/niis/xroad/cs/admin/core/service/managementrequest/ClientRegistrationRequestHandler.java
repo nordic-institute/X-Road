@@ -129,20 +129,18 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
         ClientRegistrationRequestEntity req;
         switch (pending.size()) {
             case 0:
-                req = new ClientRegistrationRequestEntity(origin, serverId, clientId);
+                req = new ClientRegistrationRequestEntity(origin, serverId, clientId, request.getComments());
                 break;
             case 1:
                 ClientRegistrationRequestEntity anotherReq = pending.get(0);
                 if (anotherReq.getOrigin().equals(request.getOrigin())) {
-                    throw new DataIntegrityException(MR_EXISTS,
-                            valueOf(anotherReq.getId()));
+                    throw new DataIntegrityException(MR_EXISTS, valueOf(anotherReq.getId()));
                 }
-                req = new ClientRegistrationRequestEntity(origin, anotherReq);
+                req = new ClientRegistrationRequestEntity(origin, request.getComments(), anotherReq);
                 req.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
                 break;
             default:
                 throw new DataIntegrityException(MR_EXISTS);
-
         }
 
         var persistedRequest = clientRegRequests.save(req);
