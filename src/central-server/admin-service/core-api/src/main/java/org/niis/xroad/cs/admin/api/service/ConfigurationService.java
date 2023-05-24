@@ -36,6 +36,8 @@ import java.util.Set;
 
 public interface ConfigurationService {
 
+    boolean hasSigningKeys(ConfigurationSourceType sourceType);
+
     Set<ConfigurationParts> getConfigurationParts(ConfigurationSourceType sourceType);
 
     File getConfigurationPartFile(String contentIdentifier, int version);

@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
+import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.rest.api.converter.model.InitializationStatusDtoConverter;
@@ -58,10 +59,11 @@ public class SystemApiController implements SystemApi {
 
     private final InitializationService initializationService;
     private final SystemParameterService systemParameterService;
+    private final ConfigurationAnchorService configurationAnchorService;
+    private final ConfigurationService configurationService;
     private final AuditDataHelper auditDataHelper;
     private final HAConfigStatus currentHaConfigStatus;
     private final InitializationStatusDtoConverter initializationStatusDtoConverter;
-    private final ConfigurationAnchorService configurationAnchorService;
 
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
     public ResponseEntity<SystemStatusDto> getSystemStatus() {
@@ -88,7 +90,9 @@ public class SystemApiController implements SystemApi {
         systemParameterService.updateOrCreateParameter(SystemParameterService.CENTRAL_SERVER_ADDRESS,
                 centralServerAddress.getCentralServerAddress());
 
-        Arrays.stream(ConfigurationSourceType.values()).forEach(configurationAnchorService::recreateAnchorIgnoringMissingSigningKeys);
+        Arrays.stream(ConfigurationSourceType.values())
+                .filter(configurationService::hasSigningKeys)
+                .forEach(configurationAnchorService::recreateAnchor);
 
         return getSystemStatusResponseEntity();
     }

@@ -47,6 +47,7 @@ import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
+import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
 import org.niis.xroad.cs.admin.core.validation.ConfigurationPartValidator;
@@ -90,10 +91,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final SystemParameterService systemParameterService;
     private final HAConfigStatus haConfigStatus;
     private final ConfigurationSourceRepository configurationSourceRepository;
+    private final ConfigurationSigningKeyRepository configurationSigningKeyRepository;
     private final DistributedFileRepository distributedFileRepository;
     private final DistributedFileMapper distributedFileMapper;
     private final AuditDataHelper auditDataHelper;
     private final ConfigurationPartValidator configurationPartValidator;
+
+    @Override
+    public boolean hasSigningKeys(final ConfigurationSourceType sourceType) {
+        return configurationSigningKeyRepository
+                .countSigningKeysForSourceType(sourceType.name().toLowerCase(), haConfigStatus.getCurrentHaNodeName()) > 0;
+    }
 
     @Override
     public Set<ConfigurationParts> getConfigurationParts(ConfigurationSourceType sourceType) {

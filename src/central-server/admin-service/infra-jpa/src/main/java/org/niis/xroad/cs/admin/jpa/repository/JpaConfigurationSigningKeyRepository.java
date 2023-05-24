@@ -43,4 +43,10 @@ public interface JpaConfigurationSigningKeyRepository
             + "WHERE cs.sourceType = :sourceType "
             + "AND (:haNodeName is null OR cs.haNodeName = :haNodeName)")
     Optional<ConfigurationSigningKeyEntity> findActiveForSource(String sourceType, String haNodeName);
+
+    @Override
+    @Query("SELECT count(sk.id) FROM ConfigurationSigningKeyEntity sk "
+            + "WHERE sk.configurationSource.sourceType = :sourceType "
+            + "AND (:haNodeName is null OR sk.configurationSource.haNodeName = :haNodeName)")
+    int countSigningKeysForSourceType(String sourceType, String haNodeName);
 }

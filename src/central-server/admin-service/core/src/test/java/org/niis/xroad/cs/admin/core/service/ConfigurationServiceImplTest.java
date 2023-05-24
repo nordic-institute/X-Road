@@ -46,11 +46,13 @@ import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapperImpl;
+import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
 import org.niis.xroad.cs.admin.core.validation.ConfigurationPartValidator;
@@ -107,9 +109,12 @@ class ConfigurationServiceImplTest {
     private AuditDataHelper auditDataHelper;
     @Mock
     private ConfigurationPartValidator configurationPartValidator;
+    @Mock
+    private ConfigurationService configurationService;
     @Spy
     private DistributedFileMapper distributedFileMapper = new DistributedFileMapperImpl();
-    private ConfigurationServiceImpl configurationService;
+    @Mock
+    private ConfigurationSigningKeyRepository configurationSigningKeyRepository;
     private ConfigurationServiceImpl configurationServiceHa;
 
     @BeforeEach
@@ -229,6 +234,7 @@ class ConfigurationServiceImplTest {
                 systemParameterService,
                 haConfigStatus,
                 configurationSourceRepository,
+                configurationSigningKeyRepository,
                 distributedFileRepository,
                 distributedFileMapper,
                 auditDataHelper,
@@ -276,6 +282,18 @@ class ConfigurationServiceImplTest {
             configurationServiceHa.saveConfigurationPart(CONTENT_IDENTIFIER, FILE_NAME, FILE_DATA, VERSION);
 
             verify(distributedFileRepository).findByContentIdAndVersion(CONTENT_IDENTIFIER, VERSION, null);
+        }
+
+        @Test
+        void hasSigningKeysShouldReturnTrue() {
+            when(configurationSigningKeyRepository.countSigningKeysForSourceType(INTERNAL.name().toLowerCase(), HA_NODE_NAME)).thenReturn(1);
+            assertThat(configurationServiceHa.hasSigningKeys(INTERNAL)).isTrue();
+        }
+
+        @Test
+        void hasSigningKeysShouldReturnFalse() {
+            when(configurationSigningKeyRepository.countSigningKeysForSourceType(INTERNAL.name().toLowerCase(), HA_NODE_NAME)).thenReturn(0);
+            assertThat(configurationServiceHa.hasSigningKeys(INTERNAL)).isFalse();
         }
 
         private void assertFieldsChanged(DistributedFileEntity df) {
