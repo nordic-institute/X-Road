@@ -567,7 +567,7 @@ Deletion requests are
 Access rights: Registration Officer
 
 To open the detail view, follow these steps.
-1. On the tab Management Requests.
+1. On the Management Requests tab.
 2. Select from the table a request and click Id field.
 3. Uncheck "Show only pending requests" checkbox, if you want to see all requests.
 
@@ -606,7 +606,7 @@ There are three data sections in the view.
 Access rights: Registration Officer
 
 To add a new X-Road member, follow these steps.
-1. On the tab Members, click Add member.
+1. On the Members tab, click Add member.
 2. In the window that opens, enter the member's information and click Add. The new member appears in the list of members.
 
 ## 7.2 Viewing the Member Details
@@ -614,7 +614,7 @@ To add a new X-Road member, follow these steps.
 Access rights: Registration Officer
 
 To open the detail view, follow these steps.
-1. On the tab Members.
+1. On the Members tab.
 2. Select from the table an X-Road member and click members name.
 
 The view consists of five sections and a tab Subsystems.
@@ -623,14 +623,14 @@ The view consists of five sections and a tab Subsystems.
 3. "Member code"
 4. "Owned Servers" – displays the codes of servers owned by this member.
 5. "Global Groups" – displays information about the group membership of the member or its subsystems.
-6. Tab "Subsystems" – displays a list of member's subsystems. If a subsystem is not a client of any security servers, then subsystem status is UNREGISTERED.
+6. "Subsystems" tab – displays a list of member's subsystems. If a subsystem is not a client of any security servers, then subsystem status is UNREGISTERED.
 
 ## 7.3 Adding a Subsystem to an X-Road Member
 
 Access rights: Registration Officer
 
 To add a subsystem to an X-Road member, follow these steps.
-1. On the tab Members, select the member to whom you wish to add a subsystem and click members name.
+1. On the Members tab, select the member to whom you wish to add a subsystem and click members name.
 2. In the view that opens, locate the Subsystems tab and click Add new subsystem to database.
 3. Enter the code of the subsystem and click Add.
 
@@ -650,13 +650,13 @@ Automatic approval of authentication certificate registration requests is disabl
 To approve a request, it can be done either through in the Management request view list or in the Management request details view.
 
 On the approval of the request
-- the request move to the "Approved" state;
-- the registered security server appears both in the "Owned Servers" section of its owner’s detail view and in the list of security servers (on the tab Security Servers);
+- the request moves to the "Approved" state;
+- the registered security server appears both in the "Owned Servers" section of its owner’s detail view and in the list of security servers (on the Security Servers tab);
 - the security server's owner is added to the global "security-server-owners" group.
 
 To decline a request, it can be done either through in the Management request view list or in the Management request details view.
 On the decline of the request
-- the request move to the "Rejected" state.
+- the request moves to the "Rejected" state.
 
 ## 7.5 Registering a Client to a Security Server
 
@@ -674,12 +674,12 @@ Automatic approval of security server client registration requests is disabled b
 To approve a request, it can be done either through in the Management request view list or in the Management request details view.
 
 On the approval of the request, follow these steps.
-- The request move to the "Approved" state.
+- The request moves to the "Approved" state.
 - The client's information is displayed in the "Clients" section of the detailed view of the security server to which the client was registered.
 
 To decline a request, it can be done either through in the Management request view list or in the Management request details view.
 On the decline of the request
-- the request move to the "Rejected" state.
+- the request moves to the "Rejected" state.
 
 ## 7.6 Removing a Client from a Security Server
 
@@ -692,7 +692,7 @@ The association between the security server's owner and the security server cann
 Removing a client from the security server clients can be carried out through a member's detail view.
 
 To submit a security server client deletion request through a member's detail view, follow these steps.
-1. On the tab Members, select the member whose subsystem is to be removed from a security server and click members name.
+1. On the Members tab, select the member whose subsystem is to be removed from a security server and click members name.
 2. In the window that opens, select Subsystems tab and select the client subsystem, and click Unregister.
 3. Review the information displayed on the client deletion request and click Delete to submit the request.
 
@@ -718,7 +718,7 @@ Access rights: Registration Officer
 In the central server, the X-Road member's subsystem can be deleted only if the subsystem is not associated with any security servers, that is, not registered as a client of any security servers.
 
 To delete an X-Road member's subsystem, follow these steps.
-1. On the tab Members, select the member whose subsystem you wish to delete and click members name.
+1. On the Members tab, select the member whose subsystem you wish to delete and click members name.
 2. In the window that opens, select Subsystems tab and select the client subsystem, and click Delete. Note: The "Delete" button is displayed only if the subsystem is not a client of any security servers.
 
 ## 7.9 Deleting an X-Road Member
@@ -728,16 +728,16 @@ Access rights: Registration Officer
 When an X-Road member is deleted, information about all security servers in its ownership will be deleted as well.
 
 To delete an X-Road member, follow these steps.
-1. On the tab Members, select a member that you wish to delete, and click members name.
-2. In the view that opens, click Delete member "<member name>". In the confirmation window that opens, enter member code and click Delete.
+1. On the Members tab, select a member that you wish to delete, and click members name.
+2. In the view that opens, click Delete member "\<member name\>". In the confirmation window that opens, enter member code and click Delete.
 
 # 8. Managing the Security Servers
 ## 8.1 Viewing the Security Server Details
 
 Access rights: Registration Officer
 
-To open the detail view, follow these steps. On the tab Members, select a member that you wish to delete, and click members name.
-1. On the tab Security Servers.
+To open the detail view, follow these steps. On the Members tab, select a member that you wish to delete, and click members name.
+1. On the Security Servers tab.
 2. Choose from the table a security server and click server code.
 
 The view contains three sections.
@@ -758,7 +758,7 @@ There are several reasons why setting the security server’s address matters.
 - By registering the addresses of security servers, the service clients are certain to receive a response to their queries in a reasonable time, even if the relaying security server is overloaded with service requests (e.g., the requests from addresses belonging to registered security servers are served before requests coming from unknown addresses).
 
 To change the security server address, follow these steps.
-1. On the tab Security Servers, select the security server whose address you wish to change and click server code.
+1. On the Security Servers tab, select the security server whose address you wish to change and click server code.
 2. In the view that opens, locate the "Address" section and click Edit adjacent to the "Address" field.
 3. Enter the security server's address and click Save.
 
@@ -778,11 +778,11 @@ Automatic approval of authentication certificate registration requests is disabl
 To approve/decline a request, it can be done either through in the Management request view list or in the Management request details view.
 
 Upon approving the request
-- the request move to the "Approved" state;
+- the request moves to the "Approved" state;
 - the registered authentication certificate appears in the security server's detail view, in the "Authentication Certificates" section.
 
 To decline the request
-- the request move to the "Rejected" state;
+- the request moves to the "Rejected" state;
 
 ## 8.4 Deleting a Security Server's Authentication Certificate
 
@@ -791,18 +791,18 @@ Access rights: Registration Officer
 The authentication certificate registered for a security server is deleted when an authentication certificate deletion request is received for that certificate. The request can be submitted through the security server or in the central server.
 
 To submit an authentication certificate deletion request in the central server, follow these steps.
-1. On the tab Security Servers, select the security server whose certificate you wish to delete and click server code.
+1. On the Security Servers tab, select the security server whose certificate you wish to delete and click server code.
 2. In the view that opens, locate the Authentication Certificates section, find the correct authentication certificate and click Delete.
 3. Review the information displayed on the deletion request and enter security server code and click Delete to submit the request.
-4. The submitted request appears in the management requests view (tab Management Requests).
+4. The submitted request appears in the management requests view (Management Requests tab).
 
 ## 8.5 Deleting a Security Server
 
 Access rights: Registration Officer
 
 To delete a security server, follow these steps.
-1. On the tab Security Servers, select the security server that you wish to delete and click server code.
-2. In the view that opens, locate the end of view and click Delete Security Server "<server code>". Confirm the action by entering security server code and clicking Delete.
+1. On the Security Servers tab, select the security server that you wish to delete and click server code.
+2. In the view that opens, on the bottom left, click Delete Security Server "\<server code\>". Confirm the action by entering security server code and clicking Delete.
 
 If the security server being deleted has registered clients or authentication certificates, deletion requests for those associations are automatically generated.
 
@@ -867,7 +867,7 @@ To delete a global group, follow these steps.
 Access rights: System Administrator
 
 To add a certification service, follow these steps.
-1. On the tab Trust Services, click Add certification service
+1. On the Trust Services tab, click Add certification service
 2. Locate the certification service CA certificate file and click Upload.
 3. Set the certification service settings as follows.
   - If the certification service issues only authentication certificates, check the This CA can only be used for TLS authentication checkbox. However, if the certification service issues additionally or only signing certificates, leave the checkbox empty.
@@ -890,7 +890,7 @@ While it is not possible to change the certification service's CA certificate, i
 - add, change, and delete the certificates and OCSP service information of intermediate CAs.
 
 To edit a certification service, follow these steps.
-1. On the tab Trust Services, select Certification Services.
+1. On the Trust Services tab, select Certification Services.
 2. Select from the list the certification service you want to edit and click on the approved certification service field.
 
 ## 10.3 Deleting an Approved Certification Service
@@ -898,9 +898,9 @@ To edit a certification service, follow these steps.
 Access rights: System Administrator
 
 To delete a certification service from the list of approved services, follow these steps.
-1. On the tab Trust Services, select Certification Services.
+1. On the Trust Services tab, select Certification Services.
 2. Select from the list the approved certification service you wish to remove and click on the approved certification service field.
-3. In the window that opens, click Delete trust service "<certification service name>" and in the confirmation window click Yes.
+3. In the window that opens, click Delete trust service "\<certification service name\>" and in the confirmation window click Yes.
 
 # 11. Managing the Approved Timestamping Services
 ## 11.1 Adding an Approved Timestamping Service
@@ -908,7 +908,7 @@ To delete a certification service from the list of approved services, follow the
 Access rights: System Administrator
 
 To add an approved timestamping service, follow these steps.
-1. On the tab Trust Services, click Add timestamping service.
+1. On the Trust Services tab, click Add timestamping service.
 2. In the window that opens, enter the timestamping service URL and locate the certificate file of the timestamping service and click Add.
 3. Information about the new timestamping service appears in the list.
 
@@ -917,7 +917,7 @@ To add an approved timestamping service, follow these steps.
 Access rights: System Administrator
 
 To change the timestamping service, follow these steps.
-1. On the tab Trust Services, select Timestamping Services, select a timestamping service from the list and click Edit.
+1. On the Trust Services tab, select Timestamping Services, select a timestamping service from the list and click Edit.
 2. In the window that opens, edit the URL and/or upload new certificate. Click Save.
 
 ## 11.3 Deleting an Approved Timestamping Service
@@ -925,7 +925,7 @@ To change the timestamping service, follow these steps.
 Access rights: System Administrator
 
 To remove a timestamping service, follow these steps.
-1. On the tab Trust Services, select Timestamping Services, select a timestamping service from the list and click Delete.
+1. On the Trust Services tab, select Timestamping Services, select a timestamping service from the list and click Delete.
 2. In the window that opens, click Yes.
 
 # 12. Configuration Backup and Restore
