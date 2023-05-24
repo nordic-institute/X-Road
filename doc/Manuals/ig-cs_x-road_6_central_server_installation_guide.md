@@ -332,14 +332,14 @@ The central monitoring client may be configured as specified in the [UG-CS](#Ref
 
 ### 2.10 Pre-configuration for Registration Web Service
 
-The registration web service is installed by package xroad-center-registration-service. The registration web service can be installed on the same host with the central server or on a separate host. The package is included in the central server installation by default.
+The registration web service is installed by package `xroad-center-registration-service`. The package is included in the central server installation by default.
 
 Configuration parameters for registration web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section "Registration service parameters".
 
 **Note:** With new registration service, a maximum size limit (MAX_REQUEST_SIZE = 100 KB) is set for the authentication certificate SOAP message.
 
 ### 2.11 Pre-configuration for Management Web Service
-The management web service is installed by package xroad-center-management-service. The registration web service can be installed on the same host with the central server or on a separate host. The package is included in the central server installation by default.
+The management web service is installed by package `xroad-center-management-service`. The package is included in the central server installation by default.
 
 Configuration parameters for management web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section "Management service parameters".
 
@@ -531,15 +531,18 @@ For example, the following central server packages are currently installed.
 
 ```bash
 root@test-cs:~# dpkg -l | grep xroad
-ii  xroad-base                      7.1.2-1.ubuntu20.04 amd64        X-Road base components
-ii  xroad-center                    7.1.2-1.ubuntu20.04 all          X-Road central server
-ii  xroad-centralserver             7.1.2-1.ubuntu20.04 all          X-Road central server
-ii  xroad-centralserver-monitoring  7.1.2-1.ubuntu20.04 all          Monitoring client configuration for X-Road central
-ii  xroad-confclient                7.1.2-1.ubuntu20.04 amd64        X-Road configuration client components
-ii  xroad-database-local            7.1.2-1.ubuntu20.04 all          Meta-package for X-Road local database dependencies
-ii  xroad-jetty9                    7.1.2-1.ubuntu20.04 all          Jetty9 for X-Road purposes
-ii  xroad-nginx                     7.1.2-1.ubuntu20.04 amd64        X-Road nginx component
-ii  xroad-signer                    7.1.2-1.ubuntu20.04 amd64        X-Road signer component
+ii  xroad-autologin                    7.3.0-1.ubuntu22.04 all          Automatic token pin code entry
+ii  xroad-base                         7.3.0-1.ubuntu22.04 amd64        X-Road base components
+ii  xroad-center                       7.3.0-1.ubuntu22.04 all          X-Road central server
+ii  xroad-center-management-service    7.3.0-1.ubuntu22.04 all          X-Road Central Server Management Service
+ii  xroad-center-registration-service  7.3.0-1.ubuntu22.04 all          X-Road Central Server Registration Service
+ii  xroad-centralserver                7.3.0-1.ubuntu22.04 all          X-Road central server
+ii  xroad-centralserver-monitoring     7.3.0-1.ubuntu22.04 all          Monitoring client configuration for X-Road central
+ii  xroad-confclient                   7.3.0-1.ubuntu22.04 amd64        X-Road configuration client components
+ii  xroad-database-remote              7.3.0-1.ubuntu22.04 all          Meta-package for X-Road remote database dependencies
+rc  xroad-jetty9                       7.3.0-1.ubuntu22.04 all          Jetty9 for X-Road purposes
+ii  xroad-nginx                        7.3.0-1.ubuntu22.04 amd64        X-Road nginx component
+ii  xroad-signer                       7.3.0-1.ubuntu22.04 amd64        X-Road signer component
 ```
 
 The following packages are available in the repository.
