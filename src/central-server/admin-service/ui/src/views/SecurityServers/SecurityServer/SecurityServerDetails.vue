@@ -43,8 +43,6 @@
           :title-text="$t('securityServers.ownerName')"
           :info-text="securityServer.owner_name"
           data-test="security-server-owner-name"
-          :action-text="$t('action.edit')"
-          @actionClicked="editOwnerName"
         />
 
         <info-card
@@ -173,9 +171,6 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(notificationsStore, ['showSuccess']),
-    editOwnerName(): void {
-      // do something
-    },
     deleteServer() {
       this.$router.replace({
         name: RouteName.SecurityServers,

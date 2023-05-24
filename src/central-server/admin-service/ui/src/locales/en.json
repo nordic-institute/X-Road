@@ -328,7 +328,7 @@
     "internalConf": "Internal Configuration",
     "trustedAnchors": "Trusted Anchor",
     "cfgParts": {
-      "title": "Configuration parts",
+      "title": "Configuration Parts",
       "file": "File",
       "contentIdentifier": "Content Identifier",
       "version": "Version",
@@ -689,7 +689,7 @@
       "changedSuccess": "Service Provider changed successfully",
       "registeredSuccess": "Management service provider '{subsystemId}' registered as security server '{securityServerId}' client"
     },
-    "memberClasses": "Member classes",
+    "memberClasses": "Member Classes",
     "securityServerOwnerGroupCode": "Security Server Owners Group Code",
     "serviceProviderIdentifier": "Service Provider Identifier",
     "serviceProviderName": "Service Provider Name",
@@ -708,7 +708,7 @@
       "trustedAnchors": "Trusted Anchors"
     },
     "main": {
-      "globalConfiguration": "Global configuration",
+      "globalConfiguration": "Global Configuration",
       "managementRequests": "Management Requests",
       "members": "Members",
       "securityServers": "Security Servers",
