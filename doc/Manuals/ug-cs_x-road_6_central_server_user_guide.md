@@ -217,14 +217,15 @@ To remove a user, enter:
 
 ## 2.3 Managing API Keys
 
-On the central server can role associated with the API key. The roles define the permissions granted to the API key. In addition to the User role, the API key can be added to the Management Services role.
-Management Services role is used for registration and management services to authenticate and successfully communicate with admin service. Registration and management services are configured with valid API keys during installation automatically.
+API keys are used to authenticate API calls to Central Server's management REST API. API keys are associated with roles that define the permissions granted to the API key. If an API key is lost, it can be revoked.
+
+In addition to the user roles, an API key can be added to the Management Services role. The Management Services role is used for registration and management services to authenticate and successfully communicate with the management REST API. Registration and management services are automatically configured with valid API keys during installation.
 
 Access rights: System Administrator
 
 To create API key, follow these steps.
 
-1. On the tab menu, select Settings --> API Keys, click Create API key.
+1. On the Navigation tabs, select Settings --> API Keys, click Create API key.
 2. In the window that opens, check selected roles checkbox and then click Next.
 3. In the next window click Create Key.
 4. Copy and save the API key in a secure place. _The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later_.
@@ -232,13 +233,13 @@ To create API key, follow these steps.
 
 To edit API key related roles, follow these steps.
 
-1. On the tab menu, select Settings --> API Keys.
+1. On the Navigation tabs, select Settings --> API Keys.
 2. Select a API key and click Edit.
 3. In the window that opens, check selected roles checkbox and click Save.
 
 To revoke API key from roles, follow these steps.
 
-1. On the tab menu, select Settings --> API Keys.
+1. On the Navigation tabs, select Settings --> API Keys.
 2. Select a API key and click Revoke key. 
 3. Confirm the revoking by clicking Yes.
 
@@ -272,19 +273,19 @@ Access rights: Security Officer
 
 To add a member class, follow these steps.
 
-1. On the tab menu, select Settings --> System Settings.
+1. On the Navigation tabs, select Settings --> System Settings.
 2. Locate the Member Classes section and click Add.
 3. In the window that opens, enter the member class code and description. Click Save.
 
 To edit the description of a member class, follow these steps.
 
-1. On the tab menu, select Settings --> System Settings.
+1. On the Navigation tabs, select Settings --> System Settings.
 2. Locate the Member Classes section, select a member class and click Edit.
 3. In the window that opens, enter the member class description and click Save.
 
 To delete a member class, follow these steps.
 
-1. On the tab menu, select Settings --> System Settings.
+1. On the Navigation tabs, select Settings --> System Settings.
 2. Locate the Member Classes section, select a member class and click Yes.
 
 Only the member classes that are used by none of the X-Road members can be deleted.
@@ -303,7 +304,7 @@ Access rights: Security Officer
 
 To appoint the management service provider in the central server, follow these steps.
 
-1. On the tab menu, select Settings --> System Settings.
+1. On the Navigation tabs, select Settings --> System Settings.
 2. Locate the Management Services section and click Edit on the Service Provider Identifier field.
 3. In the window that opens, find the subsystem of an X-Road member to be appointed as the management service provider and check the subsystem checkbox and then click Select.
 
@@ -313,7 +314,7 @@ The management service provider can be registered as a security server client as
 
 To register the appointed management service provider as a security server client to the management services’ security server, follow these steps.
 
-1. On the tab menu, select Settings --> System Settings.
+1. On the Navigation tabs, select Settings --> System Settings.
 2. Locate the Management Services section and click Edit button next to the identifier of the Management Services' Security Server.
 3. In the window that opens, find the security server that will be used as the management services’ security server and check checkbox.
 4. Click Select button to submit the registration request.
@@ -324,7 +325,7 @@ On successful registration the identifier of the management services’ security
 
 Access rights: Security server’s Service Administrator
 
-The data necessary for configuring the management services in the security server can be found at the central server tab Settings -> System Settings -> Management Services section.
+The data necessary for configuring the management services in the security server can be found at the central server Settings tab -> System Settings -> Management Services section.
 
 To configure management services in the management services’ security server, follow these steps.
 
@@ -341,7 +342,7 @@ To configure management services in the management services’ security server, 
 
 Access rights: Security Officer
 
-In the System Settings view (tab Settings --> System Settings), the central server's public DNS name or its external IP address is displayed. This address is used by the security servers to access the services provided by the central server (configuration download, management services).
+In the System Settings view (Settings tab --> System Settings), the central server's public DNS name or its external IP address is displayed. This address is used by the security servers to access the services provided by the central server (configuration download, management services).
 
 **ATTENTION!** When the central server address is changed,
 
@@ -361,7 +362,7 @@ In an HA setup, internal and external configuration anchors contain information 
 
 To change the central server address, follow these steps.
 
-1. On the tab menu, select Settings --> System Settings.
+1. On the Navigation tabs, select Settings --> System Settings.
 2. Locate the System Parameters section and click Edit.
 3. Enter the central server’s address and click Save. When the address is changed, the system:
   - changes the management services WSDL address,
@@ -379,7 +380,8 @@ To change the central server address, follow these steps.
 
 Access rights: Security Officer, System Administrator
 
-- The Global Configuration view consists of three sub-tabs. The Internal Configuration view. The internal configuration is distributed by the central server to the security servers of the local X-Road infrastructure. The information needed to download and verify the internal configuration is included in the internal configuration anchor, which must be distributed to the security server administrators and uploaded to the security servers. Along with the internal configuration anchor, the anchor file hash value must be distributed. The hash value is used by the security server administrators to verify the integrity of the anchor file.
+The Global Configuration view consists of three sub-tabs.
+- The Internal Configuration view. The internal configuration is distributed by the central server to the security servers of the local X-Road infrastructure. The information needed to download and verify the internal configuration is included in the internal configuration anchor, which must be distributed to the security server administrators and uploaded to the security servers. Along with the internal configuration anchor, the anchor file hash value must be distributed. The hash value is used by the security server administrators to verify the integrity of the anchor file.
 - The External Configuration view. The external configuration is distributed by the central server to the federation partners (either to the security servers directly or through a configuration proxy). The information needed to download and verify the external configuration is included in the external configuration anchor, which must be distributed to the federation partner’s central server (or configuration proxy) administrators and uploaded to the central server (or configuration proxy). Along with the external configuration anchor, the anchor file hash value must be distributed. The hash value is used by the federation partners to verify the integrity of the anchor file.
 - The Trusted Anchors view. A trusted anchor is the configuration anchor of the configuration source(s) distributing the external configuration of a federation partner. Upon loading the trusted anchor into the central server, the anchor is included into the internal configuration, allowing the security servers to download the external configuration of a federation partner as well as the internal configuration of the local X-Road infrastructure.
 
@@ -389,7 +391,7 @@ Access rights: Security Officer
 
 To download a configuration anchor, follow these steps.
 
-1. On the tab menu, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
+1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Anchor section, click Download and save the prompted file.
 
 ## 5.3 Re-Creating the Configuration Anchor
@@ -400,7 +402,7 @@ Normally, the configuration anchors are generated (and in an HA setup, distribut
 
 To re-create an anchor, follow these steps.
 
-1. On the tab menu, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
+1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Anchor section, click Re-create.
 
 ## 5.4 Changing the Configuration Signing Keys
@@ -437,7 +439,7 @@ Access rights: Security Officer
 
 To generate a configuration signing key, follow these steps.
 
-1. On the tab menu, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
+1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Signing Keys section, expand the token's information by clicking the caret next to the token name and then click Add key.
 3. In a window that opens, insert signing key friendly name, and click Add.
 4. Add key button is only active when the token has been logged in to.
@@ -451,7 +453,7 @@ Access rights: Security Officer
 
 To activate a configuration signing key, follow these steps.
 
-1. On the tab menu, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
+1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Signing Keys section, expand the token's information by clicking the caret next to the token name and select an inactive key (only for an inactive key are the Activate and Delete buttons displayed) and click Activate.
 
 ### 5.4.3 Deleting a Configuration Signing Key
@@ -460,7 +462,7 @@ Access rights: Security Officer
 
 To delete a configuration signing key, follow these steps.
 
-1. On the tab menu, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
+1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Signing Keys section,expand the token's information by clicking the caret next to the token name and select an inactive key (only for an inactive key are the Activate and Delete buttons displayed) and click Delete.
 3. Confirm the deletion by clicking Confirm.
 
@@ -472,7 +474,7 @@ The contents of a configuration part can be viewed by downloading the configurat
 
 To download or upload a configuration file, follow these steps.
 
-1. On the tab menu, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate
+1. On the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate
 2. In the Configuration Parts section, select a configuration part file and click Download or Upload
 
 ## 5.6 Uploading a Trusted Anchor
@@ -481,7 +483,7 @@ Access rights: Security Officer
 
 To upload a trusted anchor, follow these steps.
 
-1. On the tab menu, select Global Configuration and select the Trusted Anchors sub-tab.
+1. On the Navigation tabs, select Global Configuration and select the Trusted Anchors sub-tab.
 2. Click Upload button, find the external configuration anchor received from a federation partner and click Open.
 3. Verify the integrity of the anchor file by comparing the displayed anchor file hash value with the hash value provided by the federation partner and confirm the anchor upload by clicking Confirm.
 
@@ -494,7 +496,7 @@ Access rights: Security Officer, System Administrator
 The contents of a trusted anchor can be viewed by downloading the anchor file.
 To download an anchor file, follow these steps.
 
-1. On the tab menu, select Global Configuration and select the Trusted Anchors sub-tab.
+1. On the Navigation tabs, select Global Configuration and select the Trusted Anchors sub-tab.
 2. In an anchor section, click Download.
 3. Save or open the prompted file.
 
@@ -503,7 +505,7 @@ To download an anchor file, follow these steps.
 Access rights: Security Officer
 
 To delete an anchor file, follow these steps.
-1. On the tab menu, select Global Configuration and select the Trusted Anchors sub-tab.
+1. On the Navigation tabs, select Global Configuration and select the Trusted Anchors sub-tab.
 2. In the anchor section, click Delete.
 3. Confirm the deletion by clicking Yes.
 
@@ -532,9 +534,9 @@ It is possible to streamline the registration process of authentication certific
   - Automatic approval is applied to existing members only. In addition, automatic approval is applied only if the client registration request has been signed by the member owning the subsystem to be registered as a security server client.
   - By default, automatic approval of security server client registration requests is disabled. It can be enabled by setting the `auto-approve-client-reg-requests` property value to `true` on central server.
 - security server owner change requests
-    - When automatic approval is enabled, it is enough to submit a security server owner change request to the X-Road central server through the security server, and the request will be automatically approved immediately.
-    - Automatic approval is applied to existing members only.
-    - By default, automatic approval of security server owner change requests is disabled. It can be enabled by setting the `auto-approve-owner-change-requests` property value to `true` on central server.
+  - When automatic approval is enabled, it is enough to submit a security server owner change request to the X-Road central server through the security server, and the request will be automatically approved immediately.
+  - Automatic approval is applied to existing members only.
+  - By default, automatic approval of security server owner change requests is disabled. It can be enabled by setting the `auto-approve-owner-change-requests` property value to `true` on central server.
     
 ### 6.1.1 State Model for Registration Requests
 
@@ -550,7 +552,7 @@ Pending – a registration request has been submitted from a security server. Fr
 - “Revoked”.
   - Registration request received from a security server are automatically revoked by deletion requests sent from the security server for the same object that was submitted for registration with the registration request.
 
-If automatic approval of authentication certificate registration requests and/or security server client registration requests is enabled, the request is approved automatically. Therefore, the request moves directly to Approved state.
+If automatic approval of authentication certificate registration requests, security server client registration requests and/or security server owner change requests is enabled, the request is approved automatically. Therefore, the request moves directly to Approved state.
 
 ## 6.2 Deletion Requests
 
@@ -810,7 +812,7 @@ If the security server being deleted has registered clients or authentication ce
 Access rights: Registration Officer
 
 To add a new global group, follow these steps.
-1. On the tab menu, select Settings --> Global Resources and click Add Global Group.
+1. On the Navigation tabs, select Settings --> Global Resources and click Add Global Group.
 2. In the window that opens, enter the new group's code and description, and click Add. The new group is added to the list of global groups.
 
 ## 9.2 Viewing the Global Group Details
@@ -818,7 +820,7 @@ To add a new global group, follow these steps.
 Access rights: Registration Officer
 
 To see the details of a global group, follow these steps.
-1. On the tab menu, select Settings --> Global Resources.
+1. On the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click code.
 
 In the global group detail view, a list of the group's members is displayed. The detail view allows you to change the group's description, delete the group, and add or remove its members.
@@ -828,7 +830,7 @@ In the global group detail view, a list of the group's members is displayed. The
 Access rights: Registration Officer
 
 To change the description of a global group, follow these steps.
-1. On the tab menu, select Settings --> Global Resources.
+1. On the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click its Code.
 3. In the view that opens, click Edit, change the group’s description and click Save.
 
@@ -839,13 +841,13 @@ Access rights: Registration Officer
 Note that the members of the global group security-server-owners are managed automatically by the central server and cannot be added or removed manually.
 
 To add subsystems of X-Road members to a global group, follow these steps.
-1. On the tab menu, select Settings --> Global Resources.
+1. On the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click its Code.
 3. In the view that opens, click Add Members.
 4. Select one or more subsystems from the list and click Add. Or filter a selection of subsystems with the search function.
 
 To remove members from a group, follow these steps.
-1. On the tab menu, select Settings --> Global Resources.
+1. On the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click its Code.
 3. Click Remove button on the selected subsystem row.
 4. In the confirmation window that opens, enter the member code and then click Delete.
@@ -855,7 +857,7 @@ To remove members from a group, follow these steps.
 Access rights: Registration Officer
 
 To delete a global group, follow these steps.
-1. On the tab menu, select Settings --> Global Resources.
+1. On the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click its Code.
 3. In the view that opens, click Delete Group and in the confirmation window click Yes.
 
@@ -941,19 +943,19 @@ Central server backups are signed and optionally encrypted. The GNU Privacy Guar
 ## 12.1 Backing Up the System Configuration
 
 To back up the configuration, follow these steps.
-1. On the tab Settings, select Back Up and Restore sub-tab.
+1. On the Settings tab, select Back Up and Restore sub-tab.
 2. Click Back up config. to start the backup process.
 3. When done, the configuration backup file appears in the list of configuration backup files.
 
 ## 12.2 Restoring the System Configuration in the User Interface
 
 To restore configuration, follow these steps.
-1. On the tab Settings, select Back Up and Restore sub-tab.
+1. On the Settings tab, select Back Up and Restore sub-tab.
 2. Select a file from the list of configuration backup files and click Restore.
 3. Confirm to proceed.
 4. A popup notification shows after the restore whether the restoring was successful or not.
 
-If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Central Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interface described in the next chapter.
+If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Central Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Move it to `/var/lib/xroad/backup/` folder and use the command line interface described in the next chapter (some specific switches with the restore command is required).
 
 ## 12.3 Restoring the Configuration from the Command Line
 
@@ -975,12 +977,12 @@ In HA setup, this command has an additional mandatory parameter, the node name:
 
 For example (all in one line, non-HA setup):
 ```bash
-/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i EE -f /var/lib/xroad/backup/ conf_backup_20230515-114736.gpg
+/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i EE -f /var/lib/xroad/backup/conf_backup_20230515-114736.gpg
 ```
 
 For example (all in one line, HA setup):
 ```bash
-/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i EE -n node_0 -f /var/lib/xroad/backup/ conf_backup_20230515-114736.gpg
+/usr/share/xroad/scripts/restore_xroad_center_configuration.sh -i EE -n node_0 -f /var/lib/xroad/backup/conf_backup_20230515-114736.gpg
 ```
 
 In case original backup encryption and signing key is lost additional parameters can be specified to skip decryption and/or signature verification. Use `-P` command line switch when backup archive is already decrypted externally and `-N` switch to skip checking archive signature.
@@ -1013,8 +1015,10 @@ The following actions can be performed in the Backup And Restore view.
 
 To save the configuration backup file locally:
 - click Download on the respective row and save the prompted file.
+
 To delete the configuration backup file:
 - click Delete on the respective row and confirm the action by clicking Yes.
+
 To upload a configuration file from the local file system to the central server:
 - click Upload backup, select a file to be uploaded and click Open. The uploaded configuration file appears in the list of configuration files.
 
@@ -1100,7 +1104,7 @@ To export central servers backup encryption public key use the following command
 
     gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export <instanceId>
 
-where `<instanceId` is the central server instance id,
+where `<instanceId>` is the central server instance id,
 for example, `EE`.
 
 Resulting file (`server-public-key.gpg`) should then be exported from central server and imported to GPG keystore used
@@ -1112,10 +1116,18 @@ The central server keeps an audit log of the events performed by the central ser
 
 Actions that change the system’s state or configuration but are not carried out using the user interface are not logged (for example, X-Road software installation and upgrade, user creation and permission granting, and changing of the configuration files in the file system).
 
+An audit log record contains correlation-id, which can be used to link the record to other log messages about the same request.
+
 An audit log record contains
 - the description of the user action,
 - the date and time of the event,
-- the username of the user that performed the action, and
+- the username of the user that performed the action,
+- the authentication type used for this request (Session, ApiKey or HttpBasicPam)
+  - `Session` – session based authentication (web application)
+  - `ApiKey` - direct API call using API key authentication
+  - `HttpBasicPam` – HTTP basic authentication with PAM login (for api key management API operations),
+- the API url for this request, 
+- the IP address of the user, and
 - the data related to the event.
 
 For example, adding a new member in the central server produces the following log record:
@@ -1231,11 +1243,11 @@ Most significant central server services are the following:
 System services can be managed using the systemd facility.
 To start a service, issue the following command as a root user:
 
-`service <service> start`
+`systemctl start <service>`
 
 To stop a service, enter:
 
-`service <service> stop`
+`systemctl stop <service>`
 
 To read logs, a user must have root user's rights or belong to the xroad system group.
 
