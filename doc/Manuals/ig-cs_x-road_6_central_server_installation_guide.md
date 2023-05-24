@@ -4,7 +4,7 @@
 
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.31  
+Version: 2.32  
 Doc. ID: IG-CS
 
 ---
@@ -53,6 +53,7 @@ Doc. ID: IG-CS
 | 26.09.2022 | 2.29    | Remove Ubuntu 18.04 support                                                                                                                                                                   | Andres Rosenthal   |
 | 19.04.2023 | 2.30    | Removed unused properties from db.properties                                                                                                                                                  | Mikk-Erik Bachmann |
 | 05.05.2023 | 2.31    | Minor updates                                                                                                                                                                                 | Justas Samuolis    |
+| 23.05.2023 | 2.32    | Backup Encryption Configuration                                                                                                                                                               | Eneli Reimets      |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -81,6 +82,7 @@ Doc. ID: IG-CS
   - [3.1 Reference Data](#31-reference-data)
   - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
   - [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
+  - [3.4 Backup Encryption Configuration](#34-backup-encryption-configuration)
 - [4 Additional configuration](#4-additional-configuration)
   - [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
 - [5 Installation Error Handling](#5-installation-error-handling)
@@ -330,14 +332,14 @@ The central monitoring client may be configured as specified in the [UG-CS](#Ref
 
 ### 2.10 Pre-configuration for Registration Web Service
 
-The registration web service is installed by package xroad-center-registration-service. The registration web service can be installed on the same host with the central server or on a separate host. The package is included in the central server installation by default.
+The registration web service is installed by package `xroad-center-registration-service`. The package is included in the central server installation by default.
 
 Configuration parameters for registration web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section "Registration service parameters".
 
 **Note:** With new registration service, a maximum size limit (MAX_REQUEST_SIZE = 100 KB) is set for the authentication certificate SOAP message.
 
 ### 2.11 Pre-configuration for Management Web Service
-The management web service is installed by package xroad-center-management-service. The registration web service can be installed on the same host with the central server or on a separate host. The package is included in the central server installation by default.
+The management web service is installed by package `xroad-center-management-service`. The package is included in the central server installation by default.
 
 Configuration parameters for management web service are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section "Management service parameters".
 
@@ -407,6 +409,40 @@ appoint the subsystem as the management service provider - [UG-CS](#Ref_UG-CS) s
 11. Add the management service provider as a client to the management services' security server. Refer to [UG-SS](#Ref_UG-SS) section „Adding a Security Server Client”. (The client should appear in “Registered” state, as the association between the client and the security server was already registered in the central server in the previous step). If necessary, configure the signing keys and certificates for the client - [UG-SS](#Ref_UG-SS) section „Configuring a Signing Key and Certificate for a Security Server Client”
 12. Configure the management services. Refer to [UG-CS](#Ref_UG-CS) section „Configuring the Management Services in The Management Services’ Security Server”.
 
+### 3.4 Backup Encryption Configuration
+
+It is possible to automatically encrypt central server configuration backups. Central server uses The GNU Privacy Guard (https://www.gnupg.org)
+for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
+To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[center]` section (add or edit this section).
+```bash
+[center]
+
+backup-encryption-enabled = true
+backup-encryption-keyids = <keyid1>, <keyid2>, ...
+```
+
+To turn backup encryption on, please change the `backup-encryption-enabled` property value to `true`.
+By default, backups are encrypted using central server's backup encryption key. Additional encryption keys can be imported in the `/etc/xroad/gpghome` keyring and key identifiers listed using the `backup-encryption-keyids` parameter. It is recommended to set up at least one additional key, otherwise the backups will be unusable in case central server's private key is lost. It is up to central server's administrator to check that keys used are sufficiently strong, there are no automatic checks.
+
+Warning. All keys listed in `backup-encryption-keyids` must be present in the gpg keyring or backup fails.
+
+All these keys are used to encrypt backups so that ANY of these keys can decrypt the backups. This is useful both for verifying encrypted backups'
+consistency and decrypting backups in case central server's backup encryption key gets lost for whatever reason.
+
+To externally verify a backup archive's consistency, central server's backup encryption public key has to be exported
+and imported into external GPG keyring. Note that this can be done only after central server has been initialised - the
+central server backup encryption key is generated during initialisation.
+
+To export central server's backup encryption public key use the following command:
+```bash
+gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export EE
+```
+where `EE` is the central server instance identifier.
+
+The key can then be moved to an external host and imported to GPG keyring with the following command:
+```bash
+gpg --homedir <your_gpg_homedir_here> --import server-public-key.gpg
+```
 
 ## 4 Additional configuration
 
@@ -495,15 +531,18 @@ For example, the following central server packages are currently installed.
 
 ```bash
 root@test-cs:~# dpkg -l | grep xroad
-ii  xroad-base                      7.1.2-1.ubuntu20.04 amd64        X-Road base components
-ii  xroad-center                    7.1.2-1.ubuntu20.04 all          X-Road central server
-ii  xroad-centralserver             7.1.2-1.ubuntu20.04 all          X-Road central server
-ii  xroad-centralserver-monitoring  7.1.2-1.ubuntu20.04 all          Monitoring client configuration for X-Road central
-ii  xroad-confclient                7.1.2-1.ubuntu20.04 amd64        X-Road configuration client components
-ii  xroad-database-local            7.1.2-1.ubuntu20.04 all          Meta-package for X-Road local database dependencies
-ii  xroad-jetty9                    7.1.2-1.ubuntu20.04 all          Jetty9 for X-Road purposes
-ii  xroad-nginx                     7.1.2-1.ubuntu20.04 amd64        X-Road nginx component
-ii  xroad-signer                    7.1.2-1.ubuntu20.04 amd64        X-Road signer component
+ii  xroad-autologin                    7.3.0-1.ubuntu22.04 all          Automatic token pin code entry
+ii  xroad-base                         7.3.0-1.ubuntu22.04 amd64        X-Road base components
+ii  xroad-center                       7.3.0-1.ubuntu22.04 all          X-Road central server
+ii  xroad-center-management-service    7.3.0-1.ubuntu22.04 all          X-Road Central Server Management Service
+ii  xroad-center-registration-service  7.3.0-1.ubuntu22.04 all          X-Road Central Server Registration Service
+ii  xroad-centralserver                7.3.0-1.ubuntu22.04 all          X-Road central server
+ii  xroad-centralserver-monitoring     7.3.0-1.ubuntu22.04 all          Monitoring client configuration for X-Road central
+ii  xroad-confclient                   7.3.0-1.ubuntu22.04 amd64        X-Road configuration client components
+ii  xroad-database-remote              7.3.0-1.ubuntu22.04 all          Meta-package for X-Road remote database dependencies
+rc  xroad-jetty9                       7.3.0-1.ubuntu22.04 all          Jetty9 for X-Road purposes
+ii  xroad-nginx                        7.3.0-1.ubuntu22.04 amd64        X-Road nginx component
+ii  xroad-signer                       7.3.0-1.ubuntu22.04 amd64        X-Road signer component
 ```
 
 The following packages are available in the repository.
