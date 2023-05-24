@@ -168,7 +168,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             throw new SigningKeyException(ERROR_DELETING_SIGNING_KEY, e);
         }
 
-        configurationAnchorService.recreateAnchor(configurationSourceType);
+        configurationAnchorService.recreateAnchorIgnoringMissingSigningKeys(configurationSourceType);
     }
 
     @Override
@@ -249,7 +249,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                     .setKeyGeneratedAt(generatedAt)
                     .setTokenIdentifier(tokenId);
 
-            configurationAnchorService.recreateAnchor(configurationSourceType);
+            configurationAnchorService.recreateAnchorIgnoringMissingSigningKeys(configurationSourceType);
             return mapWithDetails(tokenInfo, response, keyInfo);
         } catch (Exception e) {
             deleteKey(keyInfo.getId());

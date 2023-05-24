@@ -88,7 +88,7 @@ public class SystemApiController implements SystemApi {
         systemParameterService.updateOrCreateParameter(SystemParameterService.CENTRAL_SERVER_ADDRESS,
                 centralServerAddress.getCentralServerAddress());
 
-        Arrays.stream(ConfigurationSourceType.values()).forEach(configurationAnchorService::recreateAnchor);
+        Arrays.stream(ConfigurationSourceType.values()).forEach(configurationAnchorService::recreateAnchorIgnoringMissingSigningKeys);
 
         return getSystemStatusResponseEntity();
     }
