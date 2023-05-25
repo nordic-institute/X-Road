@@ -1,6 +1,6 @@
 @CentralServer
 @Initialization
-Feature: CS: Initialization
+Feature: 0100 - CS: Initialization
   Verify that CS can be initialized from fresh state.
 
   Background:

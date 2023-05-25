@@ -1,7 +1,7 @@
 @CentralServer
 @CertificationService
 @LoadingTesting
-Feature: CS: Trust Services: Timestamping Services
+Feature: 0570 - CS: Trust Services: Timestamping Services
 
   Background:
     Given CentralServer login page is open

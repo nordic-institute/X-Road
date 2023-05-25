@@ -1,7 +1,7 @@
 @CentralServer
 @CertificationService
 @IntermediateCA
-Feature: CS: Trust Services -> CA Details -> Intermediate CAs -> Intermediate CA OCSP Responders
+Feature: 0550 - CS: Trust Services -> CA Details -> Intermediate CAs -> Intermediate CA OCSP Responders
 
   Background:
     Given CentralServer login page is open

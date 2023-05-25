@@ -1,6 +1,6 @@
 @CentralServer
 @ManagementServices
-Feature: CS: Settings -> System Settings -> Management Services
+Feature: 0970 - CS: Settings -> System Settings -> Management Services
 
   Background:
     Given CentralServer login page is open

@@ -1,6 +1,6 @@
 @CentralServer
 @Member
-Feature: CS Member details view Subsystem tab
+Feature: 0450 - CS: Member details view Subsystem tab
 
   Background:
     Given CentralServer login page is open

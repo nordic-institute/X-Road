@@ -1,6 +1,6 @@
 @CentralServer
 @ConfigurationParts
-Feature: CS: Global configuration: Internal configuration: Configuration parts
+Feature: 0810 - CS: Global configuration: Internal configuration: Configuration parts
 
   Background:
     Given CentralServer login page is open

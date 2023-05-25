@@ -1,7 +1,7 @@
 @CentralServer
 @CertificationService
 @IntermediateCA
-Feature: CS: Trust Services -> CA Details -> Intermediate CAs -> Intermediate CA Details
+Feature: 0540 - CS: Trust Services -> CA Details -> Intermediate CAs -> Intermediate CA Details
 
   Background:
     Given CentralServer login page is open

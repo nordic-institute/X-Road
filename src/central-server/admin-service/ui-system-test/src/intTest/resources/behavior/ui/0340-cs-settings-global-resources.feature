@@ -1,6 +1,6 @@
 @CentralServer
 @CertificationService
-Feature: CS: Settings -> Global Resources
+Feature: 0340 - CS: Settings -> Global Resources
 
   Background:
     Given CentralServer login page is open

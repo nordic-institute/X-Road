@@ -1,7 +1,7 @@
 @CentralServer
 @SecurityServers
 @SecurityServerCertificates
-Feature: CS: Security server: Certificates
+Feature: 1020 - CS: Security server: Certificates
 
   Background:
     Given CentralServer login page is open

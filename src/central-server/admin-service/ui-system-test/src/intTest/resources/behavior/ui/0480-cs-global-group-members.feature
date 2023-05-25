@@ -1,6 +1,6 @@
 @CentralServer
 @GlobalGroupMembers
-Feature: CS: Manage Global Group members
+Feature: 0480 - CS: Manage Global Group members
 
   Background:
     Given CentralServer login page is open

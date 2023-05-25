@@ -1,7 +1,7 @@
 @CentralServer
 @ConfigurationAnchor
 @LoadingTesting
-Feature: CS: Global configuration: External configuration: Anchor
+Feature: 0710 - CS: Global configuration: External configuration: Anchor
 
   Background:
     Given CentralServer login page is open

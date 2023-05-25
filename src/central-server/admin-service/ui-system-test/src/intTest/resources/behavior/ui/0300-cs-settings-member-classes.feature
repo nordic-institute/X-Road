@@ -1,6 +1,6 @@
 @CentralServer
 @MemberClass
-Feature: CS: System Settings -> System parameters  -> Member Classes
+Feature: 0300 - CS: System Settings -> System parameters  -> Member Classes
 
   Background:
     Given CentralServer login page is open

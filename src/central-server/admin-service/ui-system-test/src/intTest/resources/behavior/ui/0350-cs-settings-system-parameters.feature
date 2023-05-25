@@ -1,6 +1,6 @@
 @CentralServer
 @CertificationService
-Feature: CS: System Settings -> System parameters
+Feature: 0350 - CS: System Settings -> System parameters
 
   Background:
     Given CentralServer login page is open
