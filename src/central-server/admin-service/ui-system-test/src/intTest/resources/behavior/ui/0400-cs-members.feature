@@ -1,6 +1,6 @@
 @CentralServer
 @Member
-Feature: CS: Members
+Feature: 0400 - CS: Members
 
   Background:
     Given CentralServer login page is open

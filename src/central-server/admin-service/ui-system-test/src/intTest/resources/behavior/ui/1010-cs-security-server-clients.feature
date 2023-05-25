@@ -1,7 +1,7 @@
 @CentralServer
 @SecurityServers
 @SecurityServerClients
-Feature: CS: Security server: Authentication certificates
+Feature: 1010 - CS: Security server: Authentication certificates
 
   Background:
     Given CentralServer login page is open

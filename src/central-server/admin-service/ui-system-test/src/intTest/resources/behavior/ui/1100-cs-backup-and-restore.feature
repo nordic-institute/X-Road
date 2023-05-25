@@ -1,6 +1,6 @@
 @CentralServer
 @BackupAndRestore
-Feature: CS: Backup and Restore
+Feature: 1100 - CS: Backup and Restore
 
   Background:
     Given CentralServer login page is open

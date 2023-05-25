@@ -1,7 +1,7 @@
 @CentralServer
 @SigningKeys
 @LoadingTesting
-Feature: CS: Global configuration: Internal configuration: Signing keys
+Feature: 0600 - CS: Global configuration: Internal configuration: Signing keys
 
   Background:
     Given CentralServer login page is open

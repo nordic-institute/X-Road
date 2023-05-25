@@ -1,5 +1,5 @@
 @CentralServer
-Feature: CS: Global configuration: Trusted Anchors
+Feature: 0850 - CS: Global configuration: Trusted Anchors
 
   Background:
     Given CentralServer login page is open

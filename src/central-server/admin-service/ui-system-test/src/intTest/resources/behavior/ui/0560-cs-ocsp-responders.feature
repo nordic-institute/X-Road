@@ -1,7 +1,7 @@
 @CentralServer
 @CertificationService
 @This
-Feature: CS: Trust Services -> CA Details -> OCSP Responders
+Feature: 0560 - CS: Trust Services -> CA Details -> OCSP Responders
 
   Background:
     Given CentralServer login page is open

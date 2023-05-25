@@ -1,6 +1,6 @@
 @CentralServer
 @CertificationService
-Feature: CS: Trust Services
+Feature: 0500 - CS: Trust Services
 
   Background:
     Given CentralServer login page is open

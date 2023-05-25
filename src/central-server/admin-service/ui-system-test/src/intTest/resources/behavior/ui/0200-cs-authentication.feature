@@ -1,6 +1,6 @@
 @CentralServer
 @Login
-Feature: CS: Authentication
+Feature: 0200 - CS: Authentication
 
   Background:
     Given CentralServer login page is open

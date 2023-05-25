@@ -1,7 +1,7 @@
 @CentralServer
 @ConfigurationParts
 @LoadingTesting
-Feature: CS: Global configuration: External configuration: Configuration parts
+Feature: 0800 - CS: Global configuration: External configuration: Configuration parts
 
   Background:
     Given CentralServer login page is open

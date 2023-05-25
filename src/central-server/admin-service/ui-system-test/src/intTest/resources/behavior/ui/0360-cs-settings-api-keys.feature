@@ -1,6 +1,6 @@
 @CentralServer
 @CertificationService
-Feature: CS: System Settings -> Api Keys
+Feature: 0360 - CS: System Settings -> Api Keys
 
   Background:
     Given CentralServer login page is open

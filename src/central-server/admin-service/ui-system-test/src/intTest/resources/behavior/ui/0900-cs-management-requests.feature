@@ -1,6 +1,6 @@
 @CentralServer
 @ManagementRequests
-Feature: CS: Management Requests
+Feature: 0900 - CS: Management Requests
 
   Background:
     Given CentralServer login page is open
