@@ -48,7 +48,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
      * one management request, so this value can be low.
      * To disable this feature, set this value to -1.
      */
-    @Value("${ratelimit.requests.per.second}")
+    // Support for both conventional & unconventional format. At some point "ratelimit.requests.per.second" should be removed.
+    @Value("#{'${xroad.proxy-ui-api.rate-limit-requests-per-second:${ratelimit.requests.per.second}}'}")
     private int rateLimitRequestsPerSecond;
 
     /**
@@ -57,7 +58,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
      * one management request, so this value can be low.
      * To disable this feature, set this value to -1.
      */
-    @Value("${ratelimit.requests.per.minute}")
+    // Support for both conventional & unconventional format. At some point "ratelimit.requests.per.minute" should be removed.
+    @Value("#{'${xroad.proxy-ui-api.rate-limit-requests-per-minute:${ratelimit.requests.per.minute}}'}")
     private int rateLimitRequestsPerMinute;
 
     /**
@@ -74,7 +76,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
     /**
      * Determines which hostnames are allowed. Any hostname is allowed when left unspecified.
      */
-    @Value("${allowed.hostnames:}")
+    @Value("${xroad.proxy-ui-api.allowed-hostnames:}")
     private List<String> allowedHostnames;
 
 }
