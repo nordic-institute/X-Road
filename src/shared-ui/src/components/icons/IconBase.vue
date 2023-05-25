@@ -47,7 +47,7 @@ export default Vue.extend({
   props: {
     iconName: {
       type: String,
-      default: 'box',
+      default: '',
     },
     width: {
       type: [Number, String],
