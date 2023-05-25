@@ -286,13 +286,15 @@ class ConfigurationServiceImplTest {
 
         @Test
         void hasSigningKeysShouldReturnTrue() {
-            when(configurationSigningKeyRepository.countSigningKeysForSourceType(INTERNAL.name().toLowerCase(), HA_NODE_NAME)).thenReturn(1);
+            when(configurationSigningKeyRepository.countSigningKeysForSourceType(INTERNAL.name().toLowerCase(), HA_NODE_NAME))
+                    .thenReturn(1);
             assertThat(configurationServiceHa.hasSigningKeys(INTERNAL)).isTrue();
         }
 
         @Test
         void hasSigningKeysShouldReturnFalse() {
-            when(configurationSigningKeyRepository.countSigningKeysForSourceType(INTERNAL.name().toLowerCase(), HA_NODE_NAME)).thenReturn(0);
+            when(configurationSigningKeyRepository.countSigningKeysForSourceType(INTERNAL.name().toLowerCase(), HA_NODE_NAME))
+                    .thenReturn(0);
             assertThat(configurationServiceHa.hasSigningKeys(INTERNAL)).isFalse();
         }
 
