@@ -30,9 +30,6 @@
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-view-title align-fix">
         {{ $t('tab.settings.apiKeys') }}
-        <xrd-icon-base class="xrd-large-button-icon ml-3"
-          ><XrdIconTooltip
-        /></xrd-icon-base>
       </div>
 
       <xrd-button data-test="api-key-create-key-button" @click="createApiKey()">
