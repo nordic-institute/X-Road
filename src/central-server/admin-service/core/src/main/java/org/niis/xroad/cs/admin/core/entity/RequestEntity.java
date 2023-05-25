@@ -86,9 +86,10 @@ public abstract class RequestEntity extends AuditableEntity {
         //JPA
     }
 
-    protected RequestEntity(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId identifier) {
+    protected RequestEntity(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId identifier, String comments) {
         this.origin = origin;
         this.securityServerId = SecurityServerIdEntity.ensure(identifier);
+        this.comments = comments;
     }
 
     /**

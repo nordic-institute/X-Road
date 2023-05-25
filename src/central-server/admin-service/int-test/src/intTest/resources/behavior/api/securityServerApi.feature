@@ -126,6 +126,11 @@ Feature: Security Server API
     Then security servers list contains 'CS:TEST:member-1:SS-X'
     When user deletes security server 'CS:TEST:member-1:SS-X'
     Then security servers list does not contain 'CS:TEST:member-1:SS-X'
+    And management request list contains requests of given type
+      | $type                      | $count |
+      | AUTH_CERT_DELETION_REQUEST | 1      |
+      | CLIENT_DELETION_REQUEST    | 2      |
+    And management request of types 'AUTH_CERT_DELETION_REQUEST,CLIENT_DELETION_REQUEST' details has comment 'SERVER:CS/TEST/member-1/SS-X deletion'
 
   @Modifying
   Scenario: Deleting security server authentication certificate

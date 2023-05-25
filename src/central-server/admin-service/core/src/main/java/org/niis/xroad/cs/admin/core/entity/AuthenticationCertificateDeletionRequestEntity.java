@@ -60,8 +60,9 @@ public class AuthenticationCertificateDeletionRequestEntity extends RequestEntit
         return ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
     }
 
-    public AuthenticationCertificateDeletionRequestEntity(Origin origin, SecurityServerId serverId) {
-        super(origin, serverId);
+    public AuthenticationCertificateDeletionRequestEntity(Origin origin, SecurityServerId serverId, byte[] authCert, String comments) {
+        super(origin, serverId, comments);
+        this.authCert = authCert;
     }
 
 }

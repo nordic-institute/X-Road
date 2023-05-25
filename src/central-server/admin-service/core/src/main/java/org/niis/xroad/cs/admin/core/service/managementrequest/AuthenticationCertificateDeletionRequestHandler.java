@@ -58,8 +58,8 @@ public class AuthenticationCertificateDeletionRequestHandler implements
     public AuthenticationCertificateDeletionRequest add(AuthenticationCertificateDeletionRequest request) {
         final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
 
-        final var requestEntity = new AuthenticationCertificateDeletionRequestEntity(request.getOrigin(), serverId);
-        requestEntity.setAuthCert(request.getAuthCert());
+        final var requestEntity = new AuthenticationCertificateDeletionRequestEntity(request.getOrigin(), serverId,
+                request.getAuthCert(), request.getComments());
 
         var authCert = authCertRepository.findByCert(request.getAuthCert())
                 .orElseThrow(() -> new DataIntegrityException(MR_INVALID_AUTH_CERTIFICATE));
@@ -70,7 +70,6 @@ public class AuthenticationCertificateDeletionRequestHandler implements
         authCertRepository.delete(authCert);
 
         var persistedRequest = requests.save(requestEntity);
-
         return requestMapper.toDto(persistedRequest);
     }
 

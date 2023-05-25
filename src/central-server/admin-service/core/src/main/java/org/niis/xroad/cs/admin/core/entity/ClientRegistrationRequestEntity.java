@@ -56,13 +56,13 @@ public class ClientRegistrationRequestEntity extends RequestWithProcessingEntity
     @Getter
     private ClientIdEntity clientId;
 
-    public ClientRegistrationRequestEntity(Origin origin, SecurityServerId serverId, ClientIdEntity clientId) {
-        super(origin, serverId, new ClientRegistrationRequestProcessingEntity());
+    public ClientRegistrationRequestEntity(Origin origin, SecurityServerId serverId, ClientIdEntity clientId, String comments) {
+        super(origin, serverId, comments, new ClientRegistrationRequestProcessingEntity());
         this.clientId = ClientIdEntity.ensure(clientId);
     }
 
-    public ClientRegistrationRequestEntity(Origin origin, ClientRegistrationRequestEntity other) {
-        super(origin, other.getSecurityServerId(), other.getRequestProcessing());
+    public ClientRegistrationRequestEntity(Origin origin, String comments, ClientRegistrationRequestEntity other) {
+        super(origin, other.getSecurityServerId(), comments, other.getRequestProcessing());
         this.clientId = ClientIdEntity.ensure(other.getClientId());
     }
 

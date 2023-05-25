@@ -62,9 +62,8 @@ class RequestMapperTest {
 
     @Test
     void shouldMapAuthenticationCertificateDeletionRequestEntity() {
-        var source = new AuthenticationCertificateDeletionRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY);
-        source.setAuthCert(CERT);
-        source.setComments("comments");
+        var source = new AuthenticationCertificateDeletionRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY,
+                CERT, "comments");
 
         var result = mapper.toTarget(source);
 
@@ -78,9 +77,8 @@ class RequestMapperTest {
 
     @Test
     void shouldMapAuthenticationCertificateRegistrationRequestEntity() {
-        var source = new AuthenticationCertificateRegistrationRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY);
+        var source = new AuthenticationCertificateRegistrationRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY, "comments");
         source.setAuthCert(CERT);
-        source.setComments("comments");
         source.setAddress("address");
 
         var result = mapper.toTarget(source);
@@ -96,8 +94,7 @@ class RequestMapperTest {
 
     @Test
     void shouldMapClientDeletionRequestEntity() {
-        var source = new ClientDeletionRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY, MEMBER_ID_ENTITY);
-        source.setComments("comments");
+        var source = new ClientDeletionRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY, MEMBER_ID_ENTITY, "comments");
 
         var result = mapper.toTarget(source);
 
@@ -112,8 +109,8 @@ class RequestMapperTest {
 
     @Test
     void shouldMapClientRegistrationRequestEntity() {
-        RequestEntity source = new ClientRegistrationRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY, MEMBER_ID_ENTITY);
-        source.setComments("comments");
+        RequestEntity source = new ClientRegistrationRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY,
+                MEMBER_ID_ENTITY, "comments");
 
         var result = mapper.toTarget(source);
 
@@ -127,8 +124,7 @@ class RequestMapperTest {
 
     @Test
     void shouldMapOwnerChangeRequestEntity() {
-        var source = new OwnerChangeRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY, MEMBER_ID_ENTITY);
-        source.setComments("comments");
+        var source = new OwnerChangeRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY, MEMBER_ID_ENTITY, "comments");
 
         var result = mapper.toTarget(source);
 

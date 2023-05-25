@@ -147,16 +147,15 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
                 Predicate<Void> isSameSecurityServerId = __ ->
                         existingRequest.getSecurityServerId().equals(serverId);
                 if (isDifferentOrigin.and(isSameSecurityServerId).test(null)) {
-                    authCertRegRequest = new AuthenticationCertificateRegistrationRequestEntity(origin, existingRequest);
+                    authCertRegRequest = new AuthenticationCertificateRegistrationRequestEntity(origin, request.getComments(),
+                            existingRequest);
                     authCertRegRequest.getRequestProcessing().setStatus(SUBMITTED_FOR_APPROVAL);
                     break;
                 }
-                throw new DataIntegrityException(MR_EXISTS,
-                        valueOf(existingRequest.getId()));
+                throw new DataIntegrityException(MR_EXISTS, valueOf(existingRequest.getId()));
             default:
                 throw new DataIntegrityException(MR_EXISTS);
         }
-
 
         authCertRegRequest.setAuthCert(validatedCert);
         authCertRegRequest.setAddress(request.getAddress());
@@ -229,7 +228,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     private AuthenticationCertificateRegistrationRequestEntity newRequest(
             AuthenticationCertificateRegistrationRequest request) {
         SecurityServerIdEntity serverId = serverIds.findOrCreate(SecurityServerIdEntity.create(request.getSecurityServerId()));
-        return new AuthenticationCertificateRegistrationRequestEntity(request.getOrigin(), serverId);
+        return new AuthenticationCertificateRegistrationRequestEntity(request.getOrigin(), serverId, request.getComments());
     }
 
 }

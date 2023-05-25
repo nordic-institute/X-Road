@@ -39,11 +39,13 @@ import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestListViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
+import org.niis.xroad.cs.openapi.model.PagedManagementRequestsDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.utils.CertificateUtils;
@@ -53,6 +55,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -227,6 +230,49 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
             certificates.put(serverId, CertificateUtils.generateAuthCert("CN=Subject-" + serverId));
         }
         return certificates.get(serverId);
+    }
+
+    @Step("management request list contains requests of given type")
+    public void managementRequestList(DataTable table) {
+        final PagingSortingParametersDto pagingSortingParams = new PagingSortingParametersDto();
+        pagingSortingParams.setSort("created_at");
+        pagingSortingParams.desc(true);
+
+        final ResponseEntity<PagedManagementRequestsDto> response = managementRequestsApi
+                .findManagementRequests(new ManagementRequestsFilterDto(), pagingSortingParams);
+
+        final ValidationHelper validations = validate(response)
+                .assertion(equalsStatusCodeAssertion(OK));
+
+        for (Map<String, String> params : table.asMaps()) {
+            validations.assertion(equalsAssertion(createInteger(params.get("$count")),
+                    "body.items.?[type.name()=='" + ManagementRequestTypeDto.fromValue(params.get("$type")) + "'].size()"));
+        }
+
+        validations.execute();
+    }
+
+    @Step("management request of types {string} details has comment {string}")
+    public void verifyManagementRequestDetails(String types, String comment) {
+        final PagingSortingParametersDto pagingSortingParams = new PagingSortingParametersDto();
+        pagingSortingParams.setSort("created_at");
+        pagingSortingParams.desc(true);
+        final HashSet<ManagementRequestTypeDto> typesSet = new HashSet<>(toTypes(types));
+
+        final ResponseEntity<PagedManagementRequestsDto> allRequests = managementRequestsApi
+                .findManagementRequests(new ManagementRequestsFilterDto(), pagingSortingParams);
+
+        for (ManagementRequestListViewDto item : allRequests.getBody().getItems()) {
+            if (typesSet.contains(item.getType())) {
+                final ResponseEntity<ManagementRequestDetailedViewDto> requestDetails = managementRequestsApi
+                        .getManagementRequest(item.getId());
+
+                validate(requestDetails)
+                        .assertion(equalsStatusCodeAssertion(OK))
+                        .assertion(equalsAssertion(comment, "body.comments"))
+                        .execute();
+            }
+        }
     }
 
     @Step("management request list endpoint queried and verified using params")

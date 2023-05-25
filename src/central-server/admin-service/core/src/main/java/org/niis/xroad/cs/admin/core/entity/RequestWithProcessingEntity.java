@@ -56,8 +56,8 @@ public abstract class RequestWithProcessingEntity extends RequestEntity {
         //JPA
     }
 
-    protected RequestWithProcessingEntity(Origin origin, SecurityServerId serverId, RequestProcessingEntity processing) {
-        super(origin, serverId);
+    protected RequestWithProcessingEntity(Origin origin, SecurityServerId serverId, String comments, RequestProcessingEntity processing) {
+        super(origin, serverId, comments);
         this.requestProcessing = processing;
         requestProcessing.getRequests().add(this);
     }
