@@ -47,12 +47,10 @@ request:
     binary:
       upload: 10MB
 
-# Deprecated, should be replaced with "xroad.proxy-ui-api.rate-limit-requests-per-second" & "xroad.proxy-ui-api.rate-limit-requests-per-minute" once removed
-ratelimit:
-  requests:
-    per:
-      second: 20
-      minute: 600
+xroad:
+  proxy-ui-api:
+    rate-limit-requests-per-second: ${ratelimit.requests.per.second:20} #Deprecated. This is a fallback to old style properties
+    rate-limit-requests-per-minute: ${ratelimit.requests.per.minute:600} #Deprecated. This is a fallback to old style properties
 
 file-upload-endpoints:
   endpointDefinitions:
