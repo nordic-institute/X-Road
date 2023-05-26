@@ -48,7 +48,7 @@ public interface ApprovedTsaMapper extends GenericUniDirectionalMapper<ApprovedT
     @Override
     @Mapping(target = "certificate", source = "cert")
     @Mapping(target = "timestampingInterval", constant = "60") // TODO stub value. Will be implemented in separate story
-    @Mapping(target = "cost", constant = "FREE") // TODO stub value. Will be implemented in separate story
+    @Mapping(target = "cost", constant = "UNDEFINED") // TODO stub value. Will be implemented in separate story
     ApprovedTsa toTarget(ApprovedTsaEntity approvedTsaEntity);
 
     default ApprovedTsaEntity toEntity(String url, byte[] certificate) {

@@ -45,7 +45,7 @@ import java.util.Set;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.cs.admin.api.domain.ApprovedTsa.ApprovedTsaCost.FREE;
+import static org.niis.xroad.cs.admin.api.domain.ApprovedTsa.ApprovedTsaCost.UNDEFINED;
 import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.NON_REPUDIATION;
 
 @SpringBootTest(classes = {ApprovedTsaMapperImpl.class, CertificateConverter.class, KeyUsageConverter.class})
@@ -101,7 +101,7 @@ class ApprovedTsaMapperTest {
         assertThat(result.getCertificate().getVersion()).isEqualTo(3);
 
         // stub values. Will be implemented in separate story
-        assertThat(result.getCost()).isEqualTo(FREE);
+        assertThat(result.getCost()).isEqualTo(UNDEFINED);
         assertThat(result.getTimestampingInterval()).isEqualTo(60);
     }
 
