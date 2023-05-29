@@ -154,7 +154,7 @@ class ConfigurationSigningKeysServiceImplTest {
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
                 .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Singing key action not possible");
+                .hasMessage("Signing key action not possible");
     }
 
     @Test
@@ -251,7 +251,7 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     @Test
-    void shouldNotAddMoreThanTwoSingingKeys() throws Exception {
+    void shouldNotAddMoreThanTwoSigningKeys() throws Exception {
         ConfigurationSigningKeyEntity key1 = createConfigurationSigningEntity(INTERNAL_CONFIGURATION, true);
         ConfigurationSigningKeyEntity key2 = createConfigurationSigningEntity(INTERNAL_CONFIGURATION, false);
         when(configurationSourceRepository.findBySourceTypeOrCreate(INTERNAL_CONFIGURATION, haConfigStatus))
@@ -292,7 +292,7 @@ class ConfigurationSigningKeysServiceImplTest {
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.activateKey(signingKeyEntity.getKeyIdentifier()))
                 .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Singing key action not possible");
+                .hasMessage("Signing key action not possible");
     }
 
     @Test
