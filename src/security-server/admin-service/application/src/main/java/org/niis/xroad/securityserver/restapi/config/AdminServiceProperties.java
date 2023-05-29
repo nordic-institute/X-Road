@@ -27,18 +27,21 @@
 package org.niis.xroad.securityserver.restapi.config;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
 /**
  * Admin service configuration properties.
  */
-@Component
+@Configuration(proxyBeanMethods = false)
+@ConfigurationProperties(prefix = "xroad.proxy-ui-api")
 @Getter
+@Setter
 @SuppressWarnings("checkstyle:MagicNumber")
 public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig {
 
@@ -48,8 +51,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
      * one management request, so this value can be low.
      * To disable this feature, set this value to -1.
      */
-    @Value("${ratelimit.requests.per.second}")
-    private int rateLimitRequestsPerSecond;
+    private int rateLimitRequestsPerSecond = 20;
 
     /**
      * Controls how many requests from an IP address are allowed per minute.
@@ -57,24 +59,22 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
      * one management request, so this value can be low.
      * To disable this feature, set this value to -1.
      */
-    @Value("${ratelimit.requests.per.minute}")
-    private int rateLimitRequestsPerMinute;
+    private int rateLimitRequestsPerMinute = 600;
 
     /**
      * Controls how many IP addresses can be remembered in the rate-limit cache
      * Tradeoff between memory usage and protection from a large attack.
      */
-    private final int rateLimitCacheSize = 10_000;
+    private int rateLimitCacheSize = 10_000;
 
     /**
      * Controls how long the rate-limit cache entries are valid.
      */
-    private final int rateLimitExpireAfterAccessMinutes = 5;
+    private int rateLimitExpireAfterAccessMinutes = 5;
 
     /**
      * Determines which hostnames are allowed. Any hostname is allowed when left unspecified.
      */
-    @Value("${allowed.hostnames:}")
     private List<String> allowedHostnames;
 
 }

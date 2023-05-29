@@ -2589,6 +2589,8 @@ application properties
 - `ratelimit.requests.per.second`
 - `ratelimit.requests.per.minute`
 
+**Note:** These properties have been deprecated since 7.3.0, please use `request-sizelimit-*` & `rate-limit-requests-per-*` [proxy-ui-api parameters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) instead
+
 Size limit parameters support formats from Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html),
 for example `5MB`.
 

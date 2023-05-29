@@ -18,8 +18,8 @@ spring:
     default-property-inclusion: NON_NULL
   servlet:
     multipart:
-      max-file-size: ${request.sizelimit.binary.upload}
-      max-request-size: ${request.sizelimit.binary.upload}
+      max-file-size: ${xroad.proxy-ui-api.request-sizelimit-binary-upload:${request.sizelimit.binary.upload}}
+      max-request-size: ${xroad.proxy-ui-api.request-sizelimit-binary-upload:${request.sizelimit.binary.upload}}
 
 # default is 30m
 # server.servlet.session.timeout=1m
@@ -40,17 +40,17 @@ server:
       rotatable: true
       max-days: 30
 
+# Deprecated, should be replaced with "xroad.proxy-ui-api.request-sizelimit-regular" & "xroad.proxy-ui-api.request-sizelimit-binary-upload" once removed
 request:
   sizelimit:
     regular: 50KB
     binary:
       upload: 10MB
 
-ratelimit:
-  requests:
-    per:
-      second: 20
-      minute: 600
+xroad:
+  proxy-ui-api:
+    rate-limit-requests-per-second: ${ratelimit.requests.per.second:20} #Deprecated. This is a fallback to old style properties
+    rate-limit-requests-per-minute: ${ratelimit.requests.per.minute:600} #Deprecated. This is a fallback to old style properties
 
 file-upload-endpoints:
   endpointDefinitions:

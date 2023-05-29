@@ -59,10 +59,12 @@ public class LimitRequestSizesFilter extends OncePerRequestFilter {
 
     private final FileUploadEndpointsConfiguration fileUploadEndpointsConfiguration;
 
-    @Value("${request.sizelimit.regular}")
+    // Support for both conventional & unconventional format. At some point "request.sizelimit.regular" should be removed.
+    @Value("#{'${xroad.proxy-ui-api.request-sizelimit-regular:${request.sizelimit.regular}}'}")
     private DataSize regularRequestSizeLimit;
 
-    @Value("${request.sizelimit.binary.upload}")
+    // Support for both conventional & unconventional format. At some point "request.sizelimit.binary.upload" should be removed.
+    @Value("#{'${xroad.proxy-ui-api.request-sizelimit-binary-upload:${request.sizelimit.binary.upload}}'}")
     private DataSize fileUploadRequestSizeLimit;
 
     @Autowired
