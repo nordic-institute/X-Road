@@ -54,7 +54,7 @@
         <v-data-table
           v-model="selectedSecurityServers"
           class="elevation-0 data-table"
-          item-key="id"
+          item-key="server_id.encoded_id"
           show-select
           single-select
           :loading="loading"
