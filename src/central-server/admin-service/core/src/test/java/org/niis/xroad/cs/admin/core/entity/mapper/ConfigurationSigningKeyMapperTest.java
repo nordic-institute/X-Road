@@ -42,7 +42,7 @@ class ConfigurationSigningKeyMapperTest {
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
 
     @Test
-    void toTargetAsActiveSingingKey() {
+    void toTargetAsActiveSigningKey() {
         ConfigurationSigningKeyEntity entity = createConfigurationSigningEntity(
                 ConfigurationSourceType.EXTERNAL.name(), true);
 
@@ -57,7 +57,7 @@ class ConfigurationSigningKeyMapperTest {
     }
 
     @Test
-    void toTargetAsInactiveSingingKeyAndWithInvalidSourceType() {
+    void toTargetAsInactiveSigningKeyAndWithInvalidSourceType() {
         ConfigurationSigningKeyEntity entity = createConfigurationSigningEntity("INVALID_SOURCE_TYPE",
                 false);
 
