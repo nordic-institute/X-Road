@@ -45,6 +45,7 @@ import org.apache.hc.core5.ssl.SSLContexts;
 import org.niis.xroad.cs.admin.client.AuthFeignClientInterceptor;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.niis.xroad.cs.admin.client.FeignRestErrorDecoder;
+import org.niis.xroad.cs.admin.client.XForwardedForHeaderFeignInterceptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -81,6 +82,7 @@ public class AdminServiceClientConfiguration {
                 .decoder(decoder)
                 .errorDecoder(errorDecoder)
                 .requestInterceptor(new AuthFeignClientInterceptor(propertyProvider))
+                .requestInterceptor(new XForwardedForHeaderFeignInterceptor())
                 .contract(contract)
                 .target(FeignManagementRequestsApi.class, propertyProvider.getApiBaseUrl().toString());
     }

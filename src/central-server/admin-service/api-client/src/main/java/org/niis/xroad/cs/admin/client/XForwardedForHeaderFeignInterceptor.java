@@ -1,20 +1,21 @@
-/**
+/*
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,18 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
 
-/**
- * Contains constants identifying HTTP header fields.
- */
-public final class HttpHeaders {
+package org.niis.xroad.cs.admin.client;
 
-    public static final String CONTENT_DISPOSITION = "Content-Disposition";
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
-    public static final String X_FORWARDED_FOR = "X-Forwarded-For";
+import javax.servlet.http.HttpServletRequest;
 
-    private HttpHeaders() {
+import static ee.ria.xroad.common.util.HttpHeaders.X_FORWARDED_FOR;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
+public class XForwardedForHeaderFeignInterceptor implements RequestInterceptor {
+
+    @Override
+    public void apply(RequestTemplate template) {
+        final RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (requestAttributes instanceof ServletRequestAttributes) {
+            HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+
+            String clientIp = request.getHeader(X_FORWARDED_FOR);
+            if (isBlank(clientIp)) {
+                clientIp = request.getRemoteAddr();
+            }
+
+            template.header(X_FORWARDED_FOR, clientIp);
+        }
     }
 
 }

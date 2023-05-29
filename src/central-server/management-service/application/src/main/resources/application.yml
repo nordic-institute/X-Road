@@ -23,4 +23,4 @@ server:
       tracking-modes:
   port: 8085
   address: 127.0.0.1
-  forward-headers-strategy: framework
+  forward-headers-strategy: native
