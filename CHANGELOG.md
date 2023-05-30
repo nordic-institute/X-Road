@@ -266,6 +266,8 @@
 - XRDDEV-2400: As a Developer I want to improve small UI issues that exist in the new Central Server so that the release is more polished
 - XRDDEV-2387: Host header injection
 - XRDDEV-2366: No error message is shown in the UI when sending a client registration request from the Security Server fails.
+- XRDDEV-2420: Members subsystem list server owner column name not showing
+- XRDDEV-2395: Registration request received from a security server can't be revoked anymore by deletion requests sent from the security server
 
 ## 7.2.0 - 2022-11-10
 - XRDDEV-2167: As an X-Road user I would like the default maximum memory for the X-Road message log addon to be increased to 200m so that it wouldn't cause failures on higher traffic servers
