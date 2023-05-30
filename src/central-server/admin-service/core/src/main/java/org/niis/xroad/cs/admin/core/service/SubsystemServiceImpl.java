@@ -36,11 +36,9 @@ import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerClientNameEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
-import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
@@ -75,7 +73,6 @@ public class SubsystemServiceImpl implements SubsystemService {
     private final SubsystemRepository subsystemRepository;
     private final XRoadMemberRepository xRoadMemberRepository;
     private final ServerClientRepository serverClientRepository;
-    private final SecurityServerClientNameRepository securityServerClientNameRepository;
     private final SecurityServerClientMapper subsystemConverter;
     private final AuditDataHelper auditDataHelper;
 
@@ -91,7 +88,6 @@ public class SubsystemServiceImpl implements SubsystemService {
         }
 
         var persistedEntity = saveSubsystem(request);
-        saveSecurityServerClientName(persistedEntity);
         return subsystemConverter.toDto(persistedEntity);
     }
 
@@ -104,11 +100,6 @@ public class SubsystemServiceImpl implements SubsystemService {
                 ));
         var subsystemEntity = new SubsystemEntity(memberEntity, request.getSubsystemId());
         return subsystemRepository.save(subsystemEntity);
-    }
-
-    private void saveSecurityServerClientName(SubsystemEntity subsystem) {
-        var ssClientName = new SecurityServerClientNameEntity(subsystem.getXroadMember(), subsystem.getIdentifier());
-        securityServerClientNameRepository.save(ssClientName);
     }
 
     @Override
