@@ -92,8 +92,8 @@ public enum ErrorMessage implements DeviationProvider {
 
     SIGNER_PROXY_ERROR("signer_proxy_error", "Signer proxy exception"),
 
-    SIGNING_KEY_ACTION_NOT_POSSIBLE("signing_key_action_not_possible", "Singing key action not possible"),
-    KEY_GENERATION_FAILED("key_generation_failed", "Singing key generation failed"),
+    SIGNING_KEY_ACTION_NOT_POSSIBLE("signing_key_action_not_possible", "Signing key action not possible"),
+    KEY_GENERATION_FAILED("key_generation_failed", "Signing key generation failed"),
     SIGNING_KEY_NOT_FOUND("signing_key_not_found", "Signing key not found"),
     ERROR_DELETING_SIGNING_KEY("error_deleting_signing_key", "Error deleting signing key"),
     ERROR_ACTIVATING_SIGNING_KEY("error_activating_signing_key", "Error activating signing key"),
