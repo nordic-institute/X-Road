@@ -258,7 +258,7 @@ export default Vue.extend({
           class: 'xrd-table-header subsystems-table-header-server-code',
         },
         {
-          text: this.$t('members.member.subsystems.server_owner') as string,
+          text: this.$t('members.member.subsystems.serverOwner') as string,
           align: 'start',
           value: 'usedSecurityServers[0].server_owner',
           class: 'xrd-table-header subsystems-table-header-server-owner',
