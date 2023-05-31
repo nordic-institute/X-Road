@@ -93,10 +93,6 @@ url:
   diagnostics-backup-encryption-status: http://localhost:%s/backup-encryption-status
   diagnostics-message-log-encryption-status: http://localhost:%s/message-log-encryption-status
 
-cache:
-  simple:
-    ttl: 60
-
 common-module-endpoints:
   base-path: /api/v1
 

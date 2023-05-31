@@ -23,44 +23,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.restapi.config;
 
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
-
-import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
-import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
-import org.niis.xroad.restapi.config.ApiCachingConfiguration;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.CaffeineCacheBuilder;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
 
-import javax.servlet.Filter;
-
-import static org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService.GET_CERTIFICATE_AUTHORITIES_CACHE;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * A generic, configuration class for bean initialization.
+ * Api caching configuration. Dynamically loads all caches built with {@link CaffeineCacheBuilder}.
  */
+@Slf4j
+@EnableCaching
 @Configuration
-public class SecurityServerConfiguration {
+public class ApiCachingConfiguration {
+    public static final String LIST_ALL_KEYS_CACHE = "all-apikeys";
 
     @Bean
-    public ExternalProcessRunner externalProcessRunner() {
-        return new ExternalProcessRunner();
+    public CacheManager cacheManager(List<CaffeineCacheBuilder.ConfiguredCache> caches) {
+        var cacheManager = new SimpleCacheManager();
+        cacheManager.setCaches(caches.stream()
+                .peek(configuredCache -> log.info("Initializing [{}] cache. Provider: {}, TTL: {} seconds.",
+                        configuredCache.getCache().getName(),
+                        configuredCache.getCache().getClass().getSimpleName(),
+                        configuredCache.getTimeToLiveSeconds()))
+                .map(CaffeineCacheBuilder.ConfiguredCache::getCache)
+                .collect(Collectors.toList()));
+
+        return cacheManager;
     }
 
     @Bean
-    @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3)
-    @Profile("nontest")
-    public Filter ipThrottlingFilter(AdminServiceProperties properties) {
-        return new IpThrottlingFilter(properties);
+    public CaffeineCacheBuilder.ConfiguredCache cacheApiKeyListAll(Config cachingProperties) {
+        return CaffeineCacheBuilder.newExpireAfterWriteCache(LIST_ALL_KEYS_CACHE, cachingProperties.getCacheApiKeyTtl());
     }
 
-    @Bean
-    public CaffeineCacheBuilder.ConfiguredCache cacheGetCertAuthorities(ApiCachingConfiguration.Config cachingProperties) {
-        return CaffeineCacheBuilder.newExpireAfterWriteCache(GET_CERTIFICATE_AUTHORITIES_CACHE, cachingProperties.getCacheDefaultTtl());
-    }
+    public interface Config {
+        int getCacheDefaultTtl();
 
+        int getCacheApiKeyTtl();
+    }
 }
