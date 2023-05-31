@@ -26,9 +26,9 @@
  */
 
 import { defineStore } from 'pinia';
-import { deepClone, saveResponseAsFile } from '@/util/helpers';
+import { saveResponseAsFile } from '@/util/helpers';
 import axios from 'axios';
-import { Token, TokenPassword, TrustedAnchor } from '@/openapi-types';
+import { TrustedAnchor } from '@/openapi-types';
 
 export const trustedAnchorStore = defineStore('trustedAnchor', {
   actions: {
@@ -43,7 +43,7 @@ export const trustedAnchorStore = defineStore('trustedAnchor', {
       const config = {
         headers: {
           'Content-Type': 'multipart/form-data',
-        }
+        },
       };
       return axios
         .post<TrustedAnchor>('/trusted-anchors/preview', formData, config)
@@ -57,7 +57,7 @@ export const trustedAnchorStore = defineStore('trustedAnchor', {
       const config = {
         headers: {
           'Content-Type': 'multipart/form-data',
-        }
+        },
       };
       return axios
         .post<TrustedAnchor>('/trusted-anchors', formData, config)
