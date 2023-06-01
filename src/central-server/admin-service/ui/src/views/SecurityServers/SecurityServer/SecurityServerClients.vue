@@ -154,6 +154,7 @@ export default Vue.extend({
         name: RouteName.MemberDetails,
         params: {
           memberid: toMemberId(client.client_id),
+          backTo: this.$router.currentRoute.path,
         },
       });
     },
