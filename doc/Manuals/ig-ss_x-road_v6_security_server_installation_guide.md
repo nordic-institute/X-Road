@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.44  
+Version: 2.45  
 Doc. ID: IG-SS
 
 ---
@@ -68,7 +68,7 @@ Doc. ID: IG-SS
 | 06.09.2021 | 2.42    | Update list of running services                                                                                                                                                                                      | Jarkko Hyöty     |
 | 26.09.2022 | 2.43    | Remove Ubuntu 18.04 support                                                                                                                                                                                          | Andres Rosenthal |
 | 23.05.2023 | 2.44    | Minor backup encryption configuration fixes                                                                                                                                                                          | Eneli Reimets    |
-
+| 01.06.2023 | 2.45    | Update references                                                                                                                                                                                                    | Petteri Kivimäki |
 
 ## License
 
@@ -140,7 +140,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
