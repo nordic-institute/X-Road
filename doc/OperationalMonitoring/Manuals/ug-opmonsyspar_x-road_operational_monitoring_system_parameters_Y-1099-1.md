@@ -6,15 +6,16 @@
 
 # User Guide
 
-Version: 0.5  
+Version: 0.6  
 Doc ID: UG-OPMONSYSPAR
 
-| Date       | Version | Description                                                                  | Author             |
-|------------|---------|------------------------------------------------------------------------------|--------------------|
-|            | 0.2     | Initial version                                                              |                    |
-| 23.01.2017 | 0.3     | Added license text, table of contents and version history                    | Sami Kallio        |
-| 17.03.2017 | 0.4     | Added new parameters *op-monitor-buffer.connection-timeout-seconds* and *op-monitor-service.connection-timeout-seconds* | Kristo Heero       |
-| 05.03.2018 | 0.5     | Added reference to terms and abbreviations doc | Tatu Repo | 
+| Date       | Version | Description                                                                                                             | Author           |
+|------------|---------|-------------------------------------------------------------------------------------------------------------------------|------------------|
+|            | 0.2     | Initial version                                                                                                         |                  |
+| 23.01.2017 | 0.3     | Added license text, table of contents and version history                                                               | Sami Kallio      |
+| 17.03.2017 | 0.4     | Added new parameters *op-monitor-buffer.connection-timeout-seconds* and *op-monitor-service.connection-timeout-seconds* | Kristo Heero     |
+| 05.03.2018 | 0.5     | Added reference to terms and abbreviations doc                                                                          | Tatu Repo        | 
+| 01.06.2023 | 0.6     | Update references                                                                                                       | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -43,8 +44,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.2 References
 
-<a name="UG-SYSPAR"></a>**UG-SYSPAR** -- Cybernetica AS. X-Road: System Parameters. Document ID: [UG-SYSPAR](../../Manuals/ug-syspar_x-road_v6_system_parameters.md).  
-<a name="UG-SS"></a>**UG-SS** -- Cybernetica AS. X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md).  
+<a name="UG-SYSPAR"></a>**UG-SYSPAR** -- X-Road: System Parameters. Document ID: [UG-SYSPAR](../../Manuals/ug-syspar_x-road_v6_system_parameters.md).  
+<a name="UG-SS"></a>**UG-SS** -- X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md).  
 <a name="CRON"></a>**CRON** -- Quartz Scheduler Cron Trigger Tutorial,  http://www.quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/crontrigger.html  
 <a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 

@@ -6,32 +6,33 @@
 # X-Road: Central Server Architecture
 **Technical Specification**
 
-Version: 2.6  
+Version: 2.7  
 Doc. ID: ARC-CS
 
 
 ## Version history
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 02.06.2015 | 0.1     | Initial version                                                 | Ilja Kromonov
- 02.07.2015 | 0.2     | Comments and editorial changes                                  | Margus Freudenthal
- 03.07.2015 | 0.3     | Component diagram updated; configuration generation sequence and simple deployment diagrams added | Ilja Kromonov
- 09.07.2015 | 0.4     | Minor fixes; Data model reference                               | Ilja Kromonov
- 27.08.2015 | 0.5     | Section on high availability added                              | Marju Ignatjeva
- 10.09.2015 | 0.6     | Format and captions of figures edited                           | Marju Ignatjeva
- 10.09.2015 | 0.7     | Technology matrix added; editorial changes                      | Ilja Kromonov
- 15.09.2015 | 0.8     | Audit log added                                                 | Kristo Heero
- 16.09.2015 | 0.9     | Incorporated feedback from Vitali                               | Margus Freudenthal
- 16.09.2015 | 1.0     | Editorial changes made                                          | Imbi Nõgisto
- 16.09.2015 | 1.1     | Postgres new number                                             | Margus Freudenthal
- 17.09.2015 | 2.0     | Editorial changes made                                          | Imbi Nõgisto
- 21.10.2015 | 2.1     | SSCD and password store related information added               | Ilja Kromonov
+ Date      | Version | Description                                                                                          | Author
+ --------- |---------|------------------------------------------------------------------------------------------------------| --------------------
+ 02.06.2015 | 0.1     | Initial version                                                                                      | Ilja Kromonov
+ 02.07.2015 | 0.2     | Comments and editorial changes                                                                       | Margus Freudenthal
+ 03.07.2015 | 0.3     | Component diagram updated; configuration generation sequence and simple deployment diagrams added    | Ilja Kromonov
+ 09.07.2015 | 0.4     | Minor fixes; Data model reference                                                                    | Ilja Kromonov
+ 27.08.2015 | 0.5     | Section on high availability added                                                                   | Marju Ignatjeva
+ 10.09.2015 | 0.6     | Format and captions of figures edited                                                                | Marju Ignatjeva
+ 10.09.2015 | 0.7     | Technology matrix added; editorial changes                                                           | Ilja Kromonov
+ 15.09.2015 | 0.8     | Audit log added                                                                                      | Kristo Heero
+ 16.09.2015 | 0.9     | Incorporated feedback from Vitali                                                                    | Margus Freudenthal
+ 16.09.2015 | 1.0     | Editorial changes made                                                                               | Imbi Nõgisto
+ 16.09.2015 | 1.1     | Postgres new number                                                                                  | Margus Freudenthal
+ 17.09.2015 | 2.0     | Editorial changes made                                                                               | Imbi Nõgisto
+ 21.10.2015 | 2.1     | SSCD and password store related information added                                                    | Ilja Kromonov
  24.02.2017 | 2.2     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 19.01.2018 | 2.3     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
- 02.03.2018 | 2.4     | Moved terms and abbreviations into the terms document           | Tatu Repo
- 11.08.2021 | 2.5     | Update chapter 5.2 about high-availability setup                | Ilkka Seppälä
- 23.09.2022 | 2.6     | Added new Registration Web Service                              | Eneli Reimets
+ 19.01.2018 | 2.3     | Matrix of technologies moved to ARC-TEC-file and chapters reordered                                  | Antti Luoma 
+ 02.03.2018 | 2.4     | Moved terms and abbreviations into the terms document                                                | Tatu Repo
+ 11.08.2021 | 2.5     | Update chapter 5.2 about high-availability setup                                                     | Ilkka Seppälä
+ 23.09.2022 | 2.6     | Added new Registration Web Service                                                                   | Eneli Reimets
+ 01.06.2023 | 2.7     | Update references                                                                                    | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -98,17 +99,17 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] Cybernetica AS. X-Road Architecture. Document ID: [ARC-G](arc-g_x-road_arhitecture.md).
+1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] X-Road Architecture. Document ID: [ARC-G](arc-g_x-road_arhitecture.md).
 
-2. <a id="Ref_DM-CS" class="anchor"></a>\[DM-CS\] Cybernetica AS. X-Road: Central Server Configuration. Document ID: [DM-CS](../DataModels/dm-cs_x-road_central_server_configuration_data_model.md).
+2. <a id="Ref_DM-CS" class="anchor"></a>\[DM-CS\] X-Road: Central Server Configuration. Document ID: [DM-CS](../DataModels/dm-cs_x-road_central_server_configuration_data_model.md).
 
-3. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] Cybernetica AS. X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
+3. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
-4. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
+4. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
-5. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] Cybernetica AS. X-Road: Management Services Protocol. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
+5. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Management Services Protocol. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
 
-6. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events.
+6. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit log events.
 
 7. <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] Cryptographic Token Interface Standard. RSA Laboratories, PKCS\#11.
 
