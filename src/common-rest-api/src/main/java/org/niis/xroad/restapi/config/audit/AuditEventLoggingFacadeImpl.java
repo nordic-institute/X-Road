@@ -35,8 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -75,7 +73,7 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
     @Override
     public void auditLogSuccess() {
         if (getRequestScopedEvent() != null) {
-            auditLog(getRequestScopedEvent(), usernameHelper.getUsername(), getRequestSenderIPAddress(),
+            auditLog(getRequestScopedEvent(), usernameHelper.getUsername(), requestHelper.getRequestSenderIPAddress(),
                     createConvertedEventData());
         }
     }
@@ -83,12 +81,12 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
 
     @Override
     public void auditLogSuccess(RestApiAuditEvent event) {
-        auditLog(event, usernameHelper.getUsername(), getRequestSenderIPAddress(), createConvertedEventData());
+        auditLog(event, usernameHelper.getUsername(), requestHelper.getRequestSenderIPAddress(), createConvertedEventData());
     }
 
     @Override
     public void auditLogSuccess(RestApiAuditEvent event, String username) {
-        auditLog(event, username, getRequestSenderIPAddress(), createConvertedEventData());
+        auditLog(event, username, requestHelper.getRequestSenderIPAddress(), createConvertedEventData());
     }
 
     @Override
@@ -233,9 +231,9 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
         if (eventToLog != null) {
             String reason = ex.getMessage();
             if (causedByUnhandledWarnings(ex)) {
-                auditLogWarning(eventToLog, username, getRequestSenderIPAddress(), reason, createConvertedEventData());
+                auditLogWarning(eventToLog, username, requestHelper.getRequestSenderIPAddress(), reason, createConvertedEventData());
             } else {
-                auditLogFailure(eventToLog, username, getRequestSenderIPAddress(), reason, createConvertedEventData());
+                auditLogFailure(eventToLog, username, requestHelper.getRequestSenderIPAddress(), reason, createConvertedEventData());
             }
         }
     }
@@ -248,15 +246,4 @@ public class AuditEventLoggingFacadeImpl implements AuditEventLoggingFacade {
         return ExceptionUtils.indexOfType(t, UnhandledWarningsException.class) != -1;
     }
 
-    /**
-     * Gets request senders IP address
-     */
-    private String getRequestSenderIPAddress() {
-        String ipAddress = null;
-        HttpServletRequest currentHttpRequest = requestHelper.getCurrentHttpRequest();
-        if (currentHttpRequest != null) {
-            ipAddress = currentHttpRequest.getRemoteAddr();
-        }
-        return ipAddress;
-    }
 }

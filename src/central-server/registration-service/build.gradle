@@ -34,7 +34,9 @@ dependencies {
     }
 
     implementation project(':common-ui')
-    implementation project(':common-management-request')
+    implementation (project(':common-management-request')) {
+      exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    }
     implementation(project(':common-verifier')) {
         transitive = false
     }
