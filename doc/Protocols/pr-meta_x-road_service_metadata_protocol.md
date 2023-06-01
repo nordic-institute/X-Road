@@ -5,7 +5,7 @@
 # X-Road: Service Metadata Protocol <!-- omit in toc --> 
 **Technical Specification**
 
-Version: 2.12  
+Version: 2.13  
 Doc. ID: PR-META
 
 ---
@@ -31,6 +31,7 @@ Doc. ID: PR-META
 | 07.11.2019 | 2.10    | Update getWsdl metaservice description                            | Ilkka Seppälä      |
 | 03.04.2020 | 2.11    | Remove getWsdl HTTP GET-request description                       | Petteri Kivimäki   |
 | 17.04.2023 | 2.12    | Remove central services support                                   | Justas Samuolis    |
+| 01.06.2023 | 2.13    | Update references                                                 | Petteri Kivimäki   |
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -92,7 +93,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.2 References
 
-1. <a name="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID:
+1. <a name="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Message Protocol v4.0. Document ID:
 [PR-MESS](pr-mess_x-road_message_protocol.md).
 2. <a name="Ref_RFC2119" class="anchor"></a>\[RFC2119\] Key words for use in RFCs to Indicate Requirement Levels, Internet Engineering Task Force, 1997,
 [https://www.ietf.org/rfc/rfc2119.txt](https://www.ietf.org/rfc/rfc2119.txt)

@@ -6,19 +6,20 @@
 
 **Technical Specification**
 
-Version: 1.1  
+Version: 1.2  
 Doc. ID: PR-OPMON
 
-| Date       | Version | Description                                                          | Author          |
-|------------|---------|----------------------------------------------------------------------|-----------------|
-|            | 0.2     | Initial version                                                      |                 |
-| 23.01.2017 | 0.3     | Added license text, table of contents and version history            | Sami Kallio     |
-| 05.03.2018 | 0.4     | Added terms and abbreviations reference                              | Tatu Repo       |
-| 04.12.2018 | 0.5     | More detailed descriptions for *[request/response][In/Out]Ts* fields | Cybernetica AS  |
-| 18.02.2019 | 0.6     | Example response updated: added xRequestId                           | Caro Hautamäki  |
-| 23.05.2019 | 0.7     | Add info about status_code, request_rest_size, response_rest_size    | Tapio Jaakkola  |
-| 12.12.2019 | 1.0     | Update the protocol to the next major version                        | Ilkka Seppälä   |
-| 10.05.2023 | 1.1     | Security Categories removed.                                         | Justas Samuolis |
+| Date       | Version | Description                                                          | Author            |
+|------------|---------|----------------------------------------------------------------------|-------------------|
+|            | 0.2     | Initial version                                                      |                   |
+| 23.01.2017 | 0.3     | Added license text, table of contents and version history            | Sami Kallio       |
+| 05.03.2018 | 0.4     | Added terms and abbreviations reference                              | Tatu Repo         |
+| 04.12.2018 | 0.5     | More detailed descriptions for *[request/response][In/Out]Ts* fields | Cybernetica AS    |
+| 18.02.2019 | 0.6     | Example response updated: added xRequestId                           | Caro Hautamäki    |
+| 23.05.2019 | 0.7     | Add info about status_code, request_rest_size, response_rest_size    | Tapio Jaakkola    |
+| 12.12.2019 | 1.0     | Update the protocol to the next major version                        | Ilkka Seppälä     |
+| 10.05.2023 | 1.1     | Security Categories removed.                                         | Justas Samuolis   |
+| 01.06.2023 | 1.2     | Update references                                                    | Petteri Kivimäki  |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -71,7 +72,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.2 References
 
-<a name="PR-MESS"></a>**PR-MESS** -- Cybernetica AS. X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
+<a name="PR-MESS"></a>**PR-MESS** -- X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
 <a name="WSDL"></a>**WSDL** -- Web Services Description Language (WSDL) 1.1. World Wide Web Consortium. 15 March 2001, https://www.w3.org/TR/2001/NOTE-wsdl-20010315  
 <a name="SWAREF"></a>**SWAREF** -- Attachments Profile Version 1.0, http://www.ws-i.org/Profiles/AttachmentsProfile-1.0-2004-08-24.html  
 <a name="RFC1952"></a>**RFC1952** -- GZIP file format specification version 4.3, https://tools.ietf.org/html/rfc1952  

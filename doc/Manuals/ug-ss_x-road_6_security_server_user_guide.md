@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.74
+Version: 2.75
 Doc. ID: UG-SS
 
 ---
@@ -52,7 +52,7 @@ Doc. ID: UG-SS
 | 15.06.2017 | 2.17    | Added [Chapter 17](#18-federation) on federation                                                                                                                                                                                                                                                                                                                                                            | Olli Lindgren     |
 | 25.09.2017 | 2.18    | Added chapter [16 Environmental Monitoring](#16-environmental-monitoring)                                                                                                                                                                                                                                                                                                                                   | Tomi Tolvanen     |
 | 17.10.2017 | 2.19    | Added section [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)                                                                                                                                                                                                                                                                              | Joni Laurila      |
-| 05.03.2018 | 2.20    | Added terms and abbreviations reference, document links, moved concepts to terms and abbreviations.                                                                                                                                                                                                                                                                                                         | Tatu Repo         |
+| 05.03.2018 | 2.20    | Added terms and abbreviations reference, document links, moved concepts to terms and abbreviations.                                                                                                                                                                                                                                                                                                         | Tatu Repo         |
 | 10.04.2018 | 2.21    | Update internal server certificate documentation.                                                                                                                                                                                                                                                                                                                                                           | Jarkko Hyöty      |
 | 25.05.2018 | 2.22    | Update system parameters documentation.                                                                                                                                                                                                                                                                                                                                                                     | Jarkko Hyöty      |
 | 15.11.2018 | 2.23    | Minor updates for Ubuntu 18.04                                                                                                                                                                                                                                                                                                                                                                              | Jarkko Hyöty      |
@@ -107,6 +107,7 @@ Doc. ID: UG-SS
 | 13.07.2022 | 2.72    | Updated chapter [21](#21-adding-command-line-arguments) and added `XROAD_MESSAGELOG_ARCHIVER_PARAMS` argument                                                                                                                                                                                                                                                                                               | Petteri Kivimäki  |
 | 09.01.2023 | 2.73    | Improved chapter [9](#9-communication-with-information-systems)                                                                                                                                                                                                                                                                                                                                             | Andres Rosenthal  |
 | 30.01.2023 | 2.74    | Updated chapter [13.3 Automatic Backups](#133-automatic-backups) to reflect recent configuration changes.                                                                                                                                                                                                                                                                                                   | Ričardas Bučiūnas |
+| 01.06.2023 | 2.75    | Update references                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki  |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -307,17 +308,17 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 5.  <a id="Ref_JSON" class="anchor"></a>\[JSON\] Introducing JSON,  
     <http://json.org/>
 
-6.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md)
+6.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md)
 
-7.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events.md)
+7.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events.md)
 
-8.  <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
+8.  <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
 
-9.  <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md)
+9.  <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md)
 
-10. <a id="Ref_UG-OPMONSYSPAR" class="anchor"></a>\[UG-OPMONSYSPAR\] Cybernetica AS. X-Road: Operational Monitoring System Parameters. Document ID: [PR-OPMONSYSPAR](../OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
+10. <a id="Ref_UG-OPMONSYSPAR" class="anchor"></a>\[UG-OPMONSYSPAR\] X-Road: Operational Monitoring System Parameters. Document ID: [PR-OPMONSYSPAR](../OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
 
-11. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Cybernetica AS. X-Road: Security Server Installation Guide. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
+11. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road: Security Server Installation Guide. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
 
 12. <a id="Ref_JMX" class="anchor"></a>\[JMX\] Monitoring and Management Using JMX Technology,  
     <http://docs.oracle.com/javase/8/docs/technotes/guides/management/agent.html>
