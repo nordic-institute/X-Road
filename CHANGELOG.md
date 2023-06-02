@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.4.0 - UNRELEASED
+
 ## 7.3.0 - 2023-05-30
 - XRDDEV-1576: As a Developer I want to define the new Central Server artifacts and structure so that we can start developing the code
 - XRDDEV-1607: As a Frontend Developer I want to create the base structure for the new Central Server UI so that we can start implementing subviews in the future
