@@ -136,7 +136,7 @@ public class BackupsApiController implements BackupsApi {
     public ResponseEntity<BackupDto> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
         try {
             byte[] fileBytes = file.getBytes();
-            fileVerifier.validateBackup(efile.getOriginalFilename(), fileBytes);
+            fileVerifier.validateBackup(file.getOriginalFilename(), fileBytes);
             final BackupFile backupFile = backupService.uploadBackup(ignoreWarnings,
                     file.getOriginalFilename(), fileBytes);
             return ResponseEntity.status(CREATED).body(backupDtoConverter.toTarget(backupFile));
