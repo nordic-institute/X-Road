@@ -4,7 +4,7 @@
 
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.26  
+Version: 2.27  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -56,6 +56,7 @@ Doc. ID: UG-CS
 | 19.05.2023 | 2.24    | New Central Server updates                                                                                                                                                                                                                                                                                                                                                                                                              | Eneli Reimets       |
 | 01.06.2023 | 2.25    | Update references                                                                                                                                                                                                                                                                                                                                                                                                                       | Petteri Kivimäki    |
 | 31.05.2023 | 2.26    | Added 3.3 API key considerations in High-Availability setup  paragraph                                                                                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas   |
+| 02.06.2023 | 2.27    | Added security hardening paragraph                                                                                                                                                                                                                                                                                                                                                                                                      | Ričardas Bučiūnas   |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -146,6 +147,7 @@ Doc. ID: UG-CS
   - [15.2 OCSP fetch interval](#152-ocsp-fetch-interval)
 - [16. Logs and System Services](#16-logs-and-system-services)
 - [17. Migrating to Remote Database Host](#17-migrating-to-remote-database-host)
+- [18. Additional Security Hardening](#18-additional-security-hardening)
 
 <!-- tocstop -->
 
@@ -1366,3 +1368,7 @@ pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n center
 ```bash
 systemctl start "xroad*"
 ```
+
+## 18 Additional Security Hardening
+
+For the guidelines on security hardening, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
