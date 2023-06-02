@@ -33,7 +33,6 @@ import org.niis.xroad.cs.admin.rest.api.converter.ConfigurationPartsDtoConverter
 import org.niis.xroad.cs.openapi.ConfigurationPartsApi;
 import org.niis.xroad.cs.openapi.model.ConfigurationPartDto;
 import org.niis.xroad.cs.openapi.model.ConfigurationTypeDto;
-import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.FileVerifier;
@@ -91,7 +90,7 @@ public class ConfigurationPartsController implements ConfigurationPartsApi {
     public ResponseEntity<Void> uploadConfigurationParts(ConfigurationTypeDto configurationType,
                                                          String contentIdentifier, MultipartFile file) {
         byte[] fileBytes = readBytes(file);
-        fileVerifier.validate(file.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.XML);
+        fileVerifier.validateXml(file.getOriginalFilename(), fileBytes);
         final var sourceType = ConfigurationSourceType.valueOf(configurationType.getValue());
         configurationService.uploadConfigurationPart(sourceType,
                 contentIdentifier,

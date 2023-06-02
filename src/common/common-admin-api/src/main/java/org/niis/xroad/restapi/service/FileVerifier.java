@@ -35,8 +35,9 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.mime.MediaType;
 import org.niis.xroad.common.exception.ValidationFailureException;
-import org.niis.xroad.restapi.config.FileValidationConfiguration;
+import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartException;
 
 import java.io.ByteArrayInputStream;
@@ -54,34 +55,37 @@ import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALI
 public class FileVerifier {
     private static final Detector DETECTOR = new DefaultDetector();
 
-    private final FileValidationConfiguration fileValidationConfiguration;
+    private final AllowedFilesConfig allowedFilesConfig;
 
-    public void validate(final String filename, final byte[] contents, final FileValidationConfiguration.FileType fileType) {
-        validate(filename, contents, fileType, Boolean.FALSE);
+    public void validateXml(final String filename,
+                            final byte[] contents) {
+        validate(filename, contents, allowedFilesConfig.getXmlAllowedExtensions(), allowedFilesConfig.getXmlAllowedContentTypes());
     }
 
-    public void validate(final String filename,
-                         final byte[] contents,
-                         final FileValidationConfiguration.FileType fileType,
-                         final boolean skipExtension) {
-        Optional.ofNullable(fileValidationConfiguration.getFiles())
-                .map(files -> files.get(fileType))
-                .ifPresent(constraint -> validate(filename, contents, constraint, skipExtension));
+    public void validateBackup(final String filename,
+                               final byte[] contents) {
+        validate(filename, contents, Set.of(), allowedFilesConfig.getBackupAllowedContentTypes());
+    }
+
+    public void validateCertificate(final String filename,
+                                    final byte[] contents) {
+        validate(filename,
+                contents,
+                allowedFilesConfig.getCertificateAllowedExtensions(),
+                allowedFilesConfig.getCertificateAllowedContentTypes());
     }
 
     private void validate(final String filename,
                           final byte[] contents,
-                          final FileValidationConfiguration.Constraint constraint,
-                          final boolean skipExtension) {
+                          final Set<String> allowedExtensions,
+                          final Set<String> allowedContentTypes) {
         try {
-            if (!skipExtension) {
-                Optional.ofNullable(constraint.getAllowedExtensions())
-                        .filter(not(Set::isEmpty))
-                        .ifPresent(extensions -> validateExtension(filename, extensions));
-            }
+            Optional.ofNullable(allowedExtensions)
+                    .filter(not(Set::isEmpty))
+                    .ifPresent(extensions -> validateExtension(filename, extensions));
 
-            if (constraint.getAllowedContentTypes() != null && !constraint.getAllowedContentTypes().isEmpty()) {
-                validateContentType(filename, contents, constraint.getAllowedContentTypes());
+            if (!CollectionUtils.isEmpty(allowedContentTypes)) {
+                validateContentType(filename, contents, allowedContentTypes);
             }
         } catch (IOException e) {
             throw new MultipartException("Failed to read multipart file", e);

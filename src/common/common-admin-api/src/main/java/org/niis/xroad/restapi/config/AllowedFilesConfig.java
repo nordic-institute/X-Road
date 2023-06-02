@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,35 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.restapi.config;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 import java.util.Set;
 
-@Getter
-@Setter
-@Configuration
-@ConfigurationProperties(prefix = "file-validation")
-public class FileValidationConfiguration {
-    private Map<FileType, Constraint> files;
+public interface AllowedFilesConfig {
 
+    /** Determines which file content types are allowed for backup file. Any content type is allowed when left unspecified. */
+    Set<String> getBackupAllowedContentTypes();
 
-    public enum FileType {
-        CERTIFICATE,
-        BACKUP,
-        XML
-    }
+    /** Determines which file extensions are allowed for XML file. Any extension is allowed when left unspecified. */
+    Set<String> getXmlAllowedExtensions();
 
-    @Getter
-    @Setter
-    public static class Constraint {
-        private Set<String> allowedExtensions;
-        private Set<String> allowedContentTypes;
-    }
+    /** Determines which file content types are allowed for XML files. Any content type is allowed when left unspecified. */
+    Set<String> getXmlAllowedContentTypes();
+
+    /** Determines which file extensions are allowed for certificate file. Any extension is allowed when left unspecified. */
+    Set<String> getCertificateAllowedExtensions();
+
+    /** Determines which file content types are allowed for certificate files. Any content type is allowed when left unspecified. */
+    Set<String> getCertificateAllowedContentTypes();
 }
