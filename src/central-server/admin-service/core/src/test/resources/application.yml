@@ -18,9 +18,10 @@ logging:
         sql: DEBUG
         type.descriptor: TRACE
 
-cache:
-  simple:
-    ttl: 5
+xroad:
+  admin-service:
+    cache-default-ttl: 5
+    cache-api-key-ttl: 5
 
 common-module-endpoints:
   base-path: /api/v1

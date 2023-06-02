@@ -44,6 +44,7 @@ dependencies {
     implementation('javax.validation:validation-api')
     implementation('org.apache.tika:tika-core:2.8.0')
 
+    api ("com.github.ben-manes.caffeine:caffeine")
 }
 
 bootJar {

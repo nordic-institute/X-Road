@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.test;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
+import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
@@ -38,6 +39,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -77,5 +79,20 @@ public abstract class AbstractSpringMvcTest {
     @Configuration
     @ComponentScan("org.niis.xroad.restapi")
     public static class CommonRestApiTestConfiguration {
+
+        @Bean
+        public ApiCachingConfiguration.Config cacheConfig() {
+            return new ApiCachingConfiguration.Config() {
+                @Override
+                public int getCacheDefaultTtl() {
+                    return 5;
+                }
+
+                @Override
+                public int getCacheApiKeyTtl() {
+                    return 5;
+                }
+            };
+        }
     }
 }

@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.75
+Version: 2.76
 Doc. ID: UG-SS
 
 ---
@@ -108,6 +108,7 @@ Doc. ID: UG-SS
 | 09.01.2023 | 2.73    | Improved chapter [9](#9-communication-with-information-systems)                                                                                                                                                                                                                                                                                                                                             | Andres Rosenthal  |
 | 30.01.2023 | 2.74    | Updated chapter [13.3 Automatic Backups](#133-automatic-backups) to reflect recent configuration changes.                                                                                                                                                                                                                                                                                                   | Ričardas Bučiūnas |
 | 01.06.2023 | 2.75    | Update references                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki  |
+| 31.05.2023 | 2.76    | Updated chapter [19.1.5 API key caching](#1915-api-key-caching) with additional configuration suggestions.                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -2699,17 +2700,16 @@ curl -X DELETE -u <user>:<password> https://localhost:4000/api/v1/api-keys/60  -
 
 #### 19.1.5 API key caching
 
-API keys are cached in memory. In typical security server configurations this does not create problems.
-However, if you have configured a setup where multiple security servers share the same `serverconf` database,
-and use multiple nodes to access REST API and execute API key management operations, the caches of different nodes
-can become out of sync.
+API keys are cached in memory, which is typically not a problem in standard Security Server configurations.
+However, if you have multiple Security Servers configured to share the same `serverconf` database
+and use multiple nodes to access the REST API and execute API key management operations, the caches of different nodes can become out of sync.
 
-For example, you may revoke an API key from node 1 but node 2 is not aware of this, and still grants access to
-REST API endpoints with this API key.
+For instance, revoking an API key from `node 1` may not be recognized by `node 2`, which can still grant access to REST API endpoints with the revoked API key. To address this issue, there are a few potential solutions:
 
-If you operate such a configuration, you need to target all REST API operations to the same security server node,
-or otherwise ensure that caching will not create problems (for example, always restart REST API modules when API key
-operations are executed).
+- **Option A:** Consider decreasing [time-to-live](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) value for API key cache from the default of **60 seconds** to a more lenient value. Doing so will reduce the risk of stale values being returned, thus improving security.
+- **Option B:** Direct all REST API operations to the same Security Server node.
+- **Option C:** Always restart REST API modules when API key operations are executed.
+- **Option D:** Disable Api key cache. (See [proxy-ui-api parameters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) for more details). This option will degrade API throughput and should only be used when other options do not work.
 
 ### 19.2 Executing REST calls
 

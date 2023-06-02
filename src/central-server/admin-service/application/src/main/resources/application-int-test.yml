@@ -7,9 +7,10 @@ spring:
   jpa:
     show-sql: true
 
-cache:
-  simple:
-    ttl: -1
+xroad:
+  admin-service:
+    cache-default-ttl: -1
+    cache-api-key-ttl: -1
 
 server:
   ssl:

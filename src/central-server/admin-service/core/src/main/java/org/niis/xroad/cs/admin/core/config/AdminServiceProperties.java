@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
+import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,7 +38,7 @@ import java.util.List;
 
 /**
  * Admin service configuration properties.
- *
+ * <p>
  * Can be defined in local.ini, e.g.:
  * <pre>
  * [admin-service]
@@ -49,14 +50,15 @@ import java.util.List;
 @Getter
 @Setter
 @SuppressWarnings("checkstyle:MagicNumber")
-public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig {
+public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig,
+        ApiCachingConfiguration.Config {
 
     /**
      * Controls whether the built-in rate limiting is enabled.
-     *
+     * <p>
      * Note. If the service is behind a reverse proxy (default), the proxy needs to forward the real IP address for the
      * rate-limiting to work correctly. Therefore, by default, using forward headers is enabled.
-     *
+     * <p>
      * If the service is exposed directly, it must not use forwarded headers (can be spoofed by clients), and the
      * corresponding configuration (server.forward-headers-strategy) needs to be disabled.
      */
@@ -94,4 +96,15 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
      */
     private List<String> allowedHostnames;
 
+    /**
+     * Configures default cache expiration in seconds. Can be used by various api services.
+     * Setting the value to -1 disables the cache.
+     */
+    private int cacheDefaultTtl = 60;
+
+    /**
+     * Configures Api key cache expiration in seconds. Cache is hit during authentication requests.
+     * Setting the value to -1 disables the cache.
+     */
+    private int cacheApiKeyTtl = 60;
 }

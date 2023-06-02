@@ -22,9 +22,6 @@ spring:
     default-property-inclusion: NON_NULL
   liquibase:
     enabled: false
-cache:
-  simple:
-    ttl: 60
 
 common-module-endpoints:
   base-path: /api/v1

@@ -49,6 +49,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.API_KEY_NOT_FOUND;
+import static org.niis.xroad.restapi.config.ApiCachingConfiguration.LIST_ALL_KEYS_CACHE;
 
 /**
  * ApiKey service.
@@ -235,11 +236,7 @@ public class ApiKeyService {
      * up-to date.
      */
     public void clearApiKeyCaches() {
-        Cache keyCache = cacheManager.getCache(ApiKeyRepository.GET_KEY_CACHE);
-        if (keyCache != null) {
-            keyCache.clear();
-        }
-        Cache allKeysCache = cacheManager.getCache(ApiKeyRepository.LIST_ALL_KEYS_CACHE);
+        Cache allKeysCache = cacheManager.getCache(LIST_ALL_KEYS_CACHE);
         if (allKeysCache != null) {
             allKeysCache.clear();
         }
