@@ -24,27 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.config;
+package org.niis.xroad.cs.admin.rest.api.converter;
 
-import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.cs.admin.api.domain.HAClusterNode;
+import org.niis.xroad.cs.openapi.model.HighAvailabilityClusterNodeDto;
 
-@Configuration
-public class CurrentHAConfigStatus {
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface HAClusterNodeDtoConverter extends GenericUniDirectionalMapper<HAClusterNode, HighAvailabilityClusterNodeDto> {
 
-    private static final String XROAD_HA_NODE_NAME_PROPERTY = "xroad.center.ha-node-name";
-    private static final String XROAD_HA_NODE_NAME_DEFAULT = "node_0";
-
-    @Bean
-    HAConfigStatus currentHaConfigStatus() {
-        String haNodeName = System.getProperty(XROAD_HA_NODE_NAME_PROPERTY);
-        if (StringUtils.isEmpty(haNodeName)) {
-            return new HAConfigStatus(XROAD_HA_NODE_NAME_DEFAULT, false);
-        } else {
-            return new HAConfigStatus(haNodeName, true);
-        }
-    }
+    HighAvailabilityClusterNodeDto toTarget(HAClusterNode entity);
 
 }

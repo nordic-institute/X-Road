@@ -202,29 +202,27 @@ In addition, it is necessary to configure a unique node name for each node parti
 
 It is possible to get HA status via a web interface, for example using curl:
 ```bash
-curl -k https://cs1.example.org:4000/public_system_status/check_ha_cluster_status
+curl -k https://cs1.example.org:4000/api/v1/system/high-availability-cluster/status
 ```
 ```json
 {
-  "ha_node_status": {
-    "ha_configured": true,
-    "node_name": "node_0",
-    "nodes": [
-      {
-        "node_name": "node_0",
-        "node_address": "cs1.example.org",
-        "configuration_generated": "2019-12-03 14:48:02.306199",
-        "status": "OK"
-      },
-      {
-        "node_name": "node_1",
-        "node_address": "cs2.example.org",
-        "configuration_generated": "2019-12-03 14:47:02.053865",
-        "status": "WARN"
-      }
-    ],
-    "all_nodes_ok": false
-  }
+  "ha_configured": true,
+  "node_name": "node_0",
+  "nodes": [
+    {
+      "node_name": "node_0",
+      "node_address": "cs1.example.org",
+      "configuration_generated": "2019-12-03 14:48:02.306199",
+      "status": "OK"
+    },
+    {
+      "node_name": "node_1",
+      "node_address": "cs2.example.org",
+      "configuration_generated": "2019-12-03 14:47:02.053865",
+      "status": "WARN"
+    }
+  ],
+  "all_nodes_ok": false
 }
 ```
 The status information is based on the data in the configuration database and other nodes are not directly accessed. If the database is not available at all, the status check will respond with an error (HTTP error 503 Service Unvailable).

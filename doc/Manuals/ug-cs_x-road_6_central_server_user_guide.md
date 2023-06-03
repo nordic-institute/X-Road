@@ -265,7 +265,7 @@ In order to detect the type of deployment and the name of the node in the cluste
 
 In order to check the status of the nodes in an HA setup, execute the following command on the central server node's command line:
 
-`curl -k https://localhost:4000/public_system_status/check_ha_cluster_status`
+`curl -k https://localhost:4000/api/v1/system/high-availability-cluster/status`
 
 # 4. System Settings
 ## 4.1 Managing the Member Classes

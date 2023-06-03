@@ -24,27 +24,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.config;
+package org.niis.xroad.cs.admin.core.service;
 
-import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.cs.admin.api.domain.HAClusterNode;
+import org.niis.xroad.cs.admin.core.entity.HAClusterStatusViewEntity;
+import org.niis.xroad.cs.admin.core.entity.mapper.HAClusterNodeMapper;
+import org.niis.xroad.cs.admin.core.repository.HAClusterStatusViewRepository;
 
-@Configuration
-public class CurrentHAConfigStatus {
+import java.util.List;
 
-    private static final String XROAD_HA_NODE_NAME_PROPERTY = "xroad.center.ha-node-name";
-    private static final String XROAD_HA_NODE_NAME_DEFAULT = "node_0";
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
-    @Bean
-    HAConfigStatus currentHaConfigStatus() {
-        String haNodeName = System.getProperty(XROAD_HA_NODE_NAME_PROPERTY);
-        if (StringUtils.isEmpty(haNodeName)) {
-            return new HAConfigStatus(XROAD_HA_NODE_NAME_DEFAULT, false);
-        } else {
-            return new HAConfigStatus(haNodeName, true);
-        }
+@ExtendWith(MockitoExtension.class)
+class HaClusterStatusServiceImplTest {
+
+    @Mock
+    private HAClusterStatusViewRepository repository;
+    @Mock
+    private HAClusterNodeMapper nodeInfoMapper;
+
+    @InjectMocks
+    private HAClusterStatusServiceImpl service;
+
+    @Mock
+    private HAClusterStatusViewEntity entity;
+    @Mock
+    private HAClusterNode domainObject;
+
+    @Test
+    void shouldReturnHAClusterNodes() {
+        when(repository.findAll()).thenReturn(List.of(entity));
+        when(nodeInfoMapper.toTarget(entity)).thenReturn(domainObject);
+        List<HAClusterNode> nodes = service.getHAClusterNodes();
+        assertThat(nodes).hasSize(1);
+        assertThat(nodes.get(0)).isEqualTo(domainObject);
     }
-
 }

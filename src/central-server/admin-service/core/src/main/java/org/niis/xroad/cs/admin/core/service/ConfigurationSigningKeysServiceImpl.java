@@ -218,7 +218,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         try {
             keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
         } catch (Exception e) {
-            throw new SignerProxyException(KEY_GENERATION_FAILED);
+            throw new SignerProxyException(KEY_GENERATION_FAILED, e);
         }
 
         final Instant generatedAt = Instant.now();

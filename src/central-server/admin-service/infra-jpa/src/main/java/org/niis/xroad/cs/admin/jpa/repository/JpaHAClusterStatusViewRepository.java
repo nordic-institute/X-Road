@@ -24,27 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.config;
+package org.niis.xroad.cs.admin.jpa.repository;
 
-import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.niis.xroad.cs.admin.core.entity.HAClusterStatusViewEntity;
+import org.niis.xroad.cs.admin.core.repository.HAClusterStatusViewRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-@Configuration
-public class CurrentHAConfigStatus {
-
-    private static final String XROAD_HA_NODE_NAME_PROPERTY = "xroad.center.ha-node-name";
-    private static final String XROAD_HA_NODE_NAME_DEFAULT = "node_0";
-
-    @Bean
-    HAConfigStatus currentHaConfigStatus() {
-        String haNodeName = System.getProperty(XROAD_HA_NODE_NAME_PROPERTY);
-        if (StringUtils.isEmpty(haNodeName)) {
-            return new HAConfigStatus(XROAD_HA_NODE_NAME_DEFAULT, false);
-        } else {
-            return new HAConfigStatus(haNodeName, true);
-        }
-    }
-
+@Repository
+public interface JpaHAClusterStatusViewRepository
+        extends JpaRepository<HAClusterStatusViewEntity, Integer>, HAClusterStatusViewRepository {
 }

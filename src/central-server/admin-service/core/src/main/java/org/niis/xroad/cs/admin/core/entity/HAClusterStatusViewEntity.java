@@ -24,27 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.config;
+package org.niis.xroad.cs.admin.core.entity;
 
-import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.data.annotation.Immutable;
 
-@Configuration
-public class CurrentHAConfigStatus {
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
-    private static final String XROAD_HA_NODE_NAME_PROPERTY = "xroad.center.ha-node-name";
-    private static final String XROAD_HA_NODE_NAME_DEFAULT = "node_0";
+import java.time.Instant;
 
-    @Bean
-    HAConfigStatus currentHaConfigStatus() {
-        String haNodeName = System.getProperty(XROAD_HA_NODE_NAME_PROPERTY);
-        if (StringUtils.isEmpty(haNodeName)) {
-            return new HAConfigStatus(XROAD_HA_NODE_NAME_DEFAULT, false);
-        } else {
-            return new HAConfigStatus(haNodeName, true);
-        }
-    }
+@Getter
+@Setter
+@Entity
+@Immutable
+@Access(AccessType.FIELD)
+@Table(name = HAClusterStatusViewEntity.TABLE_NAME)
+public class HAClusterStatusViewEntity {
+
+    static final String TABLE_NAME = "ha_cluster_status";
+
+    @Id
+    @Column(name = "ha_node_name")
+    private String nodeName;
+
+    @Column(name = "address")
+    private String nodeAddress;
+
+    @Column(name = "configuration_generated")
+    private Instant configurationGenerated;
 
 }
