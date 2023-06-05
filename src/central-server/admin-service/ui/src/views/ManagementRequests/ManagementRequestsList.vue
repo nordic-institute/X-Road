@@ -33,7 +33,7 @@
           {{ $t('tab.main.managementRequests') }}
         </div>
         <xrd-search
-          v-model="filter.query"
+          v-model="filterQuery"
           class="margin-fix"
           data-test="management-requests-search"
         />
@@ -55,10 +55,10 @@
       :loading="loading"
       :headers="headers"
       :items="managementRequestsStore.items"
-      :search="filter.query"
+      :search="managementRequestsStore.currentFilter.query"
       :must-sort="true"
       :items-per-page="10"
-      :options.sync="pagingSortingOptions"
+      :options.sync="managementRequestsStore.pagingSortingOptions"
       :server-items-length="managementRequestsStore.pagingOptions.total_items"
       class="elevation-0 data-table"
       item-key="id"
@@ -103,26 +103,17 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
-import { DataOptions, DataTableHeader } from 'vuetify';
+import Vue from 'vue';
+import { DataTableHeader } from 'vuetify';
 import { mapActions, mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
 import { managementRequestsStore } from '@/store/modules/managementRequestStore';
-import {
-  ManagementRequestsFilter,
-  ManagementRequestStatus,
-} from '@/openapi-types';
+import { ManagementRequestStatus } from '@/openapi-types';
 import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vue';
 import MrActionsCell from '@/components/managementRequests/MrActionsCell.vue';
 import MrStatusCell from '@/components/managementRequests/MrStatusCell.vue';
 import MrTypeCell from '@/components/managementRequests/MrTypeCell.vue';
-
-export enum Scope {
-  FULL,
-  SECURITY_SERVER,
-  MEMBER,
-}
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -139,18 +130,9 @@ export default Vue.extend({
     MrActionsCell,
     ManagementRequestIdCell,
   },
-  props: {
-    scope: {
-      type: Number as PropType<Scope>,
-      required: true,
-    },
-  },
   data() {
     return {
       loading: false, //is data being loaded
-      showOnlyPending: true,
-      pagingSortingOptions: { sortBy: ['id'], sortDesc: [true] } as DataOptions,
-      filter: {} as ManagementRequestsFilter,
     };
   },
   computed: {
@@ -201,13 +183,35 @@ export default Vue.extend({
         },
       ];
     },
+    showOnlyPending: {
+      get(): boolean {
+        return (
+          this.managementRequestsStore.currentFilter.status ===
+          ManagementRequestStatus.WAITING
+        );
+      },
+      set(value: boolean) {
+        this.managementRequestsStore.pagingSortingOptions.page = 1;
+        this.managementRequestsStore.currentFilter.status = value
+          ? ManagementRequestStatus.WAITING
+          : undefined;
+      },
+    },
+    filterQuery: {
+      get(): string {
+        return this.managementRequestsStore.currentFilter.query || '';
+      },
+      set(value: string) {
+        this.managementRequestsStore.pagingSortingOptions.page = 1;
+        this.managementRequestsStore.currentFilter.query = value;
+      },
+    },
   },
   watch: {
-    filter: {
+    filterQuery: {
       handler(newValue, oldValue) {
         this.debouncedFetchItems();
       },
-      deep: true,
     },
   },
   created() {
@@ -217,22 +221,19 @@ export default Vue.extend({
     ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
-      that.fetchItems(that.pagingSortingOptions);
+      that.fetchItems();
     }, 600),
     changeOptions: async function () {
-      await this.fetchItems(this.pagingSortingOptions, this.filter);
+      await this.fetchItems();
     },
-    fetchItems: async function (
-      options: DataOptions,
-      filter: ManagementRequestsFilter,
-    ) {
+    fetchItems: async function () {
       this.loading = true;
-      filter = this.filter;
-      filter.status = this.showOnlyPending
-        ? ManagementRequestStatus.WAITING
-        : undefined;
+
       try {
-        await this.managementRequestsStore.find(options, this.filter);
+        await this.managementRequestsStore.find(
+          this.managementRequestsStore.pagingSortingOptions,
+          this.managementRequestsStore.currentFilter,
+        );
       } catch (error: unknown) {
         this.showError(error);
       } finally {

@@ -147,4 +147,8 @@ public class CommonPageObj {
     public SelenideElement inputFile() {
         return $x("//input[@type='file']");
     }
+
+    public SelenideElement backLink() {
+        return $x("//div[@data-test='navigation-back']/a");
+    }
 }

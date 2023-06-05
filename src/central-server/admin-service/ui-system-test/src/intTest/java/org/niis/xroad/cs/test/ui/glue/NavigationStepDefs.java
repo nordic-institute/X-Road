@@ -84,4 +84,9 @@ public class NavigationStepDefs extends BaseUiStepDefs {
     public void navigateBackupAndRestoreSubTab() {
         commonPageObj.subMenu.backupAndRestoresTab().click();
     }
+
+    @Step("user clicks back")
+    public void userClicksBack() {
+        commonPageObj.backLink().click();
+    }
 }
