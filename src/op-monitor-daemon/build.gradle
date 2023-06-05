@@ -11,7 +11,7 @@ configurations {
 sourceSets {
     main {
         java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
-        resources.srcDirs = ['src/main/resources', '../common-util/src/main/resources']
+        resources.srcDirs = ['src/main/resources', '../common/common-util/src/main/resources']
     }
 }
 
@@ -21,7 +21,7 @@ dependencies {
     implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 
     implementation project(':common:common-verifier')
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(':common-db')
     implementation project(':common:common-op-monitoring')
     implementation project(':monitoring-conf')

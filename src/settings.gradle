@@ -5,7 +5,6 @@ pluginManagement {
 }
 
 // Common projects
-include "common-util"
 include "common-db"
 include "signer-protocol"
 include "serverconf"
@@ -19,6 +18,7 @@ include "common:common-management-request"
 include "common:common-messagelog"
 include "common:common-op-monitoring"
 include "common:common-ui"
+include "common:common-util"
 include "common:common-verifier"
 
 // Main projects

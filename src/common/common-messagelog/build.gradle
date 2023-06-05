@@ -6,7 +6,7 @@ task copyGpg(type: Copy) {
 test.dependsOn copyGpg
 
 dependencies {
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(':common:common-verifier')
     implementation project(':asic-util')
 

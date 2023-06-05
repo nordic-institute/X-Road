@@ -1,6 +1,6 @@
 dependencies {
     implementation(project(':proxy'))
-    implementation(project(':common-util'))
+    implementation(project(':common:common-util'))
     implementation(project(':serverconf'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))

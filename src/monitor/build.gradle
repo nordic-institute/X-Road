@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
 
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(':monitor-common')
     implementation project(':signer-protocol')
     implementation project(':serverconf')

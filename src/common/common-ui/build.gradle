@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(':common:common-verifier')
     implementation project(':signer-protocol')
 
@@ -13,6 +13,6 @@ dependencies {
     implementation 'net.java.dev.jna:jna:4.5.2'
 
     testImplementation project(':common-test')
-    testImplementation project(path: ':common-util', configuration: 'testArtifacts')
+    testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
 }
 

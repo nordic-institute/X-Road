@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(':common:common-verifier')
     implementation project(':serverconf')
     implementation project(':signer-protocol')
@@ -16,7 +16,7 @@ dependencies {
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
     testImplementation project(':common-test')
-    testImplementation project(path: ':common-util', configuration: 'testArtifacts')
+    testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
 
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"

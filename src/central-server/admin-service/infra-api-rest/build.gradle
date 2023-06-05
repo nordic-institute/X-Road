@@ -2,7 +2,7 @@
 dependencies {
     implementation project(':central-server:admin-service:core-api')
     implementation project(':central-server:openapi-model')
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(':common:common-verifier')
     implementation project(':signer-protocol')
     implementation project(':common:common-ui')

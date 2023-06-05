@@ -13,7 +13,7 @@ configurations {
 }
 
 dependencies {
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     testImplementation project(':common-test')
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
@@ -25,7 +25,7 @@ task createDirs() {
     }
 }
 
-task xjc(dependsOn: ':common-util:xjc') {
+task xjc(dependsOn: ':common:common-util:xjc') {
     inputs.files fileTree(dir:'src/main/resources', include: '*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
