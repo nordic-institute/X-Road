@@ -1,8 +1,6 @@
 ## properties that are not specific to a runtime (test or prod)
 
 spring:
-  thymeleaf:
-    cache: false
   mvc:
     throw-exception-if-no-handler-found: true
   resources:
@@ -51,6 +49,10 @@ xroad:
   proxy-ui-api:
     rate-limit-requests-per-second: ${ratelimit.requests.per.second:20} #Deprecated. This is a fallback to old style properties
     rate-limit-requests-per-minute: ${ratelimit.requests.per.minute:600} #Deprecated. This is a fallback to old style properties
+    rate-limit-cache-size: 10_000
+    rate-limit-expire-after-access-minutes: 5
+    cache-default-ttl: 60
+    cache-api-key-ttl: 60
 
 file-upload-endpoints:
   endpointDefinitions:
@@ -93,12 +95,9 @@ url:
   diagnostics-backup-encryption-status: http://localhost:%s/backup-encryption-status
   diagnostics-message-log-encryption-status: http://localhost:%s/message-log-encryption-status
 
-cache:
-  simple:
-    ttl: 60
-
 common-module-endpoints:
   base-path: /api/v1
 
 gpgkeys:
   gpghome: /etc/xroad/gpghome
+

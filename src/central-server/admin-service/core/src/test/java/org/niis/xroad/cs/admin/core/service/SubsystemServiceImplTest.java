@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -50,7 +49,6 @@ import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerClientNameEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
@@ -60,7 +58,6 @@ import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapperImpl;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapperImpl;
-import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
@@ -94,9 +91,6 @@ public class SubsystemServiceImplTest implements WithInOrder {
 
     @Mock
     private SubsystemRepository subsystemRepository;
-
-    @Mock
-    private SecurityServerClientNameRepository securityServerClientNameRepository;
     @Mock
     private XRoadMemberRepository xRoadMemberRepository;
     @Mock
@@ -133,18 +127,13 @@ public class SubsystemServiceImplTest implements WithInOrder {
             SecurityServerClient result = subsystemService.add(new SubsystemCreationRequest(memberId, subsystemId));
 
             assertEquals("MEMBER", result.getIdentifier().getMemberCode());
-            ArgumentCaptor<SecurityServerClientNameEntity> captor = ArgumentCaptor.forClass(SecurityServerClientNameEntity.class);
 
             verify(subsystemRepository).findOneBy(subsystemId);
             verify(subsystemRepository).save(any());
-            verify(securityServerClientNameRepository).save(captor.capture());
 
             verify(auditDataHelper).put(MEMBER_CLASS, memberId.getMemberClass());
             verify(auditDataHelper).put(MEMBER_CODE, memberId.getMemberCode());
             verify(auditDataHelper).put(MEMBER_SUBSYSTEM_CODE, subsystemId.getSubsystemCode());
-
-            assertThat(captor.getValue().getName()).isEqualTo(memberName);
-            assertThat(captor.getValue().getIdentifier().toShortString()).isEqualTo(subsystemId.toShortString());
         }
 
         @Test
@@ -245,7 +234,6 @@ public class SubsystemServiceImplTest implements WithInOrder {
             verify(auditDataHelper).put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
             verify(auditDataHelper).put(CLIENT_IDENTIFIER, subsystemClientId);
         }
-
     }
 
     @Nested
@@ -307,6 +295,5 @@ public class SubsystemServiceImplTest implements WithInOrder {
             verify(auditDataHelper).put(MEMBER_CODE, subsystemClientId.getMemberCode());
             verify(auditDataHelper).put(MEMBER_SUBSYSTEM_CODE, subsystemClientId.getSubsystemCode());
         }
-
     }
 }

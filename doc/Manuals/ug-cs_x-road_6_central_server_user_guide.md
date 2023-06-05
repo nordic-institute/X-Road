@@ -4,7 +4,7 @@
 
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.25  
+Version: 2.26  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -55,6 +55,7 @@ Doc. ID: UG-CS
 | 19.04.2023 | 2.23    | Removed unused properties from db.properties                                                                                                                                                                                                                                                                                                                                                                                            | Mikk-Erik Bachmannn |
 | 19.05.2023 | 2.24    | New Central Server updates                                                                                                                                                                                                                                                                                                                                                                                                              | Eneli Reimets       |
 | 01.06.2023 | 2.25    | Update references                                                                                                                                                                                                                                                                                                                                                                                                                       | Petteri Kivimäki    |
+| 31.05.2023 | 2.26    | Added 3.3 API key considerations in High-Availability setup  paragraph                                                                                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas   |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -71,6 +72,7 @@ Doc. ID: UG-CS
 - [3. Standalone and High-Availability Systems](#3-standalone-and-high-availability-systems)
   - [3.1 Detecting the Type of Deployment in the User Interface](#31-detecting-the-type-of-deployment-in-the-user-interface)
   - [3.2 Checking the Status of the Nodes of the Cluster](#32-checking-the-status-of-the-nodes-of-the-cluster)
+  - [3.3 API key considerations in High-Availability setup](#33-api-key-considerations-in-high-availability-setup)
 - [4. System Settings](#4-system-settings)
   - [4.1 Managing the Member Classes](#41-managing-the-member-classes)
   - [4.2 Configuring the Management Service Provider](#42-configuring-the-management-service-provider)
@@ -266,6 +268,18 @@ In order to detect the type of deployment and the name of the node in the cluste
 In order to check the status of the nodes in an HA setup, execute the following command on the central server node's command line:
 
 `curl -k https://localhost:4000/api/v1/system/high-availability-cluster/status`
+
+## 3.3 API key considerations in High-Availability setup
+
+API keys are cached in memory, which is typically not a problem in non-clustered Central Server configuration.
+However, in case of High-Availability setup, the caches of different nodes can become out of sync.
+
+For instance, revoking an API key from `node 1` may not be recognized by `node 2`, which can still grant access to REST API endpoints with the revoked API key. To address this issue, there are a few potential solutions:
+
+- **Option A:** Consider decreasing [time-to-live](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service) value for API key cache from the default of **60 seconds** to a more lenient value. Doing so will reduce the risk of stale values being returned, thus improving security.
+- **Option B:** Direct all REST API operations to the same Central Server node.
+- **Option C:** Always restart REST API modules when API key operations are executed.
+- **Option D:** Disable Api key cache. (See [admin-service parameters](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service) for more details). This option will degrade API throughput and should only be used when other options do not work.
 
 # 4. System Settings
 ## 4.1 Managing the Member Classes
