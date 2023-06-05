@@ -15,10 +15,10 @@ include "serverconf"
 include "monitoring-conf"
 include "common-op-monitoring"
 include "common-rest-api"
-include "common-domain"
 
 include "common"
 include "common:common-api-throttling"
+include "common:common-domain"
 include "common:common-management-request"
 
 // Main projects

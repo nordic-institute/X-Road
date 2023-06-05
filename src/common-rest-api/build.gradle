@@ -19,7 +19,7 @@ dependencyManagement {
 }
 
 dependencies {
-    api project(':common-domain')
+    api project(':common:common-domain')
     implementation project(':common-util')
     implementation project(':signer-protocol')
     implementation project(':serverconf')
