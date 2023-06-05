@@ -5,7 +5,6 @@ pluginManagement {
 }
 
 // Common projects
-include "common-db"
 include "signer-protocol"
 include "serverconf"
 include "monitoring-conf"
@@ -13,6 +12,7 @@ include "common-rest-api"
 
 include "common"
 include "common:common-api-throttling"
+include "common:common-db"
 include "common:common-domain"
 include "common:common-management-request"
 include "common:common-messagelog"

@@ -5,7 +5,7 @@ plugins {
 dependencies {
 
     implementation(project(':common:common-util'))
-    implementation(project(':common-db'))
+    implementation(project(':common:common-db'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':addons:messagelog:messagelog-db'))
     implementation(project(':asic-util'))
