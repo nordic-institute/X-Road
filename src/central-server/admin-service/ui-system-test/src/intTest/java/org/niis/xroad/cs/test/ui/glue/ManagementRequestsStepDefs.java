@@ -252,11 +252,6 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         managementRequestsPageObj.showOnlyPendingRequests().click(ClickOptions.usingJavaScript());
     }
 
-    @Step("the user checks the checkbox to show only pending requests")
-    public void showOnlyPendingRequestsIsClicked2() {
-        managementRequestsPageObj.showOnlyPendingRequests().click(ClickOptions.usingJavaScript());
-    }
-
     @Step("the user can not see the Approve, Decline actions for requests that have already been processed")
     public void shouldNotShowApproveAndDeclineActions() {
         managementRequestsPageObj.btnApproveManagementRequest().shouldNotBe(visible);
