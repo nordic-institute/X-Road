@@ -27,7 +27,7 @@ dependencies {
     implementation project(":serverconf")
     implementation project(":common-ui")
     implementation project(":common-rest-api")
-    implementation project(":common-management-request")
+    implementation project(":common:common-management-request")
     implementation project(':common:common-api-throttling')
     implementation project(":security-server:openapi-model")
 

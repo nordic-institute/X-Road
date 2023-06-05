@@ -34,7 +34,7 @@ dependencies {
     }
 
     implementation project(':common-ui')
-    implementation (project(':common-management-request')) {
+    implementation (project(':common:common-management-request')) {
       exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
     implementation(project(':common-verifier')) {
@@ -51,7 +51,7 @@ dependencies {
     implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
 
     testImplementation project(':common-test')
-    testImplementation(testFixtures(project(":common-management-request")))
+    testImplementation(testFixtures(project(":common:common-management-request")))
     testImplementation(testFixtures(project(":common:common-api-throttling")))
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('com.github.tomakehurst:wiremock-jre8:2.33.1')
