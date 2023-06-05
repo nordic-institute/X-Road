@@ -23,7 +23,7 @@ dependencies {
     implementation project(':common-verifier')
     implementation project(':common-util')
     implementation project(':common-db')
-    implementation project(':common-op-monitoring')
+    implementation project(':common:common-op-monitoring')
     implementation project(':monitoring-conf')
 
     // Using HSQLDB for an in-memory database in tests.

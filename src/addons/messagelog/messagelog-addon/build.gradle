@@ -4,7 +4,7 @@ dependencies {
     implementation(project(':common-messagelog'))
     implementation(project(':common-verifier'))
     implementation(project(':serverconf'))
-    implementation(project(':common-op-monitoring'))
+    implementation(project(':common:common-op-monitoring'))
     implementation(project(':asic-util'))
     implementation(project(':addons:messagelog:messagelog-db'))
 

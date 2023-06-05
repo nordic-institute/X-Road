@@ -8,7 +8,7 @@ dependencies {
     implementation project(':serverconf')
     implementation project(':signer-protocol')
     implementation project(':common-messagelog')
-    implementation project(':common-op-monitoring')
+    implementation project(':common:common-op-monitoring')
 
     implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
     implementation "xerces:xercesImpl:$xercesVersion"

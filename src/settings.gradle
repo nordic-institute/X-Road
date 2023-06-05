@@ -12,13 +12,13 @@ include "common-messagelog"
 include "signer-protocol"
 include "serverconf"
 include "monitoring-conf"
-include "common-op-monitoring"
 include "common-rest-api"
 
 include "common"
 include "common:common-api-throttling"
 include "common:common-domain"
 include "common:common-management-request"
+include "common:common-op-monitoring"
 include "common:common-ui"
 
 // Main projects
