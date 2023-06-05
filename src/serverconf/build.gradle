@@ -22,7 +22,7 @@ dependencies {
     // DB layer tests use HSQLDB with in-memory tables
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
     testImplementation project(':common-db')
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
     testImplementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"
 
     schema project(':common:common-util')

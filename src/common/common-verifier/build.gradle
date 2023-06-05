@@ -14,7 +14,7 @@ configurations {
 
 dependencies {
     implementation project(':common:common-util')
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
 }

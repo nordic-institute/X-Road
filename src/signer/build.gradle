@@ -21,7 +21,7 @@ dependencies {
     // Necessary since there are jars with no adequate Maven dependencies
     implementation fileTree(dir: '../libs', include: '*.jar')
 
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
     testImplementation project(path: ':common:common-verifier', configuration: 'testArtifacts')
 
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"

@@ -10,7 +10,7 @@ dependencies {
         exclude group: 'com.typesafe.akka'
     }
 
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
 }
 
 jar.enabled = false

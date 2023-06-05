@@ -8,7 +8,7 @@ dependencies {
     implementation(project(':asic-util'))
     implementation(project(':addons:messagelog:messagelog-db'))
 
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
     testImplementation project(':addons:messagelog:messagelog-archiver')
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"

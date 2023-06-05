@@ -9,7 +9,7 @@ dependencies {
     implementation 'commons-cli:commons-cli:1.4'
 
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
 }
 
 ext {

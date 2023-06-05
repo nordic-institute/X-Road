@@ -67,7 +67,7 @@ include 'security-server:admin-service:application'
 include "signer-console"
 
 // Tests
-include "common-test"
+include "common:common-test"
 include "e2e-tests"
 // Addons
 include "addons:hwtoken"

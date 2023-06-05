@@ -10,12 +10,12 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
 
-    testImplementation project(":common-test")
+    testImplementation project(":common:common-test")
     testImplementation project(path: ":common:common-util", configuration: "testArtifacts")
     testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
 
     testFixturesApi project(":common:common-util")
-    testFixturesApi project(":common-test")
+    testFixturesApi project(":common:common-test")
     testFixturesApi project(":signer-protocol")
     testFixturesApi project(":common:common-verifier")
 

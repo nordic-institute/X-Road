@@ -27,7 +27,7 @@ dependencies {
 
     testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
     testImplementation project(path: ":proxy", configuration: 'testArtifacts')
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
     testImplementation 'org.hamcrest:hamcrest:2.2'
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"

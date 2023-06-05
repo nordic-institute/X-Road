@@ -11,7 +11,7 @@ dependencies {
     implementation project(':asic-util')
 
     testImplementation "org.bouncycastle:bcpg-jdk15on:${bouncyCastleVersion}"
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 
