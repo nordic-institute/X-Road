@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     api project(':common-util')
-    api project(':common-ui')
+    api project(':common:common-ui')
     api project(':signer-protocol')
     api project(':common-verifier')
     api project(':common-rest-api')

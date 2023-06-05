@@ -33,7 +33,7 @@ dependencies {
         exclude group: 'org.quartz-scheduler'
     }
 
-    implementation project(':common-ui')
+    implementation project(':common:common-ui')
     implementation (project(':common:common-management-request')) {
       exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }

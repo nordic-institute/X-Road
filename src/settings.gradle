@@ -7,7 +7,6 @@ pluginManagement {
 // Common projects
 include "common-util"
 include "common-verifier"
-include "common-ui"
 include "common-db"
 include "common-messagelog"
 include "signer-protocol"
@@ -20,6 +19,7 @@ include "common"
 include "common:common-api-throttling"
 include "common:common-domain"
 include "common:common-management-request"
+include "common:common-ui"
 
 // Main projects
 include "proxy"
