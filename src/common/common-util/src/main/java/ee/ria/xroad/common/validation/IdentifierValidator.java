@@ -24,21 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi.validator;
+package ee.ria.xroad.common.validation;
 
-import ee.ria.xroad.common.validation.IdentifierValidator;
+public interface IdentifierValidator {
+    boolean isValid(String s);
 
-import lombok.RequiredArgsConstructor;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-
-@RequiredArgsConstructor
-public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {
-    private final IdentifierValidator identifierValidator;
-
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        return identifierValidator.isValid(value);
+    static IdentifierValidator get(boolean strict) {
+        if (strict) {
+            return new StrictIdentifierValidator();
+        }
+        return new LoggingIdentifierValidator();
     }
 }

@@ -57,6 +57,8 @@ gpgkeys:
   gpghome: /etc/xroad/gpghome
 
 xroad:
+  common:
+    strict-identifier-checks: true
   admin-service:
     global-configuration-generation-rate-in-seconds: 60
     rate-limit-enabled: true

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -51,6 +51,8 @@ public final class SystemProperties {
     /** Property name of the downloaded global configuration directory. */
     public static final String CONFIGURATION_PATH =
             PREFIX + "common.configuration-path";
+
+    public static final String STRICT_IDENTIFIER_NAME_CHECKS = PREFIX + "common.strict-identifier-checks";
 
     /** Current version number of the global configuration **/
     public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 2;

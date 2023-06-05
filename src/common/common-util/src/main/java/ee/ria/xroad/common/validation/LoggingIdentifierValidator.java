@@ -24,21 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi.validator;
+package ee.ria.xroad.common.validation;
 
-import ee.ria.xroad.common.validation.IdentifierValidator;
+import lombok.extern.slf4j.Slf4j;
 
-import lombok.RequiredArgsConstructor;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-
-@RequiredArgsConstructor
-public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {
-    private final IdentifierValidator identifierValidator;
+@Slf4j
+class LoggingIdentifierValidator implements IdentifierValidator {
+    private final StrictIdentifierValidator strict = new StrictIdentifierValidator();
+    private final LegacyEncodedIdentifierValidator legacy = new LegacyEncodedIdentifierValidator();
 
     @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        return identifierValidator.isValid(value);
+    public boolean isValid(String s) {
+        var strictValid = strict.isValid(s);
+        if (strictValid) {
+            return true;
+        }
+
+        var legacyValid = legacy.isValid(s);
+        if (legacyValid) {
+            log.warn("Invalid character(s) in identifier \"{}\"", s);
+        }
+        return legacyValid;
     }
 }

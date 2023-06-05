@@ -24,21 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi.validator;
+package ee.ria.xroad.common.validation;
 
-import ee.ria.xroad.common.validation.IdentifierValidator;
+import com.google.common.base.CharMatcher;
 
-import lombok.RequiredArgsConstructor;
+import static com.google.common.base.CharMatcher.anyOf;
+import static com.google.common.base.CharMatcher.inRange;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+class StrictIdentifierValidator implements IdentifierValidator {
 
-@RequiredArgsConstructor
-public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {
-    private final IdentifierValidator identifierValidator;
+    private static final CharMatcher VALID_CHARS =
+            inRange('a', 'z')
+                    .or(inRange('A', 'Z'))
+                    .or(inRange('0', '9'))
+                    .or(anyOf("'()+,-.=?"));
 
     @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        return identifierValidator.isValid(value);
+    public boolean isValid(String s) {
+        if (s == null) {
+            return true;
+        }
+        return VALID_CHARS.matchesAllOf(s);
     }
+
+
 }

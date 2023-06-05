@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -26,19 +26,19 @@
  */
 package org.niis.xroad.cs.admin.rest.api.openapi.validator;
 
-import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
+import ee.ria.xroad.common.validation.IdentifierValidator;
+
+import lombok.RequiredArgsConstructor;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-import java.util.EnumSet;
-
+@RequiredArgsConstructor
 public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {
+    private final IdentifierValidator identifierValidator;
+
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        EncodedIdentifierValidator validator = new EncodedIdentifierValidator();
-        EnumSet<IdentifierValidationErrorInfo> validationErrors = IdentifierValidationErrorInfo.of(
-                validator.getValidationErrors(value));
-        return validationErrors.isEmpty();
+        return identifierValidator.isValid(value);
     }
 }

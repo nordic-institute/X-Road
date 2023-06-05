@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.validation.IdentifierValidator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
@@ -55,7 +56,10 @@ import org.niis.xroad.securityserver.restapi.openapi.validator.IdentifierValidat
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -119,6 +123,15 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
             TestUtils.MEMBER_CLASS_PRO);
 
     private ObjectMapper testObjectMapper = new ObjectMapper();
+
+    @TestConfiguration
+    static class TestConf {
+        @Bean
+        @Primary
+        IdentifierValidator nonStrictIdentifierValidator() {
+            return IdentifierValidator.get(false);
+        }
+    }
 
     @Before
     public void setup() throws Exception {

@@ -24,21 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi.validator;
+package ee.ria.xroad.common.validation;
 
-import ee.ria.xroad.common.validation.IdentifierValidator;
 
-import lombok.RequiredArgsConstructor;
+import org.junit.Test;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@RequiredArgsConstructor
-public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {
-    private final IdentifierValidator identifierValidator;
+public class StrictIdentifierValidatorTest {
+    private StrictIdentifierValidator validator = new StrictIdentifierValidator();
 
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        return identifierValidator.isValid(value);
+    @Test
+    public void valid() {
+        validator = new StrictIdentifierValidator();
+        assertValid(null);
+        assertValid("abcdefghijklmnopqrstuvwxyz");
+        assertValid("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        assertValid("1234567890");
+        assertValid("'()+,-.=?");
     }
+
+    @Test
+    public void inValid() {
+        assertInvalid(":");
+        assertInvalid("/");
+        assertInvalid("ä");
+        assertInvalid("列");
+    }
+
+    private void assertValid(String string) {
+        assertThat(validator.isValid(string)).isTrue();
+    }
+
+    private void assertInvalid(String s) {
+        assertThat(validator.isValid(s)).isFalse();
+    }
+
+
 }
