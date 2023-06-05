@@ -30,7 +30,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.cs.admin.client.configuration.AdminServiceClientPropertyProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -62,7 +61,7 @@ public class RegistrationServiceProperties implements AdminServiceClientProperty
      * If the service is exposed directly, it must not use forwarded headers (can be spoofed by clients), and the
      * corresponding configuration (server.forward-headers-strategy) needs to be disabled.
      */
-    private boolean rateLimitEnabled = true;
+    private boolean rateLimitEnabled;
 
     /**
      * Controls how many requests from an IP address are allowed per minute.
@@ -70,7 +69,7 @@ public class RegistrationServiceProperties implements AdminServiceClientProperty
      * one registration request, so this value can be low.
      * To disable this feature, set this value to -1.
      */
-    private int rateLimitRequestsPerSecond = -1;
+    private int rateLimitRequestsPerSecond;
 
     /**
      * Controls how many requests from an IP address are allowed per minute.
@@ -78,34 +77,32 @@ public class RegistrationServiceProperties implements AdminServiceClientProperty
      * one registration request, so this value can be low.
      * To disable this feature, set this value to -1.
      */
-    private int rateLimitRequestsPerMinute = 10;
+    private int rateLimitRequestsPerMinute;
 
     /**
      * Controls how many IP addresses can be remembered in the rate-limit cache
      * Tradeoff between memory usage and protection from a large attack.
      */
-    private int rateLimitCacheSize = 10_000;
+    private int rateLimitCacheSize;
 
     /**
      * Controls how long the rate-limit cache entries are valid.
      */
-    private int rateLimitExpireAfterAccessMinutes = 2;
+    private int rateLimitExpireAfterAccessMinutes;
 
     /**
      * Path to a trust store containing certificates for the central server admin API
      */
-    @Value("${xroad.conf.path:/etc/xroad}/ssl/center-admin-service.p12")
     private Path apiTrustStore;
 
     /**
      * Password for the trust store
      */
-    private String apiTrustStorePassword = "center-admin-service";
+    private String apiTrustStorePassword;
 
     /**
      * Central server admin api base URL
      */
-    @Value("https://127.0.0.1:4000/api/v1")
     private URI apiBaseUrl;
 
     /**
