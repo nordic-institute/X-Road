@@ -36,7 +36,6 @@ import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.mime.MediaType;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartException;
 
@@ -50,7 +49,6 @@ import static org.niis.xroad.common.exception.util.CommonDeviationMessage.DOUBLE
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_FILE_CONTENT_TYPE;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_FILE_EXTENSION;
 
-@Component
 @RequiredArgsConstructor
 public class FileVerifier {
     private static final Detector DETECTOR = new DefaultDetector();
