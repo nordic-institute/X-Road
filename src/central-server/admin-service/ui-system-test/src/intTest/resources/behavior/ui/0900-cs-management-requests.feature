@@ -80,11 +80,20 @@ Feature: 0900 - CS: Management Requests
   Scenario: Search for Management Requests based on Free Text in Visible Columns
     Given Management requests tab is selected
     And the option to show only pending requests is selected
-    When the user unchecks the checkbox to show only pending requests
+    When the user clicks the checkbox to show only pending requests
     Then the option to show only pending requests is not selected
     When the user clicks on search icon
     And the user enters e2e-tc2-member-subsystem in the search field
+    And the user should not see the Management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
     Then the user views the Management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem
+    When the user clicks Revoked request Add Certificate from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem
+    And the details page is shown with title Add Certificate
+    And user clicks back
+    Then the option to show only pending requests is not selected
+    And search field contains 'e2e-tc2-member-subsystem'
+    And the user views the Management request from Security server E2E-SS2 with owner code e2e-tc2-member-subsystem
+    And the user clears the search field
+    And the user clicks the checkbox to show only pending requests
 
   Scenario: User Approves Management Request for additional authentication certificate
     Given new authentication certificate for a security server E2E-SS1 is registered with owner code e2e-tc1-member-subsystem

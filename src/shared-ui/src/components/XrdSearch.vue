@@ -56,7 +56,7 @@ export default Vue.extend({
   props: ['value', 'label'],
   data() {
     return {
-      closed: true,
+      closed: !this.value,
     };
   },
   computed: {},
