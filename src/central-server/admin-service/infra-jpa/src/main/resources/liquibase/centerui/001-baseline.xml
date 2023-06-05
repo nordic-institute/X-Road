@@ -687,6 +687,18 @@ CREATE OR REPLACE FUNCTION insert_node_name() RETURNS trigger AS $body$
             $body$
             LANGUAGE 'plpgsql';
 
+CREATE OR REPLACE VIEW ha_cluster_status AS
+            SELECT sp.ha_node_name,
+                   sp.value AS address,
+                   df.configuration_generated
+            FROM (system_parameters sp
+                LEFT JOIN ( SELECT distributed_files.ha_node_name,
+                                   max(distributed_files.file_updated_at) AS configuration_generated
+                            FROM distributed_files
+                            WHERE ((distributed_files.content_identifier)::text = 'PRIVATE-PARAMETERS'::text)
+                GROUP BY distributed_files.ha_node_name) df ON (((sp.ha_node_name)::text = (df.ha_node_name)::text)))
+            WHERE ((sp.key)::text = 'centralServerAddress'::text);
+
             DROP TRIGGER IF EXISTS insert_node_name ON configuration_sources;
             CREATE TRIGGER insert_node_name BEFORE INSERT ON configuration_sources
                 FOR EACH ROW EXECUTE PROCEDURE insert_node_name();
