@@ -4,7 +4,7 @@
 
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.26  
+Version: 2.27
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -56,6 +56,8 @@ Doc. ID: UG-CS
 | 19.05.2023 | 2.24    | New Central Server updates                                                                                                                                                                                                                                                                                                                                                                                                              | Eneli Reimets       |
 | 01.06.2023 | 2.25    | Update references                                                                                                                                                                                                                                                                                                                                                                                                                       | Petteri Kivimäki    |
 | 31.05.2023 | 2.26    | Added 3.3 API key considerations in High-Availability setup  paragraph                                                                                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas   |
+| 05.06.2023 | 2.27    | Update HA cluster status endpoint path                                                                                                                                                                                                                                                                                                                                                                                                  | Andres Rosenthal    |
+
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->

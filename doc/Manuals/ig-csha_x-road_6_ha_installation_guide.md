@@ -36,6 +36,8 @@ Doc. ID: IG-CSHA
 | 17.04.2023 | 1.16    | Updated HA installation instructions. Added conf updated for newer postgres versions (>=12).         | Mikk-Erik Bachmann |
 | 19.04.2023 | 1.17    | Removed unused properties from db.properties                                                         | Mikk-Erik Bachmann |
 | 02.06.2023 | 1.18    | Minor updates                                                                                        | Justas Samuolis    |
+| 05.06.2023 | 1.19    | Update HA cluster status endpoint path                                                               | Andres Rosenthal   |
+
 
 ## Table of Contents <!-- omit in toc -->
 
