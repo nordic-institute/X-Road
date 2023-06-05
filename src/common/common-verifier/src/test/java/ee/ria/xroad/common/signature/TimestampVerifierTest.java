@@ -62,9 +62,9 @@ public class TimestampVerifierTest {
         TestSecurityUtil.initSecurity();
 
         System.setProperty(SystemProperties.CONFIGURATION_PATH,
-                "../common/common-util/src/test/resources/globalconf_good_v2");
+                "../common-util/src/test/resources/globalconf_good_v2");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../common/common-util/src/test/resources/configuration-anchor1.xml");
+                "../common-util/src/test/resources/configuration-anchor1.xml");
         GlobalConf.reload();
     }
 
