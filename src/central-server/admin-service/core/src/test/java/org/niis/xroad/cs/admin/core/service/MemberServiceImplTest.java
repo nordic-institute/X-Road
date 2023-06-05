@@ -35,7 +35,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -51,7 +50,6 @@ import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerClientNameEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapper;
@@ -63,7 +61,6 @@ import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapperImpl
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
-import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
@@ -94,8 +91,6 @@ class MemberServiceImplTest {
 
     @Mock
     private XRoadMemberRepository xRoadMemberRepository;
-    @Mock
-    private SecurityServerClientNameRepository securityServerClientNameRepository;
     @Mock
     private GlobalGroupMemberRepository globalGroupMemberRepository;
     @Mock
@@ -135,19 +130,14 @@ class MemberServiceImplTest {
             SecurityServerClient result = memberService.add(new MemberCreationRequest(memberName, MEMBER_CLASS, memberId));
 
             assertEquals("MEMBER", result.getIdentifier().getMemberCode());
-            ArgumentCaptor<SecurityServerClientNameEntity> captor = ArgumentCaptor.forClass(SecurityServerClientNameEntity.class);
 
             verify(xRoadMemberRepository).findOneBy(memberId);
 
             verify(xRoadMemberRepository).save(any());
-            verify(securityServerClientNameRepository).save(captor.capture());
 
             verify(auditData).put(MEMBER_NAME, memberName);
             verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
             verify(auditData).put(MEMBER_CODE, "MEMBER");
-
-            assertThat(captor.getValue().getName()).isEqualTo(memberName);
-            assertThat(captor.getValue().getIdentifier().toShortString()).isEqualTo(memberId.toShortString());
         }
 
         @Test
@@ -240,20 +230,16 @@ class MemberServiceImplTest {
 
         @Mock
         private XRoadMemberEntity xRoadMember;
-        @Mock
-        private SecurityServerClientNameEntity securityServerClientName;
 
         @Test
         @DisplayName("Should set new name")
         void shouldUpdateName() {
             doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
-            doReturn(Set.of(securityServerClientName)).when(securityServerClientNameRepository).findByIdentifierIn(any());
 
             var result = memberService.updateMemberName(clientId, "new name");
 
             assertTrue(result.isDefined());
             verify(xRoadMember).setName("new name");
-            verify(securityServerClientName).setName("new name");
 
             verify(auditData).put(MEMBER_NAME, "new name");
             verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);

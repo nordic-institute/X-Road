@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <details-view id="memberview" back-to="/members">
+  <details-view id="memberview" :back-to="savedBackTo">
     <div class="header-row">
       <div class="title-search">
         <div class="xrd-view-title">
@@ -59,10 +59,16 @@ export default Vue.extend({
       type: String,
       required: true,
     },
+    backTo: {
+      type: String,
+      required: false,
+      default: '',
+    },
   },
   data() {
     return {
       colors: Colors,
+      savedBackTo: this.backTo,
     };
   },
   computed: {

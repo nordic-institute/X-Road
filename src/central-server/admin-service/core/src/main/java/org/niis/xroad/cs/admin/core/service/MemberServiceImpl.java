@@ -37,24 +37,19 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.service.MemberService;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerClientNameEntity;
-import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
-import org.niis.xroad.cs.admin.core.repository.SecurityServerClientNameRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
@@ -71,7 +66,6 @@ public class MemberServiceImpl implements MemberService {
 
     private final XRoadMemberRepository xRoadMemberRepository;
     private final MemberClassRepository memberClassRepository;
-    private final SecurityServerClientNameRepository securityServerClientNameRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
 
     private final SecurityServerMapper securityServerMapper;
@@ -91,7 +85,6 @@ public class MemberServiceImpl implements MemberService {
         }
 
         var persistedEntity = saveMember(request);
-        saveSecurityServerClientName(persistedEntity);
         return securityServerClientMapper.toDto(persistedEntity);
     }
 
@@ -150,26 +143,7 @@ public class MemberServiceImpl implements MemberService {
         auditData.put(MEMBER_CLASS, clientId.getMemberClass());
         auditData.put(MEMBER_CODE, clientId.getMemberCode());
         return xRoadMemberRepository.findMember(clientId)
-                .peek(xRoadMember -> updateName(xRoadMember, newName))
+                .peek(xRoadMember -> xRoadMember.setName(newName))
                 .map(securityServerClientMapper::toDto);
     }
-
-    private void updateName(XRoadMemberEntity xRoadMember, String newName) {
-        xRoadMember.setName(newName);
-
-        Set<ClientId> identifiers = new HashSet<>();
-        identifiers.add(xRoadMember.getIdentifier());
-        xRoadMember.getSubsystems().stream()
-                .map(SubsystemEntity::getIdentifier)
-                .forEach(identifiers::add);
-
-        securityServerClientNameRepository.findByIdentifierIn(identifiers)
-                .forEach(x -> x.setName(newName));
-    }
-
-    private void saveSecurityServerClientName(XRoadMemberEntity xRoadMember) {
-        var ssClientName = new SecurityServerClientNameEntity(xRoadMember, xRoadMember.getIdentifier());
-        securityServerClientNameRepository.save(ssClientName);
-    }
-
 }

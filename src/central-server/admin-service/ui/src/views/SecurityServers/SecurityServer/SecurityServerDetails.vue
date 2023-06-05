@@ -101,12 +101,14 @@
       </div>
     </main>
     <delete-security-server-address-dialog
+      v-if="serverCode"
       ref="deleteDialog"
-      :server-code="serveCode"
+      :server-code="serverCode"
       :security-server-id="serverId"
       @deleted="deleteServer"
     />
     <edit-security-server-address-dialog
+      v-if="address"
       ref="editAddressDialog"
       :address="address"
       :security-server-id="serverId"
@@ -165,7 +167,7 @@ export default Vue.extend({
     address(): string | null {
       return this.securityServer?.server_address || null;
     },
-    serveCode(): string | null {
+    serverCode(): string | null {
       return this.securityServer?.server_id.server_code || null;
     },
   },
