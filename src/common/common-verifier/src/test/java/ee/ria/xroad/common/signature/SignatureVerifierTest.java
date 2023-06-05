@@ -64,7 +64,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
  */
 public class SignatureVerifierTest {
 
-    /** The date when the the OCSP responses etc are valid. */
+    /** The date when the OCSP responses etc are valid. */
     private static final Date CORRECT_VALIDATION_DATE = createDate(30, 9, 2014);
 
     /** The correct member name used in the test data. */
@@ -85,7 +85,7 @@ public class SignatureVerifierTest {
     public void setUp() {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common-util/src/test/resources/globalconf_good_v2");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../common/common-util/src/test/resources/configuration-anchor1.xml");
+                "../common-util/src/test/resources/configuration-anchor1.xml");
 
         GlobalConf.reload(new TestGlobalConfImpl() {
             @Override

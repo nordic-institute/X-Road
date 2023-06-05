@@ -24,7 +24,7 @@ dependencies {
     implementation project(":common:common-util")
     implementation project(":signer-protocol")
     implementation project(":serverconf")
-    implementation project(":common-rest-api")
+    implementation project(":common:common-rest-api")
     implementation project(":common:common-ui")
     implementation project(":common:common-management-request")
     implementation project(':common:common-api-throttling')
