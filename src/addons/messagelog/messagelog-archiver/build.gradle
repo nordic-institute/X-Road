@@ -6,7 +6,7 @@ dependencies {
 
     implementation(project(':common-util'))
     implementation(project(':common-db'))
-    implementation(project(':common-messagelog'))
+    implementation(project(':common:common-messagelog'))
     implementation(project(':addons:messagelog:messagelog-db'))
     implementation(project(':asic-util'))
 

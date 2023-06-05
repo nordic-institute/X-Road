@@ -1,9 +1,9 @@
 dependencies {
     implementation(project(':proxy'))
     implementation(project(':common-util'))
-    implementation(project(':common-messagelog'))
     implementation(project(':common-verifier'))
     implementation(project(':serverconf'))
+    implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))
     implementation(project(':asic-util'))
     implementation(project(':addons:messagelog:messagelog-db'))

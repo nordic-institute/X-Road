@@ -7,7 +7,7 @@ dependencies {
     implementation project(':common-verifier')
     implementation project(':serverconf')
     implementation project(':signer-protocol')
-    implementation project(':common-messagelog')
+    implementation project(':common:common-messagelog')
     implementation project(':common:common-op-monitoring')
 
     implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
