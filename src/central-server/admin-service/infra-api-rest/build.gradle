@@ -3,7 +3,7 @@ dependencies {
     implementation project(':central-server:admin-service:core-api')
     implementation project(':central-server:openapi-model')
     implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-verifier')
     implementation project(':signer-protocol')
     implementation project(':common:common-ui')
     implementation project(':common-rest-api')

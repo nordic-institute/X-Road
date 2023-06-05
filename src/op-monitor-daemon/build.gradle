@@ -20,7 +20,7 @@ dependencies {
     implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
     implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 
-    implementation project(':common-verifier')
+    implementation project(':common:common-verifier')
     implementation project(':common-util')
     implementation project(':common-db')
     implementation project(':common:common-op-monitoring')

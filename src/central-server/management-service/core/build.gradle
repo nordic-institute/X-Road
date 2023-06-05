@@ -7,7 +7,7 @@ dependencies {
     api project(":central-server:management-service:core-api")
 
     api project(":central-server:admin-service:api-client")
-    implementation project(":common-verifier")
+    implementation project(":common:common-verifier")
     implementation project(":common:common-domain")
     implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude module: "spring-webmvc"

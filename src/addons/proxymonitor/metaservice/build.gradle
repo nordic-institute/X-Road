@@ -17,7 +17,7 @@ dependencies {
     implementation project(':common-util')
     implementation project(":serverconf")
     implementation project(":common:common-op-monitoring")
-    implementation project(":common-verifier")
+    implementation project(":common:common-verifier")
 
     implementation project(':monitor-common')
     implementation project(':monitoring-conf')

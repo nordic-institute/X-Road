@@ -17,7 +17,7 @@ dependencies {
     api project(':common-db')
 
     implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-verifier')
 
     // DB layer tests use HSQLDB with in-memory tables
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"

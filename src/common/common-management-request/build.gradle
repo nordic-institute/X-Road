@@ -6,7 +6,7 @@ plugins {
 dependencies {
     implementation project(":common-util")
     implementation project(":signer-protocol")
-    implementation project(":common-verifier")
+    implementation project(":common:common-verifier")
 
     implementation("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
 
@@ -17,7 +17,7 @@ dependencies {
     testFixturesApi project(":common-util")
     testFixturesApi project(":common-test")
     testFixturesApi project(":signer-protocol")
-    testFixturesApi project(":common-verifier")
+    testFixturesApi project(":common:common-verifier")
 
     testFixturesCompileOnly("org.projectlombok:lombok:${lombokVersion}")
     testFixturesAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")

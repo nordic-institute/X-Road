@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-verifier')
     implementation 'org.antlr:ST4:4.0.7'
     // JUnit is needed for ExpectedCodedException
     implementation "junit:junit:$junitVersion"

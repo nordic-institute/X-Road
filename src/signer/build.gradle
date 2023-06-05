@@ -15,14 +15,14 @@ sourceSets {
 
 dependencies {
     implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-verifier')
     implementation project(':signer-protocol')
 
     // Necessary since there are jars with no adequate Maven dependencies
     implementation fileTree(dir: '../libs', include: '*.jar')
 
     testImplementation project(':common-test')
-    testImplementation project(path: ':common-verifier', configuration: 'testArtifacts')
+    testImplementation project(path: ':common:common-verifier', configuration: 'testArtifacts')
 
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
@@ -54,7 +54,7 @@ task createDirs() {
     }
 }
 
-task xjc(dependsOn: [':common-util:xjc', ':common-verifier:xjc']) {
+task xjc(dependsOn: [':common-util:xjc', ':common:common-verifier:xjc']) {
     inputs.files files('src/main/resources/*.xsd')
     outputs.dir project.ext.schemaTargetDir
 

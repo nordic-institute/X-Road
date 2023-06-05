@@ -14,7 +14,7 @@ sourceSets {
 
 dependencies {
     implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-verifier')
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"

@@ -3,7 +3,7 @@ dependencies {
     implementation project(':common-util')
     implementation project(':serverconf')
     implementation project(":common:common-op-monitoring")
-    implementation project(":common-verifier")
+    implementation project(":common:common-verifier")
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
     testImplementation project(':common-test')

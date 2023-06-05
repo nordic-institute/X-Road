@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-verifier')
     implementation project(':signer-protocol')
 
     compileOnly 'javax.servlet:javax.servlet-api:4.0.1'

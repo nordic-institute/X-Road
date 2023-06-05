@@ -6,7 +6,7 @@ dependencies {
     api project(':central-server:openapi-model')
 
     implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-verifier')
 
     api("org.springframework.cloud:spring-cloud-starter-openfeign")
     api ("io.github.openfeign:feign-hc5:$openFeignVersion")
