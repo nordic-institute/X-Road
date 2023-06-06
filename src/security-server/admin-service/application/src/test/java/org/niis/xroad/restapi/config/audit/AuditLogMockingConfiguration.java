@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Profile;
 import static org.mockito.Mockito.mock;
 
 /**
- * We probably need common-rest-api-test dependency for these
+ * We probably need common-admin-api-test dependency for these
  */
 @Configuration
 @Profile("!audit-test")

@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Base path and paths for controllers that come from common-rest-api
+ * Base path and paths for controllers that come from common-admin-api
  */
 @Component
 public class CommonModuleEndpointPaths {
