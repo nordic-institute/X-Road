@@ -1,8 +1,8 @@
 dependencies {
-    implementation project(':common-op-monitoring')
+    implementation project(':common:common-op-monitoring')
 
     implementation project(':proxy')
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(':serverconf')
 
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"

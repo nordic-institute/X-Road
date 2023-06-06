@@ -1,0 +1,18 @@
+plugins {
+    id "it.tellnet.sass" version "1.2"
+}
+
+dependencies {
+    implementation project(':common:common-util')
+    implementation project(':common:common-verifier')
+    implementation project(':signer-protocol')
+
+    compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
+    implementation 'org.owasp.encoder:encoder:1.2.3'
+    implementation 'org.kohsuke:libpam4j:1.11'
+    implementation 'net.java.dev.jna:jna:4.5.2'
+
+    testImplementation project(':common:common-test')
+    testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
+}
+

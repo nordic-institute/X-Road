@@ -1,12 +1,12 @@
 dependencies {
     implementation project(':proxy')
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(':serverconf')
-    implementation project(":common-op-monitoring")
-    implementation project(":common-verifier")
+    implementation project(":common:common-op-monitoring")
+    implementation project(":common:common-verifier")
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
     testImplementation project (path: ":proxy", configuration: 'testArtifacts')
 
     testImplementation "org.eclipse.jetty:jetty-servlet:$jettyVersion"
