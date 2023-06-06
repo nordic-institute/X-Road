@@ -225,8 +225,8 @@ public class AuditDataHelper {
     }
 
     /**
-     *  puts hash and hash algorithm properties
-     * @param calculated formatted hash
+     * puts hash and hash algorithm properties
+     * @param formattedHash formatted hash
      */
     public void putAnchorHash(String formattedHash) {
         put(RestApiAuditProperty.ANCHOR_FILE_HASH, formattedHash);
