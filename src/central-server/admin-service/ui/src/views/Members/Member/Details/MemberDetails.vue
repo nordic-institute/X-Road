@@ -216,7 +216,7 @@ export default Vue.extend({
         {
           text: this.$t('global.server') as string,
           align: 'start',
-          value: 'xroad_id.server_code',
+          value: 'server_id.server_code',
           class: 'xrd-table-header servers-table-header-server',
         },
       ];
