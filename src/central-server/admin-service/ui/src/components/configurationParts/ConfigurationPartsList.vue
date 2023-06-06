@@ -37,6 +37,7 @@
           :headers="headers"
           :items="configurationParts"
           :search="search"
+          :sort-by="['file_name']"
           :must-sort="true"
           :items-per-page="-1"
           item-key="content_identifier"
@@ -127,7 +128,7 @@ export default Vue.extend({
       return [
         {
           text: this.$t('globalConf.cfgParts.file') as string,
-          value: 'fileName',
+          value: 'file_name',
           class: 'xrd-table-header ts-table-header-server-code text-uppercase',
         },
         {

@@ -30,7 +30,7 @@ dependencies {
     }
   implementation('org.springframework.boot:spring-boot-starter-jetty')
 
-  testImplementation project(":common-test")
+  testImplementation project(":common:common-test")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation(testFixtures(project(":common:common-api-throttling")))
 }

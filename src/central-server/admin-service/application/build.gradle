@@ -23,7 +23,7 @@ dependencies {
     implementation project(':central-server:openapi-model')
 
 
-    testImplementation project(":common-test")
+    testImplementation project(":common:common-test")
     testImplementation(testFixtures(project(":common:common-api-throttling")))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")

@@ -244,7 +244,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             auditDataHelper.put(RestApiAuditProperty.KEY_ID, keyInfo.getId());
             auditDataHelper.put(RestApiAuditProperty.KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
         } catch (Exception e) {
-            throw new SignerProxyException(KEY_GENERATION_FAILED);
+            throw new SignerProxyException(KEY_GENERATION_FAILED, e);
         }
 
         final Instant generatedAt = Instant.now();

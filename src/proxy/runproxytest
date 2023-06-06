@@ -27,4 +27,4 @@ $javabin -Xmx2g\
     -Dxroad.proxy.client-httpclient-so-linger=-1\
     -Dxroad.proxy.server-connector-so-linger=-1\
     -Dlogback.configurationFile=src/test/logback-proxytest.xml\
-    -cp ../common-test/build/libs/common-test-1.0.jar:build/libs/proxy-1.0.jar:../common-verifier/build/classes/test:$classes $classname $*
+    -cp ../common/common-test/build/libs/common-test-1.0.jar:build/libs/proxy-1.0.jar:../common/common-verifier/build/classes/test:$classes $classname $*

@@ -3,7 +3,7 @@
     xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0"
     targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
 
-    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="../../../../common-util/src/main/resources/identifiers.xsd"/>
+    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="../../../../common/common-util/src/main/resources/identifiers.xsd"/>
     <element name="keyConf" type="tns:KeyConfType"/>
 
     <complexType name="KeyConfType">
