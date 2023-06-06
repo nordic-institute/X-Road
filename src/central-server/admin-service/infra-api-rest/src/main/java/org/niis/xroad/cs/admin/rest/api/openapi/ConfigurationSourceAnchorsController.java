@@ -84,7 +84,7 @@ public class ConfigurationSourceAnchorsController implements ConfigurationSource
     @AuditEventMethod(event = RE_CREATE_ANCHOR)
     public ResponseEntity<ConfigurationAnchorDto> reCreateAnchor(ConfigurationTypeDto configurationType) {
         return ok(configurationAnchorDtoConverter.convert(
-                configurationAnchorService.recreateAnchor(ConfigurationSourceType.valueOf(configurationType.getValue()))
+                configurationAnchorService.recreateAnchor(ConfigurationSourceType.valueOf(configurationType.getValue()), true)
         ));
     }
 

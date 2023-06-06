@@ -201,7 +201,7 @@ class ConfigurationSigningKeysServiceImplTest {
         verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
         verify(configurationSigningKeyRepository).deleteByKeyIdentifier(signingKeyEntity.getKeyIdentifier());
         verify(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
-        verify(configurationAnchorService).recreateAnchor(INTERNAL);
+        verify(configurationAnchorService).recreateAnchor(INTERNAL, false);
     }
 
     @Test
@@ -221,7 +221,7 @@ class ConfigurationSigningKeysServiceImplTest {
         verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
         verify(configurationSigningKeyRepository).deleteByKeyIdentifier(signingKeyEntity.getKeyIdentifier());
         verify(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
-        verify(configurationAnchorService).recreateAnchor(EXTERNAL);
+        verify(configurationAnchorService).recreateAnchor(EXTERNAL, false);
     }
 
     @Test

@@ -8,16 +8,16 @@ project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 sourceSets {
     main {
         java.srcDirs = ["src/main/java", "$buildDir/generated-sources"]
-        resources.srcDirs = ['src/main/resources', '../../../common-util/src/main/resources']
+        resources.srcDirs = ['src/main/resources', '../../../common/common-util/src/main/resources']
     }
 }
 
 dependencies {
     implementation project(':proxy')
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(":serverconf")
-    implementation project(":common-op-monitoring")
-    implementation project(":common-verifier")
+    implementation project(":common:common-op-monitoring")
+    implementation project(":common:common-verifier")
 
     implementation project(':monitor-common')
     implementation project(':monitoring-conf')
@@ -25,9 +25,9 @@ dependencies {
 
     implementation "com.google.guava:guava:$guavaVersion"
 
-    testImplementation project(path: ':common-util', configuration: 'testArtifacts')
+    testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
     testImplementation project(path: ":proxy", configuration: 'testArtifacts')
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
     testImplementation 'org.hamcrest:hamcrest:2.2'
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"

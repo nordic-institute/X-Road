@@ -67,6 +67,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
@@ -79,9 +81,14 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_ACTIVATIN
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_DELETING_SIGNING_KEY;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.KEY_GENERATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNING_KEY_NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ACTIVATE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ACTIVATE_INTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
-
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_INTERNAL_CONFIGURATION_SIGNING_KEY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_HASH_ALGORITHM;
 
 @Service
 @Transactional
@@ -168,25 +175,32 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
             throw new SigningKeyException(ERROR_DELETING_SIGNING_KEY, e);
         }
 
-        configurationAnchorService.recreateAnchor(configurationSourceType);
+        configurationAnchorService.recreateAnchor(configurationSourceType, false);
     }
 
     @Override
     public void activateKey(final String keyIdentifier) {
-        final var signingKey = configurationSigningKeyRepository.findByKeyIdentifier(keyIdentifier)
+        final var signingKeyEntity = configurationSigningKeyRepository.findByKeyIdentifier(keyIdentifier)
                 .orElseThrow(ConfigurationSigningKeysServiceImpl::notFoundException);
+        final var signingKey = configurationSigningKeyMapper.toTarget(signingKeyEntity);
 
-        auditDataHelper.put(RestApiAuditProperty.TOKEN_ID, signingKey.getTokenIdentifier());
-        auditDataHelper.put(RestApiAuditProperty.KEY_ID, signingKey.getKeyIdentifier());
+        if (signingKey.getSourceType() == INTERNAL) {
+            auditEventHelper.changeRequestScopedEvent(ACTIVATE_INTERNAL_CONFIGURATION_SIGNING_KEY);
+        } else if (signingKey.getSourceType() == EXTERNAL) {
+            auditEventHelper.changeRequestScopedEvent(ACTIVATE_EXTERNAL_CONFIGURATION_SIGNING_KEY);
+        }
+
+        auditDataHelper.put(RestApiAuditProperty.TOKEN_ID, signingKeyEntity.getTokenIdentifier());
+        auditDataHelper.put(RestApiAuditProperty.KEY_ID, signingKeyEntity.getKeyIdentifier());
 
         try {
-            TokenInfo tokenInfo = signerProxyFacade.getToken(signingKey.getTokenIdentifier());
-            signingKeyActionsResolver.requireAction(ACTIVATE, tokenInfo, configurationSigningKeyMapper.toTarget(signingKey));
+            TokenInfo tokenInfo = signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier());
+            signingKeyActionsResolver.requireAction(ACTIVATE, tokenInfo, signingKey);
 
             auditDataHelper.put(RestApiAuditProperty.TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
             auditDataHelper.put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
 
-            activateKey(signingKey);
+            activateKey(signingKeyEntity);
         } catch (ValidationFailureException e) {
             throw e;
         } catch (Exception e) {
@@ -212,11 +226,23 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         final PossibleTokenAction action = INTERNAL.equals(configurationSourceType)
                 ? GENERATE_INTERNAL_KEY
                 : GENERATE_EXTERNAL_KEY;
+
+        if (configurationSourceType == INTERNAL) {
+            auditEventHelper.changeRequestScopedEvent(GENERATE_INTERNAL_CONFIGURATION_SIGNING_KEY);
+        } else if (configurationSourceType == EXTERNAL) {
+            auditEventHelper.changeRequestScopedEvent(GENERATE_EXTERNAL_CONFIGURATION_SIGNING_KEY);
+        }
+        auditDataHelper.put(RestApiAuditProperty.TOKEN_ID, tokenInfo.getId());
+        auditDataHelper.put(RestApiAuditProperty.TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
+        auditDataHelper.put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
+
         tokenActionsResolver.requireAction(action, tokenInfo, findByTokenIdentifier(tokenInfo));
 
         KeyInfo keyInfo;
         try {
             keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
+            auditDataHelper.put(RestApiAuditProperty.KEY_ID, keyInfo.getId());
+            auditDataHelper.put(RestApiAuditProperty.KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
         } catch (Exception e) {
             throw new SignerProxyException(KEY_GENERATION_FAILED, e);
         }
@@ -232,6 +258,8 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                     "N/A",
                     SIGNING_KEY_CERT_NOT_BEFORE,
                     SIGNING_KEY_CERT_NOT_AFTER);
+            auditDataHelper.put(CERT_HASH, calculateCertHexHashDelimited(selfSignedCert));
+            auditDataHelper.put(CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
 
             ConfigurationSigningKeyEntity signingKey = new ConfigurationSigningKeyEntity(keyInfo.getId(),
                     selfSignedCert, generatedAt, tokenId);
@@ -250,7 +278,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                     .setKeyGeneratedAt(generatedAt)
                     .setTokenIdentifier(tokenId);
 
-            configurationAnchorService.recreateAnchor(configurationSourceType);
+            configurationAnchorService.recreateAnchor(configurationSourceType, false);
             return mapWithDetails(tokenInfo, response, keyInfo);
         } catch (Exception e) {
             deleteKey(keyInfo.getId());

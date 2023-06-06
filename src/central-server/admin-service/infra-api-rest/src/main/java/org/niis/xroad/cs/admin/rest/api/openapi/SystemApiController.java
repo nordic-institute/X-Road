@@ -120,7 +120,7 @@ public class SystemApiController implements SystemApi {
 
         Arrays.stream(ConfigurationSourceType.values())
                 .filter(configurationService::hasSigningKeys)
-                .forEach(configurationAnchorService::recreateAnchor);
+                .forEach(sourceType -> configurationAnchorService.recreateAnchor(sourceType, false));
 
         return getSystemStatusResponseEntity();
     }

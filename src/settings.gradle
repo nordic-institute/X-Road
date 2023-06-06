@@ -5,21 +5,22 @@ pluginManagement {
 }
 
 // Common projects
-include "common-util"
-include "common-verifier"
-include "common-ui"
-include "common-db"
-include "common-messagelog"
 include "signer-protocol"
 include "serverconf"
 include "monitoring-conf"
-include "common-op-monitoring"
-include "common-rest-api"
-include "common-management-request"
-include "common-domain"
+
 
 include "common"
+include "common:common-admin-api"
 include "common:common-api-throttling"
+include "common:common-db"
+include "common:common-domain"
+include "common:common-management-request"
+include "common:common-messagelog"
+include "common:common-op-monitoring"
+include "common:common-ui"
+include "common:common-util"
+include "common:common-verifier"
 
 // Main projects
 include "proxy"
@@ -67,7 +68,7 @@ include 'security-server:admin-service:application'
 include "signer-console"
 
 // Tests
-include "common-test"
+include "common:common-test"
 include "e2e-tests"
 // Addons
 include "addons:hwtoken"

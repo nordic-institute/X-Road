@@ -100,7 +100,7 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
 
     @Override
     public TrustedAnchor upload(byte[] trustedAnchor) {
-        auditDataHelper.putAnchorHash(trustedAnchor);
+        auditDataHelper.calculateAndPutAnchorHash(trustedAnchor);
 
         final ConfigurationAnchorV2 anchorV2 = new ConfigurationAnchorV2(trustedAnchor);
 
