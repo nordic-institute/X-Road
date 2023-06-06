@@ -96,7 +96,7 @@ optional).
 
 #### 1.1.1 Extended Audit Log Format
 
-Security server and Central server uses REST APIs to update data, and a new audit log implementation adds some features that are useful in
+Security server and Central server use REST APIs to update data, and a new audit log implementation adds some features that are useful in
 auditing updates done through the API.
 
 Example of extended audit log message for the security server:
@@ -131,6 +131,8 @@ audit log entry with a specific request, regular log entries and e.g. stack trac
 
 Audit log event `JSON` contains these additional elements:
 
+* ipaddress
+  * the IP address of the user
 * auth
   * authentication type used for this API call
     * possible values:
@@ -146,6 +148,7 @@ Audit log event `JSON` contains these additional elements:
 {
   "event": "...",
   "user": "...",
+  "ipaddress":"...",
   "reason": "...",
   "warning": true,
   "auth": "Session",
