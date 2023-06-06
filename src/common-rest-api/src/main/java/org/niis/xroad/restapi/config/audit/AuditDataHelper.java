@@ -190,7 +190,7 @@ public class AuditDataHelper {
         if (certificateInfo != null) {
             String hash = createFormattedHash(certificateInfo.getCertificateBytes());
             addListPropertyItem(RestApiAuditProperty.CERT_HASHES, hash);
-            putDefaulCertHashAlgorithm();
+            putDefaultCertHashAlgorithm();
         }
     }
 
@@ -213,16 +213,24 @@ public class AuditDataHelper {
      * @param bytes anchor bytes
      * @return calculated formatted hash
      */
-    public String putAnchorHash(byte[] bytes) {
+    public String calculateAndPutAnchorHash(byte[] bytes) {
         String formattedHash = null;
         try {
             formattedHash = CryptoUtils.calculateAnchorHashDelimited(bytes);
         } catch (Exception e) {
             log.error("audit logging certificate hash forming failed", e);
         }
+        putAnchorHash(formattedHash);
+        return formattedHash;
+    }
+
+    /**
+     *  puts hash and hash algorithm properties
+     * @param calculated formatted hash
+     */
+    public void putAnchorHash(String formattedHash) {
         put(RestApiAuditProperty.ANCHOR_FILE_HASH, formattedHash);
         put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID);
-        return formattedHash;
     }
 
     /**
@@ -239,7 +247,7 @@ public class AuditDataHelper {
      */
     public void putCertificateHash(byte[] certificate) {
         put(RestApiAuditProperty.CERT_HASH, calculateCertHexHashDelimited(certificate));
-        putDefaulCertHashAlgorithm();
+        putDefaultCertHashAlgorithm();
     }
 
     /**
@@ -248,7 +256,7 @@ public class AuditDataHelper {
      */
     public void putAlreadyFormattedCertificateHash(String formattedHash) {
         put(RestApiAuditProperty.CERT_HASH, formattedHash);
-        putDefaulCertHashAlgorithm();
+        putDefaultCertHashAlgorithm();
     }
 
     /**
@@ -258,7 +266,7 @@ public class AuditDataHelper {
         if (certificateType != null) {
             String hash = createFormattedHash(certificateType.getData());
             put(RestApiAuditProperty.CERT_HASH, hash);
-            putDefaulCertHashAlgorithm();
+            putDefaultCertHashAlgorithm();
         }
     }
 
@@ -269,6 +277,16 @@ public class AuditDataHelper {
      */
     public void putCertificateData(String id, byte[] bytes) {
         put(RestApiAuditProperty.CERT_ID, id);
+        putCertificateHash(createUnformattedHash(bytes));
+    }
+
+    /**
+     * Put certification service id, hash and default algorithm
+     * @param id CA id
+     * @param bytes unformatted hash "630b9f83", will be changed to formatted "63:0B:9F:83"
+     */
+    public void putCertificationServiceData(String id, byte[] bytes) {
+        put(RestApiAuditProperty.CA_ID, id);
         putCertificateHash(createUnformattedHash(bytes));
     }
 
@@ -285,7 +303,7 @@ public class AuditDataHelper {
     /**
      * Put default cert hash algorithm
      */
-    public void putDefaulCertHashAlgorithm() {
+    public void putDefaultCertHashAlgorithm() {
         put(RestApiAuditProperty.CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
