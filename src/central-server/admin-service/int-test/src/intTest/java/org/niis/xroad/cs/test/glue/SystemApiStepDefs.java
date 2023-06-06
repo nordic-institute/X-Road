@@ -29,12 +29,16 @@ import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.CentralServerAddressDto;
+import org.niis.xroad.cs.openapi.model.HighAvailabilityClusterNodeDto;
+import org.niis.xroad.cs.openapi.model.HighAvailabilityClusterStatusDto;
 import org.niis.xroad.cs.openapi.model.SystemStatusDto;
 import org.niis.xroad.cs.openapi.model.VersionDto;
 import org.niis.xroad.cs.test.api.FeignSystemApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.time.OffsetDateTime;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
 import static com.nortal.test.asserts.Assertions.notNullAssertion;
@@ -56,6 +60,28 @@ public class SystemApiStepDefs extends BaseStepDefs {
     @Step("system status is validated")
     public void systemStatusIsValidated() {
         validateSystemStatusResponse(savedResponse);
+    }
+
+    @Step("system cluster status is requested")
+    public void systemClusterStatusIsRequested() {
+        var response = feignSystemApi.getHighAvailabilityClusterStatus();
+        putStepData(StepDataKey.RESPONSE, response);
+    }
+
+    @Step("system cluster status is validated")
+    public void systemClusterStatusIsValidated() {
+        ResponseEntity<HighAvailabilityClusterStatusDto> response = getRequiredStepData(StepDataKey.RESPONSE);
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
+                .assertion(isTrue("body.isHaConfigured"))
+                .assertion(equalsAssertion("test_node", "body.nodeName"))
+                .assertion(equalsAssertion(1, "body.nodes.size()"))
+                .assertion(equalsAssertion("test_node", "body.nodes[0].nodeName"))
+                .assertion(equalsAssertion("cs", "body.nodes[0].nodeAddress"))
+                .assertion(equalsAssertion(OffsetDateTime.parse("2022-01-01T01:00Z"), "body.nodes[0].configurationGenerated"))
+                .assertion(equalsAssertion(HighAvailabilityClusterNodeDto.StatusEnum.ERROR, "body.nodes[0].status"))
+                .assertion(isFalse("body.allNodesOk"))
+                .execute();
     }
 
     private void validateSystemStatusResponse(ResponseEntity<SystemStatusDto> response) {
@@ -82,7 +108,6 @@ public class SystemApiStepDefs extends BaseStepDefs {
                 .assertion(isFalse("body.info.contains(\"@gitCommitHash@\")"))
                 .execute();
     }
-
 
     @Step("updating central server address with url {string} should fail")
     public void updatingCentralServerAddressWithInvalidAddressShouldFail(String url) {

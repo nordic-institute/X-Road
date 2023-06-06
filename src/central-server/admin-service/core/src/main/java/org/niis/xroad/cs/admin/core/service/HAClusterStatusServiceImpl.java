@@ -24,27 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.config;
+package org.niis.xroad.cs.admin.core.service;
 
-import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.domain.HAClusterNode;
+import org.niis.xroad.cs.admin.api.service.HAClusterStatusService;
+import org.niis.xroad.cs.admin.core.entity.mapper.HAClusterNodeMapper;
+import org.niis.xroad.cs.admin.core.repository.HAClusterStatusViewRepository;
+import org.springframework.stereotype.Service;
 
-@Configuration
-public class CurrentHAConfigStatus {
+import java.util.List;
 
-    private static final String XROAD_HA_NODE_NAME_PROPERTY = "xroad.center.ha-node-name";
-    private static final String XROAD_HA_NODE_NAME_DEFAULT = "node_0";
+import static java.util.stream.Collectors.toList;
 
-    @Bean
-    HAConfigStatus currentHaConfigStatus() {
-        String haNodeName = System.getProperty(XROAD_HA_NODE_NAME_PROPERTY);
-        if (StringUtils.isEmpty(haNodeName)) {
-            return new HAConfigStatus(XROAD_HA_NODE_NAME_DEFAULT, false);
-        } else {
-            return new HAConfigStatus(haNodeName, true);
-        }
+@Service
+@RequiredArgsConstructor
+public class HAClusterStatusServiceImpl implements HAClusterStatusService {
+
+    private final HAClusterStatusViewRepository haClusterStatusRepository;
+    private final HAClusterNodeMapper haClusterNodeInfoMapper;
+
+    @Override
+    public List<HAClusterNode> getHAClusterNodes() {
+        return haClusterStatusRepository.findAll().stream()
+                .map(haClusterNodeInfoMapper::toTarget)
+                .collect(toList());
     }
 
 }
