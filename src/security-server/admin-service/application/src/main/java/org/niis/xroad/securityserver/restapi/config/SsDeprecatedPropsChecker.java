@@ -1,20 +1,21 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,44 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.SystemProperties;
+import org.niis.xroad.restapi.config.AbstractDeprecatedPropsChecker;
+import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.PropertyFileReadingEnvironmentPostProcessor;
-import org.springframework.context.annotation.Profile;
+import java.util.Set;
 
-/**
- * Load SSL properties from ssl.properties file.
- * Supported properties are ones starting with "server.ssl."
- */
-@Slf4j
-@Profile("nontest")
-public class SslPropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
-
+@Component
+public class SsDeprecatedPropsChecker extends AbstractDeprecatedPropsChecker {
     @Override
-    protected String getPropertySourceName() {
-        return "fromSslPropertiesFile";
-    }
-
-    @Override
-    protected String getPropertyFilePath() {
-        return SystemProperties.getSslPropertiesFile();
-    }
-
-    @Override
-    protected boolean isSupported(String propertyName) {
-        return propertyName.startsWith("server.ssl.");
-    }
-
-    @Override
-    protected String mapToSprintPropertyName(String originalPropertyName) {
-        return originalPropertyName;
-    }
-
-    @Override
-    protected boolean isPropertyFileMandatory() {
-        return false;
+    protected Set<DeprecatedProperty> getDeprecatedProperties() {
+        return Set.of(
+                new DeprecatedProperty("request.sizelimit.regular", "xroad.proxy-ui-api.request-sizelimit-regular"),
+                new DeprecatedProperty("request.sizelimit.binary.upload", "xroad.proxy-ui-api.request-sizelimit-binary-upload"),
+                new DeprecatedProperty("ratelimit.requests.per.second", "xroad.proxy-ui-api.rate-limit-requests-per-second"),
+                new DeprecatedProperty("ratelimit.requests.per.minute", "xroad.proxy-ui-api.rate-limit-requests-per-minute")
+        );
     }
 }
