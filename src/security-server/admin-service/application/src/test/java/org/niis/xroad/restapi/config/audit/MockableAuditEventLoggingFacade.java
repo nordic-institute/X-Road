@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
- * We probably need common-rest-api-test dependency for these.
+ * We probably need common-admin-api-test dependency for these.
  * <p>
  * DEPRECATED. Kept in place until effected tests are fixed.
  */

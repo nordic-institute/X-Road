@@ -3,14 +3,14 @@ plugins {
 }
 
 dependencies {
-    implementation  project(':common-verifier'),
+    implementation  project(':common:common-verifier'),
                     project(':asic-util')
 
-    implementation(project(':common-util')) {
+    implementation(project(':common:common-util')) {
         exclude group: 'com.typesafe.akka'
     }
 
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
 }
 
 jar.enabled = false

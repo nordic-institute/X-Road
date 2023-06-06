@@ -21,14 +21,14 @@ dependencyManagement {
 dependencies {
     dist(project(path: ":security-server:admin-service:ui", configuration: "dist"))
 
-    implementation project(":common-util")
-    implementation project(":common-verifier")
+    implementation project(":common:common-util")
     implementation project(":signer-protocol")
     implementation project(":serverconf")
-    implementation project(":common-ui")
-    implementation project(":common-rest-api")
-    implementation project(":common-management-request")
+    implementation project(":common:common-admin-api")
+    implementation project(":common:common-ui")
+    implementation project(":common:common-management-request")
     implementation project(':common:common-api-throttling')
+    implementation project(":common:common-verifier")
     implementation project(":security-server:openapi-model")
 
     implementation("org.springframework.boot:spring-boot-starter-security")
@@ -45,7 +45,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("javax.validation:validation-api")
 
-    testImplementation project(":common-test")
+    testImplementation project(":common:common-test")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")

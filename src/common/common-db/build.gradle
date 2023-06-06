@@ -1,0 +1,18 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api  "org.hibernate:hibernate-core:$hibernateVersion"
+
+    implementation project(':common:common-util')
+    implementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"
+    implementation "com.zaxxer:HikariCP:$hikariCpVersion"
+
+    implementation "org.postgresql:postgresql:$postgresqlVersion"
+
+    // DB layer tests use HSQLDB with in-memory tables
+    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
+    testImplementation project(':common:common-test')
+}
+

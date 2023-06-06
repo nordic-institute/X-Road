@@ -14,18 +14,18 @@ sourceSets {
 }
 
 dependencies {
-    api project(':common-db')
+    api project(':common:common-db')
 
-    implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-util')
+    implementation project(':common:common-verifier')
 
     // DB layer tests use HSQLDB with in-memory tables
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
-    testImplementation project(':common-db')
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-db')
+    testImplementation project(':common:common-test')
     testImplementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"
 
-    schema project(':common-util')
+    schema project(':common:common-util')
     schema "org.apache.ant:ant:1.10.11"
     schema "org.hibernate:hibernate-hikaricp:$hibernateVersion"
     schema "org.hibernate:hibernate-tools:$hibernateVersion"
