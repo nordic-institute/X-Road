@@ -205,8 +205,12 @@ In addition, it is necessary to configure a unique node name for each node parti
 
 It is possible to get HA status via a web interface, for example using curl:
 ```bash
-curl -k https://cs1.example.org:4000/api/v1/system/high-availability-cluster/status
+curl --header "Authorization: X-Road-ApiKey token=<api key>" -k https://cs1.example.org:4000/api/v1/system/high-availability-cluster/status
 ```
+
+See [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#32-checking-the-status-of-the-nodes-of-the-cluster) for more information about the API KEY Authorization
+
+Response:
 ```json
 {
   "ha_configured": true,
@@ -228,8 +232,8 @@ curl -k https://cs1.example.org:4000/api/v1/system/high-availability-cluster/sta
   "all_nodes_ok": false
 }
 ```
-The status information is based on the data in the configuration database and other nodes are not directly accessed. If the database is not available at all, the status check will respond with an error (HTTP error 503 Service Unvailable).
-A node status is:
+The status information is based on the data in the configuration database and other nodes are not directly accessed.
+A node can be:
   * "OK" if the configuration is recently generated.
   * "WARN" if the timestamp is more than a global configuration generation interval in the past.
   * "ERROR" if the timestamp is older than the global configuration expriry time.
