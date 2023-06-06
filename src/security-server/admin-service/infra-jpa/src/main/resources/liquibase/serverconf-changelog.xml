@@ -3,11 +3,11 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
-    <include file="serverconf/000-baseline.xml"/>
-    <include file="serverconf/001-apikeys.xml"/>
-    <include file="serverconf/002-drop-securitycategories.xml"/>
+    <include file="serverconf/000-baseline.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/001-apikeys.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/002-drop-securitycategories.xml"  relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

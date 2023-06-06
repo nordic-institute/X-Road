@@ -7,3 +7,4 @@
 ../../../../../LICENSE.txt usr/share/doc/xroad-proxy/
 ../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-proxy
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-proxy
+../../../../../security-server/admin-service/infra-jpa/src/main/resources/liquibase/* /usr/share/xroad/db/
