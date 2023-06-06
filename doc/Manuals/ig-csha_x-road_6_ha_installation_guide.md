@@ -215,13 +215,13 @@ curl -k https://cs1.example.org:4000/api/v1/system/high-availability-cluster/sta
     {
       "node_name": "node_0",
       "node_address": "cs1.example.org",
-      "configuration_generated": "2019-12-03 14:48:02.306199",
+      "configuration_generated": "2023-06-06T09:48:02.000Z",
       "status": "OK"
     },
     {
       "node_name": "node_1",
       "node_address": "cs2.example.org",
-      "configuration_generated": "2019-12-03 14:47:02.053865",
+      "configuration_generated": "2023-06-06T09:46:02.000Z",
       "status": "WARN"
     }
   ],
