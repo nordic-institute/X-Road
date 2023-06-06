@@ -210,7 +210,7 @@ public class ConfigurationAnchorServiceImplTest {
             when(signingKeyEntity2.getCert()).thenReturn(CERT2.getBytes(UTF_8));
             when(signingKeyEntity3.getCert()).thenReturn(CERT3.getBytes(UTF_8));
 
-            final var result = configurationAnchorService.recreateAnchor(INTERNAL);
+            final var result = configurationAnchorService.recreateAnchor(INTERNAL, true);
 
             verify(configurationSourceRepository).save(configurationSource);
             verify(configurationSourceRepository, never()).save(configurationSource2);
@@ -250,7 +250,7 @@ public class ConfigurationAnchorServiceImplTest {
         void shouldFailIfInstanceIdentifierNotSet() {
             when(systemParameterService.getInstanceIdentifier()).thenReturn(null);
 
-            assertThatThrownBy(() -> configurationAnchorService.recreateAnchor(INTERNAL))
+            assertThatThrownBy(() -> configurationAnchorService.recreateAnchor(INTERNAL, true))
                     .isInstanceOf(ServiceException.class)
                     .hasMessage("System parameter for instance identifier not set");
         }
@@ -263,7 +263,7 @@ public class ConfigurationAnchorServiceImplTest {
                     .thenReturn(configurationSource);
             when(configurationSource.getConfigurationSigningKeys()).thenReturn(Set.of());
 
-            assertThatThrownBy(() -> configurationAnchorService.recreateAnchor(INTERNAL))
+            assertThatThrownBy(() -> configurationAnchorService.recreateAnchor(INTERNAL, true))
                     .isInstanceOf(ServiceException.class)
                     .hasMessage("No configuration signing keys configured");
         }
