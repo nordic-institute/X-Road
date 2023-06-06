@@ -49,7 +49,6 @@ import java.util.List;
 @ConfigurationProperties(prefix = "xroad.admin-service")
 @Getter
 @Setter
-@SuppressWarnings("checkstyle:MagicNumber")
 public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig,
         ApiCachingConfiguration.Config {
 
@@ -65,8 +64,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
     private boolean rateLimitEnabled;
 
     /**
-     * Controls how many requests from an IP address are allowed per minute.
-     * Normally security servers should have a unique address and send second
+     * Controls how many requests from an IP address are allowed per second.
+     * Normally security servers should have a unique address and send just
      * one management request, so this value can be low.
      * To disable this feature, set this value to -1.
      */
@@ -107,4 +106,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
      * Setting the value to -1 disables the cache.
      */
     private int cacheApiKeyTtl;
+
+    /**
+     * Controls the rate of global configuration generation in seconds.
+     */
+    private int globalConfigurationGenerationRateInSeconds;
+
 }

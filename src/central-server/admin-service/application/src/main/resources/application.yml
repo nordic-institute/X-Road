@@ -77,3 +77,4 @@ xroad:
     rate-limit-expire-after-access-minutes: 5
     cache-default-ttl: 60
     cache-api-key-ttl: 60
+    global-configuration-generation-rate-in-seconds: 60
