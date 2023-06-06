@@ -19,7 +19,7 @@ Feature: Management requests API
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is with status 'WAITING'
     When authentication certificate of 'CS:E2E:member-1:SS-X' is deleted
-    And management request list endpoint queried and verified using params
+    Then management request list endpoint queried and verified using params
       | $q | $status | $origin | $serverId            | $types                         | $sortBy | $desc | $pageSize | $page | $itemsInPage | $total | $sortFieldExp |
       |    | REVOKED |         | CS:E2E:member-1:SS-X | AUTH_CERT_REGISTRATION_REQUEST |         |       | 5         | 1     | 1            | 1      |               |
       |    |         |         | CS:E2E:member-1:SS-X | AUTH_CERT_DELETION_REQUEST     |         |       | 5         | 1     | 1            | 1      |               |
