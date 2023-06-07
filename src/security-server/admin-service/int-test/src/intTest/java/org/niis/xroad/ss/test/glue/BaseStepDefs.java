@@ -35,7 +35,6 @@ import com.nortal.test.core.services.ScenarioContext;
 import feign.FeignException;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.ss.test.container.service.MockServerService;
-import org.niis.xroad.ss.test.container.service.TestDatabaseService;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -60,8 +59,6 @@ public abstract class BaseStepDefs {
     protected ValidationService validationService;
     @Autowired
     protected MockServerService mockServerService;
-    @Autowired
-    protected TestDatabaseService testDatabaseService;
 
     protected Assertion equalsStatusCodeAssertion(HttpStatus expected) {
         return new Assertion.Builder()
