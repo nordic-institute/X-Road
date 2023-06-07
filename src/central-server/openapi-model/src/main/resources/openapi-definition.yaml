@@ -2886,6 +2886,32 @@ paths:
           description: request not found
         '409':
           description: request can not be approved in this state
+  /openapi.yaml:
+    get:
+      tags:
+        - openapi
+      summary: download central server's openapi definition
+      operationId: downloadOpenApi
+      description: <h3>Administrator downloads the central server's OpenAPI definition.</h3>
+      responses:
+        '200':
+          description: openapi definition
+          content:
+            application/x-yaml:
+              schema:
+                type: string
+                format: binary
+                description: openapi definition file
+        '400':
+          description: request was invalid
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
 components:
   examples:
     DeleteKeyWarningExample:

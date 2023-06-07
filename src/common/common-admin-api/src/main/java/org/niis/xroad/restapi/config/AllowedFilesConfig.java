@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,46 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.config;
+package org.niis.xroad.restapi.config;
 
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import java.util.Set;
 
-import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
-import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
-import org.niis.xroad.restapi.config.AllowedFilesConfig;
-import org.niis.xroad.restapi.service.FileVerifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
+public interface AllowedFilesConfig {
 
-import javax.servlet.Filter;
+    /** Determines which file content types are allowed for backup file. Any content type is allowed when left unspecified. */
+    Set<String> getBackupAllowedContentTypes();
 
-@ComponentScan(basePackages = {
-        "org.niis.xroad.cs.admin",
-        "org.niis.xroad.restapi"
-})
-@Configuration
-public class BootstrapConfiguration {
+    /** Determines which file extensions are allowed for XML file. Any extension is allowed when left unspecified. */
+    Set<String> getXmlAllowedExtensions();
 
-    @Bean
-    public ExternalProcessRunner externalProcessRunner() {
-        return new ExternalProcessRunner();
-    }
+    /** Determines which file content types are allowed for XML files. Any content type is allowed when left unspecified. */
+    Set<String> getXmlAllowedContentTypes();
 
-    @Bean
-    public FileVerifier fileVerifier(final AllowedFilesConfig allowedFilesConfig) {
-        return new FileVerifier(allowedFilesConfig);
-    }
+    /** Determines which file extensions are allowed for certificate file. Any extension is allowed when left unspecified. */
+    Set<String> getCertificateAllowedExtensions();
 
-    @Bean
-    @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3)
-    @ConditionalOnProperty(
-            value = "xroad.admin-service.rate-limit-enabled",
-            havingValue = "true", matchIfMissing = true)
-    public Filter ipThrottlingFilter(AdminServiceProperties properties) {
-        return new IpThrottlingFilter(properties);
-    }
+    /** Determines which file content types are allowed for certificate files. Any content type is allowed when left unspecified. */
+    Set<String> getCertificateAllowedContentTypes();
 }
-

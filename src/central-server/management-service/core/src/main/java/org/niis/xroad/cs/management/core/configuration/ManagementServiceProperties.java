@@ -49,7 +49,6 @@ import java.nio.file.Path;
 @ConfigurationProperties(prefix = "xroad.management-service")
 @Getter
 @Setter
-@SuppressWarnings("checkstyle:MagicNumber")
 public class ManagementServiceProperties implements AdminServiceClientPropertyProvider, IpThrottlingFilterConfig {
 
     /**
