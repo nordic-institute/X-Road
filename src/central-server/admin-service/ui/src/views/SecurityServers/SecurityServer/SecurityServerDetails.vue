@@ -101,14 +101,12 @@
       </div>
     </main>
     <delete-security-server-address-dialog
-      v-if="serverCode"
       ref="deleteDialog"
       :server-code="serverCode"
       :security-server-id="serverId"
       @deleted="deleteServer"
     />
     <edit-security-server-address-dialog
-      v-if="address"
       ref="editAddressDialog"
       :address="address"
       :security-server-id="serverId"
