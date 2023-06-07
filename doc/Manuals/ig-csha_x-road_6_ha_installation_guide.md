@@ -1,8 +1,3 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
-
----
-
-
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
