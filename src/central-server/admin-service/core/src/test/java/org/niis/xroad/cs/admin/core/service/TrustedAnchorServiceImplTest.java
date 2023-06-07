@@ -134,7 +134,7 @@ class TrustedAnchorServiceImplTest {
 
             final Date anchorDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").parse("2023-02-15T09:26:34.235Z");
 
-            verify(auditDataHelper).putAnchorHash(bytes);
+            verify(auditDataHelper).calculateAndPutAnchorHash(bytes);
             verify(auditDataHelper).put(INSTANCE_IDENTIFIER, "CS0");
             verify(auditDataHelper).putDate(GENERATED_AT, anchorDate);
             verify(auditDataHelper).put(ANCHOR_URLS, Set.of("http://cs0/internalconf?version=2"));
@@ -161,7 +161,7 @@ class TrustedAnchorServiceImplTest {
                     .hasMessage("Trusted anchor file verification failed");
 
             final Date anchorDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").parse("2023-02-15T09:26:34.235Z");
-            verify(auditDataHelper).putAnchorHash(bytes);
+            verify(auditDataHelper).calculateAndPutAnchorHash(bytes);
             verify(auditDataHelper).put(INSTANCE_IDENTIFIER, "CS0");
             verify(auditDataHelper).putDate(GENERATED_AT, anchorDate);
             verify(auditDataHelper).put(ANCHOR_URLS, Set.of("http://cs0/internalconf?version=2"));

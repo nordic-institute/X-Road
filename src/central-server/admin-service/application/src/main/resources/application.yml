@@ -53,23 +53,12 @@ script:
   external-configuration-verifier:
     path: /usr/share/xroad/scripts/verify_external_configuration.sh
 
-file-validation:
-  files:
-    CERTIFICATE:
-      allowed-extensions: der,crt,pem,cer
-      allowed-content-types: application/x-x509-cert,text/plain
-    BACKUP:
-      allowed-extensions: gpg
-      allowed-content-types: application/pgp-encrypted
-    XML:
-      allowed-extensions: xml
-      allowed-content-types: text/xml,application/xml
-
 gpgkeys:
   gpghome: /etc/xroad/gpghome
 
 xroad:
   admin-service:
+    global-configuration-generation-rate-in-seconds: 60
     rate-limit-enabled: true
     rate-limit-requests-per-second: 20
     rate-limit-requests-per-minute: 600
@@ -77,3 +66,8 @@ xroad:
     rate-limit-expire-after-access-minutes: 5
     cache-default-ttl: 60
     cache-api-key-ttl: 60
+    certificate-allowed-extensions: der,crt,pem,cer
+    certificate-allowed-content-types: application/x-x509-cert,text/plain
+    backup-allowed-content-types: application/pgp-encrypted
+    xml-allowed-extensions: xml
+    xml-allowed-content-types: text/xml,application/xml
