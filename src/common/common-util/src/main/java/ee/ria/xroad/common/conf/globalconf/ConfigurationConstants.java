@@ -77,6 +77,4 @@ public final class ConfigurationConstants {
      */
     public static final String CONTENT_ID_OCSP_NEXT_UPDATE = "NEXTUPDATE";
 
-    public static final int CONFIGURATION_GENERATION_RATE_IN_SECONDS = 60;
-
 }

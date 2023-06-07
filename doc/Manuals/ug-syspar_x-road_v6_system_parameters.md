@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.71  
+Version: 2.72
 Doc. ID: UG-SYSPAR
 
 
@@ -82,6 +82,7 @@ Doc. ID: UG-SYSPAR
 | 30.01.2023 | 2.69    | Updated [13.3 Automatic Backups](#133-automatic-backups) chapter with latest configuration additions.                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas          |
 | 26.05.2023 | 2.70    | Add rate-limit properties                                                                                                                                                                                                                                                                                                                                                                                      | Ričardas Bučiūnas          |
 | 01.06.2023 | 2.71    | Update and add missing descriptions for to Central server configuration parameters.                                                                                                                                                                                                                                                                                                                            | Ovidijus Narkevičius       |
+| 05.06.2023 | 2.72    | Update global configuration generation rate parameter                                                                                                                                                                                                                                                                                                                                                          | Andres Rosenthal           |
 
 ## Table of Contents
 
@@ -117,7 +118,6 @@ Doc. ID: UG-SYSPAR
       - [4.1.5 Center parameters: `[registration-service]`](#415-center-parameters-registration-service)
       - [4.1.6 Center parameters: `[management-service]`](#416-center-parameters-management-service)
     - [4.2 System Parameters in the Database](#42-system-parameters-in-the-database)
-    - [4.3 Global Configuration Generation Interval Parameter](#43-global-configuration-generation-interval-parameter)
   - [5 Configuration Proxy System Parameters](#5-configuration-proxy-system-parameters)
     - [5.1 Configuration proxy module parameters: `[configuration-proxy]`](#51-configuration-proxy-module-parameters-configuration-proxy)
     - [5.2 Signer parameters: `[signer]`](#52-signer-parameters-signer)
@@ -488,6 +488,7 @@ For instructions on how to change the parameter values, see section [Changing th
 | **Name**                               | **Default value**                                   | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 |----------------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | allowed-hostnames                      |                                                     | Determines which hostnames are allowed to be used in "Host" header of the HTTP requests. Multiple hostnames can be provided as comma separated list. Any hostname is allowed when left unspecified.                                                                                                                                                                                                                                                                                                                                                             |
+| global-configuration-generation-rate-in-seconds | 60                | Global Configuration generation rate in seconds                                                                                            |
 | rate-limit-enabled                     | true <br/> _(see Description for more information)_ | Controls whether the built-in rate limiting is enabled. <br/> Note. If the service is behind a reverse proxy (default), the proxy needs to forward the real IP address for the rate-limiting to work correctly. Therefore, by default, using forward headers is enabled. <br/> If the service is exposed directly, it must not use forwarded (e.g. X-Forwarded-For) headers (can be spoofed by clients), and the corresponding configuration (server.forward-headers-strategy) needs to be disabled (see [additional information](#61-the-configuration-file)). |
 | rate-limit-requests-per-second         | 20                                                  | Controls how many requests from an IP address are allowed per second. To disable this feature, set this value to -1.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | rate-limit-requests-per-minute         | 600                                                 | Controls how many requests from an IP address are allowed per minute. To disable this feature, set this value to -1.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -500,6 +501,7 @@ For instructions on how to change the parameter values, see section [Changing th
 | xml-allowed-extensions                 | xml                                                 | Determines which file extensions are allowed when uploading XML file. To disable this check, leave this value empty.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | xml-allowed-content-types              | text/xml,application/xml                            | Determines which file content types are allowed when uploading XML file. Content type is deducted from file extension and file contents. To disable this check, leave this value empty.                                                                                                                                                                                                                                                                                                                                                                         |
 | backup-allowed-content-types           | application/pgp-encrypted                           | Determines which file content types are allowed when uploading backup file. Content type is deducted from file extension and file contents. To disable this check, leave this value empty.                                                                                                                                                                                                                                                                                                                                                                      |
+
 
 #### 4.1.4 Signer parameters: `[signer]`
 
@@ -549,19 +551,6 @@ This section describes the system parameters used by the X-Road central server. 
 | confSignCertHashAlgoUri     | string         | http://www.w3.org/2001/04/xmlenc#sha512 | URI of the algorithm used for calculating the hash value of the certificate used to sign the global configuration.<br/>Possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512.            |
 | ocspFreshnessSeconds        | integer        | 3600                                    | Defines the validity period (in seconds) for the OCSP responses retrieved from the OCSP responders. OCSP responses older than the validity period are considered expired and cannot be used for certificate verification.                       |
 | timeStampingIntervalSeconds | integer        | 60                                      | Defines the interval of time-stamping service calls. Interval in seconds after which message log records must be timestamped. The interval must be between 60 and 86400 seconds. **Note: this value must be less than *ocspFreshnessSeconds.*** |
-
-### 4.3 Global Configuration Generation Interval Parameter
-
-The global configuration generation interval parameter regulates the timing for global configuration generation. Global configuration generation is invoked by the Cron daemon [[CRONMAN](#Ref_CRONMAN)]. The parameter is located at following file:
-
-	/etc/cron.d/xroad-center
-
-The file is deployed during X-Road installation and by default has following content (see exact cron specifications) \[[CRONHOW](#Ref_CRONHOW)\]:
-
-	#!/bin/sh
-	* * * * * xroad curl http://127.0.0.1:8084/managementservice/gen_conf 2>1 >/dev/null;
-
-The parameter regulating the timing of global configuration generation is the cron expression at the start of the last line (\* \* \* \* \*), which means that global configuration generation is invoked every minute by default.
 
 ## 5 Configuration Proxy System Parameters
 

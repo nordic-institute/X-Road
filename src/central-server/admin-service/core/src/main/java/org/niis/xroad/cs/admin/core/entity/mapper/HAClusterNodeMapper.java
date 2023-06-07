@@ -34,18 +34,20 @@ import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.HAClusterNode;
 import org.niis.xroad.cs.admin.api.domain.HAClusterNodeStatus;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
 import org.niis.xroad.cs.admin.core.entity.HAClusterStatusViewEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONFIGURATION_GENERATION_RATE_IN_SECONDS;
-
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class HAClusterNodeMapper implements GenericUniDirectionalMapper<HAClusterStatusViewEntity, HAClusterNode> {
 
-    private static final int CONFIGURATION_GENERATION_WARN_THRESHOLD = CONFIGURATION_GENERATION_RATE_IN_SECONDS + 10;
+    private static final int CONFIGURATION_GENERATION_WARN_THRESHOLD = 10;
+
+    @Autowired
+    private AdminServiceProperties properties;
 
     @Autowired
     protected SystemParameterService systemParameterService;
@@ -61,7 +63,8 @@ public abstract class HAClusterNodeMapper implements GenericUniDirectionalMapper
         long secondsPassedSinceConfGeneration = ChronoUnit.SECONDS.between(entity.getConfigurationGenerated(), Instant.now());
         if (secondsPassedSinceConfGeneration > systemParameterService.getConfExpireIntervalSeconds()) {
             return HAClusterNodeStatus.ERROR;
-        } else if (secondsPassedSinceConfGeneration > CONFIGURATION_GENERATION_WARN_THRESHOLD) {
+        } else if (secondsPassedSinceConfGeneration
+                > properties.getGlobalConfigurationGenerationRateInSeconds() + CONFIGURATION_GENERATION_WARN_THRESHOLD) {
             return HAClusterNodeStatus.WARN;
         } else {
             return HAClusterNodeStatus.OK;
