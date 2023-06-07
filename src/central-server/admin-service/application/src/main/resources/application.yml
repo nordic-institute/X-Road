@@ -67,3 +67,13 @@ file-validation:
 
 gpgkeys:
   gpghome: /etc/xroad/gpghome
+
+xroad:
+  admin-service:
+    rate-limit-enabled: true
+    rate-limit-requests-per-second: 20
+    rate-limit-requests-per-minute: 600
+    rate-limit-cache-size: 10_000
+    rate-limit-expire-after-access-minutes: 5
+    cache-default-ttl: 60
+    cache-api-key-ttl: 60

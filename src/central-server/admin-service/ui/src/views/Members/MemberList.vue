@@ -187,7 +187,10 @@ export default Vue.extend({
     toDetails(member: Client): void {
       this.$router.push({
         name: RouteName.MemberDetails,
-        params: { memberid: toIdentifier(member.client_id) },
+        params: {
+          memberid: toIdentifier(member.client_id),
+          backTo: this.$router.currentRoute.path,
+        },
       });
     },
     changeOptions: async function () {
