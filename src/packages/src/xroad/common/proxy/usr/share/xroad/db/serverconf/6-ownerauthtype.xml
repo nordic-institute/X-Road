@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
-    <changeSet author="toja" id="6-ownerauthtype">
-        <update tableName="CLIENT">
-            <column name="ISAUTHENTICATION" value='SSLAUTH' type="VARCHAR(255)"/>
-            <where>ID in (select OWNER from SERVERCONF)</where>
-        </update>
-    </changeSet>
-</databaseChangeLog>

@@ -58,11 +58,12 @@ include 'central-server:management-service:int-test'
 
 include "central-server:registration-service"
 
-include 'security-server'
-include 'security-server:openapi-model'
-include 'security-server:admin-service'
-include 'security-server:admin-service:ui'
-include 'security-server:admin-service:application'
+include "security-server"
+include "security-server:openapi-model"
+include "security-server:admin-service"
+include "security-server:admin-service:application"
+include 'security-server:admin-service:infra-jpa'
+include "security-server:admin-service:ui"
 
 // Utils
 include "signer-console"
