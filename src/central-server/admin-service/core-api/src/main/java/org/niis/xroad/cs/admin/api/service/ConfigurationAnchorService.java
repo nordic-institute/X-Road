@@ -38,5 +38,5 @@ public interface ConfigurationAnchorService {
 
     Optional<ConfigurationAnchorWithFile> getConfigurationAnchorWithFile(ConfigurationSourceType sourceType);
 
-    ConfigurationAnchor recreateAnchor(ConfigurationSourceType configurationType);
+    ConfigurationAnchor recreateAnchor(ConfigurationSourceType configurationType, boolean addAuditLog);
 }

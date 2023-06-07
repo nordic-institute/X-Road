@@ -30,6 +30,7 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -115,10 +116,12 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
     }
 
     @Override
-    public ConfigurationAnchor recreateAnchor(ConfigurationSourceType configurationType) {
-        auditEventHelper.changeRequestScopedEvent(configurationType.equals(INTERNAL)
-                ? RE_CREATE_INTERNAL_CONFIGURATION_ANCHOR
-                : RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR);
+    public ConfigurationAnchor recreateAnchor(ConfigurationSourceType configurationType, boolean addAuditLog) {
+        if (addAuditLog) {
+            auditEventHelper.changeRequestScopedEvent(configurationType.equals(INTERNAL)
+                    ? RE_CREATE_INTERNAL_CONFIGURATION_ANCHOR
+                    : RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR);
+        }
 
         final var instanceIdentifier = Optional.ofNullable(systemParameterService.getInstanceIdentifier())
                 .filter(StringUtils::isNotEmpty)
@@ -136,7 +139,10 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         final var now = ZonedDateTime.now(ZoneId.of("UTC"));
         final var anchorXml = buildAnchorXml(configurationType, instanceIdentifier, now, sources);
         final var anchorXmlBytes = anchorXml.getBytes(StandardCharsets.UTF_8);
-        final var anchorXmlHash = auditDataHelper.putAnchorHash(anchorXmlBytes);
+        final var anchorXmlHash = CryptoUtils.calculateAnchorHashDelimited(anchorXmlBytes);
+        if (addAuditLog) {
+            auditDataHelper.putAnchorHash(anchorXmlHash);
+        }
         for (final var src : sources) {
             if (src.getConfigurationSigningKey() != null) {
                 src.setAnchorGeneratedAt(now.toInstant());

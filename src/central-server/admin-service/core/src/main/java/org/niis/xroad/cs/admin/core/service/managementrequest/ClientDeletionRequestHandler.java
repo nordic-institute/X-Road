@@ -27,16 +27,18 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 
+import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
+import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
+import org.niis.xroad.cs.admin.core.repository.ClientRegistrationRequestRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
@@ -46,6 +48,10 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.Set;
+
+import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.REVOKED;
+import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_CLIENT_REGISTRATION_NOT_FOUND;
 
 @Service
@@ -57,7 +63,8 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     private final SecurityServerRepository servers;
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final IdentifierRepository<ClientIdEntity> clientIds;
-    private final RequestRepository<ClientDeletionRequestEntity> requests;
+    private final RequestRepository<ClientDeletionRequestEntity> deletionRequests;
+    private final ClientRegistrationRequestRepository registrationRequests;
     private final ServerClientRepository serverClientRepository;
     private final RequestMapper requestMapper;
 
@@ -71,28 +78,45 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
         final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final ClientIdEntity clientId = clientIds.findOne(ClientIdEntity.ensure(request.getClientId()));
 
-        final SecurityServerEntity securityServer = servers.findBy(serverId, clientId).getOrElseThrow(() ->
-                new SecurityServerNotFoundException(serverId));
+        final Option<SecurityServerEntity> securityServerOpt = servers.findBy(serverId, clientId);
 
-        final SecurityServerClientEntity client = clients.findOneBy(clientId).getOrElseThrow(() ->
-                new NotFoundException(MR_CLIENT_REGISTRATION_NOT_FOUND));
+        securityServerOpt
+                .peek(server -> deleteSecurityServerClient(server, clientId))
+                .onEmpty(() -> tryToRevokePreviousRegistration(serverId, clientId));
 
         final var requestEntity = new ClientDeletionRequestEntity(request.getOrigin(), serverId, clientId, request.getComments());
-        final var persistedRequest = requests.save(requestEntity);
-
-        securityServer.getServerClients()
-                .stream()
-                .filter(serverClient -> client.equals(serverClient.getSecurityServerClient()))
-                .forEach(serverClientRepository::delete);
-
-        /*
-         * Note. The legacy implementation revokes existing pending registration requests. However, that does
-         * not seem right since if a request is pending, there is no registration that could be deleted,
-         * and if there is a registration, there can not be pending requests (unless there is a concurrency issue
-         * that should be addressed).
-         */
+        final var persistedRequest = deletionRequests.save(requestEntity);
 
         return requestMapper.toDto(persistedRequest);
+    }
+
+    private void tryToRevokePreviousRegistration(final SecurityServerIdEntity serverId, final ClientIdEntity clientId) {
+        var requests = registrationRequests.findBy(serverId, clientId, Set.of(WAITING));
+        requests.stream()
+                .findFirst()
+                .ifPresentOrElse(
+                        this::revokeRegistration,
+                        this::mrClientRegistrationNotFound
+                );
+    }
+
+    private void deleteSecurityServerClient(final SecurityServerEntity securityServer, final ClientIdEntity clientId) {
+        clients.findOneBy(clientId).toJavaOptional().ifPresentOrElse(
+                client -> securityServer.getServerClients()
+                        .stream()
+                        .filter(serverClient -> client.equals(serverClient.getSecurityServerClient()))
+                        .forEach(serverClientRepository::delete),
+                this::mrClientRegistrationNotFound
+        );
+    }
+
+    private void revokeRegistration(final ClientRegistrationRequestEntity requestEntity) {
+        requestEntity.getRequestProcessing().setStatus(REVOKED);
+        registrationRequests.save(requestEntity);
+    }
+
+    private void mrClientRegistrationNotFound() {
+        throw new NotFoundException(MR_CLIENT_REGISTRATION_NOT_FOUND);
     }
 
     @Override
@@ -105,5 +129,4 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     public Class<ClientDeletionRequest> requestType() {
         return ClientDeletionRequest.class;
     }
-
 }

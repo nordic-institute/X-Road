@@ -30,16 +30,23 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.DataIntegrityException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
+import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
+import org.niis.xroad.cs.admin.core.repository.AuthenticationCertificateRegistrationRequestRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.Set;
+
+import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.REVOKED;
+import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_AUTH_CERTIFICATE;
 
 /**
@@ -50,7 +57,8 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_AUTH
 @RequiredArgsConstructor
 public class AuthenticationCertificateDeletionRequestHandler implements
         RequestHandler<AuthenticationCertificateDeletionRequest> {
-    private final RequestRepository<AuthenticationCertificateDeletionRequestEntity> requests;
+    private final RequestRepository<AuthenticationCertificateDeletionRequestEntity> autCertDeletionRequests;
+    private final AuthenticationCertificateRegistrationRequestRepository autCertRegistrationRequests;
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final AuthCertRepository authCertRepository;
     private final RequestMapper requestMapper;
@@ -58,19 +66,40 @@ public class AuthenticationCertificateDeletionRequestHandler implements
     public AuthenticationCertificateDeletionRequest add(AuthenticationCertificateDeletionRequest request) {
         final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
 
+
+        authCertRepository.findByCert(request.getAuthCert())
+                .ifPresentOrElse(
+                        cert -> deleteAuthCert(serverId, cert),
+                        () -> tryToRevokeAuthCertRegistration(serverId, request.getAuthCert())
+                );
+
+
         final var requestEntity = new AuthenticationCertificateDeletionRequestEntity(request.getOrigin(), serverId,
                 request.getAuthCert(), request.getComments());
+        var persistedRequest = autCertDeletionRequests.save(requestEntity);
+        return requestMapper.toDto(persistedRequest);
+    }
 
-        var authCert = authCertRepository.findByCert(request.getAuthCert())
-                .orElseThrow(() -> new DataIntegrityException(MR_INVALID_AUTH_CERTIFICATE));
+    private void tryToRevokeAuthCertRegistration(final SecurityServerIdEntity serverId, final byte[] certificate) {
+        autCertRegistrationRequests.findByAuthCertAndStatus(certificate, Set.of(WAITING)).stream()
+                .filter(req -> serverId.equals(req.getSecurityServerId()))
+                .findFirst()
+                .ifPresentOrElse(
+                        this::revokeAuthCertRegistration,
+                        this::mrInvalidAuthCertificate
+                );
+    }
 
+    private void revokeAuthCertRegistration(AuthenticationCertificateRegistrationRequestEntity req) {
+        req.getRequestProcessing().setStatus(REVOKED);
+        autCertRegistrationRequests.save(req);
+    }
+
+    private void deleteAuthCert(final SecurityServerIdEntity serverId, final AuthCertEntity authCert) {
         if (!authCert.getSecurityServer().getServerId().equals(serverId)) {
             throw new SecurityServerNotFoundException(serverId);
         }
         authCertRepository.delete(authCert);
-
-        var persistedRequest = requests.save(requestEntity);
-        return requestMapper.toDto(persistedRequest);
     }
 
     @Override
@@ -87,5 +116,9 @@ public class AuthenticationCertificateDeletionRequestHandler implements
     @Override
     public Class<AuthenticationCertificateDeletionRequest> requestType() {
         return AuthenticationCertificateDeletionRequest.class;
+    }
+
+    private void mrInvalidAuthCertificate() {
+        throw new DataIntegrityException(MR_INVALID_AUTH_CERTIFICATE);
     }
 }

@@ -2568,6 +2568,27 @@ paths:
       summary: get information for the system version
       tags:
         - system
+  /system/high-availability-cluster/status:
+    get:
+      operationId: getHighAvailabilityClusterStatus
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HighAvailabilityClusterStatus'
+          description: system status
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get the system status
+      tags:
+        - system
   /timestamping-services:
     get:
       description: <h3>CS administrator views the approved timestamping services configured for this X-Road instance.</h3>
@@ -2878,7 +2899,7 @@ components:
             metadata:
               - 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
     ErrorExample:
-      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
+      $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
     ErrorInvalidInitParamsMetadataExample:
       summary: Initialization error with metadata
       value:
@@ -2901,7 +2922,7 @@ components:
             - "3"
         status: 400
     ErrorWithMetadataExample:
-      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
+      $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
     InitializationWarningExample:
       summary: All initialization warnings example.
       value:
@@ -3260,7 +3281,7 @@ components:
           type: string
       type: object
     CodeWithDetails:
-      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
+      $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
     ConfigurationAnchorContainer:
       type: object
       description: Container object for configuration anchor, in case central server isn't fully initialized it may not contain anchor.
@@ -3345,7 +3366,7 @@ components:
       format: enum
       type: string
     ErrorInfo:
-      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
+      $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
     GlobalConfDownloadUrl:
       description: the global conf download url object
       properties:
@@ -3457,6 +3478,47 @@ components:
           minLength: 1
           type: string
       type: object
+    HighAvailabilityClusterNode:
+      description: Central server's high availability cluster nodes information
+      properties:
+        node_name:
+          description: The name of the node
+          example: node_0
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        node_address:
+          description: Public DNS name or IP address of the node
+          format: text
+          type: string
+        configuration_generated:
+          description: Lasest time global configuration was generated at
+          example: '2022-01-12T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        status:
+          description: The status of the node
+          enum:
+            - OK
+            - WARN
+            - ERROR
+            - UNKNOWN
+          example: OK
+          format: enum
+          type: string
+    HighAvailabilityClusterStatus:
+      allOf:
+        - $ref: '#/components/schemas/HighAvailabilityStatus'
+      properties:
+        nodes:
+          items:
+            $ref: '#/components/schemas/HighAvailabilityClusterNode'
+        all_nodes_ok:
+          description: Indicator whether all the cluster nodes have OK status
+          type: boolean
     InitialServerConf:
       allOf:
         - $ref: '#/components/schemas/InstanceIdentifier'
@@ -4239,7 +4301,7 @@ components:
         - instance_identifier
       type: object
     User:
-      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
+      $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
     Version:
       description: version information
       properties:

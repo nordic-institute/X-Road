@@ -13,4 +13,4 @@ To use this wsdl, copy the wsdl and schemas from this directory
 (monitoring.wsdl, monitoring.xsd and xroad.xsd) along with the following
 imported schema to the same directory:
 - `identifiers.xsd`
-  - from `xroad/src/common-util/src/main/resources/identifiers.xsd`
+  - from `xroad/src/common/common-util/src/main/resources/identifiers.xsd`

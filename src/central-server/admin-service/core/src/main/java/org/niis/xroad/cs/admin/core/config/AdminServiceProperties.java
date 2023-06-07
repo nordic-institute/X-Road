@@ -29,12 +29,14 @@ package org.niis.xroad.cs.admin.core.config;
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
+import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Admin service configuration properties.
@@ -51,7 +53,7 @@ import java.util.List;
 @Setter
 @SuppressWarnings("checkstyle:MagicNumber")
 public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig,
-        ApiCachingConfiguration.Config {
+        ApiCachingConfiguration.Config, AllowedFilesConfig {
 
     /**
      * Controls whether the built-in rate limiting is enabled.
@@ -107,4 +109,17 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
      * Setting the value to -1 disables the cache.
      */
     private int cacheApiKeyTtl;
+
+    /** Determines which file content types are allowed for backup file. Any content type is allowed when left unspecified. */
+    private Set<String> backupAllowedContentTypes;
+
+    /** Determines which file extensions are allowed for XML file. Any extension is allowed when left unspecified. */
+    private Set<String> xmlAllowedExtensions;
+    /** Determines which file content types are allowed for XML files. Any content type is allowed when left unspecified. */
+    private Set<String> xmlAllowedContentTypes;
+
+    /** Determines which file extensions are allowed for certificate file. Any extension is allowed when left unspecified. */
+    private Set<String> certificateAllowedExtensions;
+    /** Determines which file content types are allowed for certificate files. Any content type is allowed when left unspecified. */
+    private Set<String> certificateAllowedContentTypes;
 }

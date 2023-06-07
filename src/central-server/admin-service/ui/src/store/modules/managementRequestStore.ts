@@ -33,6 +33,7 @@ import {
   ManagementRequestDetailedView,
   ManagementRequestListView,
   ManagementRequestsFilter,
+  ManagementRequestStatus,
   PagedManagementRequests,
   PagingMetadata,
   PagingSortingParameters,
@@ -42,6 +43,8 @@ export interface State {
   currentManagementRequest: ManagementRequestDetailedView | null;
   items: ManagementRequestListView[];
   pagingOptions: PagingMetadata;
+  currentFilter: ManagementRequestsFilter;
+  pagingSortingOptions: DataOptions;
 }
 
 export const managementRequestsStore = defineStore('managementRequests', {
@@ -54,8 +57,16 @@ export const managementRequestsStore = defineStore('managementRequests', {
       limit: 25,
       offset: 0,
     },
+    currentFilter: {
+      status: ManagementRequestStatus.WAITING,
+      query: '',
+    },
+    pagingSortingOptions: {
+      sortBy: ['id'],
+      sortDesc: [true],
+      itemsPerPage: 10,
+    } as DataOptions,
   }),
-  getters: {},
   actions: {
     async find(dataOptions: DataOptions, filter: ManagementRequestsFilter) {
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;

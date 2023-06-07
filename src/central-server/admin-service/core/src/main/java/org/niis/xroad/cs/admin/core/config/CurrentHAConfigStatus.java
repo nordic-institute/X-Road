@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,20 +39,12 @@ public class CurrentHAConfigStatus {
 
     @Bean
     HAConfigStatus currentHaConfigStatus() {
-        boolean isHaConfigured = true;
-        String haNodeName;
-
-        haNodeName = getHaNodeNameProperty();
-        if (haNodeName.isEmpty()) {
-            isHaConfigured = false;
-            haNodeName = XROAD_HA_NODE_NAME_DEFAULT;
+        String haNodeName = System.getProperty(XROAD_HA_NODE_NAME_PROPERTY);
+        if (StringUtils.isEmpty(haNodeName)) {
+            return new HAConfigStatus(XROAD_HA_NODE_NAME_DEFAULT, false);
+        } else {
+            return new HAConfigStatus(haNodeName, true);
         }
-        return new HAConfigStatus(haNodeName, isHaConfigured);
     }
-
-    private String getHaNodeNameProperty() {
-        return System.getProperty(XROAD_HA_NODE_NAME_PROPERTY, "");
-    }
-
 
 }

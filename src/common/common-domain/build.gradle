@@ -1,0 +1,23 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+
+dependencies {
+    implementation project(':common:common-util')
+    implementation project(':serverconf')
+
+    implementation("org.springframework:spring-context")
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+}
+
+bootJar {
+    enabled = false
+}
+
+test {
+    useJUnitPlatform()
+}

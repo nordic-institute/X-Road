@@ -1,6 +1,6 @@
 dependencies {
-    implementation(project(':common-db'))
-    implementation(project(':common-messagelog'))
+    implementation(project(':common:common-db'))
+    implementation(project(':common:common-messagelog'))
     implementation "org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}"
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
 }

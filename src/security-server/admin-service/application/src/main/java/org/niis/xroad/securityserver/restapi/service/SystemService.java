@@ -299,7 +299,7 @@ public class SystemService {
     private void uploadAnchor(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
             throws InvalidAnchorInstanceException, AnchorUploadException, MalformedAnchorException,
             ConfigurationDownloadException, ConfigurationVerifier.ConfigurationVerificationException {
-        auditDataHelper.putAnchorHash(anchorBytes);
+        auditDataHelper.calculateAndPutAnchorHash(anchorBytes);
         ConfigurationAnchorV2 anchor = createAnchorFromBytes(anchorBytes);
         auditDataHelper.putDate(RestApiAuditProperty.GENERATED_AT, anchor.getGeneratedAt());
         if (shouldVerifyAnchorInstance) {

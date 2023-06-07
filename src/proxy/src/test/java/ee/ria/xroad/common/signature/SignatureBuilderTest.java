@@ -63,7 +63,7 @@ public class SignatureBuilderTest {
     // Set true, if want to save generated test data.
     private static final boolean WRITE_TEST_DATA = false;
 
-    private static final String TEST_DATA_DIR = "../common-test/src/test/signatures/";
+    private static final String TEST_DATA_DIR = "../common/common-test/src/test/signatures/";
 
     private static X509Certificate subjectCert;
     private static PrivateKey subjectKey;

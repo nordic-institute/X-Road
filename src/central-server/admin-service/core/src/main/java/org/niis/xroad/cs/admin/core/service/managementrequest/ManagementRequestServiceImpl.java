@@ -51,6 +51,7 @@ import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.ManagementRequestViewRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.paging.StableSortHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -62,6 +63,7 @@ import java.util.function.Function;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_NOT_SUPPORTED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DECLINE_MANAGEMENT_REQUEST;
 
 /**
  * Implements generic management request services that do not depend on the request type.
@@ -82,6 +84,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     private final PageRequestDtoConverter pageRequestDtoConverter;
     private final PageConverter pageConverter;
     private final StableSortHelper stableSortHelper;
+    private final AuditEventHelper auditEventHelper;
 
     /**
      * Get a management request
@@ -159,6 +162,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
                 processing.setStatus(ManagementRequestStatus.REVOKED);
             } else {
                 processing.setStatus(ManagementRequestStatus.DECLINED);
+                auditEventHelper.changeRequestScopedEvent(DECLINE_MANAGEMENT_REQUEST);
             }
             requests.save(request);
         } else {

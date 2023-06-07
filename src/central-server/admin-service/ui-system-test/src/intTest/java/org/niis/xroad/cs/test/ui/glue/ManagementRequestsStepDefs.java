@@ -44,6 +44,7 @@ import java.util.Date;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.cs.test.ui.constants.Constants.getSecurityServerId;
 import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.MANAGEMENT_REQUEST_ID;
@@ -83,6 +84,11 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     @Step("the user enters {} in the search field")
     public void isWrittenInSearchField(String searchTerm) {
         managementRequestsPageObj.searchInput().setValue(searchTerm);
+    }
+
+    @Step("the user clears the search field")
+    public void clearSearchField() {
+        clearInput(managementRequestsPageObj.searchInput());
     }
 
     @Step("the user views the Management request from Security server {} with owner code {}")
@@ -241,7 +247,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         managementRequestsPageObj.showOnlyPendingRequestsIsChecked(false).shouldBe(Condition.enabled);
     }
 
-    @Step("the user unchecks the checkbox to show only pending requests")
+    @Step("the user clicks the checkbox to show only pending requests")
     public void showOnlyPendingRequestsIsClicked() {
         managementRequestsPageObj.showOnlyPendingRequests().click(ClickOptions.usingJavaScript());
     }
@@ -251,4 +257,11 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
         managementRequestsPageObj.btnApproveManagementRequest().shouldNotBe(visible);
         managementRequestsPageObj.btnDeclineManagementRequest().shouldNotBe(visible);
     }
+
+    @Step("search field contains {string}")
+    public void searchFieldContainsText(String text) {
+        managementRequestsPageObj.searchInput().shouldBe(visible);
+        managementRequestsPageObj.searchInput().shouldHave(value(text));
+    }
+
 }

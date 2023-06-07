@@ -27,17 +27,17 @@ dependencies {
     implementation(project(":common:common-api-throttling"))
     implementation(project(":central-server:admin-service:api-client"))
     implementation(project(':central-server:openapi-model'))
-    implementation(project(':common-util')) {
+    implementation(project(':common:common-util')) {
         exclude group: 'com.typesafe.akka'
         exclude group: 'org.eclipse.jetty'
         exclude group: 'org.quartz-scheduler'
     }
 
-    implementation project(':common-ui')
-    implementation (project(':common-management-request')) {
+    implementation project(':common:common-ui')
+    implementation (project(':common:common-management-request')) {
       exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
-    implementation(project(':common-verifier')) {
+    implementation(project(':common:common-verifier')) {
         transitive = false
     }
 
@@ -50,8 +50,8 @@ dependencies {
     implementation('javax.validation:validation-api')
     implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
 
-    testImplementation project(':common-test')
-    testImplementation(testFixtures(project(":common-management-request")))
+    testImplementation project(':common:common-test')
+    testImplementation(testFixtures(project(":common:common-management-request")))
     testImplementation(testFixtures(project(":common:common-api-throttling")))
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('com.github.tomakehurst:wiremock-jre8:2.33.1')
