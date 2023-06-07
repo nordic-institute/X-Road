@@ -55,7 +55,7 @@ ln -s /usr/share/xroad/jlib/postgresql-42.5.4.jar %{buildroot}/usr/share/xroad/j
 ln -s /usr/share/xroad/db/liquibase-core-4.19.0.jar %{buildroot}/usr/share/xroad/db/liquibase-core.jar
 
 cp -p %{_sourcedir}/base/xroad-base.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../common/common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../security-server/admin-service/application/build/unpacked-libs/postgresql-42.5.4.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt

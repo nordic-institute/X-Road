@@ -5025,9 +5025,9 @@ paths:
 components:
   examples:
     ErrorExample:
-      $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
+      $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
     ErrorWithMetadataExample:
-      $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
+      $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
     SignCsrGenerateExample:
       summary: Sign CSR generate request body example
       value:
@@ -5808,7 +5808,7 @@ components:
         - REGISTRATION_IN_PROGRESS
         - DELETION_IN_PROGRESS
     CodeWithDetails:
-      $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
+      $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
     ConfigurationStatus:
       type: string
       format: enum
@@ -5942,7 +5942,7 @@ components:
         - WAITING
         - FAIL
     ErrorInfo:
-      $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
+      $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
     InitialServerConf:
       type: object
       description: security server initial configuration
@@ -7033,7 +7033,7 @@ components:
         - SOFTWARE
         - HARDWARE
     User:
-      $ref: '../../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
+      $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
     VersionInfo:
       type: object
       description: version information

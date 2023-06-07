@@ -38,7 +38,6 @@ import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
 import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
 import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
-import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -137,7 +136,7 @@ public class BackupsApiController implements BackupsApi {
     public ResponseEntity<BackupDto> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
         try {
             byte[] fileBytes = file.getBytes();
-            fileVerifier.validate(file.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.BACKUP, Boolean.TRUE);
+            fileVerifier.validateBackup(file.getOriginalFilename(), fileBytes);
             final BackupFile backupFile = backupService.uploadBackup(ignoreWarnings,
                     file.getOriginalFilename(), fileBytes);
             return ResponseEntity.status(CREATED).body(backupDtoConverter.toTarget(backupFile));

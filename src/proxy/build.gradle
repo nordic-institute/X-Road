@@ -3,20 +3,20 @@ plugins {
 }
 
 dependencies {
-    implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-util')
+    implementation project(':common:common-verifier')
     implementation project(':serverconf')
     implementation project(':signer-protocol')
-    implementation project(':common-messagelog')
-    implementation project(':common-op-monitoring')
+    implementation project(':common:common-messagelog')
+    implementation project(':common:common-op-monitoring')
 
     implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
     implementation "xerces:xercesImpl:$xercesVersion"
 
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
-    testImplementation project(':common-test')
-    testImplementation project(path: ':common-util', configuration: 'testArtifacts')
+    testImplementation project(':common:common-test')
+    testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
 
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"

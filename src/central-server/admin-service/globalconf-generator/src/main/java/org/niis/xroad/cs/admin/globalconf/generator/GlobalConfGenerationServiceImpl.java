@@ -55,6 +55,7 @@ import java.util.Set;
 
 import static ee.ria.xroad.common.SystemProperties.getCenterExternalDirectory;
 import static ee.ria.xroad.common.SystemProperties.getCenterInternalDirectory;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONFIGURATION_GENERATION_RATE_IN_SECONDS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static ee.ria.xroad.commonui.OptionalPartsConf.getOptionalPartsConf;
@@ -90,7 +91,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
     @SneakyThrows
     @Override
-    @Scheduled(fixedRate = 60, timeUnit = SECONDS) // TODO make configurable
+    @Scheduled(fixedRate = CONFIGURATION_GENERATION_RATE_IN_SECONDS, timeUnit = SECONDS) // TODO make configurable
     @Transactional
     public void generate() {
         var success = false;

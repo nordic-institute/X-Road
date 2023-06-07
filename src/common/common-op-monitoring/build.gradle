@@ -1,0 +1,4 @@
+dependencies {
+    implementation project(':common:common-util')
+    implementation project(':common:common-verifier')
+}

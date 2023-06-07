@@ -89,9 +89,7 @@ import IntermediateCaDetails from '@/views/TrustServices/CertificationService/In
 import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationService/IntermediateCaOcspResponders.vue';
 import TimestampingServiceCertificate from '@/components/timestampingServices/TimestampingServiceCertificate.vue';
 import ManagementRequestDetails from '@/views/ManagementRequests/ManagementRequestDetails.vue';
-import ManagementRequestsList, {
-  Scope,
-} from '@/views/ManagementRequests/ManagementRequestsList.vue';
+import ManagementRequestsList from '@/views/ManagementRequests/ManagementRequestsList.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -442,9 +440,6 @@ const routes: RouteConfig[] = [
             name: RouteName.ManagementRequests,
             path: '',
             component: ManagementRequestsList,
-            props: {
-              scope: Scope.FULL,
-            },
             meta: {
               permissions: [Permissions.VIEW_MANAGEMENT_REQUESTS],
             },

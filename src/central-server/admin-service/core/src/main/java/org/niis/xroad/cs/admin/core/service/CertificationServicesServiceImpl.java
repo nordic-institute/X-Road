@@ -191,7 +191,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     public OcspResponder addOcspResponder(OcspResponderAddRequest ocspAddResponderRequest) {
         OcspInfoEntity ocspInfo = ocspResponderConverter.toEntity(ocspAddResponderRequest);
         OcspInfoEntity persistedOcspInfo = ocspInfoRepository.save(ocspInfo);
-        addAuditData(persistedOcspInfo);
+        addOcspAuditData(persistedOcspInfo);
         return ocspResponderConverter.toModel(persistedOcspInfo);
     }
 
@@ -213,12 +213,12 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     }
 
     private void addAuditData(ApprovedCaEntity approvedCa) {
-        auditDataHelper.putCertificateData(Integer.toString(approvedCa.getId()), approvedCa.getCaInfo().getCert());
+        auditDataHelper.putCertificationServiceData(Integer.toString(approvedCa.getId()), approvedCa.getCaInfo().getCert());
         auditDataHelper.put(AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());
         auditDataHelper.put(CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
     }
 
-    private void addAuditData(OcspInfoEntity ocspInfo) {
+    private void addOcspAuditData(OcspInfoEntity ocspInfo) {
         auditDataHelper.put(CA_ID, ocspInfo.getCaInfo().getId());
         auditDataHelper.put(OCSP_ID, ocspInfo.getId());
         auditDataHelper.put(OCSP_URL, ocspInfo.getUrl());
