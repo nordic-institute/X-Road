@@ -290,7 +290,6 @@ export default Vue.extend({
         )
         .then(() => {
           this.showSuccess(this.$t('keys.certificateUnregistered'));
-          this.fetchData(this.hash);
         })
         .catch((error) => {
           if (

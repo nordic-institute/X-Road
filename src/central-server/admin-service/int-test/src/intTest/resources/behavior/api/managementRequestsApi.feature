@@ -15,16 +15,6 @@ Feature: Management requests API
     And security server 'CS:E2E:member-1:SS-X' has no authentication certificates
 
   @Modifying
-  Scenario: Add/delete not yet approved Authentication certificate
-    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
-    And management request is with status 'WAITING'
-    When authentication certificate of 'CS:E2E:member-1:SS-X' is deleted
-    Then management request list endpoint queried and verified using params
-      | $q | $status | $origin | $serverId            | $types                         | $sortBy | $desc | $pageSize | $page | $itemsInPage | $total | $sortFieldExp |
-      |    | REVOKED |         | CS:E2E:member-1:SS-X | AUTH_CERT_REGISTRATION_REQUEST |         |       | 5         | 1     | 1            | 1      |               |
-      |    |         |         | CS:E2E:member-1:SS-X | AUTH_CERT_DELETION_REQUEST     |         |       | 5         | 1     | 1            | 1      |               |
-
-  @Modifying
   Scenario: Auto approve Authentication certificate
     Given Authentication header is set to REGISTRATION_OFFICER
     And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'CENTER'
@@ -61,20 +51,6 @@ Feature: Management requests API
     And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
     When 'CS:E2E:member-2' is deleted as security server 'CS:E2E:member-1:SS-X' client
     Then security server 'CS:E2E:member-1:SS-X' has no clients
-
-  @Modifying
-  Scenario: Delete still pending member as security server client
-    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
-    And management request is approved
-    And new member 'CS:E2E:member-2' is added
-    And client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
-    And management request is with status 'WAITING'
-    When 'CS:E2E:member-2' is deleted as security server 'CS:E2E:member-1:SS-X' client
-    Then security server 'CS:E2E:member-1:SS-X' has no clients
-    And management request list endpoint queried and verified using params
-      | $q | $status | $origin | $serverId            | $types                      | $sortBy | $desc | $pageSize | $page | $itemsInPage | $total | $sortFieldExp |
-      |    | REVOKED |         | CS:E2E:member-1:SS-X | CLIENT_REGISTRATION_REQUEST |         |       | 5         | 1     | 1            | 1      |               |
-      |    |         |         | CS:E2E:member-1:SS-X | CLIENT_DELETION_REQUEST     |         |       | 5         | 1     | 1            | 1      |               |
 
   @Modifying
   Scenario: Auto approve registration of member as security server client

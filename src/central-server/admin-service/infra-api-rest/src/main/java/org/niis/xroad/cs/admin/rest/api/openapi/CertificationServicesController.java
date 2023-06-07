@@ -42,6 +42,7 @@ import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.CertificationServiceSettingsDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
+import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.FileVerifier;
@@ -87,7 +88,7 @@ public class CertificationServicesController implements CertificationServicesApi
                                                                                    String tlsAuth) {
         var isForTlsAuth = parseBoolean(tlsAuth);
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-        fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
         var approvedCa = new ApprovedCertificationService(fileBytes, certificateProfileInfo, isForTlsAuth);
 
         CertificationService persistedApprovedCa = certificationServicesService.add(approvedCa);
@@ -99,7 +100,7 @@ public class CertificationServicesController implements CertificationServicesApi
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     public ResponseEntity<CertificateAuthorityDto> addCertificationServiceIntermediateCa(Integer id, MultipartFile certificate) {
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-        fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
         final CertificateAuthority certificateAuthority = certificationServicesService
                 .addIntermediateCa(id, fileBytes);
         return status(CREATED).body(certificateAuthorityDtoConverter.convert(certificateAuthority));
@@ -111,7 +112,7 @@ public class CertificationServicesController implements CertificationServicesApi
     public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(Integer caId, String url, MultipartFile certificate) {
         final var addRequest = new OcspResponderAddRequest();
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-        fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
         addRequest.setCaId(caId).setUrl(url).setCertificate(fileBytes);
 
         var ocspResponder = certificationServicesService.addOcspResponder(addRequest);

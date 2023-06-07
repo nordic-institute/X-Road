@@ -35,6 +35,7 @@ import org.niis.xroad.cs.admin.rest.api.converter.OcspResponderDtoConverter;
 import org.niis.xroad.cs.openapi.OcspRespondersApi;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
+import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -83,7 +84,7 @@ public class OcspRespondersController implements OcspRespondersApi {
                 .setUrl(url);
         if (certificate != null) {
             byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-            fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
+            fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
             updateRequest.setCertificate(fileBytes);
         }
         return ok(ocspResponderDtoConverter.toDto(ocspRespondersService.update(updateRequest)));

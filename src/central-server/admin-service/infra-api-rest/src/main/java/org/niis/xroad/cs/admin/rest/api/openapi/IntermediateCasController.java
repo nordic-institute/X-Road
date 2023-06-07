@@ -37,6 +37,7 @@ import org.niis.xroad.cs.admin.rest.api.converter.OcspResponderDtoConverter;
 import org.niis.xroad.cs.openapi.IntermediateCasApi;
 import org.niis.xroad.cs.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.cs.openapi.model.OcspResponderDto;
+import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.FileVerifier;
@@ -75,7 +76,7 @@ public class IntermediateCasController implements IntermediateCasApi {
     @AuditEventMethod(event = ADD_INTERMEDIATE_CA_OCSP_RESPONDER)
     public ResponseEntity<OcspResponderDto> addIntermediateCaOcspResponder(Integer id, String url, MultipartFile certificate) {
         byte[] fileBytes = readBytes(certificate);
-        fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
         final OcspResponderRequest ocspResponderRequest = new OcspResponderAddRequest()
                 .setUrl(url)
                 .setCertificate(fileBytes);

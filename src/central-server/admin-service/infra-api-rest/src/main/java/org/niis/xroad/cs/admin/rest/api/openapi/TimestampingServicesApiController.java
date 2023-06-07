@@ -33,6 +33,7 @@ import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 import org.niis.xroad.cs.admin.rest.api.mapper.TimestampingServiceMapper;
 import org.niis.xroad.cs.openapi.TimestampingServicesApi;
 import org.niis.xroad.cs.openapi.model.TimestampingServiceDto;
+import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.FileVerifier;
@@ -70,7 +71,7 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
     @PreAuthorize("hasAuthority('ADD_APPROVED_TSA')")
     public ResponseEntity<TimestampingServiceDto> addTimestampingService(String url, MultipartFile certificate) {
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-        fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
+        fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
         return status(HttpStatus.CREATED).body(timestampingServiceMapper.toTarget(
                 timestampingServicesService.add(url, fileBytes)));
     }
@@ -106,7 +107,7 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
                 .setUrl(url);
         if (certificate != null) {
             byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-            fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
+            fileVerifier.validate(certificate.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.CERTIFICATE);
             updateRequest.setCertificate(fileBytes);
         }
         return ok(timestampingServiceMapper.toTarget(timestampingServicesService.update(updateRequest)));

@@ -30,8 +30,6 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
-import org.niis.xroad.restapi.config.AllowedFilesConfig;
-import org.niis.xroad.restapi.service.FileVerifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -50,11 +48,6 @@ public class BootstrapConfiguration {
     @Bean
     public ExternalProcessRunner externalProcessRunner() {
         return new ExternalProcessRunner();
-    }
-
-    @Bean
-    public FileVerifier fileVerifier(final AllowedFilesConfig allowedFilesConfig) {
-        return new FileVerifier(allowedFilesConfig);
     }
 
     @Bean

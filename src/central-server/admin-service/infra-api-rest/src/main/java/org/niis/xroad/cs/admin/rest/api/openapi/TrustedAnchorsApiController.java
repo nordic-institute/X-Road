@@ -33,6 +33,7 @@ import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
 import org.niis.xroad.cs.admin.rest.api.converter.TrustedAnchorConverter;
 import org.niis.xroad.cs.openapi.TrustedAnchorsApi;
 import org.niis.xroad.cs.openapi.model.TrustedAnchorDto;
+import org.niis.xroad.restapi.config.FileValidationConfiguration;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.FileVerifier;
@@ -99,7 +100,7 @@ public class TrustedAnchorsApiController implements TrustedAnchorsApi {
     @PreAuthorize("hasAuthority('UPLOAD_TRUSTED_ANCHOR')")
     public ResponseEntity<TrustedAnchorDto> previewTrustedAnchor(MultipartFile anchor) {
         byte[] fileBytes = MultipartFileUtils.readBytes(anchor);
-        fileVerifier.validateXml(anchor.getOriginalFilename(), fileBytes);
+        fileVerifier.validate(anchor.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.XML);
         return ok(trustedAnchorConverter.toTarget(
                 trustedAnchorService.preview(fileBytes))
         );
@@ -110,7 +111,7 @@ public class TrustedAnchorsApiController implements TrustedAnchorsApi {
     @PreAuthorize("hasAuthority('UPLOAD_TRUSTED_ANCHOR')")
     public ResponseEntity<TrustedAnchorDto> uploadTrustedAnchor(MultipartFile anchor) {
         byte[] fileBytes = MultipartFileUtils.readBytes(anchor);
-        fileVerifier.validateXml(anchor.getOriginalFilename(), fileBytes);
+        fileVerifier.validate(anchor.getOriginalFilename(), fileBytes, FileValidationConfiguration.FileType.XML);
         return status(CREATED).body(
                 trustedAnchorConverter.toTarget(
                         trustedAnchorService.upload(fileBytes))
