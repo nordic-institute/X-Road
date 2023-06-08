@@ -36,6 +36,8 @@ get_db_database() {
 
 # setup database and run migrations
 setup_database() {
+    /usr/share/xroad/scripts/migrate_db_cfg_to_spring_datasourse.sh
+
     local db_properties=/etc/xroad/db.properties
     local root_properties=/etc/xroad.properties
     RET=
