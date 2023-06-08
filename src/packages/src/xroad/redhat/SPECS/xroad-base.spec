@@ -112,9 +112,6 @@ fi
 
 if [ $1 -gt 1 ] ; then
     # upgrade
-    mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
-    rpm -q %{name} --queryformat="%%{version}" &> "%{_localstatedir}/lib/rpm-state/%{name}/prev-version"
-
     if ! grep -q '\s*JAVA_HOME=' /etc/xroad/services/local.conf; then
       #6.26.0 migrate "JAVA_HOME" to local.conf
       java_home=$(grep '^JAVA_HOME=' /etc/xroad/services/global.conf);
@@ -165,16 +162,5 @@ chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
 #enable xroad services by default
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
-
-if [ "$1" -gt 1 ]; then
-    prev_version=$(cat %{_localstatedir}/lib/rpm-state/%{name}/prev-version)
-
-    # disable strict-identifier-checks for upgrades from version < 7.3.0
-    if ! echo -e "7.3.0\n$prev_version" | sort -V -C; then
-        crudini --set /etc/xroad/conf.d/local.ini common strict-identifier-checks false
-    fi
-
-    rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :
-fi
 
 %changelog

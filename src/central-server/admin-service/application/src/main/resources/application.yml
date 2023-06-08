@@ -57,8 +57,6 @@ gpgkeys:
   gpghome: /etc/xroad/gpghome
 
 xroad:
-  common:
-    strict-identifier-checks: true
   admin-service:
     global-configuration-generation-rate-in-seconds: 60
     rate-limit-enabled: true
@@ -73,3 +71,4 @@ xroad:
     backup-allowed-content-types: application/pgp-encrypted
     xml-allowed-extensions: xml
     xml-allowed-content-types: text/xml,application/xml
+    strict-identifier-checks: true

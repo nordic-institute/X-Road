@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientAdd;
@@ -128,8 +129,8 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     static class TestConf {
         @Bean
         @Primary
-        IdentifierValidator nonStrictIdentifierValidator() {
-            return IdentifierValidator.get(false);
+        IdentifierValidationConfiguration.Config nonStrictIdentifierValidationConfig() {
+            return () -> false;
         }
     }
 

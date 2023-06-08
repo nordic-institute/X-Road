@@ -46,8 +46,6 @@ request:
       upload: 10MB
 
 xroad:
-  common:
-    strict-identifier-checks: true
   proxy-ui-api:
     rate-limit-requests-per-second: ${ratelimit.requests.per.second:20} #Deprecated. This is a fallback to old style properties
     rate-limit-requests-per-minute: ${ratelimit.requests.per.minute:600} #Deprecated. This is a fallback to old style properties
@@ -55,6 +53,7 @@ xroad:
     rate-limit-expire-after-access-minutes: 5
     cache-default-ttl: 60
     cache-api-key-ttl: 60
+    strict-identifier-checks: true
 
 file-upload-endpoints:
   endpointDefinitions:

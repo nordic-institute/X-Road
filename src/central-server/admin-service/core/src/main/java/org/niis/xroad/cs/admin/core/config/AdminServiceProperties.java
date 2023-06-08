@@ -32,6 +32,7 @@ import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
+import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -52,7 +53,7 @@ import java.util.Set;
 @Getter
 @Setter
 public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig,
-        ApiCachingConfiguration.Config, AllowedFilesConfig {
+        ApiCachingConfiguration.Config, AllowedFilesConfig, IdentifierValidationConfiguration.Config {
 
     /**
      * Controls the rate of global configuration generation in seconds.
@@ -126,4 +127,11 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
     private Set<String> certificateAllowedExtensions;
     /** Determines which file content types are allowed for certificate files. Any content type is allowed when left unspecified. */
     private Set<String> certificateAllowedContentTypes;
+
+    /**
+     * Restrict identifiers (member code, subsystem code etc.) to match <code>^[a-zA-Z0-9'()+,-.=?]*</code>.
+     * Setting value to false enables legacy compatibility mode, that logs a warning when entity is created with
+     * incompatible identifier.
+     */
+    private boolean strictIdentifierChecks;
 }

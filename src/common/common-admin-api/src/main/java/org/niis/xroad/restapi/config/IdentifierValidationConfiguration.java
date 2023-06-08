@@ -24,21 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.restapi.config;
 
 import ee.ria.xroad.common.validation.IdentifierValidator;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static ee.ria.xroad.common.SystemProperties.STRICT_IDENTIFIER_NAME_CHECKS;
-
 @Configuration
-class IdentifierValidationConfiguration {
+public class IdentifierValidationConfiguration {
 
     @Bean
-    IdentifierValidator identifierValidator(@Value("${" + STRICT_IDENTIFIER_NAME_CHECKS + "}") boolean strict) {
-        return IdentifierValidator.get(strict);
+    IdentifierValidator identifierValidator(Config config) {
+        return IdentifierValidator.get(config.isStrictIdentifierChecks());
     }
+
+
+    public interface Config {
+        /**
+         * Restrict identifiers (member code, subsystem code etc.) to match <code>^[a-zA-Z0-9'()+,-.=?]*</code>.
+         * Setting value to false enables legacy compatibility mode, that logs a warning when entity is created with
+         * incompatible identifier.
+         */
+        boolean isStrictIdentifierChecks();
+    }
+
 }

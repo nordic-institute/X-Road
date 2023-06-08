@@ -52,8 +52,6 @@ public final class SystemProperties {
     public static final String CONFIGURATION_PATH =
             PREFIX + "common.configuration-path";
 
-    public static final String STRICT_IDENTIFIER_NAME_CHECKS = PREFIX + "common.strict-identifier-checks";
-
     /** Current version number of the global configuration **/
     public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 2;
 
