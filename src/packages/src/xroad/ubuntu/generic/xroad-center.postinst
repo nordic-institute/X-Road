@@ -24,6 +24,16 @@ handle_error() {
     rm -f /tmp/cert.err
 }
 
+get_db_database() {
+    local -r db_url=$(get_prop "$1" 'spring.datasource.url' 'jdbc:postgresql://127.0.0.1:5432/centerui_production')
+    local -r pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
+    if [[ "$db_url" =~ $pat ]]; then
+      echo "${BASH_REMATCH[3]}"
+    else
+      echo "centerui_production"
+    fi
+}
+
 # setup database and run migrations
 setup_database() {
     local db_properties=/etc/xroad/db.properties
@@ -33,19 +43,19 @@ setup_database() {
     local db_host="${RET:-127.0.0.1:5432}"
     local db_addr=${db_host%%:*}
     local db_port=${db_host##*:}
-    crudini --set "${db_properties}" '' host "${db_addr}"
-    crudini --set "${db_properties}" '' port "${db_port}"
 
     RET=
     db_get xroad-common/skip-cs-db-migrations || true
     local skip_migrations="${RET}"
     crudini --set "${db_properties}" '' skip_migrations "${skip_migrations}"
 
-    local db_user=$(get_prop ${db_properties} 'username' 'centerui')
-    local db_schema=$(get_prop ${db_properties} 'schema' "${db_user%%@*}")
-    local db_password=$(get_prop ${db_properties} 'password' 'centerui')
-    local db_database=$(get_prop ${db_properties} 'database' 'centerui_production')
+    local db_user=$(get_prop ${db_properties} 'spring.datasource.username' 'centerui')
+    local db_schema=$(get_prop ${db_properties} 'spring.datasource.hikari.data-source-properties.currentSchema' "${db_user%%@*}")
+    db_schema=${db_schema%%,*}
+    local db_password=$(get_prop ${db_properties} 'spring.datasource.password' 'centerui')
+    local db_database=$(get_db_database "${db_properties}")
     local db_master_user=postgres
+    crudini --set "${db_properties}" '' spring.datasource.url "jdbc:postgresql://${db_host}/${db_database}"
 
     local db_admin_conn_user=$(get_prop ${root_properties} 'centerui.database.admin_user')
     local db_admin_password=$(get_prop ${root_properties} 'centerui.database.admin_password' 'centerui')
@@ -134,8 +144,8 @@ END
 GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
 GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
 EOF
-        crudini --set "${db_properties}" '' schema "${db_schema}"
-        crudini --set "${db_properties}" '' password "${db_password}"
+        crudini --set "${db_properties}" '' spring.datasource.hikari.data-source-properties.currentSchema "${db_schema},public"
+        crudini --set "${db_properties}" '' spring.datasource.password "${db_password}"
         crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_user' "${db_admin_conn_user}"
         crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_password' "${db_admin_password}"
     fi
