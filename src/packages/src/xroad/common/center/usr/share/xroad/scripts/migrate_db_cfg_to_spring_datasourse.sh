@@ -1,70 +1,73 @@
 #!/bin/bash
 
-ORIGINAL_FILE=/etc/xroad/db.properties
-TEMP_FILE=/etc/xroad/db.properties.tmp
-
-URL=$(crudini --get $ORIGINAL_FILE '' spring.datasource.url)
-
-if [ ! -f ${ORIGINAL_FILE} ]; then
-  echo "/etc/xroad/db.properties file isn't present. Skipping migration..."
-  exit
-fi
-
-if [ -n "$URL" ]; then
-  echo "Spring Datasource compatible properties already present in file. Skipping migration..."
-  exit
-fi
-
-echo "Migrating to Spring Datasource properties..."
-
-HOST=$(crudini --get $ORIGINAL_FILE '' host)
-PORT=$(crudini --get $ORIGINAL_FILE '' port)
-SECONDARY_HOSTS=$(crudini --get $ORIGINAL_FILE '' secondary_hosts)
-USER=$(crudini --get $ORIGINAL_FILE '' username)
-SCHEMA=$(crudini --get $ORIGINAL_FILE '' schema)
-PASSWORD=$(crudini --get $ORIGINAL_FILE '' password)
-DATABASE=$(crudini --get $ORIGINAL_FILE '' database)
-SKIP_MIGRATIONS=$(crudini --get $ORIGINAL_FILE '' skip_migrations)
-
-
-
 build_secondary_hosts() {
       local joined=""
-      IFS=';' read -ra HOSTS <<< "$SECONDARY_HOSTS"
-      for h in "${HOSTS[@]}"; do
+      IFS=';' read -ra hosts <<< "$secondary_hosts"
+      for h in "${hosts[@]}"; do
         if [[ "$h" == *":"* ]]; then
           joined+="$h"
         else
-          joined+="$h:$PORT"
+          joined+="$h:$port"
         fi
       done
       echo "$joined"
 }
 
-if [ -z "$SCHEMA" ]; then
-  SCHEMA=$USER
-fi
+migrate_db_props() {
+  touch /etc/xroad/db.properties.start
+  local -r original_file=/etc/xroad/db.properties
+  local -r temp_file=/etc/xroad/db.properties.tmp
 
-if [[ -z "$USER" || -z "$SCHEMA" || -z "$HOST" || -z "$DATABASE" || -z "$PASSWORD" ]]; then
-  die "Running config migrations failed, missing some required parameters from ${ORIGINAL_FILE}"
-fi
+  local -r url=$(crudini --get $original_file '' spring.datasource.url)
 
-URL="$HOST"
-if [ -n "$PORT" ]; then
-    URL+=":$PORT"
-fi
-SEC_HOSTS=$(build_secondary_hosts)
-if [ -n "$SEC_HOSTS" ]; then
-    URL+=",${SEC_HOSTS}"
-fi
+  if [ ! -f ${original_file} ]; then
+    echo "/etc/xroad/db.properties file isn't present. Skipping migration..."
+    exit
+  fi
 
-crudini --set ${TEMP_FILE} '' "spring.datasource.username" "$USER"
-crudini --set ${TEMP_FILE} '' "spring.datasource.password" "$PASSWORD"
-crudini --set ${TEMP_FILE} '' "spring.datasource.url" "jdbc:postgresql://${URL}/${DATABASE}"
-crudini --set ${TEMP_FILE} '' "spring.datasource.hikari.data-source-properties.currentSchema" "${SCHEMA},public"
-if [ -n "$SKIP_MIGRATIONS" ]; then
- crudini --set ${TEMP_FILE} '' "skip_migrations" "$SKIP_MIGRATIONS"
-fi
-mv -f "$ORIGINAL_FILE" "$ORIGINAL_FILE.old"
-mv -f "$TEMP_FILE" "$ORIGINAL_FILE"
-echo "Migration completed."
+  if [ -n "$url" ]; then
+    echo "Spring Datasource compatible properties already present in file. Skipping migration..."
+    exit
+  fi
+  touch /etc/xroad/db.properties.run
+  echo "Migrating to Spring Datasource properties..."
+
+  local host=$(crudini --get $original_file '' host)
+  local port=$(crudini --get $original_file '' port)
+  local -r secondary_hosts=$(crudini --get $original_file '' secondary_hosts)
+  local -r user=$(crudini --get $original_file '' username)
+  local schema=$(crudini --get $original_file '' schema)
+  local -r password=$(crudini --get $original_file '' password)
+  local -r database=$(crudini --get $original_file '' database)
+  local -r skip_migrations=$(crudini --get $original_file '' skip_migrations)
+
+  if [ -z "$schema" ]; then
+    schema=$user
+  fi
+
+  if [[ -z "$user" || -z "$schema" || -z "$host" || -z "$database" || -z "$password" ]]; then
+    die "Running config migrations failed, missing some required parameters from ${original_file}"
+  fi
+
+  if [ -n "$port" ]; then
+      host+=":$port"
+  fi
+
+  local -r sec_hosts=$(build_secondary_hosts)
+  if [ -n "$sec_hosts" ]; then
+      host+=",${sec_hosts}"
+  fi
+
+  crudini --set ${temp_file} '' "spring.datasource.username" "$user"
+  crudini --set ${temp_file} '' "spring.datasource.password" "$password"
+  crudini --set ${temp_file} '' "spring.datasource.url" "jdbc:postgresql://${host}/${database}"
+  crudini --set ${temp_file} '' "spring.datasource.hikari.data-source-properties.currentSchema" "${schema},public"
+  if [ -n "$skip_migrations" ]; then
+   crudini --set ${temp_file} '' "skip_migrations" "$skip_migrations"
+  fi
+  mv -f "$original_file" "$original_file.old"
+  mv -f "$temp_file" "$original_file"
+  echo "Migration completed."
+}
+
+migrate_db_props
