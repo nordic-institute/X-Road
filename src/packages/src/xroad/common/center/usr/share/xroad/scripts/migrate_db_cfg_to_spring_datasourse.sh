@@ -18,21 +18,22 @@ migrate_db_props() {
   local -r original_file=/etc/xroad/db.properties
   local -r temp_file=/etc/xroad/db.properties.tmp
 
-  local -r url=$(crudini --get $original_file '' spring.datasource.url)
-
   if [ ! -f ${original_file} ]; then
     echo "/etc/xroad/db.properties file isn't present. Skipping migration..."
     exit
   fi
 
-  if [ -n "$url" ]; then
-    echo "Spring Datasource compatible properties already present in file. Skipping migration..."
+
+  local -r spring_ds_url=$(crudini --get $original_file '' spring.datasource.username)
+  local host=$(crudini --get $original_file '' host)
+
+  if [[ -n "$url" || -z "$host" ]]; then
+    echo "Spring Datasource compatible properties already present in file or it isn't yet fully created. Skipping migration..."
     exit
   fi
   touch /etc/xroad/db.properties.run
   echo "Migrating to Spring Datasource properties..."
 
-  local host=$(crudini --get $original_file '' host)
   local port=$(crudini --get $original_file '' port)
   local -r secondary_hosts=$(crudini --get $original_file '' secondary_hosts)
   local -r user=$(crudini --get $original_file '' username)
@@ -43,10 +44,6 @@ migrate_db_props() {
 
   if [ -z "$schema" ]; then
     schema=$user
-  fi
-
-  if [[ -z "$user" || -z "$schema" || -z "$host" || -z "$database" || -z "$password" ]]; then
-    die "Running config migrations failed, missing some required parameters from ${original_file}"
   fi
 
   if [ -n "$port" ]; then
