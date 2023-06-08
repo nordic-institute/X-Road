@@ -5,6 +5,11 @@ TEMP_FILE=/etc/xroad/db.properties.tmp
 
 URL=$(crudini --get $ORIGINAL_FILE '' spring.datasource.url)
 
+if [ ! -f ${ORIGINAL_FILE} ]; then
+  echo "/etc/xroad/db.properties file isn't present. Skipping migration..."
+  exit
+fi
+
 if [ -n "$URL" ]; then
   echo "Spring Datasource compatible properties already present in file. Skipping migration..."
   exit
