@@ -1,10 +1,12 @@
 #!/bin/bash
+
+source /usr/share/xroad/scripts/_read_cs_db_properties.sh
+
 TMP=$(mktemp -d) || exit 1
 trap 'rc=$?; rm -rf $TMP; exit $rc' EXIT
 cd "$TMP" || exit 1
 
 get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
-get_db_prop() { get_prop "/etc/xroad/db.properties" "$@"; }
 get_root_prop() { get_prop "/etc/xroad.properties" "$@"; }
 abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
 
@@ -22,17 +24,19 @@ done
 
 shift $(($OPTIND - 1))
 
+prepare_db_props
+
 DUMP_FILE=$1
 MASTER_USER=postgres
 root_properties=/etc/xroad.properties
-USER=$(get_db_prop 'username' 'centerui')
-SCHEMA=$(get_db_prop 'schema' "$USER")
-PASSWORD=$(get_db_prop 'password' 'centerui')
-DATABASE=$(get_db_prop 'database' 'centerui_production')
+USER=${db_user}
+SCHEMA=${db_schema}
+PASSWORD=${db_password}
+DATABASE=${db_database}
 ADMIN_USER=$(get_root_prop 'centerui.database.admin_user' "$USER")
 ADMIN_PASSWORD=$(get_root_prop 'centerui.database.admin_password' "$PASSWORD")
-HOST=$(get_db_prop 'host' '127.0.0.1')
-PORT=$(get_db_prop 'port' 5432)
+HOST=${db_host}
+PORT=${db_port}
 
 export PGOPTIONS="-c client-min-messages=warning -c search_path=$SCHEMA,public"
 
