@@ -14,7 +14,6 @@ build_secondary_hosts() {
 }
 
 migrate_db_props() {
-  touch /etc/xroad/db.properties.start
   local -r original_file=/etc/xroad/db.properties
   local -r temp_file=/etc/xroad/db.properties.tmp
 
@@ -31,7 +30,6 @@ migrate_db_props() {
     echo "Spring Datasource compatible properties already present in file or it isn't yet fully created. Skipping migration..."
     exit
   fi
-  touch /etc/xroad/db.properties.run
   echo "Migrating to Spring Datasource properties..."
 
   local port=$(crudini --get $original_file '' port)
