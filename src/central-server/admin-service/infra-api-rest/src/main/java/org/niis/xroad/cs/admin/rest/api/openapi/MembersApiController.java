@@ -150,7 +150,7 @@ public class MembersApiController implements MembersApi {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('EDIT_MEMBER_NAME_AND_ADMIN_CONTACT')")
+    @PreAuthorize("hasAnyAuthority('EDIT_MEMBER_NAME')")
     @AuditEventMethod(event = EDIT_MEMBER_NAME)
     public ResponseEntity<ClientDto> updateMemberName(String id, MemberNameDto memberName) {
         verifyMemberId(id);
