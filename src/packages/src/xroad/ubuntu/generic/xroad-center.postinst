@@ -24,16 +24,6 @@ handle_error() {
     rm -f /tmp/cert.err
 }
 
-get_db_database() {
-    local -r db_url=$(get_prop "$1" 'spring.datasource.url' 'jdbc:postgresql://127.0.0.1:5432/centerui_production')
-    local -r pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
-    if [[ "$db_url" =~ $pat ]]; then
-      echo "${BASH_REMATCH[3]}"
-    else
-      echo "centerui_production"
-    fi
-}
-
 # setup database and run migrations
 setup_database() {
     /usr/share/xroad/scripts/migrate_db_cfg_to_spring_datasourse.sh
@@ -42,9 +32,8 @@ setup_database() {
     local root_properties=/etc/xroad.properties
     RET=
     db_get xroad-common/database-host || true
-    local db_host="${RET:-127.0.0.1:5432}"
-    local db_addr=${db_host%%:*}
-    local db_port=${db_host##*:}
+    local -r new_db_host="${RET}"
+    local db_host="${new_db_host:-127.0.0.1:5432}"
 
     RET=
     db_get xroad-common/skip-cs-db-migrations || true
@@ -55,8 +44,18 @@ setup_database() {
     local db_schema=$(get_prop ${db_properties} 'spring.datasource.hikari.data-source-properties.currentSchema' "${db_user%%@*}")
     db_schema=${db_schema%%,*}
     local db_password=$(get_prop ${db_properties} 'spring.datasource.password' 'centerui')
-    local db_database=$(get_db_database "${db_properties}")
+    local db_database="centerui_production"
     local db_master_user=postgres
+
+    local db_url=$(get_prop ${db_properties} 'spring.datasource.url' "jdbc:postgresql://${db_host}/${db_database}")
+    pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
+    if [[ "$db_url" =~ $pat ]]; then
+      db_host=${new_db_host:-${BASH_REMATCH[1]}}
+      db_database=${BASH_REMATCH[3]:-$db_database}
+    else
+      log "Unable to parse '$db_url', using 'jdbc:postgresql://$db_host/$db_database'"
+    fi
+
     crudini --set "${db_properties}" '' spring.datasource.url "jdbc:postgresql://${db_host}/${db_database}"
 
     local db_admin_conn_user=$(get_prop ${root_properties} 'centerui.database.admin_user')
@@ -70,6 +69,11 @@ setup_database() {
     local db_admin_user="${db_admin_conn_user%%@*}"
 
     export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
+
+    local hosts
+    IFS=',' read -ra hosts <<<"$db_host"
+    local db_addr=${hosts[0]%%:*}
+    local db_port=${hosts[0]##*:}
 
     local_psql() { su -l -c "psql -qtA -p $db_port ${*@Q}" postgres; }
     remote_psql() { psql -h "$db_addr" -p "$db_port" -qtA "$@"; }
