@@ -81,13 +81,13 @@ Doc. ID: UG-SYSPAR
 | 30.09.2022 | 2.68    | Updated *key-length* property EE- and FI-package values.                                                                                                                                                                                                                                                                                                                                                       | Petteri Kivimäki           |
 | 30.01.2023 | 2.69    | Updated [13.3 Automatic Backups](#133-automatic-backups) chapter with latest configuration additions.                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas          |
 | 26.05.2023 | 2.70    | Add rate-limit properties                                                                                                                                                                                                                                                                                                                                                                                      | Ričardas Bučiūnas          |
-| 01.06.2023 | 2.71    | Update Table of contents and descriptions related to Central server                                                                                                                                                                                                                                                                                                                                            | Ričardas Bučiūnas          |
+| 01.06.2023 | 2.71    | Update and add missing descriptions for to Central server configuration parameters.                                                                                                                                                                                                                                                                                                                            | Ovidijus Narkevičius       |
 | 05.06.2023 | 2.72    | Update global configuration generation rate parameter                                                                                                                                                                                                                                                                                                                                                          | Andres Rosenthal           |
 
 ## Table of Contents
 
 <!-- toc -->
-  * [License](#license)
+* [License](#license)
 - [X-Road: System Parameters User Guide](#x-road-system-parameters-user-guide)
   - [Table of Contents](#table-of-contents)
   - [License](#license)
@@ -304,7 +304,7 @@ to use for example MySQL as a data store for REST API module.
 
 ### 3.3 Proxy User Interface parameters: `[proxy-ui]`
 
-Proxy-ui has been removed in version 6.24 and it's parameters are not used anymore. 
+Proxy-ui has been removed in version 6.24 and it's parameters are not used anymore.
 
 [proxy-ui-api](#39-management-rest-api-parameters-proxy-ui-api) parameters replace the old `[proxy-ui]` parameters.
 
@@ -342,7 +342,7 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 | admin-port                      | 5675              | TCP port on which the configuration client process listens for admin commands.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | allowed-federations             | none              | A comma-separated list of case-insensitive X-Road instances that fetching configuration anchors is allowed for. This enables federation with the listed instances if the X-Road instance is already federated at the central server level . Special value *none*, if present, disables all federation (the default value), while *all* allows all federations if *none* is not present. Example: *allowed-federations=ee,sv* allows federation with example instances *EE* and *Sv* while *allowed-federations=all,none* disables federation. X-Road services `xroad-confclient` and `xroad-proxy` need to be restarted (in that order) for the setting change to take effect. |
 | proxy-configuration-backup-cron | * 15 3 * * ?      | Cron expression for proxy configuration automatic backup job                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
- 
+
 ### 3.7 Message log add-on parameters: `[message-log]`
 
 | **Parameter**                                    | **Default value**                          | **FI-package value** | **EE-package value** | **Description** |
@@ -382,7 +382,7 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 
 #### 3.7.1 Note on logged X-Road message headers
 
-If the messagelog add-on has the message body logging disabled, only a preconfigured set of the SOAP headers and/or 
+If the messagelog add-on has the message body logging disabled, only a preconfigured set of the SOAP headers and/or
 REST HTTP headers will be included in the message log.
 
 **SOAP**
@@ -395,8 +395,8 @@ extension's [XML schema](http://x-road.eu/xsd/representation.xsd). The security 
 **REST**
 
 The logged HTTP headers are the X-Road HTTP headers listed in [Chapter 4.3](../Protocols/pr-rest_x-road_message_protocol_for_rest.md#43-use-of-http-headers) of
-the X-Road Message Protocol for REST document \[[PR-REST](#Ref_PR-REST)\], including the security server targeting 
-extension for the X-Road message protocol \[[PR-TARGETSS](#Ref_PR-TARGETSS)\]. All other HTTP headers are excluded from 
+the X-Road Message Protocol for REST document \[[PR-REST](#Ref_PR-REST)\], including the security server targeting
+extension for the X-Road message protocol \[[PR-TARGETSS](#Ref_PR-TARGETSS)\]. All other HTTP headers are excluded from
 the message log.
 
 ### 3.8 Environmental monitoring add-on configuration parameters: `[env-monitor]`
@@ -600,7 +600,7 @@ Sometimes you may need to provide command line arguments for Security Server, Ce
 
 ### 6.1 The configuration file
 
-The file `/etc/xroad/services/local.properties` replaces the file `/etc/xroad/services/local.conf` starting from X-Road version 7. 
+The file `/etc/xroad/services/local.properties` replaces the file `/etc/xroad/services/local.conf` starting from X-Road version 7.
 
 The `local.properties` file's contents consists of key-value pairs such as `XROAD_SIGNER_PARAMS=-XX:MaxMetaspaceSize=100m`. Notice that you cannot use quotes in the values. If you have multiple values for one key, use space to separate the values e.g. `XROAD_SIGNER_PARAMS=-Xmx100m -XX:MaxMetaspaceSize=100m`. Also notice that with `local.properties` you can only add new parameters and override old ones – you cannot remove existing default parameters.
 
