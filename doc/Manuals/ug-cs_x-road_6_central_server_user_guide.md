@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.28
+Version: 2.29
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -54,6 +54,7 @@ Doc. ID: UG-CS
 | 31.05.2023 | 2.26    | Added 3.3 API key considerations in High-Availability setup  paragraph                                                                                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas   |
 | 05.06.2023 | 2.27    | Update HA cluster status endpoint path                                                                                                                                                                                                                                                                                                                                                                                                  | Andres Rosenthal    |
 | 02.06.2023 | 2.28    | Added security hardening paragraph                                                                                                                                                                                                                                                                                                                                                                                                      | Ričardas Bučiūnas   |
+| 09.06.2023 | 2.29    | Added REST API paragraph                                                                                                                                                                                                                                                                                                                                                                                                                | Vytautas Paliliūnas |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -143,8 +144,18 @@ Doc. ID: UG-CS
   - [15.1 Verify next update](#151-verify-next-update)
   - [15.2 OCSP fetch interval](#152-ocsp-fetch-interval)
 - [16. Logs and System Services](#16-logs-and-system-services)
-- [17. Migrating to Remote Database Host](#17-migrating-to-remote-database-host)
-- [18. Additional Security Hardening](#18-additional-security-hardening)
+- [17. Management REST API](#17-management-rest-api)
+  - [17.1 API keys Management operations](#171-api-key-management-operations)
+    - [17.1.1 Creating API keys](#1711-creating-new-api-keys)
+    - [17.1.2 Listing API keys](#1712-listing-api-keys)
+    - [17.1.3 Updating API keys](#1713-updating-api-keys)
+    - [17.1.4 Revoking API keys](#1714-revoking-api-keys)
+  - [17.2 Executing REST calls](#172-executing-rest-calls)
+  - [17.3 Correlation id HTTP header](#173-correlation-id-http-header)
+  - [17.4 Data Integrity errors](#174-data-integrity-errors)
+  - [17.5 Warning responses](#175-warning-responses)
+- [18. Migrating to Remote Database Host](#18-migrating-to-remote-database-host)
+- [19. Additional Security Hardening](#19-additional-security-hardening)
 
 <!-- tocstop -->
 
@@ -176,6 +187,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 7. [UC-GCONF] X-Road 7: Use Case Model for Global Configuration Distribution. Document ID: [UC-GCONF](../UseCases/uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md)
 8. [RFC-OCSP] Online Certificate Status Protocol – OCSP, [https://tools.ietf.org/html/rfc6960](https://tools.ietf.org/html/rfc6960)
 9. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+10. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
+11. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Central Server Admin API OpenAPI Specification: <https://github.com/nordic-institute/X-Road/blob/develop/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml>.
 
 # 2. User and Role Management
 
@@ -183,9 +196,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 The central server supports the following user roles:
 
-- Registration Officer (xroad-registration-officer) is responsible for handling the information about X-Road members.
-- System Administrator (xroad-system-administrator) is responsible for the installation, configuration, and maintenance of the central server.
-- Security Officer (xroad-security-officer) is responsible for the application of the security policy and security requirements.
+- <a id="xroad-registration-officer" class="anchor"></a>**Registration Officer** (`xroad-registration-officer`) is responsible for handling the information about X-Road members.
+- <a id="xroad-system-administrator" class="anchor"></a>**System Administrator** (`xroad-system-administrator`) is responsible for the installation, configuration, and maintenance of the central server.
+- <a id="xroad-security-officer" class="anchor"></a>**Security Officer** (`xroad-security-officer`) is responsible for the application of the security policy and security requirements.
 
 One user can have multiple roles, and multiple users can fulfill the same role. Each role has a corresponding system group, created upon the installation of the system. The system user names are used for logging in to the user interface of the central server.
 
@@ -1279,7 +1292,255 @@ Default settings for logging are the following:
 - logging level: INFO;
 - rolling policy: whenever file size reaches 100 MB.
 
-# 17. Migrating to Remote Database Host
+# 17 Management REST API
+
+Central server has a REST API that can be used to do all the same server configuration operations that can be done
+using the web UI.
+
+Management REST API is protected with an API key based authentication. To execute REST calls, API keys need to be created.
+
+REST API is protected by TLS. Since server uses self-signed certificate, the caller needs to accept this (for example
+with `curl` you might use `--insecure` or `-k` option).
+
+Requests sent to REST API have a *limit for maximum size*. If a too large request is sent
+to REST API, it will not be processed, and http status 413 Payload too large will be returned.
+There is a different limit for binary file uploads, and for other requests.
+
+Limits are
+- 10MB for file uploads
+- 50KB for other requests
+
+REST API is also *rate limited*. Rate limits apply per each calling IP. If the number of calls
+from one IP address exceeds the limit, endpoints return http status 429 Too Many Requests.
+
+Limits are
+- 600 requests per minute
+- 20 requests per second
+
+If the default limits are too restricting (or too loose), they can be overridden with command line arguments. Limits are set with
+application properties
+- `request.sizelimit.regular`
+- `request.sizelimit.binary.upload`
+- `ratelimit.requests.per.second`
+- `ratelimit.requests.per.minute`
+
+**Note:** These properties have been deprecated since 7.3.0, please use `request-sizelimit-*` & `rate-limit-requests-per-*` [proxy-ui-api parameters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) instead
+
+Size limit parameters support formats from Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html),
+for example `5MB`.
+
+New command line arguments can be added, not replaced, using the configuration file `local.properties`.
+Example of `/etc/xroad/services/local.properties` with modifications:
+
+```properties
+XROAD_PROXY_UI_API_PARAMS=-Dratelimit.requests.per.second=100 -Drequest.sizelimit.binary.upload=1MB
+```
+
+## 17.1 API key management operations
+
+**Access rights:** [System Administrator](#xroad-system-administrator)
+
+An API key is linked to a role or roles, and grants access to the operations that are allowed for that role/roles.
+Separate REST endpoints exist for API key management.
+API key management endpoints are authenticated to with [HTTP basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) (username and password)
+or with session authentication (for admin web application).
+Basic authentication access is limited to localhost by default, but this can
+be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
+
+### 17.1.1 Creating new API keys
+
+A new API key is created with a `POST` request to `/api/v1/api-keys`. Message body must contain the roles to be
+associated with the key. Server responds with data that contains the actual API key. After this point the key
+cannot be retrieved, as it is not stored in plaintext.
+
+```bash
+curl -X POST -u <user>:<password> https://localhost:4000/api/v1/api-keys --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+{
+  "roles": [
+    "XROAD_REGISTRATION_OFFICER",
+    "XROAD_SECURITYSERVER_OBSERVER"
+  ],
+  "id": 61,
+  "key": "23bc57cd-b1ba-4702-9657-8d53e335c843"
+}
+
+```
+
+In this example the created key was `23bc57cd-b1ba-4702-9657-8d53e335c843`.
+
+### 17.1.2 Listing API keys
+
+Existing API keys can be listed with a `GET` request to `/api/v1/api-keys`. This lists all keys, regardless of who has created them.
+
+```bash
+curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys -k
+[
+  {
+    "id": 59,
+    "roles": [
+      "XROAD_REGISTRATION_OFFICER",
+      "XROAD_SECURITYSERVER_OBSERVER",
+      "XROAD_SERVICE_ADMINISTRATOR"
+    ]
+  },
+  {
+    "id": 60,
+...
+
+```
+
+You can also retrieve a single API key with a `GET` request to `/api/v1/api-keys/{id}`.
+
+```bash
+curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys/59 -k
+{
+  "id": 59,
+  "roles": [
+    "XROAD_REGISTRATION_OFFICER",
+    "XROAD_SECURITYSERVER_OBSERVER",
+    "XROAD_SERVICE_ADMINISTRATOR"
+  ]
+}
+
+```
+
+### 17.1.3 Updating API keys
+
+An existing API key is updated with a `PUT` request to `/api/v1/api-keys/{id}`. Message body must contain the roles to be
+associated with the key. Server responds with data that contains the key id and roles associated with the key.
+
+```bash
+curl -X PUT -u <user>:<password> https://localhost:4000/api/v1/api-keys/60 --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+{
+  "id": 60,
+  "roles": [
+    "XROAD_REGISTRATION_OFFICER",
+    "XROAD_SECURITYSERVER_OBSERVER"
+  ]
+}
+
+```
+
+### 17.1.4 Revoking API keys
+
+An API key can be revoked with a `DELETE` request to `/api/v1/api-keys/{id}`. Server responds with `HTTP 200` if
+revocation was successful and `HTTP 404` if key did not exist.
+
+```bash
+curl -X DELETE -u <user>:<password> https://localhost:4000/api/v1/api-keys/60  -k
+
+```
+
+## 17.2 Executing REST calls
+
+**Access rights:** Depends on the API.
+
+Once a valid API key has been created, it is used by providing an `Authorization: X-Road-ApiKey token=<api key>` HTTP
+header in the REST calls. For example
+
+```bash
+curl --header "Authorization: X-Road-ApiKey token=ff6f55a8-cc63-4e83-aa4c-55f99dc77bbf" "https://localhost:4000/api/v1/clients" -k
+[
+  {
+    "id": "XRD2:GOV:999:foobar",
+    "member_name": Foo Name,
+    "member_class": "GOV",
+    "member_code": "999",
+    "subsystem_code": "SUBS_1",
+    "status": "saved
+...
+```
+
+The available APIs are documented in OpenAPI specification \[[REST_UI-API](#Ref_REST_UI-API)\]. Access rights for different APIs follow the same rules
+as the corresponding UI operations.
+Access to regular APIs is allowed from all IP addresses by default, but this can
+be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
+
+## 17.3 Correlation ID HTTP header
+
+The REST API endpoints return an **x-road-ui-correlation-id** HTTP header. This header is also logged in `centralserver-admin-service.log`, so it
+can be used to find the log messages related to a specific API call.
+
+The correlation ID header is returned for all requests, both successful and failed ones.
+
+For example, these log messages are related to an API call with correlation ID `3d5f193102435242`:
+```
+2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.c.HttpSessionSecurityContextRepository - The HttpSession is currently null, and the HttpSessionSecurityContextRepository is prohibited from creating an HttpSession (because the allowSessionCreation property is false) - SecurityContext thus not stored for next request
+2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] WARN  o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.niis.xroad.restapi.exceptions.ConflictException: local group with code koodi6 already added]
+2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.a.ExceptionTranslationFilter - Chain processed normally
+```
+
+## 17.4 Data Integrity errors
+
+An error response from the REST API can include data integrity errors if incorrect data was provided with the request.
+When
+
+Example request and response of adding a new member when member already exist:
+```
+POST https://cs:4000/api/v1/members
+
+Request body:
+{
+    "member_name": "Member",
+    "member_id": {
+        "member_class": "ORG",
+        "member_code": "MemberCode"
+    }
+}
+
+Response body:
+{
+    "status": 409,
+    "error": {
+        "code": "member_exists",
+        "metadata": [
+            "CS/ORG/MemberCode"
+        ]
+    }
+}
+```
+
+Possible data integrity error codes and messages declared in [Central Server ErrorMessage](https://github.com/nordic-institute/X-Road/blob/develop/src/central-server/admin-service/core-api/src/main/java/org/niis/xroad/cs/admin/api/exception/ErrorMessage.java)
+
+## 17.5 Warning responses
+
+Error response from the Management API can include additional warnings that you can ignore if seen necessary. The warnings can be ignored by your decision, by executing the same operation with `ignore_warnings` boolean parameter set to `true`. *Always consider the warning before making the decision to ignore it.*
+
+An example case:
+1. Client executes a REST request, without `ignore_warnings` parameter, to backend.
+2. Backend notices warnings and responds with error message that contains the warnings. Nothing is updated at this point.
+3. Client determines if warnings can be ignored.
+4. If the warnings can be ignored, client resends the REST request, but with `ignore_warnings` parameter set to `true`.
+5. Backend ignores the warnings and executes the operation.
+
+Error response with warnings always contains the error code `warnings_detected`.
+
+Like errors, warnings contain an identifier (code) and possibly some metadata.
+
+Warning example when trying to upload backup file which already exist produces non-fatal validation warnings:
+```
+POST https://cs:4000/api/v1/backups/upload?ignore_warnings=false
+
+Response: 
+{
+  "status": 400,
+  "error": {
+    "code": "warnings_detected"
+  },
+  "warnings": [
+    {
+      "code": "warning_file_already_exists",
+      "metadata": [
+        "backup.gpg"
+      ]
+    }
+  ]
+}
+```
+
+Note that when you are using the admin UI and you encounter warnings, you will always be provided with a popup window with a `CONTINUE` button in it. When you click the `CONTINUE` button in the popup, the request is sent again but this time warnings will be ignored.
+
+# 18. Migrating to Remote Database Host
 
 Since version 6.23.0 Central Server supports using remote databases. In case you have an already running standalone Central Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
 
@@ -1372,6 +1633,6 @@ pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n center
 systemctl start "xroad*"
 ```
 
-## 18 Additional Security Hardening
+## 19 Additional Security Hardening
 
 For the guidelines on security hardening, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
