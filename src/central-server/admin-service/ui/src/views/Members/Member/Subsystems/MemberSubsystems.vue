@@ -284,7 +284,7 @@ export default Vue.extend({
       return this.hasPermission(Permissions.REMOVE_MEMBER_SUBSYSTEM);
     },
     allowToUnregisterMemberSubsystem(): boolean {
-      return this.hasPermission(Permissions.DELETE_SECURITY_SERVER);
+      return this.hasPermission(Permissions.UNREGISTER_SUBSYSTEM);
     },
   },
   created() {

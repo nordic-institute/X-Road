@@ -78,7 +78,7 @@ public class SubsystemsApiController implements SubsystemsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ADD_SECURITY_SERVER_CLIENT_REG_REQUEST')")
+    @PreAuthorize("hasAuthority('UNREGISTER_SUBSYSTEM')")
     @AuditEventMethod(event = UNREGISTER_SUBSYSTEM)
     public ResponseEntity<Void> unregisterSubsystem(String subsystemId, String serverId) {
         verifySubsystemId(subsystemId);
