@@ -26,7 +26,6 @@
 package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.validation.IdentifierValidator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
