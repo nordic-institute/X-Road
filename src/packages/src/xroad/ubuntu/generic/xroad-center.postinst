@@ -33,7 +33,6 @@ setup_database() {
     RET=
     db_get xroad-common/database-host || true
     local -r new_db_host="${RET}"
-    echo "OO>O-${new_db_host}"
     local db_host="${new_db_host:-127.0.0.1:5432}"
 
     RET=
@@ -51,7 +50,6 @@ setup_database() {
     local db_url=$(get_prop ${db_properties} 'spring.datasource.url' "jdbc:postgresql://${db_host}/${db_database}")
     pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
     if [[ "$db_url" =~ $pat ]]; then
-      echo "O>O-${new_db_host}"
       db_host=${new_db_host:-${BASH_REMATCH[1]}}
       db_database=${BASH_REMATCH[3]:-$db_database}
     else
