@@ -1,16 +1,20 @@
 #!/bin/bash
 
 build_secondary_hosts() {
-      local joined=""
-      IFS=';' read -ra hosts <<< "$secondary_hosts"
-      for h in "${hosts[@]}"; do
-        if [[ "$h" == *":"* ]]; then
-          joined+="$h"
-        else
-          joined+="$h:$port"
-        fi
-      done
-      echo "$joined"
+  local -r secondary_hosts=$(crudini --get "$1" '' secondary_hosts)
+  local joined=""
+  IFS=';' read -ra hosts <<< "$secondary_hosts"
+  for h in "${hosts[@]}"; do
+    if [ -n "$joined" ]; then
+      joined="${joined},"
+    fi
+    if [[ "$h" == *":"* ]]; then
+      joined="${joined}${h}"
+    else
+      joined="${joined}${h}:${port}"
+    fi
+  done
+  echo "$joined"
 }
 
 migrate_db_props() {
@@ -23,17 +27,16 @@ migrate_db_props() {
   fi
 
 
-  local -r spring_ds_url=$(crudini --get $original_file '' spring.datasource.username)
+  local -r spring_ds_username=$(crudini --get $original_file '' spring.datasource.username)
   local host=$(crudini --get $original_file '' host)
 
-  if [[ -n "$url" || -z "$host" ]]; then
+  if [[ -n "$spring_ds_username" || -z "$host" ]]; then
     echo "Spring Datasource compatible properties already present in file or it isn't yet fully created. Skipping migration..."
     exit
   fi
   echo "Migrating to Spring Datasource properties..."
 
   local port=$(crudini --get $original_file '' port)
-  local -r secondary_hosts=$(crudini --get $original_file '' secondary_hosts)
   local -r user=$(crudini --get $original_file '' username)
   local schema=$(crudini --get $original_file '' schema)
   local -r password=$(crudini --get $original_file '' password)
@@ -45,12 +48,12 @@ migrate_db_props() {
   fi
 
   if [ -n "$port" ]; then
-      host+=":$port"
+      host="$host:$port"
   fi
 
-  local -r sec_hosts=$(build_secondary_hosts)
+  local -r sec_hosts=$(build_secondary_hosts "$original_file")
   if [ -n "$sec_hosts" ]; then
-      host+=",${sec_hosts}"
+      host="${host},${sec_hosts}"
   fi
 
   crudini --set ${temp_file} '' "spring.datasource.username" "$user"
