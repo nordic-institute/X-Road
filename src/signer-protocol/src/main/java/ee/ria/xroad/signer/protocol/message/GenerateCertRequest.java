@@ -46,5 +46,7 @@ public class GenerateCertRequest implements Serializable {
 
     private final String subjectName;
 
+    private final String subjectAltName;
+
     private final CertificateRequestFormat format;
 }

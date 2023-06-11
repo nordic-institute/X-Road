@@ -66,6 +66,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
@@ -133,6 +134,8 @@ public class TokenCertificateService {
             KeyNotFoundException,
             DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException {
 
+        String subjectAltName = null;
+
         // validate key and memberId existence
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         auditDataHelper.put(tokenInfo);
@@ -142,6 +145,11 @@ public class TokenCertificateService {
         auditDataHelper.put(memberId);
 
         if (keyUsage == KeyUsageInfo.SIGNING) {
+            if (subjectFieldValues.get("subjectAltName") != null
+                    && !subjectFieldValues.get("subjectAltName").isEmpty()) {
+                // Set subject alternative name (SAN)
+                subjectAltName = subjectFieldValues.get("subjectAltName");
+            }
             // validate that the member exists or has a subsystem on this server
             if (!clientService.getLocalClientMemberIds().contains(memberId)) {
                 throw new ClientNotFoundException("client with id " + memberId + ", or subsystem for it, " + NOT_FOUND);
@@ -172,15 +180,18 @@ public class TokenCertificateService {
         }
 
         List<DnFieldValue> dnFieldValues = dnFieldHelper.processDnParameters(profile, subjectFieldValues);
+        // Remove subjectAltName from dn field values since it's not a valid field value
+        List<DnFieldValue> filteredDnFieldValues = dnFieldValues.stream().filter(v -> !v.getId().equals("subjectAltName"))
+                .collect(Collectors.toList());
 
-        String subjectName = dnFieldHelper.createSubjectName(dnFieldValues);
+        String subjectName = dnFieldHelper.createSubjectName(filteredDnFieldValues);
         auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, subjectName);
         auditDataHelper.put(RestApiAuditProperty.CERTIFICATION_SERVICE_NAME, caName);
         auditDataHelper.put(RestApiAuditProperty.CSR_FORMAT, format);
 
         try {
             return signerProxyFacade.generateCertRequest(keyId, memberId,
-                    keyUsage, subjectName, format);
+                    keyUsage, subjectName, subjectAltName, format);
         } catch (CodedException e) {
             throw e;
         } catch (Exception e) {

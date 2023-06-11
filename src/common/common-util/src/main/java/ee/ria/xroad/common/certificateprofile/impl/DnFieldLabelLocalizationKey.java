@@ -43,7 +43,8 @@ public enum DnFieldLabelLocalizationKey {
     SERIAL_NUMBER("Serial Number"),
     SERIAL_NUMBER_SN("Serial Number (SN)"),
     SERVER_CODE("Server Code (CN)"),
-    SERVER_DNS_NAME("Server DNS name (CN)");
+    SERVER_DNS_NAME("Server DNS name (CN)"),
+    SUBJECT_ALTERNATIVE_NAME("Subject alternative name");
 
     private final String compatibilityLabel;
 

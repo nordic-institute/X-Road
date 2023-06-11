@@ -38,8 +38,13 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.ExtensionsGenerator;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
@@ -69,6 +74,11 @@ public abstract class AbstractGenerateCertRequest<T> extends AbstractRequestHand
 
     PKCS10CertificationRequest buildSignedCertRequest(TokenAndKey tokenAndKey, String subjectName)
             throws Exception {
+        return buildSignedCertRequest(tokenAndKey, subjectName, null);
+    }
+
+    PKCS10CertificationRequest buildSignedCertRequest(TokenAndKey tokenAndKey, String subjectName,
+                                                      String subjectAltName) throws Exception {
 
         if (tokenAndKey.getKey().getPublicKey() == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", tokenAndKey.getKeyId());
@@ -78,6 +88,15 @@ public abstract class AbstractGenerateCertRequest<T> extends AbstractRequestHand
 
         JcaPKCS10CertificationRequestBuilder certRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
                 new X500Name(subjectName), publicKey);
+
+        // Add subject alternative name (SAN) extension if subjectAltName is not null or empty
+        if (subjectAltName != null && !subjectAltName.isEmpty()) {
+            ExtensionsGenerator extGen = new ExtensionsGenerator();
+            GeneralName subjectAlternativeName = new GeneralName(GeneralName.dNSName, subjectAltName);
+            GeneralNames subjectAltNames = new GeneralNames(subjectAlternativeName);
+            extGen.addExtension(Extension.subjectAlternativeName, false, subjectAltNames.toASN1Primitive());
+            certRequestBuilder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
+        }
 
         ContentSigner signer = new TokenContentSigner(tokenAndKey, this);
 
