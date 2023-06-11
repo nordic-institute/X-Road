@@ -69,7 +69,7 @@ public class FiVRKSignCertificateProfileInfo
                         params.getClientId().getMemberCode()
                 ).setReadOnly(true),
 
-                // Business category
+                // Subject alternative name
                 new EnumLocalizedFieldDescriptionImpl("subjectAltName", DnFieldLabelLocalizationKey.SUBJECT_ALTERNATIVE_NAME,
                         ""
                 ).setReadOnly(false) }
