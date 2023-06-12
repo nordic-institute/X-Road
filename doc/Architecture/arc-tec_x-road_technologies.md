@@ -114,7 +114,7 @@ See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 \[4\] Central Server uses embedded Jetty for management service and registration service.
 
 <a id="Ref_5" class="anchor"></a>
-\[4\] PostgreSQL version varies depending on operating system. By default, RHEL7 uses version 9, RHEL8 - 10, Ubuntu 20.04 - 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server. 
+\[5\] PostgreSQL version varies depending on operating system. By default, RHEL7 uses version 9, RHEL8 - 10, Ubuntu 20.04 - 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server. 
 
 ## 3 Central Server technologies
 
