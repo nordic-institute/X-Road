@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Assume;
 import org.junit.Test;
@@ -46,6 +48,8 @@ public class PasswordStoreTest {
     @Test
     public void runTest() throws Exception {
         Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
+
+        assertEquals("/", SystemProperties.getSignerPasswordStoreIPCKeyPathname());
 
         getPassword("foo"); // Just check if get on empty DB works.
 

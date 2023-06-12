@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import org.apache.commons.io.output.WriterOutputStream;
 
 import java.io.ByteArrayOutputStream;
@@ -115,10 +117,6 @@ public final class PasswordStore {
             throws Exception;
 
     private static String getPathnameForFtok() {
-        // Since we only plan to have one password store, we just use
-        // root directory as identifier and hope that the project_id
-        // part of the key are enough to separate us from the other
-        // memory-accessing programs.
-        return "/";
+        return SystemProperties.getSignerPasswordStoreIPCKeyPathname();
     }
 }
