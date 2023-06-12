@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.restapi.openapi.validator.IdentifierValidationErrorInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
@@ -52,7 +53,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionUpd
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceType;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenName;
-import org.niis.xroad.securityserver.restapi.openapi.validator.IdentifierValidationErrorInfo;
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;

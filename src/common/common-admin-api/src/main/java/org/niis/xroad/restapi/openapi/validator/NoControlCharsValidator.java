@@ -1,5 +1,6 @@
-/*
+/**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,26 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.openapi.validator;
+package org.niis.xroad.restapi.openapi.validator;
 
-import lombok.Getter;
+import ee.ria.xroad.common.validation.StringValidationUtils;
 
-/**
- * view / openapi -layer details for IdentifierValidationErrors
- * (error code, error message)
- */
-public enum IdentifierValidationErrorInfo {
-    CONTROL_CHAR("NoControlChars", "must not contain control characters"),
-    IDENTIFIERS_CHAR("IdentifierChars", "identifiers are not allowed to contain colon, semicolon, slashes, percent, or"
-            + " control characters");
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-    @Getter
-    private final String errorCode;
-    @Getter
-    private final String defaultMessage;
-
-    IdentifierValidationErrorInfo(String errorCode, String defaultMessage) {
-        this.errorCode = errorCode;
-        this.defaultMessage = defaultMessage;
+public class NoControlCharsValidator implements ConstraintValidator<NoControlChars, String> {
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        return value == null || !StringValidationUtils.containsControlChars(value);
     }
 }

@@ -1,6 +1,5 @@
-/**
+/*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,26 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi.validator;
+package org.niis.xroad.restapi.openapi.validator;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
+import lombok.Getter;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+/**
+ * view / openapi -layer details for IdentifierValidationErrors
+ * (error code, error message)
+ */
+public enum IdentifierValidationErrorInfo {
+    CONTROL_CHAR("NoControlChars", "must not contain control characters"),
+    IDENTIFIERS_CHAR("IdentifierChars", "identifiers are not allowed to contain colon, semicolon, slashes, percent, or"
+            + " control characters");
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+    @Getter
+    private final String errorCode;
+    @Getter
+    private final String defaultMessage;
 
-@Documented
-@Target({METHOD, FIELD, PARAMETER})
-@Retention(RUNTIME)
-@Constraint(validatedBy = NoControlCharsValidator.class)
-public @interface NoControlChars {
-    String message() default "must not contain control characters";
-    Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default {};
+    IdentifierValidationErrorInfo(String errorCode, String defaultMessage) {
+        this.errorCode = errorCode;
+        this.defaultMessage = defaultMessage;
+    }
 }

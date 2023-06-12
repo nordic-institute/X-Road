@@ -24,16 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.openapi.validator;
+package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.StringValidationUtils;
+import javax.validation.Constraint;
+import javax.validation.Payload;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-public class NoControlCharsValidator implements ConstraintValidator<NoControlChars, String> {
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        return value == null || !StringValidationUtils.containsControlChars(value);
-    }
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+@Documented
+@Target({METHOD, FIELD, PARAMETER})
+@Retention(RUNTIME)
+@Constraint(validatedBy = IdentifierCharsValidator.class)
+public @interface IdentifierChars {
+    String message() default "identifiers are not allowed to contain colon, semicolon, slashes, percent, or"
+        + " control characters";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
 }
