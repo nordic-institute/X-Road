@@ -72,8 +72,6 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 public final class ConfigurationClientMain {
 
     private static final String APP_NAME = "xroad-confclient";
-    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
     private static ConfigurationClientJobListener listener;
 
@@ -109,7 +107,7 @@ public final class ConfigurationClientMain {
      * @throws Exception if an error occurs
      */
     public static void main(String[] args) throws Exception {
-        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
+        Version.outputVersionInfo(APP_NAME);
         CommandLine cmd = getCommandLine(args);
         String[] actualArgs = cmd.getArgs();
         if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {

@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.application;
 
+import ee.ria.xroad.common.Version;
+
 import org.niis.xroad.cs.admin.core.config.BootstrapConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -35,7 +37,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 public class Main {
+
+    private static final String APP_NAME = "xroad-center";
+
     public static void main(String[] args) {
+        Version.outputVersionInfo(APP_NAME);
         SpringApplication.run(new Class[]{
                 Main.class,
                 BootstrapConfiguration.class
