@@ -56,8 +56,6 @@ public final class OpMonitorDaemonMain {
 
     public static final String OP_MONITOR_DAEMON_NAME = "OpMonitorDaemon";
     private static final String APP_NAME = "xroad-opmonitor";
-    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
@@ -93,7 +91,7 @@ public final class OpMonitorDaemonMain {
 
     private static void startup() {
         log.info("Starting the operational monitoring daemon");
-        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
+        Version.outputVersionInfo(APP_NAME);
 
         actorSystem = ActorSystem.create(OP_MONITOR_DAEMON_NAME,
                 ConfigFactory.load().getConfig("opmonitordaemon")

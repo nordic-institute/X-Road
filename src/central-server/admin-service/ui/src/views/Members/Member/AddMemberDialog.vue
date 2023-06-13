@@ -55,29 +55,50 @@
       ></v-select>
 
       <div class="dlg-input-width">
-        <v-text-field
-          v-model="memberCode"
-          :label="$t('global.memberCode')"
-          outlined
-          data-test="add-member-code-input"
-        ></v-text-field>
+        <ValidationProvider
+          ref="memberCodeVP"
+          v-slot="{ errors }"
+          rules="required"
+          name="memberCode"
+          class="validation-provider"
+        >
+          <v-text-field
+            v-model="memberCode"
+            :label="$t('global.memberCode')"
+            outlined
+            data-test="add-member-code-input"
+            :error-messages="errors"
+          ></v-text-field>
+        </ValidationProvider>
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { mapActions, mapState, mapStores } from 'pinia';
-import { MemberClass, XRoadId } from '@/openapi-types';
-import { clientStore } from '@/store/modules/clients';
-import { memberStore } from '@/store/modules/members';
-import { systemStore } from '@/store/modules/system';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useMemberClassStore } from '@/store/modules/member-class';
+import Vue, {VueConstructor} from 'vue';
+import {mapActions, mapState, mapStores} from 'pinia';
+import {ErrorInfo, MemberClass} from '@/openapi-types';
+import {clientStore} from '@/store/modules/clients';
+import {memberStore} from '@/store/modules/members';
+import {systemStore} from '@/store/modules/system';
+import {notificationsStore} from '@/store/modules/notifications';
+import {useMemberClassStore} from '@/store/modules/member-class';
+import {getErrorInfo, getTranslatedFieldErrors, isFieldError,} from '@/util/helpers';
+import {AxiosError} from 'axios';
+import {ValidationProvider} from 'vee-validate';
 
-export default Vue.extend({
+export default (
+  Vue as VueConstructor<
+    Vue & {
+      $refs: {
+        memberCodeVP: InstanceType<typeof ValidationProvider>;
+      };
+    }
+  >
+).extend({
   name: 'AddMemberDialog',
+  components: { ValidationProvider },
   props: {
     showDialog: {
       type: Boolean,
@@ -139,7 +160,20 @@ export default Vue.extend({
           this.clearForm();
         })
         .catch((error) => {
-          this.showError(error);
+          const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
+          if (isFieldError(errorInfo)) {
+            let fieldErrors = errorInfo.error?.validation_errors;
+            if (fieldErrors && this.$refs?.memberCodeVP) {
+              this.$refs.memberCodeVP.setErrors(
+                getTranslatedFieldErrors(
+                  'memberAddDto.memberId.memberCode',
+                  fieldErrors,
+                ),
+              );
+            }
+          } else {
+            this.showError(error);
+          }
         })
         .finally(() => {
           this.loading = false;

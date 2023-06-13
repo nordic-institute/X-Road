@@ -24,21 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi.validator;
+package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
+import javax.validation.Constraint;
+import javax.validation.Payload;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import java.util.EnumSet;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        EncodedIdentifierValidator validator = new EncodedIdentifierValidator();
-        EnumSet<IdentifierValidationErrorInfo> validationErrors = IdentifierValidationErrorInfo.of(
-                validator.getValidationErrors(value));
-        return validationErrors.isEmpty();
-    }
+@Documented
+@Target({METHOD, FIELD, PARAMETER})
+@Retention(RUNTIME)
+@Constraint(validatedBy = NoControlCharsValidator.class)
+public @interface NoControlChars {
+    String message() default "must not contain control characters";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
 }

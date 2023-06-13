@@ -71,3 +71,4 @@ xroad:
     backup-allowed-content-types: application/pgp-encrypted
     xml-allowed-extensions: xml
     xml-allowed-content-types: text/xml,application/xml
+    strict-identifier-checks: true

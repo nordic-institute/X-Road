@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,7 +31,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.restapi.openapi.validator.IdentifierValidationErrorInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
@@ -51,11 +53,13 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionUpd
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceType;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenName;
-import org.niis.xroad.securityserver.restapi.openapi.validator.IdentifierValidationErrorInfo;
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -119,6 +123,15 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
             TestUtils.MEMBER_CLASS_PRO);
 
     private ObjectMapper testObjectMapper = new ObjectMapper();
+
+    @TestConfiguration
+    static class TestConf {
+        @Bean
+        @Primary
+        IdentifierValidationConfiguration.Config nonStrictIdentifierValidationConfig() {
+            return () -> false;
+        }
+    }
 
     @Before
     public void setup() throws Exception {

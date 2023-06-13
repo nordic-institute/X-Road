@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,26 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi.validator;
+package ee.ria.xroad.common.validation;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
+import lombok.extern.slf4j.Slf4j;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+@Slf4j
+class LoggingIdentifierValidator implements IdentifierValidator {
+    private final StrictIdentifierValidator strict = new StrictIdentifierValidator();
+    private final LegacyEncodedIdentifierValidator legacy = new LegacyEncodedIdentifierValidator();
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+    @Override
+    public boolean isValid(String s) {
+        var strictValid = strict.isValid(s);
+        if (strictValid) {
+            return true;
+        }
 
-@Documented
-@Target({METHOD, FIELD, PARAMETER})
-@Retention(RUNTIME)
-@Constraint(validatedBy = NoControlCharsValidator.class)
-public @interface NoControlChars {
-    String message() default "must not contain control characters";
-    Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default {};
+        var legacyValid = legacy.isValid(s);
+        if (legacyValid) {
+            log.warn("Invalid character(s) in identifier \"{}\"", s);
+        }
+        return legacyValid;
+    }
 }

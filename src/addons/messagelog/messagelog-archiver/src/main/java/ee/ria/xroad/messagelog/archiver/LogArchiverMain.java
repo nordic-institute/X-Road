@@ -56,9 +56,8 @@ public final class LogArchiverMain {
     private LogArchiverMain() {
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     public static void main(String[] args) {
-        Version.outputVersionInfo("MessageLogArchiver", 8, 11);
+        Version.outputVersionInfo("MessageLogArchiver");
 
         try {
             SystemPropertiesLoader.create()

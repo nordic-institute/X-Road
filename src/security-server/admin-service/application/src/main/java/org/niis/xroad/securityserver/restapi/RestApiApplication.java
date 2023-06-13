@@ -27,7 +27,6 @@ package org.niis.xroad.securityserver.restapi;
 
 import ee.ria.xroad.common.Version;
 
-import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
@@ -48,8 +47,7 @@ public class RestApiApplication {
      * start application
      */
     public static void main(String[] args) {
-        Version.outputVersionInfo(APP_NAME, VersionService.MIN_SUPPORTED_JAVA_VERSION,
-                VersionService.MAX_SUPPORTED_JAVA_VERSION);
+        Version.outputVersionInfo(APP_NAME);
 
         SpringApplication.run(RestApiApplication.class, args
         );

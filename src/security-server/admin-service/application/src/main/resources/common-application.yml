@@ -53,6 +53,7 @@ xroad:
     rate-limit-expire-after-access-minutes: 5
     cache-default-ttl: 60
     cache-api-key-ttl: 60
+    strict-identifier-checks: true
 
 file-upload-endpoints:
   endpointDefinitions:

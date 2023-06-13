@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.management.application;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.Version;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,7 +35,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.cs.management", "org.niis.xroad.restapi"})
 public class ManagementServiceMain {
+
+    private static final String APP_NAME = "xroad-center-management-service";
+
     public static void main(String[] args) {
+        Version.outputVersionInfo(APP_NAME);
+
         var app = new SpringApplication(ManagementServiceMain.class);
         app.addInitializers(ctx -> SystemPropertiesLoader.create().withCommonAndLocal().load());
         app.run(args);

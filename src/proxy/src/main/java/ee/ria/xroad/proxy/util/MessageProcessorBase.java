@@ -184,7 +184,7 @@ public abstract class MessageProcessorBase {
     /**
      * Logs a warning if identifier contains invalid characters.
      * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
-     * @see ee.ria.xroad.common.validation.EncodedIdentifierValidator
+     * @see ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator;
      */
     protected static boolean checkIdentifier(final XRoadId id) {
         if (id != null) {

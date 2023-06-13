@@ -27,54 +27,47 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.Version;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @WithMockUser
-public class VersionServiceTest {
+class VersionServiceTest {
 
     VersionService versionService = new VersionService();
 
     @Test
-    public void readVersionInfo() {
+    void readVersionInfo() {
         VersionInfoDto versionInfo = versionService.getVersionInfo();
-
-        assertNotNull(versionInfo);
         assertTrue(versionInfo.isUsingSupportedJavaVersion());
     }
 
     @Test
-    public void oldJavaVersion() {
+    void oldJavaVersion() {
         String original = System.getProperty(Version.JAVA_VERSION_PROPERTY);
-        System.setProperty(Version.JAVA_VERSION_PROPERTY, "1.2");
+        System.setProperty(Version.JAVA_VERSION_PROPERTY, "10");
         try {
             VersionInfoDto versionInfo = versionService.getVersionInfo();
-            assertNotNull(versionInfo);
-            long version = versionInfo.getJavaVersion();
-            assertEquals(2L, version);
+            assertEquals(10, versionInfo.getJavaVersion());
+            assertFalse(versionInfo.isUsingSupportedJavaVersion());
         } finally {
             System.setProperty(Version.JAVA_VERSION_PROPERTY, original);
         }
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     @Test
-    public void tooNewJavaVersion() {
+    void tooNewJavaVersion() {
         String original = System.getProperty(Version.JAVA_VERSION_PROPERTY);
-        System.setProperty(Version.JAVA_VERSION_PROPERTY, "20");
+        System.setProperty(Version.JAVA_VERSION_PROPERTY, "12");
         try {
             VersionInfoDto versionInfo = versionService.getVersionInfo();
-            assertNotNull(versionInfo);
-            long version = versionInfo.getJavaVersion();
-            assertEquals(20L, version);
+            assertEquals(12, versionInfo.getJavaVersion());
             assertFalse(versionInfo.isUsingSupportedJavaVersion());
         } finally {
             System.setProperty(Version.JAVA_VERSION_PROPERTY, original);

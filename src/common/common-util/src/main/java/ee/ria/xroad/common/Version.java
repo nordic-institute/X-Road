@@ -38,12 +38,16 @@ import java.util.Properties;
 public final class Version {
 
     private static final String RELEASE = "RELEASE";
+    private static final int VERSION_STRING_SUFFIX_LENGTH = 3;
+    private static final String JAVA_DEFAULT_RUNTIME_NAME = "Java";
+
     public static final String JAVA_VERSION_PROPERTY = "java.version";
     public static final String JAVA_RUNTIME_NAME_PROPERTY = "java.runtime.name";
-    private static final String JAVA_DEFAULT_RUNTIME_NAME = "Java";
     public static final String JAVA_RUNTIME_VERSION_PROPERTY = "java.runtime.version";
     public static final String JAVA_VENDOR_PROPERTY = "java.vendor";
-    private static final int VERSION_STRING_SUFFIX_LENGTH = 3;
+
+    public static final int MIN_SUPPORTED_JAVA_VERSION = 11;
+    public static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
     public static final String XROAD_VERSION;
     public static final String BUILD_IDENTIFIER;
@@ -92,24 +96,22 @@ public final class Version {
 
     /**
      * Outputs version information and a warning if JVM version is not in the given range
-     * @param minJavaVersion the minimum supported version
-     * @param maxJavaVersion the maximum supported version
      */
-    public static void outputVersionInfo(String appName, int minJavaVersion, int maxJavaVersion) {
+    public static void outputVersionInfo(String appName) {
         // print app name + version and java vendor name + runtime version
         int javaVersion = readJavaVersion();
         String runtimeName = System.getProperty(JAVA_RUNTIME_NAME_PROPERTY, JAVA_DEFAULT_RUNTIME_NAME);
         String vendorVersion =  JAVA_VENDOR != null ? javaVersion + " "  + JAVA_RUNTIME_VERSION : JAVA_RUNTIME_VERSION;
 
         log.info(String.format("%s %s (%s %s)", appName, XROAD_VERSION, runtimeName, vendorVersion));
-        if (javaVersion < minJavaVersion || javaVersion > maxJavaVersion) {
-            if (minJavaVersion == maxJavaVersion) {
+        if (javaVersion < MIN_SUPPORTED_JAVA_VERSION || javaVersion > MAX_SUPPORTED_JAVA_VERSION) {
+            if (MIN_SUPPORTED_JAVA_VERSION == MAX_SUPPORTED_JAVA_VERSION) {
                 log.warn("Warning! Running on unsupported Java version {}. Java version {} is currently supported.",
-                        javaVersion, minJavaVersion);
+                        javaVersion, MIN_SUPPORTED_JAVA_VERSION);
             } else {
                 log.warn(
                         "Warning! Unsupported Java version {}. Java versions {} - {} are currently supported.",
-                        javaVersion, minJavaVersion, maxJavaVersion);
+                        javaVersion, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
             }
         }
     }

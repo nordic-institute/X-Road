@@ -37,6 +37,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
@@ -121,7 +122,7 @@ class LocalCopyWriter {
     }
 
     private Path getTargetDir() {
-        return localConfDirectory.resolve(instanceIdentifier);
+        return localConfDirectory.resolve(escapeInstanceIdentifier(instanceIdentifier));
     }
 
     private Path instanceIdentifierPath() {

@@ -32,7 +32,7 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
+import ee.ria.xroad.common.validation.IdentifierValidator;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -109,6 +109,7 @@ public class ServiceDescriptionService {
     private final OpenApiParser openApiParser;
     private final AuditDataHelper auditDataHelper;
     private final EndpointHelper endpointHelper;
+    private final IdentifierValidator identifierValidator;
 
     /**
      * Disable 1 services
@@ -1241,14 +1242,13 @@ public class ServiceDescriptionService {
     private void validateServiceIdentifierFields(Collection<WsdlParser.ServiceInfo> serviceInfos)
             throws InvalidServiceIdentifierException {
         List<String> invalidIdentifierFields = new ArrayList<>();
-        EncodedIdentifierValidator validator = new EncodedIdentifierValidator();
         for (WsdlParser.ServiceInfo serviceInfo : serviceInfos) {
             String serviceCode = serviceInfo.name;
             String version = serviceInfo.version;
-            if (!validator.getValidationErrors(serviceCode).isEmpty()) {
+            if (!identifierValidator.isValid(serviceCode)) {
                 invalidIdentifierFields.add(serviceCode);
             }
-            if (!validator.getValidationErrors(version).isEmpty()) {
+            if (!identifierValidator.isValid(version)) {
                 invalidIdentifierFields.add(version);
             }
         }

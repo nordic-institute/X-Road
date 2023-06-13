@@ -3582,6 +3582,7 @@ components:
           maxLength: 255
           minLength: 1
           type: string
+          pattern: ^[a-zA-Z0-9'()+,-.=?]*
       required:
         - instance_identifier
       type: object
@@ -3772,7 +3773,6 @@ components:
           format: text
           maxLength: 255
           minLength: 1
-          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           type: string
       required:
         - code
@@ -3814,12 +3814,11 @@ components:
       description: x-road member name
       properties:
         member_name:
-          description: Member name. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          description: Member name.
           example: Member123
           format: text
           maxLength: 255
           minLength: 1
-          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           type: string
       type: object
     MemberCode:
@@ -3831,7 +3830,6 @@ components:
           format: text
           maxLength: 255
           minLength: 1
-          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           type: string
       required:
         - member_code
@@ -4358,7 +4356,6 @@ components:
           maxLength: 255
           minLength: 1
           type: string
-          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           readOnly: true
         type:
           type: string
@@ -4406,7 +4403,6 @@ components:
           format: text§
           maxLength: 255
           minLength: 1
-          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           type: string
         member_code:
           description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
@@ -4414,7 +4410,6 @@ components:
           format: text
           maxLength: 255
           minLength: 1
-          pattern: ^\s*((?!\s*(?:\.$|\./|\.\.$|\.\./))((?!/\.\s*$|/\./|/\.\.\s*$|/\.\./)[^\\\u0000-\u001F\u007F-\u009F\u200B\uFEFF])*)?$
           type: string
       required:
         - member_class

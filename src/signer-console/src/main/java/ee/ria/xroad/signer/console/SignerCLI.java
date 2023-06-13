@@ -143,8 +143,6 @@ public class SignerCLI {
 
     private static final String APP_NAME = "xroad-signer-console";
     private static final String PIN_PROMPT = "PIN: ";
-    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
     private static final int BENCHMARK_ITERATIONS = 10;
     static boolean verbose;
 
@@ -858,7 +856,7 @@ public class SignerCLI {
      * @throws Exception if an error occurs
      */
     public static void main(String[] args) throws Exception {
-        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
+        Version.outputVersionInfo(APP_NAME);
 
         CommandLine cmd = getCommandLine(args);
         if (cmd.hasOption("verbose")) {
