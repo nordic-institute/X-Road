@@ -57,7 +57,7 @@ public class DatabasePropertiesEnvironmentPostProcessor extends PropertyFileRead
     }
 
     @Override
-    protected String mapToSprintPropertyName(String originalPropertyName) {
+    protected String mapToSpringPropertyName(String originalPropertyName) {
         return originalPropertyName;
     }
 }

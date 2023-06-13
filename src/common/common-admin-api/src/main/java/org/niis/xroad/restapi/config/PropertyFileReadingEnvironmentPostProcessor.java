@@ -58,7 +58,7 @@ public abstract class PropertyFileReadingEnvironmentPostProcessor implements Env
 
     protected abstract boolean isSupported(String propertyName);
 
-    protected abstract String mapToSprintPropertyName(String originalPropertyName);
+    protected abstract String mapToSpringPropertyName(String originalPropertyName);
 
     /**
      * Is property file mandatory - if it is, throws exception if file cannot be read
@@ -98,7 +98,7 @@ public abstract class PropertyFileReadingEnvironmentPostProcessor implements Env
                     if (isSupported(originalPropertyName)) {
                         String value = originalProperties.getProperty(originalPropertyName);
                         springPropertiesMap.put(
-                                mapToSprintPropertyName(originalPropertyName),
+                                mapToSpringPropertyName(originalPropertyName),
                                 value);
                     }
                 }
