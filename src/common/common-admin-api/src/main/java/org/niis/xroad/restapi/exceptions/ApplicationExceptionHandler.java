@@ -39,6 +39,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import javax.validation.ConstraintViolationException;
 
@@ -141,5 +142,12 @@ public class ApplicationExceptionHandler {
         log.error(EXCEPTION_CAUGHT, constraintViolationException);
         return exceptionTranslator.toResponseEntity(constraintViolationException, HttpStatus.BAD_REQUEST);
 
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorInfo> exception(MaxUploadSizeExceededException maxUploadSizeExceededException) {
+        auditEventLoggingFacade.auditLogFail(maxUploadSizeExceededException);
+        log.error(EXCEPTION_CAUGHT, maxUploadSizeExceededException);
+        return exceptionTranslator.toResponseEntity(maxUploadSizeExceededException, HttpStatus.PAYLOAD_TOO_LARGE);
     }
 }

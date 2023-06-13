@@ -23,11 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.restapi.config;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -37,59 +43,28 @@ import java.util.List;
  * Configuration which knows the endpoints that are used for file uploads.
  * These endpoints will have a larger request size limit than others.
  */
-@ConfigurationProperties(prefix = "file-upload-endpoints")
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
 @Configuration
+@ConfigurationProperties(prefix = "file-upload-endpoints")
 public class FileUploadEndpointsConfiguration {
 
     private List<EndpointDefinition> endpointDefinitions;
 
-    public FileUploadEndpointsConfiguration(List<EndpointDefinition> endpointDefinitions) {
-        this.endpointDefinitions = endpointDefinitions;
-    }
-
-    public FileUploadEndpointsConfiguration() {
-
-    }
-
-    public List<EndpointDefinition> getEndpointDefinitions() {
-        return endpointDefinitions;
-    }
-
-    public void setEndpointDefinitions(List<EndpointDefinition> endpointDefinitions) {
-        this.endpointDefinitions = endpointDefinitions;
-    }
-
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
     public static class EndpointDefinition {
-
+        private static final PathMatcher PATH_MATCHER = new AntPathMatcher();
         private HttpMethod httpMethod;
-        private String pathEnding;
-
-        public EndpointDefinition(HttpMethod httpMethod, String pathEnding) {
-            this.httpMethod = httpMethod;
-            this.pathEnding = pathEnding;
-        }
-
-        public EndpointDefinition() {
-        }
-
-        public HttpMethod getHttpMethod() {
-            return httpMethod;
-        }
-
-        public void setHttpMethod(HttpMethod httpMethod) {
-            this.httpMethod = httpMethod;
-        }
-
-        public String getPathEnding() {
-            return pathEnding;
-        }
-
-        public void setPathEnding(String pathEnding) {
-            this.pathEnding = pathEnding;
-        }
+        private String pathPattern;
 
         /**
          * Does request match this endpoint definition?
+         *
          * @param request
          * @return
          */
@@ -97,7 +72,7 @@ public class FileUploadEndpointsConfiguration {
             if (request != null) {
                 String uri = request.getRequestURI();
                 return httpMethod.matches(request.getMethod())
-                        && uri.endsWith(pathEnding);
+                        && PATH_MATCHER.match(pathPattern, uri);
             }
             return false;
         }
