@@ -1317,7 +1317,7 @@ Limits are
 - 600 requests per minute
 - 20 requests per second
 
-If the default limits are too restricting (or too loose), they can be overridden with [admin-service parameters](ug-syspar_x-road_v6_system_parameters.md):
+If the default limits are too restricting (or too loose), they can be overridden with [admin-service parameters](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service):
 - `request-sizelimit-regular`
 - `request-sizelimit-binary-upload`
 - `rate-limit-requests-per-second`
@@ -1325,13 +1325,6 @@ If the default limits are too restricting (or too loose), they can be overridden
 
 Size limit parameters support formats from Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html),
 for example `5MB`.
-
-New command line arguments can be added, not replaced, using the configuration file `local.properties`.
-Example of `/etc/xroad/services/local.properties` with modifications:
-
-```properties
-XROAD_CS_ADMIN_SERVICE_PARAMS=-Drate-limit-requests-per-second=100 -Drequest-sizelimit-binary-upload=1MB
-```
 
 ## 17.1 API key management operations
 
