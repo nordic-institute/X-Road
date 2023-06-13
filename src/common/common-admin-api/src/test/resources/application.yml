@@ -24,5 +24,8 @@ xroad:
     cache-default-ttl: 5
     cache-api-key-ttl: 5
 
+file-upload-endpoints:
+  endpoint-definitions:
+
 common-module-endpoints:
   base-path: /api/v1

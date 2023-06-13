@@ -33,8 +33,10 @@ import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
+import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.unit.DataSize;
 
 import java.util.List;
 import java.util.Set;
@@ -52,8 +54,12 @@ import java.util.Set;
 @ConfigurationProperties(prefix = "xroad.admin-service")
 @Getter
 @Setter
-public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig,
-        ApiCachingConfiguration.Config, AllowedFilesConfig, IdentifierValidationConfiguration.Config {
+public class AdminServiceProperties implements IpThrottlingFilterConfig,
+        AllowedHostnamesConfig,
+        ApiCachingConfiguration.Config,
+        LimitRequestSizesFilter.Config,
+        IdentifierValidationConfiguration.Config,
+        AllowedFilesConfig {
 
     /**
      * Controls the rate of global configuration generation in seconds.
@@ -134,4 +140,9 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
      * incompatible identifier.
      */
     private boolean strictIdentifierChecks;
+    /** Configures Api regular request size limit.  */
+    private DataSize requestSizeLimitRegular;
+
+    /** Configures Api file upload request size limit. */
+    private DataSize requestSizeLimitBinaryUpload;
 }

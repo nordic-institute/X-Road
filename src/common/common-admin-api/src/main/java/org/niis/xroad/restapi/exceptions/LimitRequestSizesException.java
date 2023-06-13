@@ -23,9 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.restapi.exceptions;
 
-import org.niis.xroad.restapi.exceptions.WrappedStatusCarryingException;
+import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 

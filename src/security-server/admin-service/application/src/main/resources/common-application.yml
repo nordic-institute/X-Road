@@ -16,8 +16,8 @@ spring:
     default-property-inclusion: NON_NULL
   servlet:
     multipart:
-      max-file-size: ${xroad.proxy-ui-api.request-sizelimit-binary-upload:${request.sizelimit.binary.upload}}
-      max-request-size: ${xroad.proxy-ui-api.request-sizelimit-binary-upload:${request.sizelimit.binary.upload}}
+      max-file-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload:${request.sizelimit.binary.upload}}
+      max-request-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload:${request.sizelimit.binary.upload}}
 
 # default is 30m
 # server.servlet.session.timeout=1m
@@ -54,21 +54,23 @@ xroad:
     cache-default-ttl: 60
     cache-api-key-ttl: 60
     strict-identifier-checks: true
+    request-size-limit-regular: ${request.sizelimit.regular}
+    request-size-limit-binary-upload: ${request.sizelimit.binary.upload}
 
 file-upload-endpoints:
-  endpointDefinitions:
+  endpoint-definitions:
     -
-      httpMethod: POST
-      pathEnding: /backups/upload
+      http-method: POST
+      path-pattern: "/**/backups/upload"
     -
-      httpMethod: POST
-      pathEnding: /tls-certificates
+      http-method: POST
+      path-pattern: "/**/tls-certificates"
     -
-      httpMethod: POST
-      pathEnding: /token-certificates
+      http-method: POST
+      path-pattern: "/**/token-certificates"
     -
-      httpMethod: POST
-      pathEnding: /certificate/import
+      http-method: POST
+      path-pattern: "/**/certificate/import"
 
 script:
   generate-gpg-keypair:
