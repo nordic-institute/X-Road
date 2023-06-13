@@ -281,6 +281,7 @@ export default (
         }
       }
       this.activeItem = undefined;
+      this.memberClassDialog = false;
     },
     openMemberClassDialog(item: MemberClass | undefined) {
       if (item === undefined) {
