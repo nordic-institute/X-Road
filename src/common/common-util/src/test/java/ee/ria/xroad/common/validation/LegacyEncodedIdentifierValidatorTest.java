@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,32 +31,32 @@ import org.junit.Test;
 
 import java.util.EnumSet;
 
-import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.BACKSLASH;
-import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.COLON;
-import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.CONTROL_CHAR;
-import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.FORWARDSLASH;
-import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.PERCENT;
-import static ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError.SEMICOLON;
+import static ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator.ValidationError.BACKSLASH;
+import static ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator.ValidationError.COLON;
+import static ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator.ValidationError.CONTROL_CHAR;
+import static ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator.ValidationError.FORWARDSLASH;
+import static ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator.ValidationError.PERCENT;
+import static ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator.ValidationError.SEMICOLON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @Slf4j
-public class EncodedIdentifierValidatorTest {
+public class LegacyEncodedIdentifierValidatorTest {
 
-    private EncodedIdentifierValidator encodedIdentifierValidator;
+    private LegacyEncodedIdentifierValidator encodedIdentifierValidator;
 
     @Before
     public void setup() {
-        encodedIdentifierValidator = new EncodedIdentifierValidator();
+        encodedIdentifierValidator = new LegacyEncodedIdentifierValidator();
     }
 
     @Test
     public void valid() {
-        assertTrue(encodedIdentifierValidator.getValidationErrors("adsdsa").isEmpty());
-        assertTrue(encodedIdentifierValidator.getValidationErrors("a.b.c").isEmpty());
-        assertTrue(encodedIdentifierValidator.getValidationErrors("a-b-c").isEmpty());
-        assertTrue(encodedIdentifierValidator.getValidationErrors("äöå").isEmpty());
-        assertTrue(encodedIdentifierValidator.getValidationErrors("列").isEmpty());
+        assertTrue(encodedIdentifierValidator.isValid("adsdsa"));
+        assertTrue(encodedIdentifierValidator.isValid("a.b.c"));
+        assertTrue(encodedIdentifierValidator.isValid("a-b-c"));
+        assertTrue(encodedIdentifierValidator.isValid("äöå"));
+        assertTrue(encodedIdentifierValidator.isValid("列"));
     }
 
     final char semiColon = ';';
@@ -106,13 +106,13 @@ public class EncodedIdentifierValidatorTest {
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(esc)));
         assertEquals(EnumSet.of(CONTROL_CHAR),
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(sos)));
-        assertEquals(EnumSet.noneOf(EncodedIdentifierValidator.ValidationError.class),
+        assertEquals(EnumSet.noneOf(LegacyEncodedIdentifierValidator.ValidationError.class),
                 encodedIdentifierValidator.getValidationErrors(String.valueOf(space)));
     }
 
     @Test
     public void allErrors() {
-        assertEquals(EnumSet.allOf(EncodedIdentifierValidator.ValidationError.class),
+        assertEquals(EnumSet.allOf(LegacyEncodedIdentifierValidator.ValidationError.class),
                 encodedIdentifierValidator.getValidationErrors(":aa;bb/cc\\dd%ee/../f\tf"));
     }
 

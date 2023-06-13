@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -33,22 +33,22 @@ import java.util.EnumSet;
  * One part of that id is subsystem code "SUBSYSTEM_1" and in order
  * to be usable in resource paths in our API, these kinds of character
  * sequences are forbidden:
- *
+ * <p>
  * - non-normalized paths: character sequences creating a path traversal sequence like "./", "/../" or "/."
  * - colons (":"), since we use that as encoded ID identifier separator (e.g. "FI:GOV:123:SUBSYSTEM1")
  * - semicolons (";")
  * - slash ("/")
  * - backslash ("\")
  * - percent ("%")
- *
+ * <p>
  * Spring Firewall checks for url-encoded characters - such as semicolon "%3B" - but this validator does
  * not. This validator is intended for use in controllers, for validating JSON request body, where
  * properties are not url-encoded.
  *
  */
-public class EncodedIdentifierValidator {
+class LegacyEncodedIdentifierValidator implements IdentifierValidator {
 
-    public EnumSet<ValidationError> getValidationErrors(String s) {
+    EnumSet<ValidationError> getValidationErrors(String s) {
         EnumSet<ValidationError> errors = EnumSet.noneOf(ValidationError.class);
         if (s == null) {
             return errors;
@@ -74,7 +74,12 @@ public class EncodedIdentifierValidator {
         return errors;
     }
 
-    public enum ValidationError {
+    @Override
+    public boolean isValid(String s) {
+        return getValidationErrors(s).isEmpty();
+    }
+
+    enum ValidationError {
         COLON,
         SEMICOLON,
         FORWARDSLASH,

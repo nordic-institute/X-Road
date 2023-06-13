@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,21 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.openapi.validator;
+package org.niis.xroad.restapi.config;
 
-import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
+import ee.ria.xroad.common.validation.IdentifierValidator;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.EnumSet;
+@Configuration
+public class IdentifierValidationConfiguration {
 
-public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        EncodedIdentifierValidator validator = new EncodedIdentifierValidator();
-        EnumSet<IdentifierValidationErrorInfo> validationErrors = IdentifierValidationErrorInfo.of(
-                validator.getValidationErrors(value));
-        return validationErrors.isEmpty();
+    @Bean
+    IdentifierValidator identifierValidator(Config config) {
+        return IdentifierValidator.get(config.isStrictIdentifierChecks());
     }
+
+
+    public interface Config {
+        /**
+         * Restrict identifiers (member code, subsystem code etc.) to match <code>^[a-zA-Z0-9'()+,-.=?]*</code>.
+         * Setting value to false enables legacy compatibility mode, that logs a warning when entity is created with
+         * incompatible identifier.
+         */
+        boolean isStrictIdentifierChecks();
+    }
+
 }

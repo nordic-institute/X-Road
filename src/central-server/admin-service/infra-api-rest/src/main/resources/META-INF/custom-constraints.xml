@@ -9,7 +9,7 @@
 
     <bean class="InitialServerConfDto" ignore-annotations="false">
         <field name="instanceIdentifier">
-            <constraint annotation="org.niis.xroad.cs.admin.rest.api.openapi.validator.IdentifierChars">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars">
             </constraint>
         </field>
         <field name="centralServerAddress">
@@ -39,4 +39,44 @@
             <constraint annotation="org.niis.xroad.cs.admin.rest.api.openapi.validator.ValidHostAddress"/>
         </field>
     </bean>
+
+    <bean class="MemberAddDto" ignore-annotations="false">
+        <field name="memberName">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"></constraint>
+        </field>
+    </bean>
+    <bean class="MemberNameDto" ignore-annotations="false">
+        <field name="memberName">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"></constraint>
+        </field>
+    </bean>
+
+    <bean class="MemberClassDto" ignore-annotations="false">
+        <field name="code">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+    </bean>
+
+    <bean class="NewMemberIdDto" ignore-annotations="false">
+        <field name="memberClass">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+        <field name="memberCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+    </bean>
+
+    <bean class="NewSubsystemIdDto" ignore-annotations="false">
+        <field name="subsystemCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+        <field name="memberClass">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+        <field name="memberCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+    </bean>
+
+
 </constraint-mappings>

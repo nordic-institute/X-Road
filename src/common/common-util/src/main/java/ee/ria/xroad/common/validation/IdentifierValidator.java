@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,16 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.openapi.validator;
+package ee.ria.xroad.common.validation;
 
-import ee.ria.xroad.common.validation.StringValidationUtils;
+public interface IdentifierValidator {
+    boolean isValid(String s);
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-
-public class NoControlCharsValidator implements ConstraintValidator<NoControlChars, String> {
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        return value == null || !StringValidationUtils.containsControlChars(value);
+    static IdentifierValidator get(boolean strict) {
+        if (strict) {
+            return new StrictIdentifierValidator();
+        }
+        return new LoggingIdentifierValidator();
     }
 }

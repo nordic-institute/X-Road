@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,27 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi.validator;
+package ee.ria.xroad.common.validation;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.junit.Test;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@Documented
-@Target({METHOD, FIELD, PARAMETER})
-@Retention(RUNTIME)
-@Constraint(validatedBy = IdentifierCharsValidator.class)
-public @interface IdentifierChars {
-    String message() default "identifiers are not allowed to contain colon, semicolon, slashes, percent, or"
-        + " control characters";
-    Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default {};
+public class StrictIdentifierValidatorTest {
+    private StrictIdentifierValidator validator = new StrictIdentifierValidator();
+
+    @Test
+    public void valid() {
+        validator = new StrictIdentifierValidator();
+        assertValid(null);
+        assertValid("abcdefghijklmnopqrstuvwxyz");
+        assertValid("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        assertValid("1234567890");
+        assertValid("'()+,-.=?");
+    }
+
+    @Test
+    public void inValid() {
+        assertInvalid(":");
+        assertInvalid("/");
+        assertInvalid("ä");
+        assertInvalid("列");
+    }
+
+    private void assertValid(String string) {
+        assertThat(validator.isValid(string)).isTrue();
+    }
+
+    private void assertInvalid(String s) {
+        assertThat(validator.isValid(s)).isFalse();
+    }
+
+
 }

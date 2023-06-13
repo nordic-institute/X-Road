@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,41 +26,26 @@
  */
 package ee.ria.xroad.common.validation;
 
-/**
- * Encapsulates validation logic that is copied from Spring firewall internal methods and
- * variables
- */
-final class SpringFirewallValidationRules {
-    private SpringFirewallValidationRules() {
+import com.google.common.base.CharMatcher;
+
+import static com.google.common.base.CharMatcher.anyOf;
+import static com.google.common.base.CharMatcher.inRange;
+
+class StrictIdentifierValidator implements IdentifierValidator {
+
+    private static final CharMatcher VALID_CHARS =
+            inRange('a', 'z')
+                    .or(inRange('A', 'Z'))
+                    .or(inRange('0', '9'))
+                    .or(anyOf("'()+,-.=?"));
+
+    @Override
+    public boolean isValid(String s) {
+        if (s == null) {
+            return true;
+        }
+        return VALID_CHARS.matchesAllOf(s);
     }
 
-    private static final char FORBIDDEN_PERCENT = '%';
 
-    private static final char FORBIDDEN_COLON = ':';
-
-    private static final char FORBIDDEN_SEMICOLON = ';';
-
-    private static final char FORBIDDEN_FORWARDSLASH = '/';
-
-    private static final char FORBIDDEN_BACKSLASH = '\\';
-
-    public static boolean containsPercent(String s) {
-        return s.indexOf(FORBIDDEN_PERCENT) >= 0;
-    }
-
-    public static boolean containsColon(String s) {
-        return s.indexOf(FORBIDDEN_COLON) >= 0;
-    }
-
-    public static boolean containsSemicolon(String s) {
-        return s.indexOf(FORBIDDEN_SEMICOLON) >= 0;
-    }
-
-    public static boolean containsForwardslash(String s) {
-        return s.indexOf(FORBIDDEN_FORWARDSLASH) >= 0;
-    }
-
-    public static boolean containsBackslash(String s) {
-        return s.indexOf(FORBIDDEN_BACKSLASH) >= 0;
-    }
 }

@@ -114,18 +114,26 @@
             ref="form"
             v-model="valid"
             lazy-validation
-          >
-            <v-text-field
-              v-model="activeItem.code"
-              data-test="system-settings-member-class-code-edit-field"
-              :disabled="!adding"
-              :label="$t('systemSettings.code')"
-              :rules="fieldRules"
-              :autofocus="adding"
-              outlined
-              class="dlg-row-input"
+            ><ValidationProvider
+              v-slot="{ errors }"
+              ref="code"
+              rules="required"
               name="code"
-            ></v-text-field>
+              class="validation-provider"
+            >
+              <v-text-field
+                v-model="activeItem.code"
+                data-test="system-settings-member-class-code-edit-field"
+                :disabled="!adding"
+                :label="$t('systemSettings.code')"
+                :rules="fieldRules"
+                :autofocus="adding"
+                outlined
+                class="dlg-row-input"
+                name="code"
+                :error-messages="errors"
+              ></v-text-field>
+            </ValidationProvider>
             <v-text-field
               v-model="activeItem.description"
               data-test="system-settings-member-class-description-edit-field"
@@ -144,14 +152,30 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { MemberClass } from '@/openapi-types';
+import Vue, { VueConstructor } from 'vue';
+import { ErrorInfo, MemberClass } from '@/openapi-types';
 import { mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import { useMemberClassStore } from '@/store/modules/member-class';
 import { DataTableHeader } from 'vuetify';
+import {
+  getErrorInfo,
+  getTranslatedFieldErrors,
+  isFieldError,
+} from '@/util/helpers';
+import { AxiosError } from 'axios';
+import { ValidationProvider } from 'vee-validate';
 
-export default Vue.extend({
+export default (
+  Vue as VueConstructor<
+    Vue & {
+      $refs: {
+        code: InstanceType<typeof ValidationProvider>;
+      };
+    }
+  >
+).extend({
+  components: { ValidationProvider },
   data: () => ({
     deletingMemberClass: false,
     savingMemberClass: false,
@@ -227,8 +251,8 @@ export default Vue.extend({
       this.activeItem = undefined;
     },
     async onSaveMemberClass() {
-      this.savingMemberClass = true;
       if (this.activeItem !== undefined) {
+        this.savingMemberClass = true;
         try {
           await (this.adding
             ? this.memberClassStore.add(this.activeItem)
@@ -240,12 +264,23 @@ export default Vue.extend({
             this.$t('systemSettings.memberClassSaved'),
           );
         } catch (error: unknown) {
-          this.notificationsStoreStore.showError(error);
+          const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
+          if (isFieldError(errorInfo)) {
+            let fieldErrors = errorInfo.error?.validation_errors;
+            if (fieldErrors && this.$refs?.code) {
+              this.$refs.code.setErrors(
+                getTranslatedFieldErrors('memberClassDto.code', fieldErrors),
+              );
+              return;
+            }
+          } else {
+            this.notificationsStoreStore.showError(error);
+          }
+        } finally {
+          this.savingMemberClass = false;
         }
       }
       this.activeItem = undefined;
-      this.memberClassDialog = false;
-      this.savingMemberClass = false;
     },
     openMemberClassDialog(item: MemberClass | undefined) {
       if (item === undefined) {

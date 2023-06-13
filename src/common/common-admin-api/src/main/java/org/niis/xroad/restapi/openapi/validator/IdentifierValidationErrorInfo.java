@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,50 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi.validator;
-
-import ee.ria.xroad.common.validation.EncodedIdentifierValidator.ValidationError;
+package org.niis.xroad.restapi.openapi.validator;
 
 import lombok.Getter;
-
-import java.util.EnumSet;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * view / openapi -layer details for IdentifierValidationErrors
  * (error code, error message)
  */
 public enum IdentifierValidationErrorInfo {
-    COLON("NoColons", "must not contain colons"),
-    SEMICOLON("NoSemicolons", "must not contain semicolons"),
-    FORWARDSLASH("NoForwardslashes", "must not contain slashes"),
-    BACKSLASH("NoBackslashes", "must not contain backslashes"),
-    PERCENT("NoPercents", "must not contain percents"),
     CONTROL_CHAR("NoControlChars", "must not contain control characters"),
     IDENTIFIERS_CHAR("IdentifierChars", "identifiers are not allowed to contain colon, semicolon, slashes, percent, or"
             + " control characters");
 
     @Getter
-    private String errorCode;
+    private final String errorCode;
     @Getter
-    private String defaultMessage;
+    private final String defaultMessage;
 
     IdentifierValidationErrorInfo(String errorCode, String defaultMessage) {
         this.errorCode = errorCode;
         this.defaultMessage = defaultMessage;
-    }
-
-    static IdentifierValidationErrorInfo of(ValidationError validationError) {
-        return IdentifierValidationErrorInfo.valueOf(validationError.name());
-    }
-
-    static EnumSet<IdentifierValidationErrorInfo> of(EnumSet<ValidationError> validationErrors) {
-        if (validationErrors.isEmpty()) {
-            return EnumSet.noneOf(IdentifierValidationErrorInfo.class);
-        }
-        List<IdentifierValidationErrorInfo> infos = validationErrors.stream()
-                .map(IdentifierValidationErrorInfo::of).collect(Collectors.toList());
-        return EnumSet.copyOf(infos);
     }
 }

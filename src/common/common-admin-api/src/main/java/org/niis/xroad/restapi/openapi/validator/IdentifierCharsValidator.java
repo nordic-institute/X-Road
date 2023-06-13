@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,26 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.openapi.validator;
+package org.niis.xroad.restapi.openapi.validator;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
+import ee.ria.xroad.common.validation.IdentifierValidator;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import lombok.RequiredArgsConstructor;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-@Documented
-@Target({METHOD, FIELD, PARAMETER})
-@Retention(RUNTIME)
-@Constraint(validatedBy = NoControlCharsValidator.class)
-public @interface NoControlChars {
-    String message() default "must not contain control characters";
-    Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default {};
+@RequiredArgsConstructor
+public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {
+    private final IdentifierValidator identifierValidator;
+
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        return identifierValidator.isValid(value);
+    }
 }
