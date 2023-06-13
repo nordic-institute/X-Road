@@ -55,7 +55,7 @@ public class SslPropertiesEnvironmentPostProcessor extends PropertyFileReadingEn
     }
 
     @Override
-    protected String mapToSprintPropertyName(String originalPropertyName) {
+    protected String mapToSpringPropertyName(String originalPropertyName) {
         return originalPropertyName;
     }
 
