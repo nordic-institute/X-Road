@@ -144,10 +144,8 @@ Database backup functionality is built into the application. The backup operatio
 This section describes the general mechanism for storing the history of the database tables. All the history-aware tables have an associated trigger update_history that records all the modifications to data. All the tables of central database are history-aware, except for
 
 - history,
-- distributed_files,
-- schema_migrations,
-- databasechangelog and
-- dabasechangeloglock
+- distributed_files and
+- schema_migrations
 
 When a row is created, updated or deleted in one of the history-aware tables, the trigger update_history is activated and invokes the stored procedure add_history_rows. For each changed column, add_history_rows inserts a row into the history table. The details of the stored procedures are described in section 1.9.
 
@@ -237,7 +235,7 @@ API key which grants access to REST API operations.
 | Name        | Type           | Modifiers |   Description    |
 |:----------- |:-----------------:|:----------|:----------------:|
 | id [PK] | bigint | NOT NULL  |   Primary key    |
-| encodedkey | character varying(255) | NOT NULL  | Encoded API key  |
+| encodedkey | character varying(255) | NOT NULL  | Encoded API key. |
 
 
 ## 2.4 APIKEY_ROLES
@@ -246,11 +244,11 @@ Roles linked to one API key.
 
 ### 2.4.1 Attributes
 
-| Name           |          Type          | Modifiers |                              Description                            |
-|:---------------|:----------------------:|:----------|:-------------------------------------------------------------------:|
-| id [PK]        |         bigint         | NOT NULL  |                              Primary key                            |
-| apikey_id [FK] |         bigint         | NOT NULL  |                     Links one role to an API key                    |
-| role           | character varying(255) | NOT NULL  | Role name. Check constraint `valid_role` limits value to valid ones |
+| Name           |          Type          | Modifiers |                             Description                              |
+|:---------------|:----------------------:|:----------|:--------------------------------------------------------------------:|
+| id [PK]        |         bigint         | NOT NULL  |                             Primary key                              |
+| apikey_id [FK] |         bigint         | NOT NULL  |                    Links one role to an API key.                     |
+| role           | character varying(255) | NOT NULL  | Role name. Check constraint `valid_role` limits value to valid ones. |
 
 
 ## 2.5 APPROVED_CAS
