@@ -35,7 +35,7 @@
         <addForeignKeyConstraint baseColumnNames="APIKEY_ID" baseTableName="APIKEY_ROLES" constraintName="FK_APIKEY_ROLES_APIKEY_ID" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="APIKEY"/>
         <addUniqueConstraint columnNames="apikey_id, role" constraintName="UNIQUE_APIKEY_ROLE" tableName="APIKEY_ROLES" />
 
-        <sql splitStatements="false" dbms="postgresql">
+        <sql splitStatements="false">
             <![CDATA[
             ALTER TABLE APIKEY_ROLES ADD CONSTRAINT VALID_ROLE
                 CHECK (ROLE IN (
@@ -57,9 +57,5 @@
           <dropTable tableName="APIKEY_ROLES" cascadeConstraints="true"/>
         </rollback>
 
-        <modifySql dbms="hsqldb">
-            <!-- Simulate PostgreSQL "GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY" which by default creates also a sequence -->
-            <regExpReplace replace='(CREATE TABLE ([^\.]+\.)([^\s]+) \(ID [^;]*)' with='CREATE SEQUENCE $2$3_id_seq AS BIGINT; $1' />
-        </modifySql>
     </changeSet>
 </databaseChangeLog>

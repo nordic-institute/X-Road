@@ -3,11 +3,6 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
                    logicalFilePath="centerui/001-baseline.xml">
-    <property name="binaryType" dbms="postgresql" value="BYTEA" />
-    <property name="binaryType" dbms="hsqldb" value="VARBINARY(10000)" />
-
-    <property name="bigText" dbms="postgresql" value="TEXT" />
-    <property name="bigText" dbms="hsqldb" value="VARCHAR(10000)" />
 
     <changeSet author="niis" id="001-baseline">
         <!-- create schema only if schema_migrations does not exist
@@ -23,7 +18,7 @@
                 <constraints primaryKey="true" primaryKeyName="anchor_url_certs_pkey"/>
             </column>
             <column name="anchor_url_id" type="INT"/>
-            <column name="cert" type="${binaryType}"/>
+            <column name="cert" type="BYTEA"/>
         </createTable>
 
         <createTable tableName="anchor_urls">
@@ -58,7 +53,7 @@
             </column>
             <column name="name" type="VARCHAR(255)"/>
             <column name="url" type="VARCHAR(255)"/>
-            <column name="cert" type="${binaryType}"/>
+            <column name="cert" type="BYTEA"/>
             <column name="valid_from" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
             <column name="valid_to" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
             <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
@@ -74,7 +69,7 @@
                 <constraints primaryKey="true" primaryKeyName="auth_certs_pkey"/>
             </column>
             <column name="security_server_id" type="INT"/>
-            <column name="cert" type="${binaryType}"/>
+            <column name="cert" type="BYTEA"/>
             <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
                 <constraints nullable="false"/>
             </column>
@@ -87,7 +82,7 @@
             <column autoIncrement="true" name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="ca_infos_pkey"/>
             </column>
-            <column name="cert" type="${binaryType}"/>
+            <column name="cert" type="BYTEA"/>
             <column name="intermediate_ca_id" type="INT"/>
             <column name="valid_from" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
             <column name="valid_to" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
@@ -119,7 +114,7 @@
             </column>
             <column name="configuration_source_id" type="INT"/>
             <column name="key_identifier" type="VARCHAR(255)"/>
-            <column name="cert" type="${binaryType}"/>
+            <column name="cert" type="BYTEA"/>
             <column name="key_generated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
             <column name="token_identifier" type="VARCHAR(255)"/>
         </createTable>
@@ -130,8 +125,8 @@
             </column>
             <column name="source_type" type="VARCHAR(255)"/>
             <column name="active_key_id" type="INT"/>
-            <column name="anchor_file" type="${binaryType}"/>
-            <column name="anchor_file_hash" type="${bigText}"/>
+            <column name="anchor_file" type="BYTEA"/>
+            <column name="anchor_file_hash" type="TEXT"/>
             <column name="anchor_generated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
             <column name="ha_node_name" type="VARCHAR(255)"/>
         </createTable>
@@ -141,7 +136,7 @@
                 <constraints primaryKey="true" primaryKeyName="distributed_files_pkey"/>
             </column>
             <column name="file_name" type="VARCHAR(255)"/>
-            <column name="file_data" type="${binaryType}"/>
+            <column name="file_data" type="BYTEA"/>
             <column name="content_identifier" type="VARCHAR(255)"/>
             <column name="file_updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
             <column name="ha_node_name" type="VARCHAR(255)"/>
@@ -246,7 +241,7 @@
                 <constraints primaryKey="true" primaryKeyName="ocsp_infos_pkey"/>
             </column>
             <column name="url" type="VARCHAR(255)"/>
-            <column name="cert" type="${binaryType}"/>
+            <column name="cert" type="BYTEA"/>
             <column name="ca_info_id" type="INT"/>
             <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
                 <constraints nullable="false"/>
@@ -278,12 +273,12 @@
             <column name="type" type="VARCHAR(255)"/>
             <column name="security_server_id" type="INT"/>
             <column name="sec_serv_user_id" type="INT"/>
-            <column name="auth_cert" type="${binaryType}"/>
+            <column name="auth_cert" type="BYTEA"/>
             <column name="address" type="VARCHAR(255)"/>
             <column name="origin" type="VARCHAR(255)"/>
             <column name="server_owner_name" type="VARCHAR(255)"/>
             <column name="server_user_name" type="VARCHAR(255)"/>
-            <column name="comments" type="${bigText}"/>
+            <column name="comments" type="TEXT"/>
             <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
                 <constraints nullable="false"/>
             </column>
@@ -403,8 +398,8 @@
                 <constraints primaryKey="true" primaryKeyName="trusted_anchors_pkey"/>
             </column>
             <column name="instance_identifier" type="VARCHAR(255)"/>
-            <column name="trusted_anchor_file" type="${binaryType}"/>
-            <column name="trusted_anchor_hash" type="${bigText}"/>
+            <column name="trusted_anchor_file" type="BYTEA"/>
+            <column name="trusted_anchor_hash" type="TEXT"/>
             <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
             <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
             <column name="generated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
@@ -536,7 +531,7 @@
             GROUP BY distributed_files.ha_node_name) df ON (((sp.ha_node_name)::text = (df.ha_node_name)::text)))
             WHERE ((sp.key)::text = 'centralServerAddress'::text);</createView>
 
-        <sql splitStatements="false" dbms="postgresql">
+        <sql splitStatements="false">
             <!-- Wrap the SQL in CDATA in order not to mess up the XML. -->
             <![CDATA[
             DO $$
@@ -821,11 +816,5 @@ CREATE OR REPLACE VIEW ha_cluster_status AS
             ]]>
         </sql>
 
-        <modifySql dbms="hsqldb">
-            <regExpReplace replace="\((.+?)\)::text" with="$1" />
-            <regExpReplace replace="('.+?')::text" with="$1" />
-            <!-- Simulate PostgreSQL "GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY" which by default creates also a sequence -->
-            <regExpReplace replace='(CREATE TABLE ([^\.]+\.)([^\s]+) \(id [^;]*)' with='CREATE SEQUENCE $2$3_id_seq AS INTEGER; $1' />
-        </modifySql>
     </changeSet>
 </databaseChangeLog>

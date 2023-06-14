@@ -27,7 +27,6 @@ dependencies {
     testImplementation(testFixtures(project(":common:common-api-throttling")))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
     testImplementation("org.liquibase:liquibase-core")
 }
 
