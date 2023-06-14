@@ -34,16 +34,11 @@ import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.service.FileVerifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
 import javax.servlet.Filter;
 
-@ComponentScan(basePackages = {
-        "org.niis.xroad.cs.admin",
-        "org.niis.xroad.restapi"
-})
 @Configuration
 public class BootstrapConfiguration {
 

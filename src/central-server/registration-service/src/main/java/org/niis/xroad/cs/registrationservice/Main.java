@@ -34,10 +34,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-@SpringBootApplication(scanBasePackages = {
-        "org.niis.xroad.cs.registrationservice",
-        "org.niis.xroad.restapi"
-})
+@SpringBootApplication(scanBasePackages = {"org.niis.xroad.cs.registrationservice", "org.niis.xroad.restapi"})
 @Slf4j
 public class Main {
 

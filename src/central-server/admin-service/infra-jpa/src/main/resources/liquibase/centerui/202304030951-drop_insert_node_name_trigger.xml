@@ -4,7 +4,7 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
                    logicalFilePath="centerui/202304030951-drop_insert_node_name_trigger.xml">
     <changeSet author="niis" id="202304030951-drop_insert_node_name_trigger">
-        <sql splitStatements="false" dbms="postgresql">
+        <sql splitStatements="false">
             <![CDATA[
             DROP TRIGGER IF EXISTS insert_node_name ON configuration_sources;
             DROP TRIGGER IF EXISTS insert_node_name ON distributed_files;
