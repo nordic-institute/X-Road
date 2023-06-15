@@ -24,23 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-
 const path = require('path');
 
-const config = {
-  stories: [
+module.exports = {
+  "stories": [
     "../src/**/*.stories.mdx",
     "../src/**/*.stories.@(js|jsx|ts|tsx)"
   ],
-  addons: [
+  "addons": [
     "@storybook/addon-links",
     "@storybook/addon-essentials"
   ],
-  framework: {
-    name: "@storybook/vue3-webpack5",
-    options: {},
-  },
   webpackFinal: async (config, { configType }) => {
     // `configType` has a value of 'DEVELOPMENT' or 'PRODUCTION'
     // You can change the configuration based on that.
@@ -59,6 +53,4 @@ const config = {
     // Return the altered config
     return config;
   },
-};
-
-export default config;
+}

@@ -44,9 +44,9 @@
 <script lang="ts">
 /** Component to show empty states for general components. Usually a div.  */
 
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 
-export default defineComponent({
+export default Vue.extend({
   props: {
     // Text shown when there are no items at all
     noItemsText: {

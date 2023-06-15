@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :model-value="dialog" :width="width" :persistent="true">
+  <v-dialog v-if="dialog" :value="dialog" :width="width" persistent>
     <v-card class="xrd-card">
       <v-card-title>
         <span class="headline">{{ $t(title) }}</span>
@@ -47,14 +47,12 @@
 <script lang="ts">
 /** Component for help dialogs */
 
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 import CloseButton from '@/components/CloseButton.vue';
-import XrdButton from "@/components/Button.vue";
 
-export default defineComponent({
+export default Vue.extend({
   name: 'HelpDialog',
   components: {
-    XrdButton,
     CloseButton,
   },
   props: {

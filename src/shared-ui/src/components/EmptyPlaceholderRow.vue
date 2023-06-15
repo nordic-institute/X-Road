@@ -39,9 +39,9 @@
 <script lang="ts">
 /** Component to show empty states in html tables. Contains one row.  */
 
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 
-export default defineComponent({
+export default Vue.extend({
   props: {
     // Text shown when there are no items at all
     noItemsText: {

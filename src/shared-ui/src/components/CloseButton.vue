@@ -29,11 +29,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 /**
  * Component for close action with X icon.
  */
-export default defineComponent({
+export default Vue.extend({
   name: 'CloseButton',
   methods: {
     click(event: MouseEvent): void {

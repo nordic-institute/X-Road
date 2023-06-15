@@ -63,9 +63,9 @@
 /**
  * General purpose component for status icon with color
  */
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 
-export default defineComponent({
+export default Vue.extend({
   name: 'StatusIcon',
   props: {
     status: {
