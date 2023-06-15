@@ -37,9 +37,9 @@
 /**
  * Label and help icon that can be used with inputs
  */
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'FormLabel',
   props: {
     labelText: {

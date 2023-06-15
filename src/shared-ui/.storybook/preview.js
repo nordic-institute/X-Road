@@ -25,32 +25,27 @@
  * THE SOFTWARE.
  */
 
-import { VApp, VMain } from 'vuetify/lib';
-import vuetifyConfig from '../src/plugins/vuetify';
+import {setup} from '@storybook/vue3';
+import {registerPlugins} from '../src/plugins';
+import {withVuetifyTheme} from './withVuetifyTheme.decorator';
 import '../src/plugins/vee-validate';
 import '@fontsource/open-sans';
 import 'vuetify/dist/vuetify.min.css'
 import "@mdi/font/css/materialdesignicons.css";
 import "../src/assets/icons.css";
-import i18n from '../src/i18n';
+
+setup((app) => {
+  // Registers your app's plugins into Storybook
+  registerPlugins(app);
+});
 
 export const parameters = {
-  actions: { argTypesRegex: "^on[A-Z].*" },
+  actions: {argTypesRegex: "^on[A-Z].*"},
+  controls: {
+    matchers: {
+      color: /(background|color)$/i,
+      date: /Date$/,
+    },
+  },
 }
-
-const appDecorator = () => {
-  return {
-    vuetify: vuetifyConfig,
-    i18n,
-    components: { VApp, VMain },
-    template: `
-      <v-app>
-          <v-main>
-            <story/>
-          </v-main>
-      </v-app>
-    `
-  };
-};
-
-export const decorators = [appDecorator];
+export const decorators = [withVuetifyTheme];

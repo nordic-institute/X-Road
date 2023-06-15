@@ -24,29 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { extend, configure } from 'vee-validate';
-import { required, email, min, between } from 'vee-validate/dist/rules';
-import i18n from '../i18n';
+import { defineRule, configure } from 'vee-validate';
+import { required, email, min, between } from '@vee-validate/rules';
+import i18n from './i18n';
+import { useI18n } from "vue-i18n";
 
 configure({
   // This should be ok, as it is the vee-validate contract
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultMessage: (field, values: any): string => {
-    // override the field name.
-    values._field_ = i18n.t(`fields.${field}`);
+  generateMessage: context => {
+    //const {tm} = useI18n();
+    //const field = tm('fields')[context.field]; i18n.t(`fields.${context.field}`);
 
-    return i18n.t(`validation.${values._rule_}`, values) as string;
+    //return i18n.t(`validation.${field}`, context.value) as string;
+    return 'Fixme please'
   },
 });
 
 // Install required rule and message.
-extend('required', required);
+defineRule('required', required);
 
 // Install email rule and message.
-extend('email', email);
+defineRule('email', email);
 
 // Install min rule and message.
-extend('min', min);
+defineRule('min', min);
 
 // Install between rule and message.
-extend('between', between);
+defineRule('between', between);

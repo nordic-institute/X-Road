@@ -33,12 +33,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
 /**
  * View wrapper component for sub views. See Settings.vue for example
  */
-export default Vue.extend({});
+export default defineComponent({});
 </script>
 
 <style lang="scss" scoped>

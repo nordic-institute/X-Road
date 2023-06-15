@@ -27,9 +27,9 @@
 <template>
   <v-dialog
     v-if="dialog"
-    :value="dialog"
+    :model-value="dialog"
     :width="width"
-    persistent
+    :persistent="true"
     :scrollable="scrollable"
     @keydown.esc="cancelOnEscape"
   >
@@ -85,11 +85,11 @@
 <script lang="ts">
 /** Base component for simple dialogs */
 
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import CloseButton from '@/components/CloseButton.vue';
 import XrdButton from '@/components/Button.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     CloseButton,
     XrdButton,
