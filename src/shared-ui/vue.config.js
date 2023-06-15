@@ -1,7 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodeExternals = require('webpack-node-externals');
 
-module.exports = {
+const { defineConfig } = require("@vue/cli-service");
+
+module.exports = defineConfig({
   chainWebpack: (config) => {
     // Removes all node_modules from the built package
     // If there is need to be specific then
@@ -17,8 +19,9 @@ module.exports = {
     extract: false, // Keeps the Vue SFC style parts in the build
   },
   pluginOptions: {
+    vuetify: {},
     webpackBundleAnalyzer: {
       openAnalyzer: true,
     },
   },
-};
+});

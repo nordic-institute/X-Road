@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
 export type FileUploadResult = {
   buffer: ArrayBuffer;
@@ -56,7 +56,7 @@ const isDragEvent = (event: FileUploadEvent): event is DragEvent => {
   return (event as DragEvent).dataTransfer !== undefined;
 };
 
-export default Vue.extend({
+export default defineComponent({
   name: 'FileUpload',
   props: {
     accepts: {

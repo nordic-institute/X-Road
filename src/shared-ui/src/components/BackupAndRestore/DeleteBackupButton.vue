@@ -47,11 +47,11 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Prop } from 'vue/types/options';
 import { BackupHandler } from './backup-handler';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'DeleteBackupButton',
   props: {
     canBackup: {

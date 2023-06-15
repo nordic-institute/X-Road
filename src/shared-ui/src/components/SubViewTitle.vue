@@ -35,10 +35,10 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import CloseButton from '@/components/CloseButton.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'SubViewTitle',
   components: {
     CloseButton,
