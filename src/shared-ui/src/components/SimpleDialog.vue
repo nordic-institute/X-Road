@@ -47,6 +47,7 @@
         <close-button
           v-if="showClose"
           id="dlg-close-x"
+          class="close-button"
           data-test="dlg-close-x"
           @click="cancel()"
         />
@@ -186,6 +187,10 @@ export default defineComponent({
 @import '../assets/colors';
 
 .xrd-card {
+  .v-card-title {
+    display: flex;
+    padding: 16px 24px 10px;
+  }
   .xrd-card-actions {
     background-color: $XRoad-WarmGrey10;
     height: 72px;
