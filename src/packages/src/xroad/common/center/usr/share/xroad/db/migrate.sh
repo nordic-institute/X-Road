@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source /usr/share/xroad/scripts/_read_cs_db_properties.sh
+
 log() { echo >&2 "$@"; }
 die() {
   log "$@"
@@ -31,15 +33,12 @@ migrate() {
   local root_properties=/etc/xroad.properties
 
   # read parameters from db.properties
-  local -r db_user=$(get_required_db_prop 'username')
-  local -r db_schema=$(get_prop "$db_properties" 'schema' "$db_user")
-  local -r db_host=$(get_required_db_prop 'host')
-  local -r db_database=$(get_required_db_prop 'database')
-  local -r db_password=$(get_required_db_prop 'password')
+  prepare_db_props
+
   local -r db_admin_user=$(get_required_root_prop 'centerui.database.admin_user' "$db_user")
   local -r db_admin_password=$(get_required_root_prop 'centerui.database.admin_password' "$db_password")
 
-  if [[ -z "$db_user" || -z "$db_schema" || -z "$db_host" || -z "$db_database" || -z "$db_password" ]]; then
+  if [[ -z "$db_user" || -z "$db_schema" || -z "$db_host" || -z "$db_port" || -z "$db_database" || -z "$db_password" ]]; then
     die "Running database migrations failed, missing some required parameters from ${db_properties}"
   fi
 
@@ -54,7 +53,7 @@ migrate() {
 
   LIQUIBASE_HOME="$(pwd)" JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
     --classpath=/usr/share/xroad/jlib/postgresql.jar \
-    --url="jdbc:postgresql://$db_host/$db_database?currentSchema=${db_schema},public" \
+    --url="jdbc:postgresql://$db_host:$db_port/$db_database?currentSchema=${db_schema},public" \
     --changeLogFile=centerui-changelog.xml \
     --password="${db_admin_password}" \
     --username="${db_admin_user}" \

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.config;
 
-import ee.ria.xroad.common.SystemProperties;
+package org.niis.xroad.securityserver.restapi.config;
 
-import org.niis.xroad.restapi.config.PropertyFileReadingEnvironmentPostProcessor;
-import org.springframework.context.annotation.Profile;
+import org.niis.xroad.restapi.config.AbstractDeprecatedPropsChecker;
+import org.springframework.stereotype.Component;
 
-@Profile("nontest")
-public class DatabasePropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
+import java.util.Set;
 
-    private static final String SPRING_DATA_SOURCE_CFG_PREFIX = "spring.datasource.";
-
+@Component
+public class SsDeprecatedPropsChecker extends AbstractDeprecatedPropsChecker {
     @Override
-    protected void initialize() {
-        super.initialize();
-        CentralServerSystemPropertiesInitializer.initialize();
-    }
-
-    @Override
-    protected String getPropertySourceName() {
-        return "fromDbPropertiesFile";
-    }
-
-    @Override
-    protected String getPropertyFilePath() {
-        return SystemProperties.getCenterDatabasePropertiesFile();
-    }
-
-    @Override
-    protected boolean isSupported(String propertyName) {
-        return propertyName.startsWith(SPRING_DATA_SOURCE_CFG_PREFIX);
-    }
-
-    @Override
-    protected String mapToSpringPropertyName(String originalPropertyName) {
-        return originalPropertyName;
+    protected Set<DeprecatedProperty> getDeprecatedProperties() {
+        return Set.of(
+                new DeprecatedProperty("request.sizelimit.regular", "xroad.proxy-ui-api.request-sizelimit-regular"),
+                new DeprecatedProperty("request.sizelimit.binary.upload", "xroad.proxy-ui-api.request-sizelimit-binary-upload"),
+                new DeprecatedProperty("ratelimit.requests.per.second", "xroad.proxy-ui-api.rate-limit-requests-per-second"),
+                new DeprecatedProperty("ratelimit.requests.per.minute", "xroad.proxy-ui-api.rate-limit-requests-per-minute")
+        );
     }
 }

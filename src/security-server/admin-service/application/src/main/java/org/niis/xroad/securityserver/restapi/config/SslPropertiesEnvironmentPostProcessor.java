@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.config;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.PropertyFileReadingEnvironmentPostProcessor;
 import org.springframework.context.annotation.Profile;
 
 /**
@@ -39,27 +40,27 @@ import org.springframework.context.annotation.Profile;
 public class SslPropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
 
     @Override
-    String getPropertySourceName() {
+    protected String getPropertySourceName() {
         return "fromSslPropertiesFile";
     }
 
     @Override
-    String getPropertyFilePath() {
+    protected String getPropertyFilePath() {
         return SystemProperties.getSslPropertiesFile();
     }
 
     @Override
-    boolean isSupported(String propertyName) {
+    protected boolean isSupported(String propertyName) {
         return propertyName.startsWith("server.ssl.");
     }
 
     @Override
-    String mapToSprintPropertyName(String originalPropertyName) {
+    protected String mapToSpringPropertyName(String originalPropertyName) {
         return originalPropertyName;
     }
 
     @Override
-    boolean isPropertyFileMandatory() {
+    protected boolean isPropertyFileMandatory() {
         return false;
     }
 }

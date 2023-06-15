@@ -1,16 +1,6 @@
 #!/bin/bash
 
-get_db_prop() {
-  crudini --get '/etc/xroad/db.properties' '' "$1" 2>/dev/null || echo -n "$2"
-}
-
-prepare_db_props() {
-  db_host=$(get_db_prop 'host' '127.0.0.1')
-  db_port=$(get_db_prop 'port' '5432')
-  db_database=$(get_db_prop 'database' 'centerui_production')
-  db_username=$(get_db_prop 'username' 'centerui')
-  db_password=$(get_db_prop 'password')
-}
+source /usr/share/xroad/scripts/_read_cs_db_properties.sh
 
 encode_token() {
   echo -n "$1" | sha256sum -b | cut -d' ' -f1

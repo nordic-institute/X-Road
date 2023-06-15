@@ -26,26 +26,37 @@ handle_error() {
 
 # setup database and run migrations
 setup_database() {
+    /usr/share/xroad/scripts/migrate_db_cfg_to_spring_datasourse.sh
+
     local db_properties=/etc/xroad/db.properties
     local root_properties=/etc/xroad.properties
     RET=
     db_get xroad-common/database-host || true
-    local db_host="${RET:-127.0.0.1:5432}"
-    local db_addr=${db_host%%:*}
-    local db_port=${db_host##*:}
-    crudini --set "${db_properties}" '' host "${db_addr}"
-    crudini --set "${db_properties}" '' port "${db_port}"
+    local -r new_db_host="${RET}"
+    local db_host="${new_db_host:-127.0.0.1:5432}"
 
     RET=
     db_get xroad-common/skip-cs-db-migrations || true
     local skip_migrations="${RET}"
     crudini --set "${db_properties}" '' skip_migrations "${skip_migrations}"
 
-    local db_user=$(get_prop ${db_properties} 'username' 'centerui')
-    local db_schema=$(get_prop ${db_properties} 'schema' "${db_user%%@*}")
-    local db_password=$(get_prop ${db_properties} 'password' 'centerui')
-    local db_database=$(get_prop ${db_properties} 'database' 'centerui_production')
+    local db_user=$(get_prop ${db_properties} 'spring.datasource.username' 'centerui')
+    local db_schema=$(get_prop ${db_properties} 'spring.datasource.hikari.data-source-properties.currentSchema' "${db_user%%@*}")
+    db_schema=${db_schema%%,*}
+    local db_password=$(get_prop ${db_properties} 'spring.datasource.password' 'centerui')
+    local db_database="centerui_production"
     local db_master_user=postgres
+
+    local db_url=$(get_prop ${db_properties} 'spring.datasource.url' "jdbc:postgresql://${db_host}/${db_database}")
+    pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
+    if [[ "$db_url" =~ $pat ]]; then
+      db_host=${new_db_host:-${BASH_REMATCH[1]}}
+      db_database=${BASH_REMATCH[3]:-$db_database}
+    else
+      log "Unable to parse '$db_url', using 'jdbc:postgresql://$db_host/$db_database'"
+    fi
+
+    crudini --set "${db_properties}" '' spring.datasource.url "jdbc:postgresql://${db_host}/${db_database}"
 
     local db_admin_conn_user=$(get_prop ${root_properties} 'centerui.database.admin_user')
     local db_admin_password=$(get_prop ${root_properties} 'centerui.database.admin_password' 'centerui')
@@ -58,6 +69,11 @@ setup_database() {
     local db_admin_user="${db_admin_conn_user%%@*}"
 
     export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
+
+    local hosts
+    IFS=',' read -ra hosts <<<"$db_host"
+    local db_addr=${hosts[0]%%:*}
+    local db_port=${hosts[0]##*:}
 
     local_psql() { su -l -c "psql -qtA -p $db_port ${*@Q}" postgres; }
     remote_psql() { psql -h "$db_addr" -p "$db_port" -qtA "$@"; }
@@ -134,8 +150,8 @@ END
 GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
 GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
 EOF
-        crudini --set "${db_properties}" '' schema "${db_schema}"
-        crudini --set "${db_properties}" '' password "${db_password}"
+        crudini --set "${db_properties}" '' spring.datasource.hikari.data-source-properties.currentSchema "${db_schema},public"
+        crudini --set "${db_properties}" '' spring.datasource.password "${db_password}"
         crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_user' "${db_admin_conn_user}"
         crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_password' "${db_admin_password}"
     fi
