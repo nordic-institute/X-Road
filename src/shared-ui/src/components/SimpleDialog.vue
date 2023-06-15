@@ -27,9 +27,9 @@
 <template>
   <v-dialog
     v-if="dialog"
-    :model-value="dialog"
+    :value="dialog"
     :width="width"
-    :persistent="true"
+    persistent
     :scrollable="scrollable"
     @keydown.esc="cancelOnEscape"
   >
@@ -47,7 +47,6 @@
         <close-button
           v-if="showClose"
           id="dlg-close-x"
-          class="close-button"
           data-test="dlg-close-x"
           @click="cancel()"
         />
@@ -86,11 +85,11 @@
 <script lang="ts">
 /** Base component for simple dialogs */
 
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 import CloseButton from '@/components/CloseButton.vue';
 import XrdButton from '@/components/Button.vue';
 
-export default defineComponent({
+export default Vue.extend({
   components: {
     CloseButton,
     XrdButton,
@@ -187,10 +186,6 @@ export default defineComponent({
 @import '../assets/colors';
 
 .xrd-card {
-  .v-card-title {
-    display: flex;
-    padding: 16px 24px 10px;
-  }
   .xrd-card-actions {
     background-color: $XRoad-WarmGrey10;
     height: 72px;

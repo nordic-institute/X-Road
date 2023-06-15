@@ -29,12 +29,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 
 /**
  * Expandable can be clicked open and has slots for a link and ans action
  */
-export default defineComponent({});
+export default Vue.extend({});
 </script>
 
 <style lang="scss" scoped>

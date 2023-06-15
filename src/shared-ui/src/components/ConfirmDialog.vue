@@ -46,10 +46,10 @@
  * A dialog for simple "accept or cancel" functions
  */
 
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 import SimpleDialog from '@/components/SimpleDialog.vue';
 
-export default defineComponent({
+export default Vue.extend({
   components: {
     SimpleDialog,
   },

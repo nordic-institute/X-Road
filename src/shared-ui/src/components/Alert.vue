@@ -27,14 +27,14 @@
 <template>
   <div class="px-3">
     <!-- Error -->
-    <v-container v-if="show" :fluid="true" class="alerts-container px-3">
+    <v-container v-if="show" fluid class="alerts-container px-3">
       <v-alert
         data-test="contextual-modal-alert"
-        class="alert mb-2"
-        border="start"
-        icon="icon-Error-notification"
         color="red"
-        variant="outlined"
+        border="left"
+        colored-border
+        class="alert mb-2"
+        icon="icon-Error-notification"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
           <div class="row-wrapper">
@@ -48,9 +48,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 
-export default defineComponent({
+export default Vue.extend({
   props: {
     // Alert visible / hidden
     show: {

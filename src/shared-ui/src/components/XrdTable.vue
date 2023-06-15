@@ -36,9 +36,9 @@ This component is a wrapper for a X-Road table component that contains default s
 </template>
 
 <script>
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 
-export default defineComponent({
+export default Vue.extend({
   name: 'xrd-table',
 });
 </script>

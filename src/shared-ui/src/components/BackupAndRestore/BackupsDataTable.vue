@@ -68,7 +68,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import DeleteBackupButton from './DeleteBackupButton.vue';
 import RestoreBackupButton from './RestoreBackupButton.vue';
@@ -76,7 +76,7 @@ import DownloadBackupButton from './DownloadBackupButton.vue';
 import { BackupHandler, BackupItem } from './backup-handler';
 import { Prop } from 'vue/types/options';
 
-export default defineComponent({
+export default Vue.extend({
   components: {
     DownloadBackupButton,
     DeleteBackupButton,

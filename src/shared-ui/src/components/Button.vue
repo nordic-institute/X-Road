@@ -46,12 +46,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 
 /**
  * Wrapper for vuetify button with x-road look
  * */
-export default defineComponent({
+export default Vue.extend({
   name: 'XrdButton',
   props: {
     outlined: {
@@ -83,8 +83,8 @@ export default defineComponent({
       default: false,
     },
     text: {
-      type: String,
-      default: '',
+      type: Boolean,
+      default: false,
     },
     min_width: {
       type: [Number, String],
