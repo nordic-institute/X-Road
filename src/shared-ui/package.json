@@ -24,8 +24,8 @@
     "core-js": "^3.6.5",
     "vee-validate": "^4.9.6",
     "vue": "^3.3.4",
-    "vue-i18n": "^8.24.3",
-    "vuetify": "^3.3.4"
+    "vue-i18n": "^9.2.2",
+    "vuetify": "^3.3.3"
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",
@@ -68,8 +68,8 @@
     "core-js": "^3.6.5",
     "vee-validate": "^4.9.6",
     "vue": "^3.3.4",
-    "vue-i18n": "^8.24.3",
-    "vuetify": "^3.3.4"
+    "vue-i18n": "^9.2.2",
+    "vuetify": "^3.3.3"
   },
   "overrides": {
     "trim": "1.0.1",
