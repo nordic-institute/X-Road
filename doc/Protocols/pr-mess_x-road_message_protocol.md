@@ -1,8 +1,8 @@
 # X-Road: Message Protocol v4.0
 **Technical Specification**
 
-Version: 4.0.24  
-10.05.2023  
+Version: 4.0.25  
+15.06.2023  
 Doc. ID: PR-MESS
 
 ---
@@ -35,6 +35,7 @@ Doc. ID: PR-MESS
 | 19.05.2020 | 4.0.22  | Added chapter [2.7 Identifier Character Restrictions](#27-identifier-character-restrictions)    | Ilkka Seppälä             |
 | 17.04.2023 | 4.0.23  | Remove central services support                                                                 | Justas Samuolis           |
 | 10.05.2023 | 4.0.24  | Security Categories removed.                                                                    | Justas Samuolis           |
+| 15.06.2023 | 4.0.25  | Stricter identifier character restrictions                                                      | Madis Loitmaa             |
 
 ## License
 
@@ -322,15 +323,11 @@ X-Road identifiers include, but are not restricted to:
 - Service version
 - Security server code
 
-X-Road Message Protocol imposes some restrictions on the characters that can be used in X-Road identifiers. The following characters SHALL NOT be used in the identifier values:
-- Colon `:`
-- Semicolon `;`
-- Slash `/`
-- Backslash `\`
-- Percent `%`
-- Control characters and zero-width spaces
-  - U+0000—U+001F and U+007F—U+009F; includes chars like tab, newline, del etc.
-  - U+200B and U+FEFF
+X-Road Message Protocol for REST imposes some restrictions on the characters that can be used in X-Road identifiers.
+Only the following characters MUST be used in the identifier values:
+- Letters `A...Z` and `a...z`
+- Numbers `0...9`
+- Symbols `'()+,-.=?`
   
 ## 3 Describing Services
 
