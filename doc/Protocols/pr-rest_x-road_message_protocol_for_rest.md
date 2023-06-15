@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.0.2  
+Version: 1.0.3    
 Doc. ID: PR-REST
 
 ---
