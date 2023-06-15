@@ -145,9 +145,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 
-export default defineComponent({
+export default Vue.extend({
   name: 'IconSvg',
   props: {
     iconName: {

@@ -24,31 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import '@mdi/font/css/materialdesignicons.css'
-import 'vuetify/styles'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import { VDataTable, VSkeletonLoader } from 'vuetify/labs/components'
-import * as directives from 'vuetify/directives'
+import Vue from 'vue';
+import Vuetify from 'vuetify';
+Vue.use(Vuetify);
 
-const vuetify = createVuetify({
-  components: {
-    ...components,
-    VDataTable,
-    VSkeletonLoader
-  },
-  directives,
+export default new Vuetify({
   theme: {
+    options: {
+      customProperties: true,
+    },
     themes: {
       light: {
-        colors: {
-          primary: '#663cdc',
-          secondary: '#00C9E7',
-          accent: '#8c9eff',
-        },
+        primary: '#663cdc',
+        secondary: '#00C9E7',
+        accent: '#8c9eff',
       },
     },
   },
-})
-
-export default vuetify;
+});

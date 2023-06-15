@@ -46,12 +46,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import Vue from 'vue';
 /**
  * Wrapper for vuetify button with x-road look
  * */
 
-export default defineComponent({
+export default Vue.extend({
   name: 'XrdSearch',
   props: ['value', 'label'],
   data() {
