@@ -31,7 +31,7 @@
       <v-alert
         data-test="contextual-modal-alert"
         color="red"
-        border="left"
+        border="start"
         colored-border
         class="alert mb-2"
         icon="icon-Error-notification"
@@ -48,9 +48,9 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     // Alert visible / hidden
     show: {
