@@ -53,7 +53,8 @@ Doc. ID: DM-CS
     - [2.3 APIKEY](#23-apikey)
 		- [2.3.1 Attributes](#231-attributes)
     - [2.4 APIKEY_ROLES](#24-apikey_roles)
-		- [2.4.1 Attributes](#241-attributes)
+        - [2.4.1 Indexes](#241-indexes)
+		- [2.4.2 Attributes](#242-attributes)
 	- [2.5 APPROVED_CAS](#25-approved_cas)
 		- [2.5.1 Indexes](#251-indexes)
 		- [2.5.2 Attributes](#252-attributes)
@@ -92,24 +93,21 @@ Doc. ID: DM-CS
 	- [2.19 REQUESTS](#219-requests)
 		- [2.19.1 Indexes](#2191-indexes)
 		- [2.19.2 Attributes](#2192-attributes)
-	- [2.20 SCHEMA_MIGRATIONS](#220-schema_migrations)
+	- [2.20 SECURITY_SERVER_CLIENTS](#220-security_server_clients)
 		- [2.20.1 Indexes](#2201-indexes)
 		- [2.20.2 Attributes](#2202-attributes)
-	- [2.21 SECURITY_SERVER_CLIENTS](#221-security_server_clients)
+	- [2.21 SECURITY_SERVERS](#221-security_servers)
 		- [2.21.1 Indexes](#2211-indexes)
 		- [2.21.2 Attributes](#2212-attributes)
-	- [2.22 SECURITY_SERVERS](#222-security_servers)
+	- [2.22 SERVER_CLIENTS](#222-server_clients)
 		- [2.22.1 Indexes](#2221-indexes)
 		- [2.22.2 Attributes](#2222-attributes)
-	- [2.23 SERVER_CLIENTS](#223-server_clients)
-		- [2.23.1 Indexes](#2231-indexes)
-		- [2.23.2 Attributes](#2232-attributes)
-	- [2.24 SYSTEM_PARAMETERS](#224-system_parameters)
+	- [2.23 SYSTEM_PARAMETERS](#223-system_parameters)
+		- [2.23.1 Attributes](#2231-attributes)
+	- [2.24 TRUSTED_ANCHORS](#224-trusted_anchors)
 		- [2.24.1 Attributes](#2241-attributes)
-	- [2.25 TRUSTED_ANCHORS](#225-trusted_anchors)
+	- [2.25 UI_USERS](#225-ui_users)
 		- [2.25.1 Attributes](#2251-attributes)
-	- [2.26 UI_USERS](#226-ui_users)
-		- [2.26.1 Attributes](#2261-attributes)
 
 ## License
 
@@ -119,7 +117,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ## 1.1 Preamble
 
-This document describes the database model of the X-Road central server.
+This document describes the database model of the X-Road Central Server.
 
 ## 1.2 Terms and abbreviations
 
@@ -135,25 +133,24 @@ This database assumes PostgreSQL version 12 or later. Default settings are used 
 
 ## 1.5 Creating, Backing Up and Restoring the Database
 
-This database is integrated into X-Road central server application. The database management functions are embedded into the application user interface.
+This database is integrated into X-Road Central Server application. The database management functions are embedded into the application user interface.
 The database, the database user and the data model is created by the application's installer. The database updates are packaged as application updates and are applied when the application is upgraded. From the technical point of view, the database structure is created and updated using [Liquibase](http://www.liquibase.org/) tool. The migration scripts can be found both in application source and in file system of the installed application.
-Database backup functionality is built into the application. The backup operation can be invoked from the web-based user interface or from the command line. The backup contains dump of all the database structure and contents. When restoring the application, first the software is installed and then the configuration database is restored together with all the other necessary files. This produces a working central server.
+Database backup functionality is built into the application. The backup operation can be invoked from the web-based user interface or from the command line. The backup contains dump of all the database structure and contents. When restoring the application, first the software is installed and then the configuration database is restored together with all the other necessary files. This produces a working Central Server.
 
 ## 1.6 Saving Database History
 
 This section describes the general mechanism for storing the history of the database tables. All the history-aware tables have an associated trigger update_history that records all the modifications to data. All the tables of central database are history-aware, except for
 
 - history,
-- distributed_files and
-- schema_migrations
+- distributed_files
 
 When a row is created, updated or deleted in one of the history-aware tables, the trigger update_history is activated and invokes the stored procedure add_history_rows. For each changed column, add_history_rows inserts a row into the history table. The details of the stored procedures are described in section 1.9.
 
 ## 1.7 High Availability Support
 
-The High Availability (HA) solution for the X-Road central server relies on a shared, optionally highly available database. There can be multiple central server nodes each connecting to the same database instance. Furthermore, the database can be set up in high-availability mode where there is the primary node with read/write access and one or more secondary read-only nodes replicating the primary data as it changes.
+The High Availability (HA) solution for the X-Road Central Server relies on a shared, optionally highly available database. There can be multiple Central Server nodes each connecting to the same database instance. Furthermore, the database can be set up in high-availability mode where there is the primary node with read/write access and one or more secondary read-only nodes replicating the primary data as it changes.
 
-In order to support high availability (HA) setup of the X-Road central server, some database tables have the ha_node_name field. In an HA setup, the name of the node of the cluster that initiated the insertion of a given record, is stored in that field. In ordinary setup, a default value is used. In both cases, this is done at the level of stored procedures as described in section 1.9.
+In order to support high availability (HA) setup of the X-Road Central Server, some database tables have the ha_node_name field. In an HA setup, the name of the node of the cluster that initiated the insertion of a given record, is stored in that field. In ordinary setup, a default value is used. In both cases, this is done at the level of stored procedures as described in section 1.9.
 
 The logic of taking into account the value of ha_node_name where applicable, has been implemented at the application level.
 
@@ -161,15 +158,15 @@ Database history records are aware of the node name in an HA setup and are repli
 
 ## 1.8 Entity-Relationship Diagram
 
-The data model is described in two entity relationship diagrams (ERD). The first diagram contains tables related to security servers and security server clients. The second diagram contains the rest of the tables.
+The data model is described in two entity relationship diagrams (ERD). The first diagram contains tables related to Security Servers and Security Server clients. The second diagram contains the rest of the tables.
 
 ![Entity-Relationship Diagram](img/dm-cs-central-server-database-diagram.svg)
 
-Figure 1. ERD describing the database tables in the central server database
+Figure 1. ERD describing the database tables in the Central Server database
 
 ## 1.9 List of Stored Procedures
 
-The following stored procedures are present in the database, regardless of whether a given central server has been installed in standalone or HA setup.
+The following stored procedures are present in the database, regardless of whether a given Central Server has been installed in standalone or HA setup.
 
 1. add_history_rows: Detects the changes made as a result of the operation it is invoked on, and calls the insert_history_row stored procedure to insert a row to the history table, for each changed field. For insertions and deletions, a history record is inserted for each field of the original table.
 2. insert_history_row: Inserts a single row with values corresponding to a changed field in one of the database tables. Invoked by the add_history_rows stored procedure.
@@ -179,7 +176,7 @@ The following stored procedures are present in the database, regardless of wheth
 
 ## 1.10 List of Triggers
 
-The following triggers are present in the database, regardless of whether a given central server has been installed in standalone or HA setup.
+The following triggers are present in the database, regardless of whether a given Central Server has been installed in standalone or HA setup.
 
 1. `update_history`: Invokes the `add_history_rows` stored procedure upon insertions, updates and deletions of records. Created for each history-aware table.
 2. `insert_node_name`: Invokes the `insert_node_name` stored procedure upon insertions. Created for each table with the ha_node_name field.
@@ -242,7 +239,13 @@ API key which grants access to REST API operations.
 
 Roles linked to one API key.
 
-### 2.4.1 Attributes
+### 2.4.1 Indexes
+
+| Name                            | Columns     |
+|:--------------------------------|:-----------:|
+| index_apikey_roles_on_apikey_id | apikey_id |
+
+### 2.4.2 Attributes
 
 | Name           |          Type          | Modifiers |                             Description                              |
 |:---------------|:----------------------:|:----------|:--------------------------------------------------------------------:|
@@ -274,7 +277,7 @@ New record creation process starts when an X-Road system administrator receives 
 | name                                              | character varying(255) |  | Name of the CA, used in user interfaces. Technically this is the subject name of the top level certification authority certificate. |
 | top_ca_id [FK]                                    | integer |  | ID of the top level CA certificate entry of the record. See also documentation of the table ca_infos. Cannot be NULL. |
 | authentication_only                               | boolean |  | If true, this CA can only issue authentication certificates. If false, this CA can issue all certificates. |                                                                                                          |
-| cert_profile_info                                 | character varying(255) |  | Fully qualified Java class name that implements the CertificateProfileInfoProvider interface. The implementing class is used for extracting subject information from certificates. The implementing class must be present in classpath of both central server and securitys servers. Cannot be NULL. |
+| cert_profile_info                                 | character varying(255) |  | Fully qualified Java class name that implements the CertificateProfileInfoProvider interface. The implementing class is used for extracting subject information from certificates. The implementing class must be present in classpath of both Central Server and securitys servers. Cannot be NULL. |
 | created_at                                        | timestamp without time zone | NOT NULL | Record creation time, managed automatically. |
 | updated_at                                        | timestamp without time zone | NOT NULL | Record last modified time, managed automatically. |
 
@@ -299,9 +302,9 @@ New record creation process starts when an X-Road system administrator receives 
 
 ## 2.7 AUTH_CERTS
 
-Authentication certificate that is used by a security server to establish secure connection. Each authentication certificate belongs to a particular security server.
+Authentication certificate that is used by a Security Server to establish secure connection. Each authentication certificate belongs to a particular Security Server.
 
-The record is created when X-Road registration officer approves the request in the user interface. The record is removed whenever there is need to remove the security server the record belongs to or when the authentication certificate cannot be used any more. An X-Road registration officer can either remove security server or send authentication certificate deletion request for the security server in the user interface. The latter is done when only authentication certificate (without security server) is going to be deleted. The record is never modified. See also documentation of table security_servers.
+The record is created when X-Road registration officer approves the request in the user interface. The record is removed whenever there is need to remove the Security Server the record belongs to or when the authentication certificate cannot be used any more. An X-Road registration officer can either remove Security Server or send authentication certificate deletion request for the Security Server in the user interface. The latter is done when only authentication certificate (without Security Server) is going to be deleted. The record is never modified. See also documentation of table security_servers.
 
 ### 2.7.1 Indexes
 
@@ -314,7 +317,7 @@ The record is created when X-Road registration officer approves the request in t
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | id [PK] | integer | NOT NULL | Primary key |
-| security_server_id [FK] | integer |  | ID of the security server the authentication certificate belongs to. References id attribute of security_servers entity. Cannot be NULL. |
+| security_server_id [FK] | integer |  | ID of the Security Server the authentication certificate belongs to. References id attribute of security_servers entity. Cannot be NULL. |
 | cert | bytea |  | Authentication certificate contents (in DER encoding). Cannot be NULL. |
 | created_at | timestamp without time zone | NOT NULL | Record creation time, managed automatically. |
 | updated_at | timestamp without time zone | NOT NULL | Record last modified time, managed automatically. |
@@ -372,7 +375,7 @@ The record is created when a new key for signing global configuration is needed 
 
 ## 2.10 CONFIGURATION_SOURCES
 
-Configuration source that the central server uses to distribute the global configuration. Stores (with associated configuration_signing_keys table) all the data necessary to generate configuration anchors for the central server. The configuration distributed by the source can be either internal configuration or external configuration. The internal configuration is distributed to security servers of this X-Road instance. The external configuration is distributed to the other X-Road instances (federation partners).
+Configuration source that the Central Server uses to distribute the global configuration. Stores (with associated configuration_signing_keys table) all the data necessary to generate configuration anchors for the Central Server. The configuration distributed by the source can be either internal configuration or external configuration. The internal configuration is distributed to Security Servers of this X-Road instance. The external configuration is distributed to the other X-Road instances (federation partners).
 
 The configuration source is associated with several configuration signing keys. When generating a configuration anchor for the source, all the keys are included. One of the keys is marked active. Technically, the active key (in configuration_signing_keys table) is referred by the attribute active_key_id. The active key is used for signing configuration distributed by this source.
 
@@ -419,7 +422,7 @@ The record is always deleted before new record with particular file name is crea
 | id [PK] | integer | NOT NULL | Primary key |
 | file_name  | character varying(255) |  | Name of the distributed file. Any valid file name. Cannot be NULL. |
 | file_data  | bytea |  | Contents of the distributed file. Cannot be NULL. |
-| content_identifier  | character varying(255) |  | Content identifier of the distributed file. The content identifier is used by security server to determine the exact type of the file. Must be unique inside an X-Road instance. Cannot be NULL. |
+| content_identifier  | character varying(255) |  | Content identifier of the distributed file. The content identifier is used by Security Server to determine the exact type of the file. Must be unique inside an X-Road instance. Cannot be NULL. |
 | file_updated_at  | timestamp without time zone |  | Time when the distributed file was last updated.  |
 | ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
 | version | integer | NOT NULL | Version of the distributed file. Cannot be NULL. Default is 0 which means it is not versioned and belongs to all versions of global configuration. |
@@ -449,7 +452,7 @@ The record is created when a new member needs to be added to a global group. The
 
 ## 2.13 GLOBAL_GROUPS
 
-Global group of access rights subjects that can be added to access control lists at security servers.
+Global group of access rights subjects that can be added to access control lists at Security Servers.
 
 The record is created when a new global group needs to be added to the X-Road instance. Then an X-Road registration officer adds new global group in the user interface. The record is modified when the group description is edited or members are added to or removed from the group by an X‑Road registration officer in the user interface. The record is deleted when the global group is deleted in the user interface by an X-Road registration officer.
 
@@ -499,7 +502,7 @@ Identifier that can be used to identify various objects on X-Road. An identifier
 | member_code     | character varying(255)      |           | Member code. Present in identifiers of 'MEMBER', 'SUBSYSTEM, SERVER' and 'SERVICE' type.  |
 | subsystem_code  | character varying(255)      |           | Subsystem code. Present in identifiers of 'SUBSYSTEM' and 'SERVICE' type. |
 | service_code    | character varying(255)      |           | Service code. Present in identifiers of 'SERVICE' type.  |
-| server_code     | character varying(255)      |           | Security server code. Present in identifiers of 'SERVER' type.  |
+| server_code     | character varying(255)      |           | Security Server code. Present in identifiers of 'SERVER' type.  |
 | created_at      | timestamp without time zone | NOT NULL  | Record creation time, managed automatically.  |
 | updated_at      | timestamp without time zone | NOT NULL  | Record last modified time, managed automatically.  |
 | service_version | character varying(255)      |           | X-Road service version. May be present in identifiers of 'SERVICE' type. |
@@ -545,15 +548,15 @@ The record is created when a new OCSP responder needs to be registered for eithe
 
 ## 2.18 REQUEST_PROCESSINGS
 
-Processing status of the management request. Management requests are means of managing clients and authentication certificates of security servers. See also documentation of the table requests. Request processing binds together two management requests that refer to the same data but have different origin (security server or user interface of the central server). If one request associated with the processing is from center, the other one must be from security server and vice versa. Request processing can have one of following statuses:
+Processing status of the management request. Management requests are means of managing clients and authentication certificates of Security Servers. See also documentation of the table requests. Request processing binds together two management requests that refer to the same data but have different origin (Security Server or user interface of the Central Server). If one request associated with the processing is from center, the other one must be from Security Server and vice versa. Request processing can have one of following statuses:
 
-- WAITING – central server has received a request. From this state, the user must either approve or decline the request.
-- SUBMITTED FOR APPROVAL – central server has received two complementary requests from different sources. From this state, the user must either approve or decline the request. Starting in X-Road version 7.3.0 not used anymore.
-- APPROVED – when the user approves the request, the processing enters APPROVED state. When entering this state the requested action (such as adding a client to a security server) is performed.
-- REVOKED – when the processing is in WAITING state, respective deletion request can be sent to revoke the request. Deletion request can be sent from security server.
+- WAITING – Central Server has received a request. From this state, the user must either approve or decline the request.
+- SUBMITTED FOR APPROVAL – Central Server has received two complementary requests from different sources. From this state, the user must either approve or decline the request. Starting in X-Road version 7.3.0 not used anymore.
+- APPROVED – when the user approves the request, the processing enters APPROVED state. When entering this state the requested action (such as adding a client to a Security Server) is performed.
+- REVOKED – when the processing is in WAITING state, respective deletion request can be sent to revoke the request. Deletion request can be sent from Security Server.
 - DECLINED – when the processing is in WAITING state, it can be declined from the user interface if X-Road registration officer decides so.
 
-Request processing record is created when one request that can have processing (registration requests for X-Road client and security server authentication certificate) is either sent from security server or inserted in the user interface by an X-Road registration officer. Modifications to the record are related to changes of the request processing status and are described above in this section. The record is never deleted.
+Request processing record is created when one request that can have processing (registration requests for X-Road client and Security Server authentication certificate) is either sent from Security Server or inserted in the user interface by an X-Road registration officer. Modifications to the record are related to changes of the request processing status and are described above in this section. The record is never deleted.
 
 ### 2.18.1 Attributes
 
@@ -567,13 +570,13 @@ Request processing record is created when one request that can have processing (
 
 ## 2.19 REQUESTS
 
-Management request for creating or deleting association between X-Road member and security server. Management requests are divided into registration and deletion requests.
+Management request for creating or deleting association between X-Road member and Security Server. Management requests are divided into registration and deletion requests.
 
-- Registration requests are submitted to the X-Road center over two channels which bring with it the need of two complementary requests: one request is submitted through X-Road security server, the other is presented to the central server's administrator through means independent of X-Road (for example, over digitally signed e-mail). The request can be either approved or declined in the user interface of the central server. There are two types of registration requests: registration of a security server client and registration of security server's authentication certificate.
-- Deletion requests are there to delete associations between X-Road clients, security servers and authentication certificates. Deletion requests are not associated with request processing. There are two types of deletion requests: deletion of security server's authentication certificate and  deletion of security server' client. Deletion request can be sent for following purposes:
-  - if a registration request is mistakenly sent (from user interface of the security server), respective (with the same client, security server and/or authentication certificate data) deletion request can be sent to delete the bad registration request;
-  - if authentication certificate of central server needs to be deleted, respective authentication certificate deletion request is sent either from user interface of the central server or security server;
-  - if client of a security server needs to be removed, respective deletion request can be sent.
+- Registration requests are submitted to the X-Road center over two channels which bring with it the need of two complementary requests: one request is submitted through X-Road Security Server, the other is presented to the Central Server's administrator through means independent of X-Road (for example, over digitally signed e-mail). The request can be either approved or declined in the user interface of the Central Server. There are two types of registration requests: registration of a Security Server client and registration of Security Server's authentication certificate.
+- Deletion requests are there to delete associations between X-Road clients, Security Servers and authentication certificates. Deletion requests are not associated with request processing. There are two types of deletion requests: deletion of Security Server's authentication certificate and  deletion of Security Server' client. Deletion request can be sent for following purposes:
+  - if a registration request is mistakenly sent (from user interface of the Security Server), respective (with the same client, Security Server and/or authentication certificate data) deletion request can be sent to delete the bad registration request;
+  - if authentication certificate of Central Server needs to be deleted, respective authentication certificate deletion request is sent either from user interface of the Central Server or Security Server;
+  - if client of a Security Server needs to be removed, respective deletion request can be sent.
 
 The record is created in the manner described above in this section. The record is modified on following occasions:
 
@@ -591,48 +594,26 @@ The record is never deleted.
 
 ### 2.19.2 Attributes
 
-| Name        | Type           | Modifiers        |                                                                                                                                                    Description                                                                                                                                                     |
-|:----------- |:-----------------:|:----------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| id [PK] | integer | NOT NULL |                                                                                                                                                    Primary key                                                                                                                                                     |
-| request_processing_id [FK] | integer |  |                                                ID of the registration processing object that manages this request. Applicable if type has value 'AuthCertRegRequest' or 'ClientRegRequest', otherwise NULL. References id attribute of request_processings entity.                                                 |
-| type  | character varying(255) |  |                                                                     Application model class type, managed automatically. Possible values are 'AuthCertRegRequest', 'ClientRegRequest', 'AuthCertDeletionRequest' and 'ClientDeletionRequest'.                                                                      |
-| security_server_id [FK] | integer |  |                                                                                                 ID of the security server related to the request.. References id attribute of identifiers entity. Cannot be NULL.                                                                                                  |
-| sec_serv_user_id [FK] | integer |  |                                                      ID of the security server client related to the request. Applicable when type is client registration request or client deletion request, otherwise NULL. References id attribute of identifiers entity.                                                       |
-| auth_cert  | bytea |  |                                                                             Applicable for authentication certificate registration or deletion request, otherwise NULL. Contents of the authentication certificate (in DER encoding).                                                                              |
-| address | character varying(255) |  |                         Security server address for helping X-Road clients to locate the security server. Added into the global configuration when authentication certificate registration request is approved. Applicable only for requests of type 'AuthCertRegRequest', otherwise NULL.                         |
-| origin | character varying(255) |  |                                                                                                                     Specifies where the request is from either CENTER or from SECURITY_SERVER.                                                                                                                     |
-| server_owner_name  | character varying(255) |  |                                                                                                                         Security server owner name (for displaying in the user interface, starting in X-Road version 7.3.0 not used anymore).                                                                                                                         |
-| server_user_name  | character varying(255) |  |                                                                                                                         Security server user name (for displaying in the user interface, starting in X-Road version 7.3.0 not used anymore).                                                                                                                          |
-| comments  | text |  |                                                                                                                          Comments related to creating this request. Currently not in use.                                                                                                                          |
-| created_at  | timestamp without time zone | NOT NULL |                                                                                                                                    Record creation time, managed automatically.                                                                                                                                    |
-| updated_at   | timestamp without time zone | NOT NULL |                                                                                                                                 Record last modified time, managed automatically.                                                                                                                                  |
-| server_owner_class  | character varying(255) |  |                                                                                                                        Security server owner class (for displaying in the user interface, starting in X-Road version 7.3.0 not used anymore).                                                                                                                         |
-| server_owner_code  | character varying(255) |  |                                                                                                                         Security server owner code (for displaying in the user interface, starting in X-Road version 7.3.0 not used anymore).                                                                                                                         |
-| server_code  | character varying(255) |  |                                                                                                                            Security server code (for displaying in the user interface, starting in X-Road version 7.3.0 not used anymore).                                                                                                                            |
-| processing_status  | character varying(255) |  | Request processing status (for displaying in the user interface, starting in X-Road version 7.3.0 not used anymore). Has always the same value as column status in the request_processings table of the processing associated with this request. When there is no processing for request, the value is NULL. See also documentation of the table request_processings. |
+| Name        | Type           | Modifiers        |                                                                                                                                                                              Description                                                                                                                                                                              |
+|:----------- |:-----------------:|:----------- |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| id [PK] | integer | NOT NULL |                                                                                                                                                                              Primary key                                                                                                                                                                              |
+| request_processing_id [FK] | integer |  |                                                                          ID of the registration processing object that manages this request. Applicable if type has value 'AuthCertRegRequest' or 'ClientRegRequest', otherwise NULL. References id attribute of request_processings entity.                                                                          |
+| type  | character varying(255) |  |                                                                                               Application model class type, managed automatically. Possible values are 'AuthCertRegRequest', 'ClientRegRequest', 'AuthCertDeletionRequest' and 'ClientDeletionRequest'.                                                                                               |
+| security_server_id [FK] | integer |  |                                                                                                                           ID of the Security Server related to the request. References id attribute of identifiers entity. Cannot be NULL.                                                                                                                            |
+| sec_serv_user_id [FK] | integer |  |                                                                                ID of the Security Server client related to the request. Applicable when type is client registration request or client deletion request, otherwise NULL. References id attribute of identifiers entity.                                                                                |
+| auth_cert  | bytea |  |                                                                                                       Applicable for authentication certificate registration or deletion request, otherwise NULL. Contents of the authentication certificate (in DER encoding).                                                                                                       |
+| address | character varying(255) |  |                                                  Security Server address for helping X-Road clients to locate the Security Server. Added into the global configuration when authentication certificate registration request is approved. Applicable only for requests of type 'AuthCertRegRequest', otherwise NULL.                                                   |
+| origin | character varying(255) |  |                                                                                                                                              Specifies where the request is from either CENTER or from SECURITY_SERVER.                                                                                                                                               |
+| comments  | text |  |                                                                                                                                                   Comments related to creating this request. Currently not in use.                                                                                                                                                    |
+| created_at  | timestamp without time zone | NOT NULL |                                                                                                                                                             Record creation time, managed automatically.                                                                                                                                                              |
+| updated_at   | timestamp without time zone | NOT NULL |                                                                                                                                                           Record last modified time, managed automatically.                                                                                                                                                           |
 
-## 2.20 SCHEMA_MIGRATIONS
+## 2.20 SECURITY_SERVER_CLIENTS
 
-Keeps track of database migrations that have already been executed. managed automatically (see also http://guides.rubyonrails.org/v3.2.21/migrations.html). Starting in X-Road version 7.3.0 schema changes are tracked with liquibase changelog (see also https://docs.liquibase.com/concepts/changelogs/home.html) and the table schema_migration not updated anymore.
+Contains X-Road members or subsystems. The subject that can be associated with a Security Server. There are two types of associations:
 
-### 2.20.1 Indexes
-
-| Name        | Columns           |
-|:----------- |:-----------------:|
-| unique_schema_migrations | version |
-
-### 2.20.2 Attributes
-
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| version  | character varying(255) | NOT NULL | UTC timestamp in 'yyyyMMddhhmmss' format describing the time when migration was executed.  |
-
-## 2.21 SECURITY_SERVER_CLIENTS
-
-Contains X-Road members or subsystems. The subject that can be associated with a security server. There are two types of associations:
-
-- X-Road members can be security server owners. Members cannot provide and consume regular X-Road services (but can consume the X-Road management services).
-- X-Road subsystems can be security server clients and can provide or consume X-Road services.
+- X-Road members can be Security Server owners. Members cannot provide and consume regular X-Road services (but can consume the X-Road management services).
+- X-Road subsystems can be Security Server clients and can provide or consume X-Road services.
 
 The way records are added depends on whether the record holds a member or a subsystem:
 
@@ -643,7 +624,7 @@ The record is modified when the X-Road registration officer edits the member's n
 
 The record can be deleted in the user interface by an X-Road registration officer.
 
-### 2.21.1 Indexes
+### 2.20.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
@@ -651,7 +632,7 @@ The record can be deleted in the user interface by an X-Road registration office
 | index_security_server_clients_on_server_client_id | server_client_id |
 | index_security_server_clients_on_xroad_member_id | xroad_member_id |
 
-### 2.21.2 Attributes
+### 2.20.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -667,71 +648,71 @@ The record can be deleted in the user interface by an X-Road registration office
 | created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically.  |
 
-## 2.22 SECURITY_SERVERS
+## 2.21 SECURITY_SERVERS
 
-Information about a security server registered in this X-Road instance. Security server always belongs to a particular X-Road member. For security server to function properly, it needs at least one authentication certificate. Security server may have clients (subsystems).
+Information about a Security Server registered in this X-Road instance. Security Server always belongs to a particular X-Road member. For Security Server to function properly, it needs at least one authentication certificate. Security Server may have clients (subsystems).
 
-A prerequisite for creating the record is that the authentication certificate registration request for not yet existing security server are approved (see also documentation of tables requests and request_processings). The record is created when request is approved by an X-Road registration officer in the user interface. The record is modified when an X-Road registration officer edits security server address in the user interface. The record can be deleted in the user interface by an X-Road registration officer.
+A prerequisite for creating the record is that the authentication certificate registration request for not yet existing Security Server are approved (see also documentation of tables requests and request_processings). The record is created when request is approved by an X-Road registration officer in the user interface. The record is modified when an X-Road registration officer edits Security Server address in the user interface. The record can be deleted in the user interface by an X-Road registration officer.
 
-### 2.22.1 Indexes
+### 2.21.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_security_servers_on_xroad_member_id | xroad_member_id |
 
-### 2.22.2 Attributes
+### 2.21.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | id [PK] | integer | NOT NULL | Primary key |
-| server_code  | character varying(255) |  | Security server code, unique between security servers belonging to the same owner. Cannot be NULL. |
-| owner_id [FK] | integer |  | ID of the X-Road member that owns the security server. References id attribute of security_server_clients entity. Cannot be NULL. |
-| address  | character varying(255) |  | DNS name or IP-address of the security server.  |
+| server_code  | character varying(255) |  | Security Server code, unique between Security Servers belonging to the same owner. Cannot be NULL. |
+| owner_id [FK] | integer |  | ID of the X-Road member that owns the Security Server. References id attribute of security_server_clients entity. Cannot be NULL. |
+| address  | character varying(255) |  | DNS name or IP-address of the Security Server.  |
 | created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically.  |
 
 
-## 2.23 SERVER_CLIENTS
+## 2.22 SERVER_CLIENTS
 
-Join table enabling many-to-many relationship between security servers and security server clients. In other words, associates security servers with its clients.
+Join table enabling many-to-many relationship between Security Servers and Security Server clients. In other words, associates Security Servers with its clients.
 
-The record is created when a new client is added to the security server. It requires approval of a client registration request (see documentation of tables requests and request_processings for details). An X-Road registration officer can do it in the user interface. The record is deleted when a client of a security server is deleted in the user interface by an X-Road registration officer. The record is never modified.
+The record is created when a new client is added to the Security Server. It requires approval of a client registration request (see documentation of tables requests and request_processings for details). An X-Road registration officer can do it in the user interface. The record is deleted when a client of a Security Server is deleted in the user interface by an X-Road registration officer. The record is never modified.
 
-### 2.23.1 Indexes
+### 2.22.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | index_server_clients_on_security_server_client_id | security_server_client_id |
 | index_server_clients_on_security_server_id | security_server_id |
 
-### 2.23.2 Attributes
+### 2.22.2 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
 | id [PK] | integer | NOT NULL | Primary key |
-| security_server_id [FK] | integer | NOT NULL | ID of the security server. References id attribute of security_servers entity. |
-| security_server_client_id [FK] | integer | NOT NULL | ID of the client the security server has. References id attribute of security_server_clients entity. |
+| security_server_id [FK] | integer | NOT NULL | ID of the Security Server. References id attribute of security_servers entity. |
+| security_server_client_id [FK] | integer | NOT NULL | ID of the client the Security Server has. References id attribute of security_server_clients entity. |
 
-## 2.24 SYSTEM_PARAMETERS
+## 2.23 SYSTEM_PARAMETERS
 
-System configuration parameter necessary for proper functioning of central server and entire X-Road for that matter. System parameters are stored as key-value pairs. Following is the list of supported system parameters. In an HA setup, the name of the node that initiated a particular insertion, is not significant, except for where stated explicitly.
+System configuration parameter necessary for proper functioning of Central Server and entire X-Road for that matter. System parameters are stored as key-value pairs. Following is the list of supported system parameters. In an HA setup, the name of the node that initiated a particular insertion, is not significant, except for where stated explicitly.
 
-1. managementServiceProviderClass – Member class part of the identifier pointing to the security server client that provides management services. The value can be changed in the user interface.
-2. managementServiceProviderCode – Member code part of the identifier pointing to the security server client that provides management services. The value can be changed in the user interface.
-3. managementServiceProviderSubsystem – Subsystem code part of the identifier pointing to the security server client that provides management services. The value can be changed in the user interface.
-4. centralServerAddress – the DNS name of this central server. The value can be changed in the user interface. In an HA setup, the value is local to each node of the cluster.
-5. instanceIdentifier – the instance identifier of this X-Road instance. Must be globally unique. The value is assigned during the initialization of the central server in the user interface.
-6. authCertRegUrl – URL where security servers can send their authentication certificate registration requests. May contain placeholder %{centralServerAddress} which will be replaced with value of the centralServerAddress system parameter.
+1. managementServiceProviderClass – Member class part of the identifier pointing to the Security Server client that provides management services. The value can be changed in the user interface.
+2. managementServiceProviderCode – Member code part of the identifier pointing to the Security Server client that provides management services. The value can be changed in the user interface.
+3. managementServiceProviderSubsystem – Subsystem code part of the identifier pointing to the Security Server client that provides management services. The value can be changed in the user interface.
+4. centralServerAddress – the DNS name of this Central Server. The value can be changed in the user interface. In an HA setup, the value is local to each node of the cluster.
+5. instanceIdentifier – the instance identifier of this X-Road instance. Must be globally unique. The value is assigned during the initialization of the Central Server in the user interface.
+6. authCertRegUrl – URL where Security Servers can send their authentication certificate registration requests. May contain placeholder %{centralServerAddress} which will be replaced with value of the centralServerAddress system parameter.
 7. confSignDigestAlgoId  – identifier of the digest algorithm that is used for signing the global configuration. Supported values are 'SHA-512', 'SHA-384' and 'SHA-256'.
 8. confHashAlgoUri – URI of the algorithm that is used to hash distributable global configuration files. Supported values are http://www.w3.org/2001/04/xmlenc#sha512 and http://www.w3.org/2001/04/xmlenc#sha256.
 9. confSignCertHashAlgoUri – URI of the algorithm that is used to hash global configuration signing certificate. Supported values are http://www.w3.org/2001/04/xmlenc#sha512 and http://www.w3.org/2001/04/xmlenc#sha256.
-10. securityServerOwnersGroup – name of the global group where all the members that get ownership of any security server are automatically added.
+10. securityServerOwnersGroup – name of the global group where all the members that get ownership of any Security Server are automatically added.
 11. confExpireIntervalSeconds – time (in seconds)  during which generated global configuration is considered valid.
-12. ocspFreshnessSeconds – time (in seconds) during which security servers should consider validity information to be usable. After that time, cached OCSP responses must be discarded. This configuration parameter is distributed to security servers as part of global configuration.
+12. ocspFreshnessSeconds – time (in seconds) during which Security Servers should consider validity information to be usable. After that time, cached OCSP responses must be discarded. This configuration parameter is distributed to Security Servers as part of global configuration.
 
-Some system parameters can be modified by an X-Road security officer in the user interface. All the system parameters that cannot be changed in the user interface, are assigned default values during the initialization of the central server. Later these can only be changed from the database. As these parameters are critical for functioning of entire X-Road instance, these must be modified with extreme care.
+Some system parameters can be modified by an X-Road security officer in the user interface. All the system parameters that cannot be changed in the user interface, are assigned default values during the initialization of the Central Server. Later these can only be changed from the database. As these parameters are critical for functioning of entire X-Road instance, these must be modified with extreme care.
 
-### 2.24.1 Attributes
+### 2.23.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -742,13 +723,13 @@ Some system parameters can be modified by an X-Road security officer in the user
 | updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically.  |
 | ha_node_name | character varying(255) |  | Name of the cluster node that initiated the insertion in an HA setup; the default value in standalone setup. |
 
-## 2.25 TRUSTED_ANCHORS
+## 2.24 TRUSTED_ANCHORS
 
 Trusted anchor of a federation partner. A trusted anchor is the configuration anchor of the configuration source distributing the external configuration of a federation partner.
 
 The record is created or modified exactly the same way as described in the documentation of table anchor_url_certs. The record is never modified.
 
-### 2.25.1 Attributes
+### 2.24.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
@@ -760,13 +741,13 @@ The record is created or modified exactly the same way as described in the docum
 | updated_at  | timestamp without time zone |  | Record last modified time, managed automatically.  |
 | generated_at  | timestamp without time zone |  | Anchor generation time (read from the anchor file).  |
 
-## 2.26 UI_USERS
+## 2.25 UI_USERS
 
 UI user name with its last used locale. Maps possible user interface (UI) user names with locales so that when UI user is logged in next time, the locale it has been used is remembered. If a user with no assigned locale logs in, the first available locale is selected to this user. Later user can change its locale in the user interface.
 
 The record is created when the user is logged in the user interface for the first time. The record is modified when the user logged in changes its locale in the user interface. The record is never deleted.
 
-### 2.26.1 Attributes
+### 2.25.1 Attributes
 
 | Name        | Type           | Modifiers        | Description           |
 |:----------- |:-----------------:|:----------- |:-----------------:|
