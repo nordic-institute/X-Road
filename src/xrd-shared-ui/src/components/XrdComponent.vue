@@ -1,13 +1,20 @@
 <template>
-  <button class="xrd-button">
-    {{ props.text }}
+  <button class="xrd-button" @click="$emit('press')">
+    {{ text }}
   </button>
 </template>
 
-<script setup lang="ts">
-const props = defineProps<{
-  text: string;
-}>();
+<script lang="ts">
+import { defineComponent } from "vue";
+
+export default defineComponent({
+  props: {
+    text: {
+      type: String
+    }
+  },
+  emits: ['press']
+});
 </script>
 
 <style scoped>
