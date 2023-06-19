@@ -6,8 +6,7 @@
 
     <changeSet author="niis" id="202306151639-drop-schema-migrations">
 
-        <!-- drop table schema_migrations only if table exist,
-             if it not exists, like in intTest, we should not remove the table-->
+        <!-- drop table schema_migrations only if table exists -->
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="schema_migrations"/>
         </preConditions>
