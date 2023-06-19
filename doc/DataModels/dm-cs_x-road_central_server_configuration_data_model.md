@@ -241,9 +241,9 @@ Roles linked to one API key.
 
 ### 2.4.1 Indexes
 
-| Name                            | Columns     |
-|:--------------------------------|:-----------:|
-| index_apikey_roles_on_apikey_id | apikey_id |
+| Name               |     Columns     |
+|:-------------------|:---------------:|
+| unique_apikey_role | apikey_id, role |
 
 ### 2.4.2 Attributes
 
@@ -548,7 +548,11 @@ The record is created when a new OCSP responder needs to be registered for eithe
 
 ## 2.18 REQUEST_PROCESSINGS
 
-Processing status of the management request. Management requests are means of managing clients and authentication certificates of Security Servers. See also documentation of the table requests. Request processing binds together two management requests that refer to the same data but have different origin (Security Server or user interface of the Central Server). If one request associated with the processing is from center, the other one must be from Security Server and vice versa. Request processing can have one of following statuses:
+Processing status of the management request. Management requests are means of managing clients and authentication certificates of Security Servers. See also documentation of the table requests. 
+- In older version request processing binds together two management requests that refer to the same data but have different origin (Security Server or user interface of the Central Server). If one request associated with the processing is from center, the other one must be from Security Server and vice versa. 
+- Starting in X-Road version 7.3.0 request_processing table contain only one record per request, there is no complementary request anymore.
+
+Request processing can have one of following statuses:
 
 - WAITING – Central Server has received a request. From this state, the user must either approve or decline the request.
 - SUBMITTED FOR APPROVAL – Central Server has received two complementary requests from different sources. From this state, the user must either approve or decline the request. Starting in X-Road version 7.3.0 not used anymore.
@@ -556,7 +560,7 @@ Processing status of the management request. Management requests are means of ma
 - REVOKED – when the processing is in WAITING state, respective deletion request can be sent to revoke the request. Deletion request can be sent from Security Server.
 - DECLINED – when the processing is in WAITING state, it can be declined from the user interface if X-Road registration officer decides so.
 
-Request processing record is created when one request that can have processing (registration requests for X-Road client and Security Server authentication certificate) is either sent from Security Server or inserted in the user interface by an X-Road registration officer. Modifications to the record are related to changes of the request processing status and are described above in this section. The record is never deleted.
+Request processing record is created (registration requests for X-Road client and Security Server authentication certificate) from Security Server. Modifications to the record are related to changes of the request processing status and are described above in this section. The record is never deleted.
 
 ### 2.18.1 Attributes
 
@@ -572,16 +576,13 @@ Request processing record is created when one request that can have processing (
 
 Management request for creating or deleting association between X-Road member and Security Server. Management requests are divided into registration and deletion requests.
 
-- Registration requests are submitted to the X-Road center over two channels which bring with it the need of two complementary requests: one request is submitted through X-Road Security Server, the other is presented to the Central Server's administrator through means independent of X-Road (for example, over digitally signed e-mail). The request can be either approved or declined in the user interface of the Central Server. There are two types of registration requests: registration of a Security Server client and registration of Security Server's authentication certificate.
+- Registration requests are submitted through X-Road Security Server. The request can be either approved or declined in the user interface of the Central Server. There are two types of registration requests: registration of a Security Server client and registration of Security Server's authentication certificate.
 - Deletion requests are there to delete associations between X-Road clients, Security Servers and authentication certificates. Deletion requests are not associated with request processing. There are two types of deletion requests: deletion of Security Server's authentication certificate and  deletion of Security Server' client. Deletion request can be sent for following purposes:
   - if a registration request is mistakenly sent (from user interface of the Security Server), respective (with the same client, Security Server and/or authentication certificate data) deletion request can be sent to delete the bad registration request;
   - if authentication certificate of Central Server needs to be deleted, respective authentication certificate deletion request is sent either from user interface of the Central Server or Security Server;
   - if client of a Security Server needs to be removed, respective deletion request can be sent.
 
-The record is created in the manner described above in this section. The record is modified on following occasions:
-
-- When the waiting request is approved, declined, revoked – field processing_status changes. See documentations of the field processing_status and the table request_processings for details.
-- If a name of a member associated with the request is edited – either column server_owner_name or server_user_name changes.
+The record is created in the manner described above in this section. Starting in X-Road version 7.3.0 the record is never modified.
 The record is never deleted.
 
 ### 2.19.1 Indexes
