@@ -25,41 +25,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <i
-    id="dlg-close-x"
-    @click="click"
-  />
+  <g>
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M7.42969 8.5L5.92969 10L12 16.0703L18.0703 10L16.5703 8.5L12 13.0703L7.42969 8.5Z"
+    />
+  </g>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-
-/**
- * Component for close action with X icon.
- */
-export default defineComponent({
-  emits: ['click'],
-  methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
-    },
-  },
-});
-</script>
-
-<style lang="scss" scoped>
-@import '../assets/colors';
-
-#dlg-close-x {
-  font-size: 34px;
-  cursor: pointer;
-  font-style: normal;
-  font-weight: 300;
-  color: $XRoad-Purple100;
-  margin-top: -5px;
-}
-
-#dlg-close-x:before {
-  content: '\00d7';
-}
-</style>

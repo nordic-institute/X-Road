@@ -11,7 +11,7 @@ export default defineConfig({
     vue(),
     dts(),
     vueJsx(),
-    vuetify({ autoImport: true })
+    vuetify({ autoImport: true})
   ],
   build: {
     lib: {
