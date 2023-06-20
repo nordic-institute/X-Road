@@ -56,7 +56,7 @@ public class Cert {
     /** Whether this certificate can be used by the proxy. */
     private boolean active;
 
-    /** Whether or not this certificate is in the configuration. */
+    /** Whether this certificate is in the configuration. */
     private boolean savedToConfiguration;
 
     /** Holds the status of the certificate. */

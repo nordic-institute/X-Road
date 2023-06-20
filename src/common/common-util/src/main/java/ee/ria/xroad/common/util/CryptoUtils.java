@@ -35,7 +35,7 @@ import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.CertificateID;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMWriter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
@@ -787,8 +787,24 @@ public final class CryptoUtils {
      */
     public static void writeCertificatePem(byte[] certBytes, OutputStream out)
             throws IOException {
-        try (PEMWriter writer = new PEMWriter(new OutputStreamWriter(out))) {
+        try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(out))) {
             writer.writeObject(readCertificate(certBytes));
+        }
+    }
+
+    /**
+     * Writes the given certificate chain bytes into the provided output stream in PEM format.
+     * @param certBytes bytes content of the certificate chain
+     * @param out output stream for writing the PEM formatted certificate chain
+     * @throws IOException if an I/O error occurred
+     */
+    public static void writeCertificateChainPem(byte[] certBytes, OutputStream out)
+            throws IOException {
+        try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(out))) {
+            Collection<X509Certificate> chain = readCertificates(certBytes);
+            for (X509Certificate cert : chain) {
+                writer.writeObject(cert);
+            }
         }
     }
 }
