@@ -29,7 +29,9 @@
     "src"
   ],
   "dependencies": {
-    "deepmerge": "^4.3.1"
+    "deepmerge": "^4.3.1",
+    "@mdi/font": "^7.2.96",
+    "@fontsource/open-sans": "^5.0.3"
   },
   "peerDependencies": {
     "vue": "^3.3.4",
