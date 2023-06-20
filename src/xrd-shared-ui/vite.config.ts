@@ -4,6 +4,7 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import vuetify from 'vite-plugin-vuetify'
 import dts from "vite-plugin-dts";
 import { resolve } from "node:path";
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,7 +12,10 @@ export default defineConfig({
     vue(),
     dts(),
     vueJsx(),
-    vuetify({ autoImport: true})
+    vuetify({ autoImport: true}),
+    VueI18nPlugin({
+      include: [resolve(__dirname, './src/locales/**')],
+    })
   ],
   build: {
     lib: {

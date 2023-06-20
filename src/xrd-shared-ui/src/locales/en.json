@@ -1,0 +1,20 @@
+{
+  "locals_demo": "This is localised in library",
+  "type": "Type",
+  "warning": "Warning",
+  "fields": {
+    "password": "Password",
+    "username": "LIB-Username",
+    "shared": "sharedlib"
+  },
+  "action": {
+    "cancel": "Cancel",
+    "add": "Add",
+    "yes": "Yes",
+    "upload": "Upload"
+  },
+  "noData": {
+    "noMatches": "No items matching criteria",
+    "loading": "Loading... Please wait"
+  }
+}
