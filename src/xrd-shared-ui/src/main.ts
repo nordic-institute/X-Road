@@ -11,8 +11,8 @@ import App from './App.vue'
 import { createApp } from 'vue'
 
 // Plugins
-import xrdSharedUi from './index'
+import {createSharedUi} from './index'
 
 createApp(App)
-  .use(xrdSharedUi)
+  .use(createSharedUi())
   .mount('#app')
