@@ -26,9 +26,9 @@
  -->
 <template>
   <v-btn
-    :variant="internalVariant as NonNullable<any>"
+    :variant="variant as NonNullable<any>"
     :disabled="disabled"
-    :min-width="min_width"
+    :min-width="minWidth"
     :loading="loading"
     :block="block"
     :large="large"
@@ -40,7 +40,7 @@
     :class="{ gradient: showGradient }"
     @click="click"
   >
-    <slot>{{ text}}</slot>
+    <slot>{{ text }}</slot>
   </v-btn>
 </template>
 
@@ -83,7 +83,7 @@ export default defineComponent({
       type: String,
       default: undefined,
     },
-    min_width: {
+    minWidth: {
       type: [Number, String],
       default: 90,
     },
@@ -93,18 +93,11 @@ export default defineComponent({
     },
     variant: {
       type: String,
+      default: 'flat'
     },
   },
+  emits: ['click'],
   computed: {
-    internalVariant(): string {
-      if(this.variant){
-        return this.variant;
-      }
-      if(this.outlined){
-        return 'outlined';
-      }
-      return 'flat';
-    },
     showGradient(): boolean {
       if (this.disabled === true) {
         return false;
