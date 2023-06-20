@@ -14,7 +14,7 @@ api_token_configured() {
   else
     prepare_db_props
     local apikeys=$(
-      PGDATABASE="$db_database" PGUSER="$db_username" PGPASSWORD="$db_password" psql -h "$db_host" -p "$db_port" -qtA -c \
+      PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "$db_host" -p "$db_port" -qtA -c \
       "SELECT encodedkey FROM apikey a INNER JOIN apikey_roles r ON a.id = r.apikey_id WHERE r.role = 'XROAD_MANAGEMENT_SERVICE';"
     )
     local encoded_token=$(encode_token $token)
@@ -41,7 +41,7 @@ else
   token=$(tr -C -d "[:alnum:]" </dev/urandom | head -c32)
   encoded_token=$(encode_token $token)
   prepare_db_props
-  PGDATABASE="$db_database" PGUSER="$db_username" PGPASSWORD="$db_password" psql -h "$db_host" -p "$db_port" -qtA -c \
+  PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "$db_host" -p "$db_port" -qtA -c \
   "INSERT INTO apikey(id, encodedkey) VALUES ((SELECT NEXTVAL('hibernate_sequence')), '$encoded_token');
   INSERT INTO apikey_roles(apikey_id,role) VALUES ((SELECT id FROM apikey WHERE encodedkey = '$encoded_token'), 'XROAD_MANAGEMENT_SERVICE');"
   crudini --set /etc/xroad/conf.d/local.ini "$1" api-token "$token"
