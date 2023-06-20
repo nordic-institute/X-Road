@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.29
+Version: 2.30
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -55,6 +55,7 @@ Doc. ID: UG-CS
 | 05.06.2023 | 2.27    | Update HA cluster status endpoint path                                                                                                                                                                                                                                                                                                                                                                                                  | Andres Rosenthal    |
 | 02.06.2023 | 2.28    | Added security hardening paragraph                                                                                                                                                                                                                                                                                                                                                                                                      | Ričardas Bučiūnas   |
 | 09.06.2023 | 2.29    | Added REST API paragraph                                                                                                                                                                                                                                                                                                                                                                                                                | Vytautas Paliliūnas |
+| 19.06.2023 | 2.30    | Remove table schema_migrations                                                                                                                                                                                                                                                                                                                                                                                                          | Eneli Reimets       |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -966,7 +967,7 @@ To remove a timestamping service, follow these steps.
 Access rights: System Administrator
 
 The Central Server backs up
-the database (excluding the schema_migrations table and the database schema) and
+the database (excluding the database schema) and
 the directories `/etc/xroad/` and `/etc/nginx/sites-enabled/`.
 
 Backups contain sensitive information that must be kept secret (for example, private keys and database credentials). In other words, leaking this information could easily lead to full compromise of Central Server. Therefore, it is highly recommended that backup archives are encrypted and stored securely. Should the information still leak for whatever reason the Central Server should be considered as compromised and reinstalled from scratch.
