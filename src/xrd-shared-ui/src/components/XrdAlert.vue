@@ -25,41 +25,91 @@
    THE SOFTWARE.
  -->
 <template>
-  <i
-    id="dlg-close-x"
-    @click="click"
-  />
+  <div class="px-3">
+    <!-- Error -->
+    <v-container
+      v-if="show"
+      fluid
+      class="alerts-container px-3"
+    >
+      <v-alert
+        data-test="contextual-modal-alert"
+        border="start"
+        border-color="error"
+        variant="outlined"
+        class="alert mb-2"
+        color="red"
+        icon="icon-Error-notification"
+      >
+        <div class="row-wrapper-top scrollable identifier-wrap">
+          <div class="row-wrapper">
+            <!-- Show localised text by id -->
+            <div>{{ message }}</div>
+          </div>
+        </div>
+      </v-alert>
+    </v-container>
+  </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-
-/**
- * Component for close action with X icon.
- */
-export default defineComponent({
-  emits: ['click'],
-  methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
+<script setup lang="ts">
+defineProps(
+  {
+    // Alert visible / hidden
+    show: {
+      type: Boolean,
+      required: true,
     },
-  },
-});
+    message: {
+      type: String,
+      required: false,
+      default: ''
+    },
+  }
+);
 </script>
 
 <style lang="scss" scoped>
 @import '../assets/colors';
 
-#dlg-close-x {
-  font-size: 34px;
-  cursor: pointer;
-  font-style: normal;
-  font-weight: 300;
-  color: $XRoad-Purple100;
-  margin-top: -5px;
+.alerts-container {
+  padding: 0;
+
+  & > * {
+    margin-top: 0;
+    margin-bottom: 4px;
+    border-radius: 0;
+  }
+
+  & > :first-child {
+    margin-top: 4px;
+  }
 }
 
-#dlg-close-x:before {
-  content: '\00d7';
+.alert {
+  margin-top: 16px;
+  border: solid 1px #dedce4;
+  border-radius: 4px;
+}
+
+.row-wrapper-top {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.row-wrapper {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  overflow-wrap: break-word;
+  justify-content: center;
+  margin-right: 30px;
+}
+
+.scrollable {
+  overflow-y: auto;
+  max-height: 300px;
 }
 </style>

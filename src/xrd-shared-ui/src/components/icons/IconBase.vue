@@ -25,41 +25,47 @@
    THE SOFTWARE.
  -->
 <template>
-  <i
-    id="dlg-close-x"
-    @click="click"
-  />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    :width="width"
+    :height="height"
+    viewBox="0 0 26 26"
+    :aria-labelledby="iconName"
+    role="presentation"
+    :fill="color"
+  >
+    <title
+      :id="iconName"
+      lang="en"
+    >{{ iconName }}</title>
+    <slot :fill-color="color" />
+  </svg>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-
-/**
- * Component for close action with X icon.
- */
-export default defineComponent({
-  emits: ['click'],
-  methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
-    },
+<script setup lang="ts">
+defineProps({
+  iconName: {
+    type: String,
+    default: '',
+  },
+  width: {
+    type: [Number, String],
+    default: 26,
+  },
+  height: {
+    type: [Number, String],
+    default: 26,
+  },
+  color: {
+    type: String,
+    default: 'currentColor',
   },
 });
 </script>
 
-<style lang="scss" scoped>
-@import '../assets/colors';
-
-#dlg-close-x {
-  font-size: 34px;
-  cursor: pointer;
-  font-style: normal;
-  font-weight: 300;
-  color: $XRoad-Purple100;
-  margin-top: -5px;
-}
-
-#dlg-close-x:before {
-  content: '\00d7';
+<style scoped>
+svg {
+  display: inline-block;
+  vertical-align: middle;
 }
 </style>
