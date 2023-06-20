@@ -549,7 +549,7 @@ The record is created when a new OCSP responder needs to be registered for eithe
 ## 2.18 REQUEST_PROCESSINGS
 
 Processing status of the management request. Management requests are means of managing clients and authentication certificates of Security Servers. See also documentation of the table requests. 
-- In older version request processing binds together two management requests that refer to the same data but have different origin (Security Server or user interface of the Central Server). If one request associated with the processing is from center, the other one must be from Security Server and vice versa. 
+- In older version request processing binds together two management requests that refer to the same data but have different origin (Security Server or user interface of the Central Server). If one request associated with the processing is from Central Server, the other one must be from Security Server and vice versa. 
 - Starting in X-Road version 7.3.0 request_processing table contain only one record per request, there is no complementary request anymore.
 
 Request processing can have one of following statuses:
