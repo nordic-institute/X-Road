@@ -36,24 +36,34 @@
           :style="{ color }"
           @click="clicked"
         >
-          <v-icon v-if="isOpen" color="primary">mdi-chevron-down</v-icon>
-          <v-icon v-else color="primary">mdi-chevron-right</v-icon>
+          <v-icon
+            v-if="isOpen"
+            color="primary"
+          >
+            mdi-chevron-down
+          </v-icon>
+          <v-icon
+            v-else
+            color="primary"
+          >
+            mdi-chevron-right
+          </v-icon>
         </v-btn>
       </div>
       <div :class="{ 'text--disabled': isDisabled }">
-        <slot name="link"></slot>
+        <slot name="link" />
       </div>
 
-      <v-spacer/>
+      <v-spacer />
       <div class="exp-action-wrap">
-        <slot name="action"></slot>
+        <slot name="action" />
       </div>
     </div>
     <div
       v-if="isOpen"
       :class="['exp-content-wrap', { 'v-input--disabled': isDisabled }]"
     >
-      <slot name="content"></slot>
+      <slot name="content" />
     </div>
   </div>
 </template>

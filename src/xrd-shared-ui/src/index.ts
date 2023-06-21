@@ -19,6 +19,7 @@ import XrdAlert from "./components/XrdAlert.vue";
 import XrdEmptyPlaceholder from "./components/XrdEmptyPlaceholder.vue";
 import XrdEmptyPlaceholderRow from "./components/XrdEmptyPlaceholderRow.vue";
 import XrdExpandable from "./components/XrdExpandable.vue";
+import XrdFileUpload from "./components/XrdFileUpload.vue";
 
 
 function createSharedUi(i18nMessages = {}) {
@@ -41,6 +42,7 @@ function createSharedUi(i18nMessages = {}) {
         .component('XrdEmptyPlaceholder', XrdEmptyPlaceholder)
         .component('XrdEmptyPlaceholderRow', XrdEmptyPlaceholderRow)
         .component('XrdExpandable', XrdExpandable)
+        .component('XrdFileUpload', XrdFileUpload)
       ;
     }
   }
