@@ -32,12 +32,12 @@
           icon
           size="small"
           class="no-hover rounded-circle"
-          :disabled="isDisabled"
+          :disabled="disabled"
           :style="{ color }"
-          @click="clicked"
+          @click="toggle"
         >
           <v-icon
-            v-if="isOpen"
+            v-if="opened"
             color="primary"
           >
             mdi-chevron-down
@@ -50,7 +50,7 @@
           </v-icon>
         </v-btn>
       </div>
-      <div :class="{ 'text--disabled': isDisabled }">
+      <div :class="{ 'text--disabled': disabled }">
         <slot name="link" />
       </div>
 
@@ -60,8 +60,8 @@
       </div>
     </div>
     <div
-      v-if="isOpen"
-      :class="['exp-content-wrap', { 'v-input--disabled': isDisabled }]"
+      v-if="opened"
+      :class="['exp-content-wrap', { 'v-input--disabled': disabled }]"
     >
       <slot name="content" />
     </div>
@@ -70,35 +70,43 @@
 
 <script lang="ts" setup>
 
+import { ref } from "vue";
+
 /**
  * Expandable can be clicked open and has slots for a link and ans action
  */
-const emit = defineEmits(['close', 'open'])
+const emit = defineEmits(['close', 'open', 'update:opened'])
 const props = defineProps({
-  isOpen: {
+  modelValue: {
     type: Boolean,
-    required: true,
+    required: false,
+    default: false,
   },
   color: {
     type: String,
     required: false,
   },
-  isDisabled: {
+  disabled: {
     type: Boolean,
     required: false,
     default: false,
   },
 });
 
-function clicked() {
-  if (props.isDisabled) {
+let opened = ref(props.modelValue);
+
+function toggle() {
+  if (props.disabled) {
     return;
   }
-  if (props.isOpen) {
+  if (opened.value) {
     emit('close');
+    opened.value = false;
   } else {
     emit('open');
+    opened.value = true;
   }
+  emit('update:opened', opened.value);
 }
 </script>
 
