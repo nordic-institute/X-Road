@@ -1,7 +1,30 @@
 <template>
   <v-app>
     <v-main>
-
+      <xrd-expandable>
+        <template #link>
+          xrd-sub-view-title/container
+        </template>
+        <template #content>
+          <xrd-sub-view-container>
+            <xrd-sub-view-title title="Before read" />
+            <div>
+              here is some of content to read before sleep
+            </div>
+          </xrd-sub-view-container>
+        </template>
+      </xrd-expandable>
+      <xrd-expandable>
+        <template #link>
+          xrd-status-icon
+        </template>
+        <template #content>
+          <xrd-status-icon status="ok" />
+          <xrd-status-icon status="saved" />
+          <xrd-status-icon status="pending" />
+          <xrd-status-icon status="error" />
+        </template>
+      </xrd-expandable>
       <xrd-expandable>
         <template #link>
           xrd-simple-dialog, xrd-confirm-dialog & xrd-help-dialog
@@ -61,9 +84,6 @@
       <xrd-expandable>
         <template #link>
           xrd-form-label & xrd-help-icon
-        </template>
-        <template #action>
-          Call for Action
         </template>
         <template #content>
           <xrd-form-label
@@ -185,6 +205,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import XrdSubViewTitle from "./components/XrdSubViewTitle.vue";
 
 let loading = ref(false);
 let simpleDialog = ref(false);
