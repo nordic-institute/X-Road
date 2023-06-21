@@ -2,14 +2,29 @@
   <v-app>
     <v-main>
       <hr>
-      <xrd-expandable :is-open="opened" @close="opened=false" @open="opened=true">
-        <template #link>Link to somewhere
+      <xrd-file-upload
+        v-slot="{ upload }"
+        accepts="*"
+      >
+        <v-btn @click="upload">
+          Upload
+        </v-btn>
+      </xrd-file-upload>
+      <hr>
+      <xrd-expandable
+        :is-open="opened"
+        @close="opened=false"
+        @open="opened=true"
+      >
+        <template #link>
+          Link to somewhere
         </template>
-        <template #action>Call for Action
+        <template #action>
+          Call for Action
         </template>
-        <template #content>some content text
+        <template #content>
+          some content text
         </template>
-
       </xrd-expandable>
       <hr>
       <table>
@@ -79,6 +94,7 @@ import XrdEmptyPlaceholder from "./components/XrdEmptyPlaceholder.vue";
 import XrdEmptyPlaceholderRow from "./components/XrdEmptyPlaceholderRow.vue";
 import { ref } from 'vue'
 import XrdExpandable from "./components/XrdExpandable.vue";
+import XrdFileUpload from "./components/XrdFileUpload.vue";
 
 let loading = ref(false);
 let opened = ref(false);
