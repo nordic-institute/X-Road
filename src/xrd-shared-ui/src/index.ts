@@ -25,6 +25,9 @@ import XrdHelpIcon from "./components/XrdHelpIcon.vue";
 import XrdSimpleDialog from "./components/XrdSimpleDialog.vue";
 import XrdConfirmDialog from "./components/XrdConfirmDialog.vue";
 import XrdHelpDialog from "./components/XrdHelpDialog.vue";
+import XrdStatusIcon from "./components/XrdStatusIcon.vue";
+import XrdSubViewContainer from "./components/XrdSubViewContainer.vue";
+import XrdSubViewTitle from "./components/XrdSubViewTitle.vue";
 
 
 function createSharedUi(i18nMessages = {}) {
@@ -53,6 +56,9 @@ function createSharedUi(i18nMessages = {}) {
         .component('XrdSimpleDialog', XrdSimpleDialog)
         .component('XrdConfirmDialog', XrdConfirmDialog)
         .component('XrdHelpDialog', XrdHelpDialog)
+        .component('XrdStatusIcon', XrdStatusIcon)
+        .component('XrdSubViewContainer', XrdSubViewContainer)
+        .component('XrdSubViewTitle', XrdSubViewTitle)
       ;
     }
   }
@@ -72,5 +78,8 @@ export {
   XrdHelpIcon,
   XrdSimpleDialog,
   XrdConfirmDialog,
-  XrdHelpDialog
+  XrdHelpDialog,
+  XrdStatusIcon,
+  XrdSubViewContainer,
+  XrdSubViewTitle
 };
