@@ -22,6 +22,10 @@ spring:
     default-property-inclusion: NON_NULL
   liquibase:
     enabled: false
+  servlet:
+    multipart:
+      max-request-size: ${xroad.admin-service.request-size-limit-binary-upload}
+      max-file-size: ${xroad.admin-service.request-size-limit-binary-upload}
 
 common-module-endpoints:
   base-path: /api/v1
@@ -56,6 +60,42 @@ script:
 gpgkeys:
   gpghome: /etc/xroad/gpghome
 
+file-upload-endpoints:
+  endpoint-definitions:
+    -
+      http-method: POST
+      path-pattern: "/**/backups/upload"
+    -
+      http-method: POST
+      path-pattern: "/**/certification-services"
+    -
+      http-method: POST
+      path-pattern: "/**/certification-services/*/intermediate-cas"
+    -
+      http-method: POST
+      path-pattern: "/**/certification-services/*/ocsp-responders"
+    -
+      http-method: POST
+      path-pattern: "/**/configuration-sources/*/configuration-parts"
+    -
+      http-method: POST
+      path-pattern: "/**/trusted-anchors"
+    -
+      http-method: POST
+      path-pattern: "/**/trusted-anchors/preview"
+    -
+      http-method: POST
+      path-pattern: "/**/intermediate-cas/*/ocsp-responders"
+    -
+      http-method: PATCH
+      path-pattern: "/**/ocsp-responders/*"
+    -
+      http-method: POST
+      path-pattern: "/**/timestamping-services"
+    -
+      http-method: PATCH
+      path-pattern: "/**/timestamping-services/*"
+
 xroad:
   admin-service:
     global-configuration-generation-rate-in-seconds: 60
@@ -72,3 +112,5 @@ xroad:
     xml-allowed-extensions: xml
     xml-allowed-content-types: text/xml,application/xml
     strict-identifier-checks: true
+    request-size-limit-regular: 50KB
+    request-size-limit-binary-upload: 10MB

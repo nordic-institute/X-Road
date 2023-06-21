@@ -32,8 +32,10 @@ import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
+import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.unit.DataSize;
 
 import java.util.List;
 
@@ -45,8 +47,11 @@ import java.util.List;
 @Getter
 @Setter
 @SuppressWarnings("checkstyle:MagicNumber")
-public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig,
-        ApiCachingConfiguration.Config, IdentifierValidationConfiguration.Config {
+public class AdminServiceProperties implements IpThrottlingFilterConfig,
+        AllowedHostnamesConfig,
+        ApiCachingConfiguration.Config,
+        LimitRequestSizesFilter.Config,
+        IdentifierValidationConfiguration.Config {
 
     /**
      * Controls how many requests from an IP address are allowed per minute.
@@ -98,5 +103,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
      * incompatible identifier.
      */
     private boolean strictIdentifierChecks;
+    /** Configures Api regular request size limit. */
+    private DataSize requestSizeLimitRegular;
+
+    /** Configures Api file upload request size limit. */
+    private DataSize requestSizeLimitBinaryUpload;
 }
 

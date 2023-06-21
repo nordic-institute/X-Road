@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,12 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.restapi.config;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.niis.xroad.restapi.exceptions.LimitRequestSizesException;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.unit.DataSize;
@@ -48,38 +47,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-@Configuration
-@Order(LimitRequestSizesFilter.LIMIT_REQUEST_SIZES_FILTER_ORDER)
-@Slf4j
+
 /**
  * Servlet filter which limits request sizes to some amount of bytes
  */
+@Slf4j
+@Order(LimitRequestSizesFilter.LIMIT_REQUEST_SIZES_FILTER_ORDER)
+@Configuration
+@RequiredArgsConstructor
 public class LimitRequestSizesFilter extends OncePerRequestFilter {
     public static final int LIMIT_REQUEST_SIZES_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 2;
 
     private final FileUploadEndpointsConfiguration fileUploadEndpointsConfiguration;
-
-    // Support for both conventional & unconventional format. At some point "request.sizelimit.regular" should be removed.
-    @Value("#{'${xroad.proxy-ui-api.request-sizelimit-regular:${request.sizelimit.regular}}'}")
-    private DataSize regularRequestSizeLimit;
-
-    // Support for both conventional & unconventional format. At some point "request.sizelimit.binary.upload" should be removed.
-    @Value("#{'${xroad.proxy-ui-api.request-sizelimit-binary-upload:${request.sizelimit.binary.upload}}'}")
-    private DataSize fileUploadRequestSizeLimit;
-
-    @Autowired
-    public LimitRequestSizesFilter(FileUploadEndpointsConfiguration fileUploadEndpointsConfiguration) {
-        this.fileUploadEndpointsConfiguration = fileUploadEndpointsConfiguration;
-    }
+    private final Config allowedRequestSizeConfig;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         // set maxBytes based on if this is a file upload endpoint or a regular one
-        long maxBytes = regularRequestSizeLimit.toBytes();
+        long maxBytes = allowedRequestSizeConfig.getRequestSizeLimitRegular().toBytes();
         if (fileUploadEndpointsConfiguration.getEndpointDefinitions().stream()
                 .anyMatch(endpoint -> endpoint.matches(request))) {
-            maxBytes = fileUploadRequestSizeLimit.toBytes();
+            maxBytes = allowedRequestSizeConfig.getRequestSizeLimitBinaryUpload().toBytes();
         }
 
         ServletRequest wrapped = new SizeLimitingHttpServletRequestWrapper(request, maxBytes);
@@ -255,5 +244,22 @@ public class LimitRequestSizesFilter extends OncePerRequestFilter {
         public boolean markSupported() {
             return this.is.markSupported();
         }
+    }
+
+    public interface Config {
+
+        /**
+         * Allowed regular request size.
+         *
+         * @return allowed size
+         */
+        DataSize getRequestSizeLimitRegular();
+
+        /**
+         * Allowed request size for file uploads.
+         *
+         * @return allowed size
+         */
+        DataSize getRequestSizeLimitBinaryUpload();
     }
 }
