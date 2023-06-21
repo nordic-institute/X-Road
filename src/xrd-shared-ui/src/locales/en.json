@@ -16,5 +16,8 @@
   "noData": {
     "noMatches": "No items matching criteria",
     "loading": "Loading... Please wait"
+  },
+  "keys": {
+    "gotIt": "Got it"
   }
 }

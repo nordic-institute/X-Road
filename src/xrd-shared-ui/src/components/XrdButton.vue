@@ -26,7 +26,7 @@
  -->
 <template>
   <v-btn
-    :variant="variant as NonNullable<any>"
+    :variant="variant"
     :disabled="disabled"
     :min-width="minWidth"
     :loading="loading"
@@ -52,9 +52,6 @@ import { defineComponent } from "vue";
  * */
 export default defineComponent({
   props: {
-    outlined: {
-      type: Boolean,
-    },
     // Button color
     color: {
       type: String,
@@ -93,6 +90,7 @@ export default defineComponent({
     },
     variant: {
       type: String,
+      required: false,
       default: 'flat'
     },
   },

@@ -1,6 +1,63 @@
 <template>
   <v-app>
     <v-main>
+
+      <xrd-expandable>
+        <template #link>
+          xrd-simple-dialog, xrd-confirm-dialog & xrd-help-dialog
+        </template>
+        <template #content>
+          <xrd-button
+            text="Open dialog"
+            @click="simpleDialog=true"
+          />
+          <xrd-simple-dialog
+            :dialog="simpleDialog"
+            title="action.add"
+            @cancel="simpleDialog=false"
+            @save="simpleDialog=false"
+          >
+            <template #content>
+              <div>
+                dialog content
+              </div>
+            </template>
+          </xrd-simple-dialog>
+          <xrd-button
+            text="Open Confirm dialog"
+            @click="confirmDialog=true"
+          />
+          <xrd-confirm-dialog
+            :dialog="confirmDialog"
+            title="action.add"
+            text="locals_demo"
+            :loading="false"
+            @cancel="confirmDialog=false"
+            @accept="confirmDialog=false"
+          >
+            <template #content>
+              <div>
+                dialog content
+              </div>
+            </template>
+          </xrd-confirm-dialog>
+          <xrd-button
+            text="Open Help dialog"
+            @click="helpDialog=true"
+          />
+          <xrd-help-dialog
+            :dialog="helpDialog"
+            title="action.add"
+            text="locals_demo"
+          >
+            <template #content>
+              <div>
+                dialog content
+              </div>
+            </template>
+          </xrd-help-dialog>
+        </template>
+      </xrd-expandable>
       <xrd-expandable>
         <template #link>
           xrd-form-label & xrd-help-icon
@@ -9,8 +66,11 @@
           Call for Action
         </template>
         <template #content>
-          <xrd-form-label label-text="Label text" help-text="helpful tip"/>
-          <xrd-help-icon text="help me"/>
+          <xrd-form-label
+            label-text="Label text"
+            help-text="helpful tip"
+          />
+          <xrd-help-icon text="help me" />
         </template>
       </xrd-expandable>
       <xrd-expandable>
@@ -39,7 +99,7 @@
           >
             {{ loading ? "Loading" : "Loaded" }}
           </xrd-button>
-          <xrd-close-button @click="console.log('close it')"/>
+          <xrd-close-button @click="console.log('close it')" />
         </template>
       </xrd-expandable>
       <xrd-expandable>
@@ -58,7 +118,10 @@
           xrd-empty-placeholder
         </template>
         <template #action>
-          <xrd-button @click="loading=!loading" :text="loading?'Loading':'Loaded'"/>
+          <xrd-button
+            :text="loading?'Loading':'Loaded'"
+            @click="loading=!loading"
+          />
         </template>
         <template #content>
           <xrd-empty-placeholder
@@ -93,7 +156,10 @@
           xrd-empty-placeholder-row
         </template>
         <template #action>
-          <xrd-button @click="loading=!loading" :text="loading?'Loading':'Loaded'"/>
+          <xrd-button
+            :text="loading?'Loading':'Loaded'"
+            @click="loading=!loading"
+          />
         </template>
         <template #content>
           <table>
@@ -118,19 +184,11 @@
 </template>
 
 <script setup lang="ts">
-import XrdAlert from "./components/XrdAlert.vue";
-import XrdButton from "./components/XrdButton.vue";
-import XrdCloseButton from "./components/XrdCloseButton.vue";
-import XrdEmptyPlaceholder from "./components/XrdEmptyPlaceholder.vue";
-import XrdEmptyPlaceholderRow from "./components/XrdEmptyPlaceholderRow.vue";
 import { ref } from 'vue'
-import XrdExpandable from "./components/XrdExpandable.vue";
-import XrdFileUpload from "./components/XrdFileUpload.vue";
-import XrdHelpIcon from "./components/XrdHelpIcon.vue";
-import XrdFormLabel from "./components/XrdFormLabel.vue";
 
 let loading = ref(false);
-let opened = ref(false);
-let isOpen = ref(true);
+let simpleDialog = ref(false);
+let confirmDialog = ref(false);
+let helpDialog = ref(false);
 
 </script>
