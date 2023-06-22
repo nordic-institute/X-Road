@@ -75,7 +75,7 @@ import { ref } from "vue";
 /**
  * Expandable can be clicked open and has slots for a link and ans action
  */
-const emit = defineEmits(['close', 'open', 'update:opened'])
+const emit = defineEmits(['close', 'open', 'update:model-value'])
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -106,7 +106,7 @@ function toggle() {
     emit('open');
     opened.value = true;
   }
-  emit('update:opened', opened.value);
+  emit('update:model-value', opened.value);
 }
 </script>
 
