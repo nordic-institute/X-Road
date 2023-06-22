@@ -3,6 +3,26 @@
     <v-main style="max-width: 50%; margin: 0 auto;">
       <xrd-expandable>
         <template #link>
+          xrd-table
+        </template>
+        <template #content>
+          <xrd-table>
+            <thead>
+              <tr>
+              <th>Name</th>
+              <th>Year</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>John Doe</th>
+                <th>2000</th>
+              </tr>
+            </tbody>
+          </xrd-table>
+        </template>
+      </xrd-expandable>
+      <xrd-expandable>
+        <template #link>
           xrd-search
         </template>
         <template #content>
@@ -215,6 +235,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import XrdSubViewTitle from "./components/XrdSubViewTitle.vue";
+import XrdTable from "./components/XrdTable.vue";
 
 let loading = ref(false);
 let simpleDialog = ref(false);

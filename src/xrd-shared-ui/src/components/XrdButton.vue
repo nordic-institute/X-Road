@@ -26,7 +26,7 @@
  -->
 <template>
   <v-btn
-    :variant="variant"
+    :variant="variant as NonNullable<any>"
     :disabled="disabled"
     :min-width="minWidth"
     :loading="loading"

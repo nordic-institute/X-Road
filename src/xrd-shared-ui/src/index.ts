@@ -29,6 +29,7 @@ import XrdStatusIcon from "./components/XrdStatusIcon.vue";
 import XrdSubViewContainer from "./components/XrdSubViewContainer.vue";
 import XrdSubViewTitle from "./components/XrdSubViewTitle.vue";
 import XrdSearch from "./components/XrdSearch.vue";
+import XrdTable from "./components/XrdTable.vue";
 
 
 function createSharedUi(i18nMessages = {}) {
@@ -61,6 +62,7 @@ function createSharedUi(i18nMessages = {}) {
         .component('XrdSubViewContainer', XrdSubViewContainer)
         .component('XrdSubViewTitle', XrdSubViewTitle)
         .component('XrdSearch', XrdSearch)
+        .component('XrdTable', XrdTable)
       ;
     }
   }
@@ -84,5 +86,6 @@ export {
   XrdStatusIcon,
   XrdSubViewContainer,
   XrdSubViewTitle,
-  XrdSearch
+  XrdSearch,
+  XrdTable
 };
