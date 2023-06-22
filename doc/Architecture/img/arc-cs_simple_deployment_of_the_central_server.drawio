@@ -1,0 +1,22 @@
+<mxfile host="Electron" modified="2023-06-20T04:46:10.118Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.3.7 Chrome/112.0.5615.204 Electron/24.5.0 Safari/537.36" etag="JHs7dhTuIpANbpYDQXDv" version="21.3.7" type="device">
+  <diagram name="Page-1" id="0xwwUhktGNT2Y093DON-">
+    <mxGraphModel dx="1514" dy="904" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="wIwhckQGx-ROeFQ368TF-8" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;endArrow=none;endFill=0;strokeColor=#663CDC;" edge="1" parent="1" source="wIwhckQGx-ROeFQ368TF-6" target="wIwhckQGx-ROeFQ368TF-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="wIwhckQGx-ROeFQ368TF-6" value="&lt;span&gt;Central Server&lt;/span&gt;" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=1;html=1;whiteSpace=wrap;fontSize=12;fillColor=#EFEBFB;strokeColor=#663CDC;" vertex="1" parent="1">
+          <mxGeometry x="-300" y="340" width="180" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="wIwhckQGx-ROeFQ368TF-7" value="SSCD" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=1;html=1;whiteSpace=wrap;fontSize=12;fillColor=#EFEBFB;strokeColor=#663CDC;" vertex="1" parent="1">
+          <mxGeometry x="-60" y="392.5" width="100" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="wIwhckQGx-ROeFQ368TF-9" value="&lt;blockquote style=&quot;margin: 0 0 0 40px; border: none; padding: 0px;&quot;&gt;&lt;/blockquote&gt;&lt;span style=&quot;background-color: initial; font-size: 11px;&quot;&gt;- Administration Service&lt;/span&gt;&lt;br&gt;&lt;blockquote style=&quot;margin: 0 0 0 40px; border: none; padding: 0px;&quot;&gt;&lt;/blockquote&gt;&lt;span style=&quot;background-color: initial; font-size: 11px;&quot;&gt;- Management Services&lt;/span&gt;&lt;br&gt;&lt;blockquote style=&quot;margin: 0 0 0 40px; border: none; padding: 0px;&quot;&gt;&lt;/blockquote&gt;&lt;span style=&quot;background-color: initial; font-size: 11px;&quot;&gt;- Signer&lt;/span&gt;&lt;br&gt;&lt;blockquote style=&quot;margin: 0 0 0 40px; border: none; padding: 0px;&quot;&gt;&lt;/blockquote&gt;&lt;span style=&quot;background-color: initial; font-size: 11px;&quot;&gt;- Web Server&lt;/span&gt;&lt;br&gt;&lt;blockquote style=&quot;margin: 0 0 0 40px; border: none; padding: 0px;&quot;&gt;&lt;/blockquote&gt;&lt;span style=&quot;background-color: initial; font-size: 11px;&quot;&gt;- Database&lt;/span&gt;&lt;br&gt;&lt;blockquote style=&quot;margin: 0 0 0 40px; border: none; padding: 0px;&quot;&gt;&lt;/blockquote&gt;&lt;span style=&quot;background-color: initial; font-size: 11px;&quot;&gt;- User Interface Frontend&lt;/span&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; background-color: initial;&quot;&gt;- Password Store&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="-290" y="370" width="160" height="130" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
