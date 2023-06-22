@@ -1,6 +1,15 @@
 <template>
   <v-app>
-    <v-main>
+    <v-main style="max-width: 50%; margin: 0 auto;">
+      <xrd-expandable>
+        <template #link>
+          xrd-search
+        </template>
+        <template #content>
+          <xrd-search v-model="search" label="search-label" />
+          <xrd-search v-model="search" label="search-label" />
+        </template>
+      </xrd-expandable>
       <xrd-expandable>
         <template #link>
           xrd-sub-view-title/container
@@ -211,5 +220,6 @@ let loading = ref(false);
 let simpleDialog = ref(false);
 let confirmDialog = ref(false);
 let helpDialog = ref(false);
+let search = ref('');
 
 </script>
