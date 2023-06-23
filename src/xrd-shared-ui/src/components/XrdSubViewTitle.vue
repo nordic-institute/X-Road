@@ -43,14 +43,13 @@ defineEmits(['close']);
 defineProps({
   title: {
     type: String,
-    required: true
+    required: true,
   },
   showClose: {
     type: Boolean,
     default: true,
   },
 });
-
 </script>
 
 <style lang="scss" scoped>

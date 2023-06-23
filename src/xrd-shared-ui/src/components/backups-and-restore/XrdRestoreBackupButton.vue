@@ -47,8 +47,8 @@
 </template>
 
 <script lang="ts" setup>
-import { PropType, ref } from "vue";
-import { BackupHandler } from "@/types";
+import { PropType, ref } from 'vue';
+import { BackupHandler } from '@/types';
 
 const props = defineProps({
   canBackup: {
@@ -86,7 +86,6 @@ function restoreFromBackup() {
       restoring.value = false;
     });
 }
-
 </script>
 
 <style lang="scss" scoped></style>

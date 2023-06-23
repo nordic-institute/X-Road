@@ -26,10 +26,6 @@
  -->
 <template>
   <g>
-    <path
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-      d="M8 11L4 5L12 5L8 11Z"
-    />
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M8 11L4 5L12 5L8 11Z" />
   </g>
 </template>

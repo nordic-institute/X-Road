@@ -34,9 +34,7 @@
       :loading="creating"
       @click="createBackup"
     >
-      <v-icon class="xrd-large-button-icon">
-        icon-Database-backup
-      </v-icon>
+      <v-icon class="xrd-large-button-icon"> icon-Database-backup </v-icon>
       {{ $t('backup.createBackup.button') }}
     </xrd-button>
     <xrd-file-upload
@@ -52,9 +50,7 @@
         data-test="backup-upload"
         @click="upload"
       >
-        <v-icon class="xrd-large-button-icon">
-          icon-Upload
-        </v-icon>
+        <v-icon class="xrd-large-button-icon"> icon-Upload </v-icon>
 
         {{ $t('backup.uploadBackup.button') }}
       </xrd-button>
@@ -74,28 +70,26 @@
 </template>
 
 <script lang="ts" setup>
-import { BackupHandler } from "@/types";
-import { PropType, ref } from "vue";
-import { FileUploadResult } from "@/types";
+import { BackupHandler } from '@/types';
+import { PropType, ref } from 'vue';
+import { FileUploadResult } from '@/types';
 
 const emit = defineEmits(['refresh-backups']);
 
-const props = defineProps(
-  {
-    accepts: {
-      type: String,
-      required: true,
-    },
-    canBackup: {
-      type: Boolean,
-      required: true,
-    },
-    backupHandler: {
-      type: Object as PropType<BackupHandler>,
-      required: true,
-    },
-  }
-);
+const props = defineProps({
+  accepts: {
+    type: String,
+    required: true,
+  },
+  canBackup: {
+    type: Boolean,
+    required: true,
+  },
+  backupHandler: {
+    type: Object as PropType<BackupHandler>,
+    required: true,
+  },
+});
 let creating = ref(false);
 let uploading = ref(false);
 let needsConfirmation = ref(false);
@@ -106,12 +100,9 @@ function createBackup() {
   return props.backupHandler
     .create()
     .then((data) => {
-      props.backupHandler.showSuccess(
-        'backup.createBackup.messages.success',
-        {
-          file: data.filename,
-        },
-      );
+      props.backupHandler.showSuccess('backup.createBackup.messages.success', {
+        file: data.filename,
+      });
       if (data.local_conf_present) {
         props.backupHandler.showWarning(
           'backup.createBackup.messages.localConfWarning',

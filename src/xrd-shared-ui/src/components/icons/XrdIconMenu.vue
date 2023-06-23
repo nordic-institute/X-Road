@@ -26,23 +26,8 @@
  -->
 <template>
   <g>
-    <rect
-      y="5"
-      width="24"
-      height="2"
-      rx="1"
-    />
-    <rect
-      y="11"
-      width="24"
-      height="2"
-      rx="1"
-    />
-    <rect
-      y="17"
-      width="24"
-      height="2"
-      rx="1"
-    />
+    <rect y="5" width="24" height="2" rx="1" />
+    <rect y="11" width="24" height="2" rx="1" />
+    <rect y="17" width="24" height="2" rx="1" />
   </g>
 </template>

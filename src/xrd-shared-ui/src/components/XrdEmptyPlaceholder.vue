@@ -25,32 +25,17 @@
    THE SOFTWARE.
  -->
 <template>
-  <div
-    v-if="show"
-    class="emptystate-wrapper"
-  >
+  <div v-if="show" class="emptystate-wrapper">
     <div v-if="loading && skeletonType">
-      <v-skeleton-loader
-        :type="skeletonType"
-        class="mb-6"
-      />
-      <v-skeleton-loader
-        :type="skeletonType"
-        class="mb-6"
-      />
+      <v-skeleton-loader :type="skeletonType" class="mb-6" />
+      <v-skeleton-loader :type="skeletonType" class="mb-6" />
       <v-skeleton-loader :type="skeletonType" />
     </div>
 
-    <div
-      v-else-if="loading"
-      class="empty-text"
-    >
+    <div v-else-if="loading" class="empty-text">
       {{ $t('noData.loading') }}
     </div>
-    <div
-      v-else-if="filtered"
-      class="empty-text"
-    >
+    <div v-else-if="filtered" class="empty-text">
       <template v-if="noMatchesText">
         {{ noMatchesText }}
       </template>
@@ -58,10 +43,7 @@
         {{ $t('noData.noMatches') }}
       </template>
     </div>
-    <div
-      v-else-if="showNoItems"
-      class="empty-text"
-    >
+    <div v-else-if="showNoItems" class="empty-text">
       {{ noItemsText }}
     </div>
   </div>
@@ -71,7 +53,7 @@
 /** Component to show empty states for general components. Usually a div.  */
 
 import { computed } from 'vue';
-import {VSkeletonLoader} from 'vuetify/labs/VSkeletonLoader';
+import { VSkeletonLoader } from 'vuetify/labs/VSkeletonLoader';
 
 const props = defineProps({
   // Text shown when there are no items at all
@@ -124,8 +106,6 @@ const show = computed(() => {
   }
   return showNoItems;
 });
-
-
 </script>
 
 <style lang="scss" scoped>

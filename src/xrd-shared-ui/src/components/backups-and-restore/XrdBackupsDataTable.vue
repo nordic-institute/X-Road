@@ -67,12 +67,12 @@
 
 <script lang="ts" setup>
 import { PropType, ref } from 'vue';
-import { BackupHandler, BackupItem } from "@/types";
-import { VDataTable } from "vuetify/labs/VDataTable";
-import { useI18n } from "vue-i18n";
-import XdrDownloadBackupButton from "./XdrDownloadBackupButton.vue";
-import XrdRestoreBackupButton from "./XrdRestoreBackupButton.vue";
-import XrdDeleteBackupButton from "./XrdDeleteBackupButton.vue";
+import { BackupHandler, BackupItem } from '@/types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import { useI18n } from 'vue-i18n';
+import XdrDownloadBackupButton from './XdrDownloadBackupButton.vue';
+import XrdRestoreBackupButton from './XrdRestoreBackupButton.vue';
+import XrdDeleteBackupButton from './XrdDeleteBackupButton.vue';
 
 defineProps({
   backups: {
@@ -111,7 +111,8 @@ const headers = ref([
     key: 'buttons',
     align: 'end' as const,
     sortable: false,
-  }]);
+  },
+]);
 </script>
 
 <style lang="scss" scoped>
