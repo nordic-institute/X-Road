@@ -26,7 +26,7 @@
  -->
 <template>
   <v-btn
-    :variant="variant as NonNullable<any>"
+    :variant="variant"
     :disabled="disabled"
     :min-width="minWidth"
     :loading="loading"
@@ -44,74 +44,69 @@
   </v-btn>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
+import { computed, PropType } from "vue";
 
 /**
  * Wrapper for vuetify button with x-road look
  * */
-export default defineComponent({
-  props: {
-    // Button color
-    color: {
-      type: String,
-      default: 'primary',
-    },
-    // Set button disabled state
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // Show loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    // Block buttons extend the full available width
-    block: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  // Button color
+  color: {
+    type: String,
+    default: 'primary',
+  },
+  // Set button disabled state
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  // Show loading spinner
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  // Block buttons extend the full available width
+  block: {
+    type: Boolean,
+    default: false,
+  },
     large: {
       type: Boolean,
       default: false,
     },
-    text: {
-      type: String,
-      default: undefined,
-    },
-    minWidth: {
-      type: [Number, String],
-      default: 90,
-    },
-    gradient: {
-      type: Boolean,
-      default: false,
-    },
-    variant: {
-      type: String,
-      required: false,
-      default: 'flat'
-    },
+  text: {
+    type: String,
+    default: undefined,
   },
-  emits: ['click'],
-  computed: {
-    showGradient(): boolean {
-      if (this.disabled === true) {
-        return false;
-      }
-      if (this.gradient === true) {
-        return true;
-      }
-      return false;
-    },
+  minWidth: {
+    type: [Number, String],
+    default: 90,
   },
-  methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
-    },
+  gradient: {
+    type: Boolean,
+    default: false,
+  },
+  variant: {
+    type: String as PropType<any>,
+    required: false,
+    default: 'flat'
   },
 });
+const emit = defineEmits(['click']);
+const showGradient = computed(() => {
+  if (props.disabled === true) {
+    return false;
+  }
+  if (props.gradient === true) {
+    return true;
+  }
+  return false;
+});
+
+function click(event: MouseEvent): void {
+  emit('click', event);
+}
 </script>
 
 <style lang="scss" scoped>

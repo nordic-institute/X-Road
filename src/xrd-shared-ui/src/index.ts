@@ -12,7 +12,6 @@ import vuetify from "./plugins/vuetify";
 
 import { createI18n } from "vue-i18n";
 //components
-import XrdComponent from "./components/XrdComponent.vue";
 import XrdButton from "./components/XrdButton.vue";
 import XrdCloseButton from "./components/XrdCloseButton.vue";
 import XrdAlert from "./components/XrdAlert.vue";
@@ -45,7 +44,6 @@ function createSharedUi(i18nMessages = {}) {
     install(app: App) {
       app.use(vuetify)
         .use(i18n)
-        .component('XrdComponent', XrdComponent)
         .component('XrdButton', XrdButton)
         .component('XrdCloseButton', XrdCloseButton)
         .component('XrdAlert', XrdAlert)
@@ -70,7 +68,6 @@ function createSharedUi(i18nMessages = {}) {
 
 export {
   createSharedUi,
-  XrdComponent,
   XrdButton,
   XrdCloseButton,
   XrdAlert,
