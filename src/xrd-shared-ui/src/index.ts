@@ -29,6 +29,8 @@ import XrdSubViewContainer from "./components/XrdSubViewContainer.vue";
 import XrdSubViewTitle from "./components/XrdSubViewTitle.vue";
 import XrdSearch from "./components/XrdSearch.vue";
 import XrdTable from "./components/XrdTable.vue";
+import XrdBackupsDataTable from "./components/backups-and-restore/XrdBackupsDataTable.vue";
+import XrdBackupsToolbar from "./components/backups-and-restore/XrdBackupsToolbar.vue";
 
 
 function createSharedUi(i18nMessages = {}) {
@@ -61,6 +63,8 @@ function createSharedUi(i18nMessages = {}) {
         .component('XrdSubViewTitle', XrdSubViewTitle)
         .component('XrdSearch', XrdSearch)
         .component('XrdTable', XrdTable)
+        .component('XrdBackupsDataTable', XrdBackupsDataTable)
+        .component('XrdBackupsToolbar', XrdBackupsToolbar)
       ;
     }
   }
@@ -84,5 +88,7 @@ export {
   XrdSubViewContainer,
   XrdSubViewTitle,
   XrdSearch,
-  XrdTable
+  XrdTable,
+  XrdBackupsDataTable,
+  XrdBackupsToolbar
 };

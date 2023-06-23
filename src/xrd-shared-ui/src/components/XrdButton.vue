@@ -32,7 +32,6 @@
     :loading="loading"
     :block="block"
     :large="large"
-    :text="text"
     :color="color"
     height="40"
     rounded
@@ -45,7 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, PropType } from "vue";
+import { computed } from "vue";
 
 /**
  * Wrapper for vuetify button with x-road look
@@ -71,13 +70,9 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-    large: {
-      type: Boolean,
-      default: false,
-    },
-  text: {
-    type: String,
-    default: undefined,
+  large: {
+    type: Boolean,
+    default: false,
   },
   minWidth: {
     type: [Number, String],
@@ -87,13 +82,19 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  variant: {
-    type: String as PropType<any>,
+  outlined: {
+    type: Boolean,
     required: false,
-    default: 'flat'
+    default: false
+  },
+  text: {
+    type: Boolean,
+    required: false,
+    default: false
   },
 });
 const emit = defineEmits(['click']);
+
 const showGradient = computed(() => {
   if (props.disabled === true) {
     return false;
@@ -102,6 +103,15 @@ const showGradient = computed(() => {
     return true;
   }
   return false;
+});
+const variant = computed(() => {
+  if (props.outlined === true) {
+    return 'outlined';
+  }
+  if (props.text === true) {
+    return 'text';
+  }
+  return 'flat';
 });
 
 function click(event: MouseEvent): void {
