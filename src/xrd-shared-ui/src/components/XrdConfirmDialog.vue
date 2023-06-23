@@ -48,6 +48,8 @@
  * A dialog for simple "accept or cancel" functions
  */
 
+import type { PropType } from "vue";
+
 defineEmits(['cancel', 'accept']);
 
 defineProps({
@@ -78,9 +80,9 @@ defineProps({
   },
   // In case the confirmation text requires additional data
   data: {
-    type: Object,
+    type: Object as PropType<Record<string, unknown>>,
     required: false,
-    default: undefined
+    default: {} as Record<string, unknown>
   },
 });
 </script>
