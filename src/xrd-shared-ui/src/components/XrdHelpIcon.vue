@@ -28,12 +28,7 @@
   <div class="help-wrapper">
     <v-tooltip location="top">
       <template #activator="{ props }">
-        <v-icon
-          color="#202020"
-          size="small"
-          dark
-          v-bind="props"
-        >
+        <v-icon color="#202020" size="small" dark v-bind="props">
           mdi-help-circle
         </v-icon>
       </template>
@@ -46,7 +41,7 @@
 defineProps({
   text: {
     type: String,
-    required: true
+    required: true,
   },
 });
 </script>

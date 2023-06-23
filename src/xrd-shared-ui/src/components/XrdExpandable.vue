@@ -36,18 +36,8 @@
           :style="{ color }"
           @click="toggle"
         >
-          <v-icon
-            v-if="opened"
-            color="primary"
-          >
-            mdi-chevron-down
-          </v-icon>
-          <v-icon
-            v-else
-            color="primary"
-          >
-            mdi-chevron-right
-          </v-icon>
+          <v-icon v-if="opened" color="primary"> mdi-chevron-down </v-icon>
+          <v-icon v-else color="primary"> mdi-chevron-right </v-icon>
         </v-btn>
       </div>
       <div :class="{ 'text--disabled': disabled }">
@@ -69,13 +59,12 @@
 </template>
 
 <script lang="ts" setup>
-
-import { ref } from "vue";
+import { ref } from 'vue';
 
 /**
  * Expandable can be clicked open and has slots for a link and ans action
  */
-const emit = defineEmits(['close', 'open', 'update:model-value'])
+const emit = defineEmits(['close', 'open', 'update:model-value']);
 const props = defineProps({
   modelValue: {
     type: Boolean,

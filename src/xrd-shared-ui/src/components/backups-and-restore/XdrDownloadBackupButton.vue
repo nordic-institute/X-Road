@@ -39,8 +39,8 @@
 </template>
 
 <script lang="ts" setup>
-import { PropType, ref } from "vue";
-import { BackupHandler } from "@/types";
+import { PropType, ref } from 'vue';
+import { BackupHandler } from '@/types';
 
 const props = defineProps({
   canBackup: {
@@ -58,14 +58,12 @@ const props = defineProps({
 });
 let downloading = ref(false);
 
-
 function downloadBackup() {
   downloading.value = true;
   props.backupHandler
     .download(props.filename)
     .finally(() => (downloading.value = false));
 }
-
 </script>
 
 <style lang="scss" scoped></style>

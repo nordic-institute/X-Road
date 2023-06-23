@@ -1,0 +1,4 @@
+.gradle/
+build.gradle
+build/
+xrd-shared-ui-*.tgz

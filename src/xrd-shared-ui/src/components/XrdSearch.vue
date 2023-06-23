@@ -26,11 +26,7 @@
  -->
 <template>
   <div>
-    <v-icon
-      v-if="closed"
-      class="xrd-icon-closed"
-      @click="closed = false"
-    >
+    <v-icon v-if="closed" class="xrd-icon-closed" @click="closed = false">
       mdi-magnify
     </v-icon>
     <v-text-field
@@ -58,12 +54,12 @@ defineEmits(['update:model-value']);
 const props = defineProps({
   modelValue: {
     type: String,
-    required: true
+    required: true,
   },
   label: {
     type: String,
-    default: ''
-  }
+    default: '',
+  },
 });
 
 let closed = ref(!props.modelValue);
