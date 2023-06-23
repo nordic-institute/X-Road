@@ -3,14 +3,33 @@
     <v-main style="max-width: 50%; margin: 0 auto;">
       <xrd-expandable>
         <template #link>
+          xrd-backups-data-table
+        </template>
+        <template #content>
+          <xrd-backups-toolbar
+            :backup-handler="backupsHandler"
+            :can-backup="true"
+            accepts="*"
+          />
+          <xrd-backups-data-table
+            :can-backup="true"
+            :backup-handler="backupsHandler"
+            :loading="false"
+            :backups="backups"
+          />
+        </template>
+      </xrd-expandable>
+      <xrd-expandable>
+        <template #link>
           xrd-table
         </template>
         <template #content>
           <xrd-table>
             <thead>
               <tr>
-              <th>Name</th>
-              <th>Year</th></tr>
+                <th>Name</th>
+                <th>Year</th>
+              </tr>
             </thead>
             <tbody>
               <tr>
@@ -26,8 +45,14 @@
           xrd-search
         </template>
         <template #content>
-          <xrd-search v-model="search" label="search-label" />
-          <xrd-search v-model="search" label="search-label" />
+          <xrd-search
+            v-model="search"
+            label="search-label"
+          />
+          <xrd-search
+            v-model="search"
+            label="search-label"
+          />
         </template>
       </xrd-expandable>
       <xrd-expandable>
@@ -168,9 +193,11 @@
         </template>
         <template #action>
           <xrd-button
-            :text="loading?'Loading':'Loaded'"
+            text
             @click="loading=!loading"
-          />
+          >
+            {{ loading?'Loading':'Loaded' }}
+          </xrd-button>
         </template>
         <template #content>
           <xrd-empty-placeholder
@@ -206,9 +233,11 @@
         </template>
         <template #action>
           <xrd-button
-            :text="loading?'Loading':'Loaded'"
+            text
             @click="loading=!loading"
-          />
+          >
+            {{ loading?'Loading':'Loaded' }}
+          </xrd-button>
         </template>
         <template #content>
           <table>
@@ -236,11 +265,28 @@
 import { ref } from 'vue'
 import XrdSubViewTitle from "./components/XrdSubViewTitle.vue";
 import XrdTable from "./components/XrdTable.vue";
+import XrdBackupsDataTable from "./components/backups-and-restore/XrdBackupsDataTable.vue";
+import XrdBackupsToolbar from "./components/backups-and-restore/XrdBackupsToolbar.vue";
+import { BackupHandler } from "./types";
 
 let loading = ref(false);
 let simpleDialog = ref(false);
 let confirmDialog = ref(false);
 let helpDialog = ref(false);
 let search = ref('');
+let backups = ref([{filename:'safafaf.gpg'}]);
+let backupsHandler = ref({
+  download(filename: string): Promise<unknown> {
+    console.log('download', filename);
+    return new Promise((resolveOuter) => {
+      resolveOuter(
+        new Promise((resolveInner) => {
+          setTimeout(resolveInner, 1000);
+        }),
+      );
+    });
+
+  }
+} as BackupHandler);
 
 </script>
