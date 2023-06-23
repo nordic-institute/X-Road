@@ -48,7 +48,7 @@
  * A dialog for simple "accept or cancel" functions
  */
 
-import type { PropType } from "vue";
+import type { PropType } from 'vue';
 
 defineEmits(['cancel', 'accept']);
 
@@ -82,7 +82,7 @@ defineProps({
   data: {
     type: Object as PropType<Record<string, unknown>>,
     required: false,
-    default: {} as Record<string, unknown>
+    default: {} as Record<string, unknown>,
   },
 });
 </script>

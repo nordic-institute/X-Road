@@ -27,11 +27,7 @@
 <template>
   <div class="px-3">
     <!-- Error -->
-    <v-container
-      v-if="show"
-      fluid
-      class="alerts-container px-3"
-    >
+    <v-container v-if="show" fluid class="alerts-container px-3">
       <v-alert
         data-test="contextual-modal-alert"
         border="start"
@@ -53,20 +49,18 @@
 </template>
 
 <script setup lang="ts">
-defineProps(
-  {
-    // Alert visible / hidden
-    show: {
-      type: Boolean,
-      required: true,
-    },
-    message: {
-      type: String,
-      required: false,
-      default: ''
-    },
-  }
-);
+defineProps({
+  // Alert visible / hidden
+  show: {
+    type: Boolean,
+    required: true,
+  },
+  message: {
+    type: String,
+    required: false,
+    default: '',
+  },
+});
 </script>
 
 <style lang="scss" scoped>

@@ -36,7 +36,6 @@
 /**
  * View wrapper component for sub views. See Settings.vue for example
  */
-
 </script>
 
 <style lang="scss" scoped>

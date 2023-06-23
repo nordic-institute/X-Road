@@ -77,10 +77,9 @@ defineProps({
   // Help text
   text: {
     type: String,
-    required: true
+    required: true,
   },
 });
-
 </script>
 
 <style lang="scss" scoped>

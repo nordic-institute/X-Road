@@ -32,10 +32,7 @@
     :persistent="true"
     :scrollable="scrollable"
   >
-    <v-card
-      class="xrd-card"
-      data-test="dialog-simple"
-    >
+    <v-card class="xrd-card" data-test="dialog-simple">
       <template #append>
         <xrd-close-button
           v-if="showClose"
@@ -90,13 +87,12 @@
 
 import { defineComponent } from 'vue';
 
-
 export default defineComponent({
   props: {
     // Title of the dialog
     title: {
       type: String,
-      required: true
+      required: true,
     },
     // Dialog visible / hidden
     dialog: {
@@ -163,7 +159,6 @@ export default defineComponent({
     disableCancelButton(): boolean {
       return this.allowLoadingCancellation ? false : this.loading;
     },
-
   },
 
   methods: {

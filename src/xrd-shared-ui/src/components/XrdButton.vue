@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed } from 'vue';
 
 /**
  * Wrapper for vuetify button with x-road look
@@ -85,12 +85,12 @@ const props = defineProps({
   outlined: {
     type: Boolean,
     required: false,
-    default: false
+    default: false,
   },
   text: {
     type: Boolean,
     required: false,
-    default: false
+    default: false,
   },
 });
 const emit = defineEmits(['click']);

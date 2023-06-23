@@ -48,8 +48,8 @@
 </template>
 
 <script lang="ts" setup>
-import { PropType, ref } from "vue";
-import { BackupHandler } from "@/types";
+import { PropType, ref } from 'vue';
+import { BackupHandler } from '@/types';
 
 const props = defineProps({
   canBackup: {
@@ -85,7 +85,6 @@ function deleteBackup() {
     .catch((error) => props.backupHandler.showError(error))
     .finally(() => (deleting.value = false));
 }
-
 </script>
 
 <style lang="scss" scoped></style>

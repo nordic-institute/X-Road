@@ -1,17 +1,29 @@
 /* eslint-env node */
-require('@rushstack/eslint-patch/modern-module-resolution')
+require('@rushstack/eslint-patch/modern-module-resolution');
 
 module.exports = {
   root: true,
-  'extends': [
+  extends: [
     'eslint:recommended',
     'plugin:vue/vue3-recommended',
     'plugin:vuetify/recommended',
-    '@vue/eslint-config-typescript'
+    '@vue/eslint-config-typescript',
+    'plugin:@intlify/vue-i18n/recommended',
+    'plugin:prettier/recommended',
   ],
-  parser: "vue-eslint-parser",
+  parser: 'vue-eslint-parser',
+  rules: {
+    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+  },
+  settings: {
+    'vue-i18n': {
+      localeDir: './locales/*.{json,json5,yaml,yml}',
+      messageSyntaxVersion: '^9.2.2',
+    },
+  },
   parserOptions: {
     ecmaVersion: 'latest',
-    sourceType: 'module'
-  }
-}
+    sourceType: 'module',
+  },
+};

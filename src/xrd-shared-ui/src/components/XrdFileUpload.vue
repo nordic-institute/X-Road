@@ -32,13 +32,13 @@
       type="file"
       :accept="accepts"
       @change="onUploadFileChanged"
-    >
+    />
     <slot :upload="upload" />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent } from 'vue';
 
 export type FileUploadResult = {
   buffer: ArrayBuffer;
