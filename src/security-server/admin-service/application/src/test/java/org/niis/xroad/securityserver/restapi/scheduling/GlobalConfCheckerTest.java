@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -37,7 +37,6 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -165,7 +164,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         tokens.put(tokenInfo.getId(), tokenInfo);
 
         when(signerProxyFacade.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
-        when(signerProxyFacade.execute(new GetAuthKey(any()))).thenReturn(new AuthKeyInfo(
+        when(signerProxyFacade.getAuthKey(any())).thenReturn(new AuthKeyInfo(
                 KEY_AUTH_ID, null, null, certificateInfo));
     }
 

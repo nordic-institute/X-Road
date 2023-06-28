@@ -26,8 +26,10 @@
 package ee.ria.xroad.commonui;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -44,6 +46,7 @@ import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
+import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 import ee.ria.xroad.signer.protocol.message.GetCertificateInfoForHash;
 import ee.ria.xroad.signer.protocol.message.GetCertificateInfoResponse;
 import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
@@ -479,6 +482,16 @@ public final class SignerProxy {
                 .map(String::toLowerCase)
                 .collect(Collectors.toList())
                 .toArray(new String[]{});
+    }
+
+    /**
+     * Get Security Server auth key
+     * @param serverId securityServerId
+     * @return authKeyInfo
+     * @throws Exception
+     */
+    public static AuthKeyInfo getAuthKey(SecurityServerId serverId) throws Exception {
+        return execute(new GetAuthKey(serverId));
     }
 
     /**
