@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.auth;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
@@ -32,7 +33,6 @@ import org.jvnet.libpam.UnixUser;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -41,11 +41,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * PAM authentication provider.
@@ -56,6 +59,7 @@ import java.util.stream.Collectors;
  * Authentication is limited with an IP whitelist.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class PamAuthenticationProvider implements AuthenticationProvider {
 
     // from PAMLoginModule
@@ -66,52 +70,20 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
 
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
+    private final EnumMap<Role, List<String>> userRoleMappings;
     private final RestApiAuditEvent loginEvent; // login event to audit log
     private final AuditEventLoggingFacade auditEventLoggingFacade;
-    private final SecurityHelper securityHelper;
-
-    /**
-     * constructor
-     * @param authenticationIpWhitelist whitelist that limits the authentication
-     */
-    public PamAuthenticationProvider(AuthenticationIpWhitelist authenticationIpWhitelist,
-            GrantedAuthorityMapper grantedAuthorityMapper, RestApiAuditEvent loginEvent,
-            AuditEventLoggingFacade auditEventLoggingFacade, SecurityHelper securityHelper) {
-        this.authenticationIpWhitelist = authenticationIpWhitelist;
-        this.grantedAuthorityMapper = grantedAuthorityMapper;
-        this.loginEvent = loginEvent;
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
-        this.securityHelper = securityHelper;
-    }
-
-    /**
-     * users with these groups are allowed access
-     */
-    private static final Set<String> ALLOWED_GROUP_NAMES = Collections.unmodifiableSet(
-            Arrays.stream(Role.values())
-                    .map(Role::getLinuxGroupName)
-                    .collect(Collectors.toSet()));
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        boolean success = false;
-        String username = "unknown user";
-        Exception caughException = null;
-
+        String username = String.valueOf(authentication.getPrincipal());
         try {
-            username = String.valueOf(authentication.getPrincipal());
             Authentication result = doAuthenticateInternal(authentication, username);
-            success = true;
+            auditEventLoggingFacade.auditLogSuccess(loginEvent, username);
             return result;
         } catch (Exception e) {
-            caughException = e;
+            auditEventLoggingFacade.auditLogFail(loginEvent, e, username);
             throw e;
-        } finally {
-            if (success) {
-                auditEventLoggingFacade.auditLogSuccess(loginEvent, username);
-            } else {
-                auditEventLoggingFacade.auditLogFail(loginEvent, caughException, username);
-            }
         }
     }
 
@@ -127,15 +99,13 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
         try {
             UnixUser user = pam.authenticate(username, password);
             Set<String> groups = user.getGroups();
-            Set<String> matchingGroups = groups.stream()
-                    .filter(ALLOWED_GROUP_NAMES::contains)
-                    .collect(Collectors.toSet());
-            if (matchingGroups.isEmpty()) {
+            Collection<Role> xroadRoles = userRoleMappings.entrySet().stream()
+                    .filter(roleGroupMapping -> !Collections.disjoint(roleGroupMapping.getValue(), groups))
+                    .map(Map.Entry::getKey)
+                    .collect(toSet());
+            if (xroadRoles.isEmpty()) {
                 throw new AuthenticationServiceException("user hasn't got any required groups");
             }
-            Collection<Role> xroadRoles = matchingGroups.stream()
-                    .map(groupName -> Role.getForGroupName(groupName).get())
-                    .collect(Collectors.toSet());
             Set<GrantedAuthority> grants = grantedAuthorityMapper.getAuthorities(xroadRoles);
             return new UsernamePasswordAuthenticationToken(user.getUserName(), authentication.getCredentials(), grants);
         } catch (PAMException e) {
