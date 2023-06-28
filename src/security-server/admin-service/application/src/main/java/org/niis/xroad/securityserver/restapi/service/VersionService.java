@@ -32,6 +32,9 @@ import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import static ee.ria.xroad.common.Version.MAX_SUPPORTED_JAVA_VERSION;
+import static ee.ria.xroad.common.Version.MIN_SUPPORTED_JAVA_VERSION;
+
 /**
  * service class for handling X-Road version information
  */
@@ -39,8 +42,6 @@ import org.springframework.stereotype.Service;
 @Service
 @PreAuthorize("isAuthenticated()")
 public class VersionService {
-    public static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    public static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
 
     /**

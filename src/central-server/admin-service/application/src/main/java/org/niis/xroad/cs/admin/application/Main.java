@@ -26,19 +26,21 @@
  */
 package org.niis.xroad.cs.admin.application;
 
-import org.niis.xroad.cs.admin.core.config.BootstrapConfiguration;
+import ee.ria.xroad.common.Version;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-@SpringBootApplication
 @EnableScheduling
+@SpringBootApplication(scanBasePackages = {"org.niis.xroad.cs.admin", "org.niis.xroad.restapi"})
 public class Main {
+
+    private static final String APP_NAME = "xroad-center";
+
     public static void main(String[] args) {
-        SpringApplication.run(new Class[]{
-                Main.class,
-                BootstrapConfiguration.class
-        }, args);
+        Version.outputVersionInfo(APP_NAME);
+        SpringApplication.run(Main.class, args);
     }
 }

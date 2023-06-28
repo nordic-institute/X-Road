@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,7 +29,7 @@ package ee.ria.xroad.common.validation;
  * Encapsulates validation logic that is copied from Spring firewall internal methods and
  * variables
  */
-public final class SpringFirewallValidationRules {
+final class SpringFirewallValidationRules {
     private SpringFirewallValidationRules() {
     }
 

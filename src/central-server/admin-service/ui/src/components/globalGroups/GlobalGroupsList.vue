@@ -32,6 +32,7 @@
       </div>
 
       <xrd-button
+        v-if="allowAddGlobalGroup"
         data-test="add-global-group-button"
         @click="showAddGroupDialog = true"
       >
@@ -82,12 +83,13 @@
 <script lang="ts">
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
-import { mapActions, mapStores } from 'pinia';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { useGlobalGroupsStore } from '@/store/modules/global-groups';
 import { notificationsStore } from '@/store/modules/notifications';
 import { GlobalGroupResource } from '@/openapi-types';
-import { RouteName } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import AddGroupDialog from './AddGroupDialog.vue';
+import { userStore } from '@/store/modules/user';
 
 export default Vue.extend({
   name: 'GlobalResourcesList',
@@ -99,11 +101,15 @@ export default Vue.extend({
   },
   computed: {
     ...mapStores(useGlobalGroupsStore, notificationsStore),
+    ...mapState(userStore, ['hasPermission']),
     globalGroups(): GlobalGroupResource[] {
       return this.globalGroupStore.globalGroups;
     },
     groupsLoading(): boolean {
       return this.globalGroupStore.groupsLoading;
+    },
+    allowAddGlobalGroup(): boolean {
+      return this.hasPermission(Permissions.ADD_GLOBAL_GROUP);
     },
     globalGroupsHeaders(): DataTableHeader[] {
       return [

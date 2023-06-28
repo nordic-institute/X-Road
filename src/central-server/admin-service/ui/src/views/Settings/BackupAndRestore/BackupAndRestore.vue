@@ -34,7 +34,7 @@
         <xrd-search v-model="filter" />
       </div>
       <xrd-backups-toolbar
-        accepts=".backup"
+        accepts=".gpg"
         :backup-handler="backupHandler()"
         :can-backup="canBackup"
         @refresh-backups="fetchBackups"

@@ -32,8 +32,11 @@ import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
+import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
+import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.unit.DataSize;
 
 import java.util.List;
 import java.util.Set;
@@ -51,9 +54,17 @@ import java.util.Set;
 @ConfigurationProperties(prefix = "xroad.admin-service")
 @Getter
 @Setter
-@SuppressWarnings("checkstyle:MagicNumber")
-public class AdminServiceProperties implements IpThrottlingFilterConfig, AllowedHostnamesConfig,
-        ApiCachingConfiguration.Config, AllowedFilesConfig {
+public class AdminServiceProperties implements IpThrottlingFilterConfig,
+        AllowedHostnamesConfig,
+        ApiCachingConfiguration.Config,
+        LimitRequestSizesFilter.Config,
+        IdentifierValidationConfiguration.Config,
+        AllowedFilesConfig {
+
+    /**
+     * Controls the rate of global configuration generation in seconds.
+     */
+    private int globalConfigurationGenerationRateInSeconds;
 
     /**
      * Controls whether the built-in rate limiting is enabled.
@@ -67,8 +78,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
     private boolean rateLimitEnabled;
 
     /**
-     * Controls how many requests from an IP address are allowed per minute.
-     * Normally security servers should have a unique address and send second
+     * Controls how many requests from an IP address are allowed per second.
+     * Normally security servers should have a unique address and send just
      * one management request, so this value can be low.
      * To disable this feature, set this value to -1.
      */
@@ -122,4 +133,16 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig, Allowed
     private Set<String> certificateAllowedExtensions;
     /** Determines which file content types are allowed for certificate files. Any content type is allowed when left unspecified. */
     private Set<String> certificateAllowedContentTypes;
+
+    /**
+     * Restrict identifiers (member code, subsystem code etc.) to match <code>^[a-zA-Z0-9'()+,-.=?]*</code>.
+     * Setting value to false enables legacy compatibility mode, that logs a warning when entity is created with
+     * incompatible identifier.
+     */
+    private boolean strictIdentifierChecks;
+    /** Configures Api regular request size limit.  */
+    private DataSize requestSizeLimitRegular;
+
+    /** Configures Api file upload request size limit. */
+    private DataSize requestSizeLimitBinaryUpload;
 }

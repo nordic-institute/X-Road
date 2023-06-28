@@ -1,13 +1,17 @@
 #!/bin/bash
 
+source /usr/share/xroad/scripts/_read_cs_db_properties.sh
+
+prepare_db_props
+
 TMP=$(mktemp)
 DUMP_FILE=$1
-HOST=$(crudini --get /etc/xroad/db.properties '' host)
-PORT=$(crudini --get /etc/xroad/db.properties '' port)
-USER=$(crudini --get /etc/xroad/db.properties '' username)
-SCHEMA=$(crudini --get /etc/xroad/db.properties '' schema)
-PASSWORD=$(crudini --get /etc/xroad/db.properties '' password)
-DATABASE=$(crudini --get /etc/xroad/db.properties '' database)
+HOST=${db_host}
+PORT=${db_port}
+USER=${db_user}
+SCHEMA=${db_schema}
+PASSWORD=${db_password}
+DATABASE=${db_database}
 ADMIN_USER=$(crudini --get /etc/xroad.properties '' centerui.database.admin_user)
 ADMIN_PASSWORD=$(crudini --get /etc/xroad.properties '' centerui.database.admin_password)
 

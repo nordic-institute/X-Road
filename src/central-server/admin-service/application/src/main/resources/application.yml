@@ -22,6 +22,10 @@ spring:
     default-property-inclusion: NON_NULL
   liquibase:
     enabled: false
+  servlet:
+    multipart:
+      max-request-size: ${xroad.admin-service.request-size-limit-binary-upload}
+      max-file-size: ${xroad.admin-service.request-size-limit-binary-upload}
 
 common-module-endpoints:
   base-path: /api/v1
@@ -56,8 +60,45 @@ script:
 gpgkeys:
   gpghome: /etc/xroad/gpghome
 
+file-upload-endpoints:
+  endpoint-definitions:
+    -
+      http-method: POST
+      path-pattern: "/**/backups/upload"
+    -
+      http-method: POST
+      path-pattern: "/**/certification-services"
+    -
+      http-method: POST
+      path-pattern: "/**/certification-services/*/intermediate-cas"
+    -
+      http-method: POST
+      path-pattern: "/**/certification-services/*/ocsp-responders"
+    -
+      http-method: POST
+      path-pattern: "/**/configuration-sources/*/configuration-parts"
+    -
+      http-method: POST
+      path-pattern: "/**/trusted-anchors"
+    -
+      http-method: POST
+      path-pattern: "/**/trusted-anchors/preview"
+    -
+      http-method: POST
+      path-pattern: "/**/intermediate-cas/*/ocsp-responders"
+    -
+      http-method: PATCH
+      path-pattern: "/**/ocsp-responders/*"
+    -
+      http-method: POST
+      path-pattern: "/**/timestamping-services"
+    -
+      http-method: PATCH
+      path-pattern: "/**/timestamping-services/*"
+
 xroad:
   admin-service:
+    global-configuration-generation-rate-in-seconds: 60
     rate-limit-enabled: true
     rate-limit-requests-per-second: 20
     rate-limit-requests-per-minute: 600
@@ -65,9 +106,11 @@ xroad:
     rate-limit-expire-after-access-minutes: 5
     cache-default-ttl: 60
     cache-api-key-ttl: 60
-
     certificate-allowed-extensions: der,crt,pem,cer
     certificate-allowed-content-types: application/x-x509-cert,text/plain
     backup-allowed-content-types: application/pgp-encrypted
     xml-allowed-extensions: xml
     xml-allowed-content-types: text/xml,application/xml
+    strict-identifier-checks: true
+    request-size-limit-regular: 50KB
+    request-size-limit-binary-upload: 10MB

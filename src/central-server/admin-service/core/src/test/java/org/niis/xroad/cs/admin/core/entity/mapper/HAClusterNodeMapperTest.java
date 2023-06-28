@@ -36,6 +36,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.HAClusterNodeStatus;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
 import org.niis.xroad.cs.admin.core.entity.HAClusterStatusViewEntity;
 
 import java.time.Instant;
@@ -52,12 +53,16 @@ class HAClusterNodeMapperTest {
     @Mock
     private SystemParameterService systemParameterService;
 
+    @Mock
+    private AdminServiceProperties properties;
+
     @InjectMocks
     private HAClusterNodeMapper mapper = new HAClusterNodeMapperImpl();
 
     @BeforeEach
     void setUp() {
         lenient().when(systemParameterService.getConfExpireIntervalSeconds()).thenReturn(DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS);
+        lenient().when(properties.getGlobalConfigurationGenerationRateInSeconds()).thenReturn(60);
     }
 
     @ParameterizedTest

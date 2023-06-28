@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
+import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
@@ -45,6 +46,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.util.unit.DataSize;
 
 import javax.transaction.Transactional;
 
@@ -91,6 +93,21 @@ public abstract class AbstractSpringMvcTest {
                 @Override
                 public int getCacheApiKeyTtl() {
                     return 5;
+                }
+            };
+        }
+
+        @Bean
+        public LimitRequestSizesFilter.Config requestSizeConfig() {
+            return new LimitRequestSizesFilter.Config() {
+                @Override
+                public DataSize getRequestSizeLimitRegular() {
+                    return DataSize.ofMegabytes(1);
+                }
+
+                @Override
+                public DataSize getRequestSizeLimitBinaryUpload() {
+                    return DataSize.ofMegabytes(5);
                 }
             };
         }

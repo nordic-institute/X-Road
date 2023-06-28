@@ -27,20 +27,22 @@
 package org.niis.xroad.cs.registrationservice;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-@SpringBootApplication(scanBasePackages = {
-        "org.niis.xroad.cs.registrationservice",
-        "org.niis.xroad.restapi"
-})
+@SpringBootApplication(scanBasePackages = {"org.niis.xroad.cs.registrationservice", "org.niis.xroad.restapi"})
 @Slf4j
 public class Main {
 
+    private static final String APP_NAME = "xroad-center-registration-service";
+
     public static void main(String[] args) {
+        Version.outputVersionInfo(APP_NAME);
+
         var app = new SpringApplication(Main.class);
         app.addInitializers(ctx -> SystemPropertiesLoader.create().withCommonAndLocal().load());
         app.run(args);

@@ -508,6 +508,12 @@
       "memberCode": "Member Code",
       "subsystemCode": "Subsystem Code"
     },
+    "clientAdd": {
+      "client": {
+        "memberCode": "Member Code",
+        "subsystemCode": "Subsystem Code"
+      }
+    },
     "confirmPin": "Confirm PIN",
     "csr": {
       "certService": "Certification Service",
@@ -1014,7 +1020,8 @@
     "Pattern": "value did not match the required format",
     "Positive": "numeric value should be greater that zero",
     "PositiveOrZero": "numeric value should be greater or equal to zero",
-    "Size": "value does not meet length requirements"
+    "Size": "value does not meet length requirements",
+    "IdentifierChars": "invalid identifier characters"
   },
   "wizard": {
     "addClientTitle": "Add client",

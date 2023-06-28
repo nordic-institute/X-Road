@@ -209,7 +209,7 @@ export default Vue.extend({
       return this.hasPermission(Permissions.DELETE_MEMBER);
     },
     allowMemberRename(): boolean {
-      return this.hasPermission(Permissions.EDIT_MEMBER_NAME_AND_ADMIN_CONTACT);
+      return this.hasPermission(Permissions.EDIT_MEMBER_NAME);
     },
     serversHeaders(): DataTableHeader[] {
       return [

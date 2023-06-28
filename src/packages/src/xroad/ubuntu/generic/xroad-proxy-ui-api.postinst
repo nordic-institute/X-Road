@@ -23,6 +23,14 @@ case "$1" in
  configure)
   #migrating possible local configuration for modified configuration values (for version 6.24.0)
   migrate_conf_value /etc/xroad/conf.d/local.ini proxy-ui auth-cert-reg-signature-digest-algorithm-id proxy-ui-api auth-cert-reg-signature-digest-algorithm-id
+
+  # upgrade from version $2
+  if [ -n "$2" ]; then
+      # disable strict-identifier-checks for upgrades from version < 7.3.0
+      if dpkg --compare-versions "$2" lt-nl "7.3.0"; then
+          crudini --set /etc/xroad/conf.d/local.ini proxy-ui-api strict-identifier-checks false
+      fi
+  fi;
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)
