@@ -728,7 +728,7 @@ The default values can be found in [Annex A Central Server Default Database Prop
 
 ```properties
 spring.datasource.username=<database_user>
-spring.datasource.password=<database_user password>
+spring.datasource.password=<database_user_password>
 spring.datasource.hikari.data-source-properties.currentSchema=<database_schema>
 spring.datasource.url=jdbc:postgresql://<database_host>:<database_port>/<database>
 skip_migrations=<false by default, set to true to skip migrations>
