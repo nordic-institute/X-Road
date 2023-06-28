@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.30
+Version: 2.31
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -56,6 +56,7 @@ Doc. ID: UG-CS
 | 02.06.2023 | 2.28    | Added security hardening paragraph                                                                                                                                                                                                                                                                                                                                                                                                      | Ričardas Bučiūnas   |
 | 09.06.2023 | 2.29    | Added REST API paragraph                                                                                                                                                                                                                                                                                                                                                                                                                | Vytautas Paliliūnas |
 | 19.06.2023 | 2.30    | Remove table schema_migrations                                                                                                                                                                                                                                                                                                                                                                                                          | Eneli Reimets       |
+| 28.06.2023 | 2.31    | Update database properties to match new Spring datasource style                                                                                                                                                                                                                                                                                                                                                                         | Raido Kaju          |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -1611,12 +1612,10 @@ pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n center
 8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
 
 ```properties
-    username=centerui
-    password=<centerui password>
-    database=centerui_production
-    host=<database host>
-    port=<database port>
-    schema=centerui
+    spring.datasource.username=<database_username>
+    spring.datasource.password=<database_password>
+    spring.datasource.hikari.data-source-properties.currentSchema=<database_schema>
+    spring.datasource.url=jdbc:postgresql://<database_host>:<database_port>/<database>
 ```
 
 9. Start again the X-Road services.
