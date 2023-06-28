@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.30
+Version: 2.31
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -56,6 +56,7 @@ Doc. ID: UG-CS
 | 02.06.2023 | 2.28    | Added security hardening paragraph                                                                                                                                                                                                                                                                                                                                                                                                      | Ričardas Bučiūnas   |
 | 09.06.2023 | 2.29    | Added REST API paragraph                                                                                                                                                                                                                                                                                                                                                                                                                | Vytautas Paliliūnas |
 | 19.06.2023 | 2.30    | Remove table schema_migrations                                                                                                                                                                                                                                                                                                                                                                                                          | Eneli Reimets       |
+| 28.06.2023 | 2.31    | Update database properties to match new Spring datasource style                                                                                                                                                                                                                                                                                                                                                                         | Raido Kaju          |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->

@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.33  
+Version: 2.34  
 Doc. ID: IG-CS
 
 ---
@@ -51,6 +51,7 @@ Doc. ID: IG-CS
 | 05.05.2023 | 2.31    | Minor updates                                                                                                                                                                                 | Justas Samuolis    |
 | 23.05.2023 | 2.32    | Backup Encryption Configuration                                                                                                                                                               | Eneli Reimets      |
 | 31.05.2023 | 2.33    | Add Central Server network diagram                                                                                                                                                            | Petteri Kivimäki |
+| 28.06.2023 | 2.34    | Update database properties to the new Spring datasource version                                                                                                                               | Raido Kaju       |
 
 ## Table of Contents <!-- omit in toc -->
 
