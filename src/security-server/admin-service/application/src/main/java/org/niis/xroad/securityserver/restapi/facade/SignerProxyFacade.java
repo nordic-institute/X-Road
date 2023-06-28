@@ -40,7 +40,6 @@ import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -105,22 +104,6 @@ public class SignerProxyFacade {
      */
     public KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
         return SignerProxy.generateKey(tokenId, keyLabel);
-    }
-
-    /**
-     * {@link SignerProxy#generateSelfSignedCert(String, ClientId.Conf, KeyUsageInfo, String, Date, Date)}
-     */
-    public byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                         String commonName, Date notBefore, Date notAfter) throws Exception {
-        return SignerProxy.generateSelfSignedCert(keyId, memberId, keyUsage,
-                commonName, notBefore, notAfter);
-    }
-
-    /**
-     * {@link SignerProxy#importCert(byte[], String)}
-     */
-    public String importCert(byte[] certBytes, String initialStatus) throws Exception {
-        return SignerProxy.importCert(certBytes, initialStatus);
     }
 
     /**
