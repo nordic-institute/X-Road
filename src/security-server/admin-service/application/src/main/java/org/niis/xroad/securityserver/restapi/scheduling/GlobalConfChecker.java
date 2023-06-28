@@ -86,7 +86,6 @@ public class GlobalConfChecker {
      * next task won't be invoked until the previous one is done. Set an initial delay before running the task
      * for the first time after a startup to be sure that all required components are available, e.g.
      * SignerClient may not be available immediately.
-     * @throws Exception
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
     @Transactional
@@ -102,7 +101,6 @@ public class GlobalConfChecker {
             updateServerConf();
         } catch (Exception e) {
             log.error("Checking globalconf for updates failed", e);
-            throw e;
         }
     }
 

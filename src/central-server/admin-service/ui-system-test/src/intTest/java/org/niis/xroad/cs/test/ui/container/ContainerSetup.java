@@ -56,7 +56,7 @@ public class ContainerSetup {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
-            public LazyFuture<String> imageDefinition() {
+            public ImageFromDockerfile imageDefinition() {
                 Path csDockerRoot = Paths.get("../../../../Docker/centralserver/");
                 Path dockerfilePath = csDockerRoot.resolve("Dockerfile");
 

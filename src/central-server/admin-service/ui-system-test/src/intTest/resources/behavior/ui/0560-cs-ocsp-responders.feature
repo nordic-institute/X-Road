@@ -1,6 +1,5 @@
 @CentralServer
 @CertificationService
-@This
 Feature: 0560 - CS: Trust Services -> CA Details -> OCSP Responders
 
   Background:

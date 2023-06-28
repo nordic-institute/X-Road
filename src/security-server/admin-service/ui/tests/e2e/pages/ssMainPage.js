@@ -122,10 +122,10 @@ module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [navigateCommands],
   elements: {
-    clientsTab: '//a[@data-test="clients"]',
-    keysTab: '//a[@data-test="keys"]',
-    diagnosticsTab: '//a[@data-test="diagnostics"]',
-    settingsTab: '//a[@data-test="settings"]',
+    // clientsTab: '//a[@data-test="clients"]',
+    // keysTab: '//a[@data-test="keys"]',
+    // diagnosticsTab: '//a[@data-test="diagnostics"]',
+    // settingsTab: '//a[@data-test="settings"]',
     userMenuButton: '//button[@data-test="username-button"]',
     userMenuitemLogout: '//*[@data-test="logout-list-tile"]',
     logoutOKButton:

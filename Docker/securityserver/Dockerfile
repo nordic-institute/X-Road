@@ -6,7 +6,7 @@ RUN apt-get -qq update \
     && apt-get -qq install \
         ca-certificates gnupg supervisor net-tools iproute2 locales \
         openjdk-11-jre-headless rlwrap ca-certificates-java \
-        crudini adduser expect curl rsyslog \
+        crudini adduser expect curl rsyslog nano \
     && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
     && locale-gen en_US.UTF-8 \
     && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -43,6 +43,15 @@ RUN mkdir -p /root/etc/xroad \
     && dpkg-query --showformat='${Version}' --show xroad-proxy >/root/VERSION \
     && cp /root/VERSION /etc/xroad/VERSION
 
+# Setup users
+ARG USER_PASSWD=secret
+RUN useradd xrd-sec && adduser xrd-sec xroad-security-officer && sh -c "echo 'xrd-sec:$USER_PASSWD' | chpasswd" \
+    && useradd xrd-reg && adduser xrd-reg xroad-registration-officer && sh -c "echo 'xrd-reg:$USER_PASSWD' | chpasswd" \
+    && useradd xrd-ser && adduser xrd-ser xroad-service-administrator && sh -c "echo 'xrd-ser:$USER_PASSWD' | chpasswd" \
+    && useradd xrd-sys && adduser xrd-sys xroad-system-administrator && sh -c "echo 'xrd-sys:$USER_PASSWD' | chpasswd" \
+    && useradd xrd-obs && adduser xrd-obs xroad-securityserver-observer && sh -c "echo 'xrd-obs:$USER_PASSWD' | chpasswd"
+
+COPY --chown=xroad:xroad etc /etc
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
