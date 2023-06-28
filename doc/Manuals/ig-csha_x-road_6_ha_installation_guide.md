@@ -398,10 +398,9 @@ See [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#17-m
 
 Edit `/etc/xroad/db.properties` and change the connection properties:
 ```properties
-username=centerui
-password=<password>
-database=centerui_production
-host=<master host>
+spring.datasource.username=centerui
+spring.datasource.password=<password>
+spring.datasource.url=jdbc:postgresql://<master host>:<master port>/centerui_production
 secondary_hosts=<standby host>
 ```
 

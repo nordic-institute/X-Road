@@ -1611,12 +1611,10 @@ pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n center
 8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
 
 ```properties
-    username=centerui
-    password=<centerui password>
-    database=centerui_production
-    host=<database host>
-    port=<database port>
-    schema=centerui
+    spring.datasource.username=centerui
+    spring.datasource.password=<centerui password>
+    spring.datasource.hikari.data-source-properties.currentSchema=centerui
+    spring.datasource.url=jdbc:postgresql://<database host>:<database port>/centerui_production
 ```
 
 9. Start again the X-Road services.
