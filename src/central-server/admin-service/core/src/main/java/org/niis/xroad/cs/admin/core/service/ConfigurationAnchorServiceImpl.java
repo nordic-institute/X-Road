@@ -68,6 +68,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_RECREATING_ANCHOR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INSTANCE_IDENTIFIER_NOT_SET;
@@ -170,7 +171,10 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
             configurationAnchor.setInstanceIdentifier(instanceIdentifier);
 
             sources.stream()
-                    .map(src -> toXmlSource(src, configurationType, factory))
+                    .map(src -> toXmlSource(src, configurationType, factory, false))
+                    .forEach(configurationAnchor.getSource()::add);
+            sources.stream()
+                    .map(src -> toXmlSource(src, configurationType, factory, true))
                     .forEach(configurationAnchor.getSource()::add);
 
             JAXBElement<ConfigurationAnchorType> root = factory.createConfigurationAnchor(configurationAnchor);
@@ -183,22 +187,26 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         }
     }
 
-    private String buildGlobalDownloadUrl(final ConfigurationSourceType sourceType, final String haNodeName) {
-        final var csAddress = systemParameterService.getCentralServerAddress(haNodeName);
+    private String buildGlobalDownloadUrl(final ConfigurationSourceType sourceType, final String haNodeName, final boolean isHttps) {
+        final var csAddress = sourceType.equals(EXTERNAL) && isHttps
+                              ? systemParameterService.getCentralServerAddress(haNodeName) + ":4443" // make port into sys prop?
+                              : systemParameterService.getCentralServerAddress(haNodeName);
         final String sourceDirectory = sourceType.equals(INTERNAL)
                 ? SystemProperties.getCenterInternalDirectory()
                 : SystemProperties.getCenterExternalDirectory();
+        final String protocol = isHttps ? "https" : "http";
 
-        return String.format("http://%s/%s", csAddress, sourceDirectory);
+        return String.format("%s://%s/%s", protocol, csAddress, sourceDirectory);
     }
 
     private ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType toXmlSource(
             final ConfigurationSourceEntity source,
             final ConfigurationSourceType configurationType,
-            final ObjectFactory factory) {
+            final ObjectFactory factory,
+            final boolean isHttps) {
         final var xmlSource = factory.createConfigurationSourceType();
 
-        xmlSource.setDownloadURL(buildGlobalDownloadUrl(configurationType, source.getHaNodeName()));
+        xmlSource.setDownloadURL(buildGlobalDownloadUrl(configurationType, source.getHaNodeName(), isHttps));
         source.getConfigurationSigningKeys().stream()
                 .map(ConfigurationSigningKeyEntity::getCert)
                 .forEach(xmlSource.getVerificationCert()::add);

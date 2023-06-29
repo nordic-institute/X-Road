@@ -165,10 +165,11 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
         final ResponseEntity<GlobalConfDownloadUrlDto> response = configurationSourcesApi
                 .getDownloadUrl(ConfigurationTypeDto.fromValue(configurationType));
 
+        String expectedPort = configurationType.equals("EXTERNAL") ? ":4443" : "";
+        String expectedDownloadUrl = "https://cs" + expectedPort + "/" + configurationType.toLowerCase() + "conf";
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion("http://cs/" + configurationType.toLowerCase() + "conf", "body.url",
-                        "Response contains global download url"))
+                .assertion(equalsAssertion(expectedDownloadUrl, "body.url", "Response contains global download url"))
                 .execute();
     }
 

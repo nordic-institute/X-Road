@@ -45,6 +45,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.X509Extension;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -127,9 +128,15 @@ public class GenerateSelfSignedCertRequestHandler extends AbstractRequestHandler
             JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE,
                     message.getNotBefore(), message.getNotAfter(), subject, publicKey);
 
-            KeyUsage keyUsage = new KeyUsage(message.getKeyUsage() == KeyUsageInfo.SIGNING
-                    ? KeyUsage.nonRepudiation : KeyUsage.digitalSignature);
-            builder.addExtension(X509Extension.keyUsage, true, keyUsage);
+            if (message.getKeyUsage() == KeyUsageInfo.SIGNING) {
+                KeyUsage keyUsage = new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.keyCertSign);
+                builder.addExtension(X509Extension.keyUsage, true, keyUsage);
+                builder.addExtension(X509Extension.basicConstraints,
+                                      true, new BasicConstraints(true));
+            } else {
+                KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature);
+                builder.addExtension(X509Extension.keyUsage, true, keyUsage);
+            }
 
             ContentSigner signer = new CertContentSigner(tokenAndKey, signAlgoId);
 
