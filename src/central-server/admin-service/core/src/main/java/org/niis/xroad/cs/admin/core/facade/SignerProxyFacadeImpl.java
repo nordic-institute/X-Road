@@ -26,7 +26,7 @@
 package org.niis.xroad.cs.admin.core.facade;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;

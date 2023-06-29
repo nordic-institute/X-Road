@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.commonui;
+package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -33,6 +33,7 @@ import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.message.ActivateCert;
@@ -51,10 +52,14 @@ import ee.ria.xroad.signer.protocol.message.GetCertificateInfoForHash;
 import ee.ria.xroad.signer.protocol.message.GetCertificateInfoResponse;
 import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
 import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
+import ee.ria.xroad.signer.protocol.message.GetMemberCerts;
+import ee.ria.xroad.signer.protocol.message.GetMemberCertsResponse;
+import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
 import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
+import ee.ria.xroad.signer.protocol.message.GetTokenBatchSigningEnabled;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertHash;
 import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
@@ -389,7 +394,7 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static void deleteKey(String keyId, boolean deleteFromToken) throws Exception {
-        log.trace("Deleting key '{}', from token = ", keyId, deleteFromToken);
+        log.trace("Deleting key '{}', from token = {}", keyId, deleteFromToken);
 
         execute(new DeleteKey(keyId, deleteFromToken));
     }
@@ -486,6 +491,7 @@ public final class SignerProxy {
 
     /**
      * Get Security Server auth key
+     *
      * @param serverId securityServerId
      * @return authKeyInfo
      * @throws Exception
@@ -522,34 +528,38 @@ public final class SignerProxy {
         return execute(new GetTokenInfoForKeyId(keyId));
     }
 
-    /**
-     * Get sign mechanism name.
-     *
-     * @param keyId
-     * @return sign mechanism name
-     * @throws Exception
-     */
     public static String getSignMechanism(String keyId) throws Exception {
         final GetSignMechanismResponse signMechanismResponse = execute(new GetSignMechanism(keyId));
         return signMechanismResponse.getSignMechanismName();
     }
 
-    /**
-     * Signs the digest.
-     *
-     * @param keyId
-     * @param signatureAlgorithmId
-     * @param digest
-     * @return signature
-     * @throws Exception
-     */
     public static byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) throws Exception {
         final SignResponse signResponse = execute(new Sign(keyId, signatureAlgorithmId, digest));
         return signResponse.getSignature();
     }
 
+    public static Boolean isTokenBatchSigningEnabled(String keyId) throws Exception {
+        return execute(new GetTokenBatchSigningEnabled(keyId));
+    }
+
+    public static MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) throws Exception {
+        final MemberSigningInfo response = execute(new GetMemberSigningInfo(clientId));
+        return new MemberSigningInfoDto(response.getKeyId(), response.getCert(), response.getSignMechanismName());
+    }
+
+    public static GetMemberCertsResponse getMemberCerts(ClientId memberId) throws Exception {
+        return execute(new GetMemberCerts(memberId));
+    }
+
     private static <T> T execute(Object message) throws Exception {
         return SignerClient.execute(message);
+    }
+
+    @Value
+    public static class MemberSigningInfoDto {
+        String keyId;
+        CertificateInfo cert;
+        String signMechanismName;
     }
 
 }

@@ -27,8 +27,8 @@ package org.niis.xroad.securityserver.restapi.facade;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.commonui.SignerProxy;
-import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
+import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
