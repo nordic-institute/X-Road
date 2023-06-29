@@ -50,6 +50,8 @@ import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
 import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 import ee.ria.xroad.signer.protocol.message.GetCertificateInfoForHash;
 import ee.ria.xroad.signer.protocol.message.GetCertificateInfoResponse;
+import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfo;
+import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfoResponse;
 import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
 import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
 import ee.ria.xroad.signer.protocol.message.GetMemberCerts;
@@ -72,6 +74,7 @@ import ee.ria.xroad.signer.protocol.message.RegenerateCertRequest;
 import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.SetCertStatus;
 import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
+import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
@@ -435,19 +438,18 @@ public final class SignerProxy {
      * Get key for a given cert hash
      *
      * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
-     * @return CertificateInfo
+     * @return Key id and sign mechanism
      * @throws Exception
      */
-    public static String getKeyIdForCertHash(String hash) throws Exception {
+    public static KeyIdInfo getKeyIdForCertHash(String hash) throws Exception {
         hash = hash.toLowerCase();
         log.trace("Getting cert by hash '{}'", hash);
 
         GetKeyIdForCertHashResponse response = execute(new GetKeyIdForCertHash(hash));
-        String keyId = response.getKeyId();
 
         log.trace("Cert with hash '{}' found", hash);
 
-        return keyId;
+        return new KeyIdInfo(response.getKeyId(), response.getSignMechanismName());
     }
 
     /**
@@ -480,6 +482,10 @@ public final class SignerProxy {
         String[] lowerCaseHashes = toLowerCase(certHashes);
         GetOcspResponsesResponse response = execute(new GetOcspResponses(lowerCaseHashes));
         return response.getBase64EncodedResponses();
+    }
+
+    public static void setOcspResponses(String[] certHashes, String[] base64EncodedResponses) throws Exception {
+        execute(new SetOcspResponses(certHashes, base64EncodedResponses));
     }
 
     private static String[] toLowerCase(String[] certHashes) {
@@ -551,6 +557,10 @@ public final class SignerProxy {
         return execute(new GetMemberCerts(memberId));
     }
 
+    public static boolean isHSMOperational() throws Exception {
+        return ((GetHSMOperationalInfoResponse) execute(new GetHSMOperationalInfo())).isOperational();
+    }
+
     private static <T> T execute(Object message) throws Exception {
         return SignerClient.execute(message);
     }
@@ -559,6 +569,12 @@ public final class SignerProxy {
     public static class MemberSigningInfoDto {
         String keyId;
         CertificateInfo cert;
+        String signMechanismName;
+    }
+
+    @Value
+    public static class KeyIdInfo {
+        String keyId;
         String signMechanismName;
     }
 

@@ -338,9 +338,9 @@ public class TokenCertificateServiceTest {
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
             if (certHash.equals(EXISTING_CERT_IN_AUTH_KEY_HASH)) {
-                return AUTH_KEY_ID;
+                return new SignerProxy.KeyIdInfo(AUTH_KEY_ID, null);
             } else {
-                return SIGN_KEY_ID;
+                return new SignerProxy.KeyIdInfo(SIGN_KEY_ID, null);
             }
         }).when(signerProxyFacade).getKeyIdForCertHash(any());
     }

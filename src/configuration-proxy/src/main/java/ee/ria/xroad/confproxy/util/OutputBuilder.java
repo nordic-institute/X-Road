@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -32,11 +32,7 @@ import ee.ria.xroad.common.util.HashCalculator;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
-import ee.ria.xroad.signer.protocol.SignerClient;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
-import ee.ria.xroad.signer.protocol.message.Sign;
-import ee.ria.xroad.signer.protocol.message.SignResponse;
+import ee.ria.xroad.signer.SignerProxy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -198,7 +194,7 @@ public class OutputBuilder implements AutoCloseable {
     private void build(final ByteArrayOutputStream mimeContent) throws Exception {
         try (MultipartEncoder encoder = new MultipartEncoder(mimeContent, dataBoundary)) {
             OffsetDateTime expireDate = OffsetDateTime.now().plusSeconds(conf.getValidityIntervalSeconds());
-            encoder.startPart(null, new String[] {
+            encoder.startPart(null, new String[]{
                     HEADER_EXPIRE_DATE + ": " + DATETIME_FORMAT.format(expireDate.truncatedTo(ChronoUnit.MILLIS)),
                     HEADER_VERSION + ": " + String.format("%d", version)
             });
@@ -240,7 +236,7 @@ public class OutputBuilder implements AutoCloseable {
             String hashURI = hashCalculator.getAlgoURI();
             Path verificationCertPath = conf.getCertPath(keyId);
 
-            encoder.startPart(MimeTypes.BINARY, new String[] {
+            encoder.startPart(MimeTypes.BINARY, new String[]{
                     HEADER_CONTENT_TRANSFER_ENCODING + ": base64",
                     HEADER_SIG_ALGO_ID + ": " + algURI,
                     HEADER_VERIFICATION_CERT_HASH + ": " + getVerificationCertHash(verificationCertPath) + "; "
@@ -296,13 +292,13 @@ public class OutputBuilder implements AutoCloseable {
      * @throws Exception if the configuration file content could not be appended
      */
     private void appendFileContent(final MultipartEncoder encoder, final String instance,
-            final ConfigurationPartMetadata metadata, final InputStream inputStream) throws Exception {
+                                   final ConfigurationPartMetadata metadata, final InputStream inputStream) throws Exception {
         try {
             Path contentLocation = Paths.get(instance, timestamp, metadata.getInstanceIdentifier(),
                     metadata.getContentLocation());
 
             encoder.startPart(MimeTypes.BINARY,
-                    new String[] {
+                    new String[]{
                             HEADER_CONTENT_TRANSFER_ENCODING + ": base64",
                             HEADER_CONTENT_IDENTIFIER + ": "
                                     + metadata.getContentIdentifier()
@@ -321,9 +317,9 @@ public class OutputBuilder implements AutoCloseable {
     }
 
     private static String getSignatureAlgorithmId(String keyId, String digestAlgoId) throws Exception {
-        GetSignMechanismResponse signMechanismResponse = SignerClient.execute(new GetSignMechanism(keyId));
+        String signMechanismName = SignerProxy.getSignMechanism(keyId);
 
-        return CryptoUtils.getSignatureAlgorithmId(digestAlgoId, signMechanismResponse.getSignMechanismName());
+        return CryptoUtils.getSignatureAlgorithmId(digestAlgoId, signMechanismName);
     }
 
     /**
@@ -336,8 +332,8 @@ public class OutputBuilder implements AutoCloseable {
      */
     private String getSignature(final String keyId, final String signatureAlgorithmId, final byte[] digest)
             throws Exception {
-        SignResponse response = SignerClient.execute(new Sign(keyId, signatureAlgorithmId, digest));
+        byte[] signature = SignerProxy.sign(keyId, signatureAlgorithmId, digest);
 
-        return encodeBase64(response.getSignature());
+        return encodeBase64(signature);
     }
 }

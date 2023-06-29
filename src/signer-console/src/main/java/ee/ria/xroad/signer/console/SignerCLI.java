@@ -266,8 +266,8 @@ public class SignerCLI {
     @Command(description = "Returns key ID for certificate hash")
     public void getKeyIdForCertHash(@Param(name = "certHash", description = "Certificare hash") String certHash)
             throws Exception {
-        String keyId = SignerProxy.getKeyIdForCertHash(certHash);
-        System.out.println(keyId);
+        SignerProxy.KeyIdInfo keyId = SignerProxy.getKeyIdForCertHash(certHash);
+        System.out.println(keyId.getKeyId());
     }
 
     /**
