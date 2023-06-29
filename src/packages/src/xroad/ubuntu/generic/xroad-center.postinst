@@ -151,7 +151,9 @@ GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
 GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
 EOF
         crudini --set "${db_properties}" '' spring.datasource.hikari.data-source-properties.currentSchema "${db_schema},public"
+        crudini --set "${db_properties}" '' spring.datasource.username "centerui"
         crudini --set "${db_properties}" '' spring.datasource.password "${db_password}"
+
         crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_user' "${db_admin_conn_user}"
         crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_password' "${db_admin_password}"
     fi
