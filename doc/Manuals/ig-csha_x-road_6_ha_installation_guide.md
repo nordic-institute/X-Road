@@ -1,7 +1,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.18  
+Version: 1.20
 Doc. ID: IG-CSHA
 
 ---
@@ -32,6 +32,7 @@ Doc. ID: IG-CSHA
 | 19.04.2023 | 1.17    | Removed unused properties from db.properties                                                         | Mikk-Erik Bachmann |
 | 02.06.2023 | 1.18    | Minor updates                                                                                        | Justas Samuolis    |
 | 05.06.2023 | 1.19    | Update HA cluster status endpoint path                                                               | Andres Rosenthal   |
+| 28.06.2023 | 1.20    | Update database properties to follow new Spring datasource style                                     | Raido Kaju         |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -398,11 +399,10 @@ See [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#17-m
 
 Edit `/etc/xroad/db.properties` and change the connection properties:
 ```properties
-username=centerui
-password=<password>
-database=centerui_production
-host=<master host>
-secondary_hosts=<standby host>
+spring.datasource.username=<database_user>
+spring.datasource.password=<password>
+spring.datasource.url=jdbc:postgresql://<master_host>:<master_port>/<database>
+secondary_hosts=<standby_host>
 ```
 
 Restart Central Servers and verify that the cluster is working (see [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)).
