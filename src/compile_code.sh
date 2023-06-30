@@ -24,7 +24,7 @@ if [[ -n "$SONAR" ]]; then
 fi
 
 if [[ -n "$NODAEMON" ]]; then
-    ARGUMENTS+=(--no-daemon)
+    ARGUMENTS+=(--no-daemon -v /var/run/docker.sock:/var/run/docker.sock)
 fi
 
 ./gradlew "${ARGUMENTS[@]}"
