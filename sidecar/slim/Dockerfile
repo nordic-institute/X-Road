@@ -17,7 +17,7 @@ RUN apt-get -qq update \
   && apt-get -qq install postgresql postgresql-contrib \
   && apt-get -qq clean
 
-ARG VERSION=7.2.0
+ARG VERSION=7.3.0
 ARG DIST=focal-$VERSION
 ARG REPO=https://artifactory.niis.org/xroad-release-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
