@@ -2,11 +2,12 @@
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 25.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
- 09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices                    | Alberto Fernandez Lorenzo
- 28.11.2021 | 1.2     | Add license info                                                | Petteri Kivimäki
+ Date       | Version | Description                                  | Author
+ ---------- |---------|----------------------------------------------| --------------------
+ 25.01.2021 | 1.0     | Initial version                              | Alberto Fernandez Lorenzo
+ 09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices | Alberto Fernandez Lorenzo
+ 28.11.2021 | 1.2     | Add license info                             | Petteri Kivimäki
+ 11.10.2022 | 1.3     | Updating links                               | Monika Liutkute
 
 ## License
 
@@ -333,7 +334,7 @@ kubectl get daemonset calico-node --namespace kube-system
 
 ### 5.1 Create Network policies
 
-In this example, it will be shown how to isolate the Primary Pod described in [Multiple Pods scenario](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#426-multiple-pods-using-a-load-balancer-deployment) so that it only allows traffic from the Secondary Pods through port 22.
+In this example, it will be shown how to isolate the Primary Pod described in [Multiple Pods scenario](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#456-multiple-pods-using-a-load-balancer-deployment) so that it only allows traffic from the Secondary Pods through port 22.
 
 1. Modify the Primary Pod manifest adding the label "role:primary" to identify it:
 
@@ -627,7 +628,7 @@ The restoration of backups is a process that is executed with root permission an
 
 ## 10 Message logs
 
-The backup of the log messages may contain sensitive information. Therefore, it is recommended to save the automatic backups in an AWS EFS type volume and periodically send the backups to an AWS S3 Bucket with encryption both in transit and rest. More information can be found in [the Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#8-message-logs-and-disk-space).
+The backup of the log messages may contain sensitive information. Therefore, it is recommended to save the automatic backups in an AWS EFS type volume and periodically send the backups to an AWS S3 Bucket with encryption both in transit and rest. More information can be found in [the Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#8-message-log-archives).
 
 ## 11 Horizontal Pod Autoscaler best practices
 
