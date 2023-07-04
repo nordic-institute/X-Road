@@ -4,7 +4,7 @@ no_cache=""
 n=1
 for i in "$@" ; do
     if [[ $i == "--no-cache" ]] ; then
-        no_cache="--pull --no-cache"
+        no_cache="--no-cache"
         set -- "${@:1:n-1}" "${@:n+1}"
         break
     fi
@@ -36,6 +36,8 @@ build_variant() {
     --build-arg "VARIANT=$2" \
     -t "$tag:$version$1-$2" "$dir"
 }
+
+docker pull ubuntu:20.04 # Ensure latest ubuntu image is used as base
 
 build "$dir/slim/Dockerfile" "-slim"
 build_variant "-slim" "fi"
