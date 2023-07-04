@@ -1,3 +1,46 @@
-dependencies {
-    implementation project(':common:common-util')
+
+ext {
+  cucumberVersion = '7.12.1'
+  junitJupiterVersion = '5.9.3'
+  junitPlatformSuiteVersion = '1.9.3'
 }
+
+dependencies {
+  implementation project(':common:common-util')
+
+  intTestRuntimeOnly project(':signer')
+  intTestRuntimeOnly project(':common:common-util')
+
+  intTestImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
+  intTestImplementation "org.assertj:assertj-core:$assertjVersion"
+  intTestImplementation "io.cucumber:cucumber-java:$cucumberVersion"
+  intTestImplementation "io.cucumber:cucumber-junit-platform-engine:$cucumberVersion"
+  intTestImplementation "org.junit.platform:junit-platform-suite:$junitPlatformSuiteVersion"
+  intTestRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
+}
+
+test {
+  useJUnitPlatform()
+}
+
+task intTest(type: Test) {
+  useJUnitPlatform()
+
+  setDescription("Runs integration tests.")
+  group = 'verification'
+
+  testClassesDirs = sourceSets.intTest.output.classesDirs
+  classpath = sourceSets.intTest.runtimeClasspath
+
+  systemProperty("java.library.path", "../passwordstore")
+
+  testLogging {
+    showStackTraces(true)
+    showExceptions(true)
+    showCauses(true)
+    showStandardStreams(true)
+  }
+
+  shouldRunAfter test
+}
+
