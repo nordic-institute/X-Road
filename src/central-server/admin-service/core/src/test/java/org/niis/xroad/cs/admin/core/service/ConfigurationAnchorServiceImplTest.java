@@ -66,6 +66,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RE_CREATE_INTERNAL_CONFIGURATION_ANCHOR;
 
 @ExtendWith(MockitoExtension.class)
@@ -190,7 +191,7 @@ public class ConfigurationAnchorServiceImplTest {
         private ArgumentCaptor<byte[]> xmlCaptor;
 
         @Test
-        void shouldSuccessfullyRecreate() {
+        void shouldSuccessfullyRecreateInternal() {
             when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
             when(systemParameterService.getCentralServerAddress(HA_NODE_NAME)).thenReturn(CENTRAL_SERVICE);
             when(systemParameterService.getCentralServerAddress(HA_NODE_NAME2)).thenReturn(CENTRAL_SERVICE2);
@@ -243,6 +244,97 @@ public class ConfigurationAnchorServiceImplTest {
                     .isEqualTo("http://cs2/internalconf");
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[2]/verificationCert[1]")
+                    .isEqualTo(Base64Utils.encodeToString(CERT3.getBytes(UTF_8)));
+
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[3]/downloadURL")
+                    .isEqualTo("https://cs/internalconf");
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[3]/verificationCert[1]")
+                    .isEqualTo(Base64Utils.encodeToString(CERT1.getBytes(UTF_8)));
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[3]/verificationCert[2]")
+                    .isEqualTo(Base64Utils.encodeToString(CERT2.getBytes(UTF_8)));
+
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[4]/downloadURL")
+                    .isEqualTo("https://cs2/internalconf");
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[4]/verificationCert[1]")
+                    .isEqualTo(Base64Utils.encodeToString(CERT3.getBytes(UTF_8)));
+        }
+
+        @Test
+        void shouldSuccessfullyRecreateExternal() {
+            when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+            when(systemParameterService.getCentralServerAddress(HA_NODE_NAME)).thenReturn(CENTRAL_SERVICE);
+            when(systemParameterService.getCentralServerAddress(HA_NODE_NAME2)).thenReturn(CENTRAL_SERVICE2);
+            when(configurationSourceRepository.findBySourceTypeOrCreate(EXTERNAL_CONFIGURATION.toLowerCase(),
+                                                                        new HAConfigStatus(HA_NODE_NAME, false)))
+                    .thenReturn(configurationSource);
+            when(configurationSourceRepository.findAllBySourceType(EXTERNAL_CONFIGURATION.toLowerCase()))
+                    .thenReturn(List.of(configurationSource, configurationSource2));
+            when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
+            when(configurationSource.getConfigurationSigningKeys())
+                    .thenReturn(new LinkedHashSet<>(List.of(signingKeyEntity1, signingKeyEntity2)));
+            when(configurationSource.getConfigurationSigningKey()).thenReturn(signingKeyEntity1);
+            when(configurationSource2.getHaNodeName()).thenReturn(HA_NODE_NAME2);
+            when(configurationSource2.getConfigurationSigningKeys()).thenReturn(Set.of(signingKeyEntity3));
+            when(configurationSource2.getConfigurationSigningKey()).thenReturn(null);
+            when(signingKeyEntity1.getCert()).thenReturn(CERT1.getBytes(UTF_8));
+            when(signingKeyEntity2.getCert()).thenReturn(CERT2.getBytes(UTF_8));
+            when(signingKeyEntity3.getCert()).thenReturn(CERT3.getBytes(UTF_8));
+
+            final var result = configurationAnchorService.recreateAnchor(EXTERNAL, true);
+
+            verify(configurationSourceRepository).save(configurationSource);
+            verify(configurationSourceRepository, never()).save(configurationSource2);
+            verify(configurationSource).setAnchorFile(xmlCaptor.capture());
+            verify(configurationSource).setAnchorFileHash(result.getAnchorFileHash());
+            verify(configurationSource).setAnchorGeneratedAt(result.getAnchorGeneratedAt());
+            verify(auditEventHelper).changeRequestScopedEvent(RE_CREATE_EXTERNAL_CONFIGURATION_ANCHOR);
+            verify(auditDataHelper).putAnchorHash(any());
+
+            assertThat(result.getAnchorGeneratedAt().truncatedTo(MINUTES))
+                    .isEqualTo(Instant.now().truncatedTo(MINUTES));
+
+            final var xml = new String(xmlCaptor.getValue());
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/instanceIdentifier").isEqualTo(INSTANCE_IDENTIFIER);
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/generatedAt").isEqualTo(asString(result.getAnchorGeneratedAt()));
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[1]/downloadURL")
+                    .isEqualTo("http://cs/externalconf");
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[1]/verificationCert[1]")
+                    .isEqualTo(Base64Utils.encodeToString(CERT1.getBytes(UTF_8)));
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[1]/verificationCert[2]")
+                    .isEqualTo(Base64Utils.encodeToString(CERT2.getBytes(UTF_8)));
+
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[2]/downloadURL")
+                    .isEqualTo("http://cs2/externalconf");
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[2]/verificationCert[1]")
+                    .isEqualTo(Base64Utils.encodeToString(CERT3.getBytes(UTF_8)));
+
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[3]/downloadURL")
+                    .isEqualTo("https://cs:4443/externalconf");
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[3]/verificationCert[1]")
+                    .isEqualTo(Base64Utils.encodeToString(CERT1.getBytes(UTF_8)));
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[3]/verificationCert[2]")
+                    .isEqualTo(Base64Utils.encodeToString(CERT2.getBytes(UTF_8)));
+
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[4]/downloadURL")
+                    .isEqualTo("https://cs2:4443/externalconf");
+            XmlAssert.assertThat(xml).withNamespaceContext(namespace)
+                    .valueByXPath("//ns3:configurationAnchor/source[4]/verificationCert[1]")
                     .isEqualTo(Base64Utils.encodeToString(CERT3.getBytes(UTF_8)));
         }
 

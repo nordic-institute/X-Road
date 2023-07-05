@@ -10,7 +10,10 @@ ARCH=$(arch)
 ARCH=${ARCH/aarch64/arm64}
 ARCH=${ARCH/x86_64/amd64}
 
-JAVA_HOME="/usr/lib/jvm/java-11-openjdk-$ARCH"
-PATH="$JAVA_HOME/bin:$PATH"
+if [ -z "$JAVA_HOME" ]
+then
+  JAVA_HOME="/usr/lib/jvm/java-11-openjdk-$ARCH"
+  PATH="$JAVA_HOME/bin:$PATH"
+fi
 
 export PATH JAVA_HOME XROAD_HOME

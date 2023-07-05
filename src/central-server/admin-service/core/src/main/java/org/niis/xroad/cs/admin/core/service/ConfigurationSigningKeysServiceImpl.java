@@ -255,7 +255,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         try {
             final byte[] selfSignedCert = signerProxyFacade.generateSelfSignedCert(keyInfo.getId(), clientId,
                     KeyUsageInfo.SIGNING,
-                    "N/A",
+                    INTERNAL.equals(configurationSourceType) ? "internalSigningKey" : "externalSigningKey",
                     SIGNING_KEY_CERT_NOT_BEFORE,
                     SIGNING_KEY_CERT_NOT_AFTER);
             auditDataHelper.put(CERT_HASH, calculateCertHexHashDelimited(selfSignedCert));

@@ -155,6 +155,7 @@
         <div class="button-footer">
           <xrd-button
             :disabled="invalid"
+            :loading="submitting"
             data-test="submit-button"
             @click="submit"
             >{{ $t('action.submit') }}
@@ -233,6 +234,7 @@ export default (
         instanceIdentifier: false,
         pin: false,
       },
+      submitting: false,
     };
   },
   computed: {
@@ -277,6 +279,7 @@ export default (
       formData.central_server_address = this.address;
       formData.software_token_pin = this.pin;
       this.resetNotifications();
+      this.submitting = true;
       await this.initalizationRequest(formData)
         .then(() => {
           this.$router
@@ -310,6 +313,7 @@ export default (
           this.showError(error);
         })
         .finally(() => {
+          this.submitting = false;
           return this.fetchSystemStatus();
         });
 

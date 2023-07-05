@@ -29,6 +29,8 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.core.AnyOf;
 import org.hamcrest.core.StringContains;
 import org.junit.Rule;
 import org.junit.Test;
@@ -206,8 +208,9 @@ public class OptionalPartsConfBehavior {
         new OptionalPartsConf(confDir);
     }
 
-    private StringContains containsPermissionDenied() {
-        return new StringContains("(Permission denied)");
+    private AnyOf<String> containsPermissionDenied() {
+        return CoreMatchers.anyOf(new StringContains("(Permission denied)"),
+                new StringContains("(Operation not permitted)"));
     }
 
     private void corruptPermissions() throws IOException {

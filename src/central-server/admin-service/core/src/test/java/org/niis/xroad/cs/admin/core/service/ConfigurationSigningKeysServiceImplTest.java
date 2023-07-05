@@ -232,7 +232,7 @@ class ConfigurationSigningKeysServiceImplTest {
         when(signerProxyFacade.generateKey(TOKEN_ID, KEY_LABEL)).thenReturn(createKeyInfo("keyId"));
         when(signerProxyFacade.generateSelfSignedCert(eq(KEY_ID), isA(ClientId.Conf.class),
                 eq(KeyUsageInfo.SIGNING),
-                eq("N/A"),
+                eq("internalSigningKey"),
                 eq(SIGNING_KEY_CERT_NOT_BEFORE),
                 eq(SIGNING_KEY_CERT_NOT_AFTER))
         ).thenReturn(new byte[0]);

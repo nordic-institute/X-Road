@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.33  
+Version: 2.34  
 Doc. ID: IG-CS
 
 ---
@@ -51,6 +51,7 @@ Doc. ID: IG-CS
 | 05.05.2023 | 2.31    | Minor updates                                                                                                                                                                                 | Justas Samuolis    |
 | 23.05.2023 | 2.32    | Backup Encryption Configuration                                                                                                                                                               | Eneli Reimets      |
 | 31.05.2023 | 2.33    | Add Central Server network diagram                                                                                                                                                            | Petteri Kivimäki |
+| 28.06.2023 | 2.34    | Update database properties to the new Spring datasource version                                                                                                                               | Raido Kaju       |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -601,12 +602,10 @@ apt upgrade xroad-centralserver
 `/etc/xroad/db.properties`
 
 ```properties
-username=centerui
-password=<randomly generated password stored is stored here>
-database=centerui_production
-schema=centerui
-host=127.0.0.1
-port=5432
+spring.datasource.username=centerui
+spring.datasource.password=<randomly generated password stored is stored here>
+spring.datasource.hikari.data-source-properties.currentSchema=centerui
+spring.datasource.url=jdbc:postgresql://127.0.0.1:5432/centerui_production
 skip_migrations=false
 ```
 
@@ -728,12 +727,10 @@ Edit `/etc/xroad/db.properties` file and add/update the following connection pro
 The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties).
 
 ```properties
-username=<database_user>
-password=<database_user password>
-database=<database>
-host=<database_host>
-port=<database_port>
-schema=<database_schema>
+spring.datasource.username=<database_user>
+spring.datasource.password=<database_user_password>
+spring.datasource.hikari.data-source-properties.currentSchema=<database_schema>
+spring.datasource.url=jdbc:postgresql://<database_host>:<database_port>/<database>
 skip_migrations=<false by default, set to true to skip migrations>
 ```
 
