@@ -243,11 +243,6 @@ public class SignerStepDefs {
         assertThat(key.getCerts()).hasSize(certCount);
     }
 
-    @And("sign mechanism for key {string} is not null")
-    public void signMechanismForKeyIsNotNull(String keyName) {
-
-    }
-
     @And("sign mechanism for token {string} key {string} is not null")
     public void signMechanismForTokenKeyIsNotNull(String tokenId, String keyName) throws Exception {
         final KeyInfo keyInToken = findKeyInToken(tokenId, keyName);
