@@ -552,8 +552,10 @@ public final class SignerProxy {
         return ((GetHSMOperationalInfoResponse) execute(new GetHSMOperationalInfo())).isOperational();
     }
 
-    public static byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey) throws Exception {
-        final SignCertificateResponse signCertificateResponse = execute(new SignCertificate(keyId, signatureAlgorithmId, subjectName, publicKey));
+    public static byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey)
+            throws Exception {
+        final SignCertificateResponse signCertificateResponse =
+                execute(new SignCertificate(keyId, signatureAlgorithmId, subjectName, publicKey));
         return signCertificateResponse.getCertificateChain();
     }
 

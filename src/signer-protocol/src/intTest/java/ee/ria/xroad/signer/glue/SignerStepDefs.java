@@ -336,9 +336,9 @@ public class SignerStepDefs {
     public void certificateCanBeSignedUsingKeyFromToken(String keyName, String tokenId) throws Exception {
         final KeyInfo key = findKeyInToken(tokenId, keyName);
         byte[] keyBytes = Base64.decode(key.getPublicKey().getBytes());
-        X509EncodedKeySpec X509publicKey = new X509EncodedKeySpec(keyBytes);
+        X509EncodedKeySpec x509publicKey = new X509EncodedKeySpec(keyBytes);
         KeyFactory kf = KeyFactory.getInstance("RSA");
-        PublicKey publicKey = kf.generatePublic(X509publicKey);
+        PublicKey publicKey = kf.generatePublic(x509publicKey);
 
         final byte[] bytes = SignerProxy.signCertificate(key.getId(), SHA256WITHRSA_ID, "CN=cs", publicKey);
         assertThat(bytes).isNotEmpty();
