@@ -4,9 +4,9 @@ Please note that this Ansible collection and the corresponding documentation is 
 
 ## 1. Install Ansible
 
-The playbooks require Ansible 2.4 or later. Using the latest stable version of Ansible is strongly recommended.
+The playbooks require Ansible 7.x (Ansible Core 2.14) or later. Using the latest stable version of Ansible is strongly recommended.
 
-Install Ansible by following instructions at [http://docs.ansible.com/ansible/intro_installation.html](http://docs.ansible.com/ansible/intro_installation.html)
+Install Ansible by following instructions at <https://docs.ansible.com/ansible/latest/installation_guide/index.html>.
 
 ## 2. Configuration options
 
@@ -53,7 +53,7 @@ While it is possible to define different variants for different security servers
 Playbook `xroad_init.yml` uses package repositories for X-Road installations.
 The default repository configurations are:
 
-* for Ubuntu 20 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb focal-current main`
+* for Ubuntu 22.04 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb jammy-current main`
 * for RHEL 8 packages `https://artifactory.niis.org/xroad-release-rpm/rhel/8/current`.
 
 The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for RHEL and Ubuntu.
@@ -109,10 +109,10 @@ For repository configuration, check the detailed instructions in the [repository
 
 Compile your own X-Road, build packages and install X-Road from your own packages using the playbook `xroad_dev.yml`.
 
-First make sure that `docker` and `docker-py` are installed on the compilation machine. Docker is used for building DEB- and RHEL-packages.
+First make sure that `docker` and [Docker SDK for Python](https://pypi.org/project/docker/) are installed on the compilation machine. Docker is used for building DEB- and RHEL-packages.
 
 ```
-ansible-playbook  -i hosts/example_xroad_hosts.txt xroad_dev.yml
+ansible-playbook -i hosts/example_xroad_hosts.txt xroad_dev.yml
 ```
 
 This installs or updates **all X-Road related packages to their latest versions** using **locally built X-Road packages** (as long as `compile_servers` group in ansible inventory has the value `localhost`) for hosts defined in the inventory file `example_xroad_hosts.txt`.
@@ -131,13 +131,13 @@ In short, to deploy made changes with package installation, **a git commit must 
 For fast development, you can compile and update modules separately using the ansible playbook `xroad_dev_partial.yml`. For example, if you make a change to a Java or Javascript file under the module `proxy-ui-api`, use the following command to compile the WAR and deploy it to the existing security server installations.
 
 ```
-ansible-playbook  -i hosts/example_xroad_hosts.txt xroad_dev_partial.yml -e selected_modules=proxy-ui-api
+ansible-playbook -i hosts/example_xroad_hosts.txt xroad_dev_partial.yml -e selected_modules=proxy-ui-api
 ```
 
 It is also possible to compile and update several modules (JARs or WARs). The following command compiles and updates JAR-files for modules `common-util`, `signer` and `proxy-ui-api` to the defined existing server installations.
 
 ```
-ansible-playbook  -i hosts/example_xroad_hosts.txt xroad_dev_partial.yml -e selected_modules=common-util,proxy-ui-api,signer
+ansible-playbook -i hosts/example_xroad_hosts.txt xroad_dev_partial.yml -e selected_modules=common-util,proxy-ui-api,signer
 ```
 
 This updates the **selected modules (JARs or WARs)** to ones compiled locally.
@@ -190,7 +190,7 @@ ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev_partial.yml -e selected_modul
 
 #### Controlling the LXD operating system versions
 
-By default `xroad_dev.yml` creates Ubuntu 20 and CentOS 8 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `centos_releasever` and `ubuntu_releasever`. Out of the box there is support for CentOS 7 and newer, and Ubuntu 18 and newer. Other versions may need additional tweaking of the Ansible scripts.
+By default `xroad_dev.yml` creates Ubuntu 22.04 and CentOS 8 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `centos_releasever` and `ubuntu_releasever`. Out of the box there is support for CentOS 7 and 8, and Ubuntu 20.04 and 22.04. Other versions may need additional tweaking of the Ansible scripts.
 
 ## 5. Test CA, TSA, and OCSP
 

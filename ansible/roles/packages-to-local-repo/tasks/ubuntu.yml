@@ -1,4 +1,10 @@
 ---
+- name: System details
+  debug:
+    msg: "{{ ansible_distribution_version }}"
+  tags:
+    - debug
+
 - name: Clean local repo
   file:
     path: "/xroad/"
@@ -6,10 +12,9 @@
   tags:
     - clean-local-repo
 
-- name: Copy focal DEB packages (Ubuntu)
+- name: Copy {{ ansible_distribution_release }} DEB packages (Ubuntu)
   become: yes
-  copy: src="../src/packages/build/ubuntu20.04/" dest="/xroad/"
-  when: ubuntu_releasever == "focal"
+  copy: src="../src/packages/build/ubuntu{{ ansible_distribution_version }}/" dest="/xroad/"
 
 - name: Add empty Packages to local repo for apt to run
   file:

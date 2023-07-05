@@ -1,7 +1,7 @@
 ---
 common_modules:
   common-util:
-    dir: common-util
+    dir: common/common-util
     build: build
     lib: common-util-1.0.jar
     target: /usr/share/xroad/jlib
