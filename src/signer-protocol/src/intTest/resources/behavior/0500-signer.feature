@@ -60,6 +60,7 @@ Feature: 0500 - Signer
     Then token "0" key "First key" has 1 certificates
     And keyId can be retrieved by cert hash
     And token and keyId can be retrieved by cert hash
+    And certificate can be signed using key "First key" from token "0"
 
   Scenario: Member info
     Then member "cs:test:member-1" has 1 certificate
@@ -76,7 +77,6 @@ Feature: 0500 - Signer
     * check token "0" key "First key" batch signing enabled
 
 #  not covered SignerProxy methods:
-#  String importCert(byte[] certBytes, String initialStatus)
 #  String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) #partly in GenerateSelfSignedCert
 #  AuthKeyInfo getAuthKey(SecurityServerId serverId)                            #requires valid ocsp response
 #  void setOcspResponses(String[] certHashes, String[] base64EncodedResponses)  #requires valid ocsp responses
