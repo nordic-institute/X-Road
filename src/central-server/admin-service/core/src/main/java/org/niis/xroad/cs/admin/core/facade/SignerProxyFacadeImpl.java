@@ -44,6 +44,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import java.security.PublicKey;
 import java.util.Date;
 import java.util.List;
 
@@ -147,6 +148,11 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade {
      */
     public byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) throws Exception {
         return SignerProxy.sign(keyId, signatureAlgorithmId, digest);
+    }
+
+    @Override
+    public byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey) throws Exception {
+        return SignerProxy.signCertificate(keyId, signatureAlgorithmId, subjectName, publicKey);
     }
 
 }

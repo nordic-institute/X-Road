@@ -77,12 +77,15 @@ import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
 import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
 import ee.ria.xroad.signer.protocol.message.Sign;
+import ee.ria.xroad.signer.protocol.message.SignCertificate;
+import ee.ria.xroad.signer.protocol.message.SignCertificateResponse;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
 import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -559,6 +562,11 @@ public final class SignerProxy {
 
     public static boolean isHSMOperational() throws Exception {
         return ((GetHSMOperationalInfoResponse) execute(new GetHSMOperationalInfo())).isOperational();
+    }
+
+    public static byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey) throws Exception {
+        final SignCertificateResponse signCertificateResponse = execute(new SignCertificate(keyId, signatureAlgorithmId, subjectName, publicKey));
+        return signCertificateResponse.getCertificateChain();
     }
 
     private static <T> T execute(Object message) throws Exception {

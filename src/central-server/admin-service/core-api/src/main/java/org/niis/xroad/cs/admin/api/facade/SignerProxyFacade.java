@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import java.security.PublicKey;
 import java.util.Date;
 import java.util.List;
 
@@ -90,5 +91,7 @@ public interface SignerProxyFacade {
      * {@link SignerProxy#sign(String, String, byte[])}
      */
     byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) throws Exception;
+
+    byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey) throws Exception;
 
 }
